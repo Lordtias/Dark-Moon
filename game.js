@@ -175,10 +175,10 @@ function dibujarMapa() {
 
 // Dibuja el personaje principal.
 function dibujarJugador() {
-    // Mostramos una X si el jugador murió.
+    // Mostramos una @ si el jugador murió.
     const simbolo = player.estaVivo
         ? player.simbolo
-        : "@";
+        : "X";
 
     dibujarEntidad(
         player,

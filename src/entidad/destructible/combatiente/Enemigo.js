@@ -18,7 +18,7 @@ export class Enemigo extends Combatiente {
         atributoAtaque,
         simbolo = "E",
         experienciaOtorgada = 0
-    }) {
+    } = {}) {
         // Enviamos a Combatiente toda la información
         // que comparten el jugador y los enemigos.
         super({

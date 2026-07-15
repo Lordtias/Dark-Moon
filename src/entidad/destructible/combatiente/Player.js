@@ -32,7 +32,7 @@ export class Player extends Combatiente {
         bonificadorArmadura = 0,
         clasePersonaje = "Aventurero",
         experiencia = 0
-    }) {
+    } = {}) {
         // Llamamos al constructor de Combatiente.
         //
         // Combatiente se encargará de crear toda la parte común:

@@ -7,7 +7,7 @@ export class Barril extends Destructible {
     constructor({
         x,
         y
-    }) {
+    } = {}) {
         // Definimos aquí las características comunes
         // de todos los barriles.
         super({

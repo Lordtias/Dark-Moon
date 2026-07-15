@@ -1,0 +1,43 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #000000;
+    color: white;
+
+    font-family: monospace;
+}
+
+main {
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+canvas {
+    display: block;
+
+    border: 3px solid #7586ff;
+    background-color: #171b2e;
+
+    image-rendering: pixelated;
+}
+
+#status {
+    font-size: 18px;
+}
+
+/* Área donde mostramos el resultado de los ataques. */
+#combatLog {
+    min-height: 24px;
+    max-width: 640px;
+
+    color: #ffe66d;
+    font-size: 16px;
+}

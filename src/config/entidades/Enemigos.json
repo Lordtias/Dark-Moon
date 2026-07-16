@@ -1,0 +1,67 @@
+{
+  "rata": {
+    "nombre": "Rata",
+    "genero": "femenino",
+    "simbolo": "r",
+
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 10
+    },
+
+    "baseNivel1": {
+      "vidaMaxima": 5,
+      "dadoDanio": 4,
+      "atributoAtaque": "fuerza",
+      "bonificadorArmadura": 0,
+      "experienciaOtorgada": 10,
+
+      "atributos": {
+        "fuerza": 10,
+        "destreza": 14,
+        "constitucion": 8,
+        "inteligencia": 2,
+        "sabiduria": 10,
+        "carisma": 4
+      }
+    },
+
+    "escalado": {
+      "vidaMaxima": {
+        "aumento": 2,
+        "cadaNiveles": 1
+      },
+
+      "experienciaOtorgada": {
+        "aumento": 4,
+        "cadaNiveles": 1
+      },
+
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      }
+    },
+
+    "hitos": [
+      {
+        "nivel": 5,
+        "cambios": {
+          "dadoDanio": 6
+        }
+      }
+    ]
+  }
+}

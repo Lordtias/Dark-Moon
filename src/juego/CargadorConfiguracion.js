@@ -1,35 +1,92 @@
-// Ruta del archivo JSON que contiene los valores
-// configurables para la creación del personaje.
+// Rutas de los archivos JSON utilizados por el juego.
 const RUTA_CONFIGURACION_PERSONAJE =
-  "./src/config/configuracionPersonaje.json";
+  "./src/config/ConfiguracionPersonaje.json";
+
+const RUTA_PLANTILLAS_ENEMIGOS =
+  "./src/config/entidades/Enemigos.json";
+
+const RUTA_VARIANTES_ENEMIGOS =
+  "./src/config/entidades/VariantesEnemigos.json";
 
 /**
- * Lee el archivo JSON que contiene la configuración
- * de atributos y profesiones del personaje.
+ * Lee un archivo JSON y devuelve su contenido
+ * convertido en un objeto de JavaScript.
  *
- * Como fetch trabaja de forma asincrónica, esta función
- * devuelve una promesa con la configuración cargada.
+ * Esta función es interna porque todas las configuraciones
+ * deben cargarse y validar sus errores de la misma manera.
  *
- * @returns {Promise<Object>} Configuración del personaje.
+ * @param {string} ruta Ubicación del archivo JSON.
+ * @param {string} descripcion Nombre utilizado en los errores.
+ * @returns {Promise<Object>} Contenido del archivo JSON.
  */
-export async function cargarConfiguracionPersonaje() {
-  // Solicitamos al navegador que lea el archivo JSON.
-  const respuesta = await fetch(
-    RUTA_CONFIGURACION_PERSONAJE
-  );
+async function cargarArchivoJson(
+  ruta,
+  descripcion
+) {
+  // Solicitamos el archivo al servidor local.
+  const respuesta = await fetch(ruta);
 
-  // Si el archivo no existe o no pudo cargarse,
-  // detenemos el proceso con un mensaje explicativo.
+  // Informamos un error claro cuando el archivo
+  // no existe o no puede ser leído.
   if (!respuesta.ok) {
     throw new Error(
-      "No se pudo cargar la configuración del personaje. " +
+      `No se pudo cargar ${descripcion}. ` +
       `Código HTTP: ${respuesta.status}`
     );
   }
 
-  // Convertimos el texto del archivo JSON
-  // en un objeto que JavaScript puede utilizar.
-  const configuracion = await respuesta.json();
+  try {
+    // Convertimos el contenido JSON en un objeto.
+    return await respuesta.json();
+  } catch (error) {
+    // Este error suele aparecer cuando falta una coma,
+    // una llave o existe algún otro problema de sintaxis.
+    throw new Error(
+      `El archivo de ${descripcion} no contiene ` +
+      `un JSON válido. ${error.message}`
+    );
+  }
+}
 
-  return configuracion;
+/**
+ * Carga la configuración utilizada durante
+ * la creación del personaje.
+ *
+ * @returns {Promise<Object>} Configuración del personaje.
+ */
+export function cargarConfiguracionPersonaje() {
+  return cargarArchivoJson(
+    RUTA_CONFIGURACION_PERSONAJE,
+    "la configuración del personaje"
+  );
+}
+
+/**
+ * Carga conjuntamente las plantillas y las variantes
+ * disponibles para crear enemigos.
+ *
+ * Promise.all permite leer ambos archivos al mismo tiempo.
+ *
+ * @returns {Promise<Object>} Plantillas y variantes.
+ */
+export async function cargarConfiguracionEnemigos() {
+  const [
+    plantillas,
+    variantes
+  ] = await Promise.all([
+    cargarArchivoJson(
+      RUTA_PLANTILLAS_ENEMIGOS,
+      "las plantillas de enemigos"
+    ),
+
+    cargarArchivoJson(
+      RUTA_VARIANTES_ENEMIGOS,
+      "las variantes de enemigos"
+    )
+  ]);
+
+  return {
+    plantillas,
+    variantes
+  };
 }

@@ -19,13 +19,16 @@ import {
 
 // Importamos el cargador del archivo JSON.
 import {
-  cargarConfiguracionPersonaje
+  cargarConfiguracionPersonaje,
+  cargarConfiguracionEnemigos
 } from "./src/juego/CargadorConfiguracion.js";
 
 // Importamos la pantalla de creación.
 import {
   MenuCreacionPersonaje
 } from "./src/interfaz/MenuCreacionPersonaje.js";
+
+
 
 // =====================================================
 // REFERENCIAS A PANTALLAS Y ELEMENTOS DEL DOM
@@ -140,13 +143,18 @@ function configurarEventosMenuPrincipal() {
 }
 
 /**
- * Crea e inicia una partida utilizando
- * el personaje terminado dentro del menú.
+ * Crea e inicia una partida utilizando el personaje
+ * configurado y las plantillas de enemigos cargadas.
  *
- * @param {Object} datosPersonaje Información seleccionada
+ * @param {Object} datosPersonaje Datos seleccionados
  * durante la creación del personaje.
+ * @param {Object} configuracionEnemigos Plantillas
+ * y variantes cargadas desde JSON.
  */
-function iniciarPartida(datosPersonaje) {
+function iniciarPartida(
+  datosPersonaje,
+  configuracionEnemigos
+) {
   // Evitamos crear más de una partida.
   if (partidaIniciada) {
     return;
@@ -154,18 +162,20 @@ function iniciarPartida(datosPersonaje) {
 
   partidaIniciada = true;
 
-  // Ocultamos la pantalla de creación.
+  // Ocultamos la creación del personaje.
   pantallaCreacion.classList.add("oculto");
 
-  // Mostramos el canvas y la información del juego.
+  // Mostramos la pantalla de juego.
   contenedorJuego.classList.remove("oculto");
 
-  // Creamos el mapa, los objetivos y el jugador
-  // utilizando los datos seleccionados en el menú.
+  // Creamos la configuración completa de la partida.
   const configuracionInicial =
     crearConfiguracionInicial(
-      datosPersonaje
+      datosPersonaje,
+      configuracionEnemigos
     );
+
+  // El resto de iniciarPartida continúa igual.
   
   // Calculamos el tamaño real que necesita el canvas
   // en función de la cantidad de columnas y filas del mapa.
@@ -288,22 +298,24 @@ async function iniciarAplicacion() {
   try {
     // Conectamos los eventos del menú principal.
     configurarEventosMenuPrincipal();
-    
+
     // Leemos profesiones, atributos, límites y pesos.
     const configuracionPersonaje =
       await cargarConfiguracionPersonaje();
+    
+      const configuracionEnemigos =
+      await cargarConfiguracionEnemigos();
 
     // Construimos el menú utilizando la configuración.
     new MenuCreacionPersonaje({
       configuracion:
         configuracionPersonaje,
 
-      // MenuCreacionPersonaje entrega aquí el objeto
-      // con el nombre, profesión y atributos elegidos.
       alConfirmar: (datosPersonaje) => {
-          iniciarPartida(
-              datosPersonaje
-          );
+        iniciarPartida(
+          datosPersonaje,
+          configuracionEnemigos
+        );
       }
     });
 

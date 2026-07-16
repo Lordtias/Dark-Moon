@@ -3,8 +3,13 @@
 import { Player } from
     "../entidad/destructible/combatiente/Player.js";
 
-import { Enemigo } from
-    "../entidad/destructible/combatiente/Enemigo.js";
+// Importamos la fábrica encargada de crear enemigos
+// a partir de sus plantillas, niveles y variantes.
+import {
+  crearEnemigo
+} from "./FabricaEnemigos.js";
+
+
 
 import { Barril } from
     "../entidad/destructible/Barril.js";
@@ -92,74 +97,81 @@ function crearJugadorInicial(datosPersonaje) {
   });
 }
 
-// Crea todos los enemigos y objetos destructibles
-// con los que comienza una partida nueva.
-function crearObjetivosIniciales() {
-    // Creamos una rata utilizando la clase
-    // genérica Enemigo.
-    const rata = new Enemigo({
-        nombre: "Rata",
-        nivel: 1,
-        x: 10,
-        y: 4,
+/**
+ * Crea los enemigos y objetos presentes
+ * cuando comienza una partida nueva.
+ *
+ * @param {Object} configuracionEnemigos Plantillas y variantes
+ * de enemigos cargadas desde los archivos JSON.
+ * @returns {Array<Object>} Enemigos y objetos iniciales.
+ */
+function crearObjetivosIniciales(
+  configuracionEnemigos
+) {
+  // La rata ya no contiene sus estadísticas escritas aquí.
+  //
+  // La fábrica buscará la plantilla "rata" dentro de
+  // enemigos.json y calculará sus valores según el nivel.
+  const rata = crearEnemigo({
+    configuracionEnemigos,
+    idPlantilla: "rata",
 
-        vidaMaxima: 5,
-        dadoDanio: 4,
-        atributoAtaque: "fuerza",
+    // Por ahora conservamos una rata normal de nivel 1
+    // para no modificar la dificultad de la partida.
+    nivel: 1,
+    idVariante: null,
 
-        simbolo: "r",
-        experienciaOtorgada: 10,
+    // Posición inicial dentro del mapa.
+    x: 10,
+    y: 4
+  });
 
-        atributos: {
-            fuerza: 10,
-            destreza: 14,
-            constitucion: 8,
-            inteligencia: 2,
-            sabiduria: 10,
-            carisma: 4
-        }
-    });
+  // El barril todavía se crea directamente.
+  // Lo trasladaremos a su propia plantilla más adelante.
+  const barril = new Barril({
+    x: 6,
+    y: 4
+  });
 
-    // Creamos un barril destructible.
-    //
-    // Puede recibir daño, pero no puede atacar.
-    const barril = new Barril({
-        x: 6,
-        y: 4
-    });
-
-    // Todos los elementos atacables se guardan
-    // dentro de una misma lista.
-    return [
-        rata,
-        barril
-    ];
+  return [
+    rata,
+    barril
+  ];
 }
 
 /**
- * Crea todos los elementos necesarios para comenzar
- * una partida nueva.
+ * Crea todos los elementos necesarios
+ * para comenzar una partida nueva.
  *
- * @param {Object} datosPersonaje Datos seleccionados
- * dentro de la creación del personaje.
+ * @param {Object} datosPersonaje Datos elegidos
+ * en la creación del personaje.
+ * @param {Object} configuracionEnemigos Plantillas
+ * y variantes cargadas desde JSON.
  * @returns {Object} Configuración completa de la partida.
  */
 export function crearConfiguracionInicial(
-  datosPersonaje
+  datosPersonaje,
+  configuracionEnemigos
 ) {
   return {
-    // Creamos una copia del array para evitar que
-    // una partida modifique el mapa original.
-    map: [...MAPA_INICIAL],
+    // Creamos una copia del mapa inicial para evitar
+    // modificar accidentalmente el array original.
+    map: [
+      ...MAPA_INICIAL
+    ],
 
-    // Creamos al jugador utilizando el nombre,
-    // profesión y atributos elegidos en el menú.
-    player: crearJugadorInicial(
-      datosPersonaje
-    ),
+    // Creamos al jugador con la información
+    // seleccionada dentro del menú.
+    player:
+      crearJugadorInicial(
+        datosPersonaje
+      ),
 
-    // Los enemigos y objetos todavía utilizan
-    // sus configuraciones predeterminadas.
-    objetivos: crearObjetivosIniciales()
+    // Creamos enemigos mediante sus plantillas JSON
+    // y los objetos mediante sus clases actuales.
+    objetivos:
+      crearObjetivosIniciales(
+        configuracionEnemigos
+      )
   };
 }

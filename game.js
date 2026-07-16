@@ -27,14 +27,41 @@ import {
   MenuCreacionPersonaje
 } from "./src/interfaz/MenuCreacionPersonaje.js";
 
-// Obtenemos las dos pantallas principales.
+// =====================================================
+// REFERENCIAS A PANTALLAS Y ELEMENTOS DEL DOM
+// =====================================================
+
+// Pantalla principal del menú de inicio.
+const pantallaMenuPrincipal =
+  document.getElementById("mainMenu");
+
+// Contenedor de botones del menú principal.
+const contenedorBotonesMenuPrincipal =
+  document.getElementById("mainMenuButtons");
+
+// Panel simple de configuración.
+const panelConfiguracionMenu =
+  document.getElementById("settingsPlaceholder");
+
+// Botones del menú principal.
+const botonNuevoJuego =
+  document.getElementById("newGameButton");
+
+const botonConfiguracion =
+  document.getElementById("settingsButton");
+
+const botonVolverMenuPrincipal =
+  document.getElementById("backToMainMenuButton");
+
+// Pantalla de creación del personaje.
 const pantallaCreacion =
   document.getElementById("characterCreation");
 
+// Contenedor del juego.
 const contenedorJuego =
   document.getElementById("gameContainer");
 
-// Obtenemos los elementos utilizados por el renderizador.
+// Elementos utilizados por el renderizador.
 const canvas =
   document.getElementById("gameCanvas");
 
@@ -51,6 +78,66 @@ let renderizador = null;
 
 // Evita que una partida pueda iniciarse dos veces.
 let partidaIniciada = false;
+
+/**
+ * Muestra la pantalla de creación del personaje
+ * y oculta el menú principal.
+ */
+function mostrarCreacionPersonaje() {
+  pantallaMenuPrincipal.classList.add("oculto");
+  pantallaCreacion.classList.remove("oculto");
+
+  // Nos aseguramos de que el panel de configuración
+  // quede cerrado para futuros regresos al menú.
+  panelConfiguracionMenu.classList.add("oculto");
+  contenedorBotonesMenuPrincipal.classList.remove("oculto");
+}
+
+/**
+ * Muestra el panel de configuración simple.
+ */
+function mostrarPanelConfiguracion() {
+  contenedorBotonesMenuPrincipal.classList.add("oculto");
+  panelConfiguracionMenu.classList.remove("oculto");
+}
+
+/**
+ * Vuelve desde la sección de configuración
+ * a los botones principales del menú.
+ */
+function volverAlMenuPrincipal() {
+  panelConfiguracionMenu.classList.add("oculto");
+  contenedorBotonesMenuPrincipal.classList.remove("oculto");
+}
+
+/**
+ * Conecta los eventos de la pantalla de inicio.
+ */
+function configurarEventosMenuPrincipal() {
+  // Ir a la creación del personaje.
+  botonNuevoJuego.addEventListener(
+    "click",
+    () => {
+      mostrarCreacionPersonaje();
+    }
+  );
+
+  // Mostrar panel de configuración.
+  botonConfiguracion.addEventListener(
+    "click",
+    () => {
+      mostrarPanelConfiguracion();
+    }
+  );
+
+  // Volver desde configuración.
+  botonVolverMenuPrincipal.addEventListener(
+    "click",
+    () => {
+      volverAlMenuPrincipal();
+    }
+  );
+}
 
 /**
  * Crea e inicia una partida utilizando
@@ -199,6 +286,9 @@ function manejarTecla(event) {
  */
 async function iniciarAplicacion() {
   try {
+    // Conectamos los eventos del menú principal.
+    configurarEventosMenuPrincipal();
+    
     // Leemos profesiones, atributos, límites y pesos.
     const configuracionPersonaje =
       await cargarConfiguracionPersonaje();

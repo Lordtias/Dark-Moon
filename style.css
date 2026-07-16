@@ -197,11 +197,6 @@ button:disabled {
   color: #ff9494;
 }
 
-/* Esta clase permite ocultar el menú o el juego. */
-.oculto {
-  display: none;
-}
-
 /* Apariencia del canvas de la partida. */
 canvas {
   display: block;
@@ -246,4 +241,144 @@ canvas {
     grid-template-columns: 1fr 38px 40px 38px;
     gap: 5px;
   }
+}
+
+/* =========================================================
+   PANTALLA DE INICIO
+   ========================================================= */
+
+/* Le damos un poco más de ancho máximo al contenedor
+   principal para lucir mejor la imagen de fondo. */
+main {
+  width: min(1100px, 100%);
+}
+
+/* Pantalla principal del menú de inicio. */
+.pantalla-menu-principal {
+  width: 100%;
+  min-height: 720px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border: 3px solid #7586ff;
+  border-radius: 8px;
+  overflow: hidden;
+
+  /* La primera capa oscurece la imagen para que
+     el texto y los botones se lean mejor. */
+  background-image:
+    linear-gradient(
+      rgba(5, 8, 20, 0.55),
+      rgba(5, 8, 20, 0.8)
+    ),
+    url("./assets/images/menu-background.png");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Capa interior del menú. */
+.menu-principal-capa {
+  width: 100%;
+  min-height: 720px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px 24px;
+  text-align: center;
+}
+
+/* Título principal del juego. */
+.titulo-menu-principal {
+  margin-bottom: 12px;
+  font-size: 56px;
+  color: #eef1ff;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.75);
+}
+
+/* Texto secundario del menú principal. */
+.subtitulo-menu-principal {
+  margin-top: 0;
+  margin-bottom: 28px;
+  font-size: 18px;
+  color: #d8dcff;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Contenedor de botones del menú. */
+.acciones-menu-principal {
+  width: min(320px, 100%);
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Estilo específico de los botones del menú. */
+.boton-menu-principal {
+  width: 100%;
+  padding: 14px 18px;
+
+  font-size: 20px;
+  font-weight: bold;
+
+  border: 2px solid #aeb8ff;
+  border-radius: 6px;
+
+  background-color: rgba(23, 27, 46, 0.82);
+  color: #ffffff;
+}
+
+/* Hover del menú principal. */
+.boton-menu-principal:hover:not(:disabled) {
+  background-color: rgba(53, 65, 120, 0.92);
+}
+
+/* Panel simple de configuración. */
+.panel-configuracion-menu {
+  width: min(420px, 100%);
+  padding: 24px;
+
+  border: 2px solid #7586ff;
+  border-radius: 8px;
+
+  background-color: rgba(12, 16, 32, 0.88);
+  color: #ffffff;
+}
+
+.panel-configuracion-menu h2 {
+  margin-top: 0;
+}
+
+/* Ajustes para móvil. */
+@media (max-width: 520px) {
+  .pantalla-menu-principal,
+  .menu-principal-capa {
+    min-height: 620px;
+  }
+
+  .titulo-menu-principal {
+    font-size: 40px;
+  }
+
+  .subtitulo-menu-principal {
+    font-size: 16px;
+  }
+
+  .boton-menu-principal {
+    font-size: 18px;
+  }
+}
+
+/* Esta regla debe quedar al final del archivo para que
+   pueda ocultar cualquier pantalla, aunque tenga otro
+   valor de display configurado. */
+.oculto {
+  display: none !important;
 }

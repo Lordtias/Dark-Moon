@@ -18,120 +18,161 @@
 
 <body>
   <main>
-    <!-- Pantalla de creación del personaje.
-         Será lo primero que verá el jugador. -->
-    <section
-      id="characterCreation"
-      class="panel-creacion"
-    >
-      <h1>Dark Moon</h1>
-      <h2>Creación del personaje</h2>
+  <!-- Pantalla de inicio principal -->
+  <section
+    id="mainMenu"
+    class="pantalla-menu-principal"
+  >
+    <div class="menu-principal-capa">
+      <h1 class="titulo-menu-principal">
+        Dark Moon
+      </h1>
 
-      <!-- Nombre del personaje. -->
-      <div class="campo-formulario">
-        <label for="playerName">
-          Nombre
-        </label>
-
-        <input
-          id="playerName"
-          type="text"
-          value="Aventurero"
-          maxlength="20"
-          autocomplete="off"
-        >
-      </div>
-
-      <!-- Selector de profesión.
-           Las opciones se cargarán desde el JSON. -->
-      <div class="campo-formulario">
-        <label for="professionSelect">
-          Profesión
-        </label>
-
-        <select id="professionSelect">
-          <option>Cargando profesiones...</option>
-        </select>
-      </div>
-
-      <h3>Atributos</h3>
-
-      <!-- JavaScript generará aquí las filas
-           de Fuerza, Destreza, Constitución, etc. -->
-      <div
-        id="attributesContainer"
-        class="contenedor-atributos"
-      ></div>
-
-      <!-- Contador de puntos que todavía
-           quedan disponibles para distribuir. -->
-      <p class="puntos-disponibles">
-        Puntos disponibles:
-        <span id="pointsRemaining">0</span>
+      <p class="subtitulo-menu-principal">
+         ---
       </p>
 
-      <div class="acciones-atributos">
-        <!-- Devuelve todos los atributos
-             a su valor inicial. -->
+      <!-- Botones principales del menú -->
+      <div
+        id="mainMenuButtons"
+        class="acciones-menu-principal"
+      >
         <button
-          id="resetAttributesButton"
+          id="newGameButton"
+          class="boton-menu-principal"
           type="button"
         >
-          Reiniciar atributos
+          Nuevo Juego
         </button>
 
-        <!-- Distribuye los puntos aleatoriamente
-             según la profesión seleccionada. -->
         <button
-          id="randomAttributesButton"
+          id="settingsButton"
+          class="boton-menu-principal"
           type="button"
         >
-          Distribuir según profesión
+          Configuración
         </button>
       </div>
 
-      <!-- El botón permanecerá deshabilitado
-           mientras todavía queden puntos. -->
-      <button
-        id="startGameButton"
-        class="boton-principal"
-        type="button"
-        disabled
+      <!-- Panel simple de configuración -->
+      <div
+        id="settingsPlaceholder"
+        class="panel-configuracion-menu oculto"
       >
-        Comenzar aventura
+        <h2>Configuración</h2>
+
+        <p>
+          Esta sección todavía no está implementada.
+        </p>
+
+        <button
+          id="backToMainMenuButton"
+          type="button"
+        >
+          Volver
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pantalla de creación del personaje -->
+  <section
+    id="characterCreation"
+    class="panel-creacion oculto"
+  >
+    <h1>Dark Moon</h1>
+    <h2>Creación del personaje</h2>
+
+    <div class="campo-formulario">
+      <label for="playerName">
+        Nombre
+      </label>
+
+      <input
+        id="playerName"
+        type="text"
+        value="Aventurero"
+        maxlength="20"
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="campo-formulario">
+      <label for="professionSelect">
+        Profesión
+      </label>
+
+      <select id="professionSelect">
+        <option>Cargando profesiones...</option>
+      </select>
+    </div>
+
+    <h3>Atributos</h3>
+
+    <div
+      id="attributesContainer"
+      class="contenedor-atributos"
+    ></div>
+
+    <p class="puntos-disponibles">
+      Puntos disponibles:
+      <span id="pointsRemaining">0</span>
+    </p>
+
+    <div class="acciones-atributos">
+      <button
+        id="resetAttributesButton"
+        type="button"
+      >
+        Reiniciar atributos
       </button>
 
-      <!-- Área para mostrar validaciones o errores. -->
-      <p
-        id="creationMessage"
-        class="mensaje-creacion"
-        aria-live="polite"
-      ></p>
-    </section>
+      <button
+        id="randomAttributesButton"
+        type="button"
+      >
+        Distribuir según profesión
+      </button>
+    </div>
 
-    <!-- Contenedor del juego.
-         Comienza oculto hasta terminar la creación. -->
-    <section
-      id="gameContainer"
-      class="oculto"
+    <button
+      id="startGameButton"
+      class="boton-principal"
+      type="button"
+      disabled
     >
-      <h1>Dark Moon</h1>
+      Comenzar aventura
+    </button>
 
-      <p>
-        Movimiento: flechas o WASD
-      </p>
+    <p
+      id="creationMessage"
+      class="mensaje-creacion"
+      aria-live="polite"
+    ></p>
+  </section>
 
-      <p id="status">
-        Cargando partida...
-      </p>
+  <!-- Contenedor del juego -->
+  <section
+    id="gameContainer"
+    class="oculto"
+  >
+    <h1>Dark Moon</h1>
 
-      <canvas id="gameCanvas"></canvas>
+    <p>
+      Movimiento: flechas o WASD
+    </p>
 
-      <p id="combatLog">
-        Acercate a la rata o al barril para atacarlos.
-      </p>
-    </section>
-  </main>
+    <p id="status">
+      Cargando partida...
+    </p>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <p id="combatLog">
+      Acercate a la rata o al barril para atacarlos.
+    </p>
+  </section>
+</main>
 
   <!-- game.js es un módulo porque utiliza
        importaciones y exportaciones. -->

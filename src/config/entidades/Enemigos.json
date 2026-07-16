@@ -9,6 +9,14 @@
       "maximo": 10
     },
 
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 5,
+      "margenPersecucion": 3,
+      "rangoAtaque": 1,
+      "movimientosPorTurno": 1
+    },
+
     "baseNivel1": {
       "vidaMaxima": 5,
       "dadoDanio": 4,
@@ -51,6 +59,13 @@
         "constitucion": {
           "aumento": 1,
           "cadaNiveles": 2
+        }
+      },
+
+      "ia": {
+        "percepcion": {
+          "aumento": 1,
+          "cadaNiveles": 3
         }
       }
     },

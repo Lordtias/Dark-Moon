@@ -5,6 +5,12 @@
 import { Enemigo } from
     "../entidad/destructible/combatiente/Enemigo.js";
 
+// Importamos el sistema que procesa las decisiones
+// y acciones de los enemigos después del jugador.
+import {
+  procesarFaseEnemigos
+} from "./SistemaTurnosEnemigos.js";
+
 // Juego administra el estado y las reglas generales
 // de una partida.
 //
@@ -104,69 +110,68 @@ export class Juego {
     //
     // Devuelve un texto con todos los resultados
     // producidos durante el combate.
-    atacarObjetivo(
-        objetivo,
-        posicionX,
-        posicionY
-    ) {
-        // El jugador utiliza el método atacar()
-        // heredado desde Combatiente.
-        const resultadoJugador =
-            this.player.atacar(objetivo);
+    /**
+ * Procesa el ataque del jugador contra un objetivo.
+ *
+ * El contraataque ya no ocurre aquí.
+ * Los enemigos actuarán después durante su propia fase.
+ *
+ * @param {Object} objetivo Entidad atacada.
+ * @param {number} posicionX Posición horizontal del objetivo.
+ * @param {number} posicionY Posición vertical del objetivo.
+ * @returns {string} Mensajes producidos por el ataque.
+ */
+atacarObjetivo(
+  objetivo,
+  posicionX,
+  posicionY
+) {
+  // Cualquier intento de ataque provoca al enemigo,
+  // incluso cuando la tirada finalmente falla.
+  //
+  // Esto permite activar enemigos configurados
+  // con agresividad reactiva.
+  if (objetivo instanceof Enemigo) {
+    objetivo.activarAgresividad();
+  }
 
-        // Guardamos todos los mensajes producidos
-        // durante esta acción.
-        const mensajes = [
-            resultadoJugador.mensaje
-        ];
+  // El jugador realiza el ataque normalmente.
+  const resultadoJugador =
+    this.player.atacar(objetivo);
 
-        // Si el objetivo fue destruido,
-        // procesamos las consecuencias.
-        if (objetivo.estaDestruido) {
-            // Los enemigos entregan experiencia.
-            if (objetivo instanceof Enemigo) {
-                this.player.experiencia +=
-                    objetivo.experienciaOtorgada;
+  const mensajes = [
+    resultadoJugador.mensaje
+  ];
 
-                mensajes.push(
-                    `${objetivo.nombre} fue derrotada.` +
-                    ` Ganaste ${objetivo.experienciaOtorgada}` +
-                    " puntos de experiencia."
-                );
-            } else {
-                // Los objetos destructibles
-                // no entregan experiencia.
-                mensajes.push(
-                    `${objetivo.nombre} fue destruido.`
-                );
-            }
+  // Si el objetivo fue destruido,
+  // procesamos sus consecuencias.
+  if (objetivo.estaDestruido) {
+    if (objetivo instanceof Enemigo) {
+      // Otorgamos la experiencia configurada
+      // en la plantilla del enemigo.
+      this.player.experiencia +=
+        objetivo.experienciaOtorgada;
 
-            // Cuando el objetivo desaparece,
-            // el jugador ocupa su casilla.
-            this.player.x = posicionX;
-            this.player.y = posicionY;
-        } else if (objetivo instanceof Enemigo) {
-            // Si el enemigo sobrevivió,
-            // realiza inmediatamente un contraataque.
-            const resultadoEnemigo =
-                objetivo.atacar(this.player);
-
-            mensajes.push(
-                resultadoEnemigo.mensaje
-            );
-
-            // Informamos cuando el jugador muere.
-            if (!this.player.estaVivo) {
-                mensajes.push(
-                    "Has muerto. Recargá la página para reiniciar."
-                );
-            }
-        }
-
-        // Unimos todos los mensajes producidos
-        // durante el ataque.
-        return mensajes.join(" ");
+      mensajes.push(
+        `${objetivo.nombre} fue derrotado. ` +
+        `Ganaste ${objetivo.experienciaOtorgada} ` +
+        "puntos de experiencia."
+      );
+    } else {
+      mensajes.push(
+        `${objetivo.nombre} fue destruido.`
+      );
     }
+
+    // El jugador avanza a la casilla que quedó libre.
+    this.player.x = posicionX;
+    this.player.y = posicionY;
+  }
+
+  // El enemigo sobreviviente no contraataca aquí.
+  // Lo hará durante procesarFaseEnemigos().
+  return mensajes.join(" ");
+}
 
     // Intenta mover al jugador una casilla.
     //
@@ -234,9 +239,29 @@ export class Juego {
         // Moverse o atacar consume un turno.
         this.turno++;
 
-        return {
+        // Después de la acción del jugador,
+        // comienza la fase de los enemigos.
+        const resultadoEnemigos =
+        procesarFaseEnemigos({
+            objetivos: this.objetivos,
+            jugador: this.player,
+            mapa: this.map
+        });
+
+        // Si la fase enemiga produjo mensajes,
+        // los agregamos al resultado de la acción.
+        if (resultadoEnemigos.mensaje !== "") {
+        mensaje = [
             mensaje,
-            turnoConsumido: true
+            resultadoEnemigos.mensaje
+        ]
+            .filter(Boolean)
+            .join(" ");
+        }
+
+        return {
+        mensaje,
+        turnoConsumido: true
         };
     }
 }

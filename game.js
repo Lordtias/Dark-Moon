@@ -17,10 +17,16 @@ import {
   Renderizador
 } from "./src/interfaz/Renderizador.js";
 
+// Panel especializado en mostrar los datos del jugador.
+import { 
+  PanelPersonaje 
+} from "./src/interfaz/PanelPersonaje.js";
+
 // Importamos el cargador del archivo JSON.
 import {
   cargarConfiguracionPersonaje,
-  cargarConfiguracionEnemigos
+  cargarConfiguracionEnemigos,
+  cargarConfiguracionObjetos
 } from "./src/juego/CargadorConfiguracion.js";
 
 // Importamos la pantalla de creación.
@@ -28,6 +34,13 @@ import {
   MenuCreacionPersonaje
 } from "./src/interfaz/MenuCreacionPersonaje.js";
 
+import {
+  PanelInventario
+} from "./src/interfaz/PanelInventario.js";
+
+import {
+  PanelEquipamiento
+} from "./src/interfaz/PanelEquipamiento.js";
 
 
 // =====================================================
@@ -68,8 +81,15 @@ const contenedorJuego =
 const canvas =
   document.getElementById("gameCanvas");
 
-const statusText =
-  document.getElementById("status");
+// Creamos el componente visual del personaje
+// utilizando su contenedor principal.
+const panelPersonaje =
+    new PanelPersonaje({
+        contenedor:
+            document.getElementById(
+                "panelPersonaje"
+            )
+    });
 
 const combatLogText =
   document.getElementById("combatLog");
@@ -142,19 +162,12 @@ function configurarEventosMenuPrincipal() {
   );
 }
 
-/**
- * Crea e inicia una partida utilizando el personaje
- * configurado y las plantillas de enemigos cargadas.
- *
- * @param {Object} datosPersonaje Datos seleccionados
- * durante la creación del personaje.
- * @param {Object} configuracionEnemigos Plantillas
- * y variantes cargadas desde JSON.
- */
-function iniciarPartida(
+function iniciarPartida({
   datosPersonaje,
-  configuracionEnemigos
-) {
+  configuracionPersonaje,
+  configuracionEnemigos,
+  configuracionObjetos
+}) {
   // Evitamos crear más de una partida.
   if (partidaIniciada) {
     return;
@@ -170,10 +183,12 @@ function iniciarPartida(
 
   // Creamos la configuración completa de la partida.
   const configuracionInicial =
-    crearConfiguracionInicial(
+    crearConfiguracionInicial({
       datosPersonaje,
-      configuracionEnemigos
-    );
+      configuracionPersonaje,
+      configuracionEnemigos,
+      configuracionObjetos
+    });
 
   // El resto de iniciarPartida continúa igual.
   
@@ -201,14 +216,40 @@ function iniciarPartida(
   juego =
     new Juego(configuracionInicial);
 
+    // Panel que muestra los objetos almacenados.
+    const panelInventario =
+    new PanelInventario({
+        cuadricula:
+        document.getElementById(
+            "cuadriculaInventario"
+        ),
+
+        mensajeVacio:
+        document.getElementById(
+            "mensajeInventario"
+        )
+    });
+
+    // Panel que muestra los objetos colocados
+    // en las ranuras del personaje.
+    const panelEquipamiento =
+    new PanelEquipamiento({
+        cuadricula:
+        document.getElementById(
+            "cuadriculaEquipamiento"
+        )
+    });
+
   // Creamos el objeto encargado de representar
   // visualmente el estado del juego.
   renderizador =
     new Renderizador({
-      canvas,
-      statusText,
-      combatLogText,
-      tileSize: TILE_SIZE
+        canvas,
+        panelPersonaje,
+        panelInventario,
+        panelEquipamiento,
+        combatLogText,
+        tileSize: TILE_SIZE
     });
 
   // Activamos los controles solamente cuando
@@ -299,12 +340,17 @@ async function iniciarAplicacion() {
     // Conectamos los eventos del menú principal.
     configurarEventosMenuPrincipal();
 
-    // Leemos profesiones, atributos, límites y pesos.
-    const configuracionPersonaje =
-      await cargarConfiguracionPersonaje();
-    
-      const configuracionEnemigos =
-      await cargarConfiguracionEnemigos();
+    // Cargamos en paralelo todas las configuraciones
+    // necesarias para iniciar una partida.
+    const [
+      configuracionPersonaje,
+      configuracionEnemigos,
+      configuracionObjetos
+    ] = await Promise.all([
+      cargarConfiguracionPersonaje(),
+      cargarConfiguracionEnemigos(),
+      cargarConfiguracionObjetos()
+    ]);
 
     // Construimos el menú utilizando la configuración.
     new MenuCreacionPersonaje({
@@ -312,10 +358,12 @@ async function iniciarAplicacion() {
         configuracionPersonaje,
 
       alConfirmar: (datosPersonaje) => {
-        iniciarPartida(
+        iniciarPartida({
           datosPersonaje,
-          configuracionEnemigos
-        );
+          configuracionPersonaje,
+          configuracionEnemigos,
+          configuracionObjetos
+        });
       }
     });
 

@@ -2,6 +2,11 @@
 // también es una entidad presente en el mapa.
 import { Entidad } from "../Entidad.js";
 
+// Un destructible puede albergar objetos,
+// como ocurre con un cofre o ciertos enemigos.
+import { ContenedorObjetos } from
+    "../../objetos/ContenedorObjetos.js";
+
 // Destructible representa cualquier entidad que pueda
 // recibir daño y eventualmente ser destruida.
 //
@@ -14,7 +19,17 @@ export class Destructible extends Entidad {
         y = 0,
         simbolo = "?",
         vidaMaxima,
-        claseArmadura = 10
+        claseArmadura = 10,
+
+        // Cero indica que esta entidad no funciona
+        // como contenedor de objetos.
+        capacidadContenedor = 0,
+
+        objetosIniciales = [],
+
+        // La tabla de botín se interpretará más adelante
+        // mediante un sistema especializado.
+        tablaBotin = []
     } = {}) {
         // La vida máxima debe ser un número entero
         // y debe ser mayor que cero.
@@ -57,6 +72,52 @@ export class Destructible extends Entidad {
 
         // Dificultad básica para impactar a esta entidad.
         this.claseArmaduraBase = claseArmadura;
+
+        // La capacidad cero es válida porque no todos
+        // los destructibles pueden almacenar objetos.
+        if (
+            !Number.isInteger(capacidadContenedor) ||
+            capacidadContenedor < 0
+        ) {
+            throw new Error(
+                `La capacidad del contenedor de ${nombre} ` +
+                "debe ser un entero igual o mayor que 0."
+            );
+        }
+
+        if (!Array.isArray(objetosIniciales)) {
+            throw new Error(
+                `Los objetos iniciales de ${nombre} ` +
+                "deben ser una lista."
+            );
+        }
+
+        if (!Array.isArray(tablaBotin)) {
+            throw new Error(
+                `La tabla de botín de ${nombre} ` +
+                "debe ser una lista."
+            );
+        }
+
+        // Creamos el contenedor solamente cuando
+        // la entidad realmente necesita almacenar objetos.
+        this.contenedorObjetos =
+            capacidadContenedor > 0
+                ? new ContenedorObjetos({
+                    capacidad: capacidadContenedor,
+                    objetosIniciales
+                })
+                : null;
+
+        // Guardamos una copia independiente.
+        //
+        // Más adelante GeneradorBotin será responsable
+        // de interpretar probabilidades y cantidades.
+        this.tablaBotin = tablaBotin.map(
+            (entrada) => ({
+                ...entrada
+            })
+        );
     }
 
     // Devuelve la Clase de Armadura actual.

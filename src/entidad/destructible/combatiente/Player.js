@@ -31,7 +31,29 @@ export class Player extends Combatiente {
         atributoAtaque,
         bonificadorArmadura = 0,
         clasePersonaje = "Aventurero",
-        experiencia = 0
+        experiencia = 0,
+        capacidadInventario = 12,
+
+        // Objetos que comienzan guardados,
+        // pero no equipados.
+        objetosInventarioIniciales = [],
+
+        ranurasEquipamiento = [
+            "cabeza",
+            "torso",
+            "manos",
+            "piernas",
+            "pies",
+            "arma",
+            "secundaria",
+            "collar",
+            "anillo_derecho",
+            "anillo_izquierdo"
+        ],
+
+        // Más adelante las profesiones podrán proporcionar
+        // objetos equipados al comenzar la partida.
+        equipamientoInicial = []
     } = {}) {
         // Llamamos al constructor de Combatiente.
         //
@@ -52,7 +74,26 @@ export class Player extends Combatiente {
             //
             // Más adelante este símbolo podrá reemplazarse
             // por un sprite sin cambiar la lógica del Player.
-            simbolo: "@"
+            simbolo: "@",
+
+            // Player utiliza el contenedor genérico
+            // como inventario personal.
+            capacidadContenedor:
+                capacidadInventario,
+            
+            // Objetos que comienzan almacenados
+            // dentro del inventario del jugador.
+            objetosIniciales:
+                objetosInventarioIniciales,
+
+            // Combatiente creará automáticamente
+            // el componente Equipamiento.
+            ranurasEquipamiento,
+
+            // Permitimos que el jugador comience
+            // con equipamiento configurado.
+            equipamientoInicial
+            
         });
 
         // Clase de rol elegida por el jugador.
@@ -64,5 +105,10 @@ export class Player extends Combatiente {
 
         // Cantidad de experiencia acumulada.
         this.experiencia = experiencia;
+
+        // La interfaz llama "inventario" al contenedor
+        // genérico heredado desde Destructible.
+        this.inventario =
+            this.contenedorObjetos;
     }
 }

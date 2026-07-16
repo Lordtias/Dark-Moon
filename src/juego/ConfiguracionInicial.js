@@ -9,7 +9,11 @@ import {
   crearEnemigo
 } from "./FabricaEnemigos.js";
 
-
+// Convierte los identificadores escritos en JSON
+// en instancias reales de Objeto.
+import {
+  crearObjetosDesdeDefiniciones
+} from "../objetos/FabricaObjetos.js";
 
 import { Barril } from
     "../entidad/destructible/Barril.js";
@@ -40,19 +44,19 @@ const MAPA_INICIAL = [
 ];
 
 /**
- * Crea al jugador utilizando los datos seleccionados
- * dentro de la pantalla de creación del personaje.
+ * Crea al jugador utilizando los datos seleccionados,
+ * la profesión y las plantillas de objetos.
  *
- * @param {Object} datosPersonaje Información generada por el menú.
- * @param {string} datosPersonaje.nombre Nombre elegido.
- * @param {string} datosPersonaje.clasePersonaje Profesión visible.
- * @param {Object} datosPersonaje.atributos Atributos distribuidos.
- * @returns {Player} Nuevo personaje controlado por el jugador.
+ * @param {Object} datosPersonaje Datos elegidos en el menú.
+ * @param {Object} configuracionPersonaje Configuración de profesiones.
+ * @param {Object} configuracionObjetos Plantillas de objetos.
+ * @returns {Player} Jugador creado.
  */
-
-function crearJugadorInicial(datosPersonaje) {
-  // Comprobamos que la función haya recibido
-  // la información necesaria para crear al jugador.
+function crearJugadorInicial(
+  datosPersonaje,
+  configuracionPersonaje,
+  configuracionObjetos
+) {
   if (
     datosPersonaje === null ||
     typeof datosPersonaje !== "object"
@@ -62,38 +66,81 @@ function crearJugadorInicial(datosPersonaje) {
     );
   }
 
-  // Extraemos los valores elegidos dentro del menú.
   const {
     nombre,
+    idProfesion,
     clasePersonaje,
     atributos
   } = datosPersonaje;
 
+  // Buscamos la configuración completa
+  // de la profesión seleccionada.
+  const profesion =
+    configuracionPersonaje
+      .profesiones[idProfesion];
+
+  if (!profesion) {
+    throw new Error(
+      `No existe la profesión "${idProfesion}".`
+    );
+  }
+
+  // Configuración de objetos guardados.
+  const configuracionContenedor =
+    profesion.contenedor ?? {};
+
+  // Configuración de objetos equipados.
+  const configuracionEquipamiento =
+    profesion.equipamiento ?? {};
+
+  // Convertimos los IDs del inventario
+  // en instancias reales de Objeto.
+  const objetosInventarioIniciales =
+    crearObjetosDesdeDefiniciones({
+      configuracionObjetos,
+
+      definiciones:
+        configuracionContenedor
+          .objetosIniciales ?? []
+    });
+
+  // Convertimos los IDs del equipamiento
+  // en instancias reales de Objeto.
+  const equipamientoInicial =
+    crearObjetosDesdeDefiniciones({
+      configuracionObjetos,
+
+      definiciones:
+        configuracionEquipamiento
+          .objetosIniciales ?? []
+    });
+
   return new Player({
-    // Información elegida por el jugador.
     nombre,
     clasePersonaje,
     atributos,
 
-    // Valores iniciales comunes a todas las profesiones.
-    //
-    // Por ahora Guerrero, Rogue y Mago solamente
-    // funcionan como títulos y no cambian estas estadísticas.
     nivel: 1,
     experiencia: 0,
 
-    // Posición inicial dentro del mapa.
     x: 2,
     y: 2,
 
-    // Información de combate inicial.
-    //
-    // Por ahora todas las profesiones atacan utilizando Fuerza.
-    // Más adelante cada profesión podrá tener su propio ataque.
     vidaMaxima: 12,
     dadoDanio: 6,
     atributoAtaque: "fuerza",
-    bonificadorArmadura: 0
+    bonificadorArmadura: 0,
+
+    // Capacidad configurada para la profesión.
+    capacidadInventario:
+      configuracionContenedor.capacidad ?? 12,
+
+    // Objetos guardados.
+    objetosInventarioIniciales,
+
+    // Objetos que Equipamiento colocará
+    // automáticamente según sus ranuras compatibles.
+    equipamientoInicial
   });
 }
 
@@ -139,20 +186,13 @@ function crearObjetivosIniciales(
   ];
 }
 
-/**
- * Crea todos los elementos necesarios
- * para comenzar una partida nueva.
- *
- * @param {Object} datosPersonaje Datos elegidos
- * en la creación del personaje.
- * @param {Object} configuracionEnemigos Plantillas
- * y variantes cargadas desde JSON.
- * @returns {Object} Configuración completa de la partida.
- */
-export function crearConfiguracionInicial(
+
+export function crearConfiguracionInicial({
   datosPersonaje,
-  configuracionEnemigos
-) {
+  configuracionPersonaje,
+  configuracionEnemigos,
+  configuracionObjetos
+} = {}) {
   return {
     // Creamos una copia del mapa inicial para evitar
     // modificar accidentalmente el array original.
@@ -164,7 +204,9 @@ export function crearConfiguracionInicial(
     // seleccionada dentro del menú.
     player:
       crearJugadorInicial(
-        datosPersonaje
+        datosPersonaje,
+        configuracionPersonaje,
+        configuracionObjetos
       ),
 
     // Creamos enemigos mediante sus plantillas JSON

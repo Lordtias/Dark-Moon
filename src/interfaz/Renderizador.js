@@ -18,10 +18,12 @@ import { Enemigo } from
 export class Renderizador {
     constructor({
         canvas,
-        statusText,
+        panelPersonaje,
         combatLogText,
-        tileSize
-    } = {}) {
+        tileSize,
+        panelInventario,
+        panelEquipamiento,
+} = {}) {
         // Comprobamos que exista el canvas.
         if (!canvas) {
             throw new Error(
@@ -41,11 +43,14 @@ export class Renderizador {
             );
         }
 
-        // Comprobamos que exista el elemento donde
-        // se mostrará el estado del jugador.
-        if (!statusText) {
+        // Verificamos que exista el componente encargado
+        // de mostrar los datos del personaje.
+        if (
+            !panelPersonaje ||
+            typeof panelPersonaje.actualizar !== "function"
+        ) {
             throw new Error(
-                "Renderizador necesita el texto de estado."
+                "Renderizador necesita un PanelPersonaje."
             );
         }
 
@@ -72,10 +77,13 @@ export class Renderizador {
         // para dibujar y actualizar la interfaz.
         this.canvas = canvas;
         this.context = context;
-        this.statusText = statusText;
+        this.panelPersonaje = panelPersonaje;
         this.combatLogText = combatLogText;
         this.tileSize = tileSize;
-    }
+        this.panelInventario = panelInventario;
+
+        this.panelEquipamiento = panelEquipamiento;
+            }
 
     // Dibuja el estado completo de una partida.
     dibujarJuego(juego) {
@@ -103,7 +111,22 @@ export class Renderizador {
             juego.player
         );
 
-        this.actualizarEstado(juego);
+        // Delegamos la información del jugador
+        // al componente especializado.
+        this.panelPersonaje.actualizar(
+            juego.player,
+            juego.turno
+        );
+        
+        // Actualizamos los objetos guardados
+        // y los objetos equipados.
+        this.panelInventario.actualizar(
+            juego.player.inventario
+        );
+
+        this.panelEquipamiento.actualizar(
+            juego.player.equipamiento
+        );
     }
 
     // Dibuja las paredes y el suelo del mapa.
@@ -242,22 +265,6 @@ export class Renderizador {
             centroX,
             centroY
         );
-    }
-
-    // Actualiza la información visible
-    // correspondiente al jugador y la partida.
-    actualizarEstado(juego) {
-        const player =
-            juego.player;
-
-        this.statusText.textContent =
-            `${player.nombre}` +
-            ` | Clase: ${player.clasePersonaje}` +
-            ` | Nivel: ${player.nivel}` +
-            ` | Vida: ${player.vidaActual}/${player.vidaMaxima}` +
-            ` | CA: ${player.claseArmadura}` +
-            ` | Experiencia: ${player.experiencia}` +
-            ` | Turno: ${juego.turno}`;
     }
 
     // Muestra un mensaje en el registro visible

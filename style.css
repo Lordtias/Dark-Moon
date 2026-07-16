@@ -376,6 +376,506 @@ main {
   }
 }
 
+/* =========================================================
+   PANTALLA PRINCIPAL DE LA PARTIDA
+========================================================= */
+
+/* La partida ocupa toda la pantalla del navegador. */
+.pantalla-juego {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+
+    width: 100vw;
+    height: 100vh;
+    padding: 12px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    background-color: #000000;
+    text-align: left;
+}
+
+/* Encabezado ubicado encima de todos los paneles. */
+.cabecera-partida {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+}
+
+/* Quitamos márgenes innecesarios del título. */
+.cabecera-partida h1 {
+    margin: 0;
+}
+
+/* Texto que recuerda los controles disponibles. */
+.controles-partida {
+    margin: 5px 0 0;
+    color: #aeb8ff;
+}
+
+/* La cuadrícula aprovecha todo el espacio debajo del encabezado. */
+.interfaz-partida {
+    flex: 1;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns:
+        minmax(210px, 240px)
+        minmax(0, 1fr)
+        minmax(240px, 280px);
+
+    gap: 12px;
+    align-items: stretch;
+}
+
+/* Apariencia compartida por todos los paneles. */
+.panel-juego {
+    min-width: 0;
+    padding: 14px;
+    border: 2px solid #5666ca;
+    border-radius: 6px;
+    background-color: #111527;
+}
+
+/* Títulos internos de cada panel. */
+.panel-juego h2 {
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #3e497f;
+    color: #aeb8ff;
+    font-size: 18px;
+}
+
+/* El panel del personaje puede desplazarse si su contenido crece. */
+.panel-personaje {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* El inventario puede crecer y desplazarse internamente. */
+.panel-inventario {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+
+/* Estado actual del personaje. */
+#status {
+    margin: 0;
+    color: #ffffff;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Secciones internas del panel del personaje. */
+.seccion-panel {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #3e497f;
+}
+
+/* Título de una sección interna. */
+.seccion-panel h3 {
+    margin: 0 0 10px;
+    color: #d8dcff;
+}
+
+/* Mensajes utilizados cuando una sección todavía está vacía. */
+.mensaje-vacio {
+    color: #8991b5;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* El centro distribuye el espacio entre mapa, barra y registro. */
+.zona-central-partida {
+    min-width: 0;
+    min-height: 0;
+
+    display: grid;
+    grid-template-rows:
+        minmax(0, 1fr)
+        auto
+        minmax(110px, 18vh);
+
+    gap: 12px;
+}
+
+/* El mapa recibe la mayor parte del espacio disponible. */
+.panel-mapa {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* El canvas puede crecer visualmente sin cambiar la lógica del mapa. */
+.panel-mapa canvas {
+    display: block;
+
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+
+    margin: 0;
+    border: 1px solid #7586ff;
+    background-color: #171b2e;
+
+    image-rendering: pixelated;
+}
+
+/* Barra rápida de habilidades ubicada debajo del mapa. */
+.barra-habilidades {
+    display: grid;
+    grid-template-columns: repeat(10, 48px);
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+/* Espacio individual para una habilidad equipada. */
+.slot-habilidad {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border: 2px solid #5666ca;
+    border-radius: 4px;
+    background-color: #080b16;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Número de tecla asignado al espacio de habilidad. */
+.tecla-habilidad {
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    color: #d8dcff;
+    font-size: 12px;
+}
+
+/* Panel inferior para mensajes y eventos. */
+.panel-registro {
+    min-height: 120px;
+}
+
+/* Mensaje actual de combate. */
+#combatLog {
+    min-height: 60px;
+    max-width: none;
+    margin: 0;
+    color: #ffe66d;
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+/* Cuadrícula inicial del inventario. */
+.cuadricula-inventario {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+}
+
+/* Espacio individual para un objeto. */
+.slot-inventario {
+    aspect-ratio: 1;
+    min-width: 0;
+    border: 2px solid #3e497f;
+    border-radius: 4px;
+    background-color: #080b16;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Columna derecha que contiene inventario y equipamiento. */
+.zona-lateral-derecha {
+    min-height: 0;
+
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 12px;
+}
+
+/* Panel inferior con los objetos equipados. */
+.panel-equipamiento {
+    min-height: 0;
+}
+
+/* Distribución de las posiciones de equipamiento. */
+.cuadricula-equipamiento {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+/* Cada posición contiene la casilla y su nombre. */
+.slot-equipamiento {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    min-width: 0;
+    padding: 6px;
+
+    border: 1px solid #3e497f;
+    border-radius: 4px;
+    background-color: #0d1020;
+
+    color: #d8dcff;
+    font-size: 12px;
+}
+
+/* Casilla donde aparecerá el objeto equipado. */
+.casilla-equipamiento {
+    width: 36px;
+    min-width: 36px;
+    aspect-ratio: 1;
+
+    border: 2px solid #5666ca;
+    border-radius: 4px;
+    background-color: #080b16;
+
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Nombre y clase del personaje. */
+.identidad-personaje {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.identidad-personaje strong {
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.identidad-personaje span {
+    color: #aeb8ff;
+    font-size: 14px;
+}
+
+/* Datos generales: nivel, experiencia, CA y turno. */
+.resumen-personaje {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.dato-personaje {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    padding: 8px;
+    border: 1px solid #3e497f;
+    border-radius: 4px;
+    background-color: #0d1020;
+}
+
+.dato-personaje span {
+    color: #8991b5;
+    font-size: 12px;
+}
+
+.dato-personaje strong {
+    color: #ffffff;
+    font-size: 16px;
+}
+
+/* Recurso visual, inicialmente utilizado para la vida. */
+.recurso-personaje {
+    margin-top: 16px;
+}
+
+.cabecera-recurso {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.barra-recurso {
+    width: 100%;
+    height: 16px;
+
+    overflow: hidden;
+
+    border: 1px solid #3e497f;
+    border-radius: 4px;
+    background-color: #080b16;
+}
+
+/* El ancho se actualizará desde PanelPersonaje.js. */
+.relleno-recurso {
+    width: 0;
+    height: 100%;
+
+    transition: width 0.2s ease;
+}
+
+.relleno-vida {
+    background-color: #a83232;
+}
+
+/* Lista de atributos del personaje. */
+.lista-atributos {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.panel-personaje .fila-atributo {
+    display: grid;
+    grid-template-columns: 1fr 30px 34px;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 8px;
+
+    border: 1px solid #31395f;
+    border-radius: 4px;
+    background-color: #0d1020;
+}
+
+.panel-personaje .fila-atributo strong {
+    color: #ffffff;
+    text-align: center;
+}
+
+.panel-personaje .fila-atributo [data-campo="modificador"] {
+    color: #aeb8ff;
+    text-align: right;
+}
+
+/* Las casillas pueden contener nombre y cantidad. */
+.slot-inventario {
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 4px;
+    overflow: hidden;
+}
+
+/* Diferenciamos visualmente una casilla ocupada. */
+.slot-inventario.ocupado {
+    border-color: #7586ff;
+    background-color: #171b2e;
+}
+
+/* Nombre del objeto dentro del inventario. */
+.nombre-objeto {
+    color: #ffffff;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+/* Cantidad de objetos apilados. */
+.cantidad-objeto {
+    position: absolute;
+    right: 3px;
+    bottom: 2px;
+
+    padding: 1px 3px;
+
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.85);
+
+    color: #ffe66d;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Casilla ocupada por un objeto equipado. */
+.casilla-equipamiento.ocupada {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 3px;
+
+    border-color: #7586ff;
+    background-color: #171b2e;
+}
+
+/* Nombre reducido dentro de la casilla equipada. */
+.nombre-objeto-equipado {
+    color: #ffffff;
+    font-size: 8px;
+    line-height: 1.05;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+/* Nombre visible de la posición de equipamiento. */
+.nombre-ranura {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   ADAPTACIÓN PARA PANTALLAS MEDIANAS
+========================================================= */
+
+@media (max-width: 950px) {
+    /*
+        El personaje queda a la izquierda
+        y el mapa ocupa el espacio restante.
+    */
+    .interfaz-partida {
+        grid-template-columns: 210px minmax(0, 1fr);
+    }
+
+    /* El inventario pasa debajo de los otros paneles. */
+    .panel-inventario {
+        grid-column: 1 / -1;
+    }
+
+    /* El inventario puede aprovechar mejor el ancho disponible. */
+    .cuadricula-inventario {
+        grid-template-columns: repeat(8, 48px);
+        justify-content: center;
+    }
+}
+
+/* =========================================================
+   ADAPTACIÓN PARA PANTALLAS PEQUEÑAS
+========================================================= */
+
+@media (max-width: 680px) {
+    /* Todos los paneles pasan a una única columna. */
+    .interfaz-partida {
+        grid-template-columns: 1fr;
+    }
+
+    /* Mostramos primero el mapa en dispositivos pequeños. */
+    .zona-central-partida {
+        order: -1;
+    }
+
+    /* El inventario vuelve a cuatro columnas. */
+    .cuadricula-inventario {
+        grid-template-columns: repeat(4, 48px);
+    }
+
+    /* La barra permite desplazamiento horizontal. */
+    .barra-habilidades {
+        justify-content: flex-start;
+    }
+}
+
 /* Esta regla debe quedar al final del archivo para que
    pueda ocultar cualquier pantalla, aunque tenga otro
    valor de display configurado. */

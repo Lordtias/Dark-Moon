@@ -151,27 +151,253 @@
     ></p>
   </section>
 
-  <!-- Contenedor del juego -->
-  <section
+<!-- Pantalla principal de la partida. -->
+<section
     id="gameContainer"
-    class="oculto"
-  >
-    <h1>Dark Moon</h1>
+    class="pantalla-juego oculto"
+>
+    <!-- Encabezado general de la partida. -->
+    <header class="cabecera-partida">
+        <div>
+            <h1>Dark Moon</h1>
 
-    <p>
-      Movimiento: flechas o WASD
-    </p>
+            <p class="controles-partida">
+                Movimiento: flechas o WASD
+            </p>
+        </div>
+    </header>
 
-    <p id="status">
-      Cargando partida...
-    </p>
+    <!-- Contenedor que divide la interfaz en paneles. -->
+    <div class="interfaz-partida">
 
-    <canvas id="gameCanvas"></canvas>
+        <!-- Panel izquierdo con la información del personaje. -->
+<aside
+    id="panelPersonaje"
+    class="panel-juego panel-personaje"
+>
+    <h2>Personaje</h2>
 
-    <p id="combatLog">
-      Acercate a la rata o al barril para atacarlos.
-    </p>
-  </section>
+    <!-- Identidad principal del personaje. -->
+    <div class="identidad-personaje">
+        <strong data-personaje="nombre">
+            Cargando...
+        </strong>
+
+        <span data-personaje="clase">
+            Aventurero
+        </span>
+    </div>
+
+    <!-- Datos generales de la partida. -->
+    <div class="resumen-personaje">
+        <div class="dato-personaje">
+            <span>Nivel</span>
+            <strong data-personaje="nivel">1</strong>
+        </div>
+
+        <div class="dato-personaje">
+            <span>Experiencia</span>
+            <strong data-personaje="experiencia">0</strong>
+        </div>
+
+        <div class="dato-personaje">
+            <span>CA</span>
+            <strong data-personaje="clase-armadura">10</strong>
+        </div>
+
+        <div class="dato-personaje">
+            <span>Turno</span>
+            <strong data-personaje="turno">0</strong>
+        </div>
+    </div>
+
+    <!-- Barra visual de vida. -->
+    <section class="recurso-personaje">
+        <div class="cabecera-recurso">
+            <span>Vida</span>
+
+            <span data-personaje="vida-texto">
+                0 / 0
+            </span>
+        </div>
+
+        <div class="barra-recurso">
+            <div
+                class="relleno-recurso relleno-vida"
+                data-personaje="vida-barra"
+            ></div>
+        </div>
+    </section>
+
+    <!-- Atributos inspirados en D&D. -->
+    <section class="seccion-panel">
+        <h3>Atributos</h3>
+
+        <div class="lista-atributos">
+
+            <div
+                class="fila-atributo"
+                data-atributo="fuerza"
+            >
+                <span>Fuerza</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+            <div
+                class="fila-atributo"
+                data-atributo="destreza"
+            >
+                <span>Destreza</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+            <div
+                class="fila-atributo"
+                data-atributo="constitucion"
+            >
+                <span>Constitución</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+            <div
+                class="fila-atributo"
+                data-atributo="inteligencia"
+            >
+                <span>Inteligencia</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+            <div
+                class="fila-atributo"
+                data-atributo="sabiduria"
+            >
+                <span>Sabiduría</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+            <div
+                class="fila-atributo"
+                data-atributo="carisma"
+            >
+                <span>Carisma</span>
+                <strong data-campo="valor">0</strong>
+                <span data-campo="modificador">+0</span>
+            </div>
+
+        </div>
+    </section>
+</aside>
+
+        <!-- Zona central: mapa, habilidades y registro. -->
+        <section class="zona-central-partida">
+
+            <!-- El mapa mantiene su canvas actual. -->
+            <div class="panel-juego panel-mapa">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <!--
+                Barra rápida de habilidades estilo MMORPG.
+                Por ahora contiene diez espacios vacíos.
+            -->
+            <section
+                class="panel-juego barra-habilidades"
+                aria-label="Barra de habilidades"
+            >
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">1</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">2</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">3</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">4</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">5</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">6</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">7</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">8</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">9</span>
+                </div>
+
+                <div class="slot-habilidad">
+                    <span class="tecla-habilidad">0</span>
+                </div>
+            </section>
+
+            <!-- Registro de combate y mensajes del juego. -->
+            <section class="panel-juego panel-registro">
+                <h2>Registro de eventos</h2>
+
+                <!--
+                    Conservamos combatLog porque el renderizador
+                    escribe actualmente los mensajes en este elemento.
+                -->
+                <div id="combatLog">
+                    Acercate a la rata o al barril para atacarlos.
+                </div>
+            </section>
+        </section>
+
+<!-- Zona derecha: inventario y equipamiento. -->
+<aside class="zona-lateral-derecha">
+
+    <!-- Inventario general del personaje. -->
+    <section class="panel-juego panel-inventario">
+        <h2>Inventario</h2>
+
+        <!-- Las casillas se generarán según la capacidad real del inventario. -->
+        <div
+            id="cuadriculaInventario"
+            class="cuadricula-inventario"
+        ></div>
+
+        <p
+            id="mensajeInventario"
+            class="mensaje-vacio"
+        >
+            El inventario está vacío.
+        </p>
+    </section>
+
+    <!-- Objetos actualmente equipados por el personaje. -->
+    <section class="panel-juego panel-equipamiento">
+        <h2>Equipamiento</h2>
+
+        <!-- Las ranuras se generarán desde el equipamiento del personaje. -->
+        <div
+            id="cuadriculaEquipamiento"
+            class="cuadricula-equipamiento"
+        ></div>
+    </section>
+</aside>
+    </div>
+</section>
 </main>
 
   <!-- game.js es un módulo porque utiliza

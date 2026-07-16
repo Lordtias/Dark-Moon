@@ -308,6 +308,16 @@ export function calcularDatosEnemigo({
   const configuracionIABase =
     plantilla.ia;
 
+    // Configuración opcional del contenedor.
+    //
+    // Una criatura sin inventario utiliza capacidad 0.
+    const configuracionContenedor =
+        plantilla.contenedor ?? {};
+
+    // Configuración opcional del equipamiento.
+    const configuracionEquipamiento =
+        plantilla.equipamiento ?? {};
+
   // Validamos que la plantilla tenga al menos
   // un objeto de configuración de IA.
   //
@@ -339,6 +349,49 @@ export function calcularDatosEnemigo({
 
     experienciaOtorgada:
       base.experienciaOtorgada,
+
+    // Capacidad para almacenar objetos.
+    capacidadContenedor:
+        configuracionContenedor.capacidad ?? 0,
+
+    // Objetos que ya contiene al aparecer.
+    objetosIniciales: [
+        ...(
+            configuracionContenedor
+                .objetosIniciales ?? []
+        )
+    ],
+
+    // Posiciones de equipamiento disponibles.
+    ranurasEquipamiento: [
+        ...(
+            configuracionEquipamiento
+                .ranuras ?? []
+        )
+    ],
+
+    // Por ahora conservamos los identificadores.
+    //
+    // En el próximo paso FabricaObjetos los convertirá
+    // en instancias reales antes de crear al enemigo.
+    equipamientoInicial: [
+        ...(
+            configuracionEquipamiento
+                .objetosIniciales ?? []
+        )
+    ],
+
+    // Posibles objetos generados al derrotarlo.
+    //
+    // Todavía solamente almacenamos la configuración;
+    // el generador de botín vendrá después.
+    tablaBotin: (
+        plantilla.tablaBotin ?? []
+    ).map(
+        (entrada) => ({
+            ...entrada
+        })
+    ),
 
     atributos: {
       ...base.atributos

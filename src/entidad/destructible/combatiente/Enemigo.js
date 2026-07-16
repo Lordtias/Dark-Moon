@@ -36,21 +36,43 @@ export class Enemigo extends Combatiente {
     bonificadorArmadura = 0,
     simbolo = "E",
     experienciaOtorgada = 0,
+
+    // Contenedor opcional del enemigo.
+    capacidadContenedor = 0,
+    objetosIniciales = [],
+
+    // Botín generado al derrotarlo.
+    tablaBotin = [],
+
+    // Equipamiento que puede utilizar.
+    ranurasEquipamiento = [],
+    equipamientoInicial = [],
+
     configuracionIA
   } = {}) {
     // Enviamos a Combatiente toda la información
     // compartida entre jugadores y enemigos.
     super({
-      nombre,
-      nivel,
-      x,
-      y,
-      atributos,
-      vidaMaxima,
-      dadoDanio,
-      atributoAtaque,
-      bonificadorArmadura,
-      simbolo
+        nombre,
+        nivel,
+        x,
+        y,
+        atributos,
+        vidaMaxima,
+        dadoDanio,
+        atributoAtaque,
+        bonificadorArmadura,
+        simbolo,
+
+        // Información genérica heredada por Destructible.
+        capacidadContenedor,
+        objetosIniciales,
+        tablaBotin,
+
+        // Información de equipamiento heredada
+        // por Combatiente.
+        ranurasEquipamiento,
+        equipamientoInicial
     });
 
     // La experiencia debe ser un número entero

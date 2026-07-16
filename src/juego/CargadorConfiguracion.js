@@ -8,6 +8,11 @@ const RUTA_PLANTILLAS_ENEMIGOS =
 const RUTA_VARIANTES_ENEMIGOS =
   "./src/config/entidades/VariantesEnemigos.json";
 
+// Archivo que contiene las plantillas
+// de armas, armaduras, consumibles y materiales.
+const RUTA_OBJETOS =
+    "./src/config/objetos/Objetos.json";
+
 /**
  * Lee un archivo JSON y devuelve su contenido
  * convertido en un objeto de JavaScript.
@@ -89,4 +94,15 @@ export async function cargarConfiguracionEnemigos() {
     plantillas,
     variantes
   };
+}
+/**
+ * Carga todas las plantillas de objetos.
+ *
+ * @returns {Promise<Object>} Configuración de objetos.
+ */
+export function cargarConfiguracionObjetos() {
+    return cargarArchivoJson(
+        RUTA_OBJETOS,
+        "la configuración de objetos"
+    );
 }

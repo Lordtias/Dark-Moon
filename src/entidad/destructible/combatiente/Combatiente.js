@@ -2,6 +2,11 @@
 // desde la clase Destructible.
 import { Destructible } from "../Destructible.js";
 
+// Los combatientes pueden utilizar equipamiento,
+// aunque algunos no tengan ninguna ranura disponible.
+import { Equipamiento } from
+    "../../../objetos/Equipamiento.js";
+
 // Un Combatiente es una entidad destructible que además:
 //
 // - Tiene atributos de D&D.
@@ -19,7 +24,12 @@ export class Combatiente extends Destructible {
         vidaMaxima,
         dadoDanio,
         atributoAtaque,
-        bonificadorArmadura = 0
+        bonificadorArmadura = 0,
+        capacidadContenedor = 0,
+        objetosIniciales = [],
+        tablaBotin = [],
+        ranurasEquipamiento = [],
+        equipamientoInicial = []
     } = {}) {
         // Destructible valida y guarda:
         //
@@ -37,7 +47,10 @@ export class Combatiente extends Destructible {
 
             // La Clase de Armadura inicial de un combatiente
             // comienza en 10.
-            claseArmadura: 10
+            claseArmadura: 10,
+            capacidadContenedor,
+            objetosIniciales,
+            tablaBotin
         });
 
         // El nivel debe ser un número entero
@@ -191,6 +204,16 @@ export class Combatiente extends Destructible {
         // escudos u otros efectos.
         this.bonificadorArmadura =
             bonificadorArmadura;
+
+        // Cada combatiente posee sus propias ranuras
+        // y puede comenzar con objetos ya equipados.
+        this.equipamiento = new Equipamiento({
+            ranurasDisponibles:
+                ranurasEquipamiento,
+
+            objetosIniciales:
+                equipamientoInicial
+        });
     }
 
     // Convierte un atributo en su modificador.

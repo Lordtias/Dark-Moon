@@ -67,7 +67,18 @@
           "aumento": 1,
           "cadaNiveles": 3
         }
-      }
+      },
+      "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+      },
+
+    "equipamiento": {
+      "ranuras": [],
+      "objetosIniciales": []
+    },
+
+    "tablaBotin": []
     },
 
     "hitos": [

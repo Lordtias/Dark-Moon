@@ -1,0 +1,88 @@
+{
+  "espada_larga": {
+    "nombre": "Espada larga",
+    "tipo": "arma",
+    "descripcion": "Una espada de una mano, resistente y equilibrada.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "arma",
+      "secundaria"
+    ],
+    "propiedades": {
+      "dadoDanio": 8,
+      "atributoAtaque": "fuerza"
+    }
+  },
+
+  "casco_hierro": {
+    "nombre": "Casco de hierro",
+    "tipo": "armadura",
+    "descripcion": "Un casco sencillo que protege la cabeza.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "cabeza"
+    ],
+    "propiedades": {
+      "bonificadorArmadura": 1
+    }
+  },
+
+  "pocion_curacion": {
+    "nombre": "Poción de curación",
+    "tipo": "consumible",
+    "descripcion": "Una pequeña poción que recupera vida.",
+    "apilable": true,
+    "cantidadMaxima": 5,
+    "ranurasCompatibles": [],
+    "propiedades": {
+      "curacion": 5
+    }
+  },
+
+  "arco_corto": {
+    "nombre": "Arco corto",
+    "tipo": "arma",
+    "descripcion": "Un arco liviano pensado para ataques a distancia.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "arma"
+    ],
+    "propiedades": {
+      "dadoDanio": 6,
+      "atributoAtaque": "destreza",
+      "requiereMunicion": "flecha"
+    }
+  },
+
+  "flecha_madera": {
+    "nombre": "Flecha de madera",
+    "tipo": "municion",
+    "descripcion": "Una flecha sencilla con punta de metal.",
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [
+      "municion"
+    ],
+    "propiedades": {
+      "tipoMunicion": "flecha"
+    }
+  },
+  
+    "escudo_madera": {
+    "nombre": "Escudo de madera",
+    "tipo": "armadura",
+    "descripcion": "Un escudo sencillo.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+        "secundaria"
+    ],
+    "propiedades": {
+        "bonificadorArmadura": 1
+    }
+    }
+
+}

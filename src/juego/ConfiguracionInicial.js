@@ -34,34 +34,62 @@ const MAPA_INICIAL = [
     "####################"
 ];
 
-// Crea un jugador nuevo con sus valores iniciales.
-function crearJugadorInicial() {
-    return new Player({
-        nombre: "Aventurero",
-        nivel: 1,
-        x: 2,
-        y: 2,
+/**
+ * Crea al jugador utilizando los datos seleccionados
+ * dentro de la pantalla de creación del personaje.
+ *
+ * @param {Object} datosPersonaje Información generada por el menú.
+ * @param {string} datosPersonaje.nombre Nombre elegido.
+ * @param {string} datosPersonaje.clasePersonaje Profesión visible.
+ * @param {Object} datosPersonaje.atributos Atributos distribuidos.
+ * @returns {Player} Nuevo personaje controlado por el jugador.
+ */
 
-        // Información específica del jugador.
-        clasePersonaje: "Guerrero",
-        experiencia: 0,
+function crearJugadorInicial(datosPersonaje) {
+  // Comprobamos que la función haya recibido
+  // la información necesaria para crear al jugador.
+  if (
+    datosPersonaje === null ||
+    typeof datosPersonaje !== "object"
+  ) {
+    throw new Error(
+      "Se necesitan los datos del personaje para iniciar la partida."
+    );
+  }
 
-        // Información heredada de Combatiente.
-        vidaMaxima: 12,
-        dadoDanio: 6,
-        atributoAtaque: "fuerza",
-        bonificadorArmadura: 0,
+  // Extraemos los valores elegidos dentro del menú.
+  const {
+    nombre,
+    clasePersonaje,
+    atributos
+  } = datosPersonaje;
 
-        // Atributos inspirados en D&D.
-        atributos: {
-            fuerza: 15,
-            destreza: 12,
-            constitucion: 14,
-            inteligencia: 10,
-            sabiduria: 11,
-            carisma: 8
-        }
-    });
+  return new Player({
+    // Información elegida por el jugador.
+    nombre,
+    clasePersonaje,
+    atributos,
+
+    // Valores iniciales comunes a todas las profesiones.
+    //
+    // Por ahora Guerrero, Rogue y Mago solamente
+    // funcionan como títulos y no cambian estas estadísticas.
+    nivel: 1,
+    experiencia: 0,
+
+    // Posición inicial dentro del mapa.
+    x: 2,
+    y: 2,
+
+    // Información de combate inicial.
+    //
+    // Por ahora todas las profesiones atacan utilizando Fuerza.
+    // Más adelante cada profesión podrá tener su propio ataque.
+    vidaMaxima: 12,
+    dadoDanio: 6,
+    atributoAtaque: "fuerza",
+    bonificadorArmadura: 0
+  });
 }
 
 // Crea todos los enemigos y objetos destructibles
@@ -108,19 +136,30 @@ function crearObjetivosIniciales() {
     ];
 }
 
-// Crea todos los elementos necesarios para comenzar
-// una partida nueva.
-//
-// Cada vez que llamemos esta función recibiremos
-// un jugador y objetivos nuevos.
-export function crearConfiguracionInicial() {
-    return {
-        // Creamos una copia del array para evitar que
-        // una partida modifique el mapa original.
-        map: [...MAPA_INICIAL],
+/**
+ * Crea todos los elementos necesarios para comenzar
+ * una partida nueva.
+ *
+ * @param {Object} datosPersonaje Datos seleccionados
+ * dentro de la creación del personaje.
+ * @returns {Object} Configuración completa de la partida.
+ */
+export function crearConfiguracionInicial(
+  datosPersonaje
+) {
+  return {
+    // Creamos una copia del array para evitar que
+    // una partida modifique el mapa original.
+    map: [...MAPA_INICIAL],
 
-        player: crearJugadorInicial(),
+    // Creamos al jugador utilizando el nombre,
+    // profesión y atributos elegidos en el menú.
+    player: crearJugadorInicial(
+      datosPersonaje
+    ),
 
-        objetivos: crearObjetivosIniciales()
-    };
+    // Los enemigos y objetos todavía utilizan
+    // sus configuraciones predeterminadas.
+    objetivos: crearObjetivosIniciales()
+  };
 }

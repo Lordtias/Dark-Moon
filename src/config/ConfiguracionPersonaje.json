@@ -1,0 +1,70 @@
+{
+  "atributos": {
+    "valorInicial": 8,
+    "valorMinimo": 8,
+    "valorMaximo": 15,
+    "puntosDisponibles": 27,
+    "lista": [
+      {
+        "id": "fuerza",
+        "nombre": "Fuerza"
+      },
+      {
+        "id": "destreza",
+        "nombre": "Destreza"
+      },
+      {
+        "id": "constitucion",
+        "nombre": "Constitución"
+      },
+      {
+        "id": "inteligencia",
+        "nombre": "Inteligencia"
+      },
+      {
+        "id": "sabiduria",
+        "nombre": "Sabiduría"
+      },
+      {
+        "id": "carisma",
+        "nombre": "Carisma"
+      }
+    ]
+  },
+  "profesionInicial": "guerrero",
+  "profesiones": {
+    "guerrero": {
+      "nombre": "Guerrero",
+      "pesosAtributos": {
+        "fuerza": 5,
+        "destreza": 2,
+        "constitucion": 4,
+        "inteligencia": 1,
+        "sabiduria": 1,
+        "carisma": 1
+      }
+    },
+    "rogue": {
+      "nombre": "Rogue",
+      "pesosAtributos": {
+        "fuerza": 1,
+        "destreza": 5,
+        "constitucion": 3,
+        "inteligencia": 2,
+        "sabiduria": 2,
+        "carisma": 2
+      }
+    },
+    "mago": {
+      "nombre": "Mago",
+      "pesosAtributos": {
+        "fuerza": 1,
+        "destreza": 2,
+        "constitucion": 2,
+        "inteligencia": 5,
+        "sabiduria": 3,
+        "carisma": 1
+      }
+    }
+  }
+}

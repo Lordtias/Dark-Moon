@@ -1,43 +1,249 @@
-body {
-    margin: 0;
-    min-height: 100vh;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background-color: #000000;
-    color: white;
-
-    font-family: monospace;
+/* Aplicamos box-sizing a todos los elementos para que
+   los tamaños incluyan bordes y rellenos. */
+* {
+  box-sizing: border-box;
 }
 
+/* Configuración general de la página. */
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 24px;
+
+  background-color: #000000;
+  color: #ffffff;
+
+  font-family: monospace;
+}
+
+/* Contenedor principal de la aplicación. */
 main {
-    text-align: center;
+  width: min(900px, 100%);
+  text-align: center;
 }
 
 h1 {
-    margin-bottom: 5px;
+  margin-top: 0;
+  margin-bottom: 5px;
+
+  font-size: 38px;
+  color: #d8dcff;
 }
 
+h2 {
+  margin-top: 10px;
+  color: #aeb8ff;
+}
+
+h3 {
+  margin-bottom: 12px;
+}
+
+/* Panel que contiene la creación del personaje. */
+.panel-creacion {
+  width: min(560px, 100%);
+  margin: 0 auto;
+
+  padding: 28px;
+
+  border: 3px solid #7586ff;
+  border-radius: 8px;
+
+  background-color: #171b2e;
+}
+
+/* Cada campo contiene su etiqueta y su control. */
+.campo-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  margin-bottom: 18px;
+
+  text-align: left;
+}
+
+/* Etiquetas de nombre y profesión. */
+.campo-formulario label {
+  font-size: 17px;
+  color: #d8dcff;
+}
+
+/* Apariencia compartida del input y el selector. */
+.campo-formulario input,
+.campo-formulario select {
+  width: 100%;
+  padding: 10px 12px;
+
+  border: 2px solid #5666ca;
+  border-radius: 4px;
+
+  background-color: #0d1020;
+  color: #ffffff;
+
+  font-family: monospace;
+  font-size: 17px;
+}
+
+/* Resaltado cuando el jugador selecciona un campo. */
+.campo-formulario input:focus,
+.campo-formulario select:focus {
+  outline: 2px solid #aeb8ff;
+  outline-offset: 2px;
+}
+
+/* Contenedor de todas las filas de atributos. */
+.contenedor-atributos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-bottom: 16px;
+}
+
+/* Cada atributo tiene:
+   nombre, botón menos, valor y botón más. */
+.fila-atributo {
+  display: grid;
+  grid-template-columns: 1fr 42px 45px 42px;
+  gap: 8px;
+  align-items: center;
+
+  padding: 8px 10px;
+
+  border: 1px solid #3e497f;
+  border-radius: 4px;
+
+  background-color: #111527;
+}
+
+/* Nombre de cada atributo. */
+.nombre-atributo {
+  text-align: left;
+  font-size: 16px;
+}
+
+/* Valor numérico del atributo. */
+.valor-atributo {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffe66d;
+}
+
+/* Estilo general de todos los botones. */
+button {
+  padding: 9px 12px;
+
+  border: 2px solid #7586ff;
+  border-radius: 4px;
+
+  background-color: #242d58;
+  color: #ffffff;
+
+  font-family: monospace;
+  font-size: 15px;
+
+  cursor: pointer;
+}
+
+/* Cambio visual al pasar el cursor. */
+button:hover:not(:disabled) {
+  background-color: #354178;
+}
+
+/* Los botones deshabilitados no pueden utilizarse. */
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Contador de puntos disponibles. */
+.puntos-disponibles {
+  font-size: 18px;
+  color: #ffe66d;
+}
+
+/* Contenedor de reinicio y distribución aleatoria. */
+.acciones-atributos {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 18px;
+}
+
+/* Botón utilizado para comenzar la partida. */
+.boton-principal {
+  width: 100%;
+  padding: 12px;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  background-color: #354178;
+}
+
+/* Espacio reservado para mensajes del menú. */
+.mensaje-creacion {
+  min-height: 20px;
+  margin-bottom: 0;
+
+  color: #ff9494;
+}
+
+/* Esta clase permite ocultar el menú o el juego. */
+.oculto {
+  display: none;
+}
+
+/* Apariencia del canvas de la partida. */
 canvas {
-    display: block;
+  display: block;
+  max-width: 100%;
+  height: auto;
 
-    border: 3px solid #7586ff;
-    background-color: #171b2e;
+  margin: 0 auto;
 
-    image-rendering: pixelated;
+  border: 3px solid #7586ff;
+  background-color: #171b2e;
+
+  image-rendering: pixelated;
 }
 
+/* Información actual del personaje. */
 #status {
-    font-size: 18px;
+  font-size: 18px;
 }
 
 /* Área donde mostramos el resultado de los ataques. */
 #combatLog {
-    min-height: 24px;
-    max-width: 640px;
+  min-height: 24px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 
-    color: #ffe66d;
-    font-size: 16px;
+  color: #ffe66d;
+  font-size: 16px;
+}
+
+/* Ajustes para pantallas pequeñas. */
+@media (max-width: 520px) {
+  body {
+    padding: 12px;
+  }
+
+  .panel-creacion {
+    padding: 18px;
+  }
+
+  .fila-atributo {
+    grid-template-columns: 1fr 38px 40px 38px;
+    gap: 5px;
+  }
 }

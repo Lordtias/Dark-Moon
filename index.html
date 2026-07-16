@@ -1,38 +1,143 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+  <!-- Permite que la interfaz se adapte correctamente
+       a pantallas de distintos tamaños. -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-    <title>Dark Moon</title>
+  <title>Dark Moon</title>
 
-    <link rel="stylesheet" href="style.css">
-
-    <script type="module" src="game.js"></script>
+  <!-- Hoja de estilos principal del juego. -->
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <main>
-        <h1>Dark Moon</h1>
+  <main>
+    <!-- Pantalla de creación del personaje.
+         Será lo primero que verá el jugador. -->
+    <section
+      id="characterCreation"
+      class="panel-creacion"
+    >
+      <h1>Dark Moon</h1>
+      <h2>Creación del personaje</h2>
 
-        <p>Movimiento: flechas o WASD</p>
+      <!-- Nombre del personaje. -->
+      <div class="campo-formulario">
+        <label for="playerName">
+          Nombre
+        </label>
 
-        <canvas
-            id="gameCanvas"
-            width="640"
-            height="384"
-        ></canvas>
+        <input
+          id="playerName"
+          type="text"
+          value="Aventurero"
+          maxlength="20"
+          autocomplete="off"
+        >
+      </div>
 
-        <p id="status">Cargando partida...</p>
-        
-        <!-- Aquí se mostrará el resultado del último ataque. -->
-        <p id="combatLog">
-            Acercate a la rata o al barril para atacarlos.
-        </p>
-    </main>
+      <!-- Selector de profesión.
+           Las opciones se cargarán desde el JSON. -->
+      <div class="campo-formulario">
+        <label for="professionSelect">
+          Profesión
+        </label>
+
+        <select id="professionSelect">
+          <option>Cargando profesiones...</option>
+        </select>
+      </div>
+
+      <h3>Atributos</h3>
+
+      <!-- JavaScript generará aquí las filas
+           de Fuerza, Destreza, Constitución, etc. -->
+      <div
+        id="attributesContainer"
+        class="contenedor-atributos"
+      ></div>
+
+      <!-- Contador de puntos que todavía
+           quedan disponibles para distribuir. -->
+      <p class="puntos-disponibles">
+        Puntos disponibles:
+        <span id="pointsRemaining">0</span>
+      </p>
+
+      <div class="acciones-atributos">
+        <!-- Devuelve todos los atributos
+             a su valor inicial. -->
+        <button
+          id="resetAttributesButton"
+          type="button"
+        >
+          Reiniciar atributos
+        </button>
+
+        <!-- Distribuye los puntos aleatoriamente
+             según la profesión seleccionada. -->
+        <button
+          id="randomAttributesButton"
+          type="button"
+        >
+          Distribuir según profesión
+        </button>
+      </div>
+
+      <!-- El botón permanecerá deshabilitado
+           mientras todavía queden puntos. -->
+      <button
+        id="startGameButton"
+        class="boton-principal"
+        type="button"
+        disabled
+      >
+        Comenzar aventura
+      </button>
+
+      <!-- Área para mostrar validaciones o errores. -->
+      <p
+        id="creationMessage"
+        class="mensaje-creacion"
+        aria-live="polite"
+      ></p>
+    </section>
+
+    <!-- Contenedor del juego.
+         Comienza oculto hasta terminar la creación. -->
+    <section
+      id="gameContainer"
+      class="oculto"
+    >
+      <h1>Dark Moon</h1>
+
+      <p>
+        Movimiento: flechas o WASD
+      </p>
+
+      <p id="status">
+        Cargando partida...
+      </p>
+
+      <canvas id="gameCanvas"></canvas>
+
+      <p id="combatLog">
+        Acercate a la rata o al barril para atacarlos.
+      </p>
+    </section>
+  </main>
+
+  <!-- game.js es un módulo porque utiliza
+       importaciones y exportaciones. -->
+  <script
+    type="module"
+    src="./game.js"
+  ></script>
 </body>
 </html>

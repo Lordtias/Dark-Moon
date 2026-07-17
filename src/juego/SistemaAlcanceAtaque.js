@@ -1,8 +1,9 @@
+import { PATRONES_ATAQUE, esPatronAtaqueValido } from "./PatronesAtaque.js";
+
 // Centraliza las reglas de alcance y línea de visión.
 //
 // Este sistema será utilizado tanto por el jugador
-// como por los enemigos, habilidades y hechizos futuros.
-
+// como por enemigos, habilidades y hechizos futuros.
 export function calcularDistanciaCuadricula(origen, destino) {
   return Math.max(
     Math.abs(destino.x - origen.x),
@@ -50,8 +51,14 @@ export function evaluarAtaqueCasilla({
       puedeAtacar: false,
       dentroAlcance: false,
       lineaVisionDespejada: true,
+      patronValido: false,
+
+      // Se conserva temporalmente este nombre
+      // por compatibilidad con posibles consumidores.
       alineacionValida: false,
+
       distancia,
+
       mensaje: "No podés atacar tu propia casilla.",
     };
   }
@@ -61,28 +68,39 @@ export function evaluarAtaqueCasilla({
       puedeAtacar: false,
       dentroAlcance: false,
       lineaVisionDespejada: false,
+      patronValido: false,
       alineacionValida: false,
       distancia,
+
       mensaje: `La casilla supera el alcance ` + `${atacante.alcanceAtaque}.`,
     };
   }
 
-  const tipoAtaque = atacante.tipoAtaqueActual;
+  const patronAtaque = atacante.patronAtaqueActual;
 
-  const alineacionValida =
-    tipoAtaque !== "cuerpoACuerpo" ||
-    estaEnDireccionCuerpoACuerpo(origen, destino);
+  if (!esPatronAtaqueValido(patronAtaque)) {
+    throw new Error(
+      `El patrón de ataque de ` + `${atacante.nombre} no es válido.`,
+    );
+  }
 
-  if (!alineacionValida) {
+  const evaluacionPatron = evaluarPatronAtaque({
+    patronAtaque,
+    origen,
+    destino,
+    distancia,
+  });
+
+  if (!evaluacionPatron.valido) {
     return {
       puedeAtacar: false,
       dentroAlcance: true,
       lineaVisionDespejada: false,
+      patronValido: false,
       alineacionValida: false,
       distancia,
-      mensaje:
-        "El ataque cuerpo a cuerpo debe realizarse " +
-        "en línea recta o diagonal.",
+
+      mensaje: evaluacionPatron.mensaje,
     };
   }
 
@@ -97,8 +115,10 @@ export function evaluarAtaqueCasilla({
       puedeAtacar: false,
       dentroAlcance: true,
       lineaVisionDespejada: false,
+      patronValido: true,
       alineacionValida: true,
       distancia,
+
       mensaje: lineaVision.mensaje,
     };
   }
@@ -107,19 +127,65 @@ export function evaluarAtaqueCasilla({
     puedeAtacar: true,
     dentroAlcance: true,
     lineaVisionDespejada: true,
+    patronValido: true,
     alineacionValida: true,
     distancia,
     mensaje: null,
   };
 }
 
-// Las armas cuerpo a cuerpo con alcance superior
-// solamente pueden extenderse en ocho direcciones:
+// Valida la forma espacial del ataque.
+//
+// ADYACENTE:
+// Solamente permite las ocho casillas contiguas.
+//
+// LINEAL:
+// Permite horizontal, vertical o diagonal perfecta.
+//
+// LIBRE:
+// Permite cualquier posición dentro del alcance.
+function evaluarPatronAtaque({ patronAtaque, origen, destino, distancia }) {
+  switch (patronAtaque) {
+    case PATRONES_ATAQUE.ADYACENTE:
+      return {
+        valido: distancia === 1,
+
+        mensaje:
+          distancia === 1
+            ? null
+            : "Este ataque solamente puede alcanzar " + "casillas adyacentes.",
+      };
+
+    case PATRONES_ATAQUE.LINEAL:
+      return {
+        valido: estaEnDireccionLineal(origen, destino),
+
+        mensaje:
+          "Este ataque debe realizarse en línea " +
+          "horizontal, vertical o diagonal.",
+      };
+
+    case PATRONES_ATAQUE.LIBRE:
+      return {
+        valido: true,
+        mensaje: null,
+      };
+
+    default:
+      return {
+        valido: false,
+
+        mensaje: "El patrón de ataque seleccionado " + "no está implementado.",
+      };
+  }
+}
+
+// Comprueba las ocho direcciones lineales:
 //
 // - Horizontal.
 // - Vertical.
 // - Diagonal perfecta.
-function estaEnDireccionCuerpoACuerpo(origen, destino) {
+function estaEnDireccionLineal(origen, destino) {
   const diferenciaX = destino.x - origen.x;
 
   const diferenciaY = destino.y - origen.y;
@@ -131,12 +197,12 @@ function estaEnDireccionCuerpoACuerpo(origen, destino) {
   );
 }
 
-// Recorre todas las casillas atravesadas por
-// la trayectoria del ataque.
+// Recorre todas las casillas atravesadas
+// por la trayectoria del ataque.
 //
-// Cuando la línea cruza exactamente una esquina,
-// bloqueamos únicamente si ambos laterales son paredes.
-// Esto conserva la misma regla utilizada al caminar.
+// Cuando la trayectoria cruza exactamente una
+// esquina, solamente bloqueamos si ambos lados
+// están cerrados por paredes.
 function evaluarLineaVision({ mapa, origen, destino }) {
   const diferenciaX = destino.x - origen.x;
 
@@ -186,6 +252,7 @@ function evaluarLineaVision({ mapa, origen, destino }) {
       if (horizontalBloqueado && verticalBloqueado) {
         return {
           despejada: false,
+
           mensaje:
             "Dos paredes bloquean la trayectoria " + "diagonal del ataque.",
         };
@@ -206,11 +273,13 @@ function evaluarLineaVision({ mapa, origen, destino }) {
 
     const esDestino = x === destino.x && y === destino.y;
 
-    // La casilla de destino ya fue validada.
-    // Solamente comprobamos obstáculos intermedios.
+    // La casilla de destino fue validada antes.
+    // Aquí solamente comprobamos obstáculos
+    // que se encuentren en el trayecto.
     if (!esDestino && esBloqueante(mapa, x, y)) {
       return {
         despejada: false,
+
         mensaje: "Una pared bloquea la trayectoria del ataque.",
       };
     }
@@ -230,8 +299,8 @@ function esPared(mapa, x, y) {
   return estaDentroMapa(mapa, x, y) && mapa[y][x] === "#";
 }
 
-// Una posición fuera del mapa también se considera
-// bloqueante para las comprobaciones de esquinas.
+// Una posición fuera del mapa se considera
+// bloqueante al comprobar esquinas.
 function esBloqueante(mapa, x, y) {
   return !estaDentroMapa(mapa, x, y) || esPared(mapa, x, y);
 }
@@ -241,6 +310,7 @@ function crearResultadoInvalido(mensaje) {
     puedeAtacar: false,
     dentroAlcance: false,
     lineaVisionDespejada: false,
+    patronValido: false,
     alineacionValida: false,
     distancia: null,
     mensaje,

@@ -14,6 +14,12 @@ import {
   resolverAtaqueSinObjetivo,
 } from "../../../juego/SistemaCombate.js";
 
+import {
+  PATRONES_ATAQUE,
+  normalizarPatronAtaque,
+  obtenerPatronAtaquePredeterminado,
+} from "../../../juego/PatronesAtaque.js";
+
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 const ATRIBUTOS_REQUERIDOS = [
@@ -113,7 +119,7 @@ function normalizarEstadisticasBase(nombre, configuracion) {
   for (const campo of camposNumericos) {
     if (!Number.isFinite(valores[campo])) {
       throw new Error(
-        `La estadística base "${campo}" ` + `de ${nombre} no es válida.`,
+        `La estadística base "${campo}" de ` + `${nombre} no es válida.`,
       );
     }
   }
@@ -121,7 +127,7 @@ function normalizarEstadisticasBase(nombre, configuracion) {
   for (const [tipo, valor] of Object.entries(valores.resistencias)) {
     if (!Number.isFinite(valor)) {
       throw new Error(
-        `La resistencia "${tipo}" ` + `de ${nombre} no es válida.`,
+        `La resistencia "${tipo}" de ` + `${nombre} no es válida.`,
       );
     }
   }
@@ -137,6 +143,13 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       ? configuracion
       : {};
 
+  const tipoAtaque = valores.tipoAtaque ?? "cuerpoACuerpo";
+
+  const patronSolicitado =
+    valores.patronAtaque ?? obtenerPatronAtaquePredeterminado(tipoAtaque);
+
+  const patronNormalizado = normalizarPatronAtaque(patronSolicitado);
+
   const ataque = {
     danioFisicoMinimo: valores.danioFisicoMinimo ?? 1,
 
@@ -148,7 +161,9 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
 
     alcance: valores.alcance ?? 1,
 
-    tipoAtaque: valores.tipoAtaque ?? "cuerpoACuerpo",
+    tipoAtaque,
+
+    patronAtaque: patronNormalizado,
 
     probabilidadCritico: valores.probabilidadCritico ?? 5,
 
@@ -171,7 +186,7 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     ataque.atributoAtaque.trim() === ""
   ) {
     throw new Error(
-      `El ataque natural de ${nombre} ` + "necesita un atributo.",
+      `El ataque natural de ${nombre} ` + "necesita un atributo de ataque.",
     );
   }
 
@@ -179,19 +194,35 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
 
   if (!Number.isFinite(ataque.precision)) {
     throw new Error(
-      `La precisión del ataque natural ` + `de ${nombre} no es válida.`,
+      `La precisión del ataque natural de ` + `${nombre} no es válida.`,
     );
   }
 
   if (!Number.isInteger(ataque.alcance) || ataque.alcance < 1) {
     throw new Error(
-      `El alcance del ataque natural ` + `de ${nombre} no es válido.`,
+      `El alcance del ataque natural de ` + `${nombre} no es válido.`,
     );
   }
 
   if (!TIPOS_ATAQUE_VALIDOS.includes(ataque.tipoAtaque)) {
     throw new Error(
-      `El tipo de ataque natural ` + `de ${nombre} no es válido.`,
+      `El tipo de ataque natural de ` + `${nombre} no es válido.`,
+    );
+  }
+
+  if (!ataque.patronAtaque) {
+    throw new Error(
+      `El patrón del ataque natural de ` + `${nombre} no es válido.`,
+    );
+  }
+
+  if (
+    ataque.patronAtaque === PATRONES_ATAQUE.ADYACENTE &&
+    ataque.alcance !== 1
+  ) {
+    throw new Error(
+      `El ataque natural de ${nombre} utiliza ` +
+        "patrón adyacente y debe tener alcance 1.",
     );
   }
 
@@ -199,7 +230,10 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     !Number.isFinite(ataque.probabilidadCritico) ||
     !Number.isFinite(ataque.multiplicadorCritico)
   ) {
-    throw new Error(`Los valores de crítico de ` + `${nombre} no son válidos.`);
+    throw new Error(
+      `Los valores de crítico del ataque ` +
+        `natural de ${nombre} no son válidos.`,
+    );
   }
 
   return ataque;
@@ -222,7 +256,9 @@ export class Combatiente extends Destructible {
     equipamientoInicial = [],
   } = {}) {
     if (!Number.isInteger(nivel) || nivel < 1) {
-      throw new Error(`${nombre} debe tener un nivel ` + "entero mayor que 0.");
+      throw new Error(
+        `${nombre} debe tener un nivel entero ` + "igual o mayor que 1.",
+      );
     }
 
     validarAtributos(nombre, atributos);
@@ -241,21 +277,27 @@ export class Combatiente extends Destructible {
     if (
       !Object.prototype.hasOwnProperty.call(
         atributosNormalizados,
-
         ataqueNormalizado.atributoAtaque,
       )
     ) {
       throw new Error(
         `${nombre} no tiene el atributo ` +
-          `"${ataqueNormalizado.atributoAtaque}".`,
+          `"${ataqueNormalizado.atributoAtaque}" ` +
+          "usado por su ataque natural.",
       );
     }
 
+    // El equipamiento puede construirse antes
+    // de super porque no utiliza this.
     const equipamiento = new Equipamiento({
       ranurasDisponibles: ranurasEquipamiento,
 
       objetosIniciales: equipamientoInicial,
     });
+
+    const objetosEquipados = Object.values(
+      equipamiento.obtenerRanuras(),
+    ).filter(Boolean);
 
     const recursosIniciales = calcularRecursosMaximos({
       nivel,
@@ -264,7 +306,7 @@ export class Combatiente extends Destructible {
 
       estadisticasBase: baseNormalizada,
 
-      objetosEquipados: equipamiento.obtenerObjetosEquipados(),
+      objetosEquipados,
     });
 
     super({
@@ -296,7 +338,6 @@ export class Combatiente extends Destructible {
     this.manaActual = recursosIniciales.manaMaximo;
 
     this.acumuladorRegeneracionVida = 0;
-
     this.acumuladorRegeneracionMana = 0;
   }
 
@@ -314,20 +355,26 @@ export class Combatiente extends Destructible {
     return estadisticas;
   }
 
+  // Devuelve el arma ubicada específicamente
+  // en la ranura principal.
+  //
+  // Se mantiene para las estadísticas y para
+  // cualquier consumidor que necesite conocer
+  // esa posición concreta.
+  get armaEquipada() {
+    if (!this.equipamiento.tieneRanura("arma")) {
+      return null;
+    }
+
+    const objeto = this.equipamiento.obtenerObjetoEnRanura("arma");
+
+    return objeto?.tipo === "arma" ? objeto : null;
+  }
+
+  // Determina qué arma o ataque natural
+  // controla realmente el ataque actual.
   get configuracionAtaqueActual() {
     return obtenerConfiguracionAtaque(this);
-  }
-
-  get armaPrincipal() {
-    return this.configuracionAtaqueActual.armaPrincipal;
-  }
-
-  get armaSecundaria() {
-    return this.configuracionAtaqueActual.armaSecundaria;
-  }
-
-  get quiverEquipado() {
-    return this.configuracionAtaqueActual.quiver;
   }
 
   get atributoAtaqueActual() {
@@ -355,6 +402,19 @@ export class Combatiente extends Destructible {
     }
 
     return tipo;
+  }
+
+  get patronAtaqueActual() {
+    const patronAtaque =
+      this.configuracionAtaqueActual.propiedadesControladoras.patronAtaque;
+
+    const normalizado = normalizarPatronAtaque(patronAtaque);
+
+    if (!normalizado) {
+      throw new Error(`El patrón de ataque de ${this.nombre} no es válido.`);
+    }
+
+    return normalizado;
   }
 
   get estaVivo() {
@@ -454,16 +514,22 @@ export class Combatiente extends Destructible {
     };
   }
 
+  // Resuelve un ataque dirigido a una casilla
+  // válida que no contiene ningún objetivo.
+  //
+  // Es importante mantener esta acción dentro
+  // del Combatiente para que también gestione
+  // correctamente el consumo de munición.
+  atacarCasillaVacia() {
+    return resolverAtaqueSinObjetivo({
+      atacante: this,
+    });
+  }
+
   atacar(objetivo) {
     return resolverAtaque({
       atacante: this,
       objetivo,
-    });
-  }
-
-  atacarCasillaVacia() {
-    return resolverAtaqueSinObjetivo({
-      atacante: this,
     });
   }
 }

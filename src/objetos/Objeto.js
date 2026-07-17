@@ -1,5 +1,10 @@
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
+import {
+  PATRONES_ATAQUE,
+  normalizarPatronAtaque,
+} from "../juego/PatronesAtaque.js";
+
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 // Representa una instancia real de cualquier objeto.
@@ -17,7 +22,9 @@ export class Objeto {
     contenedorObjetos = null,
   } = {}) {
     this.validarTexto(id, "id");
+
     this.validarTexto(nombre, "nombre");
+
     this.validarTexto(tipo, "tipo");
 
     if (typeof descripcion !== "string") {
@@ -77,8 +84,11 @@ export class Objeto {
     this.tipo = tipo.trim().toLowerCase();
 
     this.descripcion = descripcion;
+
     this.apilable = apilable;
+
     this.cantidadMaxima = cantidadMaxima;
+
     this.cantidad = cantidad;
 
     this.ranurasCompatibles = this.normalizarRanuras(ranurasCompatibles);
@@ -114,6 +124,7 @@ export class Objeto {
       precision,
       alcance,
       tipoAtaque,
+      patronAtaque,
       probabilidadCritico,
       multiplicadorCritico,
       manos,
@@ -142,6 +153,29 @@ export class Objeto {
 
     if (!TIPOS_ATAQUE_VALIDOS.includes(tipoAtaque)) {
       throw new Error(`El tipo de ataque de "${this.nombre}" no es válido.`);
+    }
+
+    const patronNormalizado = normalizarPatronAtaque(patronAtaque);
+
+    if (!patronNormalizado) {
+      throw new Error(`El patrón de ataque de "${this.nombre}" no es válido.`);
+    }
+
+    // Guardamos la versión normalizada para que
+    // el resto del juego trabaje siempre con el
+    // mismo formato.
+    this.propiedades.patronAtaque = patronNormalizado;
+
+    // Un patrón adyacente representa estrictamente
+    // las ocho posiciones contiguas.
+    //
+    // Si se necesita alcance 2 o superior debe
+    // utilizarse lineal, libre u otro patrón futuro.
+    if (patronNormalizado === PATRONES_ATAQUE.ADYACENTE && alcance !== 1) {
+      throw new Error(
+        `"${this.nombre}" utiliza patrón adyacente ` +
+          "y por lo tanto debe tener alcance 1.",
+      );
     }
 
     if (

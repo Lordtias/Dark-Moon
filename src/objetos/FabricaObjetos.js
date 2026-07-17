@@ -1,124 +1,152 @@
-// Importamos la clase que representa
-// cada instancia real de un objeto.
-import {
-    Objeto
-} from "./Objeto.js";
+import { Objeto } from "./Objeto.js";
 
-// Crea un objeto utilizando una plantilla
-// cargada desde Objetos.json.
+import { ContenedorObjetos } from "./ContenedorObjetos.js";
+
+// Crea una instancia independiente desde Objetos.json.
+//
+// rutaCreacion evita configuraciones circulares,
+// por ejemplo un quiver que se contenga a sí mismo.
 export function crearObjeto({
-    configuracionObjetos,
-    idObjeto,
-    cantidad = 1
+  configuracionObjetos,
+  idObjeto,
+  cantidad = 1,
+  rutaCreacion = [],
 } = {}) {
-    if (
-        configuracionObjetos === null ||
-        typeof configuracionObjetos !== "object" ||
-        Array.isArray(configuracionObjetos)
-    ) {
-        throw new Error(
-            "Se necesita una configuración de objetos válida."
-        );
-    }
+  if (
+    configuracionObjetos === null ||
+    typeof configuracionObjetos !== "object" ||
+    Array.isArray(configuracionObjetos)
+  ) {
+    throw new Error("Se necesita una configuración de objetos válida.");
+  }
 
-    if (
-        typeof idObjeto !== "string" ||
-        idObjeto.trim() === ""
-    ) {
-        throw new Error(
-            "Se necesita el identificador del objeto."
-        );
-    }
+  if (typeof idObjeto !== "string" || idObjeto.trim() === "") {
+    throw new Error("Se necesita el identificador del objeto.");
+  }
 
-    const idNormalizado =
-        idObjeto.trim().toLowerCase();
+  const idNormalizado = idObjeto.trim().toLowerCase();
 
-    const plantilla =
-        configuracionObjetos[idNormalizado];
+  if (rutaCreacion.includes(idNormalizado)) {
+    throw new Error(
+      `La configuración del objeto "${idNormalizado}" contiene una referencia circular.`,
+    );
+  }
 
-    if (!plantilla) {
-        throw new Error(
-            `No existe el objeto "${idNormalizado}".`
-        );
-    }
+  const plantilla = configuracionObjetos[idNormalizado];
 
-    // Creamos una instancia independiente.
-    //
-    // Dos pociones creadas desde la misma plantilla
-    // serán objetos distintos dentro de la partida.
-    return new Objeto({
-        id: idNormalizado,
-        nombre: plantilla.nombre,
-        tipo: plantilla.tipo,
-        descripcion:
-            plantilla.descripcion ?? "",
-        apilable:
-            plantilla.apilable ?? false,
-        cantidadMaxima:
-            plantilla.cantidadMaxima ?? 1,
-        cantidad,
-        ranurasCompatibles: [
-            ...(
-                plantilla.ranurasCompatibles ?? []
-            )
-        ],
-        propiedades: {
-            ...(
-                plantilla.propiedades ?? {}
-            )
-        }
-    });
+  if (!plantilla) {
+    throw new Error(`No existe el objeto "${idNormalizado}".`);
+  }
+
+  const nuevaRuta = [...rutaCreacion, idNormalizado];
+
+  const contenedorObjetos = crearContenedorInterno({
+    configuracionObjetos,
+    configuracionContenedor: plantilla.contenedor ?? null,
+    rutaCreacion: nuevaRuta,
+  });
+
+  return new Objeto({
+    id: idNormalizado,
+    nombre: plantilla.nombre,
+    tipo: plantilla.tipo,
+
+    descripcion: plantilla.descripcion ?? "",
+
+    apilable: plantilla.apilable ?? false,
+
+    cantidadMaxima: plantilla.cantidadMaxima ?? 1,
+
+    cantidad,
+
+    ranurasCompatibles: [...(plantilla.ranurasCompatibles ?? [])],
+
+    propiedades: {
+      ...(plantilla.propiedades ?? {}),
+    },
+
+    contenedorObjetos,
+  });
+}
+
+// Crea el contenido interno de un objeto,
+// como las flechas almacenadas en un quiver.
+function crearContenedorInterno({
+  configuracionObjetos,
+  configuracionContenedor,
+  rutaCreacion,
+}) {
+  if (configuracionContenedor === null) {
+    return null;
+  }
+
+  if (
+    typeof configuracionContenedor !== "object" ||
+    Array.isArray(configuracionContenedor)
+  ) {
+    throw new Error("La configuración del contenedor interno no es válida.");
+  }
+
+  const objetosIniciales = crearObjetosDesdeDefiniciones({
+    configuracionObjetos,
+
+    definiciones: configuracionContenedor.objetosIniciales ?? [],
+
+    rutaCreacion,
+  });
+
+  return new ContenedorObjetos({
+    capacidad: configuracionContenedor.capacidad,
+
+    objetosIniciales,
+  });
 }
 
 // Convierte una lista de definiciones JSON
-// en una lista de objetos reales.
+// en una lista de instancias reales.
 //
-// Admite dos formatos:
+// Formatos admitidos:
 //
 // "pocion_curacion"
 //
-// o:
-//
 // {
-//     "id": "flecha_madera",
-//     "cantidad": 10
+//   "id": "flecha_madera",
+//   "cantidad": 20
 // }
 export function crearObjetosDesdeDefiniciones({
-    configuracionObjetos,
-    definiciones = []
+  configuracionObjetos,
+  definiciones = [],
+  rutaCreacion = [],
 } = {}) {
-    if (!Array.isArray(definiciones)) {
-        throw new Error(
-            "Las definiciones de objetos deben ser una lista."
-        );
+  if (!Array.isArray(definiciones)) {
+    throw new Error("Las definiciones de objetos deben ser una lista.");
+  }
+
+  return definiciones.map((definicion) => {
+    if (typeof definicion === "string") {
+      return crearObjeto({
+        configuracionObjetos,
+        idObjeto: definicion,
+        cantidad: 1,
+        rutaCreacion,
+      });
     }
 
-    return definiciones.map((definicion) => {
-        // Un texto representa una unidad del objeto.
-        if (typeof definicion === "string") {
-            return crearObjeto({
-                configuracionObjetos,
-                idObjeto: definicion,
-                cantidad: 1
-            });
-        }
+    if (
+      definicion !== null &&
+      typeof definicion === "object" &&
+      !Array.isArray(definicion)
+    ) {
+      return crearObjeto({
+        configuracionObjetos,
+        idObjeto: definicion.id,
 
-        // Un objeto permite indicar una cantidad.
-        if (
-            definicion !== null &&
-            typeof definicion === "object" &&
-            !Array.isArray(definicion)
-        ) {
-            return crearObjeto({
-                configuracionObjetos,
-                idObjeto: definicion.id,
-                cantidad:
-                    definicion.cantidad ?? 1
-            });
-        }
+        cantidad: definicion.cantidad ?? 1,
 
-        throw new Error(
-            "Existe una definición de objeto inválida."
-        );
-    });
+        rutaCreacion,
+      });
+    }
+
+    throw new Error("Existe una definición de objeto inválida.");
+  });
 }

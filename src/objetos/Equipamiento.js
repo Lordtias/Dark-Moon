@@ -1,61 +1,52 @@
-// Equipamiento administra los objetos colocados
-// en las ranuras disponibles de una entidad.
-//
-// La entidad define qué ranuras posee.
-//
-// Cada objeto define en qué ranuras puede colocarse
-// mediante su propiedad ranurasCompatibles.
+// Administra los objetos equipados y las
+// reservas generadas por armas de dos manos.
 export class Equipamiento {
   constructor({ ranurasDisponibles = [], objetosIniciales = [] } = {}) {
-    // Las ranuras siempre deben recibirse como una lista.
     if (!Array.isArray(ranurasDisponibles)) {
       throw new Error("Las ranuras de equipamiento deben ser una lista.");
     }
 
-    // Los objetos iniciales también deben ser una lista.
-    //
-    // No indicamos manualmente la ranura porque
-    // cada objeto conoce sus ranuras compatibles.
     if (!Array.isArray(objetosIniciales)) {
       throw new Error(
         "Los objetos equipados inicialmente deben ser una lista.",
       );
     }
 
-    // Este objeto guardará cada ranura y el objeto
-    // equipado actualmente en ella.
     this.ranuras = {};
+    this.reservas = {};
 
-    // Creamos todas las ranuras disponibles
-    // y las inicializamos vacías.
     for (const nombreRanura of ranurasDisponibles) {
-      const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
+      const normalizada = this.normalizarNombreRanura(nombreRanura);
 
-      if (
-        Object.prototype.hasOwnProperty.call(this.ranuras, nombreNormalizado)
-      ) {
-        throw new Error(`La ranura "${nombreNormalizado}" está repetida.`);
+      if (Object.prototype.hasOwnProperty.call(this.ranuras, normalizada)) {
+        throw new Error(`La ranura "${normalizada}" está repetida.`);
       }
 
-      this.ranuras[nombreNormalizado] = null;
+      this.ranuras[normalizada] = null;
+
+      this.reservas[normalizada] = null;
     }
 
-    // Intentamos equipar automáticamente
-    // cada objeto recibido.
+    // Los objetos iniciales solamente se colocan
+    // en espacios completamente libres.
     for (const objeto of objetosIniciales) {
-      const ranuraAsignada = this.equiparAutomaticamente(objeto);
+      const resultado = this.equiparAutomaticamente(objeto);
 
-      if (ranuraAsignada === null) {
+      if (resultado === null) {
         throw new Error(
           "No existe una ranura compatible libre " +
             `para "${objeto.nombre ?? "el objeto"}".`,
         );
       }
+
+      if (resultado.objetosDesequipados.length > 0) {
+        throw new Error(
+          `La configuración inicial de "${objeto.nombre}" desplaza otro objeto.`,
+        );
+      }
     }
   }
 
-  // Convierte el nombre de una ranura
-  // a un formato común.
   normalizarNombreRanura(nombreRanura) {
     if (typeof nombreRanura !== "string" || nombreRanura.trim() === "") {
       throw new Error("Cada ranura debe tener un nombre válido.");
@@ -64,115 +55,249 @@ export class Equipamiento {
     return nombreRanura.trim().toLowerCase();
   }
 
-  // Devuelve una copia del equipamiento actual.
-  //
-  // La copia evita que otras clases modifiquen
-  // directamente el objeto interno de ranuras.
   obtenerRanuras() {
     return {
       ...this.ranuras,
     };
   }
 
-  // Indica si la entidad posee una ranura concreta.
+  // Devuelve objetos reales sin incluir
+  // las reservas visuales de dos manos.
+  obtenerObjetosEquipados() {
+    return Object.values(this.ranuras).filter(Boolean);
+  }
+
+  // Permite que la interfaz conozca si
+  // una ranura está libre, ocupada o reservada.
+  obtenerEstadoRanuras() {
+    const estado = {};
+
+    for (const nombreRanura of Object.keys(this.ranuras)) {
+      estado[nombreRanura] = {
+        objeto: this.ranuras[nombreRanura],
+
+        reservadaPor: this.reservas[nombreRanura],
+      };
+    }
+
+    return estado;
+  }
+
   tieneRanura(nombreRanura) {
-    const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
 
-    return Object.prototype.hasOwnProperty.call(
-      this.ranuras,
-      nombreNormalizado,
-    );
+    return Object.prototype.hasOwnProperty.call(this.ranuras, normalizada);
   }
 
-  // Devuelve el objeto equipado en una ranura concreta.
-  //
-  // Cuando la ranura está vacía devuelve null.
   obtenerObjetoEnRanura(nombreRanura) {
-    const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
 
-    this.validarRanura(nombreNormalizado);
+    this.validarRanura(normalizada);
 
-    return this.ranuras[nombreNormalizado];
+    return this.ranuras[normalizada];
   }
 
-  // Busca la primera ranura compatible
-  // que además se encuentre libre.
+  estaRanuraReservada(nombreRanura) {
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
+
+    this.validarRanura(normalizada);
+
+    return this.reservas[normalizada] !== null;
+  }
+
   buscarRanuraCompatibleLibre(objeto) {
     this.validarObjetoEquipable(objeto);
 
     for (const nombreRanura of objeto.ranurasCompatibles) {
-      const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
+      const normalizada = this.normalizarNombreRanura(nombreRanura);
+
+      if (!this.tieneRanura(normalizada)) {
+        continue;
+      }
 
       if (
-        this.tieneRanura(nombreNormalizado) &&
-        this.ranuras[nombreNormalizado] === null
+        this.ranuras[normalizada] !== null ||
+        this.reservas[normalizada] !== null
       ) {
-        return nombreNormalizado;
+        continue;
+      }
+
+      // Un arma que bloquea secundaria necesita
+      // ambas ranuras completamente libres.
+      if (normalizada === "arma" && objeto.bloqueaSecundaria) {
+        if (
+          !this.tieneRanura("secundaria") ||
+          this.ranuras.secundaria !== null ||
+          this.reservas.secundaria !== null
+        ) {
+          continue;
+        }
+      }
+
+      return normalizada;
+    }
+
+    return null;
+  }
+
+  equiparAutomaticamente(objeto) {
+    const ranura = this.buscarRanuraCompatibleLibre(objeto);
+
+    if (ranura === null) {
+      return null;
+    }
+
+    return this.equiparEnRanura(ranura, objeto);
+  }
+
+  // Equipa un objeto y devuelve todos los
+  // elementos desplazados por la operación.
+  equiparEnRanura(nombreRanura, objeto) {
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
+
+    this.validarRanura(normalizada);
+
+    this.validarObjetoEquipable(objeto);
+
+    if (!objeto.puedeEquiparseEn(normalizada)) {
+      throw new Error(
+        `${objeto.nombre} no puede equiparse en "${normalizada}".`,
+      );
+    }
+
+    const objetosDesequipados = [];
+
+    // Permite mover el mismo objeto entre ranuras
+    // sin considerarlo un objeto desplazado.
+    this.retirarMismoObjeto(objeto);
+
+    if (normalizada === "arma" && objeto.bloqueaSecundaria) {
+      if (!this.tieneRanura("secundaria")) {
+        throw new Error(
+          `${objeto.nombre} necesita una ranura secundaria disponible.`,
+        );
+      }
+
+      this.extraerObjetoDeRanura("arma", objetosDesequipados);
+
+      this.extraerObjetoDeRanura("secundaria", objetosDesequipados);
+
+      this.ranuras.arma = objeto;
+
+      // La secundaria queda reservada,
+      // pero no guarda una segunda copia del arma.
+      this.reservas.secundaria = objeto;
+    } else if (normalizada === "secundaria") {
+      // Si la secundaria estaba reservada,
+      // se desequipa el arma que generaba la reserva.
+      const objetoQueReserva = this.reservas.secundaria;
+
+      if (objetoQueReserva) {
+        this.extraerObjetoPorReferencia(objetoQueReserva, objetosDesequipados);
+      }
+
+      this.extraerObjetoDeRanura("secundaria", objetosDesequipados);
+
+      this.ranuras.secundaria = objeto;
+    } else {
+      this.extraerObjetoDeRanura(normalizada, objetosDesequipados);
+
+      this.ranuras[normalizada] = objeto;
+    }
+
+    return {
+      ranuraAsignada: normalizada,
+
+      objetoEquipado: objeto,
+
+      objetosDesequipados,
+    };
+  }
+
+  desequipar(nombreRanura) {
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
+
+    this.validarRanura(normalizada);
+
+    // Desequipar una ranura reservada retira
+    // el arma que produce la reserva.
+    const objetoQueReserva = this.reservas[normalizada];
+
+    if (objetoQueReserva) {
+      this.extraerObjetoPorReferencia(objetoQueReserva, []);
+
+      return objetoQueReserva;
+    }
+
+    const objeto = this.ranuras[normalizada];
+
+    if (!objeto) {
+      return null;
+    }
+
+    this.ranuras[normalizada] = null;
+
+    this.liberarReservasDelObjeto(objeto);
+
+    return objeto;
+  }
+
+  retirarMismoObjeto(objeto) {
+    for (const nombreRanura of Object.keys(this.ranuras)) {
+      if (this.ranuras[nombreRanura] === objeto) {
+        this.ranuras[nombreRanura] = null;
+
+        this.liberarReservasDelObjeto(objeto);
+      }
+    }
+  }
+
+  extraerObjetoDeRanura(nombreRanura, objetosDesequipados) {
+    const objeto = this.ranuras[nombreRanura];
+
+    if (!objeto) {
+      return null;
+    }
+
+    this.ranuras[nombreRanura] = null;
+
+    this.liberarReservasDelObjeto(objeto);
+
+    this.agregarSinRepetir(objetosDesequipados, objeto);
+
+    return objeto;
+  }
+
+  extraerObjetoPorReferencia(objetoBuscado, objetosDesequipados) {
+    for (const nombreRanura of Object.keys(this.ranuras)) {
+      if (this.ranuras[nombreRanura] === objetoBuscado) {
+        this.ranuras[nombreRanura] = null;
+
+        this.liberarReservasDelObjeto(objetoBuscado);
+
+        this.agregarSinRepetir(objetosDesequipados, objetoBuscado);
+
+        return objetoBuscado;
       }
     }
 
     return null;
   }
 
-  // Equipa un objeto en la primera ranura
-  // compatible que se encuentre disponible.
-  equiparAutomaticamente(objeto) {
-    const ranuraDisponible = this.buscarRanuraCompatibleLibre(objeto);
-
-    if (ranuraDisponible === null) {
-      return null;
+  liberarReservasDelObjeto(objeto) {
+    for (const nombreRanura of Object.keys(this.reservas)) {
+      if (this.reservas[nombreRanura] === objeto) {
+        this.reservas[nombreRanura] = null;
+      }
     }
-
-    this.ranuras[ranuraDisponible] = objeto;
-
-    return ranuraDisponible;
   }
 
-  // Equipa manualmente un objeto en una ranura concreta.
-  //
-  // El objeto igualmente debe ser compatible
-  // con la ranura seleccionada.
-  equiparEnRanura(nombreRanura, objeto) {
-    const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
-
-    this.validarRanura(nombreNormalizado);
-    this.validarObjetoEquipable(objeto);
-
-    const ranurasCompatiblesNormalizadas = objeto.ranurasCompatibles.map(
-      (ranura) => this.normalizarNombreRanura(ranura),
-    );
-
-    if (!ranurasCompatiblesNormalizadas.includes(nombreNormalizado)) {
-      throw new Error(
-        `${objeto.nombre ?? "El objeto"} no puede ` +
-          `equiparse en "${nombreNormalizado}".`,
-      );
+  agregarSinRepetir(lista, objeto) {
+    if (objeto && !lista.includes(objeto)) {
+      lista.push(objeto);
     }
-
-    // Guardamos el objeto que estaba equipado
-    // para poder devolverlo al inventario más adelante.
-    const objetoAnterior = this.ranuras[nombreNormalizado];
-
-    this.ranuras[nombreNormalizado] = objeto;
-
-    return objetoAnterior;
   }
 
-  // Retira y devuelve el objeto equipado.
-  desequipar(nombreRanura) {
-    const nombreNormalizado = this.normalizarNombreRanura(nombreRanura);
-
-    this.validarRanura(nombreNormalizado);
-
-    const objeto = this.ranuras[nombreNormalizado];
-
-    this.ranuras[nombreNormalizado] = null;
-
-    return objeto;
-  }
-
-  // Comprueba que el objeto indique
-  // sus ranuras compatibles.
   validarObjetoEquipable(objeto) {
     if (
       objeto === null ||
@@ -182,15 +307,11 @@ export class Equipamiento {
       throw new Error("Se necesita un objeto válido para equipar.");
     }
 
-    if (!Array.isArray(objeto.ranurasCompatibles)) {
-      throw new Error(
-        `${objeto.nombre ?? "El objeto"} debe indicar ` +
-          "sus ranuras compatibles.",
-      );
+    if (!objeto.esEquipable || !Array.isArray(objeto.ranurasCompatibles)) {
+      throw new Error(`${objeto.nombre ?? "El objeto"} no es equipable.`);
     }
   }
 
-  // Verifica que la entidad posea la ranura solicitada.
   validarRanura(nombreRanura) {
     if (!this.tieneRanura(nombreRanura)) {
       throw new Error(`La ranura "${nombreRanura}" no existe.`);

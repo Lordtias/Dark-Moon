@@ -2,131 +2,173 @@
   "espada_larga": {
     "nombre": "Espada larga",
     "tipo": "arma",
-    "descripcion": "Una espada de una mano, resistente y equilibrada.",
+    "descripcion": "Una espada equilibrada que puede utilizarse como arma principal o secundaria.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 4,
       "danioFisicoMaximo": 8,
-      "dadoDanio": 8,
       "atributoAtaque": "fuerza",
       "precision": 10,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
       "probabilidadCritico": 5,
-      "multiplicadorCritico": 1.5
+      "multiplicadorCritico": 1.5,
+      "manos": 1,
+      "bloqueaSecundaria": false,
+      "requiereQuiver": false
+    }
+  },
+  "mandoble_hierro": {
+    "nombre": "Mandoble de hierro",
+    "tipo": "arma",
+    "descripcion": "Una pesada espada de dos manos que impide utilizar la ranura secundaria.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["arma"],
+    "propiedades": {
+      "danioFisicoMinimo": 7,
+      "danioFisicoMaximo": 13,
+      "atributoAtaque": "fuerza",
+      "precision": 6,
+      "alcance": 1,
+      "tipoAtaque": "cuerpoACuerpo",
+      "probabilidadCritico": 6,
+      "multiplicadorCritico": 1.6,
+      "manos": 2,
+      "bloqueaSecundaria": true,
+      "requiereQuiver": false
     }
   },
   "lanza": {
     "nombre": "Lanza",
     "tipo": "arma",
-    "descripcion": "Un arma larga que permite atacar desde una casilla adicional.",
+    "descripcion": "Un arma de dos manos capaz de atacar desde una casilla adicional.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma"],
     "propiedades": {
-      "danioFisicoMinimo": 3,
-      "danioFisicoMaximo": 7,
-      "dadoDanio": 6,
+      "danioFisicoMinimo": 5,
+      "danioFisicoMaximo": 10,
       "atributoAtaque": "fuerza",
       "precision": 8,
       "alcance": 2,
       "tipoAtaque": "cuerpoACuerpo",
       "probabilidadCritico": 5,
-      "multiplicadorCritico": 1.5
+      "multiplicadorCritico": 1.5,
+      "manos": 2,
+      "bloqueaSecundaria": true,
+      "requiereQuiver": false
     }
   },
   "arco_corto": {
     "nombre": "Arco corto",
     "tipo": "arma",
-    "descripcion": "Un arco liviano pensado para ataques a distancia.",
+    "descripcion": "Un arco de dos manos que necesita un quiver equipado para disparar.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma"],
     "propiedades": {
-      "danioFisicoMinimo": 2,
+      "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 9,
-      "dadoDanio": 6,
       "atributoAtaque": "destreza",
       "precision": 12,
       "alcance": 6,
       "tipoAtaque": "distancia",
       "probabilidadCritico": 7,
       "multiplicadorCritico": 1.5,
-      "requiereMunicion": false,
+      "manos": 2,
+      "bloqueaSecundaria": false,
+      "requiereQuiver": true,
       "tipoMunicion": "flecha"
     }
   },
   "casco_hierro": {
     "nombre": "Casco de hierro",
     "tipo": "armadura",
-    "descripcion": "Un casco sencillo que protege la cabeza.",
+    "descripcion": "Un casco básico de hierro.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["cabeza"],
     "propiedades": {
-      "armadura": 8,
-      "bonificadorArmadura": 1
+      "armadura": 8
     }
   },
-  "armadura_cuero": {
-    "nombre": "Armadura de cuero",
+  "coraza_hierro": {
+    "nombre": "Coraza de hierro",
     "tipo": "armadura",
-    "descripcion": "Protección corporal ligera y flexible.",
+    "descripcion": "Una protección pesada para el torso.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["torso"],
     "propiedades": {
-      "armadura": 14,
-      "evasion": 4
+      "armadura": 20
     }
   },
-  "guantes_cuero": {
-    "nombre": "Guantes de cuero",
+  "guantes_hierro": {
+    "nombre": "Guantes de hierro",
     "tipo": "armadura",
-    "descripcion": "Guantes ligeros para proteger las manos.",
+    "descripcion": "Guantes metálicos que protegen las manos.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["manos"],
     "propiedades": {
-      "armadura": 4
+      "armadura": 6
     }
   },
-  "botas_cuero": {
-    "nombre": "Botas de cuero",
+  "grebas_hierro": {
+    "nombre": "Grebas de hierro",
     "tipo": "armadura",
-    "descripcion": "Botas flexibles que facilitan el movimiento.",
+    "descripcion": "Protección metálica para las piernas.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 12
+    }
+  },
+  "botas_hierro": {
+    "nombre": "Botas de hierro",
+    "tipo": "armadura",
+    "descripcion": "Botas pesadas que protegen los pies.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["pies"],
     "propiedades": {
-      "armadura": 4,
-      "evasion": 3
+      "armadura": 6
     }
   },
   "escudo_madera": {
     "nombre": "Escudo de madera",
     "tipo": "armadura",
-    "descripcion": "Un escudo sencillo.",
+    "descripcion": "Un escudo básico para la ranura secundaria.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["secundaria"],
     "propiedades": {
       "armadura": 10,
-      "probabilidadBloqueo": 8,
-      "bonificadorArmadura": 1
+      "probabilidadBloqueo": 8
     }
   },
-  "pocion_curacion": {
-    "nombre": "Poción de curación",
-    "tipo": "consumible",
-    "descripcion": "Una pequeña poción que recupera vida.",
-    "apilable": true,
-    "cantidadMaxima": 5,
-    "ranurasCompatibles": [],
+  "quiver_cuero": {
+    "nombre": "Quiver de cuero",
+    "tipo": "quiver",
+    "descripcion": "Un quiver sencillo con capacidad para una pila de flechas.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["secundaria"],
     "propiedades": {
-      "curacion": 5
+      "tipoMunicion": "flecha"
+    },
+    "contenedor": {
+      "capacidad": 1,
+      "objetosIniciales": [
+        {
+          "id": "flecha_madera",
+          "cantidad": 20
+        }
+      ]
     }
   },
   "flecha_madera": {
@@ -134,10 +176,21 @@
     "tipo": "municion",
     "descripcion": "Una flecha sencilla con punta de metal.",
     "apilable": true,
-    "cantidadMaxima": 20,
-    "ranurasCompatibles": ["municion"],
+    "cantidadMaxima": 50,
+    "ranurasCompatibles": [],
     "propiedades": {
       "tipoMunicion": "flecha"
+    }
+  },
+  "pocion_curacion": {
+    "nombre": "Poción de curación",
+    "tipo": "consumible",
+    "descripcion": "Una pequeña poción que recupera Vida.",
+    "apilable": true,
+    "cantidadMaxima": 5,
+    "ranurasCompatibles": [],
+    "propiedades": {
+      "curacion": 5
     }
   }
 }

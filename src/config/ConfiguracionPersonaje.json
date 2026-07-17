@@ -68,10 +68,24 @@
       },
       "contenedor": {
         "capacidad": 12,
-        "objetosIniciales": ["pocion_curacion"]
+        "objetosIniciales": [
+          "pocion_curacion",
+          "mandoble_hierro",
+          "lanza",
+          "arco_corto",
+          "quiver_cuero"
+        ]
       },
       "equipamiento": {
-        "objetosIniciales": ["arco_corto", "casco_hierro"]
+        "objetosIniciales": [
+          "casco_hierro",
+          "coraza_hierro",
+          "guantes_hierro",
+          "grebas_hierro",
+          "botas_hierro",
+          "espada_larga",
+          "escudo_madera"
+        ]
       }
     },
     "rogue": {

@@ -1,410 +1,501 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
-  <!-- Permite que la interfaz se adapte correctamente
-       a pantallas de distintos tamaños. -->
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+    <!-- Permite adaptar correctamente la interfaz
+  a pantallas de distintos tamaños. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Dark Moon</title>
+    <title>Dark Moon</title>
 
-  <!-- Hoja de estilos principal del juego. -->
-  <link rel="stylesheet" href="./style.css">
-</head>
+    <!-- Estilos generales de la aplicación. -->
+    <link rel="stylesheet" href="./style.css" />
 
-<body>
-  <main>
-  <!-- Pantalla de inicio principal -->
-  <section
-    id="mainMenu"
-    class="pantalla-menu-principal"
-  >
-    <div class="menu-principal-capa">
-      <h1 class="titulo-menu-principal">
-        Dark Moon
-      </h1>
+    <!-- Estilos específicos del panel del personaje. -->
+    <link rel="stylesheet" href="./panel-personaje.css" />
+  </head>
 
-      <p class="subtitulo-menu-principal">
-         ---
-      </p>
+  <body>
+    <main>
+      <!-- ============================================
+    MENÚ PRINCIPAL
+    ============================================= -->
 
-      <!-- Botones principales del menú -->
-      <div
-        id="mainMenuButtons"
-        class="acciones-menu-principal"
-      >
-        <button
-          id="newGameButton"
-          class="boton-menu-principal"
-          type="button"
-        >
-          Nuevo Juego
-        </button>
+      <section id="mainMenu" class="pantalla-menu-principal">
+        <div class="menu-principal-capa">
+          <h1 class="titulo-menu-principal">Dark Moon</h1>
 
-        <button
-          id="settingsButton"
-          class="boton-menu-principal"
-          type="button"
-        >
-          Configuración
-        </button>
-      </div>
+          <p class="subtitulo-menu-principal">---</p>
 
-      <!-- Panel simple de configuración -->
-      <div
-        id="settingsPlaceholder"
-        class="panel-configuracion-menu oculto"
-      >
-        <h2>Configuración</h2>
+          <div id="mainMenuButtons" class="acciones-menu-principal">
+            <button
+              id="newGameButton"
+              class="boton-menu-principal"
+              type="button"
+            >
+              Nuevo Juego
+            </button>
 
-        <p>
-          Esta sección todavía no está implementada.
+            <button
+              id="settingsButton"
+              class="boton-menu-principal"
+              type="button"
+            >
+              Configuración
+            </button>
+          </div>
+
+          <div id="settingsPlaceholder" class="panel-configuracion-menu oculto">
+            <h2>Configuración</h2>
+
+            <p>Esta sección todavía no está implementada.</p>
+
+            <button id="backToMainMenuButton" type="button">Volver</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================
+    CREACIÓN DEL PERSONAJE
+    ============================================= -->
+
+      <section id="characterCreation" class="panel-creacion oculto">
+        <h1>Dark Moon</h1>
+
+        <h2>Creación del personaje</h2>
+
+        <div class="campo-formulario">
+          <label for="playerName"> Nombre </label>
+
+          <input
+            id="playerName"
+            type="text"
+            value="Aventurero"
+            maxlength="20"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="campo-formulario">
+          <label for="professionSelect"> Profesión </label>
+
+          <select id="professionSelect">
+            <option>Cargando profesiones...</option>
+          </select>
+        </div>
+
+        <h3>Atributos</h3>
+
+        <div id="attributesContainer" class="contenedor-atributos"></div>
+
+        <p class="puntos-disponibles">
+          Puntos disponibles:
+
+          <span id="pointsRemaining"> 0 </span>
         </p>
 
+        <div class="acciones-atributos">
+          <button id="resetAttributesButton" type="button">
+            Reiniciar atributos
+          </button>
+
+          <button id="randomAttributesButton" type="button">
+            Distribuir según profesión
+          </button>
+        </div>
+
         <button
-          id="backToMainMenuButton"
+          id="startGameButton"
+          class="boton-principal"
           type="button"
+          disabled
         >
-          Volver
+          Comenzar aventura
         </button>
-      </div>
-    </div>
-  </section>
 
-  <!-- Pantalla de creación del personaje -->
-  <section
-    id="characterCreation"
-    class="panel-creacion oculto"
-  >
-    <h1>Dark Moon</h1>
-    <h2>Creación del personaje</h2>
+        <p id="creationMessage" class="mensaje-creacion" aria-live="polite"></p>
+      </section>
 
-    <div class="campo-formulario">
-      <label for="playerName">
-        Nombre
-      </label>
+      <!-- ============================================
+    PANTALLA DE LA PARTIDA
+    ============================================= -->
 
-      <input
-        id="playerName"
-        type="text"
-        value="Aventurero"
-        maxlength="20"
-        autocomplete="off"
-      >
-    </div>
-
-    <div class="campo-formulario">
-      <label for="professionSelect">
-        Profesión
-      </label>
-
-      <select id="professionSelect">
-        <option>Cargando profesiones...</option>
-      </select>
-    </div>
-
-    <h3>Atributos</h3>
-
-    <div
-      id="attributesContainer"
-      class="contenedor-atributos"
-    ></div>
-
-    <p class="puntos-disponibles">
-      Puntos disponibles:
-      <span id="pointsRemaining">0</span>
-    </p>
-
-    <div class="acciones-atributos">
-      <button
-        id="resetAttributesButton"
-        type="button"
-      >
-        Reiniciar atributos
-      </button>
-
-      <button
-        id="randomAttributesButton"
-        type="button"
-      >
-        Distribuir según profesión
-      </button>
-    </div>
-
-    <button
-      id="startGameButton"
-      class="boton-principal"
-      type="button"
-      disabled
-    >
-      Comenzar aventura
-    </button>
-
-    <p
-      id="creationMessage"
-      class="mensaje-creacion"
-      aria-live="polite"
-    ></p>
-  </section>
-
-<!-- Pantalla principal de la partida. -->
-<section
-    id="gameContainer"
-    class="pantalla-juego oculto"
->
-    <!-- Encabezado general de la partida. -->
-    <header class="cabecera-partida">
-        <div>
+      <section id="gameContainer" class="pantalla-juego oculto">
+        <header class="cabecera-partida">
+          <div>
             <h1>Dark Moon</h1>
 
             <p class="controles-partida">
-                Movimiento: flechas o WASD
+              Movimiento: flechas, WASD o teclado numérico. F: combate. Espacio:
+              esperar.
             </p>
+          </div>
+        </header>
+
+        <div class="interfaz-partida">
+          <!-- El contenido de este panel se obtiene
+        desde plantillaPanelPersonaje. -->
+          <aside
+            id="panelPersonaje"
+            class="panel-juego panel-personaje"
+          ></aside>
+
+          <section class="zona-central-partida">
+            <div class="panel-juego panel-mapa">
+              <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <!-- Barra reservada para las futuras habilidades. -->
+            <div class="panel-juego barra-habilidades">
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">1</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">2</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">3</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">4</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">5</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">6</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">7</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">8</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">9</span>
+              </div>
+
+              <div class="slot-habilidad">
+                <span class="tecla-habilidad">0</span>
+              </div>
+            </div>
+
+            <section class="panel-juego panel-registro">
+              <h2>Registro de eventos</h2>
+
+              <p id="combatLog" aria-live="polite">
+                Acercate a la rata o al barril para atacarlos.
+              </p>
+            </section>
+          </section>
+
+          <aside class="zona-lateral-derecha">
+            <section class="panel-juego panel-inventario">
+              <h2>Inventario</h2>
+
+              <p id="mensajeInventario" class="mensaje-vacio">
+                El inventario está vacío.
+              </p>
+
+              <div
+                id="cuadriculaInventario"
+                class="cuadricula-inventario"
+              ></div>
+            </section>
+
+            <section class="panel-juego panel-equipamiento">
+              <h2>Equipamiento</h2>
+
+              <div
+                id="cuadriculaEquipamiento"
+                class="cuadricula-equipamiento"
+              ></div>
+            </section>
+          </aside>
         </div>
-    </header>
+      </section>
+    </main>
 
-    <!-- Contenedor que divide la interfaz en paneles. -->
-    <div class="interfaz-partida">
+    <!-- ============================================
+  PLANTILLA DEL PANEL DEL PERSONAJE
 
-        <!-- Panel izquierdo con la información del personaje. -->
-<aside
-    id="panelPersonaje"
-    class="panel-juego panel-personaje"
->
-    <h2>Personaje</h2>
+  El navegador no muestra directamente el contenido
+  de un template. PanelPersonaje lo clonará dentro
+  de #panelPersonaje al comenzar la partida.
+  ============================================= -->
 
-    <!-- Identidad principal del personaje. -->
-    <div class="identidad-personaje">
-        <strong data-personaje="nombre">
-            Cargando...
-        </strong>
+    <template id="plantillaPanelPersonaje">
+      <h2>Personaje</h2>
 
-        <span data-personaje="clase">
-            Aventurero
-        </span>
-    </div>
+      <div class="identidad-personaje">
+        <strong data-personaje="nombre"> Cargando... </strong>
 
-    <!-- Datos generales de la partida. -->
-    <div class="resumen-personaje">
-        <div class="dato-personaje">
-            <span>Nivel</span>
-            <strong data-personaje="nivel">1</strong>
+        <span data-personaje="clase"> Aventurero </span>
+      </div>
+
+      <div class="experiencia-personaje">
+        <div class="cabecera-experiencia">
+          <strong data-personaje="nivel"> Nivel 1 </strong>
+
+          <span data-personaje="experiencia-texto"> 0 / 0 PX </span>
         </div>
 
-        <div class="dato-personaje">
-            <span>Experiencia</span>
-            <strong data-personaje="experiencia">0</strong>
+        <div class="barra-experiencia">
+          <div
+            class="relleno-experiencia"
+            data-personaje="experiencia-barra"
+          ></div>
         </div>
+      </div>
 
-        <div class="dato-personaje">
-            <span>CA</span>
-            <strong data-personaje="clase-armadura">10</strong>
-        </div>
-
-        <div class="dato-personaje">
-            <span>Turno</span>
-            <strong data-personaje="turno">0</strong>
-        </div>
-    </div>
-
-    <!-- Barra visual de vida. -->
-    <section class="recurso-personaje">
+      <!-- Barra de Vida. -->
+      <div class="recurso-personaje">
         <div class="cabecera-recurso">
-            <span>Vida</span>
+          <span>Vida</span>
 
-            <span data-personaje="vida-texto">
-                0 / 0
-            </span>
+          <span data-personaje="vida-texto"> 0 / 0 </span>
         </div>
 
         <div class="barra-recurso">
-            <div
-                class="relleno-recurso relleno-vida"
-                data-personaje="vida-barra"
-            ></div>
+          <div
+            class="relleno-recurso relleno-vida"
+            data-personaje="vida-barra"
+          ></div>
         </div>
-    </section>
+      </div>
 
-    <!-- Atributos inspirados en D&D. -->
-    <section class="seccion-panel">
-        <h3>Atributos</h3>
+      <!-- Barra de Maná. -->
+      <div class="recurso-personaje">
+        <div class="cabecera-recurso">
+          <span>Maná</span>
+
+          <span data-personaje="mana-texto"> 0 / 0 </span>
+        </div>
+
+        <div class="barra-recurso">
+          <div
+            class="relleno-recurso relleno-mana"
+            data-personaje="mana-barra"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Atributos principales. -->
+      <section class="seccion-panel">
+        <div class="cabecera-seccion-atributos">
+          <h3>Atributos</h3>
+
+          <div
+            class="contador-puntos-atributo"
+            title="Puntos pendientes de repartir"
+          >
+            <span>Puntos</span>
+
+            <strong data-personaje="puntos-atributo"> 0 </strong>
+          </div>
+        </div>
 
         <div class="lista-atributos">
+          <div class="fila-atributo" data-atributo="fuerza">
+            <span class="nombre-atributo-panel"> Fuerza </span>
 
-            <div
-                class="fila-atributo"
-                data-atributo="fuerza"
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="fuerza"
+              aria-label="Aumentar Fuerza"
+              title="Asignar un punto a Fuerza"
             >
-                <span>Fuerza</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
+              +
+            </button>
+          </div>
 
-            <div
-                class="fila-atributo"
-                data-atributo="destreza"
+          <div class="fila-atributo" data-atributo="destreza">
+            <span class="nombre-atributo-panel"> Destreza </span>
+
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="destreza"
+              aria-label="Aumentar Destreza"
+              title="Asignar un punto a Destreza"
             >
-                <span>Destreza</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
+              +
+            </button>
+          </div>
 
-            <div
-                class="fila-atributo"
-                data-atributo="constitucion"
+          <div class="fila-atributo" data-atributo="constitucion">
+            <span class="nombre-atributo-panel"> Constitución </span>
+
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="constitucion"
+              aria-label="Aumentar Constitución"
+              title="Asignar un punto a Constitución"
             >
-                <span>Constitución</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
+              +
+            </button>
+          </div>
 
-            <div
-                class="fila-atributo"
-                data-atributo="inteligencia"
+          <div class="fila-atributo" data-atributo="inteligencia">
+            <span class="nombre-atributo-panel"> Inteligencia </span>
+
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="inteligencia"
+              aria-label="Aumentar Inteligencia"
+              title="Asignar un punto a Inteligencia"
             >
-                <span>Inteligencia</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
+              +
+            </button>
+          </div>
 
-            <div
-                class="fila-atributo"
-                data-atributo="sabiduria"
+          <div class="fila-atributo" data-atributo="sabiduria">
+            <span class="nombre-atributo-panel"> Sabiduría </span>
+
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="sabiduria"
+              aria-label="Aumentar Sabiduría"
+              title="Asignar un punto a Sabiduría"
             >
-                <span>Sabiduría</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
+              +
+            </button>
+          </div>
 
-            <div
-                class="fila-atributo"
-                data-atributo="carisma"
+          <div class="fila-atributo" data-atributo="carisma">
+            <span class="nombre-atributo-panel"> Carisma </span>
+
+            <strong data-campo="valor"> 0 </strong>
+
+            <button
+              type="button"
+              class="boton-sumar-atributo"
+              data-accion="sumar-atributo"
+              data-atributo="carisma"
+              aria-label="Aumentar Carisma"
+              title="Asignar un punto a Carisma"
             >
-                <span>Carisma</span>
-                <strong data-campo="valor">0</strong>
-                <span data-campo="modificador">+0</span>
-            </div>
-
+              +
+            </button>
+          </div>
         </div>
-    </section>
-</aside>
+      </section>
 
-        <!-- Zona central: mapa, habilidades y registro. -->
-        <section class="zona-central-partida">
+      <!-- Estadísticas utilizadas durante el combate. -->
+      <section class="seccion-panel">
+        <h3>Combate</h3>
 
-            <!-- El mapa mantiene su canvas actual. -->
-            <div class="panel-juego panel-mapa">
-                <canvas id="gameCanvas"></canvas>
-            </div>
+        <div class="resumen-personaje">
+          <div class="dato-personaje">
+            <span>Daño medio</span>
+            <strong data-personaje="danio-medio">0</strong>
+          </div>
 
-            <!--
-                Barra rápida de habilidades estilo MMORPG.
-                Por ahora contiene diez espacios vacíos.
-            -->
-            <section
-                class="panel-juego barra-habilidades"
-                aria-label="Barra de habilidades"
-            >
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">1</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Turno</span>
+            <strong data-personaje="turno">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">2</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Precisión</span>
+            <strong data-personaje="precision">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">3</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Evasión</span>
+            <strong data-personaje="evasion">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">4</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Armadura</span>
+            <strong data-personaje="armadura">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">5</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Crítico</span>
+            <strong data-personaje="critico">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">6</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Bloqueo</span>
+            <strong data-personaje="bloqueo">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">7</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Regen. vida</span>
+            <strong data-personaje="regen-vida">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">8</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Regen. maná</span>
+            <strong data-personaje="regen-mana">0</strong>
+          </div>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">9</span>
-                </div>
+          <div class="dato-personaje">
+            <span>Alcance</span>
+            <strong data-personaje="alcance">0</strong>
+          </div>
+        </div>
+      </section>
 
-                <div class="slot-habilidad">
-                    <span class="tecla-habilidad">0</span>
-                </div>
-            </section>
+      <!-- Resistencias elementales actuales. -->
+      <section class="seccion-panel">
+        <h3>Resistencias</h3>
 
-            <!-- Registro de combate y mensajes del juego. -->
-            <section class="panel-juego panel-registro">
-                <h2>Registro de eventos</h2>
+        <div class="resumen-personaje">
+          <div class="dato-personaje">
+            <span>Fuego</span>
+            <strong data-personaje="res-fuego">0</strong>
+          </div>
 
-                <!--
-                    Conservamos combatLog porque el renderizador
-                    escribe actualmente los mensajes en este elemento.
-                -->
-                <div id="combatLog">
-                    Acercate a la rata o al barril para atacarlos.
-                </div>
-            </section>
-        </section>
+          <div class="dato-personaje">
+            <span>Frío</span>
+            <strong data-personaje="res-frio">0</strong>
+          </div>
 
-<!-- Zona derecha: inventario y equipamiento. -->
-<aside class="zona-lateral-derecha">
+          <div class="dato-personaje">
+            <span>Rayo</span>
+            <strong data-personaje="res-rayo">0</strong>
+          </div>
 
-    <!-- Inventario general del personaje. -->
-    <section class="panel-juego panel-inventario">
-        <h2>Inventario</h2>
+          <div class="dato-personaje">
+            <span>Veneno</span>
+            <strong data-personaje="res-veneno">0</strong>
+          </div>
+        </div>
+      </section>
+    </template>
 
-        <!-- Las casillas se generarán según la capacidad real del inventario. -->
-        <div
-            id="cuadriculaInventario"
-            class="cuadricula-inventario"
-        ></div>
-
-        <p
-            id="mensajeInventario"
-            class="mensaje-vacio"
-        >
-            El inventario está vacío.
-        </p>
-    </section>
-
-    <!-- Objetos actualmente equipados por el personaje. -->
-    <section class="panel-juego panel-equipamiento">
-        <h2>Equipamiento</h2>
-
-        <!-- Las ranuras se generarán desde el equipamiento del personaje. -->
-        <div
-            id="cuadriculaEquipamiento"
-            class="cuadricula-equipamiento"
-        ></div>
-    </section>
-</aside>
-    </div>
-</section>
-</main>
-
-  <!-- game.js es un módulo porque utiliza
-       importaciones y exportaciones. -->
-  <script
-    type="module"
-    src="./game.js"
-  ></script>
-</body>
+    <!-- game.js utiliza importaciones y exportaciones. -->
+    <script type="module" src="./game.js"></script>
+  </body>
 </html>

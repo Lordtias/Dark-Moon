@@ -12,24 +12,28 @@ import { PanelEquipamiento } from "./PanelEquipamiento.js";
 // utilizados durante una partida.
 //
 // Esta fábrica centraliza las referencias al HTML,
-// evitando que game.js conozca cada panel individual.
+// evitando que otras clases conozcan cada elemento.
 export function crearInterfazPartida({ tileSize } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
   }
 
-  // Canvas donde se representa el mapa.
   const canvas = obtenerElementoObligatorio("gameCanvas", "canvas del mapa");
 
-  // Panel con estadísticas y atributos.
+  // El panel recibe por separado su contenedor
+  // visible y la plantilla que debe clonar.
   const panelPersonaje = new PanelPersonaje({
     contenedor: obtenerElementoObligatorio(
       "panelPersonaje",
       "panel del personaje",
     ),
+
+    plantilla: obtenerElementoObligatorio(
+      "plantillaPanelPersonaje",
+      "plantilla del panel del personaje",
+    ),
   });
 
-  // Panel con objetos almacenados.
   const panelInventario = new PanelInventario({
     cuadricula: obtenerElementoObligatorio(
       "cuadriculaInventario",
@@ -42,7 +46,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // Panel con objetos equipados.
   const panelEquipamiento = new PanelEquipamiento({
     cuadricula: obtenerElementoObligatorio(
       "cuadriculaEquipamiento",
@@ -50,14 +53,11 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // Área donde aparecen los mensajes actuales.
   const combatLogText = obtenerElementoObligatorio(
     "combatLog",
     "registro de combate",
   );
 
-  // El renderizador recibe todos los componentes
-  // necesarios para actualizar la interfaz.
   const renderizador = new Renderizador({
     canvas,
     panelPersonaje,
@@ -73,13 +73,13 @@ export function crearInterfazPartida({ tileSize } = {}) {
   };
 }
 
-// Busca un elemento del HTML y genera
-// un error claro cuando no existe.
+// Busca un elemento obligatorio del HTML
+// y genera un error claro si no existe.
 function obtenerElementoObligatorio(id, descripcion) {
   const elemento = document.getElementById(id);
 
   if (!elemento) {
-    throw new Error(`No se encontró ${descripcion} con id "${id}".`);
+    throw new Error(`No se encontró ${descripcion} ` + `con id "${id}".`);
   }
 
   return elemento;

@@ -1,19 +1,30 @@
 const ATRIBUTOS = [
-  ["fuerza", "Fuerza"],
-  ["destreza", "Destreza"],
-  ["constitucion", "Constitución"],
-  ["inteligencia", "Inteligencia"],
-  ["sabiduria", "Sabiduría"],
-  ["carisma", "Carisma"],
+  "fuerza",
+  "destreza",
+  "constitucion",
+  "inteligencia",
+  "sabiduria",
+  "carisma",
 ];
 
+// PanelPersonaje administra el comportamiento
+// y la actualización visual del panel.
+//
+// La estructura HTML se encuentra en index.html,
+// dentro de plantillaPanelPersonaje.
 export class PanelPersonaje {
-  constructor({ contenedor } = {}) {
+  constructor({ contenedor, plantilla } = {}) {
     if (!contenedor) {
       throw new Error("PanelPersonaje necesita un contenedor.");
     }
 
+    if (!(plantilla instanceof HTMLTemplateElement)) {
+      throw new Error("PanelPersonaje necesita una plantilla HTML válida.");
+    }
+
     this.contenedor = contenedor;
+    this.plantilla = plantilla;
+
     this.playerActual = null;
     this.turnoActual = 0;
 
@@ -21,170 +32,19 @@ export class PanelPersonaje {
 
     this.crearContenido();
 
+    // Un único evento administra todos
+    // los botones de atributos.
     this.contenedor.addEventListener("click", this.manejarClick);
   }
 
+  // Clona la estructura definida en index.html.
   crearContenido() {
-    const filasAtributos = ATRIBUTOS.map(
-      ([id, nombre]) => `
-        <div
-          class="fila-atributo"
-          data-atributo="${id}"
-        >
-          <span class="nombre-atributo-panel">
-            ${nombre}
-          </span>
+    const contenido = this.plantilla.content.cloneNode(true);
 
-          <strong data-campo="valor">
-            0
-          </strong>
-
-          <button
-            type="button"
-            class="boton-sumar-atributo"
-            data-accion="sumar-atributo"
-            data-atributo="${id}"
-            aria-label="Aumentar ${nombre}"
-            title="Asignar un punto a ${nombre}"
-          >
-            +
-          </button>
-        </div>
-      `,
-    ).join("");
-
-    this.contenedor.innerHTML = `
-      <h2>Personaje</h2>
-
-      <div class="identidad-personaje">
-        <strong data-personaje="nombre">
-          Cargando...
-        </strong>
-
-        <span data-personaje="clase">
-          Aventurero
-        </span>
-      </div>
-
-      <div class="experiencia-personaje">
-        <div class="cabecera-experiencia">
-          <strong data-personaje="nivel">
-            Nivel 1
-          </strong>
-
-          <span data-personaje="experiencia-texto">
-            0 / 0 PX
-          </span>
-        </div>
-
-        <div class="barra-experiencia">
-          <div
-            class="relleno-experiencia"
-            data-personaje="experiencia-barra"
-          ></div>
-        </div>
-      </div>
-
-      ${this.crearRecurso("Vida", "vida", "relleno-vida")}
-
-      ${this.crearRecurso("Maná", "mana", "relleno-mana")}
-
-      <section class="seccion-panel">
-        <div class="cabecera-seccion-atributos">
-          <h3>Atributos</h3>
-
-          <div
-            class="contador-puntos-atributo"
-            title="Puntos pendientes de repartir"
-          >
-            <span>Puntos</span>
-
-            <strong data-personaje="puntos-atributo">
-              0
-            </strong>
-          </div>
-        </div>
-
-        <div class="lista-atributos">
-          ${filasAtributos}
-        </div>
-      </section>
-
-      <section class="seccion-panel">
-        <h3>Combate</h3>
-
-        <div class="resumen-personaje">
-          ${this.crearDato("Daño medio", "danio-medio")}
-
-          ${this.crearDato("Turno", "turno")}
-
-          ${this.crearDato("Precisión", "precision")}
-
-          ${this.crearDato("Evasión", "evasion")}
-
-          ${this.crearDato("Armadura", "armadura")}
-
-          ${this.crearDato("Crítico", "critico")}
-
-          ${this.crearDato("Bloqueo", "bloqueo")}
-
-          ${this.crearDato("Regen. vida", "regen-vida")}
-
-          ${this.crearDato("Regen. maná", "regen-mana")}
-
-          ${this.crearDato("Alcance", "alcance")}
-        </div>
-      </section>
-
-      <section class="seccion-panel">
-        <h3>Resistencias</h3>
-
-        <div class="resumen-personaje">
-          ${this.crearDato("Fuego", "res-fuego")}
-
-          ${this.crearDato("Frío", "res-frio")}
-
-          ${this.crearDato("Rayo", "res-rayo")}
-
-          ${this.crearDato("Veneno", "res-veneno")}
-        </div>
-      </section>
-    `;
+    this.contenedor.replaceChildren(contenido);
   }
 
-  crearDato(nombre, campo) {
-    return `
-      <div class="dato-personaje">
-        <span>${nombre}</span>
-
-        <strong data-personaje="${campo}">
-          0
-        </strong>
-      </div>
-    `;
-  }
-
-  crearRecurso(nombre, id, claseRelleno) {
-    return `
-      <div class="recurso-personaje">
-        <div class="cabecera-recurso">
-          <span>${nombre}</span>
-
-          <span data-personaje="${id}-texto">
-            0 / 0
-          </span>
-        </div>
-
-        <div class="barra-recurso">
-          <div
-            class="relleno-recurso ${claseRelleno}"
-            data-personaje="${id}-barra"
-          ></div>
-        </div>
-      </div>
-    `;
-  }
-
+  // Obtiene un elemento interno obligatorio.
   obtener(selector) {
     const elemento = this.contenedor.querySelector(selector);
 
@@ -195,6 +55,8 @@ export class PanelPersonaje {
     return elemento;
   }
 
+  // Procesa la distribución inmediata
+  // de un punto de atributo.
   manejarClick(event) {
     const boton = event.target.closest('[data-accion="sumar-atributo"]');
 
@@ -210,11 +72,14 @@ export class PanelPersonaje {
       return;
     }
 
+    // Un atributo puede modificar varias
+    // estadísticas derivadas simultáneamente.
     this.actualizar(this.playerActual, this.turnoActual);
 
     boton.blur();
   }
 
+  // Actualiza todos los valores visibles.
   actualizar(player, turno) {
     this.playerActual = player;
     this.turnoActual = turno;
@@ -244,12 +109,25 @@ export class PanelPersonaje {
 
     this.actualizarBarra("mana", player.manaActual, player.manaMaximo);
 
-    for (const [id] of ATRIBUTOS) {
-      this.obtener(
-        `[data-atributo="${id}"] ` + '[data-campo="valor"]',
-      ).textContent = player.atributos[id];
-    }
+    this.actualizarAtributos(player);
 
+    this.actualizarEstadisticas(player, estadisticas);
+
+    this.actualizarBotonesAtributos(player);
+  }
+
+  // Actualiza los seis atributos principales.
+  actualizarAtributos(player) {
+    for (const atributo of ATRIBUTOS) {
+      this.obtener(
+        `.fila-atributo[data-atributo="${atributo}"] ` + '[data-campo="valor"]',
+      ).textContent = player.atributos[atributo];
+    }
+  }
+
+  // Actualiza estadísticas de combate
+  // y resistencias elementales.
+  actualizarEstadisticas(player, estadisticas) {
     const valores = {
       precision: estadisticas.precision,
 
@@ -279,18 +157,20 @@ export class PanelPersonaje {
     for (const [campo, valor] of Object.entries(valores)) {
       this.obtener(`[data-personaje="${campo}"]`).textContent = valor;
     }
-
-    this.actualizarBotonesAtributos(player);
   }
 
+  // Actualiza el texto y el ancho
+  // de la barra de experiencia.
   actualizarExperiencia(player) {
     this.obtener('[data-personaje="experiencia-texto"]').textContent =
       `${player.experiencia} / ` + `${player.experienciaNecesaria} PX`;
 
     this.obtener('[data-personaje="experiencia-barra"]').style.width =
-      `${Math.max(0, Math.min(100, player.porcentajeExperiencia))}%`;
+      `${this.limitarPorcentaje(player.porcentajeExperiencia)}%`;
   }
 
+  // Habilita los botones solamente cuando
+  // existen puntos disponibles.
   actualizarBotonesAtributos(player) {
     const botones = this.contenedor.querySelectorAll(
       '[data-accion="sumar-atributo"]',
@@ -303,6 +183,7 @@ export class PanelPersonaje {
     }
   }
 
+  // Actualiza una barra de recurso.
   actualizarBarra(recurso, actual, maximo) {
     this.obtener(`[data-personaje="${recurso}-texto"]`).textContent =
       `${Math.floor(actual)} / ` + `${Math.floor(maximo)}`;
@@ -310,13 +191,19 @@ export class PanelPersonaje {
     const porcentaje = maximo > 0 ? (actual / maximo) * 100 : 0;
 
     this.obtener(`[data-personaje="${recurso}-barra"]`).style.width =
-      `${Math.max(0, Math.min(100, porcentaje))}%`;
+      `${this.limitarPorcentaje(porcentaje)}%`;
+  }
+
+  limitarPorcentaje(valor) {
+    return Math.max(0, Math.min(100, valor));
   }
 
   formatear(valor) {
     return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
   }
 
+  // Elimina el evento si el panel
+  // deja de utilizarse.
   destruir() {
     this.contenedor.removeEventListener("click", this.manejarClick);
   }

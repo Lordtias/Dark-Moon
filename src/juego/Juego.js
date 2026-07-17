@@ -1,97 +1,65 @@
-// Importamos Enemigo porque Juego necesita distinguir
-// entre enemigos y objetos destructibles.
-//
-// Los enemigos pueden contraatacar y entregar experiencia.
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
-
-// Importamos el sistema que procesa las decisiones
-// y acciones de los enemigos después del jugador.
+import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js";
 import { procesarFaseEnemigos } from "./SistemaTurnosEnemigos.js";
 
-// Juego administra el estado y las reglas generales
-// de una partida.
-//
-// Se encarga de:
-//
-// - Guardar el mapa.
-// - Guardar al jugador.
-// - Guardar los objetivos.
-// - Controlar los turnos.
-// - Validar movimientos.
-// - Coordinar ataques y contraataques.
-//
-// Esta clase no dibuja nada y no accede al HTML.
 export class Juego {
   constructor({ map, player, objetivos } = {}) {
-    // Comprobamos que exista un mapa válido.
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
     }
-
-    // Comprobamos que exista un jugador.
     if (!player) {
       throw new Error("Juego necesita un jugador.");
     }
-
-    // Comprobamos que los objetivos estén
-    // guardados dentro de una lista.
     if (!Array.isArray(objetivos)) {
-      throw new Error(
-        "Los objetivos del juego deben estar dentro de una lista.",
-      );
+      throw new Error("Los objetivos deben estar dentro de una lista.");
     }
 
-    // Guardamos el mapa de la partida.
     this.map = map;
-
-    // Guardamos el personaje controlado
-    // por el usuario.
     this.player = player;
-
-    // Guardamos los enemigos y objetos destructibles.
     this.objetivos = objetivos;
-
-    // Toda partida nueva comienza en el turno cero.
     this.turno = 0;
+
+    // Estado utilizado para seleccionar una casilla de ataque.
+    this.modoCombateActivo = false;
+    this.selectorCombate = { x: player.x, y: player.y };
+
+    // Recordamos la última dirección para colocar inicialmente
+    // el selector delante del personaje.
+    this.ultimaDireccionJugador = { x: 0, y: -1 };
   }
 
-  // Busca un objetivo vivo o no destruido
-  // en una posición determinada.
   obtenerObjetivoEn(x, y) {
-    return this.objetivos.find(function (objetivo) {
-      return !objetivo.estaDestruido && objetivo.x === x && objetivo.y === y;
-    });
+    return this.objetivos.find(
+      (objetivo) =>
+        !objetivo.estaDestruido && objetivo.x === x && objetivo.y === y,
+    );
   }
 
-  // Comprueba que una posición esté dentro del mapa
-  // y que no contenga una pared.
+  estaDentroMapa(x, y) {
+    return y >= 0 && y < this.map.length && x >= 0 && x < this.map[y].length;
+  }
+
   esCaminable(x, y) {
-    // Comprobamos los límites verticales.
-    if (y < 0 || y >= this.map.length) {
-      return false;
-    }
-
-    // Comprobamos los límites horizontales.
-    if (x < 0 || x >= this.map[y].length) {
-      return false;
-    }
-
-    // Las paredes no son caminables.
-    return this.map[y][x] !== "#";
+    return this.estaDentroMapa(x, y) && this.map[y][x] !== "#";
   }
 
-  // Comprueba si un movimiento diagonal intenta atravesar
-  // la esquina formada por dos paredes.
-  //
-  // Para un movimiento diagonal existen dos casillas laterales.
-  // Por ejemplo, al moverse arriba a la derecha:
-  //
-  // - La casilla de arriba.
-  // - La casilla de la derecha.
-  //
-  // Si ambas están bloqueadas, no permitimos el movimiento.
+  calcularDistanciaCuadricula(origenX, origenY, destinoX, destinoY) {
+    return Math.max(Math.abs(destinoX - origenX), Math.abs(destinoY - origenY));
+  }
+
+  estaCasillaDentroAlcance(x, y) {
+    const distancia = this.calcularDistanciaCuadricula(
+      this.player.x,
+      this.player.y,
+      x,
+      y,
+    );
+
+    // No permitimos seleccionar la propia casilla.
+    return distancia >= 1 && distancia <= this.player.alcanceAtaque;
+  }
+
   estaDiagonalBloqueada(movimientoX, movimientoY) {
-    // Solamente analizamos movimientos diagonales.
     const esDiagonal =
       Math.abs(movimientoX) === 1 && Math.abs(movimientoY) === 1;
 
@@ -99,115 +67,217 @@ export class Juego {
       return false;
     }
 
-    // Posición lateral en el eje horizontal.
-    const lateralHorizontalX = this.player.x + movimientoX;
-
-    const lateralHorizontalY = this.player.y;
-
-    // Posición lateral en el eje vertical.
-    const lateralVerticalX = this.player.x;
-
-    const lateralVerticalY = this.player.y + movimientoY;
-
-    // Comprobamos si ambas casillas laterales
-    // están bloqueadas por paredes o límites del mapa.
     const horizontalBloqueada = !this.esCaminable(
-      lateralHorizontalX,
-      lateralHorizontalY,
+      this.player.x + movimientoX,
+      this.player.y,
     );
 
     const verticalBloqueada = !this.esCaminable(
-      lateralVerticalX,
-      lateralVerticalY,
+      this.player.x,
+      this.player.y + movimientoY,
     );
 
-    // La diagonal queda bloqueada únicamente
-    // cuando ambos laterales son inaccesibles.
+    // Permitimos rodear una pared, pero no pasar
+    // entre dos paredes que forman una esquina cerrada.
     return horizontalBloqueada && verticalBloqueada;
   }
 
-  // Procesa el ataque del jugador contra un objetivo.
-  //
-  // Devuelve un texto con todos los resultados
-  // producidos durante el combate.
-  /**
-   * Procesa el ataque del jugador contra un objetivo.
-   *
-   * El contraataque ya no ocurre aquí.
-   * Los enemigos actuarán después durante su propia fase.
-   *
-   * @param {Object} objetivo Entidad atacada.
-   * @param {number} posicionX Posición horizontal del objetivo.
-   * @param {number} posicionY Posición vertical del objetivo.
-   * @returns {string} Mensajes producidos por el ataque.
-   */
-  atacarObjetivo(objetivo, posicionX, posicionY) {
-    // Cualquier intento de ataque provoca al enemigo,
-    // incluso cuando la tirada finalmente falla.
-    //
-    // Esto permite activar enemigos configurados
-    // con agresividad reactiva.
+  obtenerSeleccionInicialCombate() {
+    const direcciones = [
+      this.ultimaDireccionJugador,
+      { x: 0, y: -1 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+      { x: -1, y: 0 },
+      { x: 1, y: -1 },
+      { x: 1, y: 1 },
+      { x: -1, y: 1 },
+      { x: -1, y: -1 },
+    ];
+
+    for (const direccion of direcciones) {
+      const x = this.player.x + direccion.x;
+      const y = this.player.y + direccion.y;
+
+      if (this.esCaminable(x, y) && this.estaCasillaDentroAlcance(x, y)) {
+        return { x, y };
+      }
+    }
+
+    return null;
+  }
+
+  entrarModoCombate(selectorX = null, selectorY = null) {
+    if (!this.player.estaVivo) {
+      return {
+        mensaje: null,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    let seleccion;
+
+    // Cuando se colisiona con un combatiente recibimos
+    // directamente la posición que debe seleccionarse.
+    if (selectorX !== null && selectorY !== null) {
+      seleccion = { x: selectorX, y: selectorY };
+    } else {
+      seleccion = this.obtenerSeleccionInicialCombate();
+    }
+
+    if (
+      seleccion === null ||
+      !this.esCaminable(seleccion.x, seleccion.y) ||
+      !this.estaCasillaDentroAlcance(seleccion.x, seleccion.y)
+    ) {
+      return {
+        mensaje: "No hay una casilla válida para atacar.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    this.modoCombateActivo = true;
+    this.selectorCombate = seleccion;
+
+    const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
+
+    return {
+      mensaje: objetivo
+        ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
+        : `Modo combate: casilla ${seleccion.x}, ${seleccion.y}.`,
+      turnoConsumido: false,
+      redibujar: true,
+    };
+  }
+
+  cancelarModoCombate() {
+    if (!this.modoCombateActivo) {
+      return {
+        mensaje: null,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    this.modoCombateActivo = false;
+    this.selectorCombate = {
+      x: this.player.x,
+      y: this.player.y,
+    };
+
+    return {
+      mensaje: "Cancelaste el modo combate.",
+      turnoConsumido: false,
+      redibujar: true,
+    };
+  }
+
+  moverSelectorCombate(movimientoX, movimientoY) {
+    if (!this.modoCombateActivo) {
+      return {
+        mensaje: null,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    const nuevaX = this.selectorCombate.x + movimientoX;
+    const nuevaY = this.selectorCombate.y + movimientoY;
+
+    if (!this.esCaminable(nuevaX, nuevaY)) {
+      return {
+        mensaje: "No podés seleccionar una pared.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    if (!this.estaCasillaDentroAlcance(nuevaX, nuevaY)) {
+      return {
+        mensaje: `Esa casilla supera el alcance ${this.player.alcanceAtaque}.`,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    this.selectorCombate = { x: nuevaX, y: nuevaY };
+
+    const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
+
+    return {
+      mensaje: objetivo
+        ? `Seleccionaste a ${objetivo.nombre}.`
+        : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`,
+      turnoConsumido: false,
+      redibujar: true,
+    };
+  }
+
+  atacarObjetivo(objetivo) {
+    // Un enemigo reactivo se vuelve agresivo aunque
+    // el ataque falle.
     if (objetivo instanceof Enemigo) {
       objetivo.activarAgresividad();
     }
 
-    // El jugador realiza el ataque normalmente.
-    const resultadoJugador = this.player.atacar(objetivo);
+    const resultado = this.player.atacar(objetivo);
+    const mensajes = [resultado.mensaje];
 
-    const mensajes = [resultadoJugador.mensaje];
-
-    // Si el objetivo fue destruido,
-    // procesamos sus consecuencias.
     if (objetivo.estaDestruido) {
       if (objetivo instanceof Enemigo) {
-        // Otorgamos la experiencia configurada
-        // en la plantilla del enemigo.
         this.player.experiencia += objetivo.experienciaOtorgada;
 
         mensajes.push(
           `${objetivo.nombre} fue derrotado. ` +
-            `Ganaste ${objetivo.experienciaOtorgada} ` +
-            "puntos de experiencia.",
+            `Ganaste ${objetivo.experienciaOtorgada} puntos de experiencia.`,
         );
       } else {
         mensajes.push(`${objetivo.nombre} fue destruido.`);
       }
-
-      // El jugador avanza a la casilla que quedó libre.
-      this.player.x = posicionX;
-      this.player.y = posicionY;
     }
 
-    // El enemigo sobreviviente no contraataca aquí.
-    // Lo hará durante procesarFaseEnemigos().
+    // Atacar ya no desplaza al jugador a la casilla
+    // que ocupaba el objetivo.
     return mensajes.join(" ");
   }
 
-  // Permite que el jugador permanezca en su posición
-  // y ceda voluntariamente su turno a los enemigos.
-  esperarTurno() {
-    // Un jugador muerto no puede realizar acciones.
-    if (!this.player.estaVivo) {
+  confirmarAtaque() {
+    if (!this.modoCombateActivo) {
       return {
         mensaje: null,
         turnoConsumido: false,
+        redibujar: false,
       };
     }
 
-    // Esperar también aumenta el contador de turnos.
+    const { x, y } = this.selectorCombate;
+    const objetivo = this.obtenerObjetivoEn(x, y);
+
+    this.modoCombateActivo = false;
+    this.selectorCombate = {
+      x: this.player.x,
+      y: this.player.y,
+    };
+
+    // Atacar una casilla vacía igualmente consume el turno.
+    const mensaje = objetivo
+      ? this.atacarObjetivo(objetivo)
+      : "Atacaste una casilla vacía.";
+
+    return this.finalizarTurno(mensaje);
+  }
+
+  finalizarTurno(mensaje) {
     this.turno++;
 
-    let mensaje = "Esperaste un turno.";
-
-    // Después de esperar, los enemigos realizan
-    // su fase normalmente.
     const resultadoEnemigos = procesarFaseEnemigos({
       objetivos: this.objetivos,
       jugador: this.player,
       mapa: this.map,
     });
 
-    // Agregamos al mensaje las acciones enemigas.
     if (resultadoEnemigos.mensaje !== "") {
       mensaje = [mensaje, resultadoEnemigos.mensaje].filter(Boolean).join(" ");
     }
@@ -215,86 +285,92 @@ export class Juego {
     return {
       mensaje,
       turnoConsumido: true,
+      redibujar: true,
     };
   }
 
-  // Intenta mover al jugador una casilla.
-  //
-  // Devuelve un objeto indicando:
-  //
-  // - El mensaje producido.
-  // - Si la acción consumió un turno.
-  moverJugador(movimientoX, movimientoY) {
-    // Un jugador muerto no puede realizar acciones.
+  esperarTurno() {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
         turnoConsumido: false,
+        redibujar: false,
       };
     }
 
-    // Calculamos la posición de destino.
-    const nuevaX = this.player.x + movimientoX;
+    if (this.modoCombateActivo) {
+      return {
+        mensaje: "Confirmá con F o cancelá con Escape.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
 
+    return this.finalizarTurno("Esperaste un turno.");
+  }
+
+  moverJugador(movimientoX, movimientoY) {
+    if (!this.player.estaVivo) {
+      return {
+        mensaje: null,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    if (this.modoCombateActivo) {
+      return this.moverSelectorCombate(movimientoX, movimientoY);
+    }
+
+    const nuevaX = this.player.x + movimientoX;
     const nuevaY = this.player.y + movimientoY;
 
-    // Chocar contra una pared no consume turno.
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return {
         mensaje: "No podés atravesar una pared.",
-
         turnoConsumido: false,
+        redibujar: false,
       };
     }
 
-    // Evitamos atravesar diagonalmente la esquina
-    // formada por dos paredes.
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
       return {
         mensaje: "No podés atravesar esa esquina.",
         turnoConsumido: false,
+        redibujar: false,
       };
     }
 
-    // Buscamos si hay un objetivo
-    // en la casilla de destino.
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
 
-    let mensaje;
+    if (objetivo instanceof Combatiente) {
+      // La colisión selecciona al combatiente,
+      // pero todavía no consume el turno.
+      this.ultimaDireccionJugador = {
+        x: movimientoX,
+        y: movimientoY,
+      };
+
+      return this.entrarModoCombate(nuevaX, nuevaY);
+    }
 
     if (objetivo) {
-      // Intentar entrar en una casilla ocupada
-      // se convierte en un ataque.
-      mensaje = this.atacarObjetivo(objetivo, nuevaX, nuevaY);
-    } else {
-      // Cuando no hay objetivo,
-      // movemos al jugador normalmente.
-      this.player.x = nuevaX;
-      this.player.y = nuevaY;
-
-      mensaje = "Te moviste por la mazmorra.";
+      // Los destructibles no combatientes quedan reservados
+      // para una futura acción de interacción.
+      return {
+        mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
+        turnoConsumido: false,
+        redibujar: false,
+      };
     }
 
-    // Moverse o atacar consume un turno.
-    this.turno++;
-
-    // Después de la acción del jugador,
-    // comienza la fase de los enemigos.
-    const resultadoEnemigos = procesarFaseEnemigos({
-      objetivos: this.objetivos,
-      jugador: this.player,
-      mapa: this.map,
-    });
-
-    // Si la fase enemiga produjo mensajes,
-    // los agregamos al resultado de la acción.
-    if (resultadoEnemigos.mensaje !== "") {
-      mensaje = [mensaje, resultadoEnemigos.mensaje].filter(Boolean).join(" ");
-    }
-
-    return {
-      mensaje,
-      turnoConsumido: true,
+    this.player.x = nuevaX;
+    this.player.y = nuevaY;
+    this.ultimaDireccionJugador = {
+      x: movimientoX,
+      y: movimientoY,
     };
+
+    return this.finalizarTurno("Te moviste por la mazmorra.");
   }
 }

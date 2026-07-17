@@ -23,12 +23,9 @@ export class Equipamiento {
       }
 
       this.ranuras[normalizada] = null;
-
       this.reservas[normalizada] = null;
     }
 
-    // Los objetos iniciales solamente se colocan
-    // en espacios completamente libres.
     for (const objeto of objetosIniciales) {
       const resultado = this.equiparAutomaticamente(objeto);
 
@@ -61,14 +58,10 @@ export class Equipamiento {
     };
   }
 
-  // Devuelve objetos reales sin incluir
-  // las reservas visuales de dos manos.
   obtenerObjetosEquipados() {
     return Object.values(this.ranuras).filter(Boolean);
   }
 
-  // Permite que la interfaz conozca si
-  // una ranura está libre, ocupada o reservada.
   obtenerEstadoRanuras() {
     const estado = {};
 
@@ -122,8 +115,6 @@ export class Equipamiento {
         continue;
       }
 
-      // Un arma que bloquea secundaria necesita
-      // ambas ranuras completamente libres.
       if (normalizada === "arma" && objeto.bloqueaSecundaria) {
         if (
           !this.tieneRanura("secundaria") ||
@@ -150,13 +141,47 @@ export class Equipamiento {
     return this.equiparEnRanura(ranura, objeto);
   }
 
-  // Equipa un objeto y devuelve todos los
-  // elementos desplazados por la operación.
+  // Informa qué objetos serían desplazados,
+  // sin modificar todavía el equipamiento.
+  previsualizarObjetosDesplazados(nombreRanura, objeto) {
+    const normalizada = this.normalizarNombreRanura(nombreRanura);
+
+    this.validarRanura(normalizada);
+    this.validarObjetoEquipable(objeto);
+
+    if (!objeto.puedeEquiparseEn(normalizada)) {
+      throw new Error(
+        `${objeto.nombre} no puede equiparse en "${normalizada}".`,
+      );
+    }
+
+    const objetosDesplazados = [];
+
+    if (normalizada === "arma" && objeto.bloqueaSecundaria) {
+      this.agregarSinRepetir(objetosDesplazados, this.ranuras.arma);
+
+      this.agregarSinRepetir(objetosDesplazados, this.ranuras.secundaria);
+
+      return objetosDesplazados;
+    }
+
+    if (normalizada === "secundaria") {
+      this.agregarSinRepetir(objetosDesplazados, this.reservas.secundaria);
+
+      this.agregarSinRepetir(objetosDesplazados, this.ranuras.secundaria);
+
+      return objetosDesplazados;
+    }
+
+    this.agregarSinRepetir(objetosDesplazados, this.ranuras[normalizada]);
+
+    return objetosDesplazados;
+  }
+
   equiparEnRanura(nombreRanura, objeto) {
     const normalizada = this.normalizarNombreRanura(nombreRanura);
 
     this.validarRanura(normalizada);
-
     this.validarObjetoEquipable(objeto);
 
     if (!objeto.puedeEquiparseEn(normalizada)) {
@@ -167,8 +192,6 @@ export class Equipamiento {
 
     const objetosDesequipados = [];
 
-    // Permite mover el mismo objeto entre ranuras
-    // sin considerarlo un objeto desplazado.
     this.retirarMismoObjeto(objeto);
 
     if (normalizada === "arma" && objeto.bloqueaSecundaria) {
@@ -183,13 +206,8 @@ export class Equipamiento {
       this.extraerObjetoDeRanura("secundaria", objetosDesequipados);
 
       this.ranuras.arma = objeto;
-
-      // La secundaria queda reservada,
-      // pero no guarda una segunda copia del arma.
       this.reservas.secundaria = objeto;
     } else if (normalizada === "secundaria") {
-      // Si la secundaria estaba reservada,
-      // se desequipa el arma que generaba la reserva.
       const objetoQueReserva = this.reservas.secundaria;
 
       if (objetoQueReserva) {
@@ -219,8 +237,6 @@ export class Equipamiento {
 
     this.validarRanura(normalizada);
 
-    // Desequipar una ranura reservada retira
-    // el arma que produce la reserva.
     const objetoQueReserva = this.reservas[normalizada];
 
     if (objetoQueReserva) {

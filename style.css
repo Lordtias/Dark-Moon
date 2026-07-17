@@ -1,4 +1,5 @@
 @import url("./panel-personaje.css");
+@import url("./panel-objetos.css");
 
 /* Aplicamos box-sizing a todos los elementos para que
    los tamaños incluyan bordes y rellenos. */

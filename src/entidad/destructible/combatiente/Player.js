@@ -14,11 +14,19 @@ const ATRIBUTOS_VALIDOS = [
   "carisma",
 ];
 
-// Player administra la progresión, los puntos
-// de atributos y el inventario del jugador.
-//
-// Las estadísticas propias de cada profesión
-// se reciben desde ConfiguracionPersonaje.json.
+const ETIQUETAS_RANURAS = {
+  cabeza: "Cabeza",
+  torso: "Torso",
+  manos: "Manos",
+  piernas: "Piernas",
+  pies: "Pies",
+  arma: "Arma",
+  secundaria: "Secundaria",
+  collar: "Collar",
+  anillo_derecho: "Anillo derecho",
+  anillo_izquierdo: "Anillo izquierdo",
+};
+
 export class Player extends Combatiente {
   constructor({
     nombre,
@@ -81,12 +89,7 @@ export class Player extends Combatiente {
 
     this.inventario = this.contenedorObjetos;
 
-    // Experiencia acumulada dentro
-    // del nivel actual.
     this._experiencia = 0;
-
-    // Experiencia obtenida durante
-    // toda la partida.
     this.experienciaTotal = 0;
 
     this.puntosAtributoDisponibles = puntosAtributoDisponibles;
@@ -102,14 +105,10 @@ export class Player extends Combatiente {
     return this._experiencia;
   }
 
-  // Experiencia necesaria para avanzar
-  // desde el nivel actual al siguiente.
   get experienciaNecesaria() {
     return calcularExperienciaNecesaria(this.nivel);
   }
 
-  // Porcentaje utilizado por la barra
-  // de experiencia del panel.
   get porcentajeExperiencia() {
     return Math.min(
       100,
@@ -118,8 +117,6 @@ export class Player extends Combatiente {
     );
   }
 
-  // Agrega experiencia y procesa todas
-  // las subidas de nivel alcanzadas.
   ganarExperiencia(cantidad) {
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
       return {
@@ -139,14 +136,11 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this._experiencia += cantidad;
-
     this.experienciaTotal += cantidad;
 
     let nivelesGanados = 0;
     let puntosGanados = 0;
 
-    // Permite subir varios niveles
-    // mediante una sola recompensa.
     while (this._experiencia >= calcularExperienciaNecesaria(this.nivel)) {
       const experienciaRequerida = calcularExperienciaNecesaria(this.nivel);
 
@@ -163,12 +157,8 @@ export class Player extends Combatiente {
     }
 
     if (nivelesGanados > 0) {
-      // Recalcula los máximos utilizando
-      // el nuevo nivel del personaje.
       this.estadisticasDerivadas;
 
-      // Conserva el daño sufrido, pero agrega
-      // el crecimiento de Vida y Maná obtenido.
       this.vidaActual = Math.min(
         this.vidaMaxima,
 
@@ -196,8 +186,6 @@ export class Player extends Combatiente {
     return resultado;
   }
 
-  // Gasta inmediatamente un punto y recalcula
-  // todas las estadísticas relacionadas.
   asignarPuntoAtributo(nombreAtributo) {
     if (!ATRIBUTOS_VALIDOS.includes(nombreAtributo)) {
       throw new Error(`El atributo "${nombreAtributo}" no existe.`);
@@ -220,7 +208,6 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this.atributos[nombreAtributo]++;
-
     this.puntosAtributoDisponibles--;
 
     this.estadisticasDerivadas;
@@ -243,5 +230,242 @@ export class Player extends Combatiente {
       mensaje:
         `${nombreAtributo} aumentó a ` + `${this.atributos[nombreAtributo]}.`,
     };
+  }
+
+  // Equipa un objeto directamente desde
+  // una posición del inventario.
+  equiparObjetoDesdeInventario(indiceInventario, ranuraPreferida = null) {
+    const objeto = this.inventario.obtenerObjetoEn(indiceInventario);
+
+    if (!objeto) {
+      return {
+        exito: false,
+        mensaje: "Ese espacio del inventario está vacío.",
+      };
+    }
+
+    if (!objeto.esEquipable) {
+      return {
+        exito: false,
+        mensaje: `${objeto.nombre} no puede equiparse.`,
+      };
+    }
+
+    const ranura = ranuraPreferida ?? this.elegirRanuraAutomatica(objeto);
+
+    if (!ranura) {
+      return {
+        exito: false,
+        mensaje: `${objeto.nombre} no tiene una ranura compatible.`,
+      };
+    }
+
+    let objetosDesplazados;
+
+    try {
+      objetosDesplazados = this.equipamiento.previsualizarObjetosDesplazados(
+        ranura,
+        objeto,
+      );
+    } catch (error) {
+      return {
+        exito: false,
+        mensaje: error.message,
+      };
+    }
+
+    // Retirar el objeto seleccionado libera
+    // una posición adicional del inventario.
+    const espaciosDisponibles = this.inventario.contarEspaciosLibres() + 1;
+
+    if (objetosDesplazados.length > espaciosDisponibles) {
+      return {
+        exito: false,
+
+        mensaje:
+          "No hay espacio suficiente para guardar " +
+          "los objetos que serían desequipados.",
+      };
+    }
+
+    const objetoRetirado = this.inventario.retirarObjeto(indiceInventario);
+
+    let resultado;
+
+    try {
+      resultado = this.equipamiento.equiparEnRanura(ranura, objetoRetirado);
+    } catch (error) {
+      this.inventario.colocarObjetoEn(indiceInventario, objetoRetirado);
+
+      return {
+        exito: false,
+        mensaje: error.message,
+      };
+    }
+
+    this.guardarObjetosDesplazados(
+      resultado.objetosDesequipados,
+      indiceInventario,
+    );
+
+    const etiqueta =
+      ETIQUETAS_RANURAS[resultado.ranuraAsignada] ?? resultado.ranuraAsignada;
+
+    const nombresDesplazados = resultado.objetosDesequipados.map(
+      (item) => item.nombre,
+    );
+
+    let mensaje = `Equipaste ${objeto.nombre} en ${etiqueta}.`;
+
+    if (nombresDesplazados.length === 1) {
+      mensaje += ` ${nombresDesplazados[0]} volvió al inventario.`;
+    } else if (nombresDesplazados.length > 1) {
+      mensaje += ` ${nombresDesplazados.join(", ")} volvieron al inventario.`;
+    }
+
+    return {
+      exito: true,
+      mensaje,
+      ...resultado,
+    };
+  }
+
+  // Devuelve un objeto equipado al inventario.
+  desequiparObjetoAInventario(nombreRanura) {
+    if (this.inventario.estaLleno()) {
+      return {
+        exito: false,
+
+        mensaje: "El inventario está lleno.",
+      };
+    }
+
+    const estados = this.equipamiento.obtenerEstadoRanuras();
+
+    const estado = estados[nombreRanura];
+
+    if (!estado) {
+      return {
+        exito: false,
+        mensaje: "La ranura seleccionada no existe.",
+      };
+    }
+
+    const objeto = estado.objeto ?? estado.reservadaPor;
+
+    if (!objeto) {
+      return {
+        exito: false,
+        mensaje: "Esa ranura está vacía.",
+      };
+    }
+
+    const objetoDesequipado = this.equipamiento.desequipar(nombreRanura);
+
+    if (!objetoDesequipado) {
+      return {
+        exito: false,
+        mensaje: "No se pudo desequipar el objeto.",
+      };
+    }
+
+    const agregado = this.inventario.agregarObjeto(objetoDesequipado);
+
+    if (!agregado) {
+      // Esta situación no debería ocurrir porque
+      // comprobamos la capacidad previamente.
+      return {
+        exito: false,
+
+        mensaje: "No se pudo devolver el objeto al inventario.",
+      };
+    }
+
+    return {
+      exito: true,
+
+      mensaje: `${objetoDesequipado.nombre} volvió al inventario.`,
+
+      objetoDesequipado,
+    };
+  }
+
+  // Decide automáticamente dónde colocar
+  // el objeto cuando el usuario hace clic.
+  elegirRanuraAutomatica(objeto) {
+    const compatibles = objeto.ranurasCompatibles.filter((ranura) =>
+      this.equipamiento.tieneRanura(ranura),
+    );
+
+    if (compatibles.length === 0) {
+      return null;
+    }
+
+    if (compatibles.length === 1) {
+      return compatibles[0];
+    }
+
+    const puedePrincipal = compatibles.includes("arma");
+
+    const puedeSecundaria = compatibles.includes("secundaria");
+
+    if (objeto.esArma && puedePrincipal && puedeSecundaria) {
+      const principal = this.equipamiento.obtenerObjetoEnRanura("arma");
+
+      const secundaria = this.equipamiento.obtenerObjetoEnRanura("secundaria");
+
+      const secundariaReservada =
+        this.equipamiento.estaRanuraReservada("secundaria");
+
+      if (!principal) {
+        return "arma";
+      }
+
+      // Reemplazar directamente una arma de
+      // dos manos deja la secundaria libre.
+      if (principal.bloqueaSecundaria) {
+        return "arma";
+      }
+
+      // Con un arco principal, la espada se
+      // coloca en secundaria para facilitar el swap.
+      if (principal.propiedades?.tipoAtaque === "distancia") {
+        return "secundaria";
+      }
+
+      if (!secundaria && !secundariaReservada) {
+        return "secundaria";
+      }
+
+      // Si ambas manos están ocupadas,
+      // reemplazamos temporalmente la secundaria.
+      return "secundaria";
+    }
+
+    const ranuraLibre = compatibles.find(
+      (ranura) =>
+        this.equipamiento.obtenerObjetoEnRanura(ranura) === null &&
+        !this.equipamiento.estaRanuraReservada(ranura),
+    );
+
+    return ranuraLibre ?? compatibles[0];
+  }
+
+  guardarObjetosDesplazados(objetos, indiceOriginal) {
+    objetos.forEach((objeto, indice) => {
+      const puedeUsarEspacioOriginal =
+        indice === 0 &&
+        this.inventario.obtenerObjetoEn(indiceOriginal) === null;
+
+      const agregado = puedeUsarEspacioOriginal
+        ? this.inventario.colocarObjetoEn(indiceOriginal, objeto)
+        : this.inventario.agregarObjeto(objeto);
+
+      if (!agregado) {
+        throw new Error(
+          `No se pudo guardar ${objeto.nombre} en el inventario.`,
+        );
+      }
+    });
   }
 }

@@ -1,0 +1,27 @@
+/* Los objetos ocupados pueden seleccionarse. */
+.slot-inventario.interactuable,
+.slot-equipamiento.interactuable {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Resaltado al pasar el cursor. */
+.slot-inventario.interactuable:hover,
+.slot-equipamiento.interactuable:hover {
+  border-color: #aeb8ff;
+  background-color: #242d58;
+}
+
+/* Resaltado al navegar con teclado. */
+.slot-inventario.interactuable:focus-visible,
+.slot-equipamiento.interactuable:focus-visible {
+  outline: 2px solid #ffe66d;
+  outline-offset: 2px;
+}
+
+/* La reserva de dos manos mantiene
+una apariencia visual diferente. */
+.casilla-equipamiento.reservada {
+  border-style: dashed;
+  opacity: 0.8;
+}

@@ -21,8 +21,6 @@ export class ContenedorObjetos {
     }
 
     this.capacidad = capacidad;
-
-    // null representa una posición vacía.
     this.espacios = Array(capacidad).fill(null);
 
     objetosIniciales.forEach((objeto, indice) => {
@@ -34,19 +32,26 @@ export class ContenedorObjetos {
     });
   }
 
-  // Devuelve una copia de todos los espacios,
-  // incluyendo las posiciones vacías.
   obtenerEspacios() {
     return [...this.espacios];
   }
 
-  // Devuelve únicamente los objetos almacenados.
   obtenerObjetos() {
     return this.espacios.filter(Boolean);
   }
 
+  obtenerObjetoEn(indice) {
+    this.validarIndice(indice);
+
+    return this.espacios[indice];
+  }
+
   obtenerPrimerEspacioLibre() {
     return this.espacios.findIndex((objeto) => objeto === null);
+  }
+
+  contarEspaciosLibres() {
+    return this.espacios.filter((objeto) => objeto === null).length;
   }
 
   estaLleno() {
@@ -73,6 +78,26 @@ export class ContenedorObjetos {
     return true;
   }
 
+  // Coloca el objeto en una posición concreta.
+  //
+  // Se utiliza para ocupar nuevamente el espacio
+  // que dejó libre un objeto recién equipado.
+  colocarObjetoEn(indice, objeto) {
+    this.validarIndice(indice);
+
+    if (!objeto) {
+      throw new Error("No se puede colocar un objeto vacío.");
+    }
+
+    if (this.espacios[indice] !== null) {
+      return false;
+    }
+
+    this.espacios[indice] = objeto;
+
+    return true;
+  }
+
   retirarObjeto(indice) {
     this.validarIndice(indice);
 
@@ -83,7 +108,6 @@ export class ContenedorObjetos {
     return objeto;
   }
 
-  // Busca el primer objeto que cumpla una condición.
   buscarPrimerObjeto(criterio) {
     if (typeof criterio !== "function") {
       throw new Error("La búsqueda necesita una función de criterio.");
@@ -95,10 +119,6 @@ export class ContenedorObjetos {
     );
   }
 
-  // Consume unidades de un objeto apilado.
-  //
-  // Se utilizará para gastar flechas, pociones
-  // y otros consumibles.
   consumirCantidadObjeto(criterio, cantidad = 1) {
     if (typeof criterio !== "function") {
       throw new Error("El consumo necesita una función de criterio.");

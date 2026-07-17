@@ -12,8 +12,8 @@ const ETIQUETAS_RANURAS = {
   municion: "Munición",
 };
 
-// Representa visualmente las ranuras reales
-// y las reservas de armas de dos manos.
+// Representa las ranuras y notifica cuando
+// el usuario selecciona una posición ocupada.
 export class PanelEquipamiento {
   constructor({ cuadricula } = {}) {
     if (!cuadricula) {
@@ -21,6 +21,23 @@ export class PanelEquipamiento {
     }
 
     this.cuadricula = cuadricula;
+    this.alSeleccionarRanura = null;
+
+    this.manejarClick = this.manejarClick.bind(this);
+
+    this.manejarTecla = this.manejarTecla.bind(this);
+
+    this.cuadricula.addEventListener("click", this.manejarClick);
+
+    this.cuadricula.addEventListener("keydown", this.manejarTecla);
+  }
+
+  configurarSeleccionador(callback) {
+    if (callback !== null && typeof callback !== "function") {
+      throw new Error("El seleccionador de equipamiento debe ser una función.");
+    }
+
+    this.alSeleccionarRanura = callback;
   }
 
   actualizar(equipamiento) {
@@ -47,6 +64,8 @@ export class PanelEquipamiento {
 
     contenedor.classList.add("slot-equipamiento");
 
+    contenedor.dataset.ranura = nombreRanura;
+
     const casilla = document.createElement("div");
 
     casilla.classList.add("casilla-equipamiento");
@@ -65,6 +84,14 @@ export class PanelEquipamiento {
       casilla.setAttribute("aria-label", "Ranura vacía");
     }
 
+    if (objeto || reservadaPor) {
+      contenedor.classList.add("interactuable");
+
+      contenedor.tabIndex = 0;
+
+      contenedor.setAttribute("role", "button");
+    }
+
     contenedor.append(casilla, etiqueta);
 
     return contenedor;
@@ -73,9 +100,9 @@ export class PanelEquipamiento {
   mostrarObjeto(casilla, objeto) {
     casilla.classList.add("ocupada");
 
-    casilla.title = objeto.descripcion;
+    casilla.title = `${objeto.descripcion}\nClic para desequipar.`;
 
-    casilla.setAttribute("aria-label", objeto.nombre);
+    casilla.setAttribute("aria-label", `Desequipar ${objeto.nombre}`);
 
     const nombreObjeto = document.createElement("span");
 
@@ -89,12 +116,11 @@ export class PanelEquipamiento {
   mostrarReserva(casilla, objetoQueReserva) {
     casilla.classList.add("ocupada", "reservada");
 
-    casilla.title = `Ranura ocupada por ${objetoQueReserva.nombre}.`;
+    casilla.title =
+      `Ranura ocupada por ${objetoQueReserva.nombre}.\n` +
+      "Clic para desequipar el arma.";
 
-    casilla.setAttribute(
-      "aria-label",
-      `Reservada por ${objetoQueReserva.nombre}`,
-    );
+    casilla.setAttribute("aria-label", `Desequipar ${objetoQueReserva.nombre}`);
 
     const texto = document.createElement("span");
 
@@ -103,5 +129,48 @@ export class PanelEquipamiento {
     texto.textContent = `2 manos: ${objetoQueReserva.nombre}`;
 
     casilla.appendChild(texto);
+  }
+
+  manejarClick(event) {
+    const ranura = event.target.closest(".slot-equipamiento.interactuable");
+
+    this.procesarSeleccion(ranura);
+  }
+
+  manejarTecla(event) {
+    if (event.code !== "Enter" && event.code !== "Space") {
+      return;
+    }
+
+    const ranura = event.target.closest(".slot-equipamiento.interactuable");
+
+    if (!ranura) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.procesarSeleccion(ranura);
+  }
+
+  procesarSeleccion(elemento) {
+    if (!elemento || !this.alSeleccionarRanura) {
+      return;
+    }
+
+    const nombreRanura = elemento.dataset.ranura;
+
+    if (!nombreRanura) {
+      return;
+    }
+
+    this.alSeleccionarRanura(nombreRanura);
+  }
+
+  destruir() {
+    this.cuadricula.removeEventListener("click", this.manejarClick);
+
+    this.cuadricula.removeEventListener("keydown", this.manejarTecla);
   }
 }

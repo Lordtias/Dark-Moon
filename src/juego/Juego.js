@@ -7,9 +7,11 @@ export class Juego {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
     }
+
     if (!player) {
       throw new Error("Juego necesita un jugador.");
     }
+
     if (!Array.isArray(objetivos)) {
       throw new Error("Los objetivos deben estar dentro de una lista.");
     }
@@ -19,13 +21,16 @@ export class Juego {
     this.objetivos = objetivos;
     this.turno = 0;
 
-    // Estado utilizado para seleccionar una casilla de ataque.
     this.modoCombateActivo = false;
-    this.selectorCombate = { x: player.x, y: player.y };
+    this.selectorCombate = {
+      x: player.x,
+      y: player.y,
+    };
 
-    // Recordamos la última dirección para colocar inicialmente
-    // el selector delante del personaje.
-    this.ultimaDireccionJugador = { x: 0, y: -1 };
+    this.ultimaDireccionJugador = {
+      x: 0,
+      y: -1,
+    };
   }
 
   obtenerObjetivoEn(x, y) {
@@ -55,7 +60,6 @@ export class Juego {
       y,
     );
 
-    // No permitimos seleccionar la propia casilla.
     return distancia >= 1 && distancia <= this.player.alcanceAtaque;
   }
 
@@ -77,8 +81,6 @@ export class Juego {
       this.player.y + movimientoY,
     );
 
-    // Permitimos rodear una pared, pero no pasar
-    // entre dos paredes que forman una esquina cerrada.
     return horizontalBloqueada && verticalBloqueada;
   }
 
@@ -97,6 +99,7 @@ export class Juego {
 
     for (const direccion of direcciones) {
       const x = this.player.x + direccion.x;
+
       const y = this.player.y + direccion.y;
 
       if (this.esCaminable(x, y) && this.estaCasillaDentroAlcance(x, y)) {
@@ -116,15 +119,13 @@ export class Juego {
       };
     }
 
-    let seleccion;
-
-    // Cuando se colisiona con un combatiente recibimos
-    // directamente la posición que debe seleccionarse.
-    if (selectorX !== null && selectorY !== null) {
-      seleccion = { x: selectorX, y: selectorY };
-    } else {
-      seleccion = this.obtenerSeleccionInicialCombate();
-    }
+    const seleccion =
+      selectorX !== null && selectorY !== null
+        ? {
+            x: selectorX,
+            y: selectorY,
+          }
+        : this.obtenerSeleccionInicialCombate();
 
     if (
       seleccion === null ||
@@ -162,6 +163,7 @@ export class Juego {
     }
 
     this.modoCombateActivo = false;
+
     this.selectorCombate = {
       x: this.player.x,
       y: this.player.y,
@@ -175,15 +177,8 @@ export class Juego {
   }
 
   moverSelectorCombate(movimientoX, movimientoY) {
-    if (!this.modoCombateActivo) {
-      return {
-        mensaje: null,
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
     const nuevaX = this.selectorCombate.x + movimientoX;
+
     const nuevaY = this.selectorCombate.y + movimientoY;
 
     if (!this.esCaminable(nuevaX, nuevaY)) {
@@ -196,13 +191,17 @@ export class Juego {
 
     if (!this.estaCasillaDentroAlcance(nuevaX, nuevaY)) {
       return {
-        mensaje: `Esa casilla supera el alcance ${this.player.alcanceAtaque}.`,
+        mensaje:
+          `Esa casilla supera el alcance ` + `${this.player.alcanceAtaque}.`,
         turnoConsumido: false,
         redibujar: false,
       };
     }
 
-    this.selectorCombate = { x: nuevaX, y: nuevaY };
+    this.selectorCombate = {
+      x: nuevaX,
+      y: nuevaY,
+    };
 
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
 
@@ -216,13 +215,14 @@ export class Juego {
   }
 
   atacarObjetivo(objetivo) {
-    // Un enemigo reactivo se vuelve agresivo aunque
-    // el ataque falle.
+    // Atacar provoca a enemigos reactivos,
+    // incluso cuando el ataque falla.
     if (objetivo instanceof Enemigo) {
       objetivo.activarAgresividad();
     }
 
     const resultado = this.player.atacar(objetivo);
+
     const mensajes = [resultado.mensaje];
 
     if (objetivo.estaDestruido) {
@@ -231,15 +231,14 @@ export class Juego {
 
         mensajes.push(
           `${objetivo.nombre} fue derrotado. ` +
-            `Ganaste ${objetivo.experienciaOtorgada} puntos de experiencia.`,
+            `Ganaste ${objetivo.experienciaOtorgada} ` +
+            "puntos de experiencia.",
         );
       } else {
         mensajes.push(`${objetivo.nombre} fue destruido.`);
       }
     }
 
-    // Atacar ya no desplaza al jugador a la casilla
-    // que ocupaba el objetivo.
     return mensajes.join(" ");
   }
 
@@ -253,20 +252,48 @@ export class Juego {
     }
 
     const { x, y } = this.selectorCombate;
+
     const objetivo = this.obtenerObjetivoEn(x, y);
 
     this.modoCombateActivo = false;
+
     this.selectorCombate = {
       x: this.player.x,
       y: this.player.y,
     };
 
-    // Atacar una casilla vacía igualmente consume el turno.
     const mensaje = objetivo
       ? this.atacarObjetivo(objetivo)
       : "Atacaste una casilla vacía.";
 
     return this.finalizarTurno(mensaje);
+  }
+
+  // Regenera al jugador y a todos los enemigos vivos.
+  aplicarRegeneraciones() {
+    const combatientes = [
+      this.player,
+      ...this.objetivos.filter((objetivo) => objetivo instanceof Combatiente),
+    ];
+
+    let resultadoJugador = {
+      vidaRecuperada: 0,
+      manaRecuperado: 0,
+    };
+
+    for (const combatiente of combatientes) {
+      if (!combatiente.estaVivo) {
+        continue;
+      }
+
+      const resultado = combatiente.procesarRegeneracionTurno();
+
+      if (combatiente === this.player) {
+        resultadoJugador = resultado;
+      }
+    }
+
+    return resultadoJugador;
   }
 
   finalizarTurno(mensaje) {
@@ -280,6 +307,22 @@ export class Juego {
 
     if (resultadoEnemigos.mensaje !== "") {
       mensaje = [mensaje, resultadoEnemigos.mensaje].filter(Boolean).join(" ");
+    }
+
+    const regeneracion = this.aplicarRegeneraciones();
+
+    const recursosRecuperados = [];
+
+    if (regeneracion.vidaRecuperada > 0) {
+      recursosRecuperados.push(`${regeneracion.vidaRecuperada} de Vida`);
+    }
+
+    if (regeneracion.manaRecuperado > 0) {
+      recursosRecuperados.push(`${regeneracion.manaRecuperado} de Maná`);
+    }
+
+    if (recursosRecuperados.length > 0) {
+      mensaje += ` Recuperaste ` + `${recursosRecuperados.join(" y ")}.`;
     }
 
     return {
@@ -323,6 +366,7 @@ export class Juego {
     }
 
     const nuevaX = this.player.x + movimientoX;
+
     const nuevaY = this.player.y + movimientoY;
 
     if (!this.esCaminable(nuevaX, nuevaY)) {
@@ -344,8 +388,6 @@ export class Juego {
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
 
     if (objetivo instanceof Combatiente) {
-      // La colisión selecciona al combatiente,
-      // pero todavía no consume el turno.
       this.ultimaDireccionJugador = {
         x: movimientoX,
         y: movimientoY,
@@ -355,8 +397,6 @@ export class Juego {
     }
 
     if (objetivo) {
-      // Los destructibles no combatientes quedan reservados
-      // para una futura acción de interacción.
       return {
         mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
         turnoConsumido: false,
@@ -366,6 +406,7 @@ export class Juego {
 
     this.player.x = nuevaX;
     this.player.y = nuevaY;
+
     this.ultimaDireccionJugador = {
       x: movimientoX,
       y: movimientoY,

@@ -1,24 +1,19 @@
-// Combatiente hereda la capacidad de recibir daño
-// desde la clase Destructible.
 import { Destructible } from "../Destructible.js";
-
-// Los combatientes pueden utilizar equipamiento,
-// aunque algunos no tengan ninguna ranura disponible.
 import { Equipamiento } from "../../../objetos/Equipamiento.js";
+import { calcularEstadisticasDerivadas } from "./EstadisticasDerivadas.js";
+import { resolverAtaque } from "../../../juego/SistemaCombate.js";
 
-// Tipos de ataque reconocidos actualmente.
-//
-// Aunque todavía no tienen comportamientos diferentes,
-// esta distinción permitirá agregar línea de visión,
-// munición, proyectiles y ataques de oportunidad.
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
-// Un Combatiente es una entidad destructible que además:
-//
-// - Tiene atributos de D&D.
-// - Puede realizar ataques.
-// - Puede tener nivel.
-// - Puede utilizar armas o ataques naturales.
+const ATRIBUTOS_REQUERIDOS = [
+  "fuerza",
+  "destreza",
+  "constitucion",
+  "inteligencia",
+  "sabiduria",
+  "carisma",
+];
+
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -28,210 +23,191 @@ export class Combatiente extends Destructible {
     simbolo = "?",
     atributos,
     vidaMaxima,
-
-    // Estos valores representan el ataque base
-    // o natural del combatiente.
-    //
-    // Se utilizan cuando no tiene un arma equipada.
     dadoDanio,
     atributoAtaque,
-
     bonificadorArmadura = 0,
     capacidadContenedor = 0,
     objetosIniciales = [],
     tablaBotin = [],
     ranurasEquipamiento = [],
     equipamientoInicial = [],
+    estadisticasBase = null,
+    ataqueNatural = null,
   } = {}) {
-    // Destructible valida y guarda:
-    //
-    // - Nombre.
-    // - Posición.
-    // - Símbolo.
-    // - Vida máxima.
-    // - Clase de Armadura básica.
     super({
       nombre,
       x,
       y,
       simbolo,
       vidaMaxima,
-
-      // La Clase de Armadura inicial
-      // de un combatiente comienza en 10.
       claseArmadura: 10,
-
       capacidadContenedor,
       objetosIniciales,
       tablaBotin,
     });
 
-    // El nivel debe ser un número entero
-    // igual o mayor que uno.
     if (!Number.isInteger(nivel) || nivel < 1) {
-      throw new Error(
-        `${nombre} debe tener un nivel entero ` + "igual o mayor que 1.",
-      );
+      throw new Error(`${nombre} debe tener un nivel válido.`);
     }
 
-    // Comprobamos que atributos sea realmente un objeto.
     if (
-      atributos === null ||
+      !atributos ||
       typeof atributos !== "object" ||
       Array.isArray(atributos)
     ) {
-      throw new Error(`${nombre} debe tener un objeto de atributos.`);
+      throw new Error(`${nombre} debe tener atributos válidos.`);
     }
 
-    // Estos son los seis atributos que actualmente
-    // necesita cualquier combatiente.
-    const atributosRequeridos = [
-      "fuerza",
-      "destreza",
-      "constitucion",
-      "inteligencia",
-      "sabiduria",
-      "carisma",
-    ];
-
-    // Revisamos individualmente cada atributo.
-    for (const nombreAtributo of atributosRequeridos) {
-      // Verificamos que el atributo exista.
-      const atributoExiste = Object.prototype.hasOwnProperty.call(
-        atributos,
-        nombreAtributo,
-      );
-
-      if (!atributoExiste) {
+    for (const atributo of ATRIBUTOS_REQUERIDOS) {
+      if (!Number.isInteger(atributos[atributo]) || atributos[atributo] <= 0) {
         throw new Error(
-          `${nombre} no tiene el atributo ` + `"${nombreAtributo}".`,
-        );
-      }
-
-      const valorAtributo = atributos[nombreAtributo];
-
-      // Los atributos deben ser números enteros
-      // mayores que cero.
-      if (!Number.isInteger(valorAtributo) || valorAtributo <= 0) {
-        throw new Error(
-          `El atributo "${nombreAtributo}" de ` +
-            `${nombre} debe ser un número entero ` +
-            "mayor que 0.",
+          `El atributo "${atributo}" de ${nombre} ` +
+            "debe ser un entero mayor que 0.",
         );
       }
     }
 
-    // El dado de daño base representa
-    // la cantidad de caras.
-    //
-    // Ejemplos:
-    // 4 significa 1d4.
-    // 6 significa 1d6.
-    //
-    // Este dado se utiliza cuando el combatiente
-    // no tiene un arma equipada.
-    if (!Number.isInteger(dadoDanio) || dadoDanio < 2) {
-      throw new Error(
-        `${nombre} debe tener un dado de daño ` + "entero de al menos 2 caras.",
-      );
+    const atributoBase =
+      typeof atributoAtaque === "string"
+        ? atributoAtaque.trim().toLowerCase()
+        : "fuerza";
+
+    if (!Object.prototype.hasOwnProperty.call(atributos, atributoBase)) {
+      throw new Error(`${nombre} no tiene el atributo "${atributoBase}".`);
     }
 
-    // El atributo base utilizado para atacar
-    // debe ser un texto válido.
-    if (typeof atributoAtaque !== "string" || atributoAtaque.trim() === "") {
-      throw new Error(
-        `${nombre} debe indicar qué atributo ` + "utiliza para atacar.",
-      );
-    }
-
-    // Convertimos el nombre del atributo a minúsculas.
-    //
-    // Así "Fuerza" y "fuerza" pueden interpretarse
-    // de la misma manera.
-    const atributoAtaqueNormalizado = atributoAtaque.trim().toLowerCase();
-
-    // Comprobamos que el atributo elegido para atacar
-    // exista dentro de los atributos del combatiente.
-    if (
-      !Object.prototype.hasOwnProperty.call(
-        atributos,
-        atributoAtaqueNormalizado,
-      )
-    ) {
-      throw new Error(
-        `${nombre} intenta atacar utilizando ` +
-          `"${atributoAtaqueNormalizado}", pero ese ` +
-          "atributo no existe.",
-      );
-    }
-
-    // La bonificación de armadura debe ser
-    // un número entero.
-    //
-    // Permitimos números negativos porque más adelante
-    // podría existir alguna penalización.
-    if (!Number.isInteger(bonificadorArmadura)) {
-      throw new Error(
-        `El bonificador de armadura de ${nombre} ` +
-          "debe ser un número entero.",
-      );
-    }
-
-    // Nivel del combatiente.
     this.nivel = nivel;
+    this.atributos = { ...atributos };
 
-    // Copiamos los atributos para evitar guardar
-    // directamente la referencia al objeto recibido.
-    this.atributos = {
-      ...atributos,
-    };
-
-    // Ataque natural o desarmado.
-    //
-    // Estos valores también sirven como respaldo
-    // para enemigos que no utilizan armas.
+    // Se conservan mientras migramos
+    // completamente la configuración antigua.
     this.dadoDanio = dadoDanio;
-    this.atributoAtaque = atributoAtaqueNormalizado;
-
-    // Bonificación producida por armaduras,
-    // escudos u otros efectos.
+    this.atributoAtaque = atributoBase;
     this.bonificadorArmadura = bonificadorArmadura;
 
-    // Cada combatiente posee sus propias ranuras
-    // y puede comenzar con objetos ya equipados.
     this.equipamiento = new Equipamiento({
       ranurasDisponibles: ranurasEquipamiento,
-
       objetosIniciales: equipamientoInicial,
     });
+
+    this.ataqueNatural = this.crearAtaqueNatural(ataqueNatural, atributoBase);
+
+    this.estadisticasBase = this.crearEstadisticasBase(
+      estadisticasBase,
+      vidaMaxima,
+    );
+
+    const estadisticasIniciales = calcularEstadisticasDerivadas(this);
+
+    this.vidaMaxima = estadisticasIniciales.vidaMaxima;
+
+    this.vidaActual = estadisticasIniciales.vidaMaxima;
+
+    this.manaMaximo = estadisticasIniciales.manaMaximo;
+
+    this.manaActual = estadisticasIniciales.manaMaximo;
+
+    // Conservan las fracciones de regeneración.
+    this.acumuladorRegeneracionVida = 0;
+    this.acumuladorRegeneracionMana = 0;
   }
 
-  // Convierte un atributo en su modificador.
-  //
-  // Ejemplos:
-  // 10 produce 0.
-  // 12 produce +1.
-  // 14 produce +2.
-  // 8 produce -1.
-  obtenerModificador(nombreAtributo) {
-    const valorAtributo = this.atributos[nombreAtributo];
+  crearAtaqueNatural(configuracion, atributoBase) {
+    const valores =
+      configuracion && typeof configuracion === "object" ? configuracion : {};
 
-    // Informamos un error cuando se solicita
-    // un atributo que no existe.
-    if (valorAtributo === undefined) {
-      throw new Error(
-        `${this.nombre} no tiene el atributo ` + `"${nombreAtributo}".`,
-      );
+    const ataque = {
+      danioFisicoMinimo: valores.danioFisicoMinimo ?? 1,
+
+      danioFisicoMaximo: valores.danioFisicoMaximo ?? 2,
+
+      atributoAtaque: valores.atributoAtaque ?? atributoBase,
+
+      precision: valores.precision ?? 0,
+
+      alcance: valores.alcance ?? 1,
+
+      tipoAtaque: valores.tipoAtaque ?? "cuerpoACuerpo",
+
+      probabilidadCritico: valores.probabilidadCritico ?? 5,
+
+      multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
+    };
+
+    if (
+      !Number.isFinite(ataque.danioFisicoMinimo) ||
+      !Number.isFinite(ataque.danioFisicoMaximo) ||
+      ataque.danioFisicoMinimo < 0 ||
+      ataque.danioFisicoMaximo < ataque.danioFisicoMinimo
+    ) {
+      throw new Error(`El ataque natural de ${this.nombre} es inválido.`);
     }
 
-    // Fórmula de modificadores inspirada en D&D.
-    return Math.floor((valorAtributo - 10) / 2);
+    return ataque;
   }
 
-  // Devuelve el arma colocada en la ranura principal.
-  //
-  // Los enemigos o entidades sin una ranura "arma"
-  // simplemente utilizarán su ataque natural.
+  crearEstadisticasBase(configuracion, vidaMaximaAnterior) {
+    const valores =
+      configuracion && typeof configuracion === "object" ? configuracion : {};
+
+    const vidaAnterior = Number.isFinite(vidaMaximaAnterior)
+      ? vidaMaximaAnterior
+      : 1;
+
+    return {
+      vida: valores.vida ?? vidaAnterior - 5 * this.atributos.constitucion,
+
+      mana: valores.mana ?? -4 * this.atributos.inteligencia,
+
+      vidaPorNivel: valores.vidaPorNivel ?? 0,
+
+      manaPorNivel: valores.manaPorNivel ?? 0,
+
+      precision: valores.precision ?? 10,
+
+      evasion: valores.evasion ?? 5,
+
+      armadura: valores.armadura ?? 0,
+
+      regeneracionVida: valores.regeneracionVida ?? 0,
+
+      regeneracionMana: valores.regeneracionMana ?? 0,
+
+      probabilidadCritico: valores.probabilidadCritico ?? 5,
+
+      multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
+
+      probabilidadBloqueo: valores.probabilidadBloqueo ?? 0,
+
+      potenciaEfectos: valores.potenciaEfectos ?? 0,
+
+      resistenciaMental: valores.resistenciaMental ?? 0,
+
+      potenciaAura: valores.potenciaAura ?? 0,
+
+      resistencias: {
+        fuego: valores.resistencias?.fuego ?? 0,
+        frio: valores.resistencias?.frio ?? 0,
+        rayo: valores.resistencias?.rayo ?? 0,
+        veneno: valores.resistencias?.veneno ?? 0,
+      },
+    };
+  }
+
+  get estadisticasDerivadas() {
+    const estadisticas = calcularEstadisticasDerivadas(this);
+
+    this.vidaMaxima = estadisticas.vidaMaxima;
+
+    this.manaMaximo = estadisticas.manaMaximo;
+
+    this.vidaActual = Math.min(this.vidaActual, this.vidaMaxima);
+
+    this.manaActual = Math.min(this.manaActual, this.manaMaximo);
+
+    return estadisticas;
+  }
+
   get armaEquipada() {
     if (!this.equipamiento.tieneRanura("arma")) {
       return null;
@@ -239,302 +215,131 @@ export class Combatiente extends Destructible {
 
     const objeto = this.equipamiento.obtenerObjetoEnRanura("arma");
 
-    // Una ranura vacía significa que el combatiente
-    // está atacando sin arma.
-    if (objeto === null) {
-      return null;
-    }
-
-    // Por seguridad, solamente consideramos arma
-    // a un objeto cuyo tipo sea realmente "arma".
-    if (objeto.tipo !== "arma") {
-      return null;
-    }
-
-    return objeto;
+    return objeto?.tipo === "arma" ? objeto : null;
   }
 
-  // Devuelve el dado de daño que debe utilizarse.
-  //
-  // Con arma:
-  // se utiliza el dado configurado en el objeto.
-  //
-  // Sin arma:
-  // se utiliza el dado de daño base del combatiente.
-  get dadoDanioActual() {
-    const arma = this.armaEquipada;
-
-    if (arma === null) {
-      return this.dadoDanio;
-    }
-
-    const dadoDanioArma = arma.propiedades.dadoDanio;
-
-    // Permitimos que un arma antigua sin esta propiedad
-    // utilice temporalmente el daño base.
-    if (dadoDanioArma === undefined) {
-      return this.dadoDanio;
-    }
-
-    if (!Number.isInteger(dadoDanioArma) || dadoDanioArma < 2) {
-      throw new Error(
-        `El dado de daño de "${arma.nombre}" ` +
-          "debe ser un entero de al menos 2 caras.",
-      );
-    }
-
-    return dadoDanioArma;
-  }
-
-  // Devuelve el atributo utilizado para atacar.
-  //
-  // Una espada puede utilizar Fuerza,
-  // mientras que un arco puede utilizar Destreza.
   get atributoAtaqueActual() {
-    const arma = this.armaEquipada;
-
-    if (arma === null) {
-      return this.atributoAtaque;
-    }
-
-    const atributoArma = arma.propiedades.atributoAtaque;
-
-    // Las armas antiguas que todavía no indiquen
-    // atributo utilizarán el ataque base.
-    if (atributoArma === undefined) {
-      return this.atributoAtaque;
-    }
-
-    if (typeof atributoArma !== "string" || atributoArma.trim() === "") {
-      throw new Error(
-        `El atributo de ataque de "${arma.nombre}" ` +
-          "debe ser un texto válido.",
-      );
-    }
-
-    const atributoNormalizado = atributoArma.trim().toLowerCase();
-
-    // El combatiente debe poseer el atributo
-    // solicitado por el arma.
-    if (
-      !Object.prototype.hasOwnProperty.call(this.atributos, atributoNormalizado)
-    ) {
-      throw new Error(
-        `${this.nombre} no puede usar ` +
-          `"${arma.nombre}" porque el atributo ` +
-          `"${atributoNormalizado}" no existe.`,
-      );
-    }
-
-    return atributoNormalizado;
+    return (
+      this.armaEquipada?.propiedades?.atributoAtaque ??
+      this.ataqueNatural.atributoAtaque
+    );
   }
 
-  // Devuelve el alcance actual del ataque.
-  //
-  // Sin arma el alcance siempre será 1.
-  //
-  // Las armas pueden definir cualquier alcance:
-  // - Espada: 1.
-  // - Lanza: 2.
-  // - Arco: varias casillas.
   get alcanceAtaque() {
-    const arma = this.armaEquipada;
-
-    if (arma === null) {
-      return 1;
-    }
-
-    const alcance = arma.propiedades.alcance;
-
-    // Las armas antiguas sin alcance configurado
-    // se consideran de alcance 1.
-    if (alcance === undefined) {
-      return 1;
-    }
+    const alcance =
+      this.armaEquipada?.propiedades?.alcance ?? this.ataqueNatural.alcance;
 
     if (!Number.isInteger(alcance) || alcance < 1) {
-      throw new Error(
-        `El alcance de "${arma.nombre}" debe ser ` +
-          "un número entero igual o mayor que 1.",
-      );
+      throw new Error(`El alcance de ${this.nombre} es inválido.`);
     }
 
     return alcance;
   }
 
-  // Indica cómo se comporta el ataque actual.
-  //
-  // El alcance no determina por sí solo el tipo:
-  // una lanza puede tener alcance 2 y continuar
-  // siendo un arma cuerpo a cuerpo.
   get tipoAtaqueActual() {
-    const arma = this.armaEquipada;
+    const tipo =
+      this.armaEquipada?.propiedades?.tipoAtaque ??
+      this.ataqueNatural.tipoAtaque;
 
-    if (arma === null) {
-      return "cuerpoACuerpo";
+    if (!TIPOS_ATAQUE_VALIDOS.includes(tipo)) {
+      throw new Error(`El tipo de ataque de ${this.nombre} es inválido.`);
     }
 
-    const tipoAtaque = arma.propiedades.tipoAtaque;
-
-    // Las armas antiguas sin tipo configurado
-    // se consideran cuerpo a cuerpo.
-    if (tipoAtaque === undefined) {
-      return "cuerpoACuerpo";
-    }
-
-    if (!TIPOS_ATAQUE_VALIDOS.includes(tipoAtaque)) {
-      throw new Error(
-        `El tipo de ataque de "${arma.nombre}" ` +
-          "debe ser cuerpoACuerpo o distancia.",
-      );
-    }
-
-    return tipoAtaque;
+    return tipo;
   }
 
-  // Calcula la Clase de Armadura del combatiente.
-  //
-  // CA = 10 + Destreza + armadura.
-  //
-  // En un paso posterior conectaremos aquí
-  // las armaduras y escudos equipados.
-  get claseArmadura() {
-    return (
-      this.claseArmaduraBase +
-      this.obtenerModificador("destreza") +
-      this.bonificadorArmadura
-    );
-  }
-
-  // Obtiene el modificador utilizado
-  // en el ataque actual.
-  //
-  // Ahora el arma equipada puede cambiar
-  // el atributo utilizado.
-  get bonificadorAtaque() {
-    return this.obtenerModificador(this.atributoAtaqueActual);
-  }
-
-  // Para una criatura, no estar destruida
-  // significa estar viva.
   get estaVivo() {
     return !this.estaDestruido;
   }
 
-  // Simula el lanzamiento de un dado.
-  tirarDado(cantidadCaras) {
-    // Evitamos tirar dados con valores inválidos.
-    if (!Number.isInteger(cantidadCaras) || cantidadCaras < 2) {
-      throw new Error("Un dado debe tener al menos 2 caras.");
-    }
+  recuperarVida(cantidad) {
+    const anterior = this.vidaActual;
 
-    return Math.floor(Math.random() * cantidadCaras) + 1;
+    this.vidaActual = Math.min(
+      this.vidaMaxima,
+      this.vidaActual + Math.max(0, cantidad),
+    );
+
+    return this.vidaActual - anterior;
   }
 
-  // Realiza un ataque contra cualquier
-  // entidad destructible.
-  atacar(objetivo) {
-    // Un combatiente muerto o destruido
-    // no puede realizar ataques.
+  recuperarMana(cantidad) {
+    const anterior = this.manaActual;
+
+    this.manaActual = Math.min(
+      this.manaMaximo,
+      this.manaActual + Math.max(0, cantidad),
+    );
+
+    return this.manaActual - anterior;
+  }
+
+  gastarMana(cantidad) {
+    if (!Number.isFinite(cantidad) || cantidad < 0) {
+      throw new Error("El costo de Maná es inválido.");
+    }
+
+    if (this.manaActual < cantidad) {
+      return false;
+    }
+
+    this.manaActual -= cantidad;
+    return true;
+  }
+
+  // Procesa la regeneración usando acumuladores,
+  // para no perder valores decimales pequeños.
+  procesarRegeneracionTurno() {
     if (!this.estaVivo) {
       return {
-        impacto: false,
-        critico: false,
-        danio: 0,
-        objetivoDestruido: false,
-        mensaje: `${this.nombre} no puede atacar ` + "porque está derrotado.",
+        vidaRecuperada: 0,
+        manaRecuperado: 0,
       };
     }
 
-    // Comprobamos que el objetivo sea realmente
-    // una entidad destructible.
-    if (!(objetivo instanceof Destructible)) {
-      throw new Error(
-        `${this.nombre} solamente puede atacar ` + "objetivos destructibles.",
-      );
+    const estadisticas = this.estadisticasDerivadas;
+
+    let vidaRecuperada = 0;
+    let manaRecuperado = 0;
+
+    if (this.vidaActual < this.vidaMaxima) {
+      this.acumuladorRegeneracionVida += estadisticas.regeneracionVida;
+
+      const vidaEntera = Math.floor(this.acumuladorRegeneracionVida);
+
+      if (vidaEntera > 0) {
+        vidaRecuperada = this.recuperarVida(vidaEntera);
+
+        this.acumuladorRegeneracionVida -= vidaEntera;
+      }
+    } else {
+      this.acumuladorRegeneracionVida = 0;
     }
 
-    // Evitamos atacar algo que ya fue destruido.
-    if (objetivo.estaDestruido) {
-      return {
-        impacto: false,
-        critico: false,
-        danio: 0,
-        objetivoDestruido: true,
-        mensaje: `${objetivo.nombre} ya está destruido.`,
-      };
+    if (this.manaActual < this.manaMaximo) {
+      this.acumuladorRegeneracionMana += estadisticas.regeneracionMana;
+
+      const manaEntero = Math.floor(this.acumuladorRegeneracionMana);
+
+      if (manaEntero > 0) {
+        manaRecuperado = this.recuperarMana(manaEntero);
+
+        this.acumuladorRegeneracionMana -= manaEntero;
+      }
+    } else {
+      this.acumuladorRegeneracionMana = 0;
     }
 
-    // Tiramos un dado de veinte caras para determinar
-    // si el ataque logra impactar.
-    const tiradaAtaque = this.tirarDado(20);
-
-    // Sumamos el modificador del atributo
-    // utilizado por el ataque actual.
-    const ataqueTotal = tiradaAtaque + this.bonificadorAtaque;
-
-    // Un resultado natural de 1 siempre falla.
-    const falloAutomatico = tiradaAtaque === 1;
-
-    // Un resultado natural de 20 siempre impacta
-    // y se considera un golpe crítico.
-    const golpeCritico = tiradaAtaque === 20;
-
-    // El ataque impacta cuando alcanza o supera
-    // la Clase de Armadura del objetivo.
-    const impacto =
-      !falloAutomatico &&
-      (golpeCritico || ataqueTotal >= objetivo.claseArmadura);
-
-    // Si el ataque falla, devolvemos el resultado
-    // sin modificar la vida del objetivo.
-    if (!impacto) {
-      return {
-        impacto: false,
-        critico: false,
-        danio: 0,
-        objetivoDestruido: false,
-        mensaje:
-          `${this.nombre} falla su ataque contra ` + `${objetivo.nombre}.`,
-      };
-    }
-
-    // El daño utiliza ahora el dado del arma equipada.
-    //
-    // Cuando no existe un arma, utiliza
-    // el dado de daño natural del combatiente.
-    let danioCalculado =
-      this.tirarDado(this.dadoDanioActual) + this.bonificadorAtaque;
-
-    // Un golpe crítico agrega otro dado de daño.
-    //
-    // El modificador del atributo no se vuelve a sumar.
-    if (golpeCritico) {
-      danioCalculado += this.tirarDado(this.dadoDanioActual);
-    }
-
-    // Todo ataque exitoso causa al menos
-    // 1 punto de daño calculado.
-    danioCalculado = Math.max(1, danioCalculado);
-
-    // recibirDanio() devuelve el daño que realmente
-    // perdió el objetivo.
-    //
-    // Ejemplo:
-    // Si calculamos 10 de daño, pero el objetivo
-    // solamente tenía 2 de vida, devuelve 2.
-    const danioAplicado = objetivo.recibirDanio(danioCalculado);
-
-    // Devolvemos el daño realmente aplicado,
-    // no el daño sobrante.
     return {
-      impacto: true,
-      critico: golpeCritico,
-      danio: danioAplicado,
-      objetivoDestruido: objetivo.estaDestruido,
-      mensaje:
-        `${this.nombre} ataca a ${objetivo.nombre}` +
-        ` y causa ${danioAplicado} de daño.`,
+      vidaRecuperada,
+      manaRecuperado,
     };
+  }
+
+  atacar(objetivo) {
+    return resolverAtaque({
+      atacante: this,
+      objetivo,
+    });
   }
 }

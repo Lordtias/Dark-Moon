@@ -1,0 +1,104 @@
+/* Barra de experiencia ubicada debajo del nombre. */
+.experiencia-personaje {
+  margin-bottom: 16px;
+}
+
+.cabecera-experiencia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.cabecera-experiencia strong {
+  color: #eef1ff;
+  font-size: 15px;
+}
+
+.cabecera-experiencia span {
+  color: #b8bfd7;
+  font-size: 12px;
+}
+
+.barra-experiencia {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid #616a89;
+  border-radius: 4px;
+  background-color: #080b16;
+}
+
+.relleno-experiencia {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #858da5, #e2e5ed);
+  transition: width 0.2s ease;
+}
+
+/* Color específico de la barra de Maná. */
+.relleno-mana {
+  background-color: #2856b8;
+}
+
+/* Título Atributos y contador de puntos pendientes. */
+.cabecera-seccion-atributos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cabecera-seccion-atributos h3 {
+  margin: 0;
+}
+
+.contador-puntos-atributo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 58px;
+  padding: 3px 7px;
+  border: 1px solid #6976b8;
+  border-radius: 4px;
+  background-color: #171b2e;
+  color: #aeb8ff;
+  font-size: 10px;
+}
+
+.contador-puntos-atributo strong {
+  min-width: 16px;
+  color: #ffe66d;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Cada atributo muestra nombre, valor y un único botón +. */
+.panel-personaje .fila-atributo {
+  grid-template-columns: minmax(0, 1fr) 36px 28px;
+}
+
+.nombre-atributo-panel {
+  min-width: 0;
+  color: #d8dcff;
+  overflow-wrap: anywhere;
+}
+
+.boton-sumar-atributo {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-width: 1px;
+  border-radius: 4px;
+  color: #ffe66d;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.boton-sumar-atributo:disabled {
+  opacity: 0.25;
+}

@@ -7,10 +7,15 @@
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
+      "danioFisicoMinimo": 4,
+      "danioFisicoMaximo": 8,
       "dadoDanio": 8,
       "atributoAtaque": "fuerza",
+      "precision": 10,
       "alcance": 1,
-      "tipoAtaque": "cuerpoACuerpo"
+      "tipoAtaque": "cuerpoACuerpo",
+      "probabilidadCritico": 5,
+      "multiplicadorCritico": 1.5
     }
   },
   "lanza": {
@@ -21,10 +26,36 @@
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma"],
     "propiedades": {
+      "danioFisicoMinimo": 3,
+      "danioFisicoMaximo": 7,
       "dadoDanio": 6,
       "atributoAtaque": "fuerza",
+      "precision": 8,
       "alcance": 2,
-      "tipoAtaque": "cuerpoACuerpo"
+      "tipoAtaque": "cuerpoACuerpo",
+      "probabilidadCritico": 5,
+      "multiplicadorCritico": 1.5
+    }
+  },
+  "arco_corto": {
+    "nombre": "Arco corto",
+    "tipo": "arma",
+    "descripcion": "Un arco liviano pensado para ataques a distancia.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["arma"],
+    "propiedades": {
+      "danioFisicoMinimo": 2,
+      "danioFisicoMaximo": 9,
+      "dadoDanio": 6,
+      "atributoAtaque": "destreza",
+      "precision": 12,
+      "alcance": 6,
+      "tipoAtaque": "distancia",
+      "probabilidadCritico": 7,
+      "multiplicadorCritico": 1.5,
+      "requiereMunicion": false,
+      "tipoMunicion": "flecha"
     }
   },
   "casco_hierro": {
@@ -35,6 +66,55 @@
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["cabeza"],
     "propiedades": {
+      "armadura": 8,
+      "bonificadorArmadura": 1
+    }
+  },
+  "armadura_cuero": {
+    "nombre": "Armadura de cuero",
+    "tipo": "armadura",
+    "descripcion": "Protección corporal ligera y flexible.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 14,
+      "evasion": 4
+    }
+  },
+  "guantes_cuero": {
+    "nombre": "Guantes de cuero",
+    "tipo": "armadura",
+    "descripcion": "Guantes ligeros para proteger las manos.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 4
+    }
+  },
+  "botas_cuero": {
+    "nombre": "Botas de cuero",
+    "tipo": "armadura",
+    "descripcion": "Botas flexibles que facilitan el movimiento.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 4,
+      "evasion": 3
+    }
+  },
+  "escudo_madera": {
+    "nombre": "Escudo de madera",
+    "tipo": "armadura",
+    "descripcion": "Un escudo sencillo.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["secundaria"],
+    "propiedades": {
+      "armadura": 10,
+      "probabilidadBloqueo": 8,
       "bonificadorArmadura": 1
     }
   },
@@ -49,22 +129,6 @@
       "curacion": 5
     }
   },
-  "arco_corto": {
-    "nombre": "Arco corto",
-    "tipo": "arma",
-    "descripcion": "Un arco liviano pensado para ataques a distancia.",
-    "apilable": false,
-    "cantidadMaxima": 1,
-    "ranurasCompatibles": ["arma"],
-    "propiedades": {
-      "dadoDanio": 6,
-      "atributoAtaque": "destreza",
-      "alcance": 6,
-      "tipoAtaque": "distancia",
-      "requiereMunicion": false,
-      "tipoMunicion": "flecha"
-    }
-  },
   "flecha_madera": {
     "nombre": "Flecha de madera",
     "tipo": "municion",
@@ -74,17 +138,6 @@
     "ranurasCompatibles": ["municion"],
     "propiedades": {
       "tipoMunicion": "flecha"
-    }
-  },
-  "escudo_madera": {
-    "nombre": "Escudo de madera",
-    "tipo": "armadura",
-    "descripcion": "Un escudo sencillo.",
-    "apilable": false,
-    "cantidadMaxima": 1,
-    "ranurasCompatibles": ["secundaria"],
-    "propiedades": {
-      "bonificadorArmadura": 1
     }
   }
 }

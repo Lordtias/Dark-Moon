@@ -1,184 +1,323 @@
-// Nombres de los atributos que se mostrarán
-// dentro del panel del personaje.
-const ATRIBUTOS_VISIBLES = [
-    "fuerza",
-    "destreza",
-    "constitucion",
-    "inteligencia",
-    "sabiduria",
-    "carisma"
+const ATRIBUTOS = [
+  ["fuerza", "Fuerza"],
+  ["destreza", "Destreza"],
+  ["constitucion", "Constitución"],
+  ["inteligencia", "Inteligencia"],
+  ["sabiduria", "Sabiduría"],
+  ["carisma", "Carisma"],
 ];
 
-// PanelPersonaje administra exclusivamente
-// la representación visual del jugador.
-//
-// No modifica estadísticas ni lógica del juego.
 export class PanelPersonaje {
-    constructor({ contenedor } = {}) {
-        // El panel necesita un elemento HTML principal.
-        if (!contenedor) {
-            throw new Error(
-                "PanelPersonaje necesita un contenedor."
-            );
-        }
-
-        this.contenedor = contenedor;
-
-        // Guardamos las referencias a los campos generales.
-        this.nombre = this.obtenerElemento(
-            '[data-personaje="nombre"]'
-        );
-
-        this.clase = this.obtenerElemento(
-            '[data-personaje="clase"]'
-        );
-
-        this.nivel = this.obtenerElemento(
-            '[data-personaje="nivel"]'
-        );
-
-        this.experiencia = this.obtenerElemento(
-            '[data-personaje="experiencia"]'
-        );
-
-        this.claseArmadura = this.obtenerElemento(
-            '[data-personaje="clase-armadura"]'
-        );
-
-        this.turno = this.obtenerElemento(
-            '[data-personaje="turno"]'
-        );
-
-        this.vidaTexto = this.obtenerElemento(
-            '[data-personaje="vida-texto"]'
-        );
-
-        this.vidaBarra = this.obtenerElemento(
-            '[data-personaje="vida-barra"]'
-        );
-
-        // Guardamos por separado los campos visuales
-        // correspondientes a cada atributo.
-        this.camposAtributos = new Map();
-
-        for (const nombreAtributo of ATRIBUTOS_VISIBLES) {
-            const fila = this.obtenerElemento(
-                `[data-atributo="${nombreAtributo}"]`
-            );
-
-            const valor = fila.querySelector(
-                '[data-campo="valor"]'
-            );
-
-            const modificador = fila.querySelector(
-                '[data-campo="modificador"]'
-            );
-
-            if (!valor || !modificador) {
-                throw new Error(
-                    `Faltan campos para el atributo ` +
-                    `"${nombreAtributo}".`
-                );
-            }
-
-            this.camposAtributos.set(
-                nombreAtributo,
-                {
-                    valor,
-                    modificador
-                }
-            );
-        }
+  constructor({ contenedor } = {}) {
+    if (!contenedor) {
+      throw new Error("PanelPersonaje necesita un contenedor.");
     }
 
-    // Busca un elemento dentro del panel.
-    obtenerElemento(selector) {
-        const elemento =
-            this.contenedor.querySelector(selector);
+    this.contenedor = contenedor;
+    this.playerActual = null;
+    this.turnoActual = 0;
 
-        if (!elemento) {
-            throw new Error(
-                `No se encontró el elemento "${selector}".`
-            );
-        }
+    this.manejarClick = this.manejarClick.bind(this);
 
-        return elemento;
+    this.crearContenido();
+
+    this.contenedor.addEventListener("click", this.manejarClick);
+  }
+
+  crearContenido() {
+    const filasAtributos = ATRIBUTOS.map(
+      ([id, nombre]) => `
+        <div
+          class="fila-atributo"
+          data-atributo="${id}"
+        >
+          <span class="nombre-atributo-panel">
+            ${nombre}
+          </span>
+
+          <strong data-campo="valor">
+            0
+          </strong>
+
+          <button
+            type="button"
+            class="boton-sumar-atributo"
+            data-accion="sumar-atributo"
+            data-atributo="${id}"
+            aria-label="Aumentar ${nombre}"
+            title="Asignar un punto a ${nombre}"
+          >
+            +
+          </button>
+        </div>
+      `,
+    ).join("");
+
+    this.contenedor.innerHTML = `
+      <h2>Personaje</h2>
+
+      <div class="identidad-personaje">
+        <strong data-personaje="nombre">
+          Cargando...
+        </strong>
+
+        <span data-personaje="clase">
+          Aventurero
+        </span>
+      </div>
+
+      <div class="experiencia-personaje">
+        <div class="cabecera-experiencia">
+          <strong data-personaje="nivel">
+            Nivel 1
+          </strong>
+
+          <span data-personaje="experiencia-texto">
+            0 / 0 PX
+          </span>
+        </div>
+
+        <div class="barra-experiencia">
+          <div
+            class="relleno-experiencia"
+            data-personaje="experiencia-barra"
+          ></div>
+        </div>
+      </div>
+
+      ${this.crearRecurso("Vida", "vida", "relleno-vida")}
+
+      ${this.crearRecurso("Maná", "mana", "relleno-mana")}
+
+      <section class="seccion-panel">
+        <div class="cabecera-seccion-atributos">
+          <h3>Atributos</h3>
+
+          <div
+            class="contador-puntos-atributo"
+            title="Puntos pendientes de repartir"
+          >
+            <span>Puntos</span>
+
+            <strong data-personaje="puntos-atributo">
+              0
+            </strong>
+          </div>
+        </div>
+
+        <div class="lista-atributos">
+          ${filasAtributos}
+        </div>
+      </section>
+
+      <section class="seccion-panel">
+        <h3>Combate</h3>
+
+        <div class="resumen-personaje">
+          ${this.crearDato("Daño medio", "danio-medio")}
+
+          ${this.crearDato("Turno", "turno")}
+
+          ${this.crearDato("Precisión", "precision")}
+
+          ${this.crearDato("Evasión", "evasion")}
+
+          ${this.crearDato("Armadura", "armadura")}
+
+          ${this.crearDato("Crítico", "critico")}
+
+          ${this.crearDato("Bloqueo", "bloqueo")}
+
+          ${this.crearDato("Regen. vida", "regen-vida")}
+
+          ${this.crearDato("Regen. maná", "regen-mana")}
+
+          ${this.crearDato("Alcance", "alcance")}
+        </div>
+      </section>
+
+      <section class="seccion-panel">
+        <h3>Resistencias</h3>
+
+        <div class="resumen-personaje">
+          ${this.crearDato("Fuego", "res-fuego")}
+
+          ${this.crearDato("Frío", "res-frio")}
+
+          ${this.crearDato("Rayo", "res-rayo")}
+
+          ${this.crearDato("Veneno", "res-veneno")}
+        </div>
+      </section>
+    `;
+  }
+
+  crearDato(nombre, campo) {
+    return `
+      <div class="dato-personaje">
+        <span>${nombre}</span>
+
+        <strong data-personaje="${campo}">
+          0
+        </strong>
+      </div>
+    `;
+  }
+
+  crearRecurso(nombre, id, claseRelleno) {
+    return `
+      <div class="recurso-personaje">
+        <div class="cabecera-recurso">
+          <span>${nombre}</span>
+
+          <span data-personaje="${id}-texto">
+            0 / 0
+          </span>
+        </div>
+
+        <div class="barra-recurso">
+          <div
+            class="relleno-recurso ${claseRelleno}"
+            data-personaje="${id}-barra"
+          ></div>
+        </div>
+      </div>
+    `;
+  }
+
+  obtener(selector) {
+    const elemento = this.contenedor.querySelector(selector);
+
+    if (!elemento) {
+      throw new Error(`No se encontró "${selector}" ` + "en PanelPersonaje.");
     }
 
-    // Actualiza toda la información visible.
-    actualizar(player, turno) {
-        if (!player) {
-            throw new Error(
-                "PanelPersonaje necesita un jugador."
-            );
-        }
+    return elemento;
+  }
 
-        this.nombre.textContent = player.nombre;
-        this.clase.textContent = player.clasePersonaje;
-        this.nivel.textContent = player.nivel;
-        this.experiencia.textContent = player.experiencia;
-        this.claseArmadura.textContent =
-            player.claseArmadura;
-        this.turno.textContent = turno;
+  manejarClick(event) {
+    const boton = event.target.closest('[data-accion="sumar-atributo"]');
 
-        this.actualizarVida(player);
-        this.actualizarAtributos(player);
+    if (!boton || !this.contenedor.contains(boton) || !this.playerActual) {
+      return;
     }
 
-    // Actualiza el texto y el ancho de la barra de vida.
-    actualizarVida(player) {
-        this.vidaTexto.textContent =
-            `${player.vidaActual} / ${player.vidaMaxima}`;
+    const nombreAtributo = boton.dataset.atributo;
 
-        // Evitamos divisiones inválidas y porcentajes
-        // menores que 0 o mayores que 100.
-        const porcentajeVida =
-            player.vidaMaxima > 0
-                ? (
-                    player.vidaActual /
-                    player.vidaMaxima
-                ) * 100
-                : 0;
+    const resultado = this.playerActual.asignarPuntoAtributo(nombreAtributo);
 
-        const porcentajeLimitado = Math.max(
-            0,
-            Math.min(100, porcentajeVida)
-        );
-
-        this.vidaBarra.style.width =
-            `${porcentajeLimitado}%`;
+    if (!resultado.exito) {
+      return;
     }
 
-    // Actualiza el valor y modificador de los atributos.
-    actualizarAtributos(player) {
-        for (
-            const [
-                nombreAtributo,
-                campos
-            ]
-            of this.camposAtributos
-        ) {
-            const valor =
-                player.atributos[nombreAtributo];
+    this.actualizar(this.playerActual, this.turnoActual);
 
-            const modificador =
-                player.obtenerModificador(
-                    nombreAtributo
-                );
+    boton.blur();
+  }
 
-            campos.valor.textContent = valor;
+  actualizar(player, turno) {
+    this.playerActual = player;
+    this.turnoActual = turno;
 
-            campos.modificador.textContent =
-                this.formatearModificador(
-                    modificador
-                );
-        }
+    const estadisticas = player.estadisticasDerivadas;
+
+    this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
+
+    this.obtener('[data-personaje="clase"]').textContent =
+      player.clasePersonaje;
+
+    this.obtener('[data-personaje="nivel"]').textContent =
+      `Nivel ${player.nivel}`;
+
+    this.actualizarExperiencia(player);
+
+    this.obtener('[data-personaje="puntos-atributo"]').textContent =
+      player.puntosAtributoDisponibles;
+
+    this.obtener('[data-personaje="danio-medio"]').textContent = this.formatear(
+      estadisticas.danioFisico.promedio,
+    );
+
+    this.obtener('[data-personaje="turno"]').textContent = turno;
+
+    this.actualizarBarra("vida", player.vidaActual, player.vidaMaxima);
+
+    this.actualizarBarra("mana", player.manaActual, player.manaMaximo);
+
+    for (const [id] of ATRIBUTOS) {
+      this.obtener(
+        `[data-atributo="${id}"] ` + '[data-campo="valor"]',
+      ).textContent = player.atributos[id];
     }
 
-    // Los modificadores positivos se muestran con +.
-    formatearModificador(modificador) {
-        return modificador >= 0
-            ? `+${modificador}`
-            : `${modificador}`;
+    const valores = {
+      precision: estadisticas.precision,
+
+      evasion: estadisticas.evasion,
+
+      armadura: estadisticas.armadura,
+
+      critico: `${this.formatear(estadisticas.probabilidadCritico)}%`,
+
+      bloqueo: `${this.formatear(estadisticas.probabilidadBloqueo)}%`,
+
+      "regen-vida": this.formatear(estadisticas.regeneracionVida),
+
+      "regen-mana": this.formatear(estadisticas.regeneracionMana),
+
+      alcance: player.alcanceAtaque,
+
+      "res-fuego": `${this.formatear(estadisticas.resistencias.fuego)}%`,
+
+      "res-frio": `${this.formatear(estadisticas.resistencias.frio)}%`,
+
+      "res-rayo": `${this.formatear(estadisticas.resistencias.rayo)}%`,
+
+      "res-veneno": `${this.formatear(estadisticas.resistencias.veneno)}%`,
+    };
+
+    for (const [campo, valor] of Object.entries(valores)) {
+      this.obtener(`[data-personaje="${campo}"]`).textContent = valor;
     }
+
+    this.actualizarBotonesAtributos(player);
+  }
+
+  actualizarExperiencia(player) {
+    this.obtener('[data-personaje="experiencia-texto"]').textContent =
+      `${player.experiencia} / ` + `${player.experienciaNecesaria} PX`;
+
+    this.obtener('[data-personaje="experiencia-barra"]').style.width =
+      `${Math.max(0, Math.min(100, player.porcentajeExperiencia))}%`;
+  }
+
+  actualizarBotonesAtributos(player) {
+    const botones = this.contenedor.querySelectorAll(
+      '[data-accion="sumar-atributo"]',
+    );
+
+    const tienePuntos = player.puntosAtributoDisponibles > 0;
+
+    for (const boton of botones) {
+      boton.disabled = !tienePuntos;
+    }
+  }
+
+  actualizarBarra(recurso, actual, maximo) {
+    this.obtener(`[data-personaje="${recurso}-texto"]`).textContent =
+      `${Math.floor(actual)} / ` + `${Math.floor(maximo)}`;
+
+    const porcentaje = maximo > 0 ? (actual / maximo) * 100 : 0;
+
+    this.obtener(`[data-personaje="${recurso}-barra"]`).style.width =
+      `${Math.max(0, Math.min(100, porcentaje))}%`;
+  }
+
+  formatear(valor) {
+    return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
+  }
+
+  destruir() {
+    this.contenedor.removeEventListener("click", this.manejarClick);
+  }
 }

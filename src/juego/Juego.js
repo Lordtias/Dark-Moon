@@ -4,6 +4,11 @@ import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js"
 
 import { procesarFaseEnemigos } from "./SistemaTurnosEnemigos.js";
 
+import {
+  calcularDistanciaCuadricula,
+  evaluarAtaqueCasilla,
+} from "./SistemaAlcanceAtaque.js";
+
 export class Juego {
   constructor({ map, player, objetivos } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
@@ -51,23 +56,38 @@ export class Juego {
     return this.estaDentroMapa(x, y) && this.map[y][x] !== "#";
   }
 
-  calcularDistanciaCuadricula(origenX, origenY, destinoX, destinoY) {
-    return Math.max(
-      Math.abs(destinoX - origenX),
-
-      Math.abs(destinoY - origenY),
-    );
-  }
-
+  // Comprueba únicamente la distancia numérica.
+  //
+  // Se utiliza para permitir que el selector se mueva
+  // por todo el rango, incluso sobre una casilla cuya
+  // trayectoria esté bloqueada.
   estaCasillaDentroAlcance(x, y) {
-    const distancia = this.calcularDistanciaCuadricula(
-      this.player.x,
-      this.player.y,
-      x,
-      y,
+    const distancia = calcularDistanciaCuadricula(
+      {
+        x: this.player.x,
+        y: this.player.y,
+      },
+      {
+        x,
+        y,
+      },
     );
 
     return distancia >= 1 && distancia <= this.player.alcanceAtaque;
+  }
+
+  // Evalúa distancia, dirección y línea de visión.
+  evaluarCasillaAtaque(x, y) {
+    return evaluarAtaqueCasilla({
+      atacante: this.player,
+      xObjetivo: x,
+      yObjetivo: y,
+      mapa: this.map,
+    });
+  }
+
+  esCasillaAtacable(x, y) {
+    return this.evaluarCasillaAtaque(x, y).puedeAtacar;
   }
 
   estaDiagonalBloqueada(movimientoX, movimientoY) {
@@ -80,13 +100,11 @@ export class Juego {
 
     const horizontalBloqueada = !this.esCaminable(
       this.player.x + movimientoX,
-
       this.player.y,
     );
 
     const verticalBloqueada = !this.esCaminable(
       this.player.x,
-
       this.player.y + movimientoY,
     );
 
@@ -111,7 +129,7 @@ export class Juego {
 
       const y = this.player.y + direccion.y;
 
-      if (this.esCaminable(x, y) && this.estaCasillaDentroAlcance(x, y)) {
+      if (this.esCaminable(x, y) && this.esCasillaAtacable(x, y)) {
         return {
           x,
           y,
@@ -131,30 +149,48 @@ export class Juego {
       };
     }
 
-    const seleccion =
-      selectorX !== null && selectorY !== null
-        ? {
-            x: selectorX,
-            y: selectorY,
-          }
-        : this.obtenerSeleccionInicialCombate();
+    const seleccionExplicita = selectorX !== null && selectorY !== null;
+
+    const seleccion = seleccionExplicita
+      ? {
+          x: selectorX,
+          y: selectorY,
+        }
+      : this.obtenerSeleccionInicialCombate();
+
+    if (seleccion === null) {
+      return {
+        mensaje: "No hay una casilla válida para atacar.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    const evaluacion = this.evaluarCasillaAtaque(seleccion.x, seleccion.y);
+
+    // Al intentar caminar contra un combatiente,
+    // solo abrimos el modo combate si realmente
+    // existe una trayectoria de ataque.
+    if (seleccionExplicita && !evaluacion.puedeAtacar) {
+      return {
+        mensaje: evaluacion.mensaje,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
 
     if (
-      seleccion === null ||
       !this.esCaminable(seleccion.x, seleccion.y) ||
       !this.estaCasillaDentroAlcance(seleccion.x, seleccion.y)
     ) {
       return {
         mensaje: "No hay una casilla válida para atacar.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     this.modoCombateActivo = true;
-
     this.selectorCombate = seleccion;
 
     const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
@@ -163,9 +199,7 @@ export class Juego {
       mensaje: objetivo
         ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
         : `Modo combate: casilla ${seleccion.x}, ${seleccion.y}.`,
-
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
@@ -188,9 +222,7 @@ export class Juego {
 
     return {
       mensaje: "Cancelaste el modo combate.",
-
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
@@ -203,9 +235,7 @@ export class Juego {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return {
         mensaje: "No podés seleccionar una pared.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -214,9 +244,7 @@ export class Juego {
       return {
         mensaje:
           `Esa casilla supera el alcance ` + `${this.player.alcanceAtaque}.`,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -228,19 +256,23 @@ export class Juego {
 
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
 
+    const evaluacion = this.evaluarCasillaAtaque(nuevaX, nuevaY);
+
+    const textoSeleccion = objetivo
+      ? `Seleccionaste a ${objetivo.nombre}.`
+      : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`;
+
     return {
-      mensaje: objetivo
-        ? `Seleccionaste a ${objetivo.nombre}.`
-        : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`,
-
+      mensaje: evaluacion.puedeAtacar
+        ? textoSeleccion
+        : `${textoSeleccion} ${evaluacion.mensaje}`,
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
 
   atacarObjetivo(objetivo) {
-    // Atacar provoca a enemigos reactivos
+    // Atacar provoca a enemigos reactivos,
     // incluso cuando el golpe falla.
     if (objetivo instanceof Enemigo) {
       objetivo.activarAgresividad();
@@ -297,6 +329,18 @@ export class Juego {
     }
 
     const { x, y } = this.selectorCombate;
+
+    const evaluacion = this.evaluarCasillaAtaque(x, y);
+
+    // Una confirmación inválida no sale del modo combate,
+    // no consume turno y tampoco consume munición.
+    if (!evaluacion.puedeAtacar) {
+      return {
+        mensaje: evaluacion.mensaje,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
 
     const objetivo = this.obtenerObjetivoEn(x, y);
 
@@ -391,9 +435,7 @@ export class Juego {
     if (this.modoCombateActivo) {
       return {
         mensaje: "Confirmá con F o cancelá con Escape.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -421,9 +463,7 @@ export class Juego {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return {
         mensaje: "No podés atravesar una pared.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -431,9 +471,7 @@ export class Juego {
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
       return {
         mensaje: "No podés atravesar esa esquina.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -452,15 +490,12 @@ export class Juego {
     if (objetivo) {
       return {
         mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     this.player.x = nuevaX;
-
     this.player.y = nuevaY;
 
     this.ultimaDireccionJugador = {

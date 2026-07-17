@@ -1,6 +1,12 @@
 import { Destructible } from "../Destructible.js";
+
 import { Equipamiento } from "../../../objetos/Equipamiento.js";
-import { calcularEstadisticasDerivadas } from "./EstadisticasDerivadas.js";
+
+import {
+  calcularEstadisticasDerivadas,
+  calcularRecursosMaximos,
+} from "./EstadisticasDerivadas.js";
+
 import { resolverAtaque } from "../../../juego/SistemaCombate.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
@@ -14,6 +20,189 @@ const ATRIBUTOS_REQUERIDOS = [
   "carisma",
 ];
 
+function validarAtributos(nombre, atributos) {
+  if (!atributos || typeof atributos !== "object" || Array.isArray(atributos)) {
+    throw new Error(`${nombre} debe tener atributos válidos.`);
+  }
+
+  for (const atributo of ATRIBUTOS_REQUERIDOS) {
+    if (!Number.isInteger(atributos[atributo]) || atributos[atributo] <= 0) {
+      throw new Error(
+        `El atributo "${atributo}" de ` +
+          `${nombre} debe ser un entero ` +
+          "mayor que 0.",
+      );
+    }
+  }
+}
+
+function normalizarEstadisticasBase(nombre, configuracion) {
+  if (
+    !configuracion ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion)
+  ) {
+    throw new Error(`${nombre} debe tener estadísticas base válidas.`);
+  }
+
+  const valores = {
+    vida: configuracion.vida,
+
+    mana: configuracion.mana,
+
+    vidaPorNivel: configuracion.vidaPorNivel ?? 0,
+
+    manaPorNivel: configuracion.manaPorNivel ?? 0,
+
+    precision: configuracion.precision ?? 10,
+
+    evasion: configuracion.evasion ?? 5,
+
+    armadura: configuracion.armadura ?? 0,
+
+    regeneracionVida: configuracion.regeneracionVida ?? 0,
+
+    regeneracionMana: configuracion.regeneracionMana ?? 0,
+
+    probabilidadCritico: configuracion.probabilidadCritico ?? 5,
+
+    multiplicadorCritico: configuracion.multiplicadorCritico ?? 1.5,
+
+    probabilidadBloqueo: configuracion.probabilidadBloqueo ?? 0,
+
+    potenciaEfectos: configuracion.potenciaEfectos ?? 0,
+
+    resistenciaMental: configuracion.resistenciaMental ?? 0,
+
+    potenciaAura: configuracion.potenciaAura ?? 0,
+
+    resistencias: {
+      fuego: configuracion.resistencias?.fuego ?? 0,
+
+      frio: configuracion.resistencias?.frio ?? 0,
+
+      rayo: configuracion.resistencias?.rayo ?? 0,
+
+      veneno: configuracion.resistencias?.veneno ?? 0,
+    },
+  };
+
+  const camposNumericos = [
+    "vida",
+    "mana",
+    "vidaPorNivel",
+    "manaPorNivel",
+    "precision",
+    "evasion",
+    "armadura",
+    "regeneracionVida",
+    "regeneracionMana",
+    "probabilidadCritico",
+    "multiplicadorCritico",
+    "probabilidadBloqueo",
+    "potenciaEfectos",
+    "resistenciaMental",
+    "potenciaAura",
+  ];
+
+  for (const campo of camposNumericos) {
+    if (!Number.isFinite(valores[campo])) {
+      throw new Error(
+        `La estadística base "${campo}" de ` + `${nombre} no es válida.`,
+      );
+    }
+  }
+
+  for (const [tipo, valor] of Object.entries(valores.resistencias)) {
+    if (!Number.isFinite(valor)) {
+      throw new Error(
+        `La resistencia "${tipo}" de ` + `${nombre} no es válida.`,
+      );
+    }
+  }
+
+  return valores;
+}
+
+function normalizarAtaqueNatural(nombre, configuracion = null) {
+  const valores =
+    configuracion &&
+    typeof configuracion === "object" &&
+    !Array.isArray(configuracion)
+      ? configuracion
+      : {};
+
+  const ataque = {
+    danioFisicoMinimo: valores.danioFisicoMinimo ?? 1,
+
+    danioFisicoMaximo: valores.danioFisicoMaximo ?? 2,
+
+    atributoAtaque: valores.atributoAtaque ?? "fuerza",
+
+    precision: valores.precision ?? 0,
+
+    alcance: valores.alcance ?? 1,
+
+    tipoAtaque: valores.tipoAtaque ?? "cuerpoACuerpo",
+
+    probabilidadCritico: valores.probabilidadCritico ?? 5,
+
+    multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
+  };
+
+  if (
+    !Number.isFinite(ataque.danioFisicoMinimo) ||
+    !Number.isFinite(ataque.danioFisicoMaximo) ||
+    ataque.danioFisicoMinimo < 0 ||
+    ataque.danioFisicoMaximo < ataque.danioFisicoMinimo
+  ) {
+    throw new Error(
+      `El ataque natural de ${nombre} ` + "tiene un rango inválido.",
+    );
+  }
+
+  if (
+    typeof ataque.atributoAtaque !== "string" ||
+    ataque.atributoAtaque.trim() === ""
+  ) {
+    throw new Error(
+      `El ataque natural de ${nombre} ` + "necesita un atributo de ataque.",
+    );
+  }
+
+  ataque.atributoAtaque = ataque.atributoAtaque.trim().toLowerCase();
+
+  if (!Number.isFinite(ataque.precision)) {
+    throw new Error(
+      `La precisión del ataque natural de ` + `${nombre} no es válida.`,
+    );
+  }
+
+  if (!Number.isInteger(ataque.alcance) || ataque.alcance < 1) {
+    throw new Error(
+      `El alcance del ataque natural de ` + `${nombre} no es válido.`,
+    );
+  }
+
+  if (!TIPOS_ATAQUE_VALIDOS.includes(ataque.tipoAtaque)) {
+    throw new Error(
+      `El tipo de ataque natural de ` + `${nombre} no es válido.`,
+    );
+  }
+
+  if (
+    !Number.isFinite(ataque.probabilidadCritico) ||
+    !Number.isFinite(ataque.multiplicadorCritico)
+  ) {
+    throw new Error(
+      `Los valores de crítico del ataque ` +
+        `natural de ${nombre} no son válidos.`,
+    );
+  }
+
+  return ataque;
+}
+
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -22,176 +211,101 @@ export class Combatiente extends Destructible {
     y = 0,
     simbolo = "?",
     atributos,
-    vidaMaxima,
-    dadoDanio,
-    atributoAtaque,
-    bonificadorArmadura = 0,
+    estadisticasBase,
+    ataqueNatural = null,
     capacidadContenedor = 0,
     objetosIniciales = [],
     tablaBotin = [],
     ranurasEquipamiento = [],
     equipamientoInicial = [],
-    estadisticasBase = null,
-    ataqueNatural = null,
   } = {}) {
+    if (!Number.isInteger(nivel) || nivel < 1) {
+      throw new Error(
+        `${nombre} debe tener un nivel entero ` + "igual o mayor que 1.",
+      );
+    }
+
+    validarAtributos(nombre, atributos);
+
+    const atributosNormalizados = {
+      ...atributos,
+    };
+
+    const baseNormalizada = normalizarEstadisticasBase(
+      nombre,
+      estadisticasBase,
+    );
+
+    const ataqueNormalizado = normalizarAtaqueNatural(nombre, ataqueNatural);
+
+    if (
+      !Object.prototype.hasOwnProperty.call(
+        atributosNormalizados,
+
+        ataqueNormalizado.atributoAtaque,
+      )
+    ) {
+      throw new Error(
+        `${nombre} no tiene el atributo ` +
+          `"${ataqueNormalizado.atributoAtaque}" ` +
+          "usado por su ataque natural.",
+      );
+    }
+
+    // Puede construirse antes de super
+    // porque no utiliza this.
+    const equipamiento = new Equipamiento({
+      ranurasDisponibles: ranurasEquipamiento,
+
+      objetosIniciales: equipamientoInicial,
+    });
+
+    const objetosEquipados = Object.values(
+      equipamiento.obtenerRanuras(),
+    ).filter(Boolean);
+
+    const recursosIniciales = calcularRecursosMaximos({
+      nivel,
+
+      atributos: atributosNormalizados,
+
+      estadisticasBase: baseNormalizada,
+
+      objetosEquipados,
+    });
+
     super({
       nombre,
       x,
       y,
       simbolo,
-      vidaMaxima,
-      claseArmadura: 10,
+
+      vidaMaxima: recursosIniciales.vidaMaxima,
+
+      armadura: 0,
+
       capacidadContenedor,
       objetosIniciales,
       tablaBotin,
     });
 
-    if (!Number.isInteger(nivel) || nivel < 1) {
-      throw new Error(`${nombre} debe tener un nivel válido.`);
-    }
-
-    if (
-      !atributos ||
-      typeof atributos !== "object" ||
-      Array.isArray(atributos)
-    ) {
-      throw new Error(`${nombre} debe tener atributos válidos.`);
-    }
-
-    for (const atributo of ATRIBUTOS_REQUERIDOS) {
-      if (!Number.isInteger(atributos[atributo]) || atributos[atributo] <= 0) {
-        throw new Error(
-          `El atributo "${atributo}" de ${nombre} ` +
-            "debe ser un entero mayor que 0.",
-        );
-      }
-    }
-
-    const atributoBase =
-      typeof atributoAtaque === "string"
-        ? atributoAtaque.trim().toLowerCase()
-        : "fuerza";
-
-    if (!Object.prototype.hasOwnProperty.call(atributos, atributoBase)) {
-      throw new Error(`${nombre} no tiene el atributo "${atributoBase}".`);
-    }
-
     this.nivel = nivel;
-    this.atributos = { ...atributos };
 
-    // Se conservan mientras migramos
-    // completamente la configuración antigua.
-    this.dadoDanio = dadoDanio;
-    this.atributoAtaque = atributoBase;
-    this.bonificadorArmadura = bonificadorArmadura;
+    this.atributos = atributosNormalizados;
 
-    this.equipamiento = new Equipamiento({
-      ranurasDisponibles: ranurasEquipamiento,
-      objetosIniciales: equipamientoInicial,
-    });
+    this.estadisticasBase = baseNormalizada;
 
-    this.ataqueNatural = this.crearAtaqueNatural(ataqueNatural, atributoBase);
+    this.ataqueNatural = ataqueNormalizado;
 
-    this.estadisticasBase = this.crearEstadisticasBase(
-      estadisticasBase,
-      vidaMaxima,
-    );
+    this.equipamiento = equipamiento;
 
-    const estadisticasIniciales = calcularEstadisticasDerivadas(this);
+    this.manaMaximo = recursosIniciales.manaMaximo;
 
-    this.vidaMaxima = estadisticasIniciales.vidaMaxima;
+    this.manaActual = recursosIniciales.manaMaximo;
 
-    this.vidaActual = estadisticasIniciales.vidaMaxima;
-
-    this.manaMaximo = estadisticasIniciales.manaMaximo;
-
-    this.manaActual = estadisticasIniciales.manaMaximo;
-
-    // Conservan las fracciones de regeneración.
     this.acumuladorRegeneracionVida = 0;
+
     this.acumuladorRegeneracionMana = 0;
-  }
-
-  crearAtaqueNatural(configuracion, atributoBase) {
-    const valores =
-      configuracion && typeof configuracion === "object" ? configuracion : {};
-
-    const ataque = {
-      danioFisicoMinimo: valores.danioFisicoMinimo ?? 1,
-
-      danioFisicoMaximo: valores.danioFisicoMaximo ?? 2,
-
-      atributoAtaque: valores.atributoAtaque ?? atributoBase,
-
-      precision: valores.precision ?? 0,
-
-      alcance: valores.alcance ?? 1,
-
-      tipoAtaque: valores.tipoAtaque ?? "cuerpoACuerpo",
-
-      probabilidadCritico: valores.probabilidadCritico ?? 5,
-
-      multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
-    };
-
-    if (
-      !Number.isFinite(ataque.danioFisicoMinimo) ||
-      !Number.isFinite(ataque.danioFisicoMaximo) ||
-      ataque.danioFisicoMinimo < 0 ||
-      ataque.danioFisicoMaximo < ataque.danioFisicoMinimo
-    ) {
-      throw new Error(`El ataque natural de ${this.nombre} es inválido.`);
-    }
-
-    return ataque;
-  }
-
-  crearEstadisticasBase(configuracion, vidaMaximaAnterior) {
-    const valores =
-      configuracion && typeof configuracion === "object" ? configuracion : {};
-
-    const vidaAnterior = Number.isFinite(vidaMaximaAnterior)
-      ? vidaMaximaAnterior
-      : 1;
-
-    return {
-      vida: valores.vida ?? vidaAnterior - 5 * this.atributos.constitucion,
-
-      mana: valores.mana ?? -4 * this.atributos.inteligencia,
-
-      vidaPorNivel: valores.vidaPorNivel ?? 0,
-
-      manaPorNivel: valores.manaPorNivel ?? 0,
-
-      precision: valores.precision ?? 10,
-
-      evasion: valores.evasion ?? 5,
-
-      armadura: valores.armadura ?? 0,
-
-      regeneracionVida: valores.regeneracionVida ?? 0,
-
-      regeneracionMana: valores.regeneracionMana ?? 0,
-
-      probabilidadCritico: valores.probabilidadCritico ?? 5,
-
-      multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
-
-      probabilidadBloqueo: valores.probabilidadBloqueo ?? 0,
-
-      potenciaEfectos: valores.potenciaEfectos ?? 0,
-
-      resistenciaMental: valores.resistenciaMental ?? 0,
-
-      potenciaAura: valores.potenciaAura ?? 0,
-
-      resistencias: {
-        fuego: valores.resistencias?.fuego ?? 0,
-        frio: valores.resistencias?.frio ?? 0,
-        rayo: valores.resistencias?.rayo ?? 0,
-        veneno: valores.resistencias?.veneno ?? 0,
-      },
-    };
   }
 
   get estadisticasDerivadas() {
@@ -230,7 +344,7 @@ export class Combatiente extends Destructible {
       this.armaEquipada?.propiedades?.alcance ?? this.ataqueNatural.alcance;
 
     if (!Number.isInteger(alcance) || alcance < 1) {
-      throw new Error(`El alcance de ${this.nombre} es inválido.`);
+      throw new Error(`El alcance de ${this.nombre} no es válido.`);
     }
 
     return alcance;
@@ -242,7 +356,7 @@ export class Combatiente extends Destructible {
       this.ataqueNatural.tipoAtaque;
 
     if (!TIPOS_ATAQUE_VALIDOS.includes(tipo)) {
-      throw new Error(`El tipo de ataque de ${this.nombre} es inválido.`);
+      throw new Error(`El tipo de ataque de ${this.nombre} no es válido.`);
     }
 
     return tipo;
@@ -253,10 +367,15 @@ export class Combatiente extends Destructible {
   }
 
   recuperarVida(cantidad) {
+    if (!Number.isFinite(cantidad)) {
+      throw new Error("La recuperación de Vida debe ser numérica.");
+    }
+
     const anterior = this.vidaActual;
 
     this.vidaActual = Math.min(
       this.vidaMaxima,
+
       this.vidaActual + Math.max(0, cantidad),
     );
 
@@ -264,10 +383,15 @@ export class Combatiente extends Destructible {
   }
 
   recuperarMana(cantidad) {
+    if (!Number.isFinite(cantidad)) {
+      throw new Error("La recuperación de Maná debe ser numérica.");
+    }
+
     const anterior = this.manaActual;
 
     this.manaActual = Math.min(
       this.manaMaximo,
+
       this.manaActual + Math.max(0, cantidad),
     );
 
@@ -276,7 +400,7 @@ export class Combatiente extends Destructible {
 
   gastarMana(cantidad) {
     if (!Number.isFinite(cantidad) || cantidad < 0) {
-      throw new Error("El costo de Maná es inválido.");
+      throw new Error("El costo de Maná no es válido.");
     }
 
     if (this.manaActual < cantidad) {
@@ -284,11 +408,10 @@ export class Combatiente extends Destructible {
     }
 
     this.manaActual -= cantidad;
+
     return true;
   }
 
-  // Procesa la regeneración usando acumuladores,
-  // para no perder valores decimales pequeños.
   procesarRegeneracionTurno() {
     if (!this.estaVivo) {
       return {

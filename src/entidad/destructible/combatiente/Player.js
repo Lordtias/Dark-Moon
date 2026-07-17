@@ -1,4 +1,5 @@
 import { Combatiente } from "./Combatiente.js";
+
 import {
   calcularExperienciaNecesaria,
   calcularPuntosAtributoGanados,
@@ -13,47 +14,9 @@ const ATRIBUTOS_VALIDOS = [
   "carisma",
 ];
 
-// Cada profesión define su crecimiento automático.
-// Los atributos continúan dependiendo de los puntos
-// distribuidos por el jugador y del equipamiento.
-const ESTADISTICAS_POR_PROFESION = {
-  guerrero: {
-    vida: 30,
-    mana: 10,
-    vidaPorNivel: 8,
-    manaPorNivel: 2,
-    precision: 10,
-    evasion: 5,
-    armadura: 0,
-  },
-
-  rogue: {
-    vida: 24,
-    mana: 14,
-    vidaPorNivel: 6,
-    manaPorNivel: 3,
-    precision: 14,
-    evasion: 8,
-    armadura: 0,
-  },
-
-  mago: {
-    vida: 18,
-    mana: 24,
-    vidaPorNivel: 4,
-    manaPorNivel: 6,
-    precision: 10,
-    evasion: 5,
-    armadura: 0,
-  },
-};
-
-function normalizarProfesion(clasePersonaje) {
-  const id = clasePersonaje.trim().toLowerCase();
-
-  return id === "pícaro" ? "rogue" : id;
-}
-
+// Player administra progresión e inventario.
+// Las estadísticas profesionales llegan desde
+// ConfiguracionPersonaje.json.
 export class Player extends Combatiente {
   constructor({
     nombre,
@@ -61,10 +24,8 @@ export class Player extends Combatiente {
     x = 0,
     y = 0,
     atributos,
-    vidaMaxima,
-    dadoDanio,
-    atributoAtaque,
-    bonificadorArmadura = 0,
+    estadisticasBase,
+    ataqueNatural = null,
     clasePersonaje = "Aventurero",
     experiencia = 0,
     puntosAtributoDisponibles = 0,
@@ -86,62 +47,58 @@ export class Player extends Combatiente {
 
     equipamientoInicial = [],
   } = {}) {
-    const idProfesion = normalizarProfesion(clasePersonaje);
-
-    const estadisticasProfesion = ESTADISTICAS_POR_PROFESION[idProfesion] ?? {
-      vida: 24,
-      mana: 12,
-      vidaPorNivel: 5,
-      manaPorNivel: 3,
-      precision: 10,
-      evasion: 5,
-      armadura: 0,
-    };
-
     super({
       nombre,
       nivel,
       x,
       y,
       atributos,
-      vidaMaxima,
-      dadoDanio,
-      atributoAtaque,
-      bonificadorArmadura,
+      estadisticasBase,
+      ataqueNatural,
       simbolo: "@",
       capacidadContenedor: capacidadInventario,
       objetosIniciales: objetosInventarioIniciales,
       ranurasEquipamiento,
       equipamientoInicial,
-      estadisticasBase: estadisticasProfesion,
     });
+
+    if (
+      !Number.isInteger(puntosAtributoDisponibles) ||
+      puntosAtributoDisponibles < 0
+    ) {
+      throw new Error(
+        "Los puntos de atributo disponibles deben ser " +
+          "un entero igual o mayor que 0.",
+      );
+    }
 
     this.clasePersonaje = clasePersonaje;
     this.inventario = this.contenedorObjetos;
 
-    // Experiencia del nivel actual.
+    // Experiencia acumulada dentro del nivel actual.
     this._experiencia = 0;
 
-    // Experiencia obtenida durante toda la partida.
+    // Experiencia conseguida durante toda la partida.
     this.experienciaTotal = 0;
 
     this.puntosAtributoDisponibles = puntosAtributoDisponibles;
 
     this.ultimoResultadoProgresion = null;
 
-    // Procesamos cualquier experiencia inicial
-    // usando el mismo sistema de progresión.
     if (experiencia > 0) {
       this.ganarExperiencia(experiencia);
     }
   }
 
-  // Mantiene compatibilidad con el código existente:
-  // player.experiencia += cantidad.
   get experiencia() {
     return this._experiencia;
   }
 
+  // Se conserva temporalmente porque Juego.js todavía
+  // utiliza: player.experiencia += cantidad.
+  //
+  // Se eliminará cuando agreguemos los mensajes
+  // detallados de subida de nivel.
   set experiencia(nuevoValor) {
     if (!Number.isFinite(nuevoValor) || nuevoValor < 0) {
       throw new Error("La experiencia debe ser un número positivo.");
@@ -157,20 +114,16 @@ export class Player extends Combatiente {
     this._experiencia = nuevoValor;
   }
 
-  // Experiencia necesaria para alcanzar
-  // el próximo nivel.
   get experienciaNecesaria() {
     return calcularExperienciaNecesaria(this.nivel);
   }
 
-  // Porcentaje utilizado posteriormente
-  // para dibujar una barra de experiencia.
   get porcentajeExperiencia() {
     return Math.min(100, (this._experiencia / this.experienciaNecesaria) * 100);
   }
 
-  // Agrega experiencia y procesa todas las
-  // subidas de nivel que correspondan.
+  // Agrega experiencia y procesa todas
+  // las subidas de nivel alcanzadas.
   ganarExperiencia(cantidad) {
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
       return {
@@ -194,12 +147,11 @@ export class Player extends Combatiente {
     let nivelesGanados = 0;
     let puntosGanados = 0;
 
-    // Permite subir varios niveles si se obtiene
-    // una cantidad grande de experiencia.
     while (this._experiencia >= calcularExperienciaNecesaria(this.nivel)) {
       const experienciaRequerida = calcularExperienciaNecesaria(this.nivel);
 
       this._experiencia -= experienciaRequerida;
+
       this.nivel++;
       nivelesGanados++;
 
@@ -211,12 +163,12 @@ export class Player extends Combatiente {
     }
 
     if (nivelesGanados > 0) {
-      // El getter recalcula los máximos
-      // utilizando el nuevo nivel.
+      // Recalculamos los máximos con
+      // el nuevo nivel del personaje.
       this.estadisticasDerivadas;
 
-      // Conservamos el daño sufrido, pero agregamos
-      // el crecimiento obtenido al subir de nivel.
+      // Conservamos el daño sufrido, pero sumamos
+      // el crecimiento máximo conseguido.
       this.vidaActual = Math.min(
         this.vidaMaxima,
         vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
@@ -240,8 +192,8 @@ export class Player extends Combatiente {
     return resultado;
   }
 
-  // Permite gastar un punto en cualquiera
-  // de los seis atributos principales.
+  // Gasta un punto y recalcula inmediatamente
+  // todas las estadísticas afectadas.
   asignarPuntoAtributo(nombreAtributo) {
     if (!ATRIBUTOS_VALIDOS.includes(nombreAtributo)) {
       throw new Error(`El atributo "${nombreAtributo}" no existe.`);
@@ -267,8 +219,6 @@ export class Player extends Combatiente {
 
     this.estadisticasDerivadas;
 
-    // Si Constitución o Inteligencia aumentan
-    // los máximos, también agregamos esa diferencia.
     this.vidaActual = Math.min(
       this.vidaMaxima,
       vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),

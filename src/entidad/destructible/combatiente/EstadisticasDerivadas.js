@@ -6,6 +6,14 @@ function limitar(valor, minimo, maximo) {
   return Math.max(minimo, Math.min(maximo, valor));
 }
 
+function sumarPropiedad(objetos, propiedad) {
+  return objetos.reduce((total, objeto) => {
+    const valor = objeto?.propiedades?.[propiedad] ?? 0;
+
+    return total + (Number.isFinite(valor) ? valor : 0);
+  }, 0);
+}
+
 function obtenerObjetosEquipados(combatiente) {
   if (!combatiente.equipamiento) {
     return [];
@@ -16,18 +24,9 @@ function obtenerObjetosEquipados(combatiente) {
   );
 }
 
-function sumarPropiedad(objetos, propiedad) {
-  return objetos.reduce((total, objeto) => {
-    const valor = objeto.propiedades?.[propiedad] ?? 0;
-
-    return total + (Number.isFinite(valor) ? valor : 0);
-  }, 0);
-}
-
-// Los bonos "más" se multiplican entre sí.
 function multiplicarBonosMas(objetos, propiedad) {
   return objetos.reduce((multiplicador, objeto) => {
-    const valor = objeto.propiedades?.[propiedad] ?? 0;
+    const valor = objeto?.propiedades?.[propiedad] ?? 0;
 
     if (!Number.isFinite(valor)) {
       return multiplicador;
@@ -37,10 +36,45 @@ function multiplicarBonosMas(objetos, propiedad) {
   }, 1);
 }
 
-function calcularDanioFisico(combatiente, objetos) {
-  const arma = combatiente.armaEquipada;
+// Calcula Vida y Maná sin necesitar
+// una instancia completa de Combatiente.
+//
+// Esto permite que Combatiente inicialice
+// correctamente a Destructible.
+export function calcularRecursosMaximos({
+  nivel,
+  atributos,
+  estadisticasBase,
+  objetosEquipados = [],
+} = {}) {
+  const coeficientes = CONFIGURACION_COMBATE.atributos;
 
-  const propiedadesAtaque = arma?.propiedades ?? combatiente.ataqueNatural;
+  const vidaMaxima = Math.max(
+    1,
+    estadisticasBase.vida +
+      (nivel - 1) * estadisticasBase.vidaPorNivel +
+      coeficientes.vidaPorConstitucion * atributos.constitucion +
+      sumarPropiedad(objetosEquipados, "vidaMaxima"),
+  );
+
+  const manaMaximo = Math.max(
+    0,
+    estadisticasBase.mana +
+      (nivel - 1) * estadisticasBase.manaPorNivel +
+      coeficientes.manaPorInteligencia * atributos.inteligencia +
+      sumarPropiedad(objetosEquipados, "manaMaximo"),
+  );
+
+  return {
+    vidaMaxima: Math.round(vidaMaxima),
+
+    manaMaximo: Math.round(manaMaximo),
+  };
+}
+
+function calcularDanioFisico(combatiente, objetos) {
+  const propiedadesAtaque =
+    combatiente.armaEquipada?.propiedades ?? combatiente.ataqueNatural;
 
   const minimoBase = propiedadesAtaque.danioFisicoMinimo;
 
@@ -77,10 +111,9 @@ function calcularDanioFisico(combatiente, objetos) {
 
   const valorAtributo = combatiente.atributos[atributoOfensivo] ?? 10;
 
-  const coeficienteAtributo =
-    CONFIGURACION_COMBATE.atributos.danioPorPuntoRespectoDiez;
-
-  const bonoAtributo = coeficienteAtributo * (valorAtributo - 10);
+  const bonoAtributo =
+    CONFIGURACION_COMBATE.atributos.danioPorPuntoRespectoDiez *
+    (valorAtributo - 10);
 
   const danioAumentado =
     sumarPropiedad(objetos, "danioFisicoAumentadoPorcentaje") / 100;
@@ -106,6 +139,7 @@ function calcularDanioFisico(combatiente, objetos) {
 
     danioPlanoGlobal: {
       minimo: danioPlanoGlobalMinimo,
+
       maximo: danioPlanoGlobalMaximo,
     },
 
@@ -115,6 +149,7 @@ function calcularDanioFisico(combatiente, objetos) {
     multiplicadorTotal,
 
     minimo: Math.max(0, minimoFinal),
+
     maximo: Math.max(minimoFinal, maximoFinal),
 
     promedio:
@@ -129,25 +164,17 @@ export function calcularEstadisticasDerivadas(combatiente) {
 
   const atributos = combatiente.atributos;
 
-  const nivel = combatiente.nivel;
-
   const coeficientes = CONFIGURACION_COMBATE.atributos;
 
-  const vidaMaxima = Math.max(
-    1,
-    base.vida +
-      (nivel - 1) * base.vidaPorNivel +
-      coeficientes.vidaPorConstitucion * atributos.constitucion +
-      sumarPropiedad(objetos, "vidaMaxima"),
-  );
+  const recursos = calcularRecursosMaximos({
+    nivel: combatiente.nivel,
 
-  const manaMaximo = Math.max(
-    0,
-    base.mana +
-      (nivel - 1) * base.manaPorNivel +
-      coeficientes.manaPorInteligencia * atributos.inteligencia +
-      sumarPropiedad(objetos, "manaMaximo"),
-  );
+    atributos,
+
+    estadisticasBase: base,
+
+    objetosEquipados: objetos,
+  });
 
   const regeneracionVida = Math.max(
     0,
@@ -155,7 +182,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
       coeficientes.regeneracionVidaPorConstitucion *
         (atributos.constitucion - 10) +
       sumarPropiedad(objetos, "regeneracionVida") +
-      vidaMaxima *
+      recursos.vidaMaxima *
         (sumarPropiedad(objetos, "regeneracionVidaPorcentaje") / 100),
   );
 
@@ -164,15 +191,16 @@ export function calcularEstadisticasDerivadas(combatiente) {
     base.regeneracionMana +
       coeficientes.regeneracionManaPorSabiduria * (atributos.sabiduria - 10) +
       sumarPropiedad(objetos, "regeneracionMana") +
-      manaMaximo *
+      recursos.manaMaximo *
         (sumarPropiedad(objetos, "regeneracionManaPorcentaje") / 100),
   );
 
   const resistencias = {};
 
   for (const resistencia of RESISTENCIAS) {
-    const nombrePropiedad =
-      `resistencia` + resistencia[0].toUpperCase() + resistencia.slice(1);
+    const nombrePropiedad = `resistencia${resistencia[0].toUpperCase()}${resistencia.slice(
+      1,
+    )}`;
 
     let valor =
       base.resistencias[resistencia] +
@@ -180,8 +208,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
         (atributos.sabiduria - 10) +
       sumarPropiedad(objetos, nombrePropiedad);
 
-    // Constitución también protege
-    // específicamente contra veneno.
     if (resistencia === "veneno") {
       valor +=
         coeficientes.resistenciaVenenoPorConstitucion *
@@ -190,7 +216,9 @@ export function calcularEstadisticasDerivadas(combatiente) {
 
     resistencias[resistencia] = limitar(
       valor,
+
       CONFIGURACION_COMBATE.resistencias.minima,
+
       CONFIGURACION_COMBATE.resistencias.maxima,
     );
   }
@@ -200,13 +228,11 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const armaduraPorcentual =
     sumarPropiedad(objetos, "armaduraAumentadaPorcentaje") / 100;
 
-  const arma = combatiente.armaEquipada;
-
-  const ataqueActual = arma?.propiedades ?? combatiente.ataqueNatural;
+  const ataqueActual =
+    combatiente.armaEquipada?.propiedades ?? combatiente.ataqueNatural;
 
   return {
-    vidaMaxima: Math.round(vidaMaxima),
-    manaMaximo: Math.round(manaMaximo),
+    ...recursos,
 
     regeneracionVida,
     regeneracionMana,
@@ -227,7 +253,9 @@ export function calcularEstadisticasDerivadas(combatiente) {
     probabilidadCritico: limitar(
       (ataqueActual.probabilidadCritico ?? base.probabilidadCritico) +
         sumarPropiedad(objetos, "probabilidadCriticoGlobal"),
+
       0,
+
       CONFIGURACION_COMBATE.limites.criticoMaximo,
     ),
 
@@ -237,7 +265,9 @@ export function calcularEstadisticasDerivadas(combatiente) {
 
     probabilidadBloqueo: limitar(
       base.probabilidadBloqueo + sumarPropiedad(objetos, "probabilidadBloqueo"),
+
       0,
+
       CONFIGURACION_COMBATE.limites.bloqueoMaximo,
     ),
 

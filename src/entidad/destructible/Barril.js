@@ -1,28 +1,21 @@
-// Un barril es una entidad destructible,
-// pero no es un combatiente.
 import { Destructible } from "./Destructible.js";
 
-// Esta clase representa un barril que puede ser atacado.
+// Objeto destructible simple utilizado
+// para probar ataques contra entidades
+// que no pueden evadir ni combatir.
 export class Barril extends Destructible {
-    constructor({
-        x,
-        y
-    } = {}) {
-        // Definimos aquí las características comunes
-        // de todos los barriles.
-        super({
-            nombre: "Barril",
-            x,
-            y,
+  constructor({ x, y } = {}) {
+    super({
+      nombre: "Barril",
+      x,
+      y,
+      simbolo: "B",
 
-            // B representa temporalmente al barril en el mapa.
-            simbolo: "B",
+      // Integridad del barril.
+      vidaMaxima: 6,
 
-            // El barril tiene 6 puntos de integridad.
-            vidaMaxima: 6,
-
-            // Es relativamente sencillo impactarlo.
-            claseArmadura: 10
-        });
-    }
+      // Por ahora no posee protección física.
+      armadura: 0,
+    });
+  }
 }

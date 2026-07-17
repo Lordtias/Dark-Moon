@@ -43,11 +43,33 @@
         "sabiduria": 1,
         "carisma": 1
       },
+      "estadisticasBase": {
+        "vida": 30,
+        "mana": 10,
+        "vidaPorNivel": 8,
+        "manaPorNivel": 2,
+        "precision": 10,
+        "evasion": 5,
+        "armadura": 0,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 0,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 0
+        }
+      },
       "contenedor": {
         "capacidad": 12,
         "objetosIniciales": ["pocion_curacion"]
       },
-
       "equipamiento": {
         "objetosIniciales": ["arco_corto", "casco_hierro"]
       }
@@ -61,6 +83,29 @@
         "inteligencia": 2,
         "sabiduria": 2,
         "carisma": 2
+      },
+      "estadisticasBase": {
+        "vida": 24,
+        "mana": 14,
+        "vidaPorNivel": 6,
+        "manaPorNivel": 3,
+        "precision": 14,
+        "evasion": 8,
+        "armadura": 0,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 0,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 0
+        }
       }
     },
     "mago": {
@@ -72,6 +117,29 @@
         "inteligencia": 5,
         "sabiduria": 3,
         "carisma": 1
+      },
+      "estadisticasBase": {
+        "vida": 18,
+        "mana": 24,
+        "vidaPorNivel": 4,
+        "manaPorNivel": 6,
+        "precision": 10,
+        "evasion": 5,
+        "armadura": 0,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 0,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 0
+        }
       }
     }
   }

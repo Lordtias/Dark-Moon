@@ -5,30 +5,12 @@
     "valorMaximo": 15,
     "puntosDisponibles": 27,
     "lista": [
-      {
-        "id": "fuerza",
-        "nombre": "Fuerza"
-      },
-      {
-        "id": "destreza",
-        "nombre": "Destreza"
-      },
-      {
-        "id": "constitucion",
-        "nombre": "Constitución"
-      },
-      {
-        "id": "inteligencia",
-        "nombre": "Inteligencia"
-      },
-      {
-        "id": "sabiduria",
-        "nombre": "Sabiduría"
-      },
-      {
-        "id": "carisma",
-        "nombre": "Carisma"
-      }
+      { "id": "fuerza", "nombre": "Fuerza" },
+      { "id": "destreza", "nombre": "Destreza" },
+      { "id": "constitucion", "nombre": "Constitución" },
+      { "id": "inteligencia", "nombre": "Inteligencia" },
+      { "id": "sabiduria", "nombre": "Sabiduría" },
+      { "id": "carisma", "nombre": "Carisma" }
     ]
   },
   "profesionInicial": "guerrero",
@@ -73,7 +55,11 @@
           "mandoble_hierro",
           "lanza",
           "arco_corto",
-          "quiver_cuero"
+          "quiver_cuero",
+          {
+            "id": "flecha_madera",
+            "cantidad": 15
+          }
         ]
       },
       "equipamiento": {

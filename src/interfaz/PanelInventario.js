@@ -12,7 +12,6 @@ export class PanelInventario {
 
     this.cuadricula = cuadricula;
     this.mensajeVacio = mensajeVacio;
-
     this.alSeleccionarObjeto = null;
 
     this.manejarClick = this.manejarClick.bind(this);
@@ -42,9 +41,7 @@ export class PanelInventario {
     this.cuadricula.replaceChildren();
 
     espacios.forEach((objeto, indice) => {
-      const casilla = this.crearCasilla(objeto, indice);
-
-      this.cuadricula.appendChild(casilla);
+      this.cuadricula.appendChild(this.crearCasilla(objeto, indice));
     });
 
     this.mensajeVacio.classList.toggle("oculto", !inventario.estaVacio());
@@ -68,9 +65,12 @@ export class PanelInventario {
     casilla.tabIndex = 0;
     casilla.setAttribute("role", "button");
 
-    casilla.title = `${objeto.descripcion}\nClic para equipar.`;
+    casilla.title = this.crearTituloObjeto(objeto);
 
-    casilla.setAttribute("aria-label", `Equipar ${objeto.nombre}`);
+    casilla.setAttribute(
+      "aria-label",
+      objeto.esMunicion ? `Cargar ${objeto.nombre}` : `Usar ${objeto.nombre}`,
+    );
 
     const nombre = document.createElement("span");
 
@@ -90,7 +90,35 @@ export class PanelInventario {
       casilla.appendChild(cantidad);
     }
 
+    if (objeto.esQuiver) {
+      const contenido = document.createElement("span");
+
+      contenido.classList.add("detalle-contenido-objeto");
+
+      contenido.textContent = `${objeto.cantidadMunicion}`;
+
+      casilla.appendChild(contenido);
+    }
+
     return casilla;
+  }
+
+  crearTituloObjeto(objeto) {
+    const accion = objeto.esMunicion
+      ? "Clic para cargar en el carcaj."
+      : objeto.esEquipable
+        ? "Clic para equipar."
+        : "No se puede utilizar todavía.";
+
+    if (objeto.esQuiver) {
+      return (
+        `${objeto.descripcion}\n` +
+        `Contenido: ${objeto.cantidadMunicion} flechas.\n` +
+        accion
+      );
+    }
+
+    return `${objeto.descripcion}\n${accion}`;
   }
 
   manejarClick(event) {

@@ -19,9 +19,58 @@
   outline-offset: 2px;
 }
 
-/* La reserva de dos manos mantiene
-una apariencia visual diferente. */
+/* Reserva visual de un arma de dos manos. */
 .casilla-equipamiento.reservada {
   border-style: dashed;
   opacity: 0.8;
+}
+
+/* La casilla equipada sirve como referencia
+para ubicar la cantidad del carcaj. */
+.casilla-equipamiento {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Cantidad de flechas del carcaj dentro
+del inventario. Se muestra como insignia. */
+.detalle-contenido-objeto {
+  position: absolute;
+  left: 3px;
+  bottom: 2px;
+  z-index: 2;
+
+  min-width: 17px;
+  padding: 1px 3px;
+
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.88);
+
+  color: #ffe66d;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Cantidad de flechas del carcaj equipado. */
+.contenido-objeto-equipado {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  z-index: 2;
+
+  min-width: 15px;
+  padding: 1px 2px;
+
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.88);
+
+  color: #ffe66d;
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
 }

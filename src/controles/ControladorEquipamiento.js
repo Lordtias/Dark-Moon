@@ -36,6 +36,7 @@ export class ControladorEquipamiento {
     this.juego = juego;
     this.renderizador = renderizador;
     this.panelInventario = panelInventario;
+
     this.panelEquipamiento = panelEquipamiento;
 
     this.seleccionarInventario = this.seleccionarInventario.bind(this);
@@ -76,7 +77,7 @@ export class ControladorEquipamiento {
       return;
     }
 
-    const resultado = this.juego.player.equiparObjetoDesdeInventario(indice);
+    const resultado = this.juego.player.interactuarConObjetoInventario(indice);
 
     this.procesarResultado(resultado);
   }
@@ -120,7 +121,8 @@ export class ControladorEquipamiento {
     this.renderizador.mostrarMensaje(resultado.mensaje);
 
     if (resultado.exito) {
-      // Equipar no consume un turno por ahora.
+      // Equipar o cargar munición todavía
+      // no consume un turno.
       this.renderizador.dibujarJuego(this.juego);
     }
   }

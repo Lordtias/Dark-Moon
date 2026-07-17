@@ -3,9 +3,6 @@ import { ContenedorObjetos } from "./ContenedorObjetos.js";
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 // Representa una instancia real de cualquier objeto.
-//
-// Una plantilla de Objetos.json puede generar
-// varias instancias independientes.
 export class Objeto {
   constructor({
     id,
@@ -40,9 +37,7 @@ export class Objeto {
     }
 
     if (!apilable && cantidadMaxima !== 1) {
-      throw new Error(
-        `"${nombre}" no es apilable, por lo que su cantidad máxima debe ser 1.`,
-      );
+      throw new Error(`"${nombre}" no es apilable y su máximo debe ser 1.`);
     }
 
     if (
@@ -51,14 +46,13 @@ export class Objeto {
       cantidad > cantidadMaxima
     ) {
       throw new Error(
-        `La cantidad de "${nombre}" debe estar entre 1 y ${cantidadMaxima}.`,
+        `La cantidad de "${nombre}" debe estar entre ` +
+          `1 y ${cantidadMaxima}.`,
       );
     }
 
     if (!Array.isArray(ranurasCompatibles)) {
-      throw new Error(
-        `Las ranuras compatibles de "${nombre}" deben ser una lista.`,
-      );
+      throw new Error(`Las ranuras de "${nombre}" deben ser una lista.`);
     }
 
     if (
@@ -77,7 +71,9 @@ export class Objeto {
     }
 
     this.id = id.trim().toLowerCase();
+
     this.nombre = nombre.trim();
+
     this.tipo = tipo.trim().toLowerCase();
 
     this.descripcion = descripcion;
@@ -91,8 +87,6 @@ export class Objeto {
       ...propiedades,
     };
 
-    // Algunos objetos pueden contener otros objetos.
-    // El quiver utiliza esta propiedad para almacenar flechas.
     this.contenedorObjetos = contenedorObjetos;
 
     this.validarPropiedadesPorTipo();
@@ -160,22 +154,21 @@ export class Objeto {
     }
 
     if (!Number.isInteger(manos) || ![1, 2].includes(manos)) {
-      throw new Error(`"${this.nombre}" debe indicar si utiliza 1 o 2 manos.`);
+      throw new Error(`"${this.nombre}" debe usar 1 o 2 manos.`);
     }
 
     if (typeof bloqueaSecundaria !== "boolean") {
-      throw new Error(
-        `"${this.nombre}" debe indicar si bloquea la ranura secundaria.`,
-      );
+      throw new Error(`"${this.nombre}" debe indicar si bloquea secundaria.`);
     }
 
     if (typeof requiereQuiver !== "boolean") {
-      throw new Error(`"${this.nombre}" debe indicar si requiere quiver.`);
+      throw new Error(`"${this.nombre}" debe indicar si requiere carcaj.`);
     }
 
     if (bloqueaSecundaria && !this.ranurasCompatibles.includes("arma")) {
       throw new Error(
-        `"${this.nombre}" bloquea secundaria pero no puede equiparse como arma principal.`,
+        `"${this.nombre}" bloquea secundaria ` +
+          "pero no puede ser arma principal.",
       );
     }
 
@@ -188,9 +181,7 @@ export class Objeto {
     this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
 
     if (!this.contenedorObjetos) {
-      throw new Error(
-        `El quiver "${this.nombre}" necesita un contenedor de munición.`,
-      );
+      throw new Error(`El carcaj "${this.nombre}" necesita un contenedor.`);
     }
   }
 
@@ -200,7 +191,7 @@ export class Objeto {
 
   validarTexto(valor, nombreCampo) {
     if (typeof valor !== "string" || valor.trim() === "") {
-      throw new Error(`El campo "${nombreCampo}" del objeto es obligatorio.`);
+      throw new Error(`El campo "${nombreCampo}" es obligatorio.`);
     }
   }
 
@@ -211,15 +202,11 @@ export class Objeto {
       return ranura.trim().toLowerCase();
     });
 
-    const unicas = new Set(normalizadas);
-
-    if (unicas.size !== normalizadas.length) {
-      throw new Error(
-        `El objeto "${this.nombre}" tiene ranuras compatibles repetidas.`,
-      );
+    if (new Set(normalizadas).size !== normalizadas.length) {
+      throw new Error(`El objeto "${this.nombre}" tiene ranuras repetidas.`);
     }
 
-    return [...unicas];
+    return [...normalizadas];
   }
 
   get esEquipable() {
@@ -246,11 +233,6 @@ export class Objeto {
     return this.esArma ? this.propiedades.manos : 0;
   }
 
-  // Una espada de dos manos y una lanza
-  // reservan la ranura secundaria.
-  //
-  // Un arco puede utilizar dos manos sin reservarla,
-  // porque esa ranura se utiliza para el quiver.
   get bloqueaSecundaria() {
     return this.esArma && this.propiedades.bloqueaSecundaria === true;
   }
@@ -259,11 +241,36 @@ export class Objeto {
     return this.esArma && this.propiedades.requiereQuiver === true;
   }
 
+  // Cantidad total almacenada dentro del objeto.
+  get cantidadContenido() {
+    if (!this.contenedorObjetos) {
+      return 0;
+    }
+
+    return this.contenedorObjetos
+      .obtenerObjetos()
+      .reduce(
+        (total, objeto) =>
+          total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
+        0,
+      );
+  }
+
+  // Cantidad total de municiones del carcaj.
+  get cantidadMunicion() {
+    if (!this.esQuiver) {
+      return 0;
+    }
+
+    return this.contenedorObjetos
+      .obtenerObjetos()
+      .filter((objeto) => objeto.esMunicion)
+      .reduce((total, objeto) => total + objeto.cantidad, 0);
+  }
+
   puedeEquiparseEn(nombreRanura) {
     this.validarTexto(nombreRanura, "nombre de ranura");
 
-    const normalizada = nombreRanura.trim().toLowerCase();
-
-    return this.ranurasCompatibles.includes(normalizada);
+    return this.ranurasCompatibles.includes(nombreRanura.trim().toLowerCase());
   }
 }

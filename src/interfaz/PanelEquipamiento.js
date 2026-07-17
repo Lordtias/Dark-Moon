@@ -9,7 +9,6 @@ const ETIQUETAS_RANURAS = {
   collar: "Collar",
   anillo_derecho: "Anillo der.",
   anillo_izquierdo: "Anillo izq.",
-  municion: "Munición",
 };
 
 // Representa las ranuras y notifica cuando
@@ -53,9 +52,7 @@ export class PanelEquipamiento {
     this.cuadricula.replaceChildren();
 
     for (const [nombreRanura, estado] of Object.entries(estados)) {
-      const elemento = this.crearRanura(nombreRanura, estado);
-
-      this.cuadricula.appendChild(elemento);
+      this.cuadricula.appendChild(this.crearRanura(nombreRanura, estado));
     }
   }
 
@@ -88,7 +85,6 @@ export class PanelEquipamiento {
       contenedor.classList.add("interactuable");
 
       contenedor.tabIndex = 0;
-
       contenedor.setAttribute("role", "button");
     }
 
@@ -100,7 +96,12 @@ export class PanelEquipamiento {
   mostrarObjeto(casilla, objeto) {
     casilla.classList.add("ocupada");
 
-    casilla.title = `${objeto.descripcion}\nClic para desequipar.`;
+    const detalleQuiver = objeto.esQuiver
+      ? `\nContenido: ${objeto.cantidadMunicion} flechas.`
+      : "";
+
+    casilla.title =
+      `${objeto.descripcion}${detalleQuiver}` + "\nClic para desequipar.";
 
     casilla.setAttribute("aria-label", `Desequipar ${objeto.nombre}`);
 
@@ -111,6 +112,16 @@ export class PanelEquipamiento {
     nombreObjeto.textContent = objeto.nombre;
 
     casilla.appendChild(nombreObjeto);
+
+    if (objeto.esQuiver) {
+      const contenido = document.createElement("span");
+
+      contenido.classList.add("contenido-objeto-equipado");
+
+      contenido.textContent = `${objeto.cantidadMunicion}`;
+
+      casilla.appendChild(contenido);
+    }
   }
 
   mostrarReserva(casilla, objetoQueReserva) {

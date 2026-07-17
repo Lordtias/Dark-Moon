@@ -1,14 +1,10 @@
 // Importamos Enemigo para distinguir criaturas hostiles
 // de objetos destructibles como barriles.
-import {
-  Enemigo
-} from "../entidad/destructible/combatiente/Enemigo.js";
+import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
 // Importamos el buscador que encuentra el siguiente
 // paso disponible hacia el jugador.
-import {
-  buscarSiguientePaso
-} from "./BuscadorCamino.js";
+import { buscarSiguientePaso } from "./BuscadorCamino.js";
 
 /**
  * Convierte una posición en una clave de texto.
@@ -20,32 +16,31 @@ import {
  * @param {number} y Posición vertical.
  * @returns {string} Clave de la posición.
  */
-function crearClavePosicion(
-  x,
-  y
-) {
+function crearClavePosicion(x, y) {
   return `${x},${y}`;
 }
 
 /**
- * Calcula la distancia entre dos entidades utilizando
- * distancia Manhattan.
+ * Calcula la distancia entre dos posiciones dentro
+ * de una grilla que permite ocho direcciones.
  *
- * El movimiento solamente permite direcciones
- * horizontales y verticales.
+ * Una posición diagonal adyacente cuenta como
+ * una sola casilla de distancia.
  *
  * @param {Object} origen Primera posición.
  * @param {Object} destino Segunda posición.
  * @returns {number} Distancia expresada en casillas.
  */
-export function calcularDistanciaManhattan(
-  origen,
-  destino
-) {
-  return (
-    Math.abs(origen.x - destino.x) +
-    Math.abs(origen.y - destino.y)
-  );
+export function calcularDistanciaCuadricula(origen, destino) {
+  // Calculamos la separación horizontal.
+  const distanciaX = Math.abs(origen.x - destino.x);
+
+  // Calculamos la separación vertical.
+  const distanciaY = Math.abs(origen.y - destino.y);
+
+  // En una grilla de ocho direcciones, una diagonal
+  // permite reducir X e Y al mismo tiempo.
+  return Math.max(distanciaX, distanciaY);
 }
 
 /**
@@ -58,22 +53,12 @@ export function calcularDistanciaManhattan(
  * @param {Object} jugador Personaje controlado.
  * @returns {Object} Distancia y mensajes generados.
  */
-function actualizarAgresividad(
-  enemigo,
-  jugador
-) {
+function actualizarAgresividad(enemigo, jugador) {
   const mensajes = [];
 
-  const distancia =
-    calcularDistanciaManhattan(
-      enemigo,
-      jugador
-    );
+  const distancia = calcularDistanciaCuadricula(enemigo, jugador);
 
-  const {
-    tipoAgresividad,
-    percepcion
-  } = enemigo.configuracionIA;
+  const { tipoAgresividad, percepcion } = enemigo.configuracionIA;
 
   // Un enemigo activo detecta automáticamente
   // al jugador cuando entra en su percepción.
@@ -84,27 +69,20 @@ function actualizarAgresividad(
   ) {
     enemigo.activarAgresividad();
 
-    mensajes.push(
-      `${enemigo.nombre} te ha detectado.`
-    );
+    mensajes.push(`${enemigo.nombre} te ha detectado.`);
   }
 
   // Un enemigo agresivo deja de perseguir cuando
   // el jugador supera su alcance máximo.
-  if (
-    enemigo.estaAgresivo &&
-    distancia > enemigo.rangoPersecucion
-  ) {
+  if (enemigo.estaAgresivo && distancia > enemigo.rangoPersecucion) {
     enemigo.desactivarAgresividad();
 
-    mensajes.push(
-      `${enemigo.nombre} dejó de perseguirte.`
-    );
+    mensajes.push(`${enemigo.nombre} dejó de perseguirte.`);
   }
 
   return {
     distancia,
-    mensajes
+    mensajes,
   };
 }
 
@@ -121,12 +99,8 @@ function actualizarAgresividad(
  * @param {Enemigo} enemigoActual Enemigo que se moverá.
  * @returns {Set<string>} Posiciones bloqueadas.
  */
-function obtenerPosicionesBloqueadas(
-  objetivos,
-  enemigoActual
-) {
-  const posicionesBloqueadas =
-    new Set();
+function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
+  const posicionesBloqueadas = new Set();
 
   objetivos.forEach((objetivo) => {
     // El enemigo no puede bloquearse a sí mismo.
@@ -139,12 +113,7 @@ function obtenerPosicionesBloqueadas(
       return;
     }
 
-    posicionesBloqueadas.add(
-      crearClavePosicion(
-        objetivo.x,
-        objetivo.y
-      )
-    );
+    posicionesBloqueadas.add(crearClavePosicion(objetivo.x, objetivo.y));
   });
 
   return posicionesBloqueadas;
@@ -168,17 +137,10 @@ function obtenerPosicionesBloqueadas(
  * @param {Array<Object>} opciones.objetivos Entidades.
  * @returns {Object} Cantidad de movimientos realizados.
  */
-function moverEnemigoHaciaJugador({
-  enemigo,
-  jugador,
-  mapa,
-  objetivos
-}) {
+function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   let movimientosRealizados = 0;
 
-  const movimientosPermitidos =
-    enemigo.configuracionIA
-      .movimientosPorTurno;
+  const movimientosPermitidos = enemigo.configuracionIA.movimientosPorTurno;
 
   // Ejecutamos cada movimiento de forma individual.
   //
@@ -189,46 +151,37 @@ function moverEnemigoHaciaJugador({
     movimiento < movimientosPermitidos;
     movimiento += 1
   ) {
-    const distanciaActual =
-      calcularDistanciaManhattan(
-        enemigo,
-        jugador
-      );
+    const distanciaActual = calcularDistanciaCuadricula(enemigo, jugador);
 
     // Cuando ya está dentro de su rango de ataque,
     // deja de acercarse.
-    if (
-      distanciaActual <=
-      enemigo.configuracionIA.rangoAtaque
-    ) {
+    if (distanciaActual <= enemigo.configuracionIA.rangoAtaque) {
       break;
     }
 
     // Obtenemos las posiciones ocupadas utilizando
     // el estado más reciente de todas las entidades.
-    const posicionesBloqueadas =
-      obtenerPosicionesBloqueadas(
-        objetivos,
-        enemigo
-      );
+    const posicionesBloqueadas = obtenerPosicionesBloqueadas(
+      objetivos,
+      enemigo,
+    );
 
     // Buscamos únicamente el próximo paso.
-    const siguientePaso =
-      buscarSiguientePaso({
-        mapa,
+    const siguientePaso = buscarSiguientePaso({
+      mapa,
 
-        origen: {
-          x: enemigo.x,
-          y: enemigo.y
-        },
+      origen: {
+        x: enemigo.x,
+        y: enemigo.y,
+      },
 
-        destino: {
-          x: jugador.x,
-          y: jugador.y
-        },
+      destino: {
+        x: jugador.x,
+        y: jugador.y,
+      },
 
-        posicionesBloqueadas
-      });
+      posicionesBloqueadas,
+    });
 
     // Si no existe un camino, el enemigo
     // permanece en su posición.
@@ -237,17 +190,15 @@ function moverEnemigoHaciaJugador({
     }
 
     // Movemos al enemigo una casilla.
-    enemigo.x =
-      siguientePaso.x;
+    enemigo.x = siguientePaso.x;
 
-    enemigo.y =
-      siguientePaso.y;
+    enemigo.y = siguientePaso.y;
 
     movimientosRealizados += 1;
   }
 
   return {
-    movimientosRealizados
+    movimientosRealizados,
   };
 }
 
@@ -266,11 +217,7 @@ function moverEnemigoHaciaJugador({
  * @param {Array<string>} opciones.mapa Mapa actual.
  * @returns {Object} Resultado completo de la fase.
  */
-export function procesarFaseEnemigos({
-  objetivos,
-  jugador,
-  mapa
-}) {
+export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
   const mensajes = [];
 
   // Los enemigos actúan de manera secuencial.
@@ -294,15 +241,9 @@ export function procesarFaseEnemigos({
       break;
     }
 
-    const resultadoAgresividad =
-      actualizarAgresividad(
-        objetivo,
-        jugador
-      );
+    const resultadoAgresividad = actualizarAgresividad(objetivo, jugador);
 
-    mensajes.push(
-      ...resultadoAgresividad.mensajes
-    );
+    mensajes.push(...resultadoAgresividad.mensajes);
 
     // Los enemigos pasivos o que abandonaron
     // la persecución no realizan acciones.
@@ -310,27 +251,17 @@ export function procesarFaseEnemigos({
       continue;
     }
 
-    const rangoAtaque =
-      objetivo.configuracionIA
-        .rangoAtaque;
+    const rangoAtaque = objetivo.configuracionIA.rangoAtaque;
 
     // Si ya está dentro del alcance,
     // ataca en lugar de moverse.
-    if (
-      resultadoAgresividad.distancia <=
-      rangoAtaque
-    ) {
-      const resultadoAtaque =
-        objetivo.atacar(jugador);
+    if (resultadoAgresividad.distancia <= rangoAtaque) {
+      const resultadoAtaque = objetivo.atacar(jugador);
 
-      mensajes.push(
-        resultadoAtaque.mensaje
-      );
+      mensajes.push(resultadoAtaque.mensaje);
 
       if (!jugador.estaVivo) {
-        mensajes.push(
-          "Has muerto. Recargá la página para reiniciar."
-        );
+        mensajes.push("Has muerto. Recargá la página para reiniciar.");
 
         break;
       }
@@ -341,23 +272,17 @@ export function procesarFaseEnemigos({
     }
 
     // Si no puede atacar, intenta acercarse.
-    const resultadoMovimiento =
-      moverEnemigoHaciaJugador({
-        enemigo: objetivo,
-        jugador,
-        mapa,
-        objetivos
-      });
+    const resultadoMovimiento = moverEnemigoHaciaJugador({
+      enemigo: objetivo,
+      jugador,
+      mapa,
+      objetivos,
+    });
 
     // Mostramos un único mensaje aunque el enemigo
     // tenga más de un movimiento por turno.
-    if (
-      resultadoMovimiento
-        .movimientosRealizados > 0
-    ) {
-      mensajes.push(
-        `${objetivo.nombre} avanza hacia vos.`
-      );
+    if (resultadoMovimiento.movimientosRealizados > 0) {
+      mensajes.push(`${objetivo.nombre} avanza hacia vos.`);
     }
 
     // En esta primera versión, un enemigo que acaba
@@ -366,6 +291,6 @@ export function procesarFaseEnemigos({
 
   return {
     mensajes,
-    mensaje: mensajes.join(" ")
+    mensaje: mensajes.join(" "),
   };
 }

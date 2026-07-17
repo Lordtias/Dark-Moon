@@ -1,24 +1,19 @@
 // Direcciones permitidas para recorrer el mapa.
 //
-// Los enemigos pueden desplazarse horizontal
-// o verticalmente, pero no en diagonal.
+// Incluimos movimientos horizontales, verticales
+// y diagonales. Todos consumen un movimiento.
 const DIRECCIONES = [
-  {
-    x: 0,
-    y: -1
-  },
-  {
-    x: 0,
-    y: 1
-  },
-  {
-    x: -1,
-    y: 0
-  },
-  {
-    x: 1,
-    y: 0
-  }
+  // Movimientos verticales y horizontales.
+  { x: 0, y: -1 },
+  { x: 0, y: 1 },
+  { x: -1, y: 0 },
+  { x: 1, y: 0 },
+
+  // Movimientos diagonales.
+  { x: -1, y: -1 },
+  { x: 1, y: -1 },
+  { x: -1, y: 1 },
+  { x: 1, y: 1 },
 ];
 
 /**
@@ -31,10 +26,7 @@ const DIRECCIONES = [
  * @param {number} y Posición vertical.
  * @returns {string} Clave de la posición.
  */
-function crearClavePosicion(
-  x,
-  y
-) {
+function crearClavePosicion(x, y) {
   return `${x},${y}`;
 }
 
@@ -46,25 +38,15 @@ function crearClavePosicion(
  * @param {number} y Posición vertical.
  * @returns {boolean} Verdadero si está dentro del mapa.
  */
-function estaDentroDelMapa(
-  mapa,
-  x,
-  y
-) {
+function estaDentroDelMapa(mapa, x, y) {
   // Verificamos primero los límites verticales.
-  if (
-    y < 0 ||
-    y >= mapa.length
-  ) {
+  if (y < 0 || y >= mapa.length) {
     return false;
   }
 
   // Después verificamos los límites horizontales
   // utilizando el ancho de la fila correspondiente.
-  return (
-    x >= 0 &&
-    x < mapa[y].length
-  );
+  return x >= 0 && x < mapa[y].length;
 }
 
 /**
@@ -78,22 +60,53 @@ function estaDentroDelMapa(
  * @param {number} y Posición vertical.
  * @returns {boolean} Verdadero si puede caminarse.
  */
-function esCasillaCaminable(
-  mapa,
-  x,
-  y
-) {
-  if (
-    !estaDentroDelMapa(
-      mapa,
-      x,
-      y
-    )
-  ) {
+function esCasillaCaminable(mapa, x, y) {
+  if (!estaDentroDelMapa(mapa, x, y)) {
     return false;
   }
 
   return mapa[y][x] !== "#";
+}
+
+/**
+ * Comprueba si un movimiento diagonal intenta pasar
+ * entre dos paredes que forman una esquina.
+ *
+ * Permitimos rodear una sola pared, pero bloqueamos
+ * el movimiento cuando ambos laterales están cerrados.
+ *
+ * @param {Array} mapa Mapa de la partida.
+ * @param {number} origenX Posición horizontal actual.
+ * @param {number} origenY Posición vertical actual.
+ * @param {Object} direccion Dirección evaluada.
+ * @returns {boolean} Verdadero si la diagonal está bloqueada.
+ */
+function estaDiagonalBloqueada(mapa, origenX, origenY, direccion) {
+  const esDiagonal = Math.abs(direccion.x) === 1 && Math.abs(direccion.y) === 1;
+
+  // Los movimientos horizontales y verticales
+  // no necesitan esta comprobación.
+  if (!esDiagonal) {
+    return false;
+  }
+
+  // Casilla lateral horizontal.
+  const horizontalCaminable = esCasillaCaminable(
+    mapa,
+    origenX + direccion.x,
+    origenY,
+  );
+
+  // Casilla lateral vertical.
+  const verticalCaminable = esCasillaCaminable(
+    mapa,
+    origenX,
+    origenY + direccion.y,
+  );
+
+  // Solamente bloqueamos cuando ambos laterales
+  // contienen paredes o están fuera del mapa.
+  return !horizontalCaminable && !verticalCaminable;
 }
 
 /**
@@ -118,58 +131,36 @@ export function buscarSiguientePaso({
   mapa,
   origen,
   destino,
-  posicionesBloqueadas = new Set()
+  posicionesBloqueadas = new Set(),
 }) {
   // Validamos que exista un mapa utilizable.
-  if (
-    !Array.isArray(mapa) ||
-    mapa.length === 0
-  ) {
-    throw new Error(
-      "BuscadorCamino necesita un mapa válido."
-    );
+  if (!Array.isArray(mapa) || mapa.length === 0) {
+    throw new Error("BuscadorCamino necesita un mapa válido.");
   }
 
   // Si ambas posiciones ya coinciden,
   // no existe ningún movimiento que realizar.
-  if (
-    origen.x === destino.x &&
-    origen.y === destino.y
-  ) {
+  if (origen.x === destino.x && origen.y === destino.y) {
     return null;
   }
 
   // No buscamos un camino hacia una pared
   // o una posición fuera del mapa.
-  if (
-    !esCasillaCaminable(
-      mapa,
-      destino.x,
-      destino.y
-    )
-  ) {
+  if (!esCasillaCaminable(mapa, destino.x, destino.y)) {
     return null;
   }
 
-  const claveOrigen =
-    crearClavePosicion(
-      origen.x,
-      origen.y
-    );
+  const claveOrigen = crearClavePosicion(origen.x, origen.y);
 
-  const claveDestino =
-    crearClavePosicion(
-      destino.x,
-      destino.y
-    );
+  const claveDestino = crearClavePosicion(destino.x, destino.y);
 
   // La cola contiene las posiciones pendientes
   // de explorar.
   const cola = [
     {
       x: origen.x,
-      y: origen.y
-    }
+      y: origen.y,
+    },
   ];
 
   // Utilizamos un índice en lugar de shift()
@@ -177,56 +168,49 @@ export function buscarSiguientePaso({
   let indiceCola = 0;
 
   // Registramos las posiciones ya exploradas.
-  const visitadas =
-    new Set([
-      claveOrigen
-    ]);
+  const visitadas = new Set([claveOrigen]);
 
   // Guarda desde qué posición llegamos a cada casilla.
   //
   // Después lo utilizaremos para reconstruir el camino.
-  const posicionesAnteriores =
-    new Map();
+  const posicionesAnteriores = new Map();
 
   // Continuamos mientras queden posiciones por explorar.
   while (indiceCola < cola.length) {
-    const posicionActual =
-      cola[indiceCola];
+    const posicionActual = cola[indiceCola];
 
     indiceCola += 1;
 
     // Si encontramos el destino,
     // ya no es necesario seguir explorando.
-    if (
-      posicionActual.x === destino.x &&
-      posicionActual.y === destino.y
-    ) {
+    if (posicionActual.x === destino.x && posicionActual.y === destino.y) {
       break;
     }
 
     // Revisamos las cuatro casillas vecinas.
     DIRECCIONES.forEach((direccion) => {
-      const nuevaX =
-        posicionActual.x + direccion.x;
+      const nuevaX = posicionActual.x + direccion.x;
 
-      const nuevaY =
-        posicionActual.y + direccion.y;
+      const nuevaY = posicionActual.y + direccion.y;
 
-      const nuevaClave =
-        crearClavePosicion(
-          nuevaX,
-          nuevaY
-        );
+      const nuevaClave = crearClavePosicion(nuevaX, nuevaY);
+
+      // Evitamos que el enemigo atraviese diagonalmente
+      // entre dos paredes que se tocan por una esquina.
+      if (
+        estaDiagonalBloqueada(
+          mapa,
+          posicionActual.x,
+          posicionActual.y,
+          direccion,
+        )
+      ) {
+        return;
+      }
 
       // Las paredes y posiciones exteriores
       // no pueden formar parte del camino.
-      if (
-        !esCasillaCaminable(
-          mapa,
-          nuevaX,
-          nuevaY
-        )
-      ) {
+      if (!esCasillaCaminable(mapa, nuevaX, nuevaY)) {
         return;
       }
 
@@ -239,10 +223,7 @@ export function buscarSiguientePaso({
       //
       // El destino queda exceptuado porque representa
       // la posición del jugador.
-      if (
-        posicionesBloqueadas.has(nuevaClave) &&
-        nuevaClave !== claveDestino
-      ) {
+      if (posicionesBloqueadas.has(nuevaClave) && nuevaClave !== claveDestino) {
         return;
       }
 
@@ -250,18 +231,15 @@ export function buscarSiguientePaso({
       visitadas.add(nuevaClave);
 
       // Guardamos desde dónde llegamos.
-      posicionesAnteriores.set(
-        nuevaClave,
-        {
-          x: posicionActual.x,
-          y: posicionActual.y
-        }
-      );
+      posicionesAnteriores.set(nuevaClave, {
+        x: posicionActual.x,
+        y: posicionActual.y,
+      });
 
       // La agregamos a la cola para explorarla.
       cola.push({
         x: nuevaX,
-        y: nuevaY
+        y: nuevaY,
       });
     });
   }
@@ -276,20 +254,13 @@ export function buscarSiguientePaso({
   // hasta encontrar la primera casilla tras el origen.
   let pasoActual = {
     x: destino.x,
-    y: destino.y
+    y: destino.y,
   };
 
   while (true) {
-    const clavePasoActual =
-      crearClavePosicion(
-        pasoActual.x,
-        pasoActual.y
-      );
+    const clavePasoActual = crearClavePosicion(pasoActual.x, pasoActual.y);
 
-    const pasoAnterior =
-      posicionesAnteriores.get(
-        clavePasoActual
-      );
+    const pasoAnterior = posicionesAnteriores.get(clavePasoActual);
 
     // Protección ante una reconstrucción incompleta.
     if (!pasoAnterior) {
@@ -298,10 +269,7 @@ export function buscarSiguientePaso({
 
     // Cuando el paso anterior es el origen,
     // pasoActual es el primer movimiento del camino.
-    if (
-      pasoAnterior.x === origen.x &&
-      pasoAnterior.y === origen.y
-    ) {
+    if (pasoAnterior.x === origen.x && pasoAnterior.y === origen.y) {
       return pasoActual;
     }
 

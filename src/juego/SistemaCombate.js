@@ -1,13 +1,19 @@
 import { Destructible } from "../entidad/destructible/Destructible.js";
+
 import { CONFIGURACION_COMBATE } from "../config/ConfiguracionCombate.js";
+
+import {
+  verificarRequisitosAtaque,
+  consumirMunicionAtaque,
+} from "../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
 function limitar(valor, minimo, maximo) {
   return Math.max(minimo, Math.min(maximo, valor));
 }
 
-// Devuelve un entero aleatorio dentro del rango indicado.
 function tirarRango(minimo, maximo) {
   const minimoEntero = Math.ceil(minimo);
+
   const maximoEntero = Math.floor(maximo);
 
   if (maximoEntero <= minimoEntero) {
@@ -19,12 +25,12 @@ function tirarRango(minimo, maximo) {
   );
 }
 
-// Realiza una tirada porcentual entre 1 y 100.
 function tirarPorcentaje(probabilidad) {
   const tirada = Math.floor(Math.random() * 100) + 1;
 
   return {
     tirada,
+
     exito: tirada <= probabilidad,
   };
 }
@@ -33,8 +39,6 @@ function formatearNumero(valor) {
   return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
 }
 
-// Devuelve las estadísticas defensivas cuando
-// el objetivo es un combatiente.
 function obtenerEstadisticasCombatiente(objetivo) {
   if (!objetivo || !("estadisticasDerivadas" in objetivo)) {
     return null;
@@ -43,14 +47,13 @@ function obtenerEstadisticasCombatiente(objetivo) {
   return objetivo.estadisticasDerivadas;
 }
 
-// Calcula la posibilidad de impacto comparando
-// Precisión, Evasión y nivel.
 export function calcularProbabilidadImpacto(atacante, objetivo) {
   const estadisticasAtacante = atacante.estadisticasDerivadas;
 
   const estadisticasObjetivo = obtenerEstadisticasCombatiente(objetivo);
 
-  // Los destructibles inmóviles no pueden evadir.
+  // Los destructibles inmóviles
+  // no pueden evadir.
   if (estadisticasObjetivo === null) {
     return 100;
   }
@@ -72,13 +75,13 @@ export function calcularProbabilidadImpacto(atacante, objetivo) {
 
   return limitar(
     probabilidad,
+
     configuracion.probabilidadMinima,
+
     configuracion.probabilidadMaxima,
   );
 }
 
-// Calcula qué proporción del daño físico
-// es absorbida por la Armadura.
 export function calcularReduccionArmadura(armadura, danioFisicoBruto) {
   if (armadura <= 0 || danioFisicoBruto <= 0) {
     return 0;
@@ -89,25 +92,33 @@ export function calcularReduccionArmadura(armadura, danioFisicoBruto) {
   return armadura / (armadura + factor * danioFisicoBruto);
 }
 
-// Calcula el daño del arma, bonos globales
-// y la posibilidad de golpe crítico.
+// Cada arma activa realiza su propia tirada
+// y aplica su propio atributo.
 function calcularDanioFisicoBruto(atacante) {
   const estadisticas = atacante.estadisticasDerivadas;
 
   const configuracionDanio = estadisticas.danioFisico;
 
-  const tiradaLocal = tirarRango(
-    configuracionDanio.minimoLocal,
-    configuracionDanio.maximoLocal,
-  );
+  let danioFuentes = 0;
+
+  for (const componente of configuracionDanio.componentes) {
+    const tirada = tirarRango(
+      componente.minimoLocal,
+
+      componente.maximoLocal,
+    );
+
+    danioFuentes += tirada * componente.multiplicadorAtributo;
+  }
 
   const tiradaGlobal = tirarRango(
     configuracionDanio.danioPlanoGlobal.minimo,
+
     configuracionDanio.danioPlanoGlobal.maximo,
   );
 
   let danioBruto =
-    (tiradaLocal + tiradaGlobal) * configuracionDanio.multiplicadorTotal;
+    (danioFuentes + tiradaGlobal) * configuracionDanio.multiplicadorGlobal;
 
   const tiradaCritico = tirarPorcentaje(estadisticas.probabilidadCritico);
 
@@ -117,13 +128,61 @@ function calcularDanioFisicoBruto(atacante) {
 
   return {
     critico: tiradaCritico.exito,
+
     tiradaCritico: tiradaCritico.tirada,
+
     danioBruto: Math.max(0, danioBruto),
   };
 }
 
-// Resuelve impacto, bloqueo, crítico,
-// Armadura y daño final.
+function crearTextoMunicion(resultadoMunicion) {
+  if (!resultadoMunicion.consumida) {
+    return "";
+  }
+
+  return ` Munición restante: ` + `${resultadoMunicion.restante}.`;
+}
+
+// Se utiliza cuando el jugador confirma
+// un ataque sobre una casilla vacía.
+export function resolverAtaqueSinObjetivo({ atacante } = {}) {
+  if (!atacante?.estaVivo) {
+    return {
+      impacto: false,
+      danio: 0,
+
+      mensaje:
+        `${atacante?.nombre ?? "El combatiente"} ` +
+        "no puede atacar porque está derrotado.",
+    };
+  }
+
+  const requisitos = verificarRequisitosAtaque(atacante);
+
+  if (!requisitos.disponible) {
+    return {
+      impacto: false,
+      danio: 0,
+
+      ataqueNoDisponible: true,
+
+      mensaje: requisitos.mensaje,
+    };
+  }
+
+  const resultadoMunicion = consumirMunicionAtaque(atacante);
+
+  return {
+    impacto: false,
+    danio: 0,
+
+    municionRestante: resultadoMunicion.restante,
+
+    mensaje:
+      "Atacaste una casilla vacía." + crearTextoMunicion(resultadoMunicion),
+  };
+}
+
 export function resolverAtaque({ atacante, objetivo } = {}) {
   if (!atacante?.estaVivo) {
     return {
@@ -132,6 +191,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       critico: false,
       danio: 0,
       objetivoDestruido: false,
+
       mensaje:
         `${atacante?.nombre ?? "El combatiente"} ` +
         "no puede atacar porque está derrotado.",
@@ -151,9 +211,32 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       critico: false,
       danio: 0,
       objetivoDestruido: true,
+
       mensaje: `${objetivo.nombre} ya está destruido.`,
     };
   }
+
+  const requisitos = verificarRequisitosAtaque(atacante);
+
+  if (!requisitos.disponible) {
+    return {
+      impacto: false,
+      bloqueado: false,
+      critico: false,
+      danio: 0,
+      objetivoDestruido: false,
+
+      ataqueNoDisponible: true,
+
+      mensaje: requisitos.mensaje,
+    };
+  }
+
+  // La flecha se consume antes de saber
+  // si el disparo impacta.
+  const resultadoMunicion = consumirMunicionAtaque(atacante);
+
+  const textoMunicion = crearTextoMunicion(resultadoMunicion);
 
   const probabilidadImpacto = calcularProbabilidadImpacto(atacante, objetivo);
 
@@ -166,19 +249,24 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       critico: false,
       danio: 0,
       objetivoDestruido: false,
+
       probabilidadImpacto,
+
       tiradaImpacto: tiradaImpacto.tirada,
+
+      municionRestante: resultadoMunicion.restante,
+
       mensaje:
-        `${atacante.nombre} falla contra ${objetivo.nombre}. ` +
+        `${atacante.nombre} falla contra ` +
+        `${objetivo.nombre}. ` +
         `Impacto: ${tiradaImpacto.tirada} / ` +
-        `${formatearNumero(probabilidadImpacto)}%.`,
+        `${formatearNumero(probabilidadImpacto)}%.` +
+        textoMunicion,
     };
   }
 
   const estadisticasObjetivo = obtenerEstadisticasCombatiente(objetivo);
 
-  // El bloqueo ocurre después del impacto,
-  // pero antes de calcular el daño.
   if (
     estadisticasObjetivo !== null &&
     estadisticasObjetivo.probabilidadBloqueo > 0
@@ -194,11 +282,15 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
         critico: false,
         danio: 0,
         objetivoDestruido: false,
+
+        municionRestante: resultadoMunicion.restante,
+
         mensaje:
-          `${objetivo.nombre} bloquea el ataque de ` +
-          `${atacante.nombre}. Bloqueo: ` +
-          `${tiradaBloqueo.tirada} / ` +
-          `${formatearNumero(estadisticasObjetivo.probabilidadBloqueo)}%.`,
+          `${objetivo.nombre} bloquea el ataque ` +
+          `de ${atacante.nombre}. ` +
+          `Bloqueo: ${tiradaBloqueo.tirada} / ` +
+          `${formatearNumero(estadisticasObjetivo.probabilidadBloqueo)}%.` +
+          textoMunicion,
       };
     }
   }
@@ -216,6 +308,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
 
   const danioSolicitado = Math.max(
     CONFIGURACION_COMBATE.armadura.danioMinimo,
+
     Math.floor(danioReducido),
   );
 
@@ -228,23 +321,33 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
   return {
     impacto: true,
     bloqueado: false,
+
     critico: resultadoDanio.critico,
+
     danio: danioAplicado,
+
     danioBruto: resultadoDanio.danioBruto,
+
     armadura,
     reduccionArmadura,
+
     objetivoDestruido: objetivo.estaDestruido,
+
     probabilidadImpacto,
+
     tiradaImpacto: tiradaImpacto.tirada,
+
+    municionRestante: resultadoMunicion.restante,
+
     mensaje:
       `${atacante.nombre} impacta a ${objetivo.nombre} ` +
       `(${tiradaImpacto.tirada} / ` +
       `${formatearNumero(probabilidadImpacto)}%) ` +
       `y causa ${danioAplicado} de daño. ` +
-      `Bruto: ${formatearNumero(
-        resultadoDanio.danioBruto,
-      )}. Armadura: ${armadura} ` +
+      `Bruto: ${formatearNumero(resultadoDanio.danioBruto)}. ` +
+      `Armadura: ${armadura} ` +
       `(-${formatearNumero(porcentajeReduccion)}%).` +
-      textoCritico,
+      textoCritico +
+      textoMunicion,
   };
 }

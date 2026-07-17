@@ -14,9 +14,11 @@ const ATRIBUTOS_VALIDOS = [
   "carisma",
 ];
 
-// Player administra progresión e inventario.
-// Las estadísticas profesionales llegan desde
-// ConfiguracionPersonaje.json.
+// Player administra la progresión, los puntos
+// de atributos y el inventario del jugador.
+//
+// Las estadísticas propias de cada profesión
+// se reciben desde ConfiguracionPersonaje.json.
 export class Player extends Combatiente {
   constructor({
     nombre,
@@ -56,8 +58,11 @@ export class Player extends Combatiente {
       estadisticasBase,
       ataqueNatural,
       simbolo: "@",
+
       capacidadContenedor: capacidadInventario,
+
       objetosIniciales: objetosInventarioIniciales,
+
       ranurasEquipamiento,
       equipamientoInicial,
     });
@@ -73,12 +78,15 @@ export class Player extends Combatiente {
     }
 
     this.clasePersonaje = clasePersonaje;
+
     this.inventario = this.contenedorObjetos;
 
-    // Experiencia acumulada dentro del nivel actual.
+    // Experiencia acumulada dentro
+    // del nivel actual.
     this._experiencia = 0;
 
-    // Experiencia conseguida durante toda la partida.
+    // Experiencia obtenida durante
+    // toda la partida.
     this.experienciaTotal = 0;
 
     this.puntosAtributoDisponibles = puntosAtributoDisponibles;
@@ -94,32 +102,20 @@ export class Player extends Combatiente {
     return this._experiencia;
   }
 
-  // Se conserva temporalmente porque Juego.js todavía
-  // utiliza: player.experiencia += cantidad.
-  //
-  // Se eliminará cuando agreguemos los mensajes
-  // detallados de subida de nivel.
-  set experiencia(nuevoValor) {
-    if (!Number.isFinite(nuevoValor) || nuevoValor < 0) {
-      throw new Error("La experiencia debe ser un número positivo.");
-    }
-
-    const diferencia = nuevoValor - this._experiencia;
-
-    if (diferencia > 0) {
-      this.ganarExperiencia(diferencia);
-      return;
-    }
-
-    this._experiencia = nuevoValor;
-  }
-
+  // Experiencia necesaria para avanzar
+  // desde el nivel actual al siguiente.
   get experienciaNecesaria() {
     return calcularExperienciaNecesaria(this.nivel);
   }
 
+  // Porcentaje utilizado por la barra
+  // de experiencia del panel.
   get porcentajeExperiencia() {
-    return Math.min(100, (this._experiencia / this.experienciaNecesaria) * 100);
+    return Math.min(
+      100,
+
+      (this._experiencia / this.experienciaNecesaria) * 100,
+    );
   }
 
   // Agrega experiencia y procesa todas
@@ -130,6 +126,7 @@ export class Player extends Combatiente {
         experienciaGanada: 0,
         nivelesGanados: 0,
         puntosGanados: 0,
+        nivelActual: this.nivel,
       };
     }
 
@@ -142,11 +139,14 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this._experiencia += cantidad;
+
     this.experienciaTotal += cantidad;
 
     let nivelesGanados = 0;
     let puntosGanados = 0;
 
+    // Permite subir varios niveles
+    // mediante una sola recompensa.
     while (this._experiencia >= calcularExperienciaNecesaria(this.nivel)) {
       const experienciaRequerida = calcularExperienciaNecesaria(this.nivel);
 
@@ -163,27 +163,31 @@ export class Player extends Combatiente {
     }
 
     if (nivelesGanados > 0) {
-      // Recalculamos los máximos con
+      // Recalcula los máximos utilizando
       // el nuevo nivel del personaje.
       this.estadisticasDerivadas;
 
-      // Conservamos el daño sufrido, pero sumamos
-      // el crecimiento máximo conseguido.
+      // Conserva el daño sufrido, pero agrega
+      // el crecimiento de Vida y Maná obtenido.
       this.vidaActual = Math.min(
         this.vidaMaxima,
+
         vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
       );
 
       this.manaActual = Math.min(
         this.manaMaximo,
+
         manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
       );
     }
 
     const resultado = {
       experienciaGanada: cantidad,
+
       nivelesGanados,
       puntosGanados,
+
       nivelActual: this.nivel,
     };
 
@@ -192,8 +196,8 @@ export class Player extends Combatiente {
     return resultado;
   }
 
-  // Gasta un punto y recalcula inmediatamente
-  // todas las estadísticas afectadas.
+  // Gasta inmediatamente un punto y recalcula
+  // todas las estadísticas relacionadas.
   asignarPuntoAtributo(nombreAtributo) {
     if (!ATRIBUTOS_VALIDOS.includes(nombreAtributo)) {
       throw new Error(`El atributo "${nombreAtributo}" no existe.`);
@@ -202,6 +206,7 @@ export class Player extends Combatiente {
     if (this.puntosAtributoDisponibles <= 0) {
       return {
         exito: false,
+
         mensaje: "No tenés puntos de atributo disponibles.",
       };
     }
@@ -215,22 +220,26 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this.atributos[nombreAtributo]++;
+
     this.puntosAtributoDisponibles--;
 
     this.estadisticasDerivadas;
 
     this.vidaActual = Math.min(
       this.vidaMaxima,
+
       vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
     );
 
     this.manaActual = Math.min(
       this.manaMaximo,
+
       manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
     );
 
     return {
       exito: true,
+
       mensaje:
         `${nombreAtributo} aumentó a ` + `${this.atributos[nombreAtributo]}.`,
     };

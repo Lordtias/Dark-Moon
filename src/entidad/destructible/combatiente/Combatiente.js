@@ -7,7 +7,12 @@ import {
   calcularRecursosMaximos,
 } from "./EstadisticasDerivadas.js";
 
-import { resolverAtaque } from "../../../juego/SistemaCombate.js";
+import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
+
+import {
+  resolverAtaque,
+  resolverAtaqueSinObjetivo,
+} from "../../../juego/SistemaCombate.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
@@ -108,7 +113,7 @@ function normalizarEstadisticasBase(nombre, configuracion) {
   for (const campo of camposNumericos) {
     if (!Number.isFinite(valores[campo])) {
       throw new Error(
-        `La estadística base "${campo}" de ` + `${nombre} no es válida.`,
+        `La estadística base "${campo}" ` + `de ${nombre} no es válida.`,
       );
     }
   }
@@ -116,7 +121,7 @@ function normalizarEstadisticasBase(nombre, configuracion) {
   for (const [tipo, valor] of Object.entries(valores.resistencias)) {
     if (!Number.isFinite(valor)) {
       throw new Error(
-        `La resistencia "${tipo}" de ` + `${nombre} no es válida.`,
+        `La resistencia "${tipo}" ` + `de ${nombre} no es válida.`,
       );
     }
   }
@@ -166,7 +171,7 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     ataque.atributoAtaque.trim() === ""
   ) {
     throw new Error(
-      `El ataque natural de ${nombre} ` + "necesita un atributo de ataque.",
+      `El ataque natural de ${nombre} ` + "necesita un atributo.",
     );
   }
 
@@ -174,19 +179,19 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
 
   if (!Number.isFinite(ataque.precision)) {
     throw new Error(
-      `La precisión del ataque natural de ` + `${nombre} no es válida.`,
+      `La precisión del ataque natural ` + `de ${nombre} no es válida.`,
     );
   }
 
   if (!Number.isInteger(ataque.alcance) || ataque.alcance < 1) {
     throw new Error(
-      `El alcance del ataque natural de ` + `${nombre} no es válido.`,
+      `El alcance del ataque natural ` + `de ${nombre} no es válido.`,
     );
   }
 
   if (!TIPOS_ATAQUE_VALIDOS.includes(ataque.tipoAtaque)) {
     throw new Error(
-      `El tipo de ataque natural de ` + `${nombre} no es válido.`,
+      `El tipo de ataque natural ` + `de ${nombre} no es válido.`,
     );
   }
 
@@ -194,10 +199,7 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     !Number.isFinite(ataque.probabilidadCritico) ||
     !Number.isFinite(ataque.multiplicadorCritico)
   ) {
-    throw new Error(
-      `Los valores de crítico del ataque ` +
-        `natural de ${nombre} no son válidos.`,
-    );
+    throw new Error(`Los valores de crítico de ` + `${nombre} no son válidos.`);
   }
 
   return ataque;
@@ -220,9 +222,7 @@ export class Combatiente extends Destructible {
     equipamientoInicial = [],
   } = {}) {
     if (!Number.isInteger(nivel) || nivel < 1) {
-      throw new Error(
-        `${nombre} debe tener un nivel entero ` + "igual o mayor que 1.",
-      );
+      throw new Error(`${nombre} debe tener un nivel ` + "entero mayor que 0.");
     }
 
     validarAtributos(nombre, atributos);
@@ -247,22 +247,15 @@ export class Combatiente extends Destructible {
     ) {
       throw new Error(
         `${nombre} no tiene el atributo ` +
-          `"${ataqueNormalizado.atributoAtaque}" ` +
-          "usado por su ataque natural.",
+          `"${ataqueNormalizado.atributoAtaque}".`,
       );
     }
 
-    // Puede construirse antes de super
-    // porque no utiliza this.
     const equipamiento = new Equipamiento({
       ranurasDisponibles: ranurasEquipamiento,
 
       objetosIniciales: equipamientoInicial,
     });
-
-    const objetosEquipados = Object.values(
-      equipamiento.obtenerRanuras(),
-    ).filter(Boolean);
 
     const recursosIniciales = calcularRecursosMaximos({
       nivel,
@@ -271,7 +264,7 @@ export class Combatiente extends Destructible {
 
       estadisticasBase: baseNormalizada,
 
-      objetosEquipados,
+      objetosEquipados: equipamiento.obtenerObjetosEquipados(),
     });
 
     super({
@@ -283,7 +276,6 @@ export class Combatiente extends Destructible {
       vidaMaxima: recursosIniciales.vidaMaxima,
 
       armadura: 0,
-
       capacidadContenedor,
       objetosIniciales,
       tablaBotin,
@@ -322,26 +314,30 @@ export class Combatiente extends Destructible {
     return estadisticas;
   }
 
-  get armaEquipada() {
-    if (!this.equipamiento.tieneRanura("arma")) {
-      return null;
-    }
+  get configuracionAtaqueActual() {
+    return obtenerConfiguracionAtaque(this);
+  }
 
-    const objeto = this.equipamiento.obtenerObjetoEnRanura("arma");
+  get armaPrincipal() {
+    return this.configuracionAtaqueActual.armaPrincipal;
+  }
 
-    return objeto?.tipo === "arma" ? objeto : null;
+  get armaSecundaria() {
+    return this.configuracionAtaqueActual.armaSecundaria;
+  }
+
+  get quiverEquipado() {
+    return this.configuracionAtaqueActual.quiver;
   }
 
   get atributoAtaqueActual() {
-    return (
-      this.armaEquipada?.propiedades?.atributoAtaque ??
-      this.ataqueNatural.atributoAtaque
-    );
+    return this.configuracionAtaqueActual.propiedadesControladoras
+      .atributoAtaque;
   }
 
   get alcanceAtaque() {
     const alcance =
-      this.armaEquipada?.propiedades?.alcance ?? this.ataqueNatural.alcance;
+      this.configuracionAtaqueActual.propiedadesControladoras.alcance;
 
     if (!Number.isInteger(alcance) || alcance < 1) {
       throw new Error(`El alcance de ${this.nombre} no es válido.`);
@@ -352,8 +348,7 @@ export class Combatiente extends Destructible {
 
   get tipoAtaqueActual() {
     const tipo =
-      this.armaEquipada?.propiedades?.tipoAtaque ??
-      this.ataqueNatural.tipoAtaque;
+      this.configuracionAtaqueActual.propiedadesControladoras.tipoAtaque;
 
     if (!TIPOS_ATAQUE_VALIDOS.includes(tipo)) {
       throw new Error(`El tipo de ataque de ${this.nombre} no es válido.`);
@@ -463,6 +458,12 @@ export class Combatiente extends Destructible {
     return resolverAtaque({
       atacante: this,
       objetivo,
+    });
+  }
+
+  atacarCasillaVacia() {
+    return resolverAtaqueSinObjetivo({
+      atacante: this,
     });
   }
 }

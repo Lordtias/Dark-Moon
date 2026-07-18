@@ -118,7 +118,74 @@ export class Juego {
     return horizontalBloqueada && verticalBloqueada;
   }
 
-  obtenerSeleccionInicialCombate() {
+  // Busca automáticamente el enemigo atacable
+  // con mayor prioridad.
+  //
+  // Orden de prioridad:
+  //
+  // 1. Menor distancia al jugador.
+  // 2. Menor Vida actual.
+  // 3. Primer enemigo encontrado en objetivos.
+  obtenerEnemigoPrioritarioCombate() {
+    let enemigoSeleccionado = null;
+
+    let distanciaSeleccionada = Infinity;
+
+    for (const objetivo of this.objetivos) {
+      // La selección automática solo contempla
+      // enemigos vivos, no barriles u otros objetos.
+      if (!(objetivo instanceof Enemigo) || !objetivo.estaVivo) {
+        continue;
+      }
+
+      // Utilizamos la misma validación del ataque
+      // para respetar alcance, patrón, paredes
+      // y línea de visión.
+      if (!this.esCasillaAtacable(objetivo.x, objetivo.y)) {
+        continue;
+      }
+
+      const distancia = calcularDistanciaCuadricula(
+        {
+          x: this.player.x,
+
+          y: this.player.y,
+        },
+
+        {
+          x: objetivo.x,
+
+          y: objetivo.y,
+        },
+      );
+
+      const estaMasCerca = distancia < distanciaSeleccionada;
+
+      const mismaDistanciaConMenosVida =
+        distancia === distanciaSeleccionada &&
+        (enemigoSeleccionado === null ||
+          objetivo.vidaActual < enemigoSeleccionado.vidaActual);
+
+      if (estaMasCerca || mismaDistanciaConMenosVida) {
+        enemigoSeleccionado = objetivo;
+
+        distanciaSeleccionada = distancia;
+      }
+
+      // Si también empatan en Vida, no hacemos
+      // ningún cambio. De esta forma se conserva
+      // el primero encontrado en this.objetivos.
+    }
+
+    return enemigoSeleccionado;
+  }
+
+  // Conserva el comportamiento anterior cuando
+  // no hay ningún enemigo atacable.
+  //
+  // Esto permite entrar igualmente al modo combate
+  // para atacar una casilla vacía.
+  obtenerCasillaInicialCombate() {
     const direcciones = [
       this.ultimaDireccionJugador,
       { x: 0, y: -1 },
@@ -145,6 +212,25 @@ export class Juego {
     }
 
     return null;
+  }
+
+  // Al entrar en modo combate se prioriza
+  // automáticamente un enemigo atacable.
+  //
+  // Si no existe ninguno, se mantiene la búsqueda
+  // anterior de una casilla válida.
+  obtenerSeleccionInicialCombate() {
+    const enemigoPrioritario = this.obtenerEnemigoPrioritarioCombate();
+
+    if (enemigoPrioritario) {
+      return {
+        x: enemigoPrioritario.x,
+
+        y: enemigoPrioritario.y,
+      };
+    }
+
+    return this.obtenerCasillaInicialCombate();
   }
 
   entrarModoCombate(selectorX = null, selectorY = null) {

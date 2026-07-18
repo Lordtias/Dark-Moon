@@ -28,7 +28,9 @@ export class ControladorPartida {
 
     this.juego = null;
     this.renderizador = null;
+
     this.controladorTeclado = null;
+
     this.controladorEquipamiento = null;
 
     this.partidaIniciada = false;
@@ -81,7 +83,9 @@ export class ControladorPartida {
     });
 
     this.juego = juego;
+
     this.renderizador = renderizador;
+
     this.controladorTeclado = controladorTeclado;
 
     this.controladorEquipamiento = controladorEquipamiento;
@@ -98,9 +102,16 @@ export class ControladorPartida {
 
     const mapaSeleccionado = this.juego.mapaSeleccionado;
 
+    const generacion = mapaSeleccionado.generacionActual;
+
     this.renderizador.mostrarMensaje(
-      `Mapa seleccionado: ${mapaSeleccionado.nombre}. ` +
-        `Bioma: ${mapaSeleccionado.bioma}.`,
+      `Mapa generado: ${mapaSeleccionado.nombre}. ` +
+        `Bioma: ${mapaSeleccionado.bioma}. ` +
+        `Semilla: ${generacion.semilla}. ` +
+        `Tamaño: ${generacion.ancho} × ${generacion.alto}. ` +
+        `Paredes: ${generacion.porcentajeNoCaminableReal}% ` +
+        `(objetivo ${generacion.porcentajeNoCaminableObjetivo}%). ` +
+        `Conectado: ${generacion.porcentajeConectado}%.`,
     );
 
     return true;

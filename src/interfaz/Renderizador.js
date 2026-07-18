@@ -48,7 +48,7 @@ export class Renderizador {
   dibujarJuego(juego) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.dibujarMapa(juego.map);
+    this.dibujarMapa(juego.map, juego.mapaSeleccionado?.apariencia);
 
     // Solo se resaltan casillas con trayectoria válida.
     if (juego.modoCombateActivo) {
@@ -75,7 +75,13 @@ export class Renderizador {
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
   }
 
-  dibujarMapa(map) {
+  dibujarMapa(map, apariencia = {}) {
+    const colorSuelo = apariencia.colorSuelo ?? "#252b45";
+
+    const colorPared = apariencia.colorPared ?? "#5468d4";
+
+    const colorGrilla = apariencia.colorGrilla ?? "#171b2e";
+
     for (let y = 0; y < map.length; y++) {
       for (let x = 0; x < map[y].length; x++) {
         const casilla = map[y][x];
@@ -84,11 +90,11 @@ export class Renderizador {
 
         const pixelY = y * this.tileSize;
 
-        this.context.fillStyle = casilla === "#" ? "#5468d4" : "#252b45";
+        this.context.fillStyle = casilla === "#" ? colorPared : colorSuelo;
 
         this.context.fillRect(pixelX, pixelY, this.tileSize, this.tileSize);
 
-        this.context.strokeStyle = "#171b2e";
+        this.context.strokeStyle = colorGrilla;
 
         this.context.lineWidth = 1;
 

@@ -4,6 +4,7 @@ import {
   cargarConfiguracionPersonaje,
   cargarConfiguracionEnemigos,
   cargarConfiguracionObjetos,
+  cargarConfiguracionMapas,
 } from "../juego/CargadorConfiguracion.js";
 
 // Pantalla utilizada para crear al personaje.
@@ -37,6 +38,7 @@ export class Aplicacion {
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
     this.configuracionObjetos = null;
+    this.configuracionMapas = null;
   }
 
   // Punto principal de inicio de Dark Moon.
@@ -91,10 +93,12 @@ export class Aplicacion {
       configuracionPersonaje,
       configuracionEnemigos,
       configuracionObjetos,
+      configuracionMapas,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
       cargarConfiguracionObjetos(),
+      cargarConfiguracionMapas(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -102,6 +106,8 @@ export class Aplicacion {
     this.configuracionEnemigos = configuracionEnemigos;
 
     this.configuracionObjetos = configuracionObjetos;
+
+    this.configuracionMapas = configuracionMapas;
   }
 
   // Construye la pantalla de creación
@@ -121,6 +127,8 @@ export class Aplicacion {
           configuracionEnemigos: this.configuracionEnemigos,
 
           configuracionObjetos: this.configuracionObjetos,
+
+          configuracionMapas: this.configuracionMapas,
         });
       },
     });

@@ -10,7 +10,7 @@ import {
 } from "./SistemaAlcanceAtaque.js";
 
 export class Juego {
-  constructor({ map, player, objetivos } = {}) {
+  constructor({ map, player, objetivos, mapaSeleccionado } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
     }
@@ -24,6 +24,13 @@ export class Juego {
     }
 
     this.map = map;
+
+    if (!mapaSeleccionado || typeof mapaSeleccionado !== "object") {
+      throw new Error("Juego necesita una plantilla de mapa seleccionada.");
+    }
+
+    this.mapaSeleccionado = mapaSeleccionado;
+
     this.player = player;
     this.objetivos = objetivos;
     this.turno = 0;

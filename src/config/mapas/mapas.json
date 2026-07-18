@@ -1,0 +1,211 @@
+{
+  "plantillas": {
+    "alcantarilla": {
+      "nombre": "Alcantarilla",
+      "bioma": "alcantarilla",
+      "pesoSeleccion": 1,
+      "apariencia": {
+        "colorSuelo": "#26372f",
+        "colorPared": "#53695d",
+        "colorGrilla": "#17231d"
+      },
+      "dimensiones": {
+        "ancho": {
+          "minimo": 18,
+          "maximo": 24
+        },
+        "alto": {
+          "minimo": 10,
+          "maximo": 14
+        }
+      },
+      "niveles": {
+        "minimo": 1,
+        "maximo": 3
+      },
+      "generacion": {
+        "tipo": "habitaciones",
+        "porcentajeNoCaminable": {
+          "minimo": 30,
+          "maximo": 45
+        },
+        "porcentajeMinimoConectado": 90,
+        "intentosMaximos": 50
+      },
+      "enemigos": {
+        "cantidad": {
+          "minimo": 3,
+          "maximo": 6
+        },
+        "distanciaSeguraJugador": 4,
+        "distanciaMinimaEntreEnemigos": 2,
+        "permitidos": [
+          {
+            "id": "rata",
+            "peso": 100
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 80,
+          "enfermo": 15,
+          "gigante": 4,
+          "elite": 1
+        }
+      },
+      "destructibles": {
+        "porcentajeCasillasCaminables": {
+          "minimo": 3,
+          "maximo": 6
+        },
+        "permitidos": [
+          {
+            "id": "barril",
+            "peso": 100
+          }
+        ]
+      }
+    },
+    "cementerio": {
+      "nombre": "Cementerio",
+      "bioma": "cementerio",
+      "pesoSeleccion": 1,
+      "apariencia": {
+        "colorSuelo": "#302f3b",
+        "colorPared": "#686879",
+        "colorGrilla": "#1e1d27"
+      },
+      "dimensiones": {
+        "ancho": {
+          "minimo": 18,
+          "maximo": 24
+        },
+        "alto": {
+          "minimo": 10,
+          "maximo": 14
+        }
+      },
+      "niveles": {
+        "minimo": 1,
+        "maximo": 4
+      },
+      "generacion": {
+        "tipo": "habitaciones",
+        "porcentajeNoCaminable": {
+          "minimo": 35,
+          "maximo": 50
+        },
+        "porcentajeMinimoConectado": 90,
+        "intentosMaximos": 50
+      },
+      "enemigos": {
+        "cantidad": {
+          "minimo": 3,
+          "maximo": 6
+        },
+        "distanciaSeguraJugador": 4,
+        "distanciaMinimaEntreEnemigos": 2,
+        "permitidos": [
+          {
+            "id": "esqueleto_guerrero",
+            "peso": 60
+          },
+          {
+            "id": "esqueleto_rogue",
+            "peso": 40
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 78,
+          "enfermo": 7,
+          "gigante": 8,
+          "elite": 7
+        }
+      },
+      "destructibles": {
+        "porcentajeCasillasCaminables": {
+          "minimo": 2,
+          "maximo": 5
+        },
+        "permitidos": [
+          {
+            "id": "barril",
+            "peso": 100
+          }
+        ]
+      }
+    },
+    "especial": {
+      "nombre": "Mapa especial",
+      "bioma": "especial",
+      "pesoSeleccion": 1,
+      "apariencia": {
+        "colorSuelo": "#3a2f42",
+        "colorPared": "#755e83",
+        "colorGrilla": "#241d29"
+      },
+      "dimensiones": {
+        "ancho": {
+          "minimo": 20,
+          "maximo": 26
+        },
+        "alto": {
+          "minimo": 12,
+          "maximo": 16
+        }
+      },
+      "niveles": {
+        "minimo": 1,
+        "maximo": 5
+      },
+      "generacion": {
+        "tipo": "habitaciones",
+        "porcentajeNoCaminable": {
+          "minimo": 25,
+          "maximo": 50
+        },
+        "porcentajeMinimoConectado": 90,
+        "intentosMaximos": 60
+      },
+      "enemigos": {
+        "cantidad": {
+          "minimo": 4,
+          "maximo": 8
+        },
+        "distanciaSeguraJugador": 4,
+        "distanciaMinimaEntreEnemigos": 2,
+        "permitidos": [
+          {
+            "id": "rata",
+            "peso": 40
+          },
+          {
+            "id": "esqueleto_guerrero",
+            "peso": 35
+          },
+          {
+            "id": "esqueleto_rogue",
+            "peso": 25
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 65,
+          "enfermo": 12,
+          "gigante": 13,
+          "elite": 10
+        }
+      },
+      "destructibles": {
+        "porcentajeCasillasCaminables": {
+          "minimo": 4,
+          "maximo": 8
+        },
+        "permitidos": [
+          {
+            "id": "barril",
+            "peso": 100
+          }
+        ]
+      }
+    }
+  }
+}

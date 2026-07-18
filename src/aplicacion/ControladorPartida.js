@@ -39,6 +39,7 @@ export class ControladorPartida {
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionMapas,
   } = {}) {
     if (this.partidaIniciada) {
       return false;
@@ -49,6 +50,7 @@ export class ControladorPartida {
       configuracionPersonaje,
       configuracionEnemigos,
       configuracionObjetos,
+      configuracionMapas,
     });
 
     const { canvas, renderizador, panelInventario, panelEquipamiento } =
@@ -93,6 +95,13 @@ export class ControladorPartida {
     this.controladorEquipamiento.activar();
 
     this.renderizador.dibujarJuego(this.juego);
+
+    const mapaSeleccionado = this.juego.mapaSeleccionado;
+
+    this.renderizador.mostrarMensaje(
+      `Mapa seleccionado: ${mapaSeleccionado.nombre}. ` +
+        `Bioma: ${mapaSeleccionado.bioma}.`,
+    );
 
     return true;
   }

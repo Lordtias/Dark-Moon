@@ -6,6 +6,8 @@ import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
 
 import { Barril } from "../entidad/destructible/Barril.js";
 
+import { seleccionarPlantillaMapa } from "./SelectorMapa.js";
+
 export const TILE_SIZE = 32;
 
 const MAPA_INICIAL = [
@@ -146,9 +148,13 @@ export function crearConfiguracionInicial({
   configuracionPersonaje,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionMapas,
 } = {}) {
+  const mapaSeleccionado = seleccionarPlantillaMapa(configuracionMapas);
   return {
     map: [...MAPA_INICIAL],
+
+    mapaSeleccionado,
 
     player: crearJugadorInicial(
       datosPersonaje,

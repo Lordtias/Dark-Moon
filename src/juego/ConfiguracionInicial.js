@@ -1,10 +1,6 @@
 import { Player } from "../entidad/destructible/combatiente/Player.js";
 
-import { crearEnemigo } from "./FabricaEnemigos.js";
-
 import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
-
-import { Barril } from "../entidad/destructible/Barril.js";
 
 import { seleccionarPlantillaMapa } from "./SelectorMapa.js";
 
@@ -14,6 +10,8 @@ import {
 } from "./GeneradorAleatorio.js";
 
 import { generarTerreno } from "./GeneradorTerreno.js";
+
+import { generarContenidoMapa } from "./GeneradorContenidoMapa.js";
 
 export const TILE_SIZE = 32;
 
@@ -82,143 +80,6 @@ function crearJugadorInicial(
   });
 }
 
-// Conservamos temporalmente los objetivos actuales.
-//
-// En la próxima etapa esta función será sustituida
-// por la generación configurable según el bioma.
-function crearObjetivosIniciales(
-  configuracionEnemigos,
-  configuracionObjetos,
-  posiciones,
-) {
-  const rata = crearEnemigo({
-    configuracionEnemigos,
-    configuracionObjetos,
-
-    idPlantilla: "rata",
-    nivel: 1,
-    idVariante: null,
-
-    x: posiciones.rata.x,
-
-    y: posiciones.rata.y,
-  });
-
-  const esqueletoGuerrero = crearEnemigo({
-    configuracionEnemigos,
-    configuracionObjetos,
-
-    idPlantilla: "esqueleto_guerrero",
-
-    nivel: 1,
-    idVariante: null,
-
-    x: posiciones.esqueletoGuerrero.x,
-
-    y: posiciones.esqueletoGuerrero.y,
-  });
-
-  const esqueletoRogue = crearEnemigo({
-    configuracionEnemigos,
-    configuracionObjetos,
-
-    idPlantilla: "esqueleto_rogue",
-
-    nivel: 1,
-    idVariante: null,
-
-    x: posiciones.esqueletoRogue.x,
-
-    y: posiciones.esqueletoRogue.y,
-  });
-
-  const barril = new Barril({
-    x: posiciones.barril.x,
-
-    y: posiciones.barril.y,
-  });
-
-  return [rata, esqueletoGuerrero, esqueletoRogue, barril];
-}
-
-// Selecciona casillas distintas para mantener
-// temporalmente las entidades actuales.
-//
-// Los enemigos respetan:
-//
-// - Distancia segura respecto al jugador.
-// - Distancia mínima entre ellos.
-function seleccionarPosicionesTemporales({
-  casillasCaminables,
-  posicionJugador,
-  plantilla,
-  aleatorio,
-}) {
-  const disponibles = aleatorio
-    .mezclar(casillasCaminables)
-    .filter((posicion) => !sonMismaPosicion(posicion, posicionJugador));
-
-  const posicionesEnemigos = [];
-
-  const distanciaSegura = plantilla.enemigos.distanciaSeguraJugador;
-
-  const distanciaEntreEnemigos =
-    plantilla.enemigos.distanciaMinimaEntreEnemigos;
-
-  for (let indice = 0; indice < 3; indice++) {
-    const indiceEncontrado = disponibles.findIndex(
-      (posicion) =>
-        calcularDistancia(posicion, posicionJugador) >= distanciaSegura &&
-        posicionesEnemigos.every(
-          (enemigoExistente) =>
-            calcularDistancia(posicion, enemigoExistente) >=
-            distanciaEntreEnemigos,
-        ),
-    );
-
-    if (indiceEncontrado === -1) {
-      throw new Error(
-        "El terreno no dispone de espacio suficiente " +
-          "para colocar los enemigos temporales.",
-      );
-    }
-
-    const [posicionElegida] = disponibles.splice(indiceEncontrado, 1);
-
-    posicionesEnemigos.push(posicionElegida);
-  }
-
-  if (disponibles.length === 0) {
-    throw new Error("El terreno no dispone de espacio para colocar el barril.");
-  }
-
-  const posicionBarril = disponibles.shift();
-
-  return {
-    rata: posicionesEnemigos[0],
-
-    esqueletoGuerrero: posicionesEnemigos[1],
-
-    esqueletoRogue: posicionesEnemigos[2],
-
-    barril: posicionBarril,
-  };
-}
-
-// Utilizamos distancia de cuadrícula porque coincide
-// con la percepción y movimiento general del juego.
-function calcularDistancia(origen, destino) {
-  return Math.max(
-    Math.abs(destino.x - origen.x),
-
-    Math.abs(destino.y - origen.y),
-  );
-}
-
-function sonMismaPosicion(posicionA, posicionB) {
-  return posicionA.x === posicionB.x && posicionA.y === posicionB.y;
-}
-
 export function crearConfiguracionInicial({
   datosPersonaje,
   configuracionPersonaje,
@@ -227,16 +88,15 @@ export function crearConfiguracionInicial({
   configuracionMapas,
 
   // Más adelante podremos recibir esta semilla
-  // desde un campo de depuración o desde la URL.
+  // desde una pantalla o desde la URL.
   semillaMapa = null,
 } = {}) {
   const semilla = semillaMapa ?? crearSemillaAleatoria();
 
   const aleatorio = crearGeneradorAleatorio(semilla);
 
-  // La propia selección del bioma también utiliza
-  // la semilla, por lo que toda la partida inicial
-  // puede reproducirse.
+  // La selección del bioma forma parte de la
+  // misma secuencia reproducible.
   const mapaSeleccionado = seleccionarPlantillaMapa(
     configuracionMapas,
 
@@ -244,16 +104,6 @@ export function crearConfiguracionInicial({
   );
 
   const terreno = generarTerreno({
-    plantilla: mapaSeleccionado,
-
-    aleatorio,
-  });
-
-  const posiciones = seleccionarPosicionesTemporales({
-    casillasCaminables: terreno.casillasCaminables,
-
-    posicionJugador: terreno.posicionInicialSugerida,
-
     plantilla: mapaSeleccionado,
 
     aleatorio,
@@ -267,15 +117,25 @@ export function crearConfiguracionInicial({
     terreno.posicionInicialSugerida,
   );
 
-  const objetivos = crearObjetivosIniciales(
+  const contenido = generarContenidoMapa({
+    plantilla: mapaSeleccionado,
+
+    terreno,
+
+    posicionJugador: {
+      x: player.x,
+
+      y: player.y,
+    },
+
+    aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
-    posiciones,
-  );
+  });
 
-  // La plantilla fue clonada por SelectorMapa,
-  // por lo que podemos agregar información de
-  // esta instancia sin modificar Mapas.json.
+  // SelectorMapa devuelve una copia de la
+  // plantilla, por lo que esta información
+  // pertenece únicamente a la partida actual.
   mapaSeleccionado.generacionActual = {
     semilla: aleatorio.semilla,
 
@@ -290,6 +150,22 @@ export function crearConfiguracionInicial({
     porcentajeConectado: terreno.porcentajeConectado,
 
     intentoExitoso: terreno.intentoExitoso,
+
+    nivelMapa: contenido.resumen.nivelMapa,
+
+    cantidadEnemigos: contenido.resumen.cantidadEnemigos,
+
+    enemigosPorTipo: contenido.resumen.enemigosPorTipo,
+
+    variantes: contenido.resumen.variantes,
+
+    cantidadDestructibles: contenido.resumen.cantidadDestructibles,
+
+    porcentajeDestructibles: contenido.resumen.porcentajeDestructibles,
+
+    detalleEnemigos: contenido.resumen.detalleEnemigos,
+
+    detalleDestructibles: contenido.resumen.detalleDestructibles,
   };
 
   return {
@@ -297,6 +173,7 @@ export function crearConfiguracionInicial({
 
     mapaSeleccionado,
     player,
-    objetivos,
+
+    objetivos: contenido.objetivos,
   };
 }

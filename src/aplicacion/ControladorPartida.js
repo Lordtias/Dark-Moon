@@ -104,15 +104,37 @@ export class ControladorPartida {
 
     const generacion = mapaSeleccionado.generacionActual;
 
+    const tiposEnemigos = formatearConteo(generacion.enemigosPorTipo);
+
+    const variantes = formatearConteo(generacion.variantes);
+
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}. ` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
         `Semilla: ${generacion.semilla}. ` +
         `Tamaño: ${generacion.ancho} × ${generacion.alto}. ` +
+        `Nivel: ${generacion.nivelMapa}. ` +
         `Paredes: ${generacion.porcentajeNoCaminableReal}% ` +
         `(objetivo ${generacion.porcentajeNoCaminableObjetivo}%). ` +
-        `Conectado: ${generacion.porcentajeConectado}%.`,
+        `Enemigos: ${generacion.cantidadEnemigos} ` +
+        `(${tiposEnemigos}). ` +
+        `Variantes: ${variantes}. ` +
+        `Destructibles: ${generacion.cantidadDestructibles}.`,
     );
+
+    // Información de depuración útil mientras
+    // validamos la generación procedural.
+    console.groupCollapsed(
+      `[Mapa] ${mapaSeleccionado.nombre} | ` + `semilla ${generacion.semilla}`,
+    );
+
+    console.log("Resumen de generación:", generacion);
+
+    console.table(generacion.detalleEnemigos);
+
+    console.table(generacion.detalleDestructibles);
+
+    console.groupEnd();
 
     return true;
   }
@@ -122,4 +144,20 @@ export class ControladorPartida {
 
     this.controladorEquipamiento?.desactivar();
   }
+}
+
+function formatearConteo(conteo) {
+  const elementos = Object.entries(conteo ?? {});
+
+  if (elementos.length === 0) {
+    return "ninguno";
+  }
+
+  return elementos
+    .map(([id, cantidad]) => `${formatearId(id)}: ${cantidad}`)
+    .join(", ");
+}
+
+function formatearId(id) {
+  return id.replaceAll("_", " ");
 }

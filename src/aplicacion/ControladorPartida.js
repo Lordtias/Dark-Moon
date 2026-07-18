@@ -11,6 +11,8 @@ import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
 
+import { leerParametrosPruebaMapa } from "../juego/ParametrosPruebaMapa.js";
+
 // Coordina la creación y activación
 // de una partida completa.
 export class ControladorPartida {
@@ -47,12 +49,18 @@ export class ControladorPartida {
       return false;
     }
 
+    const parametrosPrueba = leerParametrosPruebaMapa();
+
     const configuracionInicial = crearConfiguracionInicial({
       datosPersonaje,
       configuracionPersonaje,
       configuracionEnemigos,
       configuracionObjetos,
       configuracionMapas,
+
+      semillaMapa: parametrosPrueba.semillaMapa,
+
+      idMapaForzado: parametrosPrueba.idMapaForzado,
     });
 
     const { canvas, renderizador, panelInventario, panelEquipamiento } =
@@ -108,6 +116,10 @@ export class ControladorPartida {
 
     const variantes = formatearConteo(generacion.variantes);
 
+    const mensajeModoPrueba = parametrosPrueba.activo
+      ? " Modo de prueba activo."
+      : "";
+
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}. ` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
@@ -119,7 +131,8 @@ export class ControladorPartida {
         `Enemigos: ${generacion.cantidadEnemigos} ` +
         `(${tiposEnemigos}). ` +
         `Variantes: ${variantes}. ` +
-        `Destructibles: ${generacion.cantidadDestructibles}.`,
+        `Destructibles: ${generacion.cantidadDestructibles}.` +
+        mensajeModoPrueba,
     );
 
     // Información de depuración útil mientras
@@ -127,6 +140,8 @@ export class ControladorPartida {
     console.groupCollapsed(
       `[Mapa] ${mapaSeleccionado.nombre} | ` + `semilla ${generacion.semilla}`,
     );
+
+    console.log("Parámetros de prueba:", parametrosPrueba);
 
     console.log("Resumen de generación:", generacion);
 

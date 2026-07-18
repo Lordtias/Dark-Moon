@@ -2,7 +2,10 @@ import { Player } from "../entidad/destructible/combatiente/Player.js";
 
 import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
 
-import { seleccionarPlantillaMapa } from "./SelectorMapa.js";
+import {
+  seleccionarPlantillaMapa,
+  obtenerPlantillaMapa,
+} from "./SelectorMapa.js";
 
 import {
   crearGeneradorAleatorio,
@@ -87,21 +90,30 @@ export function crearConfiguracionInicial({
   configuracionObjetos,
   configuracionMapas,
 
-  // Más adelante podremos recibir esta semilla
-  // desde una pantalla o desde la URL.
+  // Ambos valores son opcionales.
+  //
+  // Si no se proporcionan, la generación
+  // continúa funcionando aleatoriamente.
   semillaMapa = null,
+  idMapaForzado = null,
 } = {}) {
   const semilla = semillaMapa ?? crearSemillaAleatoria();
 
   const aleatorio = crearGeneradorAleatorio(semilla);
 
-  // La selección del bioma forma parte de la
-  // misma secuencia reproducible.
-  const mapaSeleccionado = seleccionarPlantillaMapa(
-    configuracionMapas,
+  // Durante una partida normal se utiliza
+  // la selección ponderada.
+  //
+  // En modo de prueba podemos solicitar
+  // directamente una plantilla concreta.
+  const mapaSeleccionado =
+    idMapaForzado !== null
+      ? obtenerPlantillaMapa(configuracionMapas, idMapaForzado)
+      : seleccionarPlantillaMapa(
+          configuracionMapas,
 
-    () => aleatorio.siguiente(),
-  );
+          () => aleatorio.siguiente(),
+        );
 
   const terreno = generarTerreno({
     plantilla: mapaSeleccionado,
@@ -133,11 +145,15 @@ export function crearConfiguracionInicial({
     configuracionObjetos,
   });
 
-  // SelectorMapa devuelve una copia de la
-  // plantilla, por lo que esta información
-  // pertenece únicamente a la partida actual.
+  // SelectorMapa siempre devuelve una copia,
+  // por lo que esta información pertenece
+  // únicamente a la partida actual.
   mapaSeleccionado.generacionActual = {
     semilla: aleatorio.semilla,
+
+    mapaForzado: idMapaForzado !== null,
+
+    semillaForzada: semillaMapa !== null,
 
     ancho: terreno.ancho,
 

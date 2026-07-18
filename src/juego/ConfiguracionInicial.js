@@ -6,7 +6,6 @@ import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
 
 import { Barril } from "../entidad/destructible/Barril.js";
 
-// Tamaño en píxeles de cada casilla.
 export const TILE_SIZE = 32;
 
 const MAPA_INICIAL = [
@@ -24,8 +23,6 @@ const MAPA_INICIAL = [
   "####################",
 ];
 
-// Crea al jugador con la profesión seleccionada
-// y sus objetos iniciales.
 function crearJugadorInicial(
   datosPersonaje,
   configuracionPersonaje,
@@ -33,7 +30,7 @@ function crearJugadorInicial(
 ) {
   if (datosPersonaje === null || typeof datosPersonaje !== "object") {
     throw new Error(
-      "Se necesitan los datos del personaje " + "para iniciar la partida.",
+      "Se necesitan los datos del personaje para iniciar la partida.",
     );
   }
 
@@ -47,7 +44,7 @@ function crearJugadorInicial(
 
   if (!profesion.estadisticasBase) {
     throw new Error(
-      `La profesión "${idProfesion}" no tiene ` + "estadísticas base.",
+      `La profesión "${idProfesion}" no tiene estadísticas base.`,
     );
   }
 
@@ -72,11 +69,8 @@ function crearJugadorInicial(
     clasePersonaje,
     atributos,
 
-    // La profesión define ahora sus estadísticas.
     estadisticasBase: profesion.estadisticasBase,
 
-    // Permite que una profesión pueda modificar
-    // su ataque natural en el futuro.
     ataqueNatural: profesion.ataqueNatural ?? null,
 
     nivel: 1,
@@ -91,15 +85,52 @@ function crearJugadorInicial(
   });
 }
 
-// Crea enemigos y destructibles iniciales.
-function crearObjetivosIniciales(configuracionEnemigos) {
+// Crea todos los objetivos iniciales.
+//
+// El botín continúa fuera de este hito.
+function crearObjetivosIniciales(configuracionEnemigos, configuracionObjetos) {
   const rata = crearEnemigo({
     configuracionEnemigos,
+    configuracionObjetos,
+
     idPlantilla: "rata",
     nivel: 1,
     idVariante: null,
+
     x: 10,
+    y: 6,
+  });
+
+  const esqueletoGuerrero = crearEnemigo({
+    configuracionEnemigos,
+    configuracionObjetos,
+
+    idPlantilla: "esqueleto_guerrero",
+
+    nivel: 1,
+    idVariante: null,
+
+    x: 4,
     y: 4,
+  });
+
+  // El muro horizontal situado entre el jugador
+  // y este enemigo permite probar que:
+  //
+  // - La percepción lo activa.
+  // - No puede disparar a través de la pared.
+  // - Debe buscar una posición con línea de visión.
+  const esqueletoRogue = crearEnemigo({
+    configuracionEnemigos,
+    configuracionObjetos,
+
+    idPlantilla: "esqueleto_rogue",
+
+    nivel: 1,
+    idVariante: null,
+
+    x: 10,
+    y: 2,
   });
 
   const barril = new Barril({
@@ -107,7 +138,7 @@ function crearObjetivosIniciales(configuracionEnemigos) {
     y: 4,
   });
 
-  return [rata, barril];
+  return [rata, esqueletoGuerrero, esqueletoRogue, barril];
 }
 
 export function crearConfiguracionInicial({
@@ -125,6 +156,9 @@ export function crearConfiguracionInicial({
       configuracionObjetos,
     ),
 
-    objetivos: crearObjetivosIniciales(configuracionEnemigos),
+    objetivos: crearObjetivosIniciales(
+      configuracionEnemigos,
+      configuracionObjetos,
+    ),
   };
 }

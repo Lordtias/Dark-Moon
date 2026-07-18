@@ -1,19 +1,51 @@
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
-// Esta fábrica mantiene temporalmente
-// la compatibilidad con Enemigos.json.
+import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
+
+import { CONFIGURACION_COMBATE } from "../config/ConfiguracionCombate.js";
+
+// Crea una copia profunda de valores provenientes
+// de los archivos JSON.
 //
-// Las clases centrales reciben únicamente
-// el modelo nuevo.
+// De esta forma, escalar un enemigo concreto nunca
+// modifica la plantilla utilizada por otros enemigos.
+function clonarConfiguracion(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map((elemento) => clonarConfiguracion(elemento));
+  }
+
+  if (valor !== null && typeof valor === "object") {
+    const copia = {};
+
+    for (const [clave, contenido] of Object.entries(valor)) {
+      copia[clave] = clonarConfiguracion(contenido);
+    }
+
+    return copia;
+  }
+
+  return valor;
+}
+
+function esObjetoConfiguracion(valor) {
+  return valor !== null && typeof valor === "object" && !Array.isArray(valor);
+}
+
+// Calcula el valor de una estadística según
+// su regla de escalado.
 function calcularValorEscalado(valorBase, regla, nivel) {
-  if (regla === undefined) {
-    return valorBase;
+  if (!Number.isFinite(valorBase)) {
+    throw new Error("El valor base de una estadística enemiga no es válido.");
+  }
+
+  if (!esObjetoConfiguracion(regla)) {
+    throw new Error("Existe una regla de escalado de enemigos inválida.");
   }
 
   const { aumento, cadaNiveles } = regla;
 
   if (
-    typeof aumento !== "number" ||
+    !Number.isFinite(aumento) ||
     !Number.isInteger(cadaNiveles) ||
     cadaNiveles <= 0
   ) {
@@ -25,6 +57,72 @@ function calcularValorEscalado(valorBase, regla, nivel) {
   return valorBase + cantidadAumentos * aumento;
 }
 
+// Reconoce una regla final como:
+//
+// {
+//   "aumento": 1,
+//   "cadaNiveles": 2
+// }
+function esReglaEscalado(valor) {
+  return (
+    esObjetoConfiguracion(valor) &&
+    (Object.prototype.hasOwnProperty.call(valor, "aumento") ||
+      Object.prototype.hasOwnProperty.call(valor, "cadaNiveles"))
+  );
+}
+
+// Aplica reglas de escalado de forma recursiva.
+//
+// Esto permite escalar:
+//
+// - Atributos.
+// - Estadísticas base.
+// - Ataques naturales.
+// - Resistencias.
+// - Configuración de IA.
+function aplicarReglasEscalado(destino, reglas, nivel, ruta = "") {
+  if (reglas === undefined) {
+    return;
+  }
+
+  if (!esObjetoConfiguracion(destino) || !esObjetoConfiguracion(reglas)) {
+    throw new Error(`El escalado de "${ruta || "enemigo"}" no es válido.`);
+  }
+
+  for (const [campo, regla] of Object.entries(reglas)) {
+    const rutaCampo = ruta ? `${ruta}.${campo}` : campo;
+
+    if (esReglaEscalado(regla)) {
+      if (!Number.isFinite(destino[campo])) {
+        throw new Error(
+          `No se puede escalar "${rutaCampo}" porque no es numérico.`,
+        );
+      }
+
+      destino[campo] = calcularValorEscalado(destino[campo], regla, nivel);
+
+      continue;
+    }
+
+    aplicarReglasEscalado(destino[campo], regla, nivel, rutaCampo);
+  }
+}
+
+// Fusiona cambios de un hito sin eliminar
+// otras propiedades de la sección.
+function fusionarConfiguracion(destino, cambios) {
+  for (const [campo, valor] of Object.entries(cambios)) {
+    if (esObjetoConfiguracion(valor) && esObjetoConfiguracion(destino[campo])) {
+      fusionarConfiguracion(destino[campo], valor);
+
+      continue;
+    }
+
+    destino[campo] = clonarConfiguracion(valor);
+  }
+}
+
+// Aplica los hitos alcanzados por nivel.
 function aplicarHitos(datos, hitos, nivel) {
   if (!Array.isArray(hitos)) {
     return;
@@ -35,191 +133,142 @@ function aplicarHitos(datos, hitos, nivel) {
   );
 
   for (const hito of hitosOrdenados) {
+    if (!Number.isInteger(hito.nivel) || hito.nivel < 1) {
+      throw new Error("Existe un hito de enemigo con nivel inválido.");
+    }
+
     if (nivel < hito.nivel) {
       continue;
     }
 
     const cambios = hito.cambios ?? {};
 
-    if (cambios.atributos && typeof cambios.atributos === "object") {
-      datos.atributos = {
-        ...datos.atributos,
-        ...cambios.atributos,
-      };
+    if (cambios.atributos) {
+      fusionarConfiguracion(datos.atributos, cambios.atributos);
     }
 
-    if (cambios.ia && typeof cambios.ia === "object") {
-      datos.configuracionIA = {
-        ...datos.configuracionIA,
-        ...cambios.ia,
-      };
+    if (cambios.estadisticasBase) {
+      fusionarConfiguracion(datos.estadisticasBase, cambios.estadisticasBase);
     }
 
-    // Estos campos antiguos solamente
-    // existen dentro del adaptador.
-    const camposCompatibles = [
-      "vidaMaxima",
-      "dadoDanio",
-      "atributoAtaque",
-      "bonificadorArmadura",
-      "experienciaOtorgada",
-    ];
+    if (cambios.ataqueNatural) {
+      fusionarConfiguracion(datos.ataqueNatural, cambios.ataqueNatural);
+    }
 
-    for (const campo of camposCompatibles) {
-      if (cambios[campo] !== undefined) {
-        datos[campo] = cambios[campo];
-      }
+    if (cambios.ia) {
+      fusionarConfiguracion(datos.configuracionIA, cambios.ia);
+    }
+
+    if (cambios.experienciaOtorgada !== undefined) {
+      datos.experienciaOtorgada = cambios.experienciaOtorgada;
     }
   }
 }
 
-function aplicarMultiplicador(valor, multiplicador, minimo) {
-  return Math.max(
-    minimo,
+function obtenerMultiplicador(variante, campo) {
+  const valor = variante[campo] ?? 1;
 
-    Math.round(valor * multiplicador),
-  );
+  if (!Number.isFinite(valor) || valor < 0) {
+    throw new Error(`El multiplicador "${campo}" de la variante no es válido.`);
+  }
+
+  return valor;
 }
 
+function aplicarMultiplicadorEntero(valor, multiplicador, minimo) {
+  return Math.max(minimo, Math.round(valor * multiplicador));
+}
+
+// Aplica Enfermo, Gigante o Élite.
+//
+// El multiplicador de Vida se incorpora a la
+// estadística base para que EstadisticasDerivadas
+// continúe siendo la fuente real de Vida máxima.
 function aplicarVariante(datos, variante) {
-  const multiplicadorAtributos = variante.multiplicadorAtributos ?? 1;
+  const multiplicadorAtributos = obtenerMultiplicador(
+    variante,
+    "multiplicadorAtributos",
+  );
+
+  const multiplicadorVida = obtenerMultiplicador(variante, "multiplicadorVida");
+
+  const multiplicadorExperiencia = obtenerMultiplicador(
+    variante,
+    "multiplicadorExperiencia",
+  );
 
   for (const atributo of Object.keys(datos.atributos)) {
-    datos.atributos[atributo] = aplicarMultiplicador(
+    datos.atributos[atributo] = aplicarMultiplicadorEntero(
       datos.atributos[atributo],
-
       multiplicadorAtributos,
-
       1,
     );
   }
 
-  datos.vidaMaxima = aplicarMultiplicador(
-    datos.vidaMaxima,
+  // La Vida máxima se calcula como:
+  //
+  // vida base
+  // + Vida por nivel
+  // + aporte de Constitución.
+  //
+  // Ajustamos la base para multiplicar el resultado
+  // completo sin escribir directamente vidaMaxima.
+  const aporteConstitucion =
+    CONFIGURACION_COMBATE.atributos.vidaPorConstitucion *
+    datos.atributos.constitucion;
 
-    variante.multiplicadorVida ?? 1,
+  datos.estadisticasBase.vida =
+    datos.estadisticasBase.vida * multiplicadorVida +
+    aporteConstitucion * (multiplicadorVida - 1);
 
-    1,
-  );
+  datos.estadisticasBase.vidaPorNivel *= multiplicadorVida;
 
-  datos.experienciaOtorgada = aplicarMultiplicador(
+  datos.experienciaOtorgada = aplicarMultiplicadorEntero(
     datos.experienciaOtorgada,
-
-    variante.multiplicadorExperiencia ?? 1,
-
+    multiplicadorExperiencia,
     0,
   );
 }
 
-// Convierte el modelo antiguo del JSON
-// al nuevo modelo de Combatiente.
-function adaptarDatosEnemigo(datos) {
-  const constitucion = datos.atributos.constitucion;
+function validarPlantilla(plantilla, idPlantilla) {
+  if (!esObjetoConfiguracion(plantilla.baseNivel1)) {
+    throw new Error(`La plantilla "${idPlantilla}" necesita baseNivel1.`);
+  }
 
-  const inteligencia = datos.atributos.inteligencia;
+  const base = plantilla.baseNivel1;
 
-  return {
-    nombre: datos.nombre,
+  if (!esObjetoConfiguracion(base.atributos)) {
+    throw new Error(`La plantilla "${idPlantilla}" necesita atributos.`);
+  }
 
-    nivel: datos.nivel,
+  if (!esObjetoConfiguracion(base.estadisticasBase)) {
+    throw new Error(
+      `La plantilla "${idPlantilla}" necesita estadísticas base.`,
+    );
+  }
 
-    simbolo: datos.simbolo,
+  if (!esObjetoConfiguracion(base.ataqueNatural)) {
+    throw new Error(
+      `La plantilla "${idPlantilla}" necesita un ataque natural.`,
+    );
+  }
 
-    atributos: {
-      ...datos.atributos,
-    },
-
-    estadisticasBase: {
-      // Compensamos el aporte de atributos
-      // para conservar aproximadamente la
-      // Vida configurada en Enemigos.json.
-      vida: datos.vidaMaxima - 5 * constitucion,
-
-      // Los enemigos actuales comienzan
-      // sin reserva de Maná.
-      mana: -4 * inteligencia,
-
-      vidaPorNivel: 0,
-      manaPorNivel: 0,
-
-      precision: 10,
-      evasion: 5,
-
-      armadura: Math.max(
-        0,
-
-        datos.bonificadorArmadura ?? 0,
-      ),
-
-      regeneracionVida: 0,
-      regeneracionMana: 0,
-
-      probabilidadCritico: 5,
-      multiplicadorCritico: 1.5,
-
-      probabilidadBloqueo: 0,
-
-      potenciaEfectos: 0,
-      resistenciaMental: 0,
-      potenciaAura: 0,
-
-      resistencias: {
-        fuego: 0,
-        frio: 0,
-        rayo: 0,
-        veneno: 0,
-      },
-    },
-
-    ataqueNatural: {
-      // El antiguo d4 se adapta
-      // temporalmente como rango 1-4.
-      danioFisicoMinimo: 1,
-
-      danioFisicoMaximo: Math.max(1, datos.dadoDanio),
-
-      atributoAtaque: datos.atributoAtaque,
-
-      precision: 0,
-
-      alcance: datos.configuracionIA.rangoAtaque,
-
-      tipoAtaque: "cuerpoACuerpo",
-
-      probabilidadCritico: 5,
-      multiplicadorCritico: 1.5,
-    },
-
-    experienciaOtorgada: datos.experienciaOtorgada,
-
-    capacidadContenedor: datos.capacidadContenedor,
-
-    objetosIniciales: [...datos.objetosIniciales],
-
-    tablaBotin: datos.tablaBotin.map((entrada) => ({
-      ...entrada,
-    })),
-
-    ranurasEquipamiento: [...datos.ranurasEquipamiento],
-
-    equipamientoInicial: [...datos.equipamientoInicial],
-
-    configuracionIA: {
-      ...datos.configuracionIA,
-    },
-  };
+  if (!esObjetoConfiguracion(plantilla.ia)) {
+    throw new Error(
+      `La plantilla "${idPlantilla}" necesita configuración de IA.`,
+    );
+  }
 }
 
-// Calcula todavía el modelo anterior
-// porque Enemigos.json no se migrará
-// hasta terminar las reglas de combate.
+// Calcula todos los datos finales sin crear
+// todavía la instancia de Enemigo.
 export function calcularDatosEnemigo({
   configuracionEnemigos,
   idPlantilla,
   nivel = 1,
   idVariante = null,
 } = {}) {
-  if (!configuracionEnemigos || typeof configuracionEnemigos !== "object") {
+  if (!esObjetoConfiguracion(configuracionEnemigos)) {
     throw new Error("Se necesita la configuración de enemigos.");
   }
 
@@ -231,37 +280,33 @@ export function calcularDatosEnemigo({
     throw new Error(`No existe la plantilla de enemigo "${idPlantilla}".`);
   }
 
+  validarPlantilla(plantilla, idPlantilla);
+
   if (!Number.isInteger(nivel)) {
     throw new Error("El nivel del enemigo debe ser un entero.");
   }
 
-  const nivelMinimo = plantilla.nivelesPermitidos.minimo;
+  const nivelMinimo = plantilla.nivelesPermitidos?.minimo;
 
-  const nivelMaximo = plantilla.nivelesPermitidos.maximo;
+  const nivelMaximo = plantilla.nivelesPermitidos?.maximo;
 
-  if (nivel < nivelMinimo || nivel > nivelMaximo) {
+  if (
+    !Number.isInteger(nivelMinimo) ||
+    !Number.isInteger(nivelMaximo) ||
+    nivel < nivelMinimo ||
+    nivel > nivelMaximo
+  ) {
     throw new Error(
       `${plantilla.nombre} solamente permite ` +
-        `niveles entre ${nivelMinimo} y ` +
-        `${nivelMaximo}.`,
+        `niveles entre ${nivelMinimo} y ${nivelMaximo}.`,
     );
   }
 
   const base = plantilla.baseNivel1;
 
-  const escalado = plantilla.escalado ?? {};
-
-  const configuracionIA = plantilla.ia;
-
   const contenedor = plantilla.contenedor ?? {};
 
   const equipamiento = plantilla.equipamiento ?? {};
-
-  if (!configuracionIA || typeof configuracionIA !== "object") {
-    throw new Error(
-      `La plantilla "${idPlantilla}" ` + "necesita configuración de IA.",
-    );
-  }
 
   const datos = {
     nombre: plantilla.nombre,
@@ -270,95 +315,64 @@ export function calcularDatosEnemigo({
 
     simbolo: plantilla.simbolo,
 
-    vidaMaxima: base.vidaMaxima,
+    atributos: clonarConfiguracion(base.atributos),
 
-    dadoDanio: base.dadoDanio,
+    estadisticasBase: clonarConfiguracion(base.estadisticasBase),
 
-    atributoAtaque: base.atributoAtaque,
-
-    bonificadorArmadura: base.bonificadorArmadura ?? 0,
+    ataqueNatural: clonarConfiguracion(base.ataqueNatural),
 
     experienciaOtorgada: base.experienciaOtorgada,
 
-    atributos: {
-      ...base.atributos,
-    },
-
     capacidadContenedor: contenedor.capacidad ?? 0,
 
-    objetosIniciales: [...(contenedor.objetosIniciales ?? [])],
+    // Estas definiciones se convertirán
+    // en objetos reales al crear la instancia.
+    objetosIniciales: clonarConfiguracion(contenedor.objetosIniciales ?? []),
 
-    ranurasEquipamiento: [...(equipamiento.ranuras ?? [])],
+    ranurasEquipamiento: clonarConfiguracion(equipamiento.ranuras ?? []),
 
-    equipamientoInicial: [...(equipamiento.objetosIniciales ?? [])],
+    equipamientoInicial: clonarConfiguracion(
+      equipamiento.objetosIniciales ?? [],
+    ),
 
-    tablaBotin: (plantilla.tablaBotin ?? []).map((entrada) => ({
-      ...entrada,
-    })),
+    // El botín continúa fuera de este hito.
+    tablaBotin: clonarConfiguracion(plantilla.tablaBotin ?? []),
 
-    configuracionIA: {
-      ...configuracionIA,
-    },
+    configuracionIA: clonarConfiguracion(plantilla.ia),
   };
 
-  datos.vidaMaxima = calcularValorEscalado(
-    datos.vidaMaxima,
+  const escalado = plantilla.escalado ?? {};
 
-    escalado.vidaMaxima,
-
-    nivel,
-  );
-
-  datos.experienciaOtorgada = calcularValorEscalado(
-    datos.experienciaOtorgada,
-
-    escalado.experienciaOtorgada,
-
-    nivel,
-  );
-
-  datos.bonificadorArmadura = calcularValorEscalado(
-    datos.bonificadorArmadura,
-
-    escalado.bonificadorArmadura,
-
-    nivel,
-  );
-
-  const escaladoAtributos = escalado.atributos ?? {};
-
-  for (const atributo of Object.keys(datos.atributos)) {
-    datos.atributos[atributo] = calcularValorEscalado(
-      datos.atributos[atributo],
-
-      escaladoAtributos[atributo],
-
+  if (escalado.experienciaOtorgada) {
+    datos.experienciaOtorgada = calcularValorEscalado(
+      datos.experienciaOtorgada,
+      escalado.experienciaOtorgada,
       nivel,
     );
   }
 
-  const escaladoIA = escalado.ia ?? {};
+  aplicarReglasEscalado(
+    datos.atributos,
+    escalado.atributos,
+    nivel,
+    "atributos",
+  );
 
-  const camposIA = [
-    "percepcion",
-    "margenPersecucion",
-    "rangoAtaque",
-    "movimientosPorTurno",
-  ];
+  aplicarReglasEscalado(
+    datos.estadisticasBase,
+    escalado.estadisticasBase,
+    nivel,
+    "estadisticasBase",
+  );
 
-  for (const campo of camposIA) {
-    if (datos.configuracionIA[campo] === undefined) {
-      continue;
-    }
+  aplicarReglasEscalado(
+    datos.ataqueNatural,
+    escalado.ataqueNatural,
+    nivel,
+    "ataqueNatural",
+  );
 
-    datos.configuracionIA[campo] = calcularValorEscalado(
-      datos.configuracionIA[campo],
-
-      escaladoIA[campo],
-
-      nivel,
-    );
-  }
+  aplicarReglasEscalado(datos.configuracionIA, escalado.ia, nivel, "ia");
 
   aplicarHitos(datos, plantilla.hitos, nivel);
 
@@ -377,8 +391,8 @@ export function calcularDatosEnemigo({
 
     if (!nombreVariante) {
       throw new Error(
-        `La variante "${idVariante}" no tiene ` +
-          `nombre para el género "${genero}".`,
+        `La variante "${idVariante}" no tiene nombre ` +
+          `para el género "${genero}".`,
       );
     }
 
@@ -388,26 +402,41 @@ export function calcularDatosEnemigo({
   return datos;
 }
 
+// Crea la instancia real y convierte los IDs
+// de inventario y equipamiento en objetos.
 export function crearEnemigo({
   configuracionEnemigos,
+  configuracionObjetos,
   idPlantilla,
   nivel = 1,
   idVariante = null,
   x = 0,
   y = 0,
 } = {}) {
-  const datosAntiguos = calcularDatosEnemigo({
+  const datos = calcularDatosEnemigo({
     configuracionEnemigos,
     idPlantilla,
     nivel,
     idVariante,
   });
 
-  const datosNuevos = adaptarDatosEnemigo(datosAntiguos);
+  const objetosIniciales = crearObjetosDesdeDefiniciones({
+    configuracionObjetos,
+
+    definiciones: datos.objetosIniciales,
+  });
+
+  const equipamientoInicial = crearObjetosDesdeDefiniciones({
+    configuracionObjetos,
+
+    definiciones: datos.equipamientoInicial,
+  });
 
   return new Enemigo({
-    ...datosNuevos,
+    ...datos,
     x,
     y,
+    objetosIniciales,
+    equipamientoInicial,
   });
 }

@@ -3,65 +3,80 @@
     "nombre": "Rata",
     "genero": "femenino",
     "simbolo": "r",
-
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 10
     },
-
     "ia": {
       "tipoAgresividad": "activa",
       "percepcion": 5,
       "margenPersecucion": 3,
-      "rangoAtaque": 1,
       "movimientosPorTurno": 1
     },
-
     "baseNivel1": {
-      "vidaMaxima": 5,
-      "dadoDanio": 4,
-      "atributoAtaque": "fuerza",
-      "bonificadorArmadura": 0,
       "experienciaOtorgada": 30,
-
       "atributos": {
-        "fuerza": 10,
+        "fuerza": 6,
         "destreza": 14,
-        "constitucion": 8,
+        "constitucion": 4,
         "inteligencia": 2,
-        "sabiduria": 10,
-        "carisma": 4
+        "sabiduria": 6,
+        "carisma": 2
+      },
+      "estadisticasBase": {
+        "vida": 0,
+        "mana": 0,
+        "vidaPorNivel": 3,
+        "manaPorNivel": 0,
+        "precision": 6,
+        "evasion": 6,
+        "armadura": 0,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 0,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 5
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 1,
+        "danioFisicoMaximo": 4,
+        "atributoAtaque": "fuerza",
+        "precision": 0,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5
       }
     },
-
     "escalado": {
-      "vidaMaxima": {
-        "aumento": 2,
-        "cadaNiveles": 1
-      },
-
       "experienciaOtorgada": {
         "aumento": 4,
         "cadaNiveles": 1
       },
-
       "atributos": {
         "fuerza": {
           "aumento": 1,
           "cadaNiveles": 2
         },
-
         "destreza": {
           "aumento": 1,
           "cadaNiveles": 3
         },
-
         "constitucion": {
           "aumento": 1,
           "cadaNiveles": 2
         }
       },
-
       "ia": {
         "percepcion": {
           "aumento": 1,
@@ -73,21 +88,198 @@
       "capacidad": 0,
       "objetosIniciales": []
     },
-
     "equipamiento": {
       "ranuras": [],
       "objetosIniciales": []
     },
-
     "tablaBotin": [],
-
     "hitos": [
       {
         "nivel": 5,
         "cambios": {
-          "dadoDanio": 6
+          "ataqueNatural": {
+            "danioFisicoMaximo": 6
+          }
         }
       }
     ]
+  },
+  "esqueleto_guerrero": {
+    "nombre": "Esqueleto Guerrero",
+    "genero": "masculino",
+    "simbolo": "G",
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 6,
+      "margenPersecucion": 4,
+      "movimientosPorTurno": 1
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 45,
+      "atributos": {
+        "fuerza": 12,
+        "destreza": 8,
+        "constitucion": 10,
+        "inteligencia": 4,
+        "sabiduria": 6,
+        "carisma": 4
+      },
+      "estadisticasBase": {
+        "vida": 15,
+        "mana": 0,
+        "vidaPorNivel": 6,
+        "manaPorNivel": 0,
+        "precision": 8,
+        "evasion": 4,
+        "armadura": 4,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 5,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 5,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": -10,
+          "frio": 10,
+          "rayo": 0,
+          "veneno": 75
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 1,
+        "danioFisicoMaximo": 2,
+        "atributoAtaque": "fuerza",
+        "precision": 0,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 6,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria"],
+      "objetosIniciales": ["espada_larga", "escudo_madera"]
+    },
+    "tablaBotin": [],
+    "hitos": []
+  },
+  "esqueleto_rogue": {
+    "nombre": "Esqueleto Rogue",
+    "genero": "masculino",
+    "simbolo": "R",
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 8,
+      "margenPersecucion": 4,
+      "movimientosPorTurno": 1
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 50,
+      "atributos": {
+        "fuerza": 6,
+        "destreza": 14,
+        "constitucion": 8,
+        "inteligencia": 5,
+        "sabiduria": 6,
+        "carisma": 4
+      },
+      "estadisticasBase": {
+        "vida": 10,
+        "mana": 0,
+        "vidaPorNivel": 4,
+        "manaPorNivel": 0,
+        "precision": 10,
+        "evasion": 8,
+        "armadura": 2,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 7,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 5,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": -10,
+          "frio": 10,
+          "rayo": 0,
+          "veneno": 75
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 1,
+        "danioFisicoMaximo": 2,
+        "atributoAtaque": "destreza",
+        "precision": 0,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 6,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        }
+      },
+      "ia": {
+        "percepcion": {
+          "aumento": 1,
+          "cadaNiveles": 4
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria"],
+      "objetosIniciales": ["arco_corto", "quiver_cuero"]
+    },
+    "tablaBotin": [],
+    "hitos": []
   }
 }

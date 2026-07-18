@@ -1,58 +1,24 @@
-// Importamos Enemigo para distinguir criaturas hostiles
-// de objetos destructibles como barriles.
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
-// Importamos el buscador que encuentra el siguiente
-// paso disponible hacia el jugador.
 import { buscarSiguientePaso } from "./BuscadorCamino.js";
 
-/**
- * Convierte una posición en una clave de texto.
- *
- * Debe usar el mismo formato que BuscadorCamino:
- * "x,y".
- *
- * @param {number} x Posición horizontal.
- * @param {number} y Posición vertical.
- * @returns {string} Clave de la posición.
- */
+import {
+  calcularDistanciaCuadricula,
+  evaluarAtaqueCasilla,
+} from "./SistemaAlcanceAtaque.js";
+
+// Conservamos esta exportación para no romper
+// posibles consumidores anteriores.
+export { calcularDistanciaCuadricula } from "./SistemaAlcanceAtaque.js";
+
 function crearClavePosicion(x, y) {
   return `${x},${y}`;
 }
 
-/**
- * Calcula la distancia entre dos posiciones dentro
- * de una grilla que permite ocho direcciones.
- *
- * Una posición diagonal adyacente cuenta como
- * una sola casilla de distancia.
- *
- * @param {Object} origen Primera posición.
- * @param {Object} destino Segunda posición.
- * @returns {number} Distancia expresada en casillas.
- */
-export function calcularDistanciaCuadricula(origen, destino) {
-  // Calculamos la separación horizontal.
-  const distanciaX = Math.abs(origen.x - destino.x);
-
-  // Calculamos la separación vertical.
-  const distanciaY = Math.abs(origen.y - destino.y);
-
-  // En una grilla de ocho direcciones, una diagonal
-  // permite reducir X e Y al mismo tiempo.
-  return Math.max(distanciaX, distanciaY);
-}
-
-/**
- * Actualiza el estado de agresividad de un enemigo.
- *
- * Los enemigos activos detectan automáticamente.
- * Los reactivos deben haber sido provocados.
- *
- * @param {Enemigo} enemigo Enemigo evaluado.
- * @param {Object} jugador Personaje controlado.
- * @returns {Object} Distancia y mensajes generados.
- */
+// La percepción utiliza únicamente distancia.
+//
+// Por ahora una pared no impide detectar al jugador.
+// La pared sí puede impedir el ataque.
 function actualizarAgresividad(enemigo, jugador) {
   const mensajes = [];
 
@@ -60,8 +26,6 @@ function actualizarAgresividad(enemigo, jugador) {
 
   const { tipoAgresividad, percepcion } = enemigo.configuracionIA;
 
-  // Un enemigo activo detecta automáticamente
-  // al jugador cuando entra en su percepción.
   if (
     !enemigo.estaAgresivo &&
     tipoAgresividad === "activa" &&
@@ -72,8 +36,6 @@ function actualizarAgresividad(enemigo, jugador) {
     mensajes.push(`${enemigo.nombre} te ha detectado.`);
   }
 
-  // Un enemigo agresivo deja de perseguir cuando
-  // el jugador supera su alcance máximo.
   if (enemigo.estaAgresivo && distancia > enemigo.rangoPersecucion) {
     enemigo.desactivarAgresividad();
 
@@ -86,87 +48,73 @@ function actualizarAgresividad(enemigo, jugador) {
   };
 }
 
-/**
- * Crea el conjunto de posiciones que el enemigo
- * no puede atravesar.
- *
- * Se consideran bloqueantes:
- * - Otros enemigos vivos.
- * - Barriles.
- * - Cualquier otro objetivo no destruido.
- *
- * @param {Array<Object>} objetivos Entidades del mapa.
- * @param {Enemigo} enemigoActual Enemigo que se moverá.
- * @returns {Set<string>} Posiciones bloqueadas.
- */
+// Comprueba si el enemigo puede atacar al jugador
+// desde su posición actual.
+//
+// Esta validación incluye:
+//
+// - Alcance del arma.
+// - Patrón de ataque.
+// - Línea de visión.
+// - Paredes y esquinas.
+function evaluarAtaqueEnemigo({ enemigo, jugador, mapa }) {
+  return evaluarAtaqueCasilla({
+    atacante: enemigo,
+    xObjetivo: jugador.x,
+    yObjetivo: jugador.y,
+    mapa,
+  });
+}
+
 function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
   const posicionesBloqueadas = new Set();
 
-  objetivos.forEach((objetivo) => {
-    // El enemigo no puede bloquearse a sí mismo.
+  for (const objetivo of objetivos) {
     if (objetivo === enemigoActual) {
-      return;
+      continue;
     }
 
-    // Los objetivos destruidos dejan libre su casilla.
     if (objetivo.estaDestruido) {
-      return;
+      continue;
     }
 
     posicionesBloqueadas.add(crearClavePosicion(objetivo.x, objetivo.y));
-  });
+  }
 
   return posicionesBloqueadas;
 }
 
-/**
- * Intenta mover un enemigo hacia el jugador.
- *
- * Puede realizar tantos pasos como indique
- * movimientosPorTurno.
- *
- * El movimiento se detiene cuando:
- * - Alcanza su rango de ataque.
- * - No existe un camino.
- * - Ya utilizó todos sus movimientos.
- *
- * @param {Object} opciones Información necesaria.
- * @param {Enemigo} opciones.enemigo Enemigo actual.
- * @param {Object} opciones.jugador Jugador perseguido.
- * @param {Array<string>} opciones.mapa Mapa actual.
- * @param {Array<Object>} opciones.objetivos Entidades.
- * @returns {Object} Cantidad de movimientos realizados.
- */
+// Acerca al enemigo hasta que:
+//
+// - Puede atacar.
+// - Agota sus movimientos.
+// - No encuentra un camino.
 function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   let movimientosRealizados = 0;
 
   const movimientosPermitidos = enemigo.configuracionIA.movimientosPorTurno;
 
-  // Ejecutamos cada movimiento de forma individual.
-  //
-  // Esto permite recalcular obstáculos si el enemigo
-  // puede desplazarse más de una casilla por turno.
-  for (
-    let movimiento = 0;
-    movimiento < movimientosPermitidos;
-    movimiento += 1
-  ) {
-    const distanciaActual = calcularDistanciaCuadricula(enemigo, jugador);
+  for (let movimiento = 0; movimiento < movimientosPermitidos; movimiento++) {
+    const evaluacionAtaque = evaluarAtaqueEnemigo({
+      enemigo,
+      jugador,
+      mapa,
+    });
 
-    // Cuando ya está dentro de su rango de ataque,
-    // deja de acercarse.
-    if (distanciaActual <= enemigo.configuracionIA.rangoAtaque) {
+    // Un arquero se detiene cuando tiene alcance
+    // y línea de visión.
+    //
+    // Un combatiente cuerpo a cuerpo se detiene
+    // cuando llega a una casilla atacable.
+    if (evaluacionAtaque.puedeAtacar) {
       break;
     }
 
-    // Obtenemos las posiciones ocupadas utilizando
-    // el estado más reciente de todas las entidades.
     const posicionesBloqueadas = obtenerPosicionesBloqueadas(
       objetivos,
       enemigo,
     );
 
-    // Buscamos únicamente el próximo paso.
     const siguientePaso = buscarSiguientePaso({
       mapa,
 
@@ -183,18 +131,15 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
       posicionesBloqueadas,
     });
 
-    // Si no existe un camino, el enemigo
-    // permanece en su posición.
     if (!siguientePaso) {
       break;
     }
 
-    // Movemos al enemigo una casilla.
     enemigo.x = siguientePaso.x;
 
     enemigo.y = siguientePaso.y;
 
-    movimientosRealizados += 1;
+    movimientosRealizados++;
   }
 
   return {
@@ -202,41 +147,20 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   };
 }
 
-/**
- * Procesa la fase de todos los enemigos vivos.
- *
- * Cada enemigo puede:
- * - Detectar al jugador.
- * - Abandonar la persecución.
- * - Atacar.
- * - Moverse hacia el jugador.
- *
- * @param {Object} opciones Datos necesarios.
- * @param {Array<Object>} opciones.objetivos Enemigos y objetos.
- * @param {Object} opciones.jugador Jugador actual.
- * @param {Array<string>} opciones.mapa Mapa actual.
- * @returns {Object} Resultado completo de la fase.
- */
+// Procesa de forma secuencial el turno
+// de todos los enemigos vivos.
 export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
   const mensajes = [];
 
-  // Los enemigos actúan de manera secuencial.
-  //
-  // Como sus posiciones se actualizan inmediatamente,
-  // los siguientes enemigos ya reconocen las nuevas
-  // casillas ocupadas.
   for (const objetivo of objetivos) {
-    // Los objetos destructibles no tienen turnos.
     if (!(objetivo instanceof Enemigo)) {
       continue;
     }
 
-    // Los enemigos derrotados no pueden actuar.
     if (!objetivo.estaVivo) {
       continue;
     }
 
-    // Cuando el jugador muere, finaliza la fase.
     if (!jugador.estaVivo) {
       break;
     }
@@ -245,17 +169,21 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
 
     mensajes.push(...resultadoAgresividad.mensajes);
 
-    // Los enemigos pasivos o que abandonaron
-    // la persecución no realizan acciones.
     if (!objetivo.estaAgresivo) {
       continue;
     }
 
-    const rangoAtaque = objetivo.configuracionIA.rangoAtaque;
+    const evaluacionAtaque = evaluarAtaqueEnemigo({
+      enemigo: objetivo,
+      jugador,
+      mapa,
+    });
 
-    // Si ya está dentro del alcance,
-    // ataca en lugar de moverse.
-    if (resultadoAgresividad.distancia <= rangoAtaque) {
+    // El alcance ya no proviene de configuracionIA.
+    //
+    // Una espada, un arco o un ataque natural
+    // utilizan automáticamente sus propias reglas.
+    if (evaluacionAtaque.puedeAtacar) {
       const resultadoAtaque = objetivo.atacar(jugador);
 
       mensajes.push(resultadoAtaque.mensaje);
@@ -266,12 +194,9 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
         break;
       }
 
-      // Un enemigo que atacó no se mueve
-      // durante el mismo turno.
       continue;
     }
 
-    // Si no puede atacar, intenta acercarse.
     const resultadoMovimiento = moverEnemigoHaciaJugador({
       enemigo: objetivo,
       jugador,
@@ -279,14 +204,13 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
       objetivos,
     });
 
-    // Mostramos un único mensaje aunque el enemigo
-    // tenga más de un movimiento por turno.
     if (resultadoMovimiento.movimientosRealizados > 0) {
       mensajes.push(`${objetivo.nombre} avanza hacia vos.`);
     }
 
-    // En esta primera versión, un enemigo que acaba
-    // de moverse no ataca hasta su próximo turno.
+    // Conservamos la regla actual:
+    // un enemigo que se movió no ataca
+    // durante el mismo turno.
   }
 
   return {

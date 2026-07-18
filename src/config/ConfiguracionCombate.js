@@ -32,6 +32,19 @@ export const CONFIGURACION_COMBATE = {
     factorDanio: 10,
   },
 
+  // Eficiencia inicial al combatir con dos armas.
+  //
+  // La suma es 100%, por lo que dos armas iguales
+  // conservan aproximadamente el daño de una sola,
+  // pero generan dos impactos independientes.
+  //
+  // Los futuros pasivos de profesión podrán
+  // modificar estos valores.
+  dosArmas: {
+    multiplicadorManoPrincipal: 0.6,
+    multiplicadorManoSecundaria: 0.4,
+  },
+
   resistencias: {
     minima: -50,
     maxima: 75,

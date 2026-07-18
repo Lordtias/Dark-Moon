@@ -152,7 +152,7 @@
     "ranurasCompatibles": ["secundaria"],
     "propiedades": {
       "armadura": 10,
-      "probabilidadBloqueo": 100,
+      "probabilidadBloqueo": 8,
       "mitigacionBloqueo": 50
     }
   },

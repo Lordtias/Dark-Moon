@@ -9,23 +9,31 @@ function limitar(valor, minimo, maximo) {
 }
 
 function sumarPropiedad(objetos, propiedad) {
-  return objetos.reduce((total, objeto) => {
-    const valor = objeto?.propiedades?.[propiedad] ?? 0;
+  return objetos.reduce(
+    (total, objeto) => {
+      const valor = objeto?.propiedades?.[propiedad] ?? 0;
 
-    return total + (Number.isFinite(valor) ? valor : 0);
-  }, 0);
+      return total + (Number.isFinite(valor) ? valor : 0);
+    },
+
+    0,
+  );
 }
 
 function multiplicarBonosMas(objetos, propiedad) {
-  return objetos.reduce((multiplicador, objeto) => {
-    const valor = objeto?.propiedades?.[propiedad] ?? 0;
+  return objetos.reduce(
+    (multiplicador, objeto) => {
+      const valor = objeto?.propiedades?.[propiedad] ?? 0;
 
-    if (!Number.isFinite(valor)) {
-      return multiplicador;
-    }
+      if (!Number.isFinite(valor)) {
+        return multiplicador;
+      }
 
-    return multiplicador * (1 + valor / 100);
-  }, 1);
+      return multiplicador * (1 + valor / 100);
+    },
+
+    1,
+  );
 }
 
 function obtenerObjetosEquipados(combatiente) {
@@ -67,10 +75,24 @@ export function calcularRecursosMaximos({
   };
 }
 
-// Cada arma escala con su propio atributo
-// antes de sumar su daño.
-function calcularComponenteDanio(combatiente, fuente) {
+// Crea las estadísticas específicas
+// de un golpe individual.
+//
+// Cada mano utiliza:
+//
+// - Su propio daño.
+// - Su propio atributo.
+// - Su propia precisión.
+// - Su propio crítico.
+// - Su propio multiplicador dual.
+function calcularComponenteDanio(combatiente, fuente, objetos) {
   const propiedades = fuente.propiedades;
+
+  const base = combatiente.estadisticasBase;
+
+  const atributos = combatiente.atributos;
+
+  const coeficientes = CONFIGURACION_COMBATE.atributos;
 
   const minimoBase = propiedades.danioFisicoMinimo;
 
@@ -96,33 +118,59 @@ function calcularComponenteDanio(combatiente, fuente) {
 
   const atributoOfensivo = propiedades.atributoAtaque;
 
-  const valorAtributo = combatiente.atributos[atributoOfensivo] ?? 10;
+  const valorAtributo = atributos[atributoOfensivo] ?? 10;
 
   const bonoAtributo =
-    CONFIGURACION_COMBATE.atributos.danioPorPuntoRespectoDiez *
-    (valorAtributo - 10);
+    coeficientes.danioPorPuntoRespectoDiez * (valorAtributo - 10);
 
   const multiplicadorAtributo = Math.max(0, 1 + bonoAtributo);
+
+  const precision =
+    base.precision +
+    coeficientes.precisionPorDestreza * atributos.destreza +
+    (propiedades.precision ?? 0) +
+    sumarPropiedad(objetos, "precisionGlobal");
+
+  const probabilidadCritico = limitar(
+    (propiedades.probabilidadCritico ?? base.probabilidadCritico) +
+      sumarPropiedad(objetos, "probabilidadCriticoGlobal"),
+
+    0,
+
+    CONFIGURACION_COMBATE.limites.criticoMaximo,
+  );
+
+  const multiplicadorCritico =
+    (propiedades.multiplicadorCritico ?? base.multiplicadorCritico) +
+    sumarPropiedad(objetos, "multiplicadorCriticoAdicional");
 
   return {
     nombre: fuente.nombre,
 
+    objeto: fuente.objeto,
+
+    mano: fuente.mano,
+
+    multiplicadorGolpe: fuente.multiplicadorGolpe,
+
     atributoOfensivo,
     valorAtributo,
+
     minimoLocal,
     maximoLocal,
+
     bonoAtributo,
     multiplicadorAtributo,
 
-    minimo: minimoLocal * multiplicadorAtributo,
-
-    maximo: maximoLocal * multiplicadorAtributo,
+    precision,
+    probabilidadCritico,
+    multiplicadorCritico,
   };
 }
 
 function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
-  const componentes = configuracionAtaque.fuentesDanio.map((fuente) =>
-    calcularComponenteDanio(combatiente, fuente),
+  const componentesBase = configuracionAtaque.fuentesDanio.map((fuente) =>
+    calcularComponenteDanio(combatiente, fuente, objetos),
   );
 
   const danioPlanoGlobalMinimo = sumarPropiedad(
@@ -138,11 +186,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   const danioAumentadoGlobal =
     sumarPropiedad(objetos, "danioFisicoAumentadoPorcentaje") / 100;
 
-  const multiplicadorAumentadoGlobal = Math.max(
-    0,
-
-    1 + danioAumentadoGlobal,
-  );
+  const multiplicadorAumentadoGlobal = Math.max(0, 1 + danioAumentadoGlobal);
 
   const multiplicadorMasGlobal = multiplicarBonosMas(
     objetos,
@@ -152,33 +196,57 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   const multiplicadorGlobal =
     multiplicadorAumentadoGlobal * multiplicadorMasGlobal;
 
-  const minimoAntesGlobal =
-    componentes.reduce(
-      (total, componente) => total + componente.minimo,
-
+  // Cada componente recibe una porción del daño
+  // global según el multiplicador de su mano.
+  //
+  // Con 60% + 40%, el daño plano global total
+  // no se duplica por usar dos armas.
+  const componentes = componentesBase.map((componente) => {
+    const minimo = Math.max(
       0,
-    ) + danioPlanoGlobalMinimo;
 
-  const maximoAntesGlobal =
-    componentes.reduce(
-      (total, componente) => total + componente.maximo,
+      (componente.minimoLocal * componente.multiplicadorAtributo +
+        danioPlanoGlobalMinimo) *
+        componente.multiplicadorGolpe *
+        multiplicadorGlobal,
+    );
 
-      0,
-    ) + danioPlanoGlobalMaximo;
+    const maximo = Math.max(
+      minimo,
 
-  const minimoFinal = Math.max(
+      (componente.maximoLocal * componente.multiplicadorAtributo +
+        danioPlanoGlobalMaximo) *
+        componente.multiplicadorGolpe *
+        multiplicadorGlobal,
+    );
+
+    return {
+      ...componente,
+
+      minimo,
+      maximo,
+
+      promedio: (minimo + maximo) / 2,
+    };
+  });
+
+  const minimoFinal = componentes.reduce(
+    (total, componente) => total + componente.minimo,
+
     0,
-
-    minimoAntesGlobal * multiplicadorGlobal,
   );
 
-  const maximoFinal = Math.max(
-    minimoFinal,
+  const maximoFinal = componentes.reduce(
+    (total, componente) => total + componente.maximo,
 
-    maximoAntesGlobal * multiplicadorGlobal,
+    0,
   );
 
   return {
+    esAtaqueDual: configuracionAtaque.esAtaqueDual,
+
+    cantidadGolpes: configuracionAtaque.cantidadGolpes,
+
     componentes,
 
     danioPlanoGlobal: {
@@ -190,8 +258,10 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
     danioAumentadoGlobal,
     multiplicadorMasGlobal,
     multiplicadorGlobal,
-    minimo: minimoFinal,
-    maximo: maximoFinal,
+
+    minimo: Math.max(0, minimoFinal),
+
+    maximo: Math.max(minimoFinal, maximoFinal),
 
     promedio: (minimoFinal + maximoFinal) / 2,
   };
@@ -244,9 +314,10 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const resistencias = {};
 
   for (const resistencia of RESISTENCIAS) {
-    const nombrePropiedad = `resistencia${resistencia[0].toUpperCase()}${resistencia.slice(
-      1,
-    )}`;
+    const nombrePropiedad =
+      `resistencia` +
+      `${resistencia[0].toUpperCase()}` +
+      `${resistencia.slice(1)}`;
 
     let valor =
       base.resistencias[resistencia] +
@@ -280,6 +351,11 @@ export function calcularEstadisticasDerivadas(combatiente) {
     regeneracionVida,
     regeneracionMana,
 
+    // Estas estadísticas generales continúan
+    // representando el arma controladora.
+    //
+    // El combate dual utiliza además los valores
+    // específicos guardados en cada componente.
     precision:
       base.precision +
       coeficientes.precisionPorDestreza * atributos.destreza +
@@ -318,10 +394,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
       CONFIGURACION_COMBATE.limites.bloqueoMaximo,
     ),
 
-    // Indica qué porcentaje del daño entrante
-    // elimina un bloqueo exitoso.
-    //
-    // Por ahora proviene principalmente del escudo.
     mitigacionBloqueo: limitar(
       sumarPropiedad(objetos, "mitigacionBloqueo"),
 

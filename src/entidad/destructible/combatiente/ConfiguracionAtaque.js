@@ -1,10 +1,12 @@
+import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
+
 // Analiza el equipo actual y determina:
 //
 // - Qué arma controla el ataque.
-// - Qué fuentes aportan daño.
+// - Cuántos golpes se realizan.
+// - Qué fuente corresponde a cada mano.
 // - Si el ataque requiere munición.
-// - Si el combatiente está usando temporalmente
-//   su ataque natural como respaldo.
+// - Si se usa el ataque natural como respaldo.
 export function obtenerConfiguracionAtaque(combatiente) {
   // Algunos enemigos pueden cambiar temporalmente
   // a su ataque natural cuando su arma principal
@@ -26,25 +28,23 @@ export function obtenerConfiguracionAtaque(combatiente) {
   if (armaPrincipal) {
     const propiedades = armaPrincipal.propiedades;
 
-    const fuentesDanio = [crearFuenteDesdeArma(armaPrincipal)];
+    const esAtaqueDual = esCombinacionDosArmas({
+      armaPrincipal,
+      armaSecundaria,
+    });
 
-    // Dos armas cuerpo a cuerpo de una mano
-    // contribuyen al mismo ataque.
-    //
-    // El arma principal continúa controlando:
-    //
-    // - Alcance.
-    // - Patrón de ataque.
-    // - Precisión.
-    // - Probabilidad de crítico.
-    if (
-      propiedades.tipoAtaque === "cuerpoACuerpo" &&
-      propiedades.manos === 1 &&
-      armaSecundaria?.propiedades?.tipoAtaque === "cuerpoACuerpo" &&
-      armaSecundaria.propiedades.manos === 1
-    ) {
-      fuentesDanio.push(crearFuenteDesdeArma(armaSecundaria));
-    }
+    const fuentesDanio = esAtaqueDual
+      ? crearFuentesAtaqueDual({
+          armaPrincipal,
+          armaSecundaria,
+        })
+      : [
+          crearFuenteDesdeArma(armaPrincipal, {
+            mano: "principal",
+
+            multiplicadorGolpe: 1,
+          }),
+        ];
 
     return {
       origen: "armaPrincipal",
@@ -55,8 +55,17 @@ export function obtenerConfiguracionAtaque(combatiente) {
       armaSecundaria,
       quiver,
 
+      esAtaqueDual,
+
+      cantidadGolpes: fuentesDanio.length,
+
       fuentesDanio,
 
+      // El arma principal continúa controlando:
+      //
+      // - Alcance.
+      // - Patrón.
+      // - Tipo de ataque.
       propiedadesControladoras: propiedades,
 
       requiereQuiver: armaPrincipal.requiereQuiver,
@@ -65,10 +74,20 @@ export function obtenerConfiguracionAtaque(combatiente) {
     };
   }
 
-  // Un arma cuerpo a cuerpo colocada
-  // únicamente en secundaria puede utilizarse
-  // cuando no existe un arma principal.
+  // Un arma cuerpo a cuerpo ubicada solamente
+  // en secundaria puede utilizarse cuando no
+  // existe un arma principal.
   if (armaSecundaria) {
+    const fuentesDanio = [
+      crearFuenteDesdeArma(armaSecundaria, {
+        mano: "secundaria",
+
+        // Al ser la única arma activa,
+        // utiliza toda su potencia.
+        multiplicadorGolpe: 1,
+      }),
+    ];
+
     return {
       origen: "armaSecundaria",
 
@@ -78,7 +97,10 @@ export function obtenerConfiguracionAtaque(combatiente) {
       armaSecundaria,
       quiver: null,
 
-      fuentesDanio: [crearFuenteDesdeArma(armaSecundaria)],
+      esAtaqueDual: false,
+      cantidadGolpes: 1,
+
+      fuentesDanio,
 
       propiedadesControladoras: armaSecundaria.propiedades,
 
@@ -91,12 +113,63 @@ export function obtenerConfiguracionAtaque(combatiente) {
   return crearConfiguracionAtaqueNatural(combatiente);
 }
 
+// Comprueba que ambas armas sean válidas
+// para realizar un ataque dual.
+//
+// Por ahora solamente admitimos:
+//
+// - Dos armas.
+// - Cuerpo a cuerpo.
+// - De una mano.
+function esCombinacionDosArmas({ armaPrincipal, armaSecundaria }) {
+  if (!armaPrincipal || !armaSecundaria) {
+    return false;
+  }
+
+  return (
+    armaPrincipal.propiedades.tipoAtaque === "cuerpoACuerpo" &&
+    armaPrincipal.propiedades.manos === 1 &&
+    armaSecundaria.propiedades.tipoAtaque === "cuerpoACuerpo" &&
+    armaSecundaria.propiedades.manos === 1
+  );
+}
+
+// Crea las dos fuentes independientes
+// utilizadas durante un ataque dual.
+function crearFuentesAtaqueDual({ armaPrincipal, armaSecundaria }) {
+  const configuracion = CONFIGURACION_COMBATE.dosArmas;
+
+  return [
+    crearFuenteDesdeArma(armaPrincipal, {
+      mano: "principal",
+
+      multiplicadorGolpe: configuracion.multiplicadorManoPrincipal,
+    }),
+
+    crearFuenteDesdeArma(armaSecundaria, {
+      mano: "secundaria",
+
+      multiplicadorGolpe: configuracion.multiplicadorManoSecundaria,
+    }),
+  ];
+}
+
 // Crea una configuración completa basada
 // únicamente en el ataque natural.
-//
-// Esta función evita duplicar la estructura
-// en varios puntos del sistema.
 function crearConfiguracionAtaqueNatural(combatiente) {
+  const fuentesDanio = [
+    {
+      nombre: "Ataque natural",
+
+      objeto: null,
+      mano: "natural",
+
+      multiplicadorGolpe: 1,
+
+      propiedades: combatiente.ataqueNatural,
+    },
+  ];
+
   return {
     origen: "ataqueNatural",
 
@@ -105,14 +178,10 @@ function crearConfiguracionAtaqueNatural(combatiente) {
     armaSecundaria: null,
     quiver: null,
 
-    fuentesDanio: [
-      {
-        nombre: "Ataque natural",
-        objeto: null,
+    esAtaqueDual: false,
+    cantidadGolpes: 1,
 
-        propiedades: combatiente.ataqueNatural,
-      },
-    ],
+    fuentesDanio,
 
     propiedadesControladoras: combatiente.ataqueNatural,
 
@@ -237,10 +306,21 @@ function obtenerObjetoEnRanura(combatiente, nombreRanura) {
   return combatiente.equipamiento.obtenerObjetoEnRanura(nombreRanura);
 }
 
-function crearFuenteDesdeArma(arma) {
+function crearFuenteDesdeArma(arma, { mano, multiplicadorGolpe }) {
+  if (!Number.isFinite(multiplicadorGolpe) || multiplicadorGolpe < 0) {
+    throw new Error(
+      `El multiplicador de golpe de ${arma.nombre} no es válido.`,
+    );
+  }
+
   return {
     nombre: arma.nombre,
+
     objeto: arma,
+
+    mano,
+
+    multiplicadorGolpe,
 
     propiedades: arma.propiedades,
   };

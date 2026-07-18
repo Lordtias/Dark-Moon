@@ -2,6 +2,8 @@ import { Combatiente } from "./Combatiente.js";
 
 const TIPOS_AGRESIVIDAD_VALIDOS = ["activa", "reactiva"];
 
+const ESTRATEGIAS_SIN_RECURSOS_VALIDAS = ["ataqueNatural", "esperar"];
+
 // Representa cualquier combatiente controlado
 // por la inteligencia artificial.
 export class Enemigo extends Combatiente {
@@ -54,6 +56,13 @@ export class Enemigo extends Combatiente {
     };
 
     this.estaAgresivo = false;
+
+    // Cuando vale true, ConfiguracionAtaque ignora
+    // temporalmente las armas equipadas y utiliza
+    // el ataque natural del enemigo.
+    //
+    // No se desequipa ni elimina ningún objeto.
+    this.ataqueNaturalForzado = false;
   }
 
   validarConfiguracionIA(configuracionIA) {
@@ -63,7 +72,7 @@ export class Enemigo extends Combatiente {
       Array.isArray(configuracionIA)
     ) {
       throw new Error(
-        `${this.nombre} necesita una configuración de IA válida.`,
+        `${this.nombre} necesita una ` + "configuración de IA válida.",
       );
     }
 
@@ -74,9 +83,21 @@ export class Enemigo extends Combatiente {
       );
     }
 
-    // El alcance de ataque ya no forma parte de la IA.
+    if (
+      !ESTRATEGIAS_SIN_RECURSOS_VALIDAS.includes(
+        configuracionIA.estrategiaSinRecursos,
+      )
+    ) {
+      throw new Error(
+        `La estrategia sin recursos de ${this.nombre} debe ser: ` +
+          `${ESTRATEGIAS_SIN_RECURSOS_VALIDAS.join(" o ")}.`,
+      );
+    }
+
+    // El alcance de ataque no pertenece a la IA.
     //
     // Se obtiene dinámicamente desde:
+    //
     // - El arma equipada.
     // - El ataque natural.
     const camposNumericos = [
@@ -86,10 +107,12 @@ export class Enemigo extends Combatiente {
       },
       {
         nombre: "margenPersecucion",
+
         minimo: 0,
       },
       {
         nombre: "movimientosPorTurno",
+
         minimo: 0,
       },
     ];
@@ -120,5 +143,31 @@ export class Enemigo extends Combatiente {
 
   desactivarAgresividad() {
     this.estaAgresivo = false;
+  }
+
+  // Activa el ataque natural como respaldo.
+  //
+  // Devuelve true únicamente cuando cambió
+  // realmente el estado.
+  activarAtaqueNaturalForzado() {
+    if (this.ataqueNaturalForzado) {
+      return false;
+    }
+
+    this.ataqueNaturalForzado = true;
+
+    return true;
+  }
+
+  // Permite que el enemigo vuelva a comprobar
+  // su arma equipada en el siguiente turno.
+  desactivarAtaqueNaturalForzado() {
+    if (!this.ataqueNaturalForzado) {
+      return false;
+    }
+
+    this.ataqueNaturalForzado = false;
+
+    return true;
   }
 }

@@ -1,6 +1,20 @@
-// Analiza el equipo actual y determina qué arma controla el ataque,
-// qué fuentes aportan daño y si se necesita munición.
+// Analiza el equipo actual y determina:
+//
+// - Qué arma controla el ataque.
+// - Qué fuentes aportan daño.
+// - Si el ataque requiere munición.
+// - Si el combatiente está usando temporalmente
+//   su ataque natural como respaldo.
 export function obtenerConfiguracionAtaque(combatiente) {
+  // Algunos enemigos pueden cambiar temporalmente
+  // a su ataque natural cuando su arma principal
+  // no tiene los recursos necesarios.
+  //
+  // El equipamiento no se modifica ni se desequipa.
+  if (combatiente.ataqueNaturalForzado === true) {
+    return crearConfiguracionAtaqueNatural(combatiente);
+  }
+
   const armaPrincipal = obtenerArmaEnRanura(combatiente, "arma");
 
   const objetoSecundario = obtenerObjetoEnRanura(combatiente, "secundaria");
@@ -15,12 +29,14 @@ export function obtenerConfiguracionAtaque(combatiente) {
     const fuentesDanio = [crearFuenteDesdeArma(armaPrincipal)];
 
     // Dos armas cuerpo a cuerpo de una mano
-    // atacan juntas.
+    // contribuyen al mismo ataque.
     //
-    // La principal sigue controlando:
+    // El arma principal continúa controlando:
+    //
     // - Alcance.
+    // - Patrón de ataque.
     // - Precisión.
-    // - Crítico.
+    // - Probabilidad de crítico.
     if (
       propiedades.tipoAtaque === "cuerpoACuerpo" &&
       propiedades.manos === 1 &&
@@ -38,6 +54,7 @@ export function obtenerConfiguracionAtaque(combatiente) {
       armaPrincipal,
       armaSecundaria,
       quiver,
+
       fuentesDanio,
 
       propiedadesControladoras: propiedades,
@@ -48,9 +65,9 @@ export function obtenerConfiguracionAtaque(combatiente) {
     };
   }
 
-  // Una arma cuerpo a cuerpo colocada
+  // Un arma cuerpo a cuerpo colocada
   // únicamente en secundaria puede utilizarse
-  // mientras no exista un arma principal.
+  // cuando no existe un arma principal.
   if (armaSecundaria) {
     return {
       origen: "armaSecundaria",
@@ -71,7 +88,15 @@ export function obtenerConfiguracionAtaque(combatiente) {
     };
   }
 
-  // Sin armas se utiliza el ataque natural.
+  return crearConfiguracionAtaqueNatural(combatiente);
+}
+
+// Crea una configuración completa basada
+// únicamente en el ataque natural.
+//
+// Esta función evita duplicar la estructura
+// en varios puntos del sistema.
+function crearConfiguracionAtaqueNatural(combatiente) {
   return {
     origen: "ataqueNatural",
 
@@ -83,7 +108,6 @@ export function obtenerConfiguracionAtaque(combatiente) {
     fuentesDanio: [
       {
         nombre: "Ataque natural",
-
         objeto: null,
 
         propiedades: combatiente.ataqueNatural,
@@ -97,8 +121,8 @@ export function obtenerConfiguracionAtaque(combatiente) {
   };
 }
 
-// Comprueba que un ataque a distancia
-// tenga quiver y munición compatible.
+// Comprueba que el ataque actual tenga
+// todos los recursos necesarios.
 export function verificarRequisitosAtaque(combatiente) {
   const configuracion = obtenerConfiguracionAtaque(combatiente);
 
@@ -133,7 +157,7 @@ export function verificarRequisitosAtaque(combatiente) {
 
       mensaje:
         `${configuracion.quiver.nombre} no admite ` +
-        `la munición requerida por ` +
+        "la munición requerida por " +
         `${configuracion.armaControladora.nombre}.`,
     };
   }
@@ -159,9 +183,10 @@ export function verificarRequisitosAtaque(combatiente) {
   };
 }
 
-// Consume una unidad al realizar el disparo.
+// Consume una unidad al realizar un disparo.
 //
 // La munición se gasta aunque el ataque:
+//
 // - Falle.
 // - Sea bloqueado.
 // - Apunte a una casilla vacía.
@@ -215,7 +240,6 @@ function obtenerObjetoEnRanura(combatiente, nombreRanura) {
 function crearFuenteDesdeArma(arma) {
   return {
     nombre: arma.nombre,
-
     objeto: arma,
 
     propiedades: arma.propiedades,

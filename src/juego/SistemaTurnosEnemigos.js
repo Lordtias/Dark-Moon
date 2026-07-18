@@ -7,8 +7,10 @@ import {
   evaluarAtaqueCasilla,
 } from "./SistemaAlcanceAtaque.js";
 
+import { verificarRequisitosAtaque } from "../entidad/destructible/combatiente/ConfiguracionAtaque.js";
+
 // Conservamos esta exportación para no romper
-// posibles consumidores anteriores.
+// consumidores anteriores.
 export { calcularDistanciaCuadricula } from "./SistemaAlcanceAtaque.js";
 
 function crearClavePosicion(x, y) {
@@ -48,13 +50,72 @@ function actualizarAgresividad(enemigo, jugador) {
   };
 }
 
+// Determina qué ataque utilizará el enemigo
+// durante este turno.
+//
+// Primero vuelve a comprobar el ataque equipado.
+// Si no está disponible, aplica la estrategia
+// configurada en su IA.
+function prepararAtaqueEnemigo(enemigo) {
+  const estabaUsandoAtaqueNatural = enemigo.ataqueNaturalForzado;
+
+  // Cada turno intentamos recuperar el ataque
+  // equipado por si volvió a tener recursos.
+  enemigo.desactivarAtaqueNaturalForzado();
+
+  const requisitosAtaqueEquipado = verificarRequisitosAtaque(enemigo);
+
+  if (requisitosAtaqueEquipado.disponible) {
+    const arma = requisitosAtaqueEquipado.configuracion.armaControladora;
+
+    return {
+      disponible: true,
+
+      mensaje:
+        estabaUsandoAtaqueNatural && arma
+          ? `${enemigo.nombre} vuelve a utilizar ${arma.nombre}.`
+          : null,
+    };
+  }
+
+  const estrategia = enemigo.configuracionIA.estrategiaSinRecursos;
+
+  if (estrategia === "ataqueNatural") {
+    enemigo.activarAtaqueNaturalForzado();
+
+    const requisitosAtaqueNatural = verificarRequisitosAtaque(enemigo);
+
+    const arma = requisitosAtaqueEquipado.configuracion.armaControladora;
+
+    return {
+      disponible: requisitosAtaqueNatural.disponible,
+
+      // El mensaje aparece solamente cuando
+      // el enemigo cambia por primera vez.
+      mensaje: !estabaUsandoAtaqueNatural
+        ? `${enemigo.nombre} no puede utilizar ` +
+          `${arma?.nombre ?? "su ataque equipado"} ` +
+          "y cambia a su ataque natural."
+        : null,
+    };
+  }
+
+  // La estrategia "esperar" mantiene al enemigo
+  // en su posición sin realizar un ataque.
+  return {
+    disponible: false,
+
+    mensaje: requisitosAtaqueEquipado.mensaje,
+  };
+}
+
 // Comprueba si el enemigo puede atacar al jugador
 // desde su posición actual.
 //
-// Esta validación incluye:
+// La validación incluye:
 //
-// - Alcance del arma.
-// - Patrón de ataque.
+// - Alcance.
+// - Patrón.
 // - Línea de visión.
 // - Paredes y esquinas.
 function evaluarAtaqueEnemigo({ enemigo, jugador, mapa }) {
@@ -101,11 +162,6 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
       mapa,
     });
 
-    // Un arquero se detiene cuando tiene alcance
-    // y línea de visión.
-    //
-    // Un combatiente cuerpo a cuerpo se detiene
-    // cuando llega a una casilla atacable.
     if (evaluacionAtaque.puedeAtacar) {
       break;
     }
@@ -147,7 +203,7 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   };
 }
 
-// Procesa de forma secuencial el turno
+// Procesa secuencialmente el turno
 // de todos los enemigos vivos.
 export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
   const mensajes = [];
@@ -173,16 +229,22 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
       continue;
     }
 
+    const preparacionAtaque = prepararAtaqueEnemigo(objetivo);
+
+    if (preparacionAtaque.mensaje) {
+      mensajes.push(preparacionAtaque.mensaje);
+    }
+
+    if (!preparacionAtaque.disponible) {
+      continue;
+    }
+
     const evaluacionAtaque = evaluarAtaqueEnemigo({
       enemigo: objetivo,
       jugador,
       mapa,
     });
 
-    // El alcance ya no proviene de configuracionIA.
-    //
-    // Una espada, un arco o un ataque natural
-    // utilizan automáticamente sus propias reglas.
     if (evaluacionAtaque.puedeAtacar) {
       const resultadoAtaque = objetivo.atacar(jugador);
 
@@ -208,13 +270,14 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
       mensajes.push(`${objetivo.nombre} avanza hacia vos.`);
     }
 
-    // Conservamos la regla actual:
+    // Se conserva la regla actual:
     // un enemigo que se movió no ataca
     // durante el mismo turno.
   }
 
   return {
     mensajes,
+
     mensaje: mensajes.join(" "),
   };
 }

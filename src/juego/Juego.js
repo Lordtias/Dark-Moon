@@ -409,7 +409,7 @@ export class Juego {
       }
     }
 
-    return mensajes.filter(Boolean).join(" ");
+    return mensajes.filter(Boolean).join("\n");
   }
 
   confirmarAtaque() {
@@ -490,7 +490,7 @@ export class Juego {
     });
 
     if (resultadoEnemigos.mensaje !== "") {
-      mensaje = [mensaje, resultadoEnemigos.mensaje].filter(Boolean).join(" ");
+      mensaje = [mensaje, resultadoEnemigos.mensaje].filter(Boolean).join("\n");
     }
 
     const regeneracion = this.aplicarRegeneraciones();
@@ -506,7 +506,10 @@ export class Juego {
     }
 
     if (recursosRecuperados.length > 0) {
-      mensaje += ` Recuperaste ` + `${recursosRecuperados.join(" y ")}.`;
+      const mensajeRegeneracion =
+        "Recuperaste " + `${recursosRecuperados.join(" y ")}.`;
+
+      mensaje = [mensaje, mensajeRegeneracion].filter(Boolean).join("\n");
     }
 
     return {

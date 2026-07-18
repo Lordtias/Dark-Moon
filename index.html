@@ -193,9 +193,16 @@
             <section class="panel-juego panel-registro">
               <h2>Registro de eventos</h2>
 
-              <p id="combatLog" aria-live="polite">
-                Acercate a la rata o al barril para atacarlos.
-              </p>
+              <div
+                id="combatLog"
+                role="log"
+                aria-live="polite"
+                aria-relevant="additions"
+              >
+                <p class="mensaje-registro mensaje-registro--sistema">
+                  Comenzá la aventura y explorá el mapa.
+                </p>
+              </div>
             </section>
           </section>
 

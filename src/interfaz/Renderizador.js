@@ -1,5 +1,9 @@
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
+import { normalizarMensajesJuego } from "../juego/MensajesJuego.js";
+
+const MAXIMO_MENSAJES_REGISTRO = 120;
+
 // Renderizador representa visualmente la partida
 // sin modificar sus reglas.
 export class Renderizador {
@@ -34,23 +38,41 @@ export class Renderizador {
     }
 
     this.canvas = canvas;
+
     this.context = context;
+
     this.panelPersonaje = panelPersonaje;
 
     this.combatLogText = combatLogText;
 
     this.tileSize = tileSize;
+
     this.panelInventario = panelInventario;
 
     this.panelEquipamiento = panelEquipamiento;
+
+    // Se utiliza para interpretar correctamente
+    // los mensajes antiguos de combate.
+    this.nombreJugador = "";
+
+    // La primera llamada reemplazará el mensaje
+    // explicativo incluido en index.html.
+    this.registroInicializado = false;
   }
 
   dibujarJuego(juego) {
+    this.nombreJugador = juego.player.nombre;
+
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.dibujarMapa(juego.map, juego.mapaSeleccionado?.apariencia);
+    this.dibujarMapa(
+      juego.map,
 
-    // Solo se resaltan casillas con trayectoria válida.
+      juego.mapaSeleccionado?.apariencia,
+    );
+
+    // Solo se resaltan casillas
+    // con trayectoria válida.
     if (juego.modoCombateActivo) {
       this.dibujarRangoCombate(juego);
     }
@@ -201,11 +223,52 @@ export class Renderizador {
     this.context.fillText(simbolo, centroX, centroY);
   }
 
+  // Agrega mensajes al historial sin borrar
+  // los eventos anteriores.
   mostrarMensaje(mensaje) {
-    if (typeof mensaje !== "string" || mensaje.trim() === "") {
+    const mensajes = normalizarMensajesJuego(mensaje, {
+      nombreJugador: this.nombreJugador,
+    });
+
+    if (mensajes.length === 0) {
       return;
     }
 
-    this.combatLogText.textContent = mensaje;
+    if (!this.registroInicializado) {
+      this.combatLogText.replaceChildren();
+
+      this.registroInicializado = true;
+    }
+
+    const fragmento = document.createDocumentFragment();
+
+    for (const evento of mensajes) {
+      const elemento = document.createElement("p");
+
+      elemento.classList.add(
+        "mensaje-registro",
+        `mensaje-registro--${evento.tipo}`,
+      );
+
+      elemento.dataset.tipo = evento.tipo;
+
+      elemento.textContent = evento.texto;
+
+      fragmento.appendChild(elemento);
+    }
+
+    this.combatLogText.appendChild(fragmento);
+
+    this.limitarHistorialMensajes();
+
+    // Mantiene visible automáticamente
+    // el evento más reciente.
+    this.combatLogText.scrollTop = this.combatLogText.scrollHeight;
+  }
+
+  limitarHistorialMensajes() {
+    while (this.combatLogText.childElementCount > MAXIMO_MENSAJES_REGISTRO) {
+      this.combatLogText.firstElementChild?.remove();
+    }
   }
 }

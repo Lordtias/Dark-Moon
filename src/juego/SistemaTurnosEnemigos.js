@@ -278,6 +278,6 @@ export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
   return {
     mensajes,
 
-    mensaje: mensajes.join(" "),
+    mensaje: mensajes.join("\n"),
   };
 }

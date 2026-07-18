@@ -152,7 +152,8 @@
     "ranurasCompatibles": ["secundaria"],
     "propiedades": {
       "armadura": 10,
-      "probabilidadBloqueo": 8
+      "probabilidadBloqueo": 100,
+      "mitigacionBloqueo": 50
     }
   },
   "quiver_cuero": {

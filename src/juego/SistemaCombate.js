@@ -82,18 +82,21 @@ export function calcularProbabilidadImpacto(atacante, objetivo) {
   );
 }
 
-export function calcularReduccionArmadura(armadura, danioFisicoBruto) {
-  if (armadura <= 0 || danioFisicoBruto <= 0) {
+export function calcularReduccionArmadura(armadura, danioFisicoEntrante) {
+  if (armadura <= 0 || danioFisicoEntrante <= 0) {
     return 0;
   }
 
   const factor = CONFIGURACION_COMBATE.armadura.factorDanio;
 
-  return armadura / (armadura + factor * danioFisicoBruto);
+  return armadura / (armadura + factor * danioFisicoEntrante);
 }
 
 // Cada arma activa realiza su propia tirada
-// y aplica su propio atributo.
+// de daño y utiliza su propio atributo.
+//
+// El sistema de dos armas se modificará
+// en la siguiente etapa.
 function calcularDanioFisicoBruto(atacante) {
   const estadisticas = atacante.estadisticasDerivadas;
 
@@ -135,12 +138,103 @@ function calcularDanioFisicoBruto(atacante) {
   };
 }
 
+// Procesa la primera capa defensiva:
+//
+// escudo físico.
+//
+// Un bloqueo exitoso ya no anula
+// automáticamente todo el ataque.
+function resolverBloqueoParcial({ estadisticasObjetivo, danioEntrante } = {}) {
+  if (estadisticasObjetivo === null || danioEntrante <= 0) {
+    return crearResultadoSinBloqueo(danioEntrante);
+  }
+
+  const probabilidadBloqueo = estadisticasObjetivo.probabilidadBloqueo ?? 0;
+
+  const mitigacionBloqueo = estadisticasObjetivo.mitigacionBloqueo ?? 0;
+
+  // Una probabilidad sin mitigación no genera
+  // un bloqueo real. Esto permite que bonos
+  // base mejoren un escudo equipado, pero no
+  // bloqueen por sí solos.
+  if (probabilidadBloqueo <= 0 || mitigacionBloqueo <= 0) {
+    return crearResultadoSinBloqueo(danioEntrante);
+  }
+
+  const tiradaBloqueo = tirarPorcentaje(probabilidadBloqueo);
+
+  if (!tiradaBloqueo.exito) {
+    return {
+      ...crearResultadoSinBloqueo(danioEntrante),
+
+      probabilidadBloqueo,
+      mitigacionBloqueo,
+
+      tiradaBloqueo: tiradaBloqueo.tirada,
+    };
+  }
+
+  const proporcionMitigada = mitigacionBloqueo / 100;
+
+  const danioMitigado = danioEntrante * proporcionMitigada;
+
+  const danioRestante = Math.max(
+    0,
+
+    danioEntrante - danioMitigado,
+  );
+
+  return {
+    bloqueado: true,
+
+    probabilidadBloqueo,
+    mitigacionBloqueo,
+
+    tiradaBloqueo: tiradaBloqueo.tirada,
+
+    proporcionMitigada,
+    danioMitigado,
+    danioRestante,
+  };
+}
+
+function crearResultadoSinBloqueo(danioEntrante) {
+  return {
+    bloqueado: false,
+
+    probabilidadBloqueo: 0,
+    mitigacionBloqueo: 0,
+
+    tiradaBloqueo: null,
+
+    proporcionMitigada: 0,
+    danioMitigado: 0,
+
+    danioRestante: Math.max(0, danioEntrante),
+  };
+}
+
 function crearTextoMunicion(resultadoMunicion) {
   if (!resultadoMunicion.consumida) {
     return "";
   }
 
-  return ` Munición restante: ` + `${resultadoMunicion.restante}.`;
+  return " Munición restante: " + `${resultadoMunicion.restante}.`;
+}
+
+function crearTextoBloqueo(resultadoBloqueo) {
+  if (!resultadoBloqueo.bloqueado) {
+    return "";
+  }
+
+  return (
+    " Bloqueo: " +
+    `${resultadoBloqueo.tiradaBloqueo} / ` +
+    `${formatearNumero(resultadoBloqueo.probabilidadBloqueo)}%. ` +
+    "Mitigación del escudo: " +
+    `${formatearNumero(resultadoBloqueo.mitigacionBloqueo)}% ` +
+    `(-${formatearNumero(resultadoBloqueo.danioMitigado)}).`
+  );
 }
 
 // Se utiliza cuando el jugador confirma
@@ -190,6 +284,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       bloqueado: false,
       critico: false,
       danio: 0,
+
       objetivoDestruido: false,
 
       mensaje:
@@ -210,6 +305,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       bloqueado: false,
       critico: false,
       danio: 0,
+
       objetivoDestruido: true,
 
       mensaje: `${objetivo.nombre} ya está destruido.`,
@@ -224,6 +320,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       bloqueado: false,
       critico: false,
       danio: 0,
+
       objetivoDestruido: false,
 
       ataqueNoDisponible: true,
@@ -248,6 +345,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       bloqueado: false,
       critico: false,
       danio: 0,
+
       objetivoDestruido: false,
 
       probabilidadImpacto,
@@ -258,75 +356,83 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
 
       mensaje:
         `${atacante.nombre} falla contra ` +
-        `${objetivo.nombre}. ` +
+        `${objetivo.nombre}.\n` +
         `Impacto: ${tiradaImpacto.tirada} / ` +
         `${formatearNumero(probabilidadImpacto)}%.` +
         textoMunicion,
     };
   }
 
-  const estadisticasObjetivo = obtenerEstadisticasCombatiente(objetivo);
-
-  if (
-    estadisticasObjetivo !== null &&
-    estadisticasObjetivo.probabilidadBloqueo > 0
-  ) {
-    const tiradaBloqueo = tirarPorcentaje(
-      estadisticasObjetivo.probabilidadBloqueo,
-    );
-
-    if (tiradaBloqueo.exito) {
-      return {
-        impacto: true,
-        bloqueado: true,
-        critico: false,
-        danio: 0,
-        objetivoDestruido: false,
-
-        municionRestante: resultadoMunicion.restante,
-
-        mensaje:
-          `${objetivo.nombre} bloquea el ataque ` +
-          `de ${atacante.nombre}. ` +
-          `Bloqueo: ${tiradaBloqueo.tirada} / ` +
-          `${formatearNumero(estadisticasObjetivo.probabilidadBloqueo)}%.` +
-          textoMunicion,
-      };
-    }
-  }
-
+  // Primera etapa ofensiva:
+  //
+  // daño bruto y crítico.
   const resultadoDanio = calcularDanioFisicoBruto(atacante);
 
+  const estadisticasObjetivo = obtenerEstadisticasCombatiente(objetivo);
+
+  // Primera capa defensiva:
+  //
+  // escudo físico.
+  const resultadoBloqueo = resolverBloqueoParcial({
+    estadisticasObjetivo,
+
+    danioEntrante: resultadoDanio.danioBruto,
+  });
+
+  // En el futuro, las barreras o escudos
+  // mágicos se procesarán en este punto.
+  const danioTrasBarreras = resultadoBloqueo.danioRestante;
+
+  // Segunda capa defensiva actual:
+  //
+  // armadura física.
   const armadura = estadisticasObjetivo?.armadura ?? objetivo.armadura ?? 0;
 
   const reduccionArmadura = calcularReduccionArmadura(
     armadura,
-    resultadoDanio.danioBruto,
+    danioTrasBarreras,
   );
 
-  const danioReducido = resultadoDanio.danioBruto * (1 - reduccionArmadura);
+  const danioTrasArmadura = danioTrasBarreras * (1 - reduccionArmadura);
 
+  // Ya no existe un daño mínimo obligatorio.
+  //
+  // Si todas las capas defensivas reducen
+  // el resultado a menos de 1, se aplicará 0.
   const danioSolicitado = Math.max(
-    CONFIGURACION_COMBATE.armadura.danioMinimo,
+    0,
 
-    Math.floor(danioReducido),
+    Math.floor(danioTrasArmadura),
   );
 
   const danioAplicado = objetivo.recibirDanio(danioSolicitado);
 
-  const porcentajeReduccion = reduccionArmadura * 100;
+  const porcentajeReduccionArmadura = reduccionArmadura * 100;
 
   const textoCritico = resultadoDanio.critico ? " Golpe crítico." : "";
 
+  const textoBloqueo = crearTextoBloqueo(resultadoBloqueo);
+
   return {
     impacto: true,
-    bloqueado: false,
+
+    bloqueado: resultadoBloqueo.bloqueado,
 
     critico: resultadoDanio.critico,
 
     danio: danioAplicado,
 
     danioBruto: resultadoDanio.danioBruto,
+
+    danioMitigadoBloqueo: resultadoBloqueo.danioMitigado,
+
+    danioDespuesBloqueo: resultadoBloqueo.danioRestante,
+
+    probabilidadBloqueo: resultadoBloqueo.probabilidadBloqueo,
+
+    mitigacionBloqueo: resultadoBloqueo.mitigacionBloqueo,
+
+    tiradaBloqueo: resultadoBloqueo.tiradaBloqueo,
 
     armadura,
     reduccionArmadura,
@@ -343,11 +449,12 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       `${atacante.nombre} impacta a ${objetivo.nombre} ` +
       `(${tiradaImpacto.tirada} / ` +
       `${formatearNumero(probabilidadImpacto)}%) ` +
-      `y causa ${danioAplicado} de daño. ` +
-      `Bruto: ${formatearNumero(resultadoDanio.danioBruto)}. ` +
-      `Armadura: ${armadura} ` +
-      `(-${formatearNumero(porcentajeReduccion)}%).` +
+      `y causa ${danioAplicado} de daño.\n` +
+      `Bruto: ${formatearNumero(resultadoDanio.danioBruto)}.` +
       textoCritico +
+      textoBloqueo +
+      ` Armadura: ${armadura} ` +
+      `(-${formatearNumero(porcentajeReduccionArmadura)}%).` +
       textoMunicion,
   };
 }

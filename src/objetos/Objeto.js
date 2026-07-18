@@ -107,6 +107,10 @@ export class Objeto {
       this.validarPropiedadesArma();
     }
 
+    if (this.esArmadura) {
+      this.validarPropiedadesArmadura();
+    }
+
     if (this.esQuiver) {
       this.validarPropiedadesQuiver();
     }
@@ -162,15 +166,11 @@ export class Objeto {
     }
 
     // Guardamos la versión normalizada para que
-    // el resto del juego trabaje siempre con el
-    // mismo formato.
+    // todo el juego utilice el mismo formato.
     this.propiedades.patronAtaque = patronNormalizado;
 
-    // Un patrón adyacente representa estrictamente
-    // las ocho posiciones contiguas.
-    //
-    // Si se necesita alcance 2 o superior debe
-    // utilizarse lineal, libre u otro patrón futuro.
+    // El patrón adyacente representa únicamente
+    // las ocho casillas contiguas.
     if (patronNormalizado === PATRONES_ATAQUE.ADYACENTE && alcance !== 1) {
       throw new Error(
         `"${this.nombre}" utiliza patrón adyacente ` +
@@ -207,12 +207,74 @@ export class Objeto {
     }
 
     if (requiereQuiver) {
-      this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+      this.validarTexto(
+        this.propiedades.tipoMunicion,
+
+        "tipo de munición",
+      );
+    }
+  }
+
+  // Valida armadura, probabilidad de bloqueo
+  // y porcentaje de daño mitigado.
+  validarPropiedadesArmadura() {
+    const armadura = this.propiedades.armadura ?? 0;
+
+    const probabilidadBloqueo = this.propiedades.probabilidadBloqueo ?? 0;
+
+    const mitigacionBloqueo = this.propiedades.mitigacionBloqueo ?? 0;
+
+    if (!Number.isFinite(armadura) || armadura < 0) {
+      throw new Error(`La armadura de "${this.nombre}" no es válida.`);
+    }
+
+    if (
+      !Number.isFinite(probabilidadBloqueo) ||
+      probabilidadBloqueo < 0 ||
+      probabilidadBloqueo > 100
+    ) {
+      throw new Error(
+        `La probabilidad de bloqueo de "${this.nombre}" ` +
+          "debe estar entre 0 y 100.",
+      );
+    }
+
+    if (
+      !Number.isFinite(mitigacionBloqueo) ||
+      mitigacionBloqueo < 0 ||
+      mitigacionBloqueo > 100
+    ) {
+      throw new Error(
+        `La mitigación de bloqueo de "${this.nombre}" ` +
+          "debe estar entre 0 y 100.",
+      );
+    }
+
+    // Un objeto que permite bloquear también debe
+    // indicar cuánto daño reduce ese bloqueo.
+    if (probabilidadBloqueo > 0 && mitigacionBloqueo <= 0) {
+      throw new Error(
+        `"${this.nombre}" tiene probabilidad de bloqueo ` +
+          "pero no tiene mitigación de bloqueo.",
+      );
+    }
+
+    // Una mitigación sin posibilidad de bloqueo
+    // nunca podría activarse.
+    if (mitigacionBloqueo > 0 && probabilidadBloqueo <= 0) {
+      throw new Error(
+        `"${this.nombre}" tiene mitigación de bloqueo ` +
+          "pero no tiene probabilidad de bloqueo.",
+      );
     }
   }
 
   validarPropiedadesQuiver() {
-    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+    this.validarTexto(
+      this.propiedades.tipoMunicion,
+
+      "tipo de munición",
+    );
 
     if (!this.contenedorObjetos) {
       throw new Error(`El carcaj "${this.nombre}" necesita un contenedor.`);
@@ -220,7 +282,11 @@ export class Objeto {
   }
 
   validarPropiedadesMunicion() {
-    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+    this.validarTexto(
+      this.propiedades.tipoMunicion,
+
+      "tipo de munición",
+    );
   }
 
   validarTexto(valor, nombreCampo) {
@@ -255,6 +321,10 @@ export class Objeto {
     return this.tipo === "arma";
   }
 
+  get esArmadura() {
+    return this.tipo === "armadura";
+  }
+
   get esQuiver() {
     return this.tipo === "quiver";
   }
@@ -281,13 +351,12 @@ export class Objeto {
       return 0;
     }
 
-    return this.contenedorObjetos
-      .obtenerObjetos()
-      .reduce(
-        (total, objeto) =>
-          total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
-        0,
-      );
+    return this.contenedorObjetos.obtenerObjetos().reduce(
+      (total, objeto) =>
+        total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
+
+      0,
+    );
   }
 
   // Cantidad total de municiones del carcaj.
@@ -299,7 +368,11 @@ export class Objeto {
     return this.contenedorObjetos
       .obtenerObjetos()
       .filter((objeto) => objeto.esMunicion)
-      .reduce((total, objeto) => total + objeto.cantidad, 0);
+      .reduce(
+        (total, objeto) => total + objeto.cantidad,
+
+        0,
+      );
   }
 
   puedeEquiparseEn(nombreRanura) {

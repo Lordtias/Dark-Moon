@@ -318,6 +318,18 @@ export function calcularEstadisticasDerivadas(combatiente) {
       CONFIGURACION_COMBATE.limites.bloqueoMaximo,
     ),
 
+    // Indica qué porcentaje del daño entrante
+    // elimina un bloqueo exitoso.
+    //
+    // Por ahora proviene principalmente del escudo.
+    mitigacionBloqueo: limitar(
+      sumarPropiedad(objetos, "mitigacionBloqueo"),
+
+      0,
+
+      CONFIGURACION_COMBATE.limites.mitigacionBloqueoMaxima,
+    ),
+
     potenciaEfectos:
       base.potenciaEfectos +
       coeficientes.potenciaEfectosPorSabiduria * atributos.sabiduria,

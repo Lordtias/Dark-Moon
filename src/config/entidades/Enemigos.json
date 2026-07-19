@@ -13,7 +13,6 @@
       "tipoAgresividad": "activa",
       "percepcion": 5,
       "margenPersecucion": 3,
-      "movimientosPorTurno": 1,
       "estrategiaSinRecursos": "ataqueNatural"
     },
 
@@ -146,7 +145,6 @@
       "tipoAgresividad": "activa",
       "percepcion": 6,
       "margenPersecucion": 4,
-      "movimientosPorTurno": 1,
       "estrategiaSinRecursos": "ataqueNatural"
     },
 
@@ -257,7 +255,6 @@
       "tipoAgresividad": "activa",
       "percepcion": 8,
       "margenPersecucion": 4,
-      "movimientosPorTurno": 1,
       "estrategiaSinRecursos": "ataqueNatural"
     },
 

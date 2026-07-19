@@ -15,14 +15,7 @@ export class Enemigo extends Combatiente {
     atributos,
     estadisticasBase,
     ataqueNatural,
-
-    // Factores que controlarán la velocidad
-    // global y específica del enemigo.
-    //
-    // Más adelante serán modificados
-    // por las variantes.
     factoresTemporales = {},
-
     simbolo = "E",
     experienciaOtorgada = 0,
     capacidadContenedor = 0,
@@ -69,8 +62,6 @@ export class Enemigo extends Combatiente {
     // Cuando vale true, ConfiguracionAtaque
     // ignora temporalmente las armas equipadas
     // y utiliza el ataque natural del enemigo.
-    //
-    // No se desequipa ni elimina ningún objeto.
     this.ataqueNaturalForzado = false;
   }
 
@@ -105,13 +96,11 @@ export class Enemigo extends Combatiente {
       );
     }
 
-    // El alcance de ataque no pertenece
-    // a la configuración de IA.
+    // El alcance y la rapidez de ataque
+    // pertenecen al arma o ataque natural.
     //
-    // Se obtiene dinámicamente desde:
-    //
-    // - El arma equipada.
-    // - El ataque natural.
+    // La rapidez de movimiento pertenece
+    // a los factores temporales.
     const camposNumericos = [
       {
         nombre: "percepcion",
@@ -121,16 +110,6 @@ export class Enemigo extends Combatiente {
         nombre: "margenPersecucion",
         minimo: 0,
       },
-
-      // Esta propiedad se mantendrá mientras
-      // siga activo el sistema antiguo de turnos.
-      //
-      // Será retirada cuando cada movimiento
-      // pase a consumir tiempo individualmente.
-      {
-        nombre: "movimientosPorTurno",
-        minimo: 0,
-      },
     ];
 
     for (const campo of camposNumericos) {
@@ -138,9 +117,9 @@ export class Enemigo extends Combatiente {
 
       if (!Number.isInteger(valor) || valor < campo.minimo) {
         throw new Error(
-          `El valor "${campo.nombre}" de ${this.nombre} ` +
-            "debe ser un entero igual o mayor que " +
-            `${campo.minimo}.`,
+          `El valor "${campo.nombre}" de ` +
+            `${this.nombre} debe ser un entero ` +
+            `igual o mayor que ${campo.minimo}.`,
         );
       }
     }
@@ -176,8 +155,8 @@ export class Enemigo extends Combatiente {
     return true;
   }
 
-  // Permite que el enemigo vuelva a comprobar
-  // su arma equipada en el siguiente turno.
+  // Permite volver a comprobar el arma
+  // equipada durante la siguiente acción.
   desactivarAtaqueNaturalForzado() {
     if (!this.ataqueNaturalForzado) {
       return false;

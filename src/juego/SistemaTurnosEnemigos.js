@@ -9,18 +9,24 @@ import {
 
 import { verificarRequisitosAtaque } from "../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
+import {
+  COSTOS_TEMPORALES_BASE,
+  TIPOS_ACCION_TEMPORAL,
+} from "./SistemaTiempo.js";
+
 // Conservamos esta exportación para no romper
 // consumidores anteriores.
 export { calcularDistanciaCuadricula } from "./SistemaAlcanceAtaque.js";
 
+// Crea una clave utilizable dentro de un Set.
 function crearClavePosicion(x, y) {
   return `${x},${y}`;
 }
 
-// La percepción utiliza únicamente distancia.
+// Actualiza la agresividad del enemigo.
 //
-// Por ahora una pared no impide detectar al jugador.
-// La pared sí puede impedir el ataque.
+// La percepción todavía utiliza únicamente distancia.
+// Las paredes pueden impedir un ataque, pero no detectar.
 function actualizarAgresividad(enemigo, jugador) {
   const mensajes = [];
 
@@ -50,17 +56,16 @@ function actualizarAgresividad(enemigo, jugador) {
   };
 }
 
-// Determina qué ataque utilizará el enemigo
-// durante este turno.
+// Determina qué ataque utilizará el enemigo.
 //
-// Primero vuelve a comprobar el ataque equipado.
-// Si no está disponible, aplica la estrategia
-// configurada en su IA.
+// Primero vuelve a comprobar el arma equipada.
+// Si no tiene recursos, aplica la estrategia
+// configurada para ese enemigo.
 function prepararAtaqueEnemigo(enemigo) {
   const estabaUsandoAtaqueNatural = enemigo.ataqueNaturalForzado;
 
-  // Cada turno intentamos recuperar el ataque
-  // equipado por si volvió a tener recursos.
+  // Volvemos a probar el arma equipada por si
+  // recuperó los recursos necesarios.
   enemigo.desactivarAtaqueNaturalForzado();
 
   const requisitosAtaqueEquipado = verificarRequisitosAtaque(enemigo);
@@ -73,7 +78,7 @@ function prepararAtaqueEnemigo(enemigo) {
 
       mensaje:
         estabaUsandoAtaqueNatural && arma
-          ? `${enemigo.nombre} vuelve a utilizar ${arma.nombre}.`
+          ? `${enemigo.nombre} vuelve a utilizar ` + `${arma.nombre}.`
           : null,
     };
   }
@@ -90,8 +95,8 @@ function prepararAtaqueEnemigo(enemigo) {
     return {
       disponible: requisitosAtaqueNatural.disponible,
 
-      // El mensaje aparece solamente cuando
-      // el enemigo cambia por primera vez.
+      // Solo se informa cuando ocurre
+      // realmente el cambio de ataque.
       mensaje: !estabaUsandoAtaqueNatural
         ? `${enemigo.nombre} no puede utilizar ` +
           `${arma?.nombre ?? "su ataque equipado"} ` +
@@ -100,8 +105,8 @@ function prepararAtaqueEnemigo(enemigo) {
     };
   }
 
-  // La estrategia "esperar" mantiene al enemigo
-  // en su posición sin realizar un ataque.
+  // La estrategia esperar mantiene al enemigo
+  // en su posición sin atacar ni avanzar.
   return {
     disponible: false,
 
@@ -109,15 +114,8 @@ function prepararAtaqueEnemigo(enemigo) {
   };
 }
 
-// Comprueba si el enemigo puede atacar al jugador
-// desde su posición actual.
-//
-// La validación incluye:
-//
-// - Alcance.
-// - Patrón.
-// - Línea de visión.
-// - Paredes y esquinas.
+// Evalúa alcance, patrón, paredes,
+// línea de visión y esquinas.
 function evaluarAtaqueEnemigo({ enemigo, jugador, mapa }) {
   return evaluarAtaqueCasilla({
     atacante: enemigo,
@@ -127,15 +125,13 @@ function evaluarAtaqueEnemigo({ enemigo, jugador, mapa }) {
   });
 }
 
+// Devuelve todas las posiciones ocupadas
+// excepto la del enemigo que está actuando.
 function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
   const posicionesBloqueadas = new Set();
 
   for (const objetivo of objetivos) {
-    if (objetivo === enemigoActual) {
-      continue;
-    }
-
-    if (objetivo.estaDestruido) {
+    if (objetivo === enemigoActual || objetivo.estaDestruido) {
       continue;
     }
 
@@ -145,139 +141,185 @@ function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
   return posicionesBloqueadas;
 }
 
-// Acerca al enemigo hasta que:
+// Intenta avanzar exactamente una casilla.
 //
-// - Puede atacar.
-// - Agota sus movimientos.
-// - No encuentra un camino.
+// La rapidez ya no se representa moviendo varias
+// casillas durante una misma fase. Un enemigo rápido
+// recibirá su siguiente acción antes.
 function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
-  let movimientosRealizados = 0;
+  const posicionesBloqueadas = obtenerPosicionesBloqueadas(objetivos, enemigo);
 
-  const movimientosPermitidos = enemigo.configuracionIA.movimientosPorTurno;
+  const siguientePaso = buscarSiguientePaso({
+    mapa,
 
-  for (let movimiento = 0; movimiento < movimientosPermitidos; movimiento++) {
-    const evaluacionAtaque = evaluarAtaqueEnemigo({
-      enemigo,
-      jugador,
-      mapa,
-    });
+    origen: {
+      x: enemigo.x,
+      y: enemigo.y,
+    },
 
-    if (evaluacionAtaque.puedeAtacar) {
-      break;
-    }
+    destino: {
+      x: jugador.x,
+      y: jugador.y,
+    },
 
-    const posicionesBloqueadas = obtenerPosicionesBloqueadas(
-      objetivos,
-      enemigo,
-    );
+    posicionesBloqueadas,
+  });
 
-    const siguientePaso = buscarSiguientePaso({
-      mapa,
-
-      origen: {
-        x: enemigo.x,
-        y: enemigo.y,
-      },
-
-      destino: {
-        x: jugador.x,
-        y: jugador.y,
-      },
-
-      posicionesBloqueadas,
-    });
-
-    if (!siguientePaso) {
-      break;
-    }
-
-    enemigo.x = siguientePaso.x;
-
-    enemigo.y = siguientePaso.y;
-
-    movimientosRealizados++;
+  if (!siguientePaso) {
+    return {
+      seMovio: false,
+    };
   }
 
+  enemigo.x = siguientePaso.x;
+
+  enemigo.y = siguientePaso.y;
+
   return {
-    movimientosRealizados,
+    seMovio: true,
   };
 }
 
-// Procesa secuencialmente el turno
-// de todos los enemigos vivos.
-export function procesarFaseEnemigos({ objetivos, jugador, mapa }) {
-  const mensajes = [];
-
-  for (const objetivo of objetivos) {
-    if (!(objetivo instanceof Enemigo)) {
-      continue;
-    }
-
-    if (!objetivo.estaVivo) {
-      continue;
-    }
-
-    if (!jugador.estaVivo) {
-      break;
-    }
-
-    const resultadoAgresividad = actualizarAgresividad(objetivo, jugador);
-
-    mensajes.push(...resultadoAgresividad.mensajes);
-
-    if (!objetivo.estaAgresivo) {
-      continue;
-    }
-
-    const preparacionAtaque = prepararAtaqueEnemigo(objetivo);
-
-    if (preparacionAtaque.mensaje) {
-      mensajes.push(preparacionAtaque.mensaje);
-    }
-
-    if (!preparacionAtaque.disponible) {
-      continue;
-    }
-
-    const evaluacionAtaque = evaluarAtaqueEnemigo({
-      enemigo: objetivo,
-      jugador,
-      mapa,
-    });
-
-    if (evaluacionAtaque.puedeAtacar) {
-      const resultadoAtaque = objetivo.atacar(jugador);
-
-      mensajes.push(resultadoAtaque.mensaje);
-
-      if (!jugador.estaVivo) {
-        mensajes.push("Has muerto. Recargá la página para reiniciar.");
-
-        break;
-      }
-
-      continue;
-    }
-
-    const resultadoMovimiento = moverEnemigoHaciaJugador({
-      enemigo: objetivo,
-      jugador,
-      mapa,
-      objetivos,
-    });
-
-    if (resultadoMovimiento.movimientosRealizados > 0) {
-      mensajes.push(`${objetivo.nombre} avanza hacia vos.`);
-    }
-
-    // Se conserva la regla actual:
-    // un enemigo que se movió no ataca
-    // durante el mismo turno.
-  }
+// Crea una respuesta común para cualquier
+// acción temporal de un enemigo.
+function crearResultadoAccion({ tipoAccion, costoBase, mensajes = [] }) {
+  const mensajesLimpios = mensajes.filter(Boolean);
 
   return {
-    mensajes,
+    tipoAccion,
+    costoBase,
+    mensajes: mensajesLimpios,
 
-    mensaje: mensajes.join("\n"),
+    mensaje: mensajesLimpios.join("\n"),
   };
+}
+
+// Procesa una única acción del enemigo.
+//
+// El resultado informa:
+//
+// - Qué tipo de acción realizó.
+// - Cuál es su coste base.
+// - Qué mensajes produjo.
+//
+// Juego registrará posteriormente ese coste
+// dentro de SistemaTiempo.
+export function procesarTurnoEnemigo({
+  enemigo,
+  jugador,
+  mapa,
+  objetivos,
+} = {}) {
+  if (!(enemigo instanceof Enemigo)) {
+    throw new Error(
+      "Se necesita un enemigo válido " + "para procesar su acción.",
+    );
+  }
+
+  if (!Array.isArray(objetivos)) {
+    throw new Error("Los objetivos deben estar dentro " + "de una lista.");
+  }
+
+  const mensajes = [];
+
+  // Un enemigo destruido no debería llegar
+  // normalmente hasta aquí.
+  if (!enemigo.estaVivo) {
+    return crearResultadoAccion({
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
+
+      costoBase: COSTOS_TEMPORALES_BASE.espera,
+    });
+  }
+
+  const resultadoAgresividad = actualizarAgresividad(enemigo, jugador);
+
+  mensajes.push(...resultadoAgresividad.mensajes);
+
+  // Los enemigos que no están agresivos
+  // igualmente dejan pasar el tiempo.
+  if (!enemigo.estaAgresivo) {
+    return crearResultadoAccion({
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
+
+      costoBase: COSTOS_TEMPORALES_BASE.espera,
+
+      mensajes,
+    });
+  }
+
+  const preparacionAtaque = prepararAtaqueEnemigo(enemigo);
+
+  if (preparacionAtaque.mensaje) {
+    mensajes.push(preparacionAtaque.mensaje);
+  }
+
+  // Sin ataque disponible, la acción
+  // utilizada será esperar.
+  if (!preparacionAtaque.disponible) {
+    return crearResultadoAccion({
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
+
+      costoBase: COSTOS_TEMPORALES_BASE.espera,
+
+      mensajes,
+    });
+  }
+
+  const evaluacionAtaque = evaluarAtaqueEnemigo({
+    enemigo,
+    jugador,
+    mapa,
+  });
+
+  if (evaluacionAtaque.puedeAtacar) {
+    // Capturamos el coste antes de resolver
+    // el ataque y consumir sus recursos.
+    const costoAtaque = enemigo.costoAtaqueActual;
+
+    const resultadoAtaque = enemigo.atacar(jugador);
+
+    mensajes.push(resultadoAtaque.mensaje);
+
+    if (!jugador.estaVivo) {
+      mensajes.push("Has muerto. Recargá la página para reiniciar.");
+    }
+
+    return crearResultadoAccion({
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
+
+      costoBase: costoAtaque,
+
+      mensajes,
+    });
+  }
+
+  const resultadoMovimiento = moverEnemigoHaciaJugador({
+    enemigo,
+    jugador,
+    mapa,
+    objetivos,
+  });
+
+  if (resultadoMovimiento.seMovio) {
+    mensajes.push(`${enemigo.nombre} avanza hacia vos.`);
+
+    return crearResultadoAccion({
+      tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
+
+      costoBase: COSTOS_TEMPORALES_BASE.movimiento,
+
+      mensajes,
+    });
+  }
+
+  // Si no puede atacar ni encuentra camino,
+  // consume una acción de espera.
+  return crearResultadoAccion({
+    tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
+
+    costoBase: COSTOS_TEMPORALES_BASE.espera,
+
+    mensajes,
+  });
 }

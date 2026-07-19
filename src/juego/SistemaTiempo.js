@@ -1,14 +1,14 @@
 // Cantidad de unidades temporales utilizadas como referencia.
 //
-// Un coste o factor de 100 representa la velocidad normal.
+// Un coste o factor de 100 representa el tiempo normal.
 // Un valor menor representa una acción más rápida.
 // Un valor mayor representa una acción más lenta.
 export const TIEMPO_REFERENCIA = 100;
 
 // Tipos de acciones que pueden consumir tiempo.
 //
-// Utilizamos constantes para evitar escribir textos diferentes
-// en cada sistema que necesite calcular un coste temporal.
+// Utilizamos constantes para evitar escribir textos
+// diferentes en cada sistema.
 export const TIPOS_ACCION_TEMPORAL = Object.freeze({
   MOVIMIENTO: "movimiento",
   ATAQUE: "ataque",
@@ -18,10 +18,7 @@ export const TIPOS_ACCION_TEMPORAL = Object.freeze({
 });
 
 // Costes predeterminados de las acciones que todavía
-// no dependen de un arma, objeto o elemento del mapa.
-//
-// El coste de ataque no aparece aquí porque será definido
-// por el arma equipada o por el ataque natural.
+// no dependen de un arma, objeto o elemento concreto.
 export const COSTOS_TEMPORALES_BASE = Object.freeze({
   movimiento: TIEMPO_REFERENCIA,
   accion: TIEMPO_REFERENCIA,
@@ -30,9 +27,6 @@ export const COSTOS_TEMPORALES_BASE = Object.freeze({
 });
 
 // Factores temporales normales de cualquier combatiente.
-//
-// Estos valores serán incorporados dentro de Combatiente
-// durante el siguiente paso del hito.
 export const FACTORES_TEMPORALES_PREDETERMINADOS = Object.freeze({
   factorTiempo: TIEMPO_REFERENCIA,
   factorMovimiento: TIEMPO_REFERENCIA,
@@ -42,23 +36,24 @@ export const FACTORES_TEMPORALES_PREDETERMINADOS = Object.freeze({
 });
 
 // Relaciona cada tipo de acción con el factor específico
-// que deberá utilizarse desde el combatiente.
+// que debe utilizarse desde el combatiente.
 const FACTOR_ESPECIFICO_POR_ACCION = Object.freeze({
   [TIPOS_ACCION_TEMPORAL.MOVIMIENTO]: "factorMovimiento",
+
   [TIPOS_ACCION_TEMPORAL.ATAQUE]: "factorAtaque",
+
   [TIPOS_ACCION_TEMPORAL.ACCION]: "factorAccion",
+
   [TIPOS_ACCION_TEMPORAL.CONSUMO]: "factorConsumo",
 
-  // Esperar solamente utiliza el factor temporal general.
-  // No necesita un factor específico separado.
+  // Esperar utiliza solamente el factor global.
   [TIPOS_ACCION_TEMPORAL.ESPERA]: null,
 });
 
-// Comprueba que un número utilizado como coste o factor
-// temporal sea válido.
+// Comprueba que un coste o factor temporal sea válido.
 //
 // Todos los valores deben ser positivos porque un coste
-// igual o menor que cero rompería el orden de la agenda.
+// igual o menor que cero rompería el orden temporal.
 function validarValorTemporal(valor, nombreCampo) {
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error(
@@ -67,16 +62,13 @@ function validarValorTemporal(valor, nombreCampo) {
   }
 }
 
-// Devuelve todos los factores temporales de un combatiente.
-//
-// Mientras todavía no estén implementados dentro de
-// Combatiente, esta función utilizará automáticamente 100.
-// Esto permite construir el sistema de manera progresiva.
+// Devuelve todos los factores temporales
+// pertenecientes a un combatiente.
 export function obtenerFactoresTemporales(combatiente) {
   if (!combatiente || typeof combatiente !== "object") {
     throw new Error(
-      "Se necesita un combatiente válido para obtener " +
-        "sus factores temporales.",
+      "Se necesita un combatiente válido para " +
+        "obtener sus factores temporales.",
     );
   }
 
@@ -115,26 +107,20 @@ export function obtenerFactoresTemporales(combatiente) {
 //
 // coste final =
 // coste base
-// × factor temporal general / 100
+// × factor temporal global / 100
 // × factor específico / 100
 //
-// Ejemplo:
-//
-// Daga: 75
-// Factor general élite: 90
-// Factor de ataque: 100
-//
-// 75 × 90 / 100 × 100 / 100 = 67,5
-//
-// El resultado se redondea al entero más cercano porque
-// la agenda temporal trabajará solamente con enteros.
+// El resultado se redondea porque la agenda
+// trabaja únicamente con unidades enteras.
 export function calcularCostoTemporal({
   costoBase,
   factorTiempo = TIEMPO_REFERENCIA,
   factorEspecifico = TIEMPO_REFERENCIA,
 } = {}) {
   validarValorTemporal(costoBase, "costoBase");
+
   validarValorTemporal(factorTiempo, "factorTiempo");
+
   validarValorTemporal(factorEspecifico, "factorEspecifico");
 
   const costoCalculado =
@@ -142,23 +128,26 @@ export function calcularCostoTemporal({
     (factorTiempo / TIEMPO_REFERENCIA) *
     (factorEspecifico / TIEMPO_REFERENCIA);
 
-  // Nunca permitimos que una acción termine costando
-  // cero unidades, aunque existan bonificaciones futuras.
+  // Nunca permitimos que una acción termine
+  // costando cero unidades.
   return Math.max(1, Math.round(costoCalculado));
 }
 
-// Calcula el coste de una acción utilizando directamente
-// los factores temporales del combatiente.
+// Calcula el coste de una acción utilizando
+// directamente los factores del combatiente.
 export function calcularCostoAccionCombatiente({
   combatiente,
   tipoAccion,
   costoBase,
 } = {}) {
   if (!Object.values(TIPOS_ACCION_TEMPORAL).includes(tipoAccion)) {
-    throw new Error(`El tipo de acción temporal "${tipoAccion}" no es válido.`);
+    throw new Error(
+      `El tipo de acción temporal ` + `"${tipoAccion}" no es válido.`,
+    );
   }
 
   const factores = obtenerFactoresTemporales(combatiente);
+
   const nombreFactorEspecifico = FACTOR_ESPECIFICO_POR_ACCION[tipoAccion];
 
   const factorEspecifico = nombreFactorEspecifico
@@ -174,56 +163,52 @@ export function calcularCostoAccionCombatiente({
 
 // Gestiona el orden temporal de todos los actores.
 //
-// Cada actor tiene:
+// Cada actor posee:
 //
-// - proximoTurno: momento en el que podrá actuar.
+// - proximoTurno: instante en el que podrá actuar.
 // - ordenRegistro: desempate permanente y determinista.
-//
-// El actor con el menor próximo turno será el siguiente.
-// Si dos actores empatan, actuará primero quien haya sido
-// registrado primero.
 export class SistemaTiempo {
   constructor() {
-    // Momento actual alcanzado por el mundo.
+    // Momento alcanzado actualmente
+    // por el reloj del mundo.
     this.tiempoActual = 0;
 
-    // Map permite asociar cada combatiente con su
-    // información temporal sin modificar todavía
-    // directamente todas las clases de entidades.
+    // Relaciona cada actor con su información temporal.
     this.registros = new Map();
 
-    // Contador utilizado para resolver empates de manera
-    // estable, sin introducir ninguna tirada aleatoria.
+    // Contador utilizado para resolver empates
+    // sin introducir azar.
     this.siguienteOrdenRegistro = 0;
   }
 
-  // Registra un actor dentro de la agenda temporal.
+  // Registra un actor dentro de la agenda.
   //
-  // Por defecto comienza disponible en el tiempo actual.
+  // Por defecto queda disponible en el tiempo actual.
   registrarActor(actor, proximoTurno = this.tiempoActual) {
     if (!actor || typeof actor !== "object") {
       throw new Error(
-        "SistemaTiempo necesita un actor válido para registrarlo.",
+        "SistemaTiempo necesita un actor " + "válido para registrarlo.",
       );
     }
 
     if (this.registros.has(actor)) {
       throw new Error(
-        `${actor.nombre ?? "El actor"} ya está registrado ` +
-          "en el sistema de tiempo.",
+        `${actor.nombre ?? "El actor"} ya está ` +
+          "registrado en el sistema de tiempo.",
       );
     }
 
     if (!Number.isFinite(proximoTurno) || proximoTurno < this.tiempoActual) {
       throw new Error(
-        "El próximo turno de un actor no puede ser anterior " +
-          "al tiempo actual.",
+        "El próximo turno de un actor no puede " +
+          "ser anterior al tiempo actual.",
       );
     }
 
     this.registros.set(actor, {
       actor,
       proximoTurno,
+
       ordenRegistro: this.siguienteOrdenRegistro,
     });
 
@@ -236,16 +221,26 @@ export class SistemaTiempo {
   }
 
   // Retira un actor de la agenda.
-  //
-  // Se utilizará, por ejemplo, cuando un enemigo sea
-  // derrotado o deje de pertenecer al mapa actual.
   eliminarActor(actor) {
     return this.registros.delete(actor);
   }
 
-  // Devuelve los registros ordenados cronológicamente.
+  // Avanza el reloj hasta un instante concreto.
   //
-  // Se crea una copia para no alterar el Map original.
+  // Este método también será utilizado por eventos
+  // periódicos, como regeneración y estados futuros.
+  avanzarTiempoHasta(instante) {
+    if (!Number.isFinite(instante) || instante < this.tiempoActual) {
+      throw new Error("El sistema de tiempo no puede " + "retroceder.");
+    }
+
+    this.tiempoActual = instante;
+
+    return this.tiempoActual;
+  }
+
+  // Devuelve una copia de los registros
+  // ordenados cronológicamente.
   obtenerRegistrosOrdenados() {
     return [...this.registros.values()].sort((registroA, registroB) => {
       if (registroA.proximoTurno !== registroB.proximoTurno) {
@@ -256,14 +251,23 @@ export class SistemaTiempo {
     });
   }
 
-  // Devuelve el siguiente actor sin modificar el tiempo.
+  // Devuelve el siguiente actor
+  // sin modificar el reloj.
   obtenerSiguienteActor() {
     const siguienteRegistro = this.obtenerRegistrosOrdenados()[0];
 
     return siguienteRegistro?.actor ?? null;
   }
 
-  // Avanza el reloj hasta el momento del siguiente actor
+  // Devuelve el instante correspondiente
+  // al siguiente actor.
+  obtenerTiempoSiguienteActor() {
+    const siguienteRegistro = this.obtenerRegistrosOrdenados()[0];
+
+    return siguienteRegistro?.proximoTurno ?? null;
+  }
+
+  // Avanza el reloj hasta el siguiente actor
   // y devuelve quién debe actuar.
   avanzarHastaSiguienteActor() {
     const siguienteRegistro = this.obtenerRegistrosOrdenados()[0];
@@ -272,25 +276,19 @@ export class SistemaTiempo {
       return null;
     }
 
-    this.tiempoActual = Math.max(
-      this.tiempoActual,
-      siguienteRegistro.proximoTurno,
-    );
+    this.avanzarTiempoHasta(siguienteRegistro.proximoTurno);
 
     return siguienteRegistro.actor;
   }
 
   // Registra el tiempo consumido por una acción.
-  //
-  // Después de actuar, el combatiente vuelve a quedar
-  // programado para el futuro según el coste calculado.
   registrarAccion({ actor, tipoAccion, costoBase } = {}) {
     const registro = this.registros.get(actor);
 
     if (!registro) {
       throw new Error(
-        `${actor?.nombre ?? "El actor"} no está registrado ` +
-          "en el sistema de tiempo.",
+        `${actor?.nombre ?? "El actor"} no está ` +
+          "registrado en el sistema de tiempo.",
       );
     }
 
@@ -300,12 +298,8 @@ export class SistemaTiempo {
       costoBase,
     });
 
-    // El actor comienza su acción en el mayor valor entre:
-    //
-    // - El momento actual.
-    // - El momento en el que estaba programado.
-    //
-    // Normalmente ambos valores serán iguales.
+    // Normalmente el tiempo actual y el próximo
+    // turno del actor serán iguales.
     const inicioAccion = Math.max(this.tiempoActual, registro.proximoTurno);
 
     registro.proximoTurno = inicioAccion + costoFinal;
@@ -316,12 +310,13 @@ export class SistemaTiempo {
       costoBase,
       costoFinal,
       inicioAccion,
+
       proximoTurno: registro.proximoTurno,
     };
   }
 
-  // Permite consultar el estado temporal de un actor
-  // sin entregar el registro interno modificable.
+  // Devuelve una copia del estado temporal
+  // correspondiente a un actor.
   obtenerEstadoActor(actor) {
     const registro = this.registros.get(actor);
 
@@ -331,18 +326,21 @@ export class SistemaTiempo {
 
     return {
       proximoTurno: registro.proximoTurno,
+
       ordenRegistro: registro.ordenRegistro,
     };
   }
 
-  // Devuelve una vista simple del orden actual.
+  // Devuelve el orden actual de la agenda.
   //
-  // Más adelante servirá como base para mostrar
-  // la futura barra de próximos actores en pantalla.
+  // Más adelante esta información será utilizada
+  // por la barra visual de próximos actores.
   obtenerOrdenActual() {
     return this.obtenerRegistrosOrdenados().map((registro) => ({
       actor: registro.actor,
+
       proximoTurno: registro.proximoTurno,
+
       ordenRegistro: registro.ordenRegistro,
     }));
   }

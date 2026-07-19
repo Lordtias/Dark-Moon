@@ -1,0 +1,240 @@
+/* =========================================================
+   PANEL DE ORDEN TEMPORAL
+   ========================================================= */
+
+/* La zona central ahora contiene:
+
+   1. Mapa.
+   2. Orden temporal.
+   3. Barra de habilidades.
+   4. Registro de eventos. */
+.zona-central-partida {
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto
+    auto
+    minmax(110px, 18vh);
+}
+
+/* Panel compacto ubicado debajo del mapa. */
+.panel-orden-temporal {
+  min-width: 0;
+  padding: 8px 10px;
+
+  overflow: hidden;
+
+  background-color: #0d1020;
+}
+
+/* Cabecera con título y reloj global. */
+.cabecera-orden-temporal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 7px;
+}
+
+/* Agrupa el título y la explicación. */
+.bloque-titulo-orden-temporal {
+  min-width: 0;
+}
+
+/* El título no necesita el separador utilizado
+   por otros paneles más grandes. */
+.panel-orden-temporal h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  color: #aeb8ff;
+  font-size: 15px;
+}
+
+/* Explica que no se están prediciendo
+   acciones que todavía no existen. */
+.descripcion-orden-temporal {
+  margin: 2px 0 0;
+
+  color: #8991b5;
+  font-size: 11px;
+}
+
+/* Tiempo absoluto alcanzado por el mundo. */
+.tiempo-mundo {
+  flex: 0 0 auto;
+
+  padding: 4px 7px;
+
+  border: 1px solid #3e497f;
+  border-radius: 4px;
+
+  background-color: #080b16;
+  color: #82b7e8;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Lista horizontal desplazable. */
+.lista-orden-temporal {
+  min-width: 0;
+
+  display: flex;
+  gap: 7px;
+
+  margin: 0;
+  padding: 1px 0 5px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  list-style: none;
+  scrollbar-gutter: stable;
+}
+
+/* Representa la próxima disponibilidad
+   de un único actor. */
+.actor-orden-temporal {
+  position: relative;
+
+  min-width: 145px;
+  max-width: 190px;
+
+  display: grid;
+  grid-template-columns: 22px 30px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+
+  padding: 6px 8px;
+
+  border: 1px solid #3e497f;
+  border-radius: 5px;
+
+  background-color: #111527;
+}
+
+/* El jugador utiliza el color amarillo
+   ya usado en el mapa. */
+.actor-orden-temporal--jugador {
+  border-color: rgba(255, 230, 109, 0.7);
+}
+
+/* Los enemigos mantienen la lectura roja
+   utilizada por sus símbolos. */
+.actor-orden-temporal--enemigo {
+  border-color: rgba(255, 140, 140, 0.55);
+}
+
+/* Actor que tiene la primera posición
+   dentro de la agenda actual. */
+.actor-orden-temporal--actual {
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 109, 0.4),
+    0 0 9px rgba(255, 230, 109, 0.15);
+}
+
+/* Número de posición dentro de la lista. */
+.posicion-orden-temporal {
+  color: #8991b5;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Símbolo utilizado también dentro del mapa. */
+.simbolo-orden-temporal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  border: 1px solid #3e497f;
+  border-radius: 4px;
+
+  background-color: #080b16;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: bold;
+}
+
+/* Nombre y diferencia temporal. */
+.datos-actor-temporal {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* El nombre puede cortarse cuando es demasiado largo. */
+.datos-actor-temporal strong {
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Indica cuándo volverá a estar disponible. */
+.datos-actor-temporal span {
+  color: #82b7e8;
+  font-size: 10px;
+}
+
+/* Mensaje utilizado cuando no hay actores. */
+.agenda-temporal-vacia {
+  width: 100%;
+  padding: 8px;
+
+  color: #8991b5;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Informa que la agenda contiene
+   más actores que la vista compacta. */
+.mensaje-actores-adicionales {
+  margin: 2px 0 0;
+
+  color: #8991b5;
+  font-size: 10px;
+  text-align: right;
+}
+
+/* Barra de desplazamiento compacta. */
+.lista-orden-temporal::-webkit-scrollbar {
+  height: 7px;
+}
+
+.lista-orden-temporal::-webkit-scrollbar-track {
+  background-color: #080b16;
+}
+
+.lista-orden-temporal::-webkit-scrollbar-thumb {
+  border: 1px solid #080b16;
+  border-radius: 999px;
+
+  background-color: #3e497f;
+}
+
+.lista-orden-temporal::-webkit-scrollbar-thumb:hover {
+  background-color: #5666ca;
+}
+
+/* En pantallas pequeñas reducimos
+   ligeramente el ancho de cada actor. */
+@media (max-width: 760px) {
+  .actor-orden-temporal {
+    min-width: 130px;
+  }
+
+  .descripcion-orden-temporal {
+    display: none;
+  }
+}

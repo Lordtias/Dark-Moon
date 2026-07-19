@@ -4,8 +4,17 @@ import { normalizarMensajesJuego } from "../juego/MensajesJuego.js";
 
 const MAXIMO_MENSAJES_REGISTRO = 120;
 
-// Renderizador representa visualmente la partida
-// sin modificar sus reglas.
+// Renderizador representa visualmente
+// la partida sin modificar sus reglas.
+//
+// Se encarga de:
+//
+// - Dibujar el mapa.
+// - Resaltar el alcance de combate.
+// - Dibujar entidades.
+// - Actualizar los paneles.
+// - Actualizar la agenda temporal.
+// - Agregar eventos al historial.
 export class Renderizador {
   constructor({
     canvas,
@@ -14,6 +23,7 @@ export class Renderizador {
     tileSize,
     panelInventario,
     panelEquipamiento,
+    panelOrdenTemporal,
   } = {}) {
     if (!canvas) {
       throw new Error("Renderizador necesita un canvas.");
@@ -29,12 +39,30 @@ export class Renderizador {
       throw new Error("Renderizador necesita un PanelPersonaje.");
     }
 
+    if (!panelInventario || typeof panelInventario.actualizar !== "function") {
+      throw new Error("Renderizador necesita un PanelInventario.");
+    }
+
+    if (
+      !panelEquipamiento ||
+      typeof panelEquipamiento.actualizar !== "function"
+    ) {
+      throw new Error("Renderizador necesita un PanelEquipamiento.");
+    }
+
+    if (
+      !panelOrdenTemporal ||
+      typeof panelOrdenTemporal.actualizar !== "function"
+    ) {
+      throw new Error("Renderizador necesita un PanelOrdenTemporal.");
+    }
+
     if (!combatLogText) {
       throw new Error("Renderizador necesita el registro de combate.");
     }
 
     if (!Number.isInteger(tileSize) || tileSize <= 0) {
-      throw new Error("El tamaño de las casillas debe ser mayor que 0.");
+      throw new Error("El tamaño de las casillas debe " + "ser mayor que 0.");
     }
 
     this.canvas = canvas;
@@ -43,16 +71,18 @@ export class Renderizador {
 
     this.panelPersonaje = panelPersonaje;
 
-    this.combatLogText = combatLogText;
-
-    this.tileSize = tileSize;
-
     this.panelInventario = panelInventario;
 
     this.panelEquipamiento = panelEquipamiento;
 
+    this.panelOrdenTemporal = panelOrdenTemporal;
+
+    this.combatLogText = combatLogText;
+
+    this.tileSize = tileSize;
+
     // Se utiliza para interpretar correctamente
-    // los mensajes antiguos de combate.
+    // mensajes antiguos de combate.
     this.nombreJugador = "";
 
     // La primera llamada reemplazará el mensaje
@@ -60,16 +90,14 @@ export class Renderizador {
     this.registroInicializado = false;
   }
 
+  // Actualiza toda la representación
+  // visible de la partida.
   dibujarJuego(juego) {
     this.nombreJugador = juego.player.nombre;
 
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.dibujarMapa(
-      juego.map,
-
-      juego.mapaSeleccionado?.apariencia,
-    );
+    this.dibujarMapa(juego.map, juego.mapaSeleccionado?.apariencia);
 
     // Solo se resaltan casillas
     // con trayectoria válida.
@@ -95,8 +123,14 @@ export class Renderizador {
     this.panelInventario.actualizar(juego.player.inventario);
 
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
+
+    // La agenda se actualiza después de resolver
+    // todas las acciones temporales.
+    this.panelOrdenTemporal.actualizar(juego);
   }
 
+  // Dibuja paredes, suelo y grilla
+  // utilizando los colores del bioma.
   dibujarMapa(map, apariencia = {}) {
     const colorSuelo = apariencia.colorSuelo ?? "#252b45";
 
@@ -155,7 +189,9 @@ export class Renderizador {
   }
 
   // Una selección válida utiliza amarillo.
-  // Una selección bloqueada utiliza naranja rojizo.
+  //
+  // Una selección bloqueada utiliza
+  // naranja rojizo.
   dibujarSelectorCombate(selector, esValido) {
     if (!selector) {
       return;
@@ -185,12 +221,16 @@ export class Renderizador {
     this.context.lineWidth = 1;
   }
 
+  // Dibuja al personaje controlado
+  // por el jugador.
   dibujarJugador(player) {
     const simbolo = player.estaVivo ? player.simbolo : "X";
 
     this.dibujarEntidad(player, simbolo, "#ffe66d");
   }
 
+  // Dibuja enemigos y otros objetivos
+  // que todavía no fueron destruidos.
   dibujarObjetivos(objetivos) {
     for (const objetivo of objetivos) {
       if (objetivo.estaDestruido) {
@@ -207,6 +247,8 @@ export class Renderizador {
     }
   }
 
+  // Dibuja el símbolo de cualquier entidad
+  // dentro del centro de su casilla.
   dibujarEntidad(entidad, simbolo, color) {
     const centroX = entidad.x * this.tileSize + this.tileSize / 2;
 
@@ -223,8 +265,8 @@ export class Renderizador {
     this.context.fillText(simbolo, centroX, centroY);
   }
 
-  // Agrega mensajes al historial sin borrar
-  // los eventos anteriores.
+  // Agrega mensajes al historial
+  // sin borrar eventos anteriores.
   mostrarMensaje(mensaje) {
     const mensajes = normalizarMensajesJuego(mensaje, {
       nombreJugador: this.nombreJugador,
@@ -266,6 +308,8 @@ export class Renderizador {
     this.combatLogText.scrollTop = this.combatLogText.scrollHeight;
   }
 
+  // Evita que el historial crezca
+  // indefinidamente.
   limitarHistorialMensajes() {
     while (this.combatLogText.childElementCount > MAXIMO_MENSAJES_REGISTRO) {
       this.combatLogText.firstElementChild?.remove();

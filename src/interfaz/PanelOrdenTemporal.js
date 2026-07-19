@@ -1,0 +1,317 @@
+// Identificador utilizado para evitar cargar
+// varias veces la hoja de estilos del panel.
+const ID_ESTILOS_ORDEN_TEMPORAL = "estilosOrdenTemporal";
+
+// Ruta de la hoja de estilos específica.
+//
+// El componente la incorpora automáticamente,
+// por lo que no necesitamos modificar index.html
+// ni el archivo style.css principal.
+const RUTA_ESTILOS_ORDEN_TEMPORAL = "./panel-tiempo.css";
+
+// Cantidad predeterminada de actores visibles.
+//
+// Si existen más actores, el panel informa
+// cuántos quedaron fuera de la vista compacta.
+const MAXIMO_ACTORES_PREDETERMINADO = 8;
+
+// Representa visualmente el estado actual
+// de la agenda temporal.
+//
+// Cada actor aparece una sola vez y muestra:
+//
+// - Su posición dentro de la agenda.
+// - Su símbolo.
+// - Su nombre.
+// - Cuánto falta para su próxima acción.
+//
+// El panel no intenta predecir acciones futuras
+// que todavía no fueron registradas.
+export class PanelOrdenTemporal {
+  constructor({
+    referenciaInsercion,
+    maximoActores = MAXIMO_ACTORES_PREDETERMINADO,
+  } = {}) {
+    if (
+      !referenciaInsercion ||
+      typeof referenciaInsercion.insertAdjacentElement !== "function"
+    ) {
+      throw new Error(
+        "PanelOrdenTemporal necesita un elemento " + "de referencia válido.",
+      );
+    }
+
+    if (!Number.isInteger(maximoActores) || maximoActores <= 0) {
+      throw new Error(
+        "El máximo de actores temporales debe " + "ser un entero mayor que 0.",
+      );
+    }
+
+    this.maximoActores = maximoActores;
+
+    this.asegurarHojaEstilos();
+
+    // Si la interfaz se reconstruye, retiramos
+    // una versión anterior del panel para evitar
+    // elementos duplicados.
+    document.getElementById("panelOrdenTemporal")?.remove();
+
+    this.contenedor = document.createElement("section");
+
+    this.contenedor.id = "panelOrdenTemporal";
+
+    this.contenedor.classList.add("panel-juego", "panel-orden-temporal");
+
+    this.contenedor.setAttribute("aria-label", "Próximas acciones");
+
+    const cabecera = document.createElement("div");
+
+    cabecera.classList.add("cabecera-orden-temporal");
+
+    const bloqueTitulo = document.createElement("div");
+
+    bloqueTitulo.classList.add("bloque-titulo-orden-temporal");
+
+    const titulo = document.createElement("h2");
+
+    titulo.textContent = "Orden temporal";
+
+    const descripcion = document.createElement("p");
+
+    descripcion.classList.add("descripcion-orden-temporal");
+
+    descripcion.textContent = "Próxima disponibilidad real de cada actor.";
+
+    bloqueTitulo.append(titulo, descripcion);
+
+    this.textoTiempo = document.createElement("span");
+
+    this.textoTiempo.classList.add("tiempo-mundo");
+
+    this.textoTiempo.textContent = "Tiempo 0";
+
+    cabecera.append(bloqueTitulo, this.textoTiempo);
+
+    this.lista = document.createElement("ol");
+
+    this.lista.classList.add("lista-orden-temporal");
+
+    this.lista.setAttribute("aria-live", "polite");
+
+    this.mensajeAdicional = document.createElement("p");
+
+    this.mensajeAdicional.classList.add(
+      "mensaje-actores-adicionales",
+      "oculto",
+    );
+
+    this.contenedor.append(cabecera, this.lista, this.mensajeAdicional);
+
+    // El panel se ubica inmediatamente
+    // después del mapa.
+    //
+    // La hoja de estilos ajusta la cuadrícula
+    // central para incorporar esta nueva fila.
+    referenciaInsercion.insertAdjacentElement("afterend", this.contenedor);
+  }
+
+  // Agrega la hoja de estilos únicamente
+  // cuando todavía no existe en el documento.
+  asegurarHojaEstilos() {
+    if (document.getElementById(ID_ESTILOS_ORDEN_TEMPORAL)) {
+      return;
+    }
+
+    const enlace = document.createElement("link");
+
+    enlace.id = ID_ESTILOS_ORDEN_TEMPORAL;
+
+    enlace.rel = "stylesheet";
+
+    enlace.href = RUTA_ESTILOS_ORDEN_TEMPORAL;
+
+    document.head.appendChild(enlace);
+  }
+
+  // Actualiza la agenda temporal visible
+  // utilizando el estado real de SistemaTiempo.
+  actualizar(juego) {
+    if (
+      !juego ||
+      !juego.sistemaTiempo ||
+      typeof juego.sistemaTiempo.obtenerOrdenActual !== "function"
+    ) {
+      throw new Error(
+        "PanelOrdenTemporal necesita una partida " +
+          "con un sistema de tiempo válido.",
+      );
+    }
+
+    const tiempoActual = juego.sistemaTiempo.tiempoActual;
+
+    this.textoTiempo.textContent = `Tiempo ${tiempoActual}`;
+
+    const agenda = juego.sistemaTiempo
+      .obtenerOrdenActual()
+      .filter(
+        (registro) => registro.actor && registro.actor.estaVivo !== false,
+      );
+
+    this.lista.replaceChildren();
+
+    if (agenda.length === 0) {
+      this.mostrarAgendaVacia();
+      return;
+    }
+
+    const registrosVisibles = agenda.slice(0, this.maximoActores);
+
+    const fragmento = document.createDocumentFragment();
+
+    registrosVisibles.forEach((registro, indice) => {
+      fragmento.appendChild(
+        this.crearElementoActor({
+          registro,
+          indice,
+          juego,
+          tiempoActual,
+        }),
+      );
+    });
+
+    this.lista.appendChild(fragmento);
+
+    this.actualizarMensajeAdicional(agenda.length - registrosVisibles.length);
+  }
+
+  // Crea el elemento correspondiente
+  // a un actor de la agenda.
+  crearElementoActor({ registro, indice, juego, tiempoActual }) {
+    const { actor, proximoTurno } = registro;
+
+    const esJugador = actor === juego.player;
+
+    const diferenciaTemporal = Math.max(0, proximoTurno - tiempoActual);
+
+    const elemento = document.createElement("li");
+
+    elemento.classList.add(
+      "actor-orden-temporal",
+      esJugador
+        ? "actor-orden-temporal--jugador"
+        : "actor-orden-temporal--enemigo",
+    );
+
+    // El primer actor con diferencia cero
+    // está actuando actualmente.
+    if (indice === 0 && diferenciaTemporal === 0) {
+      elemento.classList.add("actor-orden-temporal--actual");
+    }
+
+    const posicion = document.createElement("span");
+
+    posicion.classList.add("posicion-orden-temporal");
+
+    posicion.textContent = `${indice + 1}`;
+
+    const simbolo = document.createElement("span");
+
+    simbolo.classList.add("simbolo-orden-temporal");
+
+    simbolo.textContent = actor.simbolo ?? "?";
+
+    const datos = document.createElement("span");
+
+    datos.classList.add("datos-actor-temporal");
+
+    const nombre = document.createElement("strong");
+
+    nombre.textContent = esJugador ? `${actor.nombre} (vos)` : actor.nombre;
+
+    const detalle = document.createElement("span");
+
+    detalle.textContent = this.crearTextoDiferencia({
+      indice,
+      diferenciaTemporal,
+    });
+
+    datos.append(nombre, detalle);
+
+    elemento.append(posicion, simbolo, datos);
+
+    elemento.title = this.crearDescripcionActor({
+      actor,
+      esJugador,
+      proximoTurno,
+      diferenciaTemporal,
+    });
+
+    elemento.setAttribute("aria-label", elemento.title);
+
+    return elemento;
+  }
+
+  // Devuelve una etiqueta clara para
+  // la diferencia temporal del actor.
+  crearTextoDiferencia({ indice, diferenciaTemporal }) {
+    if (diferenciaTemporal === 0 && indice === 0) {
+      return "Ahora";
+    }
+
+    if (diferenciaTemporal === 0) {
+      return "Mismo instante";
+    }
+
+    return `En ${diferenciaTemporal} ` + "unidades";
+  }
+
+  // Genera la descripción mostrada
+  // al mantener el cursor sobre un actor.
+  crearDescripcionActor({
+    actor,
+    esJugador,
+    proximoTurno,
+    diferenciaTemporal,
+  }) {
+    const nombre = esJugador ? `${actor.nombre}, jugador` : actor.nombre;
+
+    const partes = [
+      nombre,
+      `próximo turno absoluto: ${proximoTurno}`,
+      `diferencia temporal: ${diferenciaTemporal}`,
+      `factor global: ${actor.factorTiempo ?? 100}`,
+      `factor de movimiento: ${actor.factorMovimiento ?? 100}`,
+      `factor de ataque: ${actor.factorAtaque ?? 100}`,
+    ];
+
+    return partes.join(". ");
+  }
+
+  mostrarAgendaVacia() {
+    const elemento = document.createElement("li");
+
+    elemento.classList.add("agenda-temporal-vacia");
+
+    elemento.textContent = "No hay actores registrados.";
+
+    this.lista.appendChild(elemento);
+
+    this.actualizarMensajeAdicional(0);
+  }
+
+  // Informa cuando la vista compacta
+  // no puede mostrar todos los actores.
+  actualizarMensajeAdicional(cantidadAdicional) {
+    const hayAdicionales = cantidadAdicional > 0;
+
+    this.mensajeAdicional.classList.toggle("oculto", !hayAdicionales);
+
+    this.mensajeAdicional.textContent = hayAdicionales
+      ? `+${cantidadAdicional} actores más en la agenda.`
+      : "";
+  }
+
+  destruir() {
+    this.contenedor.remove();
+  }
+}

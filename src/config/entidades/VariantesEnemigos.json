@@ -7,7 +7,11 @@
 
     "multiplicadorAtributos": 0.75,
     "multiplicadorVida": 0.75,
-    "multiplicadorExperiencia": 0.5
+    "multiplicadorExperiencia": 0.5,
+
+    "multiplicadoresTemporales": {
+      "factorTiempo": 1.1
+    }
   },
 
   "gigante": {
@@ -18,7 +22,11 @@
 
     "multiplicadorAtributos": 1,
     "multiplicadorVida": 2,
-    "multiplicadorExperiencia": 1.5
+    "multiplicadorExperiencia": 1.5,
+
+    "multiplicadoresTemporales": {
+      "factorMovimiento": 1.25
+    }
   },
 
   "elite": {
@@ -29,6 +37,10 @@
 
     "multiplicadorAtributos": 1.25,
     "multiplicadorVida": 1.5,
-    "multiplicadorExperiencia": 3
+    "multiplicadorExperiencia": 3,
+
+    "multiplicadoresTemporales": {
+      "factorTiempo": 0.9
+    }
   }
 }

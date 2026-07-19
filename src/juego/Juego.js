@@ -14,7 +14,7 @@ import {
   SistemaTiempo,
   TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
-} from "./SistemaTiempo.js";
+} from "./tiempo/SistemaTiempo.js";
 
 export class Juego {
   constructor({ map, player, objetivos, mapaSeleccionado } = {}) {
@@ -39,13 +39,6 @@ export class Juego {
 
     this.player = player;
     this.objetivos = objetivos;
-
-    // Cuenta las acciones reales realizadas
-    // por el jugador.
-    //
-    // Actualmente no se muestra en la interfaz,
-    // pero se conserva como dato interno.
-    this.turno = 0;
 
     this.modoCombateActivo = false;
 
@@ -698,7 +691,9 @@ export class Juego {
         continue;
       }
 
-      const resultado = combatiente.procesarRegeneracionTurno();
+      // La regeneración depende del reloj mundial,
+      // no de una acción o turno particular.
+      const resultado = combatiente.procesarPulsoRegeneracion();
 
       if (combatiente === this.player) {
         resultadoJugador = resultado;
@@ -863,8 +858,6 @@ export class Juego {
         "El jugador intentó actuar fuera " + "de su turno temporal.",
       );
     }
-
-    this.turno++;
 
     this.sistemaTiempo.registrarAccion({
       actor: this.player,

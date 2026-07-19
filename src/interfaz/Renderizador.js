@@ -118,7 +118,9 @@ export class Renderizador {
       this.dibujarSelectorCombate(juego.selectorCombate, selectorValido);
     }
 
-    this.panelPersonaje.actualizar(juego.player, juego.turno);
+    // El panel calcula sus valores directamente
+    // desde el jugador, incluido el DPS actual.
+    this.panelPersonaje.actualizar(juego.player);
 
     this.panelInventario.actualizar(juego.player.inventario);
 

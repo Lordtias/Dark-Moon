@@ -23,7 +23,7 @@ import {
 import {
   FACTORES_TEMPORALES_PREDETERMINADOS,
   TIEMPO_REFERENCIA,
-} from "../../../juego/SistemaTiempo.js";
+} from "../../../juego/tiempo/SistemaTiempo.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
@@ -556,7 +556,12 @@ export class Combatiente extends Destructible {
     return true;
   }
 
-  procesarRegeneracionTurno() {
+  // Procesa un pulso periódico de regeneración.
+  //
+  // Este método se ejecuta cada 100 unidades
+  // temporales y no depende de las acciones
+  // realizadas por el jugador.
+  procesarPulsoRegeneracion() {
     if (!this.estaVivo) {
       return {
         vidaRecuperada: 0,

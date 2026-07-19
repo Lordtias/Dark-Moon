@@ -22,9 +22,7 @@ export class Objeto {
     contenedorObjetos = null,
   } = {}) {
     this.validarTexto(id, "id");
-
     this.validarTexto(nombre, "nombre");
-
     this.validarTexto(tipo, "tipo");
 
     if (typeof descripcion !== "string") {
@@ -33,13 +31,13 @@ export class Objeto {
 
     if (typeof apilable !== "boolean") {
       throw new Error(
-        `La propiedad apilable de "${nombre}" debe ser booleana.`,
+        `La propiedad apilable de "${nombre}" ` + "debe ser booleana.",
       );
     }
 
     if (!Number.isInteger(cantidadMaxima) || cantidadMaxima <= 0) {
       throw new Error(
-        `La cantidad máxima de "${nombre}" debe ser mayor que 0.`,
+        `La cantidad máxima de "${nombre}" ` + "debe ser mayor que 0.",
       );
     }
 
@@ -78,17 +76,11 @@ export class Objeto {
     }
 
     this.id = id.trim().toLowerCase();
-
     this.nombre = nombre.trim();
-
     this.tipo = tipo.trim().toLowerCase();
-
     this.descripcion = descripcion;
-
     this.apilable = apilable;
-
     this.cantidadMaxima = cantidadMaxima;
-
     this.cantidad = cantidad;
 
     this.ranurasCompatibles = this.normalizarRanuras(ranurasCompatibles);
@@ -102,6 +94,8 @@ export class Objeto {
     this.validarPropiedadesPorTipo();
   }
 
+  // Ejecuta las validaciones particulares
+  // correspondientes al tipo de objeto.
   validarPropiedadesPorTipo() {
     if (this.esArma) {
       this.validarPropiedadesArma();
@@ -131,6 +125,7 @@ export class Objeto {
       patronAtaque,
       probabilidadCritico,
       multiplicadorCritico,
+      costoAtaque,
       manos,
       bloqueaSecundaria,
       requiereQuiver,
@@ -183,7 +178,19 @@ export class Objeto {
       !Number.isFinite(multiplicadorCritico)
     ) {
       throw new Error(
-        `Los valores de crítico de "${this.nombre}" no son válidos.`,
+        `Los valores de crítico de "${this.nombre}" ` + "no son válidos.",
+      );
+    }
+
+    // El coste de ataque representa cuántas unidades
+    // temporales consume utilizar el arma.
+    //
+    // Menor valor = arma más rápida.
+    // Mayor valor = arma más lenta.
+    if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
+      throw new Error(
+        `El costo de ataque de "${this.nombre}" ` +
+          "debe ser un entero mayor que 0.",
       );
     }
 
@@ -207,11 +214,7 @@ export class Objeto {
     }
 
     if (requiereQuiver) {
-      this.validarTexto(
-        this.propiedades.tipoMunicion,
-
-        "tipo de munición",
-      );
+      this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
     }
   }
 
@@ -270,11 +273,7 @@ export class Objeto {
   }
 
   validarPropiedadesQuiver() {
-    this.validarTexto(
-      this.propiedades.tipoMunicion,
-
-      "tipo de munición",
-    );
+    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
 
     if (!this.contenedorObjetos) {
       throw new Error(`El carcaj "${this.nombre}" necesita un contenedor.`);
@@ -282,11 +281,7 @@ export class Objeto {
   }
 
   validarPropiedadesMunicion() {
-    this.validarTexto(
-      this.propiedades.tipoMunicion,
-
-      "tipo de munición",
-    );
+    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
   }
 
   validarTexto(valor, nombreCampo) {
@@ -337,6 +332,10 @@ export class Objeto {
     return this.esArma ? this.propiedades.manos : 0;
   }
 
+  get costoAtaque() {
+    return this.esArma ? this.propiedades.costoAtaque : null;
+  }
+
   get bloqueaSecundaria() {
     return this.esArma && this.propiedades.bloqueaSecundaria === true;
   }
@@ -351,12 +350,13 @@ export class Objeto {
       return 0;
     }
 
-    return this.contenedorObjetos.obtenerObjetos().reduce(
-      (total, objeto) =>
-        total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
-
-      0,
-    );
+    return this.contenedorObjetos
+      .obtenerObjetos()
+      .reduce(
+        (total, objeto) =>
+          total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
+        0,
+      );
   }
 
   // Cantidad total de municiones del carcaj.
@@ -368,11 +368,7 @@ export class Objeto {
     return this.contenedorObjetos
       .obtenerObjetos()
       .filter((objeto) => objeto.esMunicion)
-      .reduce(
-        (total, objeto) => total + objeto.cantidad,
-
-        0,
-      );
+      .reduce((total, objeto) => total + objeto.cantidad, 0);
   }
 
   puedeEquiparseEn(nombreRanura) {

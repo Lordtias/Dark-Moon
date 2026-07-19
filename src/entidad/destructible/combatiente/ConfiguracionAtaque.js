@@ -7,6 +7,7 @@ import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
 // - Qué fuente corresponde a cada mano.
 // - Si el ataque requiere munición.
 // - Si se usa el ataque natural como respaldo.
+// - Cuánto tiempo base consume el ataque.
 export function obtenerConfiguracionAtaque(combatiente) {
   // Algunos enemigos pueden cambiar temporalmente
   // a su ataque natural cuando su arma principal
@@ -41,14 +42,12 @@ export function obtenerConfiguracionAtaque(combatiente) {
       : [
           crearFuenteDesdeArma(armaPrincipal, {
             mano: "principal",
-
             multiplicadorGolpe: 1,
           }),
         ];
 
-    return {
+    const configuracion = {
       origen: "armaPrincipal",
-
       armaControladora: armaPrincipal,
 
       armaPrincipal,
@@ -56,7 +55,6 @@ export function obtenerConfiguracionAtaque(combatiente) {
       quiver,
 
       esAtaqueDual,
-
       cantidadGolpes: fuentesDanio.length,
 
       fuentesDanio,
@@ -72,6 +70,8 @@ export function obtenerConfiguracionAtaque(combatiente) {
 
       tipoMunicion: propiedades.tipoMunicion ?? null,
     };
+
+    return agregarCostoBaseAtaque(configuracion);
   }
 
   // Un arma cuerpo a cuerpo ubicada solamente
@@ -88,9 +88,8 @@ export function obtenerConfiguracionAtaque(combatiente) {
       }),
     ];
 
-    return {
+    const configuracion = {
       origen: "armaSecundaria",
-
       armaControladora: armaSecundaria,
 
       armaPrincipal: null,
@@ -99,7 +98,6 @@ export function obtenerConfiguracionAtaque(combatiente) {
 
       esAtaqueDual: false,
       cantidadGolpes: 1,
-
       fuentesDanio,
 
       propiedadesControladoras: armaSecundaria.propiedades,
@@ -108,9 +106,87 @@ export function obtenerConfiguracionAtaque(combatiente) {
 
       tipoMunicion: armaSecundaria.propiedades.tipoMunicion ?? null,
     };
+
+    return agregarCostoBaseAtaque(configuracion);
   }
 
   return crearConfiguracionAtaqueNatural(combatiente);
+}
+
+// Agrega a una configuración ya construida
+// el coste temporal base del ataque.
+function agregarCostoBaseAtaque(configuracion) {
+  return {
+    ...configuracion,
+
+    costoAtaqueBase: calcularCostoBaseAtaque(configuracion),
+  };
+}
+
+// Calcula el coste base de un ataque.
+//
+// Este coste todavía no contiene:
+//
+// - factorTiempo;
+// - factorAtaque;
+// - estados;
+// - bonificaciones de habilidades.
+//
+// Es únicamente el coste definido por el arma
+// o por el ataque natural.
+export function calcularCostoBaseAtaque(configuracion) {
+  if (!configuracion || typeof configuracion !== "object") {
+    throw new Error("Se necesita una configuración de ataque válida.");
+  }
+
+  if (!configuracion.esAtaqueDual) {
+    return validarCostoAtaque(
+      configuracion.propiedadesControladoras?.costoAtaque,
+
+      configuracion.armaControladora?.nombre ?? "Ataque natural",
+    );
+  }
+
+  const costoPrincipal = validarCostoAtaque(
+    configuracion.armaPrincipal?.propiedades?.costoAtaque,
+
+    configuracion.armaPrincipal?.nombre ?? "Arma principal",
+  );
+
+  const costoSecundaria = validarCostoAtaque(
+    configuracion.armaSecundaria?.propiedades?.costoAtaque,
+
+    configuracion.armaSecundaria?.nombre ?? "Arma secundaria",
+  );
+
+  const costoMayor = Math.max(costoPrincipal, costoSecundaria);
+
+  const costoMenor = Math.min(costoPrincipal, costoSecundaria);
+
+  const recargo = CONFIGURACION_COMBATE.dosArmas.recargoTemporalSecundaria;
+
+  if (!Number.isFinite(recargo) || recargo < 0) {
+    throw new Error("El recargo temporal de dos armas no es válido.");
+  }
+
+  return Math.max(
+    1,
+
+    Math.round(costoMayor + costoMenor * recargo),
+  );
+}
+
+// Valida un coste antes de utilizarlo
+// en los cálculos temporales.
+function validarCostoAtaque(costoAtaque, nombreFuente) {
+  if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
+    throw new Error(
+      `El costo de ataque de "${nombreFuente}" ` +
+        "debe ser un entero mayor que 0.",
+    );
+  }
+
+  return costoAtaque;
 }
 
 // Comprueba que ambas armas sean válidas
@@ -160,19 +236,15 @@ function crearConfiguracionAtaqueNatural(combatiente) {
   const fuentesDanio = [
     {
       nombre: "Ataque natural",
-
       objeto: null,
       mano: "natural",
-
       multiplicadorGolpe: 1,
-
       propiedades: combatiente.ataqueNatural,
     },
   ];
 
-  return {
+  const configuracion = {
     origen: "ataqueNatural",
-
     armaControladora: null,
     armaPrincipal: null,
     armaSecundaria: null,
@@ -180,7 +252,6 @@ function crearConfiguracionAtaqueNatural(combatiente) {
 
     esAtaqueDual: false,
     cantidadGolpes: 1,
-
     fuentesDanio,
 
     propiedadesControladoras: combatiente.ataqueNatural,
@@ -188,6 +259,8 @@ function crearConfiguracionAtaqueNatural(combatiente) {
     requiereQuiver: false,
     tipoMunicion: null,
   };
+
+  return agregarCostoBaseAtaque(configuracion);
 }
 
 // Comprueba que el ataque actual tenga
@@ -309,19 +382,15 @@ function obtenerObjetoEnRanura(combatiente, nombreRanura) {
 function crearFuenteDesdeArma(arma, { mano, multiplicadorGolpe }) {
   if (!Number.isFinite(multiplicadorGolpe) || multiplicadorGolpe < 0) {
     throw new Error(
-      `El multiplicador de golpe de ${arma.nombre} no es válido.`,
+      `El multiplicador de golpe de ${arma.nombre} ` + "no es válido.",
     );
   }
 
   return {
     nombre: arma.nombre,
-
     objeto: arma,
-
     mano,
-
     multiplicadorGolpe,
-
     propiedades: arma.propiedades,
   };
 }
@@ -338,9 +407,5 @@ function contarMunicionCompatible(configuracion) {
         objeto.esMunicion &&
         objeto.propiedades.tipoMunicion === configuracion.tipoMunicion,
     )
-    .reduce(
-      (total, objeto) => total + objeto.cantidad,
-
-      0,
-    );
+    .reduce((total, objeto) => total + objeto.cantidad, 0);
 }

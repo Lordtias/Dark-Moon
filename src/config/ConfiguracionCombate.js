@@ -7,16 +7,12 @@ export const CONFIGURACION_COMBATE = {
     danioPorPuntoRespectoDiez: 0.02,
     precisionPorDestreza: 3,
     evasionPorDestreza: 2,
-
     vidaPorConstitucion: 5,
     manaPorInteligencia: 4,
-
     regeneracionVidaPorConstitucion: 0.1,
     regeneracionManaPorSabiduria: 0.1,
-
     resistenciaElementalPorSabiduria: 0.5,
     resistenciaVenenoPorConstitucion: 0.2,
-
     potenciaEfectosPorSabiduria: 2,
     resistenciaMentalPorSabiduria: 2,
     potenciaAuraPorCarisma: 2,
@@ -34,15 +30,20 @@ export const CONFIGURACION_COMBATE = {
 
   // Eficiencia inicial al combatir con dos armas.
   //
-  // La suma es 100%, por lo que dos armas iguales
-  // conservan aproximadamente el daño de una sola,
-  // pero generan dos impactos independientes.
+  // La suma de los multiplicadores de daño es 100%,
+  // por lo que dos armas iguales mantienen un daño
+  // aproximado al de una sola arma, pero producen
+  // dos impactos independientes.
   //
-  // Los futuros pasivos de profesión podrán
-  // modificar estos valores.
+  // El recargo temporal representa el tiempo adicional
+  // necesario para utilizar también la mano secundaria.
   dosArmas: {
     multiplicadorManoPrincipal: 0.6,
     multiplicadorManoSecundaria: 0.4,
+
+    // El ataque utiliza el coste completo del arma
+    // más lenta y agrega el 30% del arma más rápida.
+    recargoTemporalSecundaria: 0.3,
   },
 
   resistencias: {

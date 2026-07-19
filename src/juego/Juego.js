@@ -2,7 +2,7 @@ import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
 import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js";
 
-import { procesarTurnoEnemigo } from "./SistemaTurnosEnemigos.js";
+import { procesarAccionEnemigo } from "./ia/SistemaAccionesEnemigos.js";
 
 import {
   calcularDistanciaCuadricula,
@@ -27,13 +27,11 @@ export class Juego {
     }
 
     if (!Array.isArray(objetivos)) {
-      throw new Error("Los objetivos deben estar " + "dentro de una lista.");
+      throw new Error("Los objetivos deben estar dentro de una lista.");
     }
 
     if (!mapaSeleccionado || typeof mapaSeleccionado !== "object") {
-      throw new Error(
-        "Juego necesita una plantilla " + "de mapa seleccionada.",
-      );
+      throw new Error("Juego necesita una plantilla de mapa seleccionada.");
     }
 
     this.map = map;
@@ -42,16 +40,11 @@ export class Juego {
     this.player = player;
     this.objetivos = objetivos;
 
-    // Continúa contando todas las acciones reales
-    // realizadas por el jugador.
+    // Cuenta las acciones reales realizadas
+    // por el jugador.
     //
-    // Esto incluye:
-    //
-    // - Movimiento.
-    // - Espera.
-    // - Ataques.
-    // - Equipamiento.
-    // - Carga de munición.
+    // Actualmente no se muestra en la interfaz,
+    // pero se conserva como dato interno.
     this.turno = 0;
 
     this.modoCombateActivo = false;
@@ -69,22 +62,22 @@ export class Juego {
     // Agenda temporal de la partida.
     this.sistemaTiempo = new SistemaTiempo();
 
-    // El primer pulso periódico sucederá
-    // al alcanzar 100 unidades.
+    // La regeneración se procesa cada
+    // 100 unidades temporales.
     this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
 
-    // El jugador se registra primero para que
-    // gane los empates temporales iniciales.
+    // El jugador se registra primero para
+    // conservar un desempate determinista.
     this.sistemaTiempo.registrarActor(this.player);
 
     this.sincronizarEnemigosConAgenda();
 
-    // Dejamos el reloj preparado en el primer
-    // turno del jugador, que comienza en 0.
+    // La partida comienza con el jugador
+    // disponible en el instante cero.
     this.avanzarHastaSiguienteActorConPulsos();
   }
 
-  // Permite que la interfaz consulte el tiempo
+  // Permite consultar el tiempo real
   // alcanzado por el mundo.
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
@@ -107,8 +100,8 @@ export class Juego {
 
   // Comprueba únicamente la distancia numérica.
   //
-  // El selector puede recorrer todo el rango aunque
-  // una trayectoria concreta esté bloqueada.
+  // El selector puede recorrer el rango completo,
+  // aunque una trayectoria concreta esté bloqueada.
   estaCasillaDentroAlcance(x, y) {
     const distancia = calcularDistanciaCuadricula(
       {
@@ -124,13 +117,16 @@ export class Juego {
     return distancia >= 1 && distancia <= this.player.alcanceAtaque;
   }
 
-  // Evalúa distancia, dirección,
-  // patrón y línea de visión.
+  // Evalúa distancia, patrón,
+  // dirección y línea de visión.
   evaluarCasillaAtaque(x, y) {
     return evaluarAtaqueCasilla({
       atacante: this.player,
+
       xObjetivo: x,
+
       yObjetivo: y,
+
       mapa: this.map,
     });
   }
@@ -170,6 +166,7 @@ export class Juego {
   // 3. Primer enemigo encontrado.
   obtenerEnemigoPrioritarioCombate() {
     let enemigoSeleccionado = null;
+
     let distanciaSeleccionada = Infinity;
 
     for (const objetivo of this.objetivos) {
@@ -184,10 +181,12 @@ export class Juego {
       const distancia = calcularDistanciaCuadricula(
         {
           x: this.player.x,
+
           y: this.player.y,
         },
         {
           x: objetivo.x,
+
           y: objetivo.y,
         },
       );
@@ -217,6 +216,7 @@ export class Juego {
   obtenerCasillaInicialCombate() {
     const direcciones = [
       this.ultimaDireccionJugador,
+
       {
         x: 0,
         y: -1,
@@ -275,6 +275,7 @@ export class Juego {
     if (enemigoPrioritario) {
       return {
         x: enemigoPrioritario.x,
+
         y: enemigoPrioritario.y,
       };
     }
@@ -305,6 +306,7 @@ export class Juego {
         mensaje: "No hay una casilla válida para atacar.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -316,6 +318,7 @@ export class Juego {
         mensaje: evaluacion.mensaje,
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -328,11 +331,13 @@ export class Juego {
         mensaje: "No hay una casilla válida para atacar.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
 
     this.modoCombateActivo = true;
+
     this.selectorCombate = seleccion;
 
     const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
@@ -343,6 +348,7 @@ export class Juego {
         : `Modo combate: casilla ` + `${seleccion.x}, ${seleccion.y}.`,
 
       turnoConsumido: false,
+
       redibujar: true,
     };
   }
@@ -360,6 +366,7 @@ export class Juego {
 
     this.selectorCombate = {
       x: this.player.x,
+
       y: this.player.y,
     };
 
@@ -367,6 +374,7 @@ export class Juego {
       mensaje: "Cancelaste el modo combate.",
 
       turnoConsumido: false,
+
       redibujar: true,
     };
   }
@@ -381,6 +389,7 @@ export class Juego {
         mensaje: "No podés seleccionar una pared.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -391,12 +400,14 @@ export class Juego {
           "Esa casilla supera el alcance " + `${this.player.alcanceAtaque}.`,
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
 
     this.selectorCombate = {
       x: nuevaX,
+
       y: nuevaY,
     };
 
@@ -414,6 +425,7 @@ export class Juego {
         : `${textoSeleccion} ` + `${evaluacion.mensaje}`,
 
       turnoConsumido: false,
+
       redibujar: true,
     };
   }
@@ -421,7 +433,7 @@ export class Juego {
   atacarObjetivo(objetivo) {
     if (objetivo instanceof Enemigo) {
       // Atacar provoca a enemigos reactivos,
-      // incluso si el golpe falla.
+      // incluso cuando el ataque falla.
       objetivo.activarAgresividad();
     }
 
@@ -431,8 +443,8 @@ export class Juego {
 
     if (objetivo.estaDestruido) {
       if (objetivo instanceof Enemigo) {
-        // Un actor muerto no debe conservar
-        // futuras acciones en la agenda.
+        // Un actor derrotado se elimina
+        // inmediatamente de la agenda.
         this.sistemaTiempo.eliminarActor(objetivo);
 
         const progresion = this.player.ganarExperiencia(
@@ -488,12 +500,13 @@ export class Juego {
         mensaje: evaluacion.mensaje,
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
 
-    // Capturamos el coste antes de resolver
-    // el ataque y consumir munición.
+    // El coste se captura antes de consumir
+    // munición o modificar el equipamiento.
     const costoAtaque = this.player.costoAtaqueActual;
 
     const objetivo = this.obtenerObjetivoEn(x, y);
@@ -502,6 +515,7 @@ export class Juego {
 
     this.selectorCombate = {
       x: this.player.x,
+
       y: this.player.y,
     };
 
@@ -518,11 +532,8 @@ export class Juego {
     });
   }
 
-  // Comprueba las reglas comunes de todas
-  // las acciones realizadas desde los paneles.
-  //
-  // Estas validaciones también viven en Juego para que
-  // las reglas no dependan únicamente del controlador.
+  // Comprueba las restricciones comunes
+  // de las acciones realizadas desde paneles.
   obtenerBloqueoAccionPanelObjetos() {
     if (!this.player.estaVivo) {
       return {
@@ -531,6 +542,7 @@ export class Juego {
         mensaje: "No podés modificar el equipamiento " + "estando derrotado.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -543,6 +555,7 @@ export class Juego {
           "Cancelá el modo combate antes de " + "cambiar el equipamiento.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -552,11 +565,8 @@ export class Juego {
 
   // Selecciona un objeto del inventario.
   //
-  // El objeto elegido determina qué familia
-  // temporal se utilizará:
-  //
-  // - Equipamiento o munición: ACCION.
-  // - Poción o pergamino: CONSUMO.
+  // Equipamiento y munición utilizan ACCION.
+  // Pociones y futuros pergaminos utilizan CONSUMO.
   interactuarConObjetoInventario(indiceInventario) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
 
@@ -564,9 +574,9 @@ export class Juego {
       return bloqueo;
     }
 
-    // Se obtiene la referencia antes de ejecutar
-    // la operación porque un consumible puede
-    // desaparecer del inventario.
+    // La referencia se obtiene antes de ejecutar
+    // la acción porque un consumible puede
+    // desaparecer de la pila.
     const objetoSeleccionado =
       this.player.inventario.obtenerObjetoEn(indiceInventario);
 
@@ -590,7 +600,8 @@ export class Juego {
     });
   }
 
-  // Devuelve un objeto equipado al inventario.
+  // Devuelve un objeto equipado
+  // al inventario.
   desequiparObjetoAInventario(nombreRanura) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
 
@@ -609,17 +620,10 @@ export class Juego {
     });
   }
 
-  // Convierte el resultado de una operación del
-  // inventario en una acción temporal del jugador.
+  // Convierte una operación de inventario
+  // en una acción temporal.
   //
-  // Una operación fallida conserva su mensaje, pero:
-  //
-  // - No incrementa turno.
-  // - No avanza el reloj.
-  // - No permite actuar a los enemigos.
-  //
-  // Una operación exitosa se registra con el factor
-  // global y el factorAccion del jugador.
+  // Los resultados fallidos no consumen tiempo.
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     if (
       !resultado ||
@@ -634,7 +638,9 @@ export class Juego {
     if (!resultado.exito) {
       return {
         ...resultado,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -654,7 +660,7 @@ export class Juego {
   }
 
   // Registra enemigos nuevos y retira
-  // automáticamente los destruidos.
+  // automáticamente los derrotados.
   sincronizarEnemigosConAgenda() {
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Enemigo)) {
@@ -673,7 +679,7 @@ export class Juego {
     }
   }
 
-  // Aplica un único pulso de regeneración
+  // Aplica un pulso de regeneración
   // a todos los combatientes vivos.
   aplicarPulsoRegeneracion() {
     const combatientes = [
@@ -725,8 +731,8 @@ export class Juego {
     return recuperacionTotal;
   }
 
-  // Avanza hasta el actor siguiente, procesando
-  // primero los pulsos que ocurran en el camino.
+  // Avanza hasta el actor siguiente
+  // procesando primero los pulsos intermedios.
   avanzarHastaSiguienteActorConPulsos() {
     const tiempoSiguienteActor =
       this.sistemaTiempo.obtenerTiempoSiguienteActor();
@@ -737,6 +743,7 @@ export class Juego {
 
         recuperacionJugador: {
           vidaRecuperada: 0,
+
           manaRecuperado: 0,
         },
       };
@@ -753,8 +760,8 @@ export class Juego {
     };
   }
 
-  // Ejecuta enemigos hasta que el jugador
-  // vuelva a ser el siguiente actor.
+  // Ejecuta acciones enemigas hasta que
+  // el jugador vuelva a ser el siguiente actor.
   procesarHastaTurnoJugador() {
     const mensajes = [];
 
@@ -786,8 +793,11 @@ export class Juego {
 
       const enemigo = avance.actor;
 
-      const resultadoEnemigo = procesarTurnoEnemigo({
+      // Cada enemigo resuelve exactamente
+      // una acción cuando llega su instante.
+      const resultadoEnemigo = procesarAccionEnemigo({
         enemigo,
+
         jugador: this.player,
 
         mapa: this.map,
@@ -842,7 +852,7 @@ export class Juego {
   }
 
   // Finaliza una acción real del jugador
-  // registrando su coste en la agenda.
+  // y registra su coste en la agenda.
   finalizarAccionJugador({ mensaje, tipoAccion, costoBase }) {
     this.sincronizarEnemigosConAgenda();
 
@@ -879,6 +889,7 @@ export class Juego {
       mensaje: mensajes.filter(Boolean).join("\n"),
 
       turnoConsumido: true,
+
       redibujar: true,
     };
   }
@@ -897,6 +908,7 @@ export class Juego {
         mensaje: "Confirmá con F o cancelá con Escape.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -932,6 +944,7 @@ export class Juego {
         mensaje: "No podés atravesar una pared.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -941,6 +954,7 @@ export class Juego {
         mensaje: "No podés atravesar esa esquina.",
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -950,6 +964,7 @@ export class Juego {
     if (objetivo instanceof Combatiente) {
       this.ultimaDireccionJugador = {
         x: movimientoX,
+
         y: movimientoY,
       };
 
@@ -961,15 +976,18 @@ export class Juego {
         mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
 
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
 
     this.player.x = nuevaX;
+
     this.player.y = nuevaY;
 
     this.ultimaDireccionJugador = {
       x: movimientoX,
+
       y: movimientoY,
     };
 

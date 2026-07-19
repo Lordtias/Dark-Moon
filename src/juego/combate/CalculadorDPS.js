@@ -2,7 +2,7 @@ import {
   calcularCostoAccionCombatiente,
   TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
-} from "../SistemaTiempo.js";
+} from "../tiempo/SistemaTiempo.js";
 
 // Calcula el DPS bruto del ataque actual.
 //

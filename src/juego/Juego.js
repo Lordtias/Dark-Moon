@@ -42,8 +42,16 @@ export class Juego {
     this.player = player;
     this.objetivos = objetivos;
 
-    // Continúa contando acciones realizadas
-    // por el jugador.
+    // Continúa contando todas las acciones reales
+    // realizadas por el jugador.
+    //
+    // Esto incluye:
+    //
+    // - Movimiento.
+    // - Espera.
+    // - Ataques.
+    // - Equipamiento.
+    // - Carga de munición.
     this.turno = 0;
 
     this.modoCombateActivo = false;
@@ -76,8 +84,8 @@ export class Juego {
     this.avanzarHastaSiguienteActorConPulsos();
   }
 
-  // Permite que la interfaz consulte
-  // el tiempo alcanzado por el mundo.
+  // Permite que la interfaz consulte el tiempo
+  // alcanzado por el mundo.
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
   }
@@ -508,6 +516,128 @@ export class Juego {
 
       costoBase: costoAtaque,
     });
+  }
+
+  // Comprueba las reglas comunes de todas
+  // las acciones realizadas desde los paneles.
+  //
+  // Estas validaciones también viven en Juego para que
+  // las reglas no dependan únicamente del controlador.
+  obtenerBloqueoAccionPanelObjetos() {
+    if (!this.player.estaVivo) {
+      return {
+        exito: false,
+
+        mensaje: "No podés modificar el equipamiento " + "estando derrotado.",
+
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    if (this.modoCombateActivo) {
+      return {
+        exito: false,
+
+        mensaje:
+          "Cancelá el modo combate antes de " + "cambiar el equipamiento.",
+
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    return null;
+  }
+
+  // Selecciona un objeto del inventario.
+  //
+  // Según su tipo, Player y
+  // SistemaInventarioEquipamiento decidirán si:
+  //
+  // - Se equipa.
+  // - Se carga dentro del carcaj.
+  // - No puede utilizarse todavía.
+  interactuarConObjetoInventario(indiceInventario) {
+    const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
+
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    const resultado =
+      this.player.interactuarConObjetoInventario(indiceInventario);
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+
+      costoBase: COSTOS_TEMPORALES_BASE.accion,
+    });
+  }
+
+  // Devuelve un objeto equipado al inventario.
+  desequiparObjetoAInventario(nombreRanura) {
+    const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
+
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    const resultado = this.player.desequiparObjetoAInventario(nombreRanura);
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+
+      costoBase: COSTOS_TEMPORALES_BASE.accion,
+    });
+  }
+
+  // Convierte el resultado de una operación del
+  // inventario en una acción temporal del jugador.
+  //
+  // Una operación fallida conserva su mensaje, pero:
+  //
+  // - No incrementa turno.
+  // - No avanza el reloj.
+  // - No permite actuar a los enemigos.
+  //
+  // Una operación exitosa se registra con el factor
+  // global y el factorAccion del jugador.
+  finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
+    if (
+      !resultado ||
+      typeof resultado !== "object" ||
+      typeof resultado.exito !== "boolean"
+    ) {
+      throw new Error(
+        "La acción de inventario debe devolver " + "un resultado válido.",
+      );
+    }
+
+    if (!resultado.exito) {
+      return {
+        ...resultado,
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
+    const resultadoTemporal = this.finalizarAccionJugador({
+      mensaje: resultado.mensaje,
+
+      tipoAccion,
+      costoBase,
+    });
+
+    return {
+      ...resultado,
+      ...resultadoTemporal,
+      exito: true,
+    };
   }
 
   // Registra enemigos nuevos y retira

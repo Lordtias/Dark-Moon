@@ -1,5 +1,12 @@
-// Coordina las interacciones entre los paneles,
-// el inventario y el equipamiento del jugador.
+// Coordina las interacciones visuales entre:
+//
+// - El panel de inventario.
+// - El panel de equipamiento.
+// - Las acciones expuestas por Juego.
+//
+// El controlador no modifica directamente al jugador.
+// Las reglas, validaciones y costes temporales pertenecen
+// a Juego.
 export class ControladorEquipamiento {
   constructor({
     juego,
@@ -7,11 +14,22 @@ export class ControladorEquipamiento {
     panelInventario,
     panelEquipamiento,
   } = {}) {
-    if (!juego?.player) {
-      throw new Error("ControladorEquipamiento necesita una partida válida.");
+    if (
+      !juego ||
+      typeof juego.interactuarConObjetoInventario !== "function" ||
+      typeof juego.desequiparObjetoAInventario !== "function"
+    ) {
+      throw new Error(
+        "ControladorEquipamiento necesita una partida " +
+          "con acciones de inventario válidas.",
+      );
     }
 
-    if (!renderizador || typeof renderizador.dibujarJuego !== "function") {
+    if (
+      !renderizador ||
+      typeof renderizador.dibujarJuego !== "function" ||
+      typeof renderizador.mostrarMensaje !== "function"
+    ) {
       throw new Error("ControladorEquipamiento necesita un renderizador.");
     }
 
@@ -20,7 +38,7 @@ export class ControladorEquipamiento {
       typeof panelInventario.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel de inventario.",
+        "ControladorEquipamiento necesita un panel " + "de inventario.",
       );
     }
 
@@ -29,16 +47,17 @@ export class ControladorEquipamiento {
       typeof panelEquipamiento.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel de equipamiento.",
+        "ControladorEquipamiento necesita un panel " + "de equipamiento.",
       );
     }
 
     this.juego = juego;
     this.renderizador = renderizador;
     this.panelInventario = panelInventario;
-
     this.panelEquipamiento = panelEquipamiento;
 
+    // Conservamos las referencias enlazadas para poder
+    // asignarlas y retirarlas correctamente.
     this.seleccionarInventario = this.seleccionarInventario.bind(this);
 
     this.seleccionarEquipamiento = this.seleccionarEquipamiento.bind(this);
@@ -46,6 +65,7 @@ export class ControladorEquipamiento {
     this.estaActivo = false;
   }
 
+  // Conecta los paneles con sus acciones.
   activar() {
     if (this.estaActivo) {
       return;
@@ -60,69 +80,58 @@ export class ControladorEquipamiento {
     this.estaActivo = true;
   }
 
+  // Retira las acciones de los paneles.
   desactivar() {
     if (!this.estaActivo) {
       return;
     }
 
     this.panelInventario.configurarSeleccionador(null);
-
     this.panelEquipamiento.configurarSeleccionador(null);
 
     this.estaActivo = false;
   }
 
-  seleccionarInventario(indice) {
-    if (!this.puedeModificarEquipo()) {
-      return;
-    }
-
-    const resultado = this.juego.player.interactuarConObjetoInventario(indice);
-
-    this.procesarResultado(resultado);
-  }
-
-  seleccionarEquipamiento(nombreRanura) {
-    if (!this.puedeModificarEquipo()) {
-      return;
-    }
-
+  // Seleccionar un objeto puede producir:
+  //
+  // - Equipamiento.
+  // - Cambio de arma.
+  // - Carga de munición.
+  // - Un fallo sin coste temporal.
+  seleccionarInventario(indiceInventario) {
     const resultado =
-      this.juego.player.desequiparObjetoAInventario(nombreRanura);
+      this.juego.interactuarConObjetoInventario(indiceInventario);
 
     this.procesarResultado(resultado);
   }
 
-  puedeModificarEquipo() {
-    if (!this.juego.player.estaVivo) {
-      this.renderizador.mostrarMensaje(
-        "No podés modificar el equipamiento estando derrotado.",
-      );
+  // Seleccionar una ranura ocupada intenta
+  // devolver su objeto al inventario.
+  seleccionarEquipamiento(nombreRanura) {
+    const resultado = this.juego.desequiparObjetoAInventario(nombreRanura);
 
-      return false;
-    }
-
-    if (this.juego.modoCombateActivo) {
-      this.renderizador.mostrarMensaje(
-        "Cancelá el modo combate antes de cambiar el equipamiento.",
-      );
-
-      return false;
-    }
-
-    return true;
+    this.procesarResultado(resultado);
   }
 
+  // Muestra el historial producido por la acción
+  // y redibuja cuando Juego lo solicita.
+  //
+  // Ya no dependemos únicamente de "exito", porque una
+  // acción temporal también puede provocar movimiento,
+  // ataques enemigos, regeneración o la derrota del jugador.
   procesarResultado(resultado) {
     if (!resultado) {
       return;
     }
 
-    this.renderizador.mostrarMensaje(resultado.mensaje);
+    if (
+      typeof resultado.mensaje === "string" &&
+      resultado.mensaje.trim() !== ""
+    ) {
+      this.renderizador.mostrarMensaje(resultado.mensaje);
+    }
 
-    if (resultado.exito) {
-      // Equipar o cargar munición todavía
-      // no consume un turno.
+    if (resultado.redibujar) {
       this.renderizador.dibujarJuego(this.juego);
     }
   }

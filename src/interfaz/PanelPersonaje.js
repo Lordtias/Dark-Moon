@@ -1,3 +1,5 @@
+import { calcularDpsCombatiente } from "../juego/combate/CalculadorDPS.js";
+
 const ATRIBUTOS = [
   "fuerza",
   "destreza",
@@ -23,10 +25,10 @@ export class PanelPersonaje {
     }
 
     this.contenedor = contenedor;
+
     this.plantilla = plantilla;
 
     this.playerActual = null;
-    this.turnoActual = 0;
 
     this.manejarClick = this.manejarClick.bind(this);
 
@@ -42,6 +44,37 @@ export class PanelPersonaje {
     const contenido = this.plantilla.content.cloneNode(true);
 
     this.contenedor.replaceChildren(contenido);
+
+    // La plantilla todavía contiene el cuadro
+    // llamado Turno.
+    //
+    // Lo convertimos dinámicamente en DPS para
+    // no duplicar la estructura del panel
+    // entre JavaScript e index.html.
+    this.configurarCampoDps();
+  }
+
+  // Convierte el antiguo campo visual Turno
+  // en el nuevo campo DPS.
+  configurarCampoDps() {
+    const valorDps = this.obtener('[data-personaje="turno"]');
+
+    valorDps.dataset.personaje = "dps";
+
+    const contenedorDato = valorDps.closest(".dato-personaje");
+
+    const etiqueta = contenedorDato?.querySelector("span");
+
+    if (!contenedorDato || !etiqueta) {
+      throw new Error("No se pudo convertir el campo Turno en DPS.");
+    }
+
+    etiqueta.textContent = "DPS";
+
+    contenedorDato.title =
+      "Daño bruto medio por segundo. " +
+      "Incluye la velocidad del ataque, pero no " +
+      "precisión, críticos, armadura ni bloqueo.";
   }
 
   // Obtiene un elemento interno obligatorio.
@@ -73,18 +106,22 @@ export class PanelPersonaje {
     }
 
     // Un atributo puede modificar varias
-    // estadísticas derivadas simultáneamente.
-    this.actualizar(this.playerActual, this.turnoActual);
+    // estadísticas derivadas y el DPS.
+    this.actualizar(this.playerActual);
 
     boton.blur();
   }
 
   // Actualiza todos los valores visibles.
-  actualizar(player, turno) {
+  //
+  // Ya no recibe el contador de turnos porque
+  // esa información dejó de mostrarse.
+  actualizar(player) {
     this.playerActual = player;
-    this.turnoActual = turno;
 
     const estadisticas = player.estadisticasDerivadas;
+
+    const resultadoDps = calcularDpsCombatiente(player);
 
     this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
 
@@ -103,7 +140,19 @@ export class PanelPersonaje {
       estadisticas.danioFisico.promedio,
     );
 
-    this.obtener('[data-personaje="turno"]').textContent = turno;
+    this.obtener('[data-personaje="dps"]').textContent = this.formatear(
+      resultadoDps.dps,
+    );
+
+    // El tooltip muestra cómo se obtuvo
+    // el DPS actualmente visible.
+    this.obtener('[data-personaje="dps"]').closest(".dato-personaje").title =
+      `Daño medio: ${this.formatear(resultadoDps.danioMedio)}. ` +
+      `Costo efectivo: ${resultadoDps.costoAtaqueEfectivo}. ` +
+      `Duración: ${this.formatear(
+        resultadoDps.duracionAtaqueSegundos,
+      )} segundos. ` +
+      "No incluye precisión, crítico, armadura ni bloqueo.";
 
     this.actualizarBarra("vida", player.vidaActual, player.vidaMaxima);
 

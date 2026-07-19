@@ -1,37 +1,55 @@
+// Interruptor temporal del panel.
+//
+// El sistema de tiempo continúa funcionando,
+// pero su representación visual queda apagada
+// hasta que su diseño resulte más claro.
+const PANEL_ORDEN_TEMPORAL_ACTIVO = false;
+
 // Identificador utilizado para evitar cargar
 // varias veces la hoja de estilos del panel.
 const ID_ESTILOS_ORDEN_TEMPORAL = "estilosOrdenTemporal";
 
 // Ruta de la hoja de estilos específica.
-//
-// El componente la incorpora automáticamente,
-// por lo que no necesitamos modificar index.html
-// ni el archivo style.css principal.
 const RUTA_ESTILOS_ORDEN_TEMPORAL = "./panel-tiempo.css";
 
-// Cantidad predeterminada de actores visibles.
-//
-// Si existen más actores, el panel informa
-// cuántos quedaron fuera de la vista compacta.
+// Cantidad predeterminada
+// de actores visibles.
 const MAXIMO_ACTORES_PREDETERMINADO = 8;
 
 // Representa visualmente el estado actual
 // de la agenda temporal.
 //
-// Cada actor aparece una sola vez y muestra:
-//
-// - Su posición dentro de la agenda.
-// - Su símbolo.
-// - Su nombre.
-// - Cuánto falta para su próxima acción.
-//
-// El panel no intenta predecir acciones futuras
-// que todavía no fueron registradas.
+// Aunque el panel esté apagado, conservamos
+// la clase completa para poder recuperarla
+// sin reconstruirla desde cero.
 export class PanelOrdenTemporal {
   constructor({
     referenciaInsercion,
     maximoActores = MAXIMO_ACTORES_PREDETERMINADO,
   } = {}) {
+    this.activo = PANEL_ORDEN_TEMPORAL_ACTIVO;
+
+    this.maximoActores = maximoActores;
+
+    this.contenedor = null;
+
+    this.textoTiempo = null;
+
+    this.lista = null;
+
+    this.mensajeAdicional = null;
+
+    // Cuando el interruptor está apagado
+    // no creamos elementos, no cargamos CSS
+    // y no modificamos la cuadrícula.
+    if (!this.activo) {
+      document.getElementById("panelOrdenTemporal")?.remove();
+
+      document.getElementById(ID_ESTILOS_ORDEN_TEMPORAL)?.remove();
+
+      return;
+    }
+
     if (
       !referenciaInsercion ||
       typeof referenciaInsercion.insertAdjacentElement !== "function"
@@ -47,13 +65,8 @@ export class PanelOrdenTemporal {
       );
     }
 
-    this.maximoActores = maximoActores;
-
     this.asegurarHojaEstilos();
 
-    // Si la interfaz se reconstruye, retiramos
-    // una versión anterior del panel para evitar
-    // elementos duplicados.
     document.getElementById("panelOrdenTemporal")?.remove();
 
     this.contenedor = document.createElement("section");
@@ -107,16 +120,11 @@ export class PanelOrdenTemporal {
 
     this.contenedor.append(cabecera, this.lista, this.mensajeAdicional);
 
-    // El panel se ubica inmediatamente
-    // después del mapa.
-    //
-    // La hoja de estilos ajusta la cuadrícula
-    // central para incorporar esta nueva fila.
     referenciaInsercion.insertAdjacentElement("afterend", this.contenedor);
   }
 
   // Agrega la hoja de estilos únicamente
-  // cuando todavía no existe en el documento.
+  // cuando todavía no existe.
   asegurarHojaEstilos() {
     if (document.getElementById(ID_ESTILOS_ORDEN_TEMPORAL)) {
       return;
@@ -133,9 +141,15 @@ export class PanelOrdenTemporal {
     document.head.appendChild(enlace);
   }
 
-  // Actualiza la agenda temporal visible
-  // utilizando el estado real de SistemaTiempo.
+  // Actualiza la agenda temporal visible.
+  //
+  // Cuando el panel está apagado,
+  // la operación termina inmediatamente.
   actualizar(juego) {
+    if (!this.activo) {
+      return;
+    }
+
     if (
       !juego ||
       !juego.sistemaTiempo ||
@@ -184,8 +198,6 @@ export class PanelOrdenTemporal {
     this.actualizarMensajeAdicional(agenda.length - registrosVisibles.length);
   }
 
-  // Crea el elemento correspondiente
-  // a un actor de la agenda.
   crearElementoActor({ registro, indice, juego, tiempoActual }) {
     const { actor, proximoTurno } = registro;
 
@@ -197,13 +209,12 @@ export class PanelOrdenTemporal {
 
     elemento.classList.add(
       "actor-orden-temporal",
+
       esJugador
         ? "actor-orden-temporal--jugador"
         : "actor-orden-temporal--enemigo",
     );
 
-    // El primer actor con diferencia cero
-    // está actuando actualmente.
     if (indice === 0 && diferenciaTemporal === 0) {
       elemento.classList.add("actor-orden-temporal--actual");
     }
@@ -251,8 +262,6 @@ export class PanelOrdenTemporal {
     return elemento;
   }
 
-  // Devuelve una etiqueta clara para
-  // la diferencia temporal del actor.
   crearTextoDiferencia({ indice, diferenciaTemporal }) {
     if (diferenciaTemporal === 0 && indice === 0) {
       return "Ahora";
@@ -265,8 +274,6 @@ export class PanelOrdenTemporal {
     return `En ${diferenciaTemporal} ` + "unidades";
   }
 
-  // Genera la descripción mostrada
-  // al mantener el cursor sobre un actor.
   crearDescripcionActor({
     actor,
     esJugador,
@@ -277,10 +284,15 @@ export class PanelOrdenTemporal {
 
     const partes = [
       nombre,
+
       `próximo turno absoluto: ${proximoTurno}`,
+
       `diferencia temporal: ${diferenciaTemporal}`,
+
       `factor global: ${actor.factorTiempo ?? 100}`,
+
       `factor de movimiento: ${actor.factorMovimiento ?? 100}`,
+
       `factor de ataque: ${actor.factorAtaque ?? 100}`,
     ];
 
@@ -299,8 +311,6 @@ export class PanelOrdenTemporal {
     this.actualizarMensajeAdicional(0);
   }
 
-  // Informa cuando la vista compacta
-  // no puede mostrar todos los actores.
   actualizarMensajeAdicional(cantidadAdicional) {
     const hayAdicionales = cantidadAdicional > 0;
 
@@ -312,6 +322,8 @@ export class PanelOrdenTemporal {
   }
 
   destruir() {
-    this.contenedor.remove();
+    this.contenedor?.remove();
+
+    document.getElementById(ID_ESTILOS_ORDEN_TEMPORAL)?.remove();
   }
 }

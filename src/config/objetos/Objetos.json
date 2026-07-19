@@ -235,7 +235,13 @@
     "cantidadMaxima": 5,
     "ranurasCompatibles": [],
     "propiedades": {
-      "curacion": 5
+      "costoConsumo": 100,
+      "efectos": [
+        {
+          "tipo": "recuperarVida",
+          "cantidad": 5
+        }
+      ]
     }
   }
 }

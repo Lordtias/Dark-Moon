@@ -552,12 +552,11 @@ export class Juego {
 
   // Selecciona un objeto del inventario.
   //
-  // Según su tipo, Player y
-  // SistemaInventarioEquipamiento decidirán si:
+  // El objeto elegido determina qué familia
+  // temporal se utilizará:
   //
-  // - Se equipa.
-  // - Se carga dentro del carcaj.
-  // - No puede utilizarse todavía.
+  // - Equipamiento o munición: ACCION.
+  // - Poción o pergamino: CONSUMO.
   interactuarConObjetoInventario(indiceInventario) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
 
@@ -565,15 +564,29 @@ export class Juego {
       return bloqueo;
     }
 
+    // Se obtiene la referencia antes de ejecutar
+    // la operación porque un consumible puede
+    // desaparecer del inventario.
+    const objetoSeleccionado =
+      this.player.inventario.obtenerObjetoEn(indiceInventario);
+
+    const esConsumo = objetoSeleccionado?.esConsumible === true;
+
+    const tipoAccion = esConsumo
+      ? TIPOS_ACCION_TEMPORAL.CONSUMO
+      : TIPOS_ACCION_TEMPORAL.ACCION;
+
+    const costoBase = esConsumo
+      ? objetoSeleccionado.costoConsumo
+      : COSTOS_TEMPORALES_BASE.accion;
+
     const resultado =
       this.player.interactuarConObjetoInventario(indiceInventario);
 
     return this.finalizarResultadoAccionJugador({
       resultado,
-
-      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
-
-      costoBase: COSTOS_TEMPORALES_BASE.accion,
+      tipoAccion,
+      costoBase,
     });
   }
 

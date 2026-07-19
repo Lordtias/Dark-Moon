@@ -1,5 +1,5 @@
-// Muestra el inventario y notifica cuando
-// el usuario selecciona un objeto.
+// Muestra el inventario y notifica
+// cuando el usuario selecciona un objeto.
 export class PanelInventario {
   constructor({ cuadricula, mensajeVacio } = {}) {
     if (!cuadricula) {
@@ -11,7 +11,9 @@ export class PanelInventario {
     }
 
     this.cuadricula = cuadricula;
+
     this.mensajeVacio = mensajeVacio;
+
     this.alSeleccionarObjeto = null;
 
     this.manejarClick = this.manejarClick.bind(this);
@@ -63,14 +65,12 @@ export class PanelInventario {
     casilla.classList.add("ocupado", "interactuable");
 
     casilla.tabIndex = 0;
+
     casilla.setAttribute("role", "button");
 
     casilla.title = this.crearTituloObjeto(objeto);
 
-    casilla.setAttribute(
-      "aria-label",
-      objeto.esMunicion ? `Cargar ${objeto.nombre}` : `Usar ${objeto.nombre}`,
-    );
+    casilla.setAttribute("aria-label", this.crearEtiquetaAccion(objeto));
 
     const nombre = document.createElement("span");
 
@@ -103,12 +103,35 @@ export class PanelInventario {
     return casilla;
   }
 
+  crearEtiquetaAccion(objeto) {
+    if (objeto.esMunicion) {
+      return `Cargar ${objeto.nombre}`;
+    }
+
+    if (objeto.esConsumible) {
+      return `Consumir ${objeto.nombre}`;
+    }
+
+    if (objeto.esEquipable) {
+      return `Equipar ${objeto.nombre}`;
+    }
+
+    return `Usar ${objeto.nombre}`;
+  }
+
   crearTituloObjeto(objeto) {
-    const accion = objeto.esMunicion
-      ? "Clic para cargar en el carcaj."
-      : objeto.esEquipable
-        ? "Clic para equipar."
-        : "No se puede utilizar todavía.";
+    let accion;
+
+    if (objeto.esMunicion) {
+      accion = "Clic para cargar en el carcaj.";
+    } else if (objeto.esConsumible) {
+      accion =
+        "Clic para consumir.\n" + `Costo de consumo: ${objeto.costoConsumo}.`;
+    } else if (objeto.esEquipable) {
+      accion = "Clic para equipar.";
+    } else {
+      accion = "No se puede utilizar todavía.";
+    }
 
     if (objeto.esQuiver) {
       return (
@@ -118,7 +141,7 @@ export class PanelInventario {
       );
     }
 
-    return `${objeto.descripcion}\n${accion}`;
+    return `${objeto.descripcion}\n` + accion;
   }
 
   manejarClick(event) {
@@ -149,7 +172,11 @@ export class PanelInventario {
       return;
     }
 
-    const indice = Number.parseInt(casilla.dataset.indiceInventario, 10);
+    const indice = Number.parseInt(
+      casilla.dataset.indiceInventario,
+
+      10,
+    );
 
     if (!Number.isInteger(indice)) {
       return;

@@ -5,9 +5,12 @@ import {
   normalizarPatronAtaque,
 } from "../juego/PatronesAtaque.js";
 
+import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/SistemaConsumibles.js";
+
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
-// Representa una instancia real de cualquier objeto.
+// Representa una instancia real
+// de cualquier objeto del juego.
 export class Objeto {
   constructor({
     id,
@@ -22,7 +25,9 @@ export class Objeto {
     contenedorObjetos = null,
   } = {}) {
     this.validarTexto(id, "id");
+
     this.validarTexto(nombre, "nombre");
+
     this.validarTexto(tipo, "tipo");
 
     if (typeof descripcion !== "string") {
@@ -76,11 +81,17 @@ export class Objeto {
     }
 
     this.id = id.trim().toLowerCase();
+
     this.nombre = nombre.trim();
+
     this.tipo = tipo.trim().toLowerCase();
+
     this.descripcion = descripcion;
+
     this.apilable = apilable;
+
     this.cantidadMaxima = cantidadMaxima;
+
     this.cantidad = cantidad;
 
     this.ranurasCompatibles = this.normalizarRanuras(ranurasCompatibles);
@@ -111,6 +122,10 @@ export class Objeto {
 
     if (this.esMunicion) {
       this.validarPropiedadesMunicion();
+    }
+
+    if (this.esConsumible) {
+      this.validarPropiedadesConsumible();
     }
   }
 
@@ -164,8 +179,6 @@ export class Objeto {
     // todo el juego utilice el mismo formato.
     this.propiedades.patronAtaque = patronNormalizado;
 
-    // El patrón adyacente representa únicamente
-    // las ocho casillas contiguas.
     if (patronNormalizado === PATRONES_ATAQUE.ADYACENTE && alcance !== 1) {
       throw new Error(
         `"${this.nombre}" utiliza patrón adyacente ` +
@@ -182,11 +195,8 @@ export class Objeto {
       );
     }
 
-    // El coste de ataque representa cuántas unidades
-    // temporales consume utilizar el arma.
-    //
-    // Menor valor = arma más rápida.
-    // Mayor valor = arma más lenta.
+    // Menor coste significa que el arma
+    // permite actuar nuevamente antes.
     if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
       throw new Error(
         `El costo de ataque de "${this.nombre}" ` +
@@ -214,7 +224,11 @@ export class Objeto {
     }
 
     if (requiereQuiver) {
-      this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+      this.validarTexto(
+        this.propiedades.tipoMunicion,
+
+        "tipo de munición",
+      );
     }
   }
 
@@ -253,8 +267,6 @@ export class Objeto {
       );
     }
 
-    // Un objeto que permite bloquear también debe
-    // indicar cuánto daño reduce ese bloqueo.
     if (probabilidadBloqueo > 0 && mitigacionBloqueo <= 0) {
       throw new Error(
         `"${this.nombre}" tiene probabilidad de bloqueo ` +
@@ -262,8 +274,6 @@ export class Objeto {
       );
     }
 
-    // Una mitigación sin posibilidad de bloqueo
-    // nunca podría activarse.
     if (mitigacionBloqueo > 0 && probabilidadBloqueo <= 0) {
       throw new Error(
         `"${this.nombre}" tiene mitigación de bloqueo ` +
@@ -273,7 +283,11 @@ export class Objeto {
   }
 
   validarPropiedadesQuiver() {
-    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+    this.validarTexto(
+      this.propiedades.tipoMunicion,
+
+      "tipo de munición",
+    );
 
     if (!this.contenedorObjetos) {
       throw new Error(`El carcaj "${this.nombre}" necesita un contenedor.`);
@@ -281,7 +295,55 @@ export class Objeto {
   }
 
   validarPropiedadesMunicion() {
-    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
+    this.validarTexto(
+      this.propiedades.tipoMunicion,
+
+      "tipo de munición",
+    );
+  }
+
+  // Valida la configuración común de pociones,
+  // pergaminos y futuros objetos utilizables.
+  validarPropiedadesConsumible() {
+    const { costoConsumo, efectos } = this.propiedades;
+
+    if (!Number.isInteger(costoConsumo) || costoConsumo <= 0) {
+      throw new Error(
+        `El costo de consumo de "${this.nombre}" ` +
+          "debe ser un entero mayor que 0.",
+      );
+    }
+
+    if (!Array.isArray(efectos) || efectos.length === 0) {
+      throw new Error(
+        `El consumible "${this.nombre}" ` + "necesita al menos un efecto.",
+      );
+    }
+
+    const tiposValidos = Object.values(TIPOS_EFECTO_CONSUMIBLE);
+
+    for (const efecto of efectos) {
+      if (
+        efecto === null ||
+        typeof efecto !== "object" ||
+        Array.isArray(efecto)
+      ) {
+        throw new Error(`Existe un efecto inválido en "${this.nombre}".`);
+      }
+
+      if (!tiposValidos.includes(efecto.tipo)) {
+        throw new Error(
+          `El efecto "${efecto.tipo}" de ` + `"${this.nombre}" no es válido.`,
+        );
+      }
+
+      if (!Number.isFinite(efecto.cantidad) || efecto.cantidad <= 0) {
+        throw new Error(
+          `La cantidad del efecto "${efecto.tipo}" ` +
+            `de "${this.nombre}" debe ser mayor que 0.`,
+        );
+      }
+    }
   }
 
   validarTexto(valor, nombreCampo) {
@@ -328,12 +390,20 @@ export class Objeto {
     return this.tipo === "municion";
   }
 
+  get esConsumible() {
+    return this.tipo === "consumible";
+  }
+
   get manosRequeridas() {
     return this.esArma ? this.propiedades.manos : 0;
   }
 
   get costoAtaque() {
     return this.esArma ? this.propiedades.costoAtaque : null;
+  }
+
+  get costoConsumo() {
+    return this.esConsumible ? this.propiedades.costoConsumo : null;
   }
 
   get bloqueaSecundaria() {
@@ -344,22 +414,23 @@ export class Objeto {
     return this.esArma && this.propiedades.requiereQuiver === true;
   }
 
-  // Cantidad total almacenada dentro del objeto.
+  // Cantidad total almacenada
+  // dentro del objeto.
   get cantidadContenido() {
     if (!this.contenedorObjetos) {
       return 0;
     }
 
-    return this.contenedorObjetos
-      .obtenerObjetos()
-      .reduce(
-        (total, objeto) =>
-          total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
-        0,
-      );
+    return this.contenedorObjetos.obtenerObjetos().reduce(
+      (total, objeto) =>
+        total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
+
+      0,
+    );
   }
 
-  // Cantidad total de municiones del carcaj.
+  // Cantidad total de municiones
+  // almacenadas en el carcaj.
   get cantidadMunicion() {
     if (!this.esQuiver) {
       return 0;
@@ -368,7 +439,11 @@ export class Objeto {
     return this.contenedorObjetos
       .obtenerObjetos()
       .filter((objeto) => objeto.esMunicion)
-      .reduce((total, objeto) => total + objeto.cantidad, 0);
+      .reduce(
+        (total, objeto) => total + objeto.cantidad,
+
+        0,
+      );
   }
 
   puedeEquiparseEn(nombreRanura) {

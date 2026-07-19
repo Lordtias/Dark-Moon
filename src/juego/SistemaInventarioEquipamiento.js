@@ -1,3 +1,5 @@
+import { usarConsumibleDesdeInventario } from "./SistemaConsumibles.js";
+
 const ETIQUETAS_RANURAS = {
   cabeza: "Cabeza",
   torso: "Torso",
@@ -11,7 +13,15 @@ const ETIQUETAS_RANURAS = {
   anillo_izquierdo: "Anillo izquierdo",
 };
 
-// Decide qué hacer al seleccionar un objeto del inventario.
+// Decide qué hacer al seleccionar
+// un objeto del inventario.
+//
+// Prioridades:
+//
+// 1. Munición: cargar en el carcaj.
+// 2. Consumible: utilizar una unidad.
+// 3. Equipable: equipar.
+// 4. Otros objetos: informar que aún no se usan.
 export function interactuarConObjetoInventario(player, indiceInventario) {
   validarPlayer(player);
 
@@ -20,26 +30,36 @@ export function interactuarConObjetoInventario(player, indiceInventario) {
   if (!objeto) {
     return {
       exito: false,
+
       mensaje: "Ese espacio del inventario está vacío.",
     };
   }
 
-  // Las municiones se cargan en el carcaj.
+  // Las municiones se cargan
+  // en el carcaj equipado.
   if (objeto.esMunicion) {
     return cargarMunicionDesdeInventario(player, indiceInventario);
+  }
+
+  // Los consumibles aplican sus efectos
+  // y reducen una unidad de su pila.
+  if (objeto.esConsumible) {
+    return usarConsumibleDesdeInventario(player, indiceInventario);
   }
 
   if (!objeto.esEquipable) {
     return {
       exito: false,
-      mensaje: `${objeto.nombre} no puede equiparse por ahora.`,
+
+      mensaje: `${objeto.nombre} no puede utilizarse por ahora.`,
     };
   }
 
   return equiparObjetoDesdeInventario(player, indiceInventario);
 }
 
-// Carga munición desde el inventario al carcaj equipado.
+// Carga munición desde el inventario
+// al carcaj equipado.
 export function cargarMunicionDesdeInventario(player, indiceInventario) {
   validarPlayer(player);
 
@@ -48,6 +68,7 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   if (!municion?.esMunicion) {
     return {
       exito: false,
+
       mensaje: "El objeto seleccionado no es munición.",
     };
   }
@@ -57,6 +78,7 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   if (!quiver) {
     return {
       exito: false,
+
       mensaje: "Necesitás un carcaj equipado en secundaria.",
     };
   }
@@ -64,13 +86,15 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   if (quiver.propiedades.tipoMunicion !== municion.propiedades.tipoMunicion) {
     return {
       exito: false,
+
       mensaje: `${quiver.nombre} no admite ${municion.nombre}.`,
     };
   }
 
   const contenedor = quiver.contenedorObjetos;
 
-  // Solamente se apilan objetos idénticos.
+  // Solamente se apilan
+  // objetos idénticos.
   const pilaExistente = contenedor.buscarPrimerObjeto(
     (objeto) => objeto.esMunicion && objeto.id === municion.id,
   );
@@ -82,6 +106,7 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
     if (espacioDisponible <= 0) {
       return {
         exito: false,
+
         mensaje:
           `${quiver.nombre} ya tiene la pila de ` +
           `${municion.nombre} completa.`,
@@ -101,20 +126,23 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
     return {
       exito: true,
       cantidadTransferida,
+
       mensaje:
         `Cargaste ${cantidadTransferida} ` +
-        `${municion.nombre} en ${quiver.nombre}. ` +
+        `${municion.nombre} en ${quiver.nombre}.\n` +
         `Ahora contiene ${quiver.cantidadMunicion}.`,
     };
   }
 
-  // Si no existe una pila igual, se necesita
-  // una posición libre dentro del carcaj.
+  // Si no existe una pila igual,
+  // se necesita una posición libre
+  // dentro del carcaj.
   if (contenedor.estaLleno()) {
     const contenidoActual = contenedor.obtenerObjetos()[0];
 
     return {
       exito: false,
+
       mensaje:
         `${quiver.nombre} ya contiene ` +
         `${contenidoActual?.nombre ?? "otra munición"}.`,
@@ -130,12 +158,14 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
 
     return {
       exito: false,
+
       mensaje: "No se pudo cargar la munición en el carcaj.",
     };
   }
 
   return {
     exito: true,
+
     cantidadTransferida: objetoRetirado.cantidad,
 
     mensaje:
@@ -144,7 +174,8 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   };
 }
 
-// Equipa un objeto desde una posición del inventario.
+// Equipa un objeto desde
+// una posición del inventario.
 export function equiparObjetoDesdeInventario(
   player,
   indiceInventario,
@@ -157,6 +188,7 @@ export function equiparObjetoDesdeInventario(
   if (!objeto) {
     return {
       exito: false,
+
       mensaje: "Ese espacio del inventario está vacío.",
     };
   }
@@ -164,6 +196,7 @@ export function equiparObjetoDesdeInventario(
   if (!objeto.esEquipable) {
     return {
       exito: false,
+
       mensaje: `${objeto.nombre} no puede equiparse.`,
     };
   }
@@ -173,6 +206,7 @@ export function equiparObjetoDesdeInventario(
   if (!ranura) {
     return {
       exito: false,
+
       mensaje: `${objeto.nombre} no tiene una ranura compatible.`,
     };
   }
@@ -198,6 +232,7 @@ export function equiparObjetoDesdeInventario(
   if (objetosDesplazados.length > espaciosDisponibles) {
     return {
       exito: false,
+
       mensaje:
         "No hay espacio suficiente para guardar " +
         "los objetos que serían desequipados.",
@@ -248,13 +283,15 @@ export function equiparObjetoDesdeInventario(
   };
 }
 
-// Devuelve un objeto equipado al inventario.
+// Devuelve un objeto equipado
+// al inventario.
 export function desequiparObjetoAInventario(player, nombreRanura) {
   validarPlayer(player);
 
   if (player.inventario.estaLleno()) {
     return {
       exito: false,
+
       mensaje: "El inventario está lleno.",
     };
   }
@@ -266,6 +303,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!estado) {
     return {
       exito: false,
+
       mensaje: "La ranura seleccionada no existe.",
     };
   }
@@ -275,6 +313,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!objeto) {
     return {
       exito: false,
+
       mensaje: "Esa ranura está vacía.",
     };
   }
@@ -284,6 +323,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!objetoDesequipado) {
     return {
       exito: false,
+
       mensaje: "No se pudo desequipar el objeto.",
     };
   }
@@ -293,6 +333,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!agregado) {
     return {
       exito: false,
+
       mensaje: "No se pudo devolver el objeto al inventario.",
     };
   }
@@ -305,7 +346,8 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   };
 }
 
-// Decide automáticamente la ranura más práctica.
+// Decide automáticamente la ranura
+// más práctica.
 function elegirRanuraAutomatica(player, objeto) {
   const compatibles = objeto.ranurasCompatibles.filter((ranura) =>
     player.equipamiento.tieneRanura(ranura),
@@ -339,8 +381,9 @@ function elegirRanuraAutomatica(player, objeto) {
       return "arma";
     }
 
-    // Con arco principal, una espada se coloca
-    // en secundaria para facilitar el cambio.
+    // Con arco principal, una espada
+    // se coloca en secundaria para
+    // facilitar el cambio.
     if (principal.propiedades?.tipoAtaque === "distancia") {
       return "secundaria";
     }

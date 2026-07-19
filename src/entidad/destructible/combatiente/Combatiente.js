@@ -6,7 +6,6 @@ import {
   calcularEstadisticasDerivadas,
   calcularRecursosMaximos,
 } from "./EstadisticasDerivadas.js";
-
 import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 
 import {
@@ -20,6 +19,8 @@ import {
   obtenerPatronAtaquePredeterminado,
 } from "../../../juego/PatronesAtaque.js";
 
+import { FACTORES_TEMPORALES_PREDETERMINADOS } from "../../../juego/SistemaTiempo.js";
+
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 const ATRIBUTOS_REQUERIDOS = [
@@ -29,6 +30,16 @@ const ATRIBUTOS_REQUERIDOS = [
   "inteligencia",
   "sabiduria",
   "carisma",
+];
+
+// Nombres de todos los factores temporales que pertenecen
+// directamente a un combatiente.
+const NOMBRES_FACTORES_TEMPORALES = [
+  "factorTiempo",
+  "factorMovimiento",
+  "factorAtaque",
+  "factorAccion",
+  "factorConsumo",
 ];
 
 function validarAtributos(nombre, atributos) {
@@ -58,42 +69,24 @@ function normalizarEstadisticasBase(nombre, configuracion) {
 
   const valores = {
     vida: configuracion.vida,
-
     mana: configuracion.mana,
-
     vidaPorNivel: configuracion.vidaPorNivel ?? 0,
-
     manaPorNivel: configuracion.manaPorNivel ?? 0,
-
     precision: configuracion.precision ?? 10,
-
     evasion: configuracion.evasion ?? 5,
-
     armadura: configuracion.armadura ?? 0,
-
     regeneracionVida: configuracion.regeneracionVida ?? 0,
-
     regeneracionMana: configuracion.regeneracionMana ?? 0,
-
     probabilidadCritico: configuracion.probabilidadCritico ?? 5,
-
     multiplicadorCritico: configuracion.multiplicadorCritico ?? 1.5,
-
     probabilidadBloqueo: configuracion.probabilidadBloqueo ?? 0,
-
     potenciaEfectos: configuracion.potenciaEfectos ?? 0,
-
     resistenciaMental: configuracion.resistenciaMental ?? 0,
-
     potenciaAura: configuracion.potenciaAura ?? 0,
-
     resistencias: {
       fuego: configuracion.resistencias?.fuego ?? 0,
-
       frio: configuracion.resistencias?.frio ?? 0,
-
       rayo: configuracion.resistencias?.rayo ?? 0,
-
       veneno: configuracion.resistencias?.veneno ?? 0,
     },
   };
@@ -158,11 +151,8 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     atributoAtaque: valores.atributoAtaque ?? "fuerza",
 
     precision: valores.precision ?? 0,
-
     alcance: valores.alcance ?? 1,
-
     tipoAtaque,
-
     patronAtaque: patronNormalizado,
 
     probabilidadCritico: valores.probabilidadCritico ?? 5,
@@ -194,25 +184,25 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
 
   if (!Number.isFinite(ataque.precision)) {
     throw new Error(
-      `La precisión del ataque natural de ` + `${nombre} no es válida.`,
+      "La precisión del ataque natural de " + `${nombre} no es válida.`,
     );
   }
 
   if (!Number.isInteger(ataque.alcance) || ataque.alcance < 1) {
     throw new Error(
-      `El alcance del ataque natural de ` + `${nombre} no es válido.`,
+      "El alcance del ataque natural de " + `${nombre} no es válido.`,
     );
   }
 
   if (!TIPOS_ATAQUE_VALIDOS.includes(ataque.tipoAtaque)) {
     throw new Error(
-      `El tipo de ataque natural de ` + `${nombre} no es válido.`,
+      "El tipo de ataque natural de " + `${nombre} no es válido.`,
     );
   }
 
   if (!ataque.patronAtaque) {
     throw new Error(
-      `El patrón del ataque natural de ` + `${nombre} no es válido.`,
+      "El patrón del ataque natural de " + `${nombre} no es válido.`,
     );
   }
 
@@ -231,12 +221,73 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     !Number.isFinite(ataque.multiplicadorCritico)
   ) {
     throw new Error(
-      `Los valores de crítico del ataque ` +
+      "Los valores de crítico del ataque " +
         `natural de ${nombre} no son válidos.`,
     );
   }
 
   return ataque;
+}
+
+// Completa y valida los factores temporales
+// de un combatiente.
+//
+// Los campos omitidos utilizan 100,
+// que representa el tiempo normal.
+//
+// En todos los casos:
+//
+// - Menor que 100: más rápido.
+// - Igual a 100: velocidad normal.
+// - Mayor que 100: más lento.
+function normalizarFactoresTemporales(nombre, configuracion = {}) {
+  if (
+    configuracion === null ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion)
+  ) {
+    throw new Error(
+      `${nombre} debe tener una ` + "configuración temporal válida.",
+    );
+  }
+
+  const factores = {
+    factorTiempo:
+      configuracion.factorTiempo ??
+      FACTORES_TEMPORALES_PREDETERMINADOS.factorTiempo,
+
+    factorMovimiento:
+      configuracion.factorMovimiento ??
+      FACTORES_TEMPORALES_PREDETERMINADOS.factorMovimiento,
+
+    factorAtaque:
+      configuracion.factorAtaque ??
+      FACTORES_TEMPORALES_PREDETERMINADOS.factorAtaque,
+
+    factorAccion:
+      configuracion.factorAccion ??
+      FACTORES_TEMPORALES_PREDETERMINADOS.factorAccion,
+
+    factorConsumo:
+      configuracion.factorConsumo ??
+      FACTORES_TEMPORALES_PREDETERMINADOS.factorConsumo,
+  };
+
+  // No permitimos cero ni valores negativos
+  // porque producirían acciones gratuitas o
+  // alterarían incorrectamente la agenda.
+  for (const nombreFactor of NOMBRES_FACTORES_TEMPORALES) {
+    const valor = factores[nombreFactor];
+
+    if (!Number.isFinite(valor) || valor <= 0) {
+      throw new Error(
+        `El factor temporal "${nombreFactor}" de ` +
+          `${nombre} debe ser un número mayor que 0.`,
+      );
+    }
+  }
+
+  return factores;
 }
 
 export class Combatiente extends Destructible {
@@ -249,6 +300,13 @@ export class Combatiente extends Destructible {
     atributos,
     estadisticasBase,
     ataqueNatural = null,
+
+    // Configuración temporal del combatiente.
+    //
+    // Si no se proporciona, todos los factores
+    // utilizarán el valor normal de 100.
+    factoresTemporales = {},
+
     capacidadContenedor = 0,
     objetosIniciales = [],
     tablaBotin = [],
@@ -273,6 +331,14 @@ export class Combatiente extends Destructible {
     );
 
     const ataqueNormalizado = normalizarAtaqueNatural(nombre, ataqueNatural);
+
+    // Los factores se normalizan antes de
+    // construir la instancia para garantizar
+    // que todo combatiente nazca con valores válidos.
+    const factoresTemporalesNormalizados = normalizarFactoresTemporales(
+      nombre,
+      factoresTemporales,
+    );
 
     if (
       !Object.prototype.hasOwnProperty.call(
@@ -324,14 +390,31 @@ export class Combatiente extends Destructible {
     });
 
     this.nivel = nivel;
-
     this.atributos = atributosNormalizados;
-
     this.estadisticasBase = baseNormalizada;
-
     this.ataqueNatural = ataqueNormalizado;
-
     this.equipamiento = equipamiento;
+
+    // Factor temporal global.
+    //
+    // Modificará todas las familias de acciones
+    // del combatiente.
+    //
+    // Por ahora solamente queda almacenado;
+    // todavía no modifica los turnos.
+    this.factorTiempo = factoresTemporalesNormalizados.factorTiempo;
+
+    // Factores temporales específicos.
+    //
+    // Cada campo modificará únicamente
+    // la familia de acciones correspondiente.
+    this.factorMovimiento = factoresTemporalesNormalizados.factorMovimiento;
+
+    this.factorAtaque = factoresTemporalesNormalizados.factorAtaque;
+
+    this.factorAccion = factoresTemporalesNormalizados.factorAccion;
+
+    this.factorConsumo = factoresTemporalesNormalizados.factorConsumo;
 
     this.manaMaximo = recursosIniciales.manaMaximo;
 
@@ -387,7 +470,7 @@ export class Combatiente extends Destructible {
       this.configuracionAtaqueActual.propiedadesControladoras.alcance;
 
     if (!Number.isInteger(alcance) || alcance < 1) {
-      throw new Error(`El alcance de ${this.nombre} no es válido.`);
+      throw new Error(`El alcance de ${this.nombre} ` + "no es válido.");
     }
 
     return alcance;
@@ -398,7 +481,7 @@ export class Combatiente extends Destructible {
       this.configuracionAtaqueActual.propiedadesControladoras.tipoAtaque;
 
     if (!TIPOS_ATAQUE_VALIDOS.includes(tipo)) {
-      throw new Error(`El tipo de ataque de ${this.nombre} no es válido.`);
+      throw new Error(`El tipo de ataque de ${this.nombre} ` + "no es válido.");
     }
 
     return tipo;
@@ -411,7 +494,9 @@ export class Combatiente extends Destructible {
     const normalizado = normalizarPatronAtaque(patronAtaque);
 
     if (!normalizado) {
-      throw new Error(`El patrón de ataque de ${this.nombre} no es válido.`);
+      throw new Error(
+        `El patrón de ataque de ${this.nombre} ` + "no es válido.",
+      );
     }
 
     return normalizado;
@@ -423,14 +508,13 @@ export class Combatiente extends Destructible {
 
   recuperarVida(cantidad) {
     if (!Number.isFinite(cantidad)) {
-      throw new Error("La recuperación de Vida debe ser numérica.");
+      throw new Error("La recuperación de Vida " + "debe ser numérica.");
     }
 
     const anterior = this.vidaActual;
 
     this.vidaActual = Math.min(
       this.vidaMaxima,
-
       this.vidaActual + Math.max(0, cantidad),
     );
 
@@ -439,14 +523,13 @@ export class Combatiente extends Destructible {
 
   recuperarMana(cantidad) {
     if (!Number.isFinite(cantidad)) {
-      throw new Error("La recuperación de Maná debe ser numérica.");
+      throw new Error("La recuperación de Maná " + "debe ser numérica.");
     }
 
     const anterior = this.manaActual;
 
     this.manaActual = Math.min(
       this.manaMaximo,
-
       this.manaActual + Math.max(0, cantidad),
     );
 

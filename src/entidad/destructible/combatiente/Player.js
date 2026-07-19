@@ -33,6 +33,14 @@ export class Player extends Combatiente {
     atributos,
     estadisticasBase,
     ataqueNatural = null,
+
+    // Factores que controlarán la velocidad
+    // global y específica del jugador.
+    //
+    // Mientras no se configuren explícitamente,
+    // Combatiente utilizará 100 en todos.
+    factoresTemporales = {},
+
     clasePersonaje = "Aventurero",
     experiencia = 0,
     puntosAtributoDisponibles = 0,
@@ -62,6 +70,7 @@ export class Player extends Combatiente {
       atributos,
       estadisticasBase,
       ataqueNatural,
+      factoresTemporales,
       simbolo: "@",
 
       capacidadContenedor: capacidadInventario,
@@ -77,8 +86,8 @@ export class Player extends Combatiente {
       puntosAtributoDisponibles < 0
     ) {
       throw new Error(
-        "Los puntos de atributo disponibles deben ser " +
-          "un entero igual o mayor que 0.",
+        "Los puntos de atributo disponibles " +
+          "deben ser un entero igual o mayor que 0.",
       );
     }
 
@@ -154,11 +163,13 @@ export class Player extends Combatiente {
 
       this.vidaActual = Math.min(
         this.vidaMaxima,
+
         vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
       );
 
       this.manaActual = Math.min(
         this.manaMaximo,
+
         manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
       );
     }
@@ -177,7 +188,7 @@ export class Player extends Combatiente {
 
   asignarPuntoAtributo(nombreAtributo) {
     if (!ATRIBUTOS_VALIDOS.includes(nombreAtributo)) {
-      throw new Error(`El atributo "${nombreAtributo}" no existe.`);
+      throw new Error(`El atributo "${nombreAtributo}" ` + "no existe.");
     }
 
     if (this.puntosAtributoDisponibles <= 0) {
@@ -196,29 +207,34 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this.atributos[nombreAtributo]++;
+
     this.puntosAtributoDisponibles--;
 
     this.estadisticasDerivadas;
 
     this.vidaActual = Math.min(
       this.vidaMaxima,
+
       vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
     );
 
     this.manaActual = Math.min(
       this.manaMaximo,
+
       manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
     );
 
     return {
       exito: true,
+
       mensaje:
         `${nombreAtributo} aumentó a ` + `${this.atributos[nombreAtributo]}.`,
     };
   }
 
-  // Delega la acción del inventario al sistema
-  // especializado de objetos y equipamiento.
+  // Delega la acción del inventario
+  // al sistema especializado de objetos
+  // y equipamiento.
   interactuarConObjetoInventario(indiceInventario) {
     return interactuarConObjetoInventario(this, indiceInventario);
   }

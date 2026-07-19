@@ -15,6 +15,14 @@ export class Enemigo extends Combatiente {
     atributos,
     estadisticasBase,
     ataqueNatural,
+
+    // Factores que controlarán la velocidad
+    // global y específica del enemigo.
+    //
+    // Más adelante serán modificados
+    // por las variantes.
+    factoresTemporales = {},
+
     simbolo = "E",
     experienciaOtorgada = 0,
     capacidadContenedor = 0,
@@ -32,6 +40,7 @@ export class Enemigo extends Combatiente {
       atributos,
       estadisticasBase,
       ataqueNatural,
+      factoresTemporales,
       simbolo,
       capacidadContenedor,
       objetosIniciales,
@@ -57,9 +66,9 @@ export class Enemigo extends Combatiente {
 
     this.estaAgresivo = false;
 
-    // Cuando vale true, ConfiguracionAtaque ignora
-    // temporalmente las armas equipadas y utiliza
-    // el ataque natural del enemigo.
+    // Cuando vale true, ConfiguracionAtaque
+    // ignora temporalmente las armas equipadas
+    // y utiliza el ataque natural del enemigo.
     //
     // No se desequipa ni elimina ningún objeto.
     this.ataqueNaturalForzado = false;
@@ -78,7 +87,8 @@ export class Enemigo extends Combatiente {
 
     if (!TIPOS_AGRESIVIDAD_VALIDOS.includes(configuracionIA.tipoAgresividad)) {
       throw new Error(
-        `El tipo de agresividad de ${this.nombre} debe ser: ` +
+        `El tipo de agresividad de ${this.nombre} ` +
+          "debe ser: " +
           `${TIPOS_AGRESIVIDAD_VALIDOS.join(" o ")}.`,
       );
     }
@@ -89,12 +99,14 @@ export class Enemigo extends Combatiente {
       )
     ) {
       throw new Error(
-        `La estrategia sin recursos de ${this.nombre} debe ser: ` +
+        `La estrategia sin recursos de ${this.nombre} ` +
+          "debe ser: " +
           `${ESTRATEGIAS_SIN_RECURSOS_VALIDAS.join(" o ")}.`,
       );
     }
 
-    // El alcance de ataque no pertenece a la IA.
+    // El alcance de ataque no pertenece
+    // a la configuración de IA.
     //
     // Se obtiene dinámicamente desde:
     //
@@ -107,12 +119,16 @@ export class Enemigo extends Combatiente {
       },
       {
         nombre: "margenPersecucion",
-
         minimo: 0,
       },
+
+      // Esta propiedad se mantendrá mientras
+      // siga activo el sistema antiguo de turnos.
+      //
+      // Será retirada cuando cada movimiento
+      // pase a consumir tiempo individualmente.
       {
         nombre: "movimientosPorTurno",
-
         minimo: 0,
       },
     ];
@@ -123,7 +139,8 @@ export class Enemigo extends Combatiente {
       if (!Number.isInteger(valor) || valor < campo.minimo) {
         throw new Error(
           `El valor "${campo.nombre}" de ${this.nombre} ` +
-            `debe ser un entero igual o mayor que ${campo.minimo}.`,
+            "debe ser un entero igual o mayor que " +
+            `${campo.minimo}.`,
         );
       }
     }

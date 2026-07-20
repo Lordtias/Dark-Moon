@@ -1,4 +1,4 @@
-import { Barril } from "../entidad/destructible/Barril.js";
+import { Barril } from "../../entidad/destructible/Barril.js";
 
 // Centraliza la relación entre los IDs utilizados
 // en Mapas.json y las clases reales del juego.

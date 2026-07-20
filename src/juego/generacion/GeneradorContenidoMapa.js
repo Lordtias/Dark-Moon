@@ -1,6 +1,6 @@
-import { crearEnemigo } from "./FabricaEnemigos.js";
+import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
 
-import { crearDestructible } from "./FabricaDestructibles.js";
+import { crearDestructible } from "../fabricas/FabricaDestructibles.js";
 
 const DIRECCIONES_CARDINALES = [
   {

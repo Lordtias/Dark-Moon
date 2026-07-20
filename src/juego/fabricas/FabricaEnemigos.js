@@ -1,10 +1,10 @@
-import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
+import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 
-import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
+import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 
-import { CONFIGURACION_COMBATE } from "../config/ConfiguracionCombate.js";
+import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
-import { FACTORES_TEMPORALES_PREDETERMINADOS } from "./tiempo/SistemaTiempo.js";
+import { FACTORES_TEMPORALES_PREDETERMINADOS } from "../tiempo/SistemaTiempo.js";
 
 // Nombres reconocidos por Combatiente y SistemaTiempo.
 //

@@ -10,11 +10,11 @@ import {
 import {
   crearGeneradorAleatorio,
   crearSemillaAleatoria,
-} from "../GeneradorAleatorio.js";
+} from "../generacion/GeneradorAleatorio.js";
 
 import { generarTerreno } from "../GeneradorTerreno.js";
 
-import { generarContenidoMapa } from "../GeneradorContenidoMapa.js";
+import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 
 export const TILE_SIZE = 32;
 

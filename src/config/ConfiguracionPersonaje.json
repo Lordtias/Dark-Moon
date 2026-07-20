@@ -35,6 +35,7 @@
   "profesiones": {
     "guerrero": {
       "nombre": "Guerrero",
+      "recursoVisual": "assets/imagenes/jugador/guerrero.png",
       "pesosAtributos": {
         "fuerza": 5,
         "destreza": 2,
@@ -99,6 +100,7 @@
     },
     "rogue": {
       "nombre": "Rogue",
+      "recursoVisual": "assets/imagenes/jugador/rogue.png",
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 5,
@@ -133,6 +135,7 @@
     },
     "mago": {
       "nombre": "Mago",
+      "recursoVisual": "assets/imagenes/jugador/mago.png",
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 2,

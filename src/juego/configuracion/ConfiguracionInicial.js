@@ -63,6 +63,11 @@ function crearJugadorInicial(
   return new Player({
     nombre,
     clasePersonaje,
+
+    // La profesión seleccionada determina
+    // la imagen inicial del personaje.
+    recursoVisual: profesion.recursoVisual ?? null,
+
     atributos,
 
     estadisticasBase: profesion.estadisticasBase,

@@ -42,6 +42,13 @@ export class Player extends Combatiente {
     factoresTemporales = {},
 
     clasePersonaje = "Aventurero",
+
+    // Ruta opcional de la imagen utilizada
+    // para representar al jugador.
+    //
+    // La profesión define actualmente esta ruta.
+    recursoVisual = null,
+
     experiencia = 0,
     puntosAtributoDisponibles = 0,
     capacidadInventario = 12,
@@ -80,6 +87,25 @@ export class Player extends Combatiente {
       ranurasEquipamiento,
       equipamientoInicial,
     });
+
+    // La imagen es opcional.
+    //
+    // Si no está configurada, el renderizador
+    // continuará mostrando el símbolo "@".
+    if (
+      recursoVisual !== null &&
+      (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
+    ) {
+      throw new Error(
+        `El recurso visual de ${nombre} debe ser una ruta válida.`,
+      );
+    }
+
+    // Player solamente conserva la ruta.
+    //
+    // No carga la imagen ni conoce Canvas,
+    // HTML o una futura librería 2D.
+    this.recursoVisual = recursoVisual?.trim() ?? null;
 
     if (
       !Number.isInteger(puntosAtributoDisponibles) ||

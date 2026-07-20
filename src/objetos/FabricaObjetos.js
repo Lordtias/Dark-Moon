@@ -2,7 +2,11 @@ import { Objeto } from "./Objeto.js";
 
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
-// Crea una instancia independiente desde Objetos.json.
+// Crea una instancia independiente desde
+// el catálogo combinado de objetos.
+//
+// La fábrica no necesita saber en qué archivo JSON
+// fue definida originalmente la plantilla.
 //
 // rutaCreacion evita configuraciones circulares,
 // por ejemplo un quiver que se contenga a sí mismo.
@@ -28,7 +32,8 @@ export function crearObjeto({
 
   if (rutaCreacion.includes(idNormalizado)) {
     throw new Error(
-      `La configuración del objeto "${idNormalizado}" contiene una referencia circular.`,
+      `La configuración del objeto "${idNormalizado}" ` +
+        "contiene una referencia circular.",
     );
   }
 
@@ -42,19 +47,23 @@ export function crearObjeto({
 
   const contenedorObjetos = crearContenedorInterno({
     configuracionObjetos,
+
     configuracionContenedor: plantilla.contenedor ?? null,
+
     rutaCreacion: nuevaRuta,
   });
 
   return new Objeto({
     id: idNormalizado,
+
     nombre: plantilla.nombre,
+
     tipo: plantilla.tipo,
 
     descripcion: plantilla.descripcion ?? "",
 
     // Transportamos la ruta declarada
-    // en Objetos.json.
+    // dentro del catálogo correspondiente.
     recursoVisual: plantilla.recursoVisual ?? null,
 
     apilable: plantilla.apilable ?? false,
@@ -114,8 +123,8 @@ function crearContenedorInterno({
 // "pocion_curacion"
 //
 // {
-//   "id": "flecha_madera",
-//   "cantidad": 20
+//     "id": "flecha_madera",
+//     "cantidad": 20
 // }
 export function crearObjetosDesdeDefiniciones({
   configuracionObjetos,
@@ -130,8 +139,11 @@ export function crearObjetosDesdeDefiniciones({
     if (typeof definicion === "string") {
       return crearObjeto({
         configuracionObjetos,
+
         idObjeto: definicion,
+
         cantidad: 1,
+
         rutaCreacion,
       });
     }
@@ -143,6 +155,7 @@ export function crearObjetosDesdeDefiniciones({
     ) {
       return crearObjeto({
         configuracionObjetos,
+
         idObjeto: definicion.id,
 
         cantidad: definicion.cantidad ?? 1,

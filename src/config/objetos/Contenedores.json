@@ -1,0 +1,23 @@
+{
+  "quiver_cuero": {
+    "nombre": "Quiver de cuero",
+    "tipo": "quiver",
+    "descripcion": "Un quiver sencillo con capacidad para una pila de flechas.",
+    "recursoVisual": "assets/imagenes/objetos/quiver_cuero.png",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["secundaria"],
+    "propiedades": {
+      "tipoMunicion": "flecha"
+    },
+    "contenedor": {
+      "capacidad": 1,
+      "objetosIniciales": [
+        {
+          "id": "flecha_madera",
+          "cantidad": 20
+        }
+      ]
+    }
+  }
+}

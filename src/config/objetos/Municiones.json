@@ -1,0 +1,14 @@
+{
+  "flecha_madera": {
+    "nombre": "Flecha de madera",
+    "tipo": "municion",
+    "descripcion": "Una flecha sencilla con punta de metal.",
+    "recursoVisual": "assets/imagenes/objetos/flecha_madera.png",
+    "apilable": true,
+    "cantidadMaxima": 50,
+    "ranurasCompatibles": [],
+    "propiedades": {
+      "tipoMunicion": "flecha"
+    }
+  }
+}

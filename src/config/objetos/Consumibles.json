@@ -1,0 +1,20 @@
+{
+  "pocion_curacion": {
+    "nombre": "Poción de curación",
+    "tipo": "consumible",
+    "descripcion": "Una pequeña poción que recupera una cantidad significativa de Vida.",
+    "recursoVisual": "assets/imagenes/objetos/pocion_curacion.png",
+    "apilable": true,
+    "cantidadMaxima": 5,
+    "ranurasCompatibles": [],
+    "propiedades": {
+      "costoConsumo": 100,
+      "efectos": [
+        {
+          "tipo": "recuperarVida",
+          "cantidad": 15
+        }
+      ]
+    }
+  }
+}

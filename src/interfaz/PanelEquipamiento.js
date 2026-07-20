@@ -1,3 +1,5 @@
+import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
+
 const ETIQUETAS_RANURAS = {
   cabeza: "Cabeza",
   torso: "Torso",
@@ -93,9 +95,13 @@ export class PanelEquipamiento {
     return contenedor;
   }
 
+  // Muestra dentro de una ranura
+  // el objeto actualmente equipado.
   mostrarObjeto(casilla, objeto) {
     casilla.classList.add("ocupada");
 
+    // Los quivers agregan al tooltip
+    // la cantidad de flechas almacenadas.
     const detalleQuiver = objeto.esQuiver
       ? `\nContenido: ${objeto.cantidadMunicion} flechas.`
       : "";
@@ -105,14 +111,18 @@ export class PanelEquipamiento {
 
     casilla.setAttribute("aria-label", `Desequipar ${objeto.nombre}`);
 
-    const nombreObjeto = document.createElement("span");
+    // Muestra la imagen configurada.
+    //
+    // Cuando no existe una imagen o falla
+    // la carga, muestra el nombre como respaldo.
+    agregarRepresentacionObjeto({
+      contenedor: casilla,
+      objeto,
+      claseTexto: "nombre-objeto-equipado",
+    });
 
-    nombreObjeto.classList.add("nombre-objeto-equipado");
-
-    nombreObjeto.textContent = objeto.nombre;
-
-    casilla.appendChild(nombreObjeto);
-
+    // Los quivers muestran también
+    // la cantidad actual de munición.
     if (objeto.esQuiver) {
       const contenido = document.createElement("span");
 
@@ -124,6 +134,8 @@ export class PanelEquipamiento {
     }
   }
 
+  // Representa una ranura reservada
+  // por un arma que ocupa ambas manos.
   mostrarReserva(casilla, objetoQueReserva) {
     casilla.classList.add("ocupada", "reservada");
 
@@ -133,13 +145,23 @@ export class PanelEquipamiento {
 
     casilla.setAttribute("aria-label", `Desequipar ${objetoQueReserva.nombre}`);
 
-    const texto = document.createElement("span");
+    // Repetimos visualmente el arma
+    // que está ocupando ambas manos.
+    agregarRepresentacionObjeto({
+      contenedor: casilla,
+      objeto: objetoQueReserva,
+      claseTexto: "nombre-objeto-equipado",
+    });
 
-    texto.classList.add("nombre-objeto-equipado");
+    // El indicador aclara que la ranura
+    // está reservada por un arma de dos manos.
+    const indicador = document.createElement("span");
 
-    texto.textContent = `2 manos: ${objetoQueReserva.nombre}`;
+    indicador.classList.add("indicador-reserva-equipamiento");
 
-    casilla.appendChild(texto);
+    indicador.textContent = "2M";
+
+    casilla.appendChild(indicador);
   }
 
   manejarClick(event) {

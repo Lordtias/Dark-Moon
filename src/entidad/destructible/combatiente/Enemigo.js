@@ -17,6 +17,8 @@ export class Enemigo extends Combatiente {
     ataqueNatural,
     factoresTemporales = {},
     simbolo = "E",
+    // Ruta opcional del sprite del enemigo.
+    recursoVisual = null,
     experienciaOtorgada = 0,
     capacidadContenedor = 0,
     objetosIniciales = [],
@@ -41,6 +43,19 @@ export class Enemigo extends Combatiente {
       ranurasEquipamiento,
       equipamientoInicial,
     });
+
+    // La ausencia de imagen es válida porque
+    // el renderizador conserva el símbolo ASCII.
+    if (
+      recursoVisual !== null &&
+      (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
+    ) {
+      throw new Error(
+        `El recurso visual de ${nombre} debe ser una ruta válida.`,
+      );
+    }
+
+    this.recursoVisual = recursoVisual?.trim() ?? null;
 
     if (!Number.isInteger(experienciaOtorgada) || experienciaOtorgada < 0) {
       throw new Error(

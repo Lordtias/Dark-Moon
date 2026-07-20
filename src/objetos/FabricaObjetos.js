@@ -53,6 +53,10 @@ export function crearObjeto({
 
     descripcion: plantilla.descripcion ?? "",
 
+    // Transportamos la ruta declarada
+    // en Objetos.json.
+    recursoVisual: plantilla.recursoVisual ?? null,
+
     apilable: plantilla.apilable ?? false,
 
     cantidadMaxima: plantilla.cantidadMaxima ?? 1,

@@ -3,6 +3,7 @@
     "nombre": "Rata",
     "genero": "femenino",
     "simbolo": "r",
+    "recursoVisual": "assets/imagenes/enemigos/rata.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -116,6 +117,7 @@
     "nombre": "Cucaracha",
     "genero": "femenino",
     "simbolo": "c",
+    "recursoVisual": "assets/imagenes/enemigos/cucaracha.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -219,6 +221,7 @@
     "nombre": "Esqueleto Arquero",
     "genero": "masculino",
     "simbolo": "A",
+    "recursoVisual": "assets/imagenes/enemigos/esqueleto_arquero.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -319,6 +322,7 @@
     "nombre": "Esqueleto Guardia",
     "genero": "masculino",
     "simbolo": "G",
+    "recursoVisual": "assets/imagenes/enemigos/esqueleto_guardia.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -413,6 +417,7 @@
     "nombre": "Zombi",
     "genero": "masculino",
     "simbolo": "Z",
+    "recursoVisual": "assets/imagenes/enemigos/zombi.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -517,6 +522,7 @@
     "nombre": "Caballero Óseo",
     "genero": "masculino",
     "simbolo": "C",
+    "recursoVisual": "assets/imagenes/enemigos/caballero_oseo.png",
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20

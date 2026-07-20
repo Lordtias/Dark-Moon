@@ -17,6 +17,11 @@ export class Objeto {
     nombre,
     tipo,
     descripcion = "",
+
+    // Ruta opcional del icono utilizado
+    // por la interfaz.
+    recursoVisual = null,
+
     apilable = false,
     cantidadMaxima = 1,
     cantidad = 1,
@@ -32,6 +37,19 @@ export class Objeto {
 
     if (typeof descripcion !== "string") {
       throw new Error(`La descripción de "${nombre}" debe ser un texto.`);
+    }
+
+    // El objeto puede no tener una imagen.
+    //
+    // Esto permite que configuraciones antiguas
+    // continúen utilizando el nombre como respaldo.
+    if (
+      recursoVisual !== null &&
+      (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
+    ) {
+      throw new Error(
+        `El recurso visual de "${nombre}" debe ser una ruta válida.`,
+      );
     }
 
     if (typeof apilable !== "boolean") {
@@ -87,6 +105,12 @@ export class Objeto {
     this.tipo = tipo.trim().toLowerCase();
 
     this.descripcion = descripcion;
+
+    // El dominio conserva solamente la ruta.
+    //
+    // No carga imágenes ni conoce Canvas, HTML
+    // o futuras librerías gráficas.
+    this.recursoVisual = recursoVisual?.trim() ?? null;
 
     this.apilable = apilable;
 

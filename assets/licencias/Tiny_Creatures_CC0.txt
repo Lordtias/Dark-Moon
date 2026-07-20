@@ -1,0 +1,7 @@
+Tiny Creatures
+Author: Clint Bellanger
+Source: https://opengameart.org/content/tiny-creatures
+License: CC0 1.0 Universal
+
+Enemy sprites in this starter asset set were extracted from the published
+Tiny Creatures preview and prepared as transparent 16x16 PNG files.

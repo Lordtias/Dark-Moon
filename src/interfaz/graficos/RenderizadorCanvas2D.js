@@ -1,5 +1,7 @@
 import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
 
+import { CargadorImagenes } from "./CargadorImagenes.js";
+
 // Colores utilizados por cada categoría
 // de entidad.
 //
@@ -65,6 +67,19 @@ export class RenderizadorCanvas2D {
     this.contenedor = contenedor;
     this.context = context;
     this.tileSize = tileSize;
+
+    // Conservamos la última escena para volver
+    // a dibujarla cuando termine de cargar una imagen.
+    this.ultimaEscena = null;
+    this.redibujoPendiente = false;
+
+    // La carga y caché quedan aisladas dentro
+    // del backend Canvas 2D.
+    this.cargadorImagenes = new CargadorImagenes({
+      alActualizar: () => {
+        this.programarRedibujo();
+      },
+    });
 
     // Evita el suavizado de píxeles cuando
     // el canvas cambia de tamaño visualmente.
@@ -201,11 +216,19 @@ export class RenderizadorCanvas2D {
   // exista destrucción o reemplazo de una partida.
   destruir() {
     this.observadorDimensiones?.disconnect();
+
+    this.cargadorImagenes?.destruir();
+
+    this.ultimaEscena = null;
   }
 
   // Dibuja una escena completa.
   dibujar(escena) {
     validarEscena(escena);
+
+    // Guardamos la escena plana, no la instancia
+    // completa de Juego.
+    this.ultimaEscena = escena;
 
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -443,9 +466,9 @@ export class RenderizadorCanvas2D {
   // Dibuja una entidad utilizando:
   //
   // - Sombra.
-  // - Fondo circular.
+  // - Fondo.
   // - Borde.
-  // - Símbolo ASCII.
+  // - Imagen o símbolo de respaldo.
   // - Barra de Vida opcional.
   dibujarEntidad(entidad) {
     const estilo =
@@ -481,8 +504,8 @@ export class RenderizadorCanvas2D {
 
     this.context.fill();
 
-    // Un enemigo agresivo muestra un anillo
-    // exterior más intenso.
+    // Los enemigos que detectaron al jugador
+    // conservan el anillo rojo.
     if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO && entidad.estaAgresiva) {
       this.context.strokeStyle = estilo.colorAgresividad;
 
@@ -495,7 +518,7 @@ export class RenderizadorCanvas2D {
       this.context.stroke();
     }
 
-    // Fondo de la entidad.
+    // Fondo de contraste.
     this.context.fillStyle = estilo.colorFondo;
 
     this.context.beginPath();
@@ -508,10 +531,51 @@ export class RenderizadorCanvas2D {
     this.context.strokeStyle = estilo.colorBorde;
 
     this.context.lineWidth = 2;
-
     this.context.stroke();
 
-    // Símbolo ASCII.
+    const imagen = this.cargadorImagenes.obtener(entidad.recursoVisual);
+
+    if (imagen) {
+      this.dibujarImagenEntidad({
+        imagen,
+        centroX,
+        centroY,
+      });
+    } else {
+      this.dibujarSimboloEntidad({
+        entidad,
+        estilo,
+        centroX,
+        centroY,
+      });
+    }
+
+    this.context.restore();
+
+    if (entidad.mostrarBarraVida) {
+      this.dibujarBarraVida(entidad, pixelX, pixelY);
+    }
+  }
+
+  // Dibuja un sprite pixel-art centrado.
+  //
+  // Se utilizan posiciones y tamaños enteros
+  // para conservar píxeles nítidos.
+  dibujarImagenEntidad({ imagen, centroX, centroY }) {
+    const tamano = Math.max(16, Math.floor(this.tileSize * 0.72));
+
+    const x = Math.round(centroX - tamano / 2);
+
+    const y = Math.round(centroY - tamano / 2);
+
+    this.context.imageSmoothingEnabled = false;
+
+    this.context.drawImage(imagen, x, y, tamano, tamano);
+  }
+
+  // Conserva el sistema ASCII como respaldo
+  // para jugador, barriles o imágenes faltantes.
+  dibujarSimboloEntidad({ entidad, estilo, centroX, centroY }) {
     this.context.fillStyle = estilo.colorSimbolo;
 
     this.context.font = `bold ${Math.max(
@@ -528,12 +592,24 @@ export class RenderizadorCanvas2D {
     this.context.shadowOffsetY = 1;
 
     this.context.fillText(entidad.simbolo, centroX, centroY + 1);
+  }
 
-    this.context.restore();
-
-    if (entidad.mostrarBarraVida) {
-      this.dibujarBarraVida(entidad, pixelX, pixelY);
+  // Agrupa varias cargas terminadas dentro
+  // de un único redibujado del navegador.
+  programarRedibujo() {
+    if (this.redibujoPendiente || !this.ultimaEscena) {
+      return;
     }
+
+    this.redibujoPendiente = true;
+
+    requestAnimationFrame(() => {
+      this.redibujoPendiente = false;
+
+      if (this.ultimaEscena) {
+        this.dibujar(this.ultimaEscena);
+      }
+    });
   }
 
   // Muestra la barra únicamente cuando

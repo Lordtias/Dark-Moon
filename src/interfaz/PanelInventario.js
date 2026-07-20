@@ -1,3 +1,5 @@
+import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
+
 // Muestra el inventario y notifica
 // cuando el usuario selecciona un objeto.
 export class PanelInventario {
@@ -49,6 +51,10 @@ export class PanelInventario {
     this.mensajeVacio.classList.toggle("oculto", !inventario.estaVacio());
   }
 
+  // Crea una casilla del inventario.
+  //
+  // Cuando contiene un objeto, utiliza una imagen
+  // si existe y conserva el nombre como respaldo.
   crearCasilla(objeto, indice) {
     const casilla = document.createElement("div");
 
@@ -56,6 +62,8 @@ export class PanelInventario {
 
     casilla.dataset.indiceInventario = `${indice}`;
 
+    // Las posiciones vacías no necesitan
+    // representación visual ni interacción.
     if (!objeto) {
       casilla.setAttribute("aria-label", "Espacio vacío");
 
@@ -65,31 +73,36 @@ export class PanelInventario {
     casilla.classList.add("ocupado", "interactuable");
 
     casilla.tabIndex = 0;
-
     casilla.setAttribute("role", "button");
 
     casilla.title = this.crearTituloObjeto(objeto);
 
     casilla.setAttribute("aria-label", this.crearEtiquetaAccion(objeto));
 
-    const nombre = document.createElement("span");
+    // Agrega el icono del objeto.
+    //
+    // Si el objeto no tiene imagen o la carga
+    // falla, se muestra automáticamente su nombre.
+    agregarRepresentacionObjeto({
+      contenedor: casilla,
+      objeto,
+      claseTexto: "nombre-objeto",
+    });
 
-    nombre.classList.add("nombre-objeto");
-
-    nombre.textContent = objeto.nombre;
-
-    casilla.appendChild(nombre);
-
+    // Los objetos apilables muestran
+    // la cantidad en una esquina.
     if (objeto.cantidad > 1) {
       const cantidad = document.createElement("span");
 
       cantidad.classList.add("cantidad-objeto");
 
-      cantidad.textContent = objeto.cantidad;
+      cantidad.textContent = `${objeto.cantidad}`;
 
       casilla.appendChild(cantidad);
     }
 
+    // Los carcajes muestran la cantidad
+    // de munición que contienen.
     if (objeto.esQuiver) {
       const contenido = document.createElement("span");
 

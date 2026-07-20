@@ -458,6 +458,10 @@ export function calcularDatosEnemigo({
 
     simbolo: plantilla.simbolo,
 
+    // Conservamos la ruta definida por
+    // la plantilla del enemigo.
+    recursoVisual: plantilla.recursoVisual ?? null,
+
     atributos: clonarConfiguracion(base.atributos),
 
     estadisticasBase: clonarConfiguracion(base.estadisticasBase),

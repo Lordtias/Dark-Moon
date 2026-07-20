@@ -29,9 +29,13 @@ export class ControladorPartida {
     this.controladorPantallas = controladorPantallas;
 
     this.juego = null;
+
     this.renderizador = null;
+
     this.controladorTeclado = null;
+
     this.controladorEquipamiento = null;
+
     this.partidaIniciada = false;
   }
 
@@ -54,26 +58,30 @@ export class ControladorPartida {
       configuracionEnemigos,
       configuracionObjetos,
       configuracionMapas,
+
       semillaMapa: parametrosPrueba.semillaMapa,
+
       idMapaForzado: parametrosPrueba.idMapaForzado,
     });
 
-    const { renderizador, panelInventario, panelEquipamiento } =
-      crearInterfazPartida({
-        tileSize: TILE_SIZE,
-      });
+    const {
+      renderizador,
+      panelInventario,
+      panelEquipamiento,
+      modalDetalleObjeto,
+    } = crearInterfazPartida({
+      tileSize: TILE_SIZE,
+    });
 
     const cantidadFilas = configuracionInicial.map.length;
 
     const cantidadColumnas = configuracionInicial.map[0].length;
 
-    // El controlador ya no modifica
-    // directamente el canvas.
-    //
-    // La implementación gráfica decide cómo
-    // representar estas dimensiones.
+    // El controlador no modifica directamente
+    // la superficie gráfica utilizada.
     renderizador.configurarDimensionesMapa({
       columnas: cantidadColumnas,
+
       filas: cantidadFilas,
     });
 
@@ -89,9 +97,11 @@ export class ControladorPartida {
       renderizador,
       panelInventario,
       panelEquipamiento,
+      modalDetalleObjeto,
     });
 
     this.juego = juego;
+
     this.renderizador = renderizador;
 
     this.controladorTeclado = controladorTeclado;
@@ -135,8 +145,6 @@ export class ControladorPartida {
         mensajeModoPrueba,
     );
 
-    // Información de depuración útil mientras
-    // validamos la generación procedural.
     console.groupCollapsed(
       `[Mapa] ${mapaSeleccionado.nombre} | ` + `semilla ${generacion.semilla}`,
     );

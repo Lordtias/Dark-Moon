@@ -2,17 +2,19 @@
 //
 // - El panel de inventario.
 // - El panel de equipamiento.
-// - Las acciones expuestas por Juego.
+// - El modal de detalle.
+// - Las acciones temporales expuestas por Juego.
 //
-// El controlador no modifica directamente al jugador.
-// Las reglas, validaciones y costes temporales pertenecen
-// a Juego.
+// Inspeccionar un objeto no consume tiempo.
+// Equipar, consumir, cargar o desequipar solamente
+// ocurre cuando el jugador confirma la acción del modal.
 export class ControladorEquipamiento {
   constructor({
     juego,
     renderizador,
     panelInventario,
     panelEquipamiento,
+    modalDetalleObjeto,
   } = {}) {
     if (
       !juego ||
@@ -21,7 +23,7 @@ export class ControladorEquipamiento {
     ) {
       throw new Error(
         "ControladorEquipamiento necesita una partida " +
-          "con acciones de inventario válidas.",
+          "con acciones de objetos válidas.",
       );
     }
 
@@ -38,7 +40,7 @@ export class ControladorEquipamiento {
       typeof panelInventario.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel " + "de inventario.",
+        "ControladorEquipamiento necesita un panel de inventario.",
       );
     }
 
@@ -47,17 +49,28 @@ export class ControladorEquipamiento {
       typeof panelEquipamiento.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel " + "de equipamiento.",
+        "ControladorEquipamiento necesita un panel de equipamiento.",
       );
     }
 
+    if (
+      !modalDetalleObjeto ||
+      typeof modalDetalleObjeto.abrir !== "function" ||
+      typeof modalDetalleObjeto.cerrar !== "function"
+    ) {
+      throw new Error("ControladorEquipamiento necesita un modal de detalle.");
+    }
+
     this.juego = juego;
+
     this.renderizador = renderizador;
+
     this.panelInventario = panelInventario;
+
     this.panelEquipamiento = panelEquipamiento;
 
-    // Conservamos las referencias enlazadas para poder
-    // asignarlas y retirarlas correctamente.
+    this.modalDetalleObjeto = modalDetalleObjeto;
+
     this.seleccionarInventario = this.seleccionarInventario.bind(this);
 
     this.seleccionarEquipamiento = this.seleccionarEquipamiento.bind(this);
@@ -65,7 +78,6 @@ export class ControladorEquipamiento {
     this.estaActivo = false;
   }
 
-  // Conecta los paneles con sus acciones.
   activar() {
     if (this.estaActivo) {
       return;
@@ -80,45 +92,112 @@ export class ControladorEquipamiento {
     this.estaActivo = true;
   }
 
-  // Retira las acciones de los paneles.
   desactivar() {
     if (!this.estaActivo) {
       return;
     }
 
     this.panelInventario.configurarSeleccionador(null);
+
     this.panelEquipamiento.configurarSeleccionador(null);
+
+    this.modalDetalleObjeto.cerrar();
 
     this.estaActivo = false;
   }
 
-  // Seleccionar un objeto puede producir:
+  // Abre el detalle de un objeto almacenado.
   //
-  // - Equipamiento.
-  // - Cambio de arma.
-  // - Carga de munición.
-  // - Un fallo sin coste temporal.
+  // El botón principal se adapta al tipo del objeto.
   seleccionarInventario(indiceInventario) {
-    const resultado =
-      this.juego.interactuarConObjetoInventario(indiceInventario);
+    const objeto =
+      this.juego.player.inventario.obtenerObjetoEn(indiceInventario);
 
-    this.procesarResultado(resultado);
+    if (!objeto) {
+      return;
+    }
+
+    this.modalDetalleObjeto.abrir({
+      objeto,
+
+      combatiente: this.juego.player,
+
+      accion: this.crearAccionInventario({
+        objeto,
+        indiceInventario,
+      }),
+    });
   }
 
-  // Seleccionar una ranura ocupada intenta
-  // devolver su objeto al inventario.
+  // Abre el detalle del objeto que ocupa
+  // o reserva una ranura de equipamiento.
   seleccionarEquipamiento(nombreRanura) {
-    const resultado = this.juego.desequiparObjetoAInventario(nombreRanura);
+    const estado =
+      this.juego.player.equipamiento.obtenerEstadoRanuras()[nombreRanura];
 
-    this.procesarResultado(resultado);
+    const objeto = estado?.objeto ?? estado?.reservadaPor ?? null;
+
+    if (!objeto) {
+      return;
+    }
+
+    this.modalDetalleObjeto.abrir({
+      objeto,
+
+      combatiente: this.juego.player,
+
+      accion: {
+        texto: "Desequipar",
+
+        ejecutar: () => {
+          const resultado =
+            this.juego.desequiparObjetoAInventario(nombreRanura);
+
+          this.procesarResultado(resultado);
+        },
+      },
+    });
   }
 
-  // Muestra el historial producido por la acción
-  // y redibuja cuando Juego lo solicita.
-  //
-  // Ya no dependemos únicamente de "exito", porque una
-  // acción temporal también puede provocar movimiento,
-  // ataques enemigos, regeneración o la derrota del jugador.
+  // Los materiales y futuros objetos sin uso directo
+  // pueden inspeccionarse sin mostrar un botón principal.
+  crearAccionInventario({ objeto, indiceInventario }) {
+    const texto = this.obtenerTextoAccionInventario(objeto);
+
+    if (!texto) {
+      return null;
+    }
+
+    return {
+      texto,
+
+      ejecutar: () => {
+        const resultado =
+          this.juego.interactuarConObjetoInventario(indiceInventario);
+
+        this.procesarResultado(resultado);
+      },
+    };
+  }
+
+  obtenerTextoAccionInventario(objeto) {
+    if (objeto.esMunicion) {
+      return "Cargar";
+    }
+
+    if (objeto.esConsumible) {
+      return "Consumir";
+    }
+
+    if (objeto.esEquipable) {
+      return "Equipar";
+    }
+
+    return null;
+  }
+
+  // Muestra los mensajes producidos por Juego
+  // y redibuja cuando una acción modificó el mundo.
   procesarResultado(resultado) {
     if (!resultado) {
       return;

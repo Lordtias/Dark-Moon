@@ -13,8 +13,11 @@ const ETIQUETAS_RANURAS = {
   anillo_izquierdo: "Anillo izq.",
 };
 
-// Representa las ranuras y notifica cuando
-// el usuario selecciona una posición ocupada.
+// Representa las ranuras de equipamiento y notifica
+// cuando el usuario selecciona una posición ocupada.
+//
+// Seleccionar una ranura ya no desequipa inmediatamente:
+// primero abre el detalle del objeto.
 export class PanelEquipamiento {
   constructor({ cuadricula } = {}) {
     if (!cuadricula) {
@@ -22,6 +25,7 @@ export class PanelEquipamiento {
     }
 
     this.cuadricula = cuadricula;
+
     this.alSeleccionarRanura = null;
 
     this.manejarClick = this.manejarClick.bind(this);
@@ -87,6 +91,7 @@ export class PanelEquipamiento {
       contenedor.classList.add("interactuable");
 
       contenedor.tabIndex = 0;
+
       contenedor.setAttribute("role", "button");
     }
 
@@ -95,34 +100,26 @@ export class PanelEquipamiento {
     return contenedor;
   }
 
-  // Muestra dentro de una ranura
-  // el objeto actualmente equipado.
   mostrarObjeto(casilla, objeto) {
     casilla.classList.add("ocupada");
 
-    // Los quivers agregan al tooltip
-    // la cantidad de flechas almacenadas.
     const detalleQuiver = objeto.esQuiver
       ? `\nContenido: ${objeto.cantidadMunicion} flechas.`
       : "";
 
     casilla.title =
-      `${objeto.descripcion}${detalleQuiver}` + "\nClic para desequipar.";
+      `${objeto.descripcion}${detalleQuiver}` + "\nClic para ver detalles.";
 
-    casilla.setAttribute("aria-label", `Desequipar ${objeto.nombre}`);
+    casilla.setAttribute("aria-label", `Ver detalles de ${objeto.nombre}`);
 
-    // Muestra la imagen configurada.
-    //
-    // Cuando no existe una imagen o falla
-    // la carga, muestra el nombre como respaldo.
     agregarRepresentacionObjeto({
       contenedor: casilla,
+
       objeto,
+
       claseTexto: "nombre-objeto-equipado",
     });
 
-    // Los quivers muestran también
-    // la cantidad actual de munición.
     if (objeto.esQuiver) {
       const contenido = document.createElement("span");
 
@@ -134,27 +131,28 @@ export class PanelEquipamiento {
     }
   }
 
-  // Representa una ranura reservada
-  // por un arma que ocupa ambas manos.
+  // Representa la ranura secundaria reservada
+  // por un arma que utiliza dos manos.
   mostrarReserva(casilla, objetoQueReserva) {
     casilla.classList.add("ocupada", "reservada");
 
     casilla.title =
       `Ranura ocupada por ${objetoQueReserva.nombre}.\n` +
-      "Clic para desequipar el arma.";
+      "Clic para ver detalles.";
 
-    casilla.setAttribute("aria-label", `Desequipar ${objetoQueReserva.nombre}`);
+    casilla.setAttribute(
+      "aria-label",
+      `Ver detalles de ${objetoQueReserva.nombre}`,
+    );
 
-    // Repetimos visualmente el arma
-    // que está ocupando ambas manos.
     agregarRepresentacionObjeto({
       contenedor: casilla,
+
       objeto: objetoQueReserva,
+
       claseTexto: "nombre-objeto-equipado",
     });
 
-    // El indicador aclara que la ranura
-    // está reservada por un arma de dos manos.
     const indicador = document.createElement("span");
 
     indicador.classList.add("indicador-reserva-equipamiento");

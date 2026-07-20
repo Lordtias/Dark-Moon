@@ -1,0 +1,308 @@
+/* =========================================================
+   MODAL DE DETALLE DE OBJETOS
+   ========================================================= */
+
+/* Ventana nativa que contiene el detalle reutilizable. */
+.modal-detalle-objeto {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  overflow: visible;
+
+  border: 2px solid #8a78c9;
+  border-radius: 8px;
+
+  background-color: #0c0f1c;
+  color: #f4f1ff;
+
+  font-family: monospace;
+
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.78),
+    0 0 0 1px rgba(188, 168, 255, 0.12) inset;
+}
+
+/* Oscurece el juego mientras el objeto está abierto. */
+.modal-detalle-objeto::backdrop {
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(2px);
+}
+
+.modal-detalle-objeto__contenido {
+  position: relative;
+  max-height: calc(100vh - 36px);
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(180deg, rgba(73, 58, 115, 0.2), transparent 130px), #0f1323;
+}
+
+/* Botón pequeño ubicado en la esquina superior. */
+.modal-detalle-objeto__cerrar-superior {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+
+  width: 34px;
+  height: 34px;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #655895;
+  border-radius: 4px;
+
+  background-color: rgba(12, 15, 28, 0.92);
+
+  color: #c9c1e6;
+
+  font-size: 24px;
+  line-height: 1;
+}
+
+.modal-detalle-objeto__cerrar-superior:hover {
+  background-color: #30294c;
+  color: #ffffff;
+}
+
+/* La vista puede reutilizarse sin depender del dialog. */
+.detalle-objeto {
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.detalle-objeto__cabecera {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+
+  gap: 18px;
+  align-items: center;
+
+  padding-bottom: 20px;
+  border-bottom: 1px solid #393454;
+}
+
+.detalle-objeto__imagen-contenedor {
+  width: 112px;
+  height: 112px;
+
+  display: grid;
+  place-items: center;
+
+  border: 2px solid #6d5ca7;
+  border-radius: 6px;
+
+  background: radial-gradient(
+    circle,
+    rgba(119, 96, 180, 0.22),
+    rgba(9, 12, 22, 0.88)
+  );
+
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.24) inset;
+}
+
+.detalle-objeto__imagen {
+  width: 80px;
+  height: 80px;
+
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.detalle-objeto__imagen-respaldo {
+  color: #d8d0f2;
+
+  font-size: 48px;
+  font-weight: bold;
+
+  text-shadow: 0 2px 4px #000000;
+}
+
+.detalle-objeto__identidad {
+  min-width: 0;
+  padding-right: 28px;
+}
+
+.detalle-objeto__titulo {
+  margin: 0 0 8px;
+
+  color: #d8c8ff;
+
+  font-size: 24px;
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+}
+
+.detalle-objeto__subtitulo {
+  margin: 0;
+
+  color: #a8a0c1;
+  font-size: 14px;
+}
+
+.detalle-objeto__cantidad {
+  display: inline-block;
+
+  margin-top: 10px;
+  padding: 4px 7px;
+
+  border: 1px solid #514873;
+  border-radius: 4px;
+
+  background-color: #171b2d;
+  color: #e2dcf4;
+
+  font-size: 12px;
+}
+
+.detalle-objeto__estadisticas {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  gap: 0;
+
+  margin: 20px 0 0;
+
+  border: 1px solid #34304a;
+  border-radius: 5px;
+
+  overflow: hidden;
+}
+
+.detalle-objeto__estadisticas dt,
+.detalle-objeto__estadisticas dd {
+  margin: 0;
+  padding: 9px 11px;
+
+  border-bottom: 1px solid #2c293f;
+}
+
+.detalle-objeto__estadisticas dt {
+  background-color: rgba(24, 28, 48, 0.82);
+
+  color: #aaa4bd;
+}
+
+.detalle-objeto__estadisticas dd {
+  min-width: 128px;
+
+  background-color: rgba(14, 17, 31, 0.84);
+
+  color: #f0c96d;
+
+  text-align: right;
+  font-weight: bold;
+}
+
+.detalle-objeto__estadisticas dt:last-of-type,
+.detalle-objeto__estadisticas dd:last-of-type {
+  border-bottom: 0;
+}
+
+.detalle-objeto__sin-estadisticas {
+  margin: 20px 0 0;
+  padding: 13px;
+
+  border: 1px dashed #45405e;
+  border-radius: 5px;
+
+  color: #88829d;
+  text-align: center;
+}
+
+.detalle-objeto__descripcion {
+  margin: 20px 0 0;
+  padding: 15px;
+
+  border-left: 3px solid #7661b5;
+
+  background-color: rgba(17, 21, 39, 0.74);
+
+  color: #c8c3d6;
+
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.modal-detalle-objeto__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 14px 18px;
+
+  border-top: 1px solid #393454;
+
+  background-color: #0b0e19;
+}
+
+.modal-detalle-objeto__boton {
+  min-width: 110px;
+  padding: 10px 16px;
+}
+
+.modal-detalle-objeto__boton--secundario {
+  border-color: #514a68;
+  background-color: #1b1d2b;
+  color: #cbc6d8;
+}
+
+.modal-detalle-objeto__boton--principal {
+  border-color: #9c7eea;
+  background-color: #4a3979;
+
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.modal-detalle-objeto__boton--principal:hover:not(:disabled) {
+  background-color: #624b9d;
+}
+
+@media (max-width: 520px) {
+  .detalle-objeto {
+    padding: 18px;
+  }
+
+  .detalle-objeto__cabecera {
+    grid-template-columns: 82px minmax(0, 1fr);
+
+    gap: 13px;
+  }
+
+  .detalle-objeto__imagen-contenedor {
+    width: 82px;
+    height: 82px;
+  }
+
+  .detalle-objeto__imagen {
+    width: 60px;
+    height: 60px;
+  }
+
+  .detalle-objeto__titulo {
+    font-size: 19px;
+  }
+
+  .detalle-objeto__estadisticas dd {
+    min-width: 104px;
+  }
+
+  .modal-detalle-objeto__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .modal-detalle-objeto__boton {
+    width: 100%;
+  }
+}

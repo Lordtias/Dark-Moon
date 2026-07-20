@@ -10,22 +10,25 @@ import { PanelEquipamiento } from "./PanelEquipamiento.js";
 
 import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
 
+import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
+
 // Crea todos los componentes visuales
 // utilizados durante una partida.
 //
-// Esta fábrica es el único lugar que decide
-// qué tecnología gráfica representa el mapa.
+// Esta fábrica centraliza:
 //
-// Cuando utilicemos Phaser, la sustitución
-// principal ocurrirá aquí.
+// - La tecnología gráfica del mapa.
+// - Los paneles HTML.
+// - Las ventanas modales.
+// - Las referencias obligatorias del documento.
+//
+// Los controladores reciben componentes ya construidos
+// y no necesitan conocer su estructura interna.
 export function crearInterfazPartida({ tileSize } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
   }
 
-  // Actualmente utilizamos un canvas HTML,
-  // pero el resto de la aplicación ya no
-  // dependerá directamente de él.
   const canvas = obtenerElementoObligatorio("gameCanvas", "canvas del mapa");
 
   const panelMapa = canvas.closest(".panel-mapa");
@@ -34,18 +37,15 @@ export function crearInterfazPartida({ tileSize } = {}) {
     throw new Error("No se encontró el panel que contiene el canvas del mapa.");
   }
 
-  // El backend gráfico recibe también el panel
-  // disponible para calcular su escala visual.
-  //
-  // Esta responsabilidad queda aislada dentro
-  // de la implementación de Canvas 2D.
+  // Backend gráfico intercambiable.
   const renderizadorMapa = new RenderizadorCanvas2D({
     canvas,
+
     contenedor: panelMapa,
+
     tileSize,
   });
 
-  // Panel con estadísticas y atributos.
   const panelPersonaje = new PanelPersonaje({
     contenedor: obtenerElementoObligatorio(
       "panelPersonaje",
@@ -58,7 +58,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // Panel con objetos almacenados.
   const panelInventario = new PanelInventario({
     cuadricula: obtenerElementoObligatorio(
       "cuadriculaInventario",
@@ -71,7 +70,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // Panel con objetos equipados.
   const panelEquipamiento = new PanelEquipamiento({
     cuadricula: obtenerElementoObligatorio(
       "cuadriculaEquipamiento",
@@ -79,23 +77,21 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // Vista compacta del sistema temporal.
-  //
-  // Aunque actualmente está visualmente
-  // deshabilitada, conservamos su actualización.
+  // El modal se crea dinámicamente y podrá reutilizarse
+  // luego desde botín, cofres o comerciantes.
+  const modalDetalleObjeto = new ModalDetalleObjeto();
+
   const panelOrdenTemporal = new PanelOrdenTemporal({
     referenciaInsercion: panelMapa,
 
     maximoActores: 8,
   });
 
-  // Historial de eventos de la partida.
   const combatLogText = obtenerElementoObligatorio(
     "combatLog",
     "registro de combate",
   );
 
-  // Fachada general de la interfaz.
   const renderizador = new Renderizador({
     renderizadorMapa,
     panelPersonaje,
@@ -110,6 +106,7 @@ export function crearInterfazPartida({ tileSize } = {}) {
     panelInventario,
     panelEquipamiento,
     panelOrdenTemporal,
+    modalDetalleObjeto,
   };
 }
 

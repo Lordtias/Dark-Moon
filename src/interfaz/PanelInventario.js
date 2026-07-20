@@ -2,6 +2,10 @@ import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
 
 // Muestra el inventario y notifica
 // cuando el usuario selecciona un objeto.
+//
+// El panel no decide qué acción se ejecuta.
+// Solamente informa el índice seleccionado
+// al controlador correspondiente.
 export class PanelInventario {
   constructor({ cuadricula, mensajeVacio } = {}) {
     if (!cuadricula) {
@@ -53,8 +57,9 @@ export class PanelInventario {
 
   // Crea una casilla del inventario.
   //
-  // Cuando contiene un objeto, utiliza una imagen
-  // si existe y conserva el nombre como respaldo.
+  // Seleccionarla ahora abre el detalle del objeto.
+  // La acción de equipar, consumir o cargar se confirma
+  // posteriormente desde el modal.
   crearCasilla(objeto, indice) {
     const casilla = document.createElement("div");
 
@@ -62,8 +67,6 @@ export class PanelInventario {
 
     casilla.dataset.indiceInventario = `${indice}`;
 
-    // Las posiciones vacías no necesitan
-    // representación visual ni interacción.
     if (!objeto) {
       casilla.setAttribute("aria-label", "Espacio vacío");
 
@@ -73,24 +76,21 @@ export class PanelInventario {
     casilla.classList.add("ocupado", "interactuable");
 
     casilla.tabIndex = 0;
+
     casilla.setAttribute("role", "button");
 
     casilla.title = this.crearTituloObjeto(objeto);
 
-    casilla.setAttribute("aria-label", this.crearEtiquetaAccion(objeto));
+    casilla.setAttribute("aria-label", `Ver detalles de ${objeto.nombre}`);
 
-    // Agrega el icono del objeto.
-    //
-    // Si el objeto no tiene imagen o la carga
-    // falla, se muestra automáticamente su nombre.
     agregarRepresentacionObjeto({
       contenedor: casilla,
+
       objeto,
+
       claseTexto: "nombre-objeto",
     });
 
-    // Los objetos apilables muestran
-    // la cantidad en una esquina.
     if (objeto.cantidad > 1) {
       const cantidad = document.createElement("span");
 
@@ -101,8 +101,6 @@ export class PanelInventario {
       casilla.appendChild(cantidad);
     }
 
-    // Los carcajes muestran la cantidad
-    // de munición que contienen.
     if (objeto.esQuiver) {
       const contenido = document.createElement("span");
 
@@ -116,45 +114,23 @@ export class PanelInventario {
     return casilla;
   }
 
-  crearEtiquetaAccion(objeto) {
-    if (objeto.esMunicion) {
-      return `Cargar ${objeto.nombre}`;
-    }
-
-    if (objeto.esConsumible) {
-      return `Consumir ${objeto.nombre}`;
-    }
-
-    if (objeto.esEquipable) {
-      return `Equipar ${objeto.nombre}`;
-    }
-
-    return `Usar ${objeto.nombre}`;
-  }
-
   crearTituloObjeto(objeto) {
-    let accion;
+    const lineas = [];
 
-    if (objeto.esMunicion) {
-      accion = "Clic para cargar en el carcaj.";
-    } else if (objeto.esConsumible) {
-      accion =
-        "Clic para consumir.\n" + `Costo de consumo: ${objeto.costoConsumo}.`;
-    } else if (objeto.esEquipable) {
-      accion = "Clic para equipar.";
-    } else {
-      accion = "No se puede utilizar todavía.";
+    if (
+      typeof objeto.descripcion === "string" &&
+      objeto.descripcion.trim() !== ""
+    ) {
+      lineas.push(objeto.descripcion);
     }
 
     if (objeto.esQuiver) {
-      return (
-        `${objeto.descripcion}\n` +
-        `Contenido: ${objeto.cantidadMunicion} flechas.\n` +
-        accion
-      );
+      lineas.push(`Contenido: ${objeto.cantidadMunicion} flechas.`);
     }
 
-    return `${objeto.descripcion}\n` + accion;
+    lineas.push("Clic para ver detalles.");
+
+    return lineas.join("\n");
   }
 
   manejarClick(event) {

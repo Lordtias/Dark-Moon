@@ -9,6 +9,10 @@ import {
   evaluarAtaqueCasilla,
 } from "./combate/SistemaAlcanceAtaque.js";
 
+import { generarBotinEnSuelo } from "./botin/SistemaBotin.js";
+
+import { crearGeneradorAleatorio } from "./generacion/GeneradorAleatorio.js";
+
 import {
   transferirObjetoEntreContenedores,
   transferirTodosLosObjetos,
@@ -35,6 +39,7 @@ export class Juego {
     objetivos,
     interactuables = [],
     mapaSeleccionado,
+    configuracionObjetos,
   } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
@@ -58,9 +63,19 @@ export class Juego {
       throw new Error("Juego necesita una plantilla de mapa seleccionada.");
     }
 
+    if (
+      configuracionObjetos === null ||
+      typeof configuracionObjetos !== "object" ||
+      Array.isArray(configuracionObjetos)
+    ) {
+      throw new Error("Juego necesita una configuración de objetos válida.");
+    }
+
     this.map = map;
 
     this.mapaSeleccionado = mapaSeleccionado;
+
+    this.configuracionObjetos = configuracionObjetos;
 
     this.player = player;
 
@@ -72,6 +87,18 @@ export class Juego {
     // Botines, cofres, NPC y objetos de misión
     // pueden vivir dentro de esta colección.
     this.interactuables = interactuables;
+
+    // Los drops utilizan una secuencia propia.
+    //
+    // Se deriva de la semilla del mapa para que:
+    //
+    // - Sean reproducibles.
+    // - No alteren la generación del terreno.
+    // - No alteren la generación de enemigos.
+    const semillaMapa =
+      this.mapaSeleccionado.generacionActual?.semilla ?? "partida";
+
+    this.aleatorioBotin = crearGeneradorAleatorio(`${semillaMapa}:botin`);
 
     this.modoCombateActivo = false;
 
@@ -520,11 +547,30 @@ export class Juego {
         // inmediatamente de la agenda.
         this.sistemaTiempo.eliminarActor(objetivo);
 
+        mensajes.push(`${objetivo.nombre} fue derrotado.`);
+
+        // La tabla se resuelve una sola vez,
+        // en el momento exacto de la derrota.
+        const resultadoBotin = generarBotinEnSuelo({
+          fuente: objetivo,
+
+          configuracionObjetos: this.configuracionObjetos,
+
+          aleatorio: this.aleatorioBotin,
+
+          interactuables: this.interactuables,
+        });
+
+        if (resultadoBotin.cantidadUnidades > 0) {
+          mensajes.push(
+            `${objetivo.nombre} dejó botín: ` +
+              `${resultadoBotin.resumenTexto}.`,
+          );
+        }
+
         const progresion = this.player.ganarExperiencia(
           objetivo.experienciaOtorgada,
         );
-
-        mensajes.push(`${objetivo.nombre} fue derrotado.`);
 
         mensajes.push(
           `Ganaste ${progresion.experienciaGanada} ` + "puntos de experiencia.",
@@ -1022,6 +1068,7 @@ export class Juego {
   aplicarPulsoRegeneracion() {
     const combatientes = [
       this.player,
+
       ...this.objetivos.filter((objetivo) => objetivo instanceof Combatiente),
     ];
 

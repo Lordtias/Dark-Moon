@@ -1,1 +1,47 @@
-{}
+{
+  "cola_rata": {
+    "nombre": "Cola de rata",
+    "tipo": "material",
+    "descripcion": "La cola cortada de una rata de alcantarilla. Puede conservarse como prueba de caza o utilizarse en preparaciones poco agradables.",
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "caparazon_cucaracha": {
+    "nombre": "Caparazón de cucaracha",
+    "tipo": "material",
+    "descripcion": "Un fragmento duro y resistente del caparazón de una cucaracha gigante.",
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "hueso_esqueleto": {
+    "nombre": "Hueso de esqueleto",
+    "tipo": "material",
+    "descripcion": "Un hueso viejo animado anteriormente por energía oscura. Todavía conserva un leve frío antinatural.",
+    "apilable": true,
+    "cantidadMaxima": 30,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "carne_putrefacta": {
+    "nombre": "Carne putrefacta",
+    "tipo": "material",
+    "descripcion": "Un trozo de carne descompuesta. Su olor deja pocas dudas sobre su procedencia.",
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "hueso_negro": {
+    "nombre": "Hueso negro",
+    "tipo": "material",
+    "descripcion": "Un fragmento óseo endurecido y oscurecido por una energía maligna. Es mucho más resistente que un hueso común.",
+    "apilable": true,
+    "cantidadMaxima": 10,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  }
+}

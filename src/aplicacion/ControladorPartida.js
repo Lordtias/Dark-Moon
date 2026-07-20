@@ -92,7 +92,16 @@ export class ControladorPartida {
       filas: cantidadFilas,
     });
 
-    const juego = new Juego(configuracionInicial);
+    // Juego recibe también el catálogo combinado.
+    //
+    // De esta forma puede convertir los IDs
+    // de las tablas de botín en objetos reales
+    // sin conocer los archivos JSON individuales.
+    const juego = new Juego({
+      ...configuracionInicial,
+
+      configuracionObjetos,
+    });
 
     const controladorTeclado = new ControladorTeclado({
       juego,

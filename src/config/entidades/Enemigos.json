@@ -101,7 +101,20 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "cola_rata",
+        "probabilidad": 70,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": [
       {
         "nivel": 5,
@@ -205,7 +218,20 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "caparazon_cucaracha",
+        "probabilidad": 65,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 2,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": [
       {
         "nivel": 5,
@@ -315,7 +341,26 @@
       "ranuras": ["arma", "secundaria"],
       "objetosIniciales": ["arco_corto", "quiver_cuero"]
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "hueso_esqueleto",
+        "probabilidad": 75,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 3
+      },
+      {
+        "idObjeto": "flecha_madera",
+        "probabilidad": 40,
+        "cantidadMinima": 2,
+        "cantidadMaxima": 6
+      },
+      {
+        "idObjeto": "arco_corto",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": []
   },
   "esqueleto_guardia": {
@@ -410,7 +455,26 @@
       "ranuras": ["arma", "secundaria"],
       "objetosIniciales": ["espada_larga", "escudo_madera"]
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "hueso_esqueleto",
+        "probabilidad": 80,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 3
+      },
+      {
+        "idObjeto": "espada_larga",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "escudo_madera",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": []
   },
   "zombi": {
@@ -505,7 +569,20 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "carne_putrefacta",
+        "probabilidad": 75,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": [
       {
         "nivel": 5,
@@ -625,7 +702,38 @@
         "coraza_hierro"
       ]
     },
-    "tablaBotin": [],
+    "tablaBotin": [
+      {
+        "idObjeto": "hueso_negro",
+        "probabilidad": 100,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "hueso_esqueleto",
+        "probabilidad": 60,
+        "cantidadMinima": 2,
+        "cantidadMaxima": 4
+      },
+      {
+        "idObjeto": "hacha_mano",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "escudo_hierro",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "casco_hierro",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
     "hitos": []
   }
 }

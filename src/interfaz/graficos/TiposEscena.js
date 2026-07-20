@@ -5,6 +5,10 @@
 // ni de ninguna otra librería de representación.
 export const TIPOS_ENTIDAD_VISUAL = Object.freeze({
   JUGADOR: "jugador",
+
   ENEMIGO: "enemigo",
+
   DESTRUCTIBLE: "destructible",
+
+  INTERACTUABLE: "interactuable",
 });

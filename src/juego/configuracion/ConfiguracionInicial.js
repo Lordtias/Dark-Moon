@@ -1,5 +1,9 @@
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
 
+import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
+
+import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
+
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 
 import {
@@ -17,6 +21,67 @@ import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 
 export const TILE_SIZE = 32;
+
+const DEFINICIONES_BOTIN_PRUEBA = Object.freeze([
+  {
+    id: "pocion_curacion",
+
+    cantidad: 1,
+  },
+  {
+    id: "flecha_madera",
+
+    cantidad: 8,
+  },
+  {
+    id: "daga_hierro",
+
+    cantidad: 1,
+  },
+]);
+
+const DIRECCIONES_BOTIN_PRUEBA = Object.freeze([
+  {
+    x: 0,
+
+    y: -1,
+  },
+  {
+    x: 1,
+
+    y: 0,
+  },
+  {
+    x: 0,
+
+    y: 1,
+  },
+  {
+    x: -1,
+
+    y: 0,
+  },
+  {
+    x: 1,
+
+    y: -1,
+  },
+  {
+    x: 1,
+
+    y: 1,
+  },
+  {
+    x: -1,
+
+    y: 1,
+  },
+  {
+    x: -1,
+
+    y: -1,
+  },
+]);
 
 function crearJugadorInicial(
   datosPersonaje,
@@ -75,6 +140,7 @@ function crearJugadorInicial(
     ataqueNatural: profesion.ataqueNatural ?? null,
 
     nivel: 1,
+
     experiencia: 0,
 
     x: posicionInicial.x,
@@ -88,6 +154,91 @@ function crearJugadorInicial(
   });
 }
 
+// Crea un botín controlado únicamente
+// mediante el parámetro ?botin=prueba.
+//
+// Este recurso permite validar interacciones,
+// transferencias y la ventana de contenedores
+// antes de conectar las tablas de drop reales.
+function crearInteractuablesIniciales({
+  botinPrueba,
+  mapa,
+  player,
+  objetivos,
+  configuracionObjetos,
+}) {
+  if (!botinPrueba) {
+    return [];
+  }
+
+  const objetos = crearObjetosDesdeDefiniciones({
+    configuracionObjetos,
+
+    definiciones: DEFINICIONES_BOTIN_PRUEBA,
+  });
+
+  const posicion = obtenerPosicionBotinPrueba({
+    mapa,
+    player,
+    objetivos,
+  });
+
+  const botin = new BotinSuelo({
+    nombre: "Botín de prueba",
+
+    x: posicion.x,
+
+    y: posicion.y,
+
+    contenedorObjetos: new ContenedorObjetos({
+      capacidad: 6,
+
+      objetosIniciales: objetos,
+    }),
+  });
+
+  return [botin];
+}
+
+// Busca una casilla próxima que sea caminable
+// y no esté ocupada por un objetivo.
+//
+// Si ninguna está disponible, el botín puede compartir
+// la casilla inicial con el jugador porque no bloquea
+// movimiento ni combate.
+function obtenerPosicionBotinPrueba({ mapa, player, objetivos }) {
+  for (const direccion of DIRECCIONES_BOTIN_PRUEBA) {
+    const x = player.x + direccion.x;
+
+    const y = player.y + direccion.y;
+
+    const dentroMapa =
+      y >= 0 && y < mapa.length && x >= 0 && x < mapa[y].length;
+
+    if (!dentroMapa || mapa[y][x] === "#") {
+      continue;
+    }
+
+    const ocupado = objetivos.some(
+      (objetivo) =>
+        objetivo.estaDestruido !== true && objetivo.x === x && objetivo.y === y,
+    );
+
+    if (!ocupado) {
+      return {
+        x,
+        y,
+      };
+    }
+  }
+
+  return {
+    x: player.x,
+
+    y: player.y,
+  };
+}
+
 export function crearConfiguracionInicial({
   datosPersonaje,
   configuracionPersonaje,
@@ -95,12 +246,13 @@ export function crearConfiguracionInicial({
   configuracionObjetos,
   configuracionMapas,
 
-  // Ambos valores son opcionales.
+  // Los valores son opcionales.
   //
   // Si no se proporcionan, la generación
   // continúa funcionando aleatoriamente.
   semillaMapa = null,
   idMapaForzado = null,
+  botinPrueba = false,
 } = {}) {
   const semilla = semillaMapa ?? crearSemillaAleatoria();
 
@@ -114,10 +266,8 @@ export function crearConfiguracionInicial({
   const mapaSeleccionado =
     idMapaForzado !== null
       ? obtenerPlantillaMapa(configuracionMapas, idMapaForzado)
-      : seleccionarPlantillaMapa(
-          configuracionMapas,
-
-          () => aleatorio.siguiente(),
+      : seleccionarPlantillaMapa(configuracionMapas, () =>
+          aleatorio.siguiente(),
         );
 
   const terreno = generarTerreno({
@@ -130,7 +280,6 @@ export function crearConfiguracionInicial({
     datosPersonaje,
     configuracionPersonaje,
     configuracionObjetos,
-
     terreno.posicionInicialSugerida,
   );
 
@@ -150,6 +299,18 @@ export function crearConfiguracionInicial({
     configuracionObjetos,
   });
 
+  const interactuables = crearInteractuablesIniciales({
+    botinPrueba,
+
+    mapa: terreno.celdas,
+
+    player,
+
+    objetivos: contenido.objetivos,
+
+    configuracionObjetos,
+  });
+
   // SelectorMapa siempre devuelve una copia,
   // por lo que esta información pertenece
   // únicamente a la partida actual.
@@ -159,6 +320,8 @@ export function crearConfiguracionInicial({
     mapaForzado: idMapaForzado !== null,
 
     semillaForzada: semillaMapa !== null,
+
+    botinPrueba,
 
     ancho: terreno.ancho,
 
@@ -196,5 +359,7 @@ export function crearConfiguracionInicial({
     player,
 
     objetivos: contenido.objetivos,
+
+    interactuables,
   };
 }

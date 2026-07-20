@@ -11,6 +11,8 @@ import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
 
+import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
+
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 
 // Coordina la creación y activación
@@ -35,6 +37,8 @@ export class ControladorPartida {
     this.controladorTeclado = null;
 
     this.controladorEquipamiento = null;
+
+    this.controladorInteracciones = null;
 
     this.partidaIniciada = false;
   }
@@ -62,6 +66,8 @@ export class ControladorPartida {
       semillaMapa: parametrosPrueba.semillaMapa,
 
       idMapaForzado: parametrosPrueba.idMapaForzado,
+
+      botinPrueba: parametrosPrueba.botinPrueba,
     });
 
     const {
@@ -69,6 +75,7 @@ export class ControladorPartida {
       panelInventario,
       panelEquipamiento,
       modalDetalleObjeto,
+      modalContenedorObjetos,
     } = crearInterfazPartida({
       tileSize: TILE_SIZE,
     });
@@ -100,6 +107,12 @@ export class ControladorPartida {
       modalDetalleObjeto,
     });
 
+    const controladorInteracciones = new ControladorInteracciones({
+      juego,
+      renderizador,
+      modalContenedorObjetos,
+    });
+
     this.juego = juego;
 
     this.renderizador = renderizador;
@@ -108,6 +121,8 @@ export class ControladorPartida {
 
     this.controladorEquipamiento = controladorEquipamiento;
 
+    this.controladorInteracciones = controladorInteracciones;
+
     this.partidaIniciada = true;
 
     this.controladorPantallas.mostrarPartida();
@@ -115,6 +130,8 @@ export class ControladorPartida {
     this.controladorTeclado.activar();
 
     this.controladorEquipamiento.activar();
+
+    this.controladorInteracciones.activar();
 
     this.renderizador.dibujarJuego(this.juego);
 
@@ -130,6 +147,10 @@ export class ControladorPartida {
       ? " Modo de prueba activo."
       : "";
 
+    const mensajeBotinPrueba = parametrosPrueba.botinPrueba
+      ? " Botín de prueba activo: acercate y presioná R para revisarlo."
+      : "";
+
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
@@ -142,7 +163,8 @@ export class ControladorPartida {
         `(${tiposEnemigos}). ` +
         `Variantes: ${variantes}.\n` +
         `Destructibles: ${generacion.cantidadDestructibles}.` +
-        mensajeModoPrueba,
+        mensajeModoPrueba +
+        mensajeBotinPrueba,
     );
 
     console.groupCollapsed(
@@ -152,6 +174,8 @@ export class ControladorPartida {
     console.log("Parámetros de prueba:", parametrosPrueba);
 
     console.log("Resumen de generación:", generacion);
+
+    console.log("Interactuables iniciales:", this.juego.interactuables);
 
     console.table(generacion.detalleEnemigos);
 
@@ -166,6 +190,8 @@ export class ControladorPartida {
     this.controladorTeclado?.desactivar();
 
     this.controladorEquipamiento?.desactivar();
+
+    this.controladorInteracciones?.desactivar();
   }
 }
 

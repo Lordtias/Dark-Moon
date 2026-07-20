@@ -44,19 +44,27 @@ export function crearEscenaJuego(juego) {
       selector: combateActivo ? crearSelectorVisual(juego) : null,
     },
 
+    // Los interactuables se dibujan primero.
+    // El jugador queda al final para conservarse
+    // visible cuando comparte una casilla con botín.
     entidades: [
-      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR),
+      ...juego.interactuables.map((interactuable) =>
+        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE),
+      ),
 
       ...juego.objetivos
         .filter((objetivo) => objetivo.estaDestruido !== true)
         .map((objetivo) =>
           crearEntidadVisual(
             objetivo,
+
             objetivo instanceof Enemigo
               ? TIPOS_ENTIDAD_VISUAL.ENEMIGO
               : TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE,
           ),
         ),
+
+      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR),
     ],
   };
 }
@@ -78,6 +86,10 @@ function validarJuego(juego) {
 
   if (!Array.isArray(juego.objetivos)) {
     throw new Error("La escena necesita una lista de objetivos.");
+  }
+
+  if (!Array.isArray(juego.interactuables)) {
+    throw new Error("La escena necesita una lista de interactuables.");
   }
 }
 
@@ -116,6 +128,7 @@ function crearSelectorVisual(juego) {
 
   return {
     x: selector.x,
+
     y: selector.y,
 
     // Juego continúa siendo responsable
@@ -126,10 +139,6 @@ function crearSelectorVisual(juego) {
 
 // Convierte una entidad del dominio
 // en un objeto plano para representación.
-//
-// El campo recursoVisual queda preparado para
-// que en el futuro pueda contener una clave de
-// sprite, textura o animación.
 function crearEntidadVisual(entidad, tipo) {
   const vidaActual = Number.isFinite(entidad.vidaActual)
     ? entidad.vidaActual
@@ -143,8 +152,11 @@ function crearEntidadVisual(entidad, tipo) {
 
   return {
     tipo,
+
     nombre: entidad.nombre,
+
     x: entidad.x,
+
     y: entidad.y,
 
     simbolo:
@@ -169,9 +181,6 @@ function crearEntidadVisual(entidad, tipo) {
       vidaActual > 0 &&
       vidaActual < vidaMaxima,
 
-    // Todavía no se utiliza, pero permite
-    // agregar sprites sin cambiar el contrato
-    // de la escena gráfica.
     recursoVisual: entidad.recursoVisual ?? null,
   };
 }

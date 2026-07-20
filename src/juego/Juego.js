@@ -10,6 +10,18 @@ import {
 } from "./combate/SistemaAlcanceAtaque.js";
 
 import {
+  transferirObjetoEntreContenedores,
+  transferirTodosLosObjetos,
+} from "./inventario/SistemaTransferenciaObjetos.js";
+
+import {
+  obtenerInteraccionesDisponibles as resolverInteraccionesDisponibles,
+  obtenerInteraccionPrioritaria as resolverInteraccionPrioritaria,
+} from "./interacciones/SistemaInteracciones.js";
+
+import { TIPOS_INTERACCION } from "./interacciones/TiposInteraccion.js";
+
+import {
   COSTOS_TEMPORALES_BASE,
   SistemaTiempo,
   TIEMPO_REFERENCIA,
@@ -17,7 +29,13 @@ import {
 } from "./tiempo/SistemaTiempo.js";
 
 export class Juego {
-  constructor({ map, player, objetivos, mapaSeleccionado } = {}) {
+  constructor({
+    map,
+    player,
+    objetivos,
+    interactuables = [],
+    mapaSeleccionado,
+  } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
     }
@@ -30,25 +48,42 @@ export class Juego {
       throw new Error("Los objetivos deben estar dentro de una lista.");
     }
 
+    if (!Array.isArray(interactuables)) {
+      throw new Error(
+        "Las entidades interactuables deben estar dentro de una lista.",
+      );
+    }
+
     if (!mapaSeleccionado || typeof mapaSeleccionado !== "object") {
       throw new Error("Juego necesita una plantilla de mapa seleccionada.");
     }
 
     this.map = map;
+
     this.mapaSeleccionado = mapaSeleccionado;
 
     this.player = player;
+
     this.objetivos = objetivos;
+
+    // Las entidades interactuables no se mezclan
+    // con objetivos de combate.
+    //
+    // Botines, cofres, NPC y objetos de misión
+    // pueden vivir dentro de esta colección.
+    this.interactuables = interactuables;
 
     this.modoCombateActivo = false;
 
     this.selectorCombate = {
       x: player.x,
+
       y: player.y,
     };
 
     this.ultimaDireccionJugador = {
       x: 0,
+
       y: -1,
     };
 
@@ -83,6 +118,38 @@ export class Juego {
     );
   }
 
+  obtenerInteractuablesEn(x, y) {
+    return this.interactuables.filter(
+      (interactuable) => interactuable.x === x && interactuable.y === y,
+    );
+  }
+
+  // Resuelve todas las capacidades de interacción
+  // disponibles alrededor del jugador.
+  obtenerInteraccionesDisponibles() {
+    return resolverInteraccionesDisponibles({
+      actor: this.player,
+
+      interactuables: this.interactuables,
+
+      contexto: {
+        juego: this,
+      },
+    });
+  }
+
+  obtenerInteraccionPrioritaria() {
+    return resolverInteraccionPrioritaria({
+      actor: this.player,
+
+      interactuables: this.interactuables,
+
+      contexto: {
+        juego: this,
+      },
+    });
+  }
+
   estaDentroMapa(x, y) {
     return y >= 0 && y < this.map.length && x >= 0 && x < this.map[y].length;
   }
@@ -99,6 +166,7 @@ export class Juego {
     const distancia = calcularDistanciaCuadricula(
       {
         x: this.player.x,
+
         y: this.player.y,
       },
       {
@@ -209,37 +277,44 @@ export class Juego {
   obtenerCasillaInicialCombate() {
     const direcciones = [
       this.ultimaDireccionJugador,
+      {
+        x: 0,
 
-      {
-        x: 0,
         y: -1,
       },
       {
         x: 1,
+
         y: 0,
       },
       {
         x: 0,
+
         y: 1,
       },
       {
         x: -1,
+
         y: 0,
       },
       {
         x: 1,
+
         y: -1,
       },
       {
         x: 1,
+
         y: 1,
       },
       {
         x: -1,
+
         y: 1,
       },
       {
         x: -1,
+
         y: -1,
       },
     ];
@@ -280,7 +355,9 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -290,6 +367,7 @@ export class Juego {
     const seleccion = seleccionExplicita
       ? {
           x: selectorX,
+
           y: selectorY,
         }
       : this.obtenerSeleccionInicialCombate();
@@ -337,8 +415,8 @@ export class Juego {
 
     return {
       mensaje: objetivo
-        ? `Modo combate: seleccionaste a ` + `${objetivo.nombre}.`
-        : `Modo combate: casilla ` + `${seleccion.x}, ${seleccion.y}.`,
+        ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
+        : `Modo combate: casilla ${seleccion.x}, ${seleccion.y}.`,
 
       turnoConsumido: false,
 
@@ -350,7 +428,9 @@ export class Juego {
     if (!this.modoCombateActivo) {
       return {
         mensaje: null,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -410,12 +490,12 @@ export class Juego {
 
     const textoSeleccion = objetivo
       ? `Seleccionaste a ${objetivo.nombre}.`
-      : `Seleccionaste la casilla ` + `${nuevaX}, ${nuevaY}.`;
+      : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`;
 
     return {
       mensaje: evaluacion.puedeAtacar
         ? textoSeleccion
-        : `${textoSeleccion} ` + `${evaluacion.mensaje}`,
+        : `${textoSeleccion} ${evaluacion.mensaje}`,
 
       turnoConsumido: false,
 
@@ -479,7 +559,9 @@ export class Juego {
     if (!this.modoCombateActivo) {
       return {
         mensaje: null,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -556,6 +638,37 @@ export class Juego {
     return null;
   }
 
+  // Las interacciones también se bloquean
+  // cuando el jugador fue derrotado o está
+  // seleccionando un ataque.
+  obtenerBloqueoInteraccion() {
+    if (!this.player.estaVivo) {
+      return {
+        exito: false,
+
+        mensaje: "No podés interactuar estando derrotado.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (this.modoCombateActivo) {
+      return {
+        exito: false,
+
+        mensaje: "Cancelá el modo combate antes de interactuar.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    return null;
+  }
+
   // Selecciona un objeto del inventario.
   //
   // Equipamiento y munición utilizan ACCION.
@@ -613,6 +726,237 @@ export class Juego {
     });
   }
 
+  // Transfiere una posición concreta desde
+  // un contenedor interactuable al inventario.
+  //
+  // Una transferencia exitosa consume una única
+  // acción genérica, por lo que utiliza:
+  //
+  // - factorTiempo.
+  // - factorAccion.
+  recogerObjetoInteractuable(interactuable, indiceOrigen) {
+    const validacion = this.validarInteraccionContenedor(interactuable);
+
+    if (validacion) {
+      return validacion;
+    }
+
+    const objeto =
+      interactuable.contenedorObjetos.obtenerObjetoEn(indiceOrigen);
+
+    if (!objeto) {
+      return {
+        exito: false,
+
+        mensaje: "Ese espacio del contenedor está vacío.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    const resultadoTransferencia = transferirObjetoEntreContenedores({
+      contenedorOrigen: interactuable.contenedorObjetos,
+
+      contenedorDestino: this.player.inventario,
+
+      indiceOrigen,
+    });
+
+    if (!resultadoTransferencia.exito) {
+      return {
+        exito: false,
+
+        mensaje: "No hay espacio suficiente en el inventario.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    this.retirarInteractuableSiVacio(interactuable);
+
+    const mensajes = [
+      `Recogiste ${resultadoTransferencia.cantidadTransferida} ` +
+        `${resultadoTransferencia.nombreObjeto}.`,
+    ];
+
+    if (resultadoTransferencia.cantidadRestante > 0) {
+      mensajes.push(
+        `Quedaron ${resultadoTransferencia.cantidadRestante} ` +
+          `${resultadoTransferencia.nombreObjeto} en el botín.`,
+      );
+    }
+
+    const resultado = {
+      exito: true,
+
+      mensaje: mensajes.join("\n"),
+
+      ...resultadoTransferencia,
+    };
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+
+      costoBase: COSTOS_TEMPORALES_BASE.accion,
+    });
+  }
+
+  // Transfiere todo lo posible mediante
+  // una sola acción temporal.
+  recogerTodoInteractuable(interactuable) {
+    const validacion = this.validarInteraccionContenedor(interactuable);
+
+    if (validacion) {
+      return validacion;
+    }
+
+    const resultadoTransferencia = transferirTodosLosObjetos({
+      contenedorOrigen: interactuable.contenedorObjetos,
+
+      contenedorDestino: this.player.inventario,
+    });
+
+    if (!resultadoTransferencia.exito) {
+      return {
+        exito: false,
+
+        mensaje: "No hay espacio suficiente en el inventario.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    this.retirarInteractuableSiVacio(interactuable);
+
+    const detalles = resultadoTransferencia.resultados
+      .filter((resultado) => resultado.cantidadTransferida > 0)
+      .map(
+        (resultado) =>
+          `${resultado.cantidadTransferida} ` + `${resultado.nombreObjeto}`,
+      );
+
+    const mensajes = ["Recogiste todo lo posible:", ...detalles];
+
+    if (!resultadoTransferencia.origenVacio) {
+      mensajes.push(
+        "Algunos objetos quedaron en el botín porque el inventario no tiene espacio.",
+      );
+    }
+
+    const resultado = {
+      exito: true,
+
+      mensaje: mensajes.join("\n"),
+
+      ...resultadoTransferencia,
+    };
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+
+      costoBase: COSTOS_TEMPORALES_BASE.accion,
+    });
+  }
+
+  validarInteraccionContenedor(interactuable) {
+    const bloqueo = this.obtenerBloqueoInteraccion();
+
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    if (!this.interactuables.includes(interactuable)) {
+      return {
+        exito: false,
+
+        mensaje: "Ese contenedor ya no está disponible.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (
+      !interactuable?.contenedorObjetos ||
+      typeof interactuable.contenedorObjetos.estaVacio !== "function"
+    ) {
+      return {
+        exito: false,
+
+        mensaje: "La entidad seleccionada no contiene objetos.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (interactuable.contenedorObjetos.estaVacio()) {
+      this.retirarInteractuableSiVacio(interactuable);
+
+      return {
+        exito: false,
+
+        mensaje: "El contenedor está vacío.",
+
+        turnoConsumido: false,
+
+        redibujar: true,
+      };
+    }
+
+    const interaccionDisponible = this.obtenerInteraccionesDisponibles().some(
+      (interaccion) =>
+        interaccion.entidad === interactuable &&
+        interaccion.tipo === TIPOS_INTERACCION.ABRIR_CONTENEDOR,
+    );
+
+    if (!interaccionDisponible) {
+      return {
+        exito: false,
+
+        mensaje: "Acercate al contenedor para recoger sus objetos.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    return null;
+  }
+
+  retirarInteractuableSiVacio(interactuable) {
+    const estaVacio =
+      interactuable?.estaVacio === true ||
+      interactuable?.contenedorObjetos?.estaVacio?.() === true;
+
+    if (!estaVacio) {
+      return false;
+    }
+
+    const indice = this.interactuables.indexOf(interactuable);
+
+    if (indice === -1) {
+      return false;
+    }
+
+    this.interactuables.splice(indice, 1);
+
+    return true;
+  }
+
   // Convierte una operación de inventario
   // en una acción temporal.
   //
@@ -634,7 +978,7 @@ export class Juego {
 
         turnoConsumido: false,
 
-        redibujar: false,
+        redibujar: resultado.redibujar ?? false,
       };
     }
 
@@ -648,6 +992,7 @@ export class Juego {
     return {
       ...resultado,
       ...resultadoTemporal,
+
       exito: true,
     };
   }
@@ -677,12 +1022,12 @@ export class Juego {
   aplicarPulsoRegeneracion() {
     const combatientes = [
       this.player,
-
       ...this.objetivos.filter((objetivo) => objetivo instanceof Combatiente),
     ];
 
     let resultadoJugador = {
       vidaRecuperada: 0,
+
       manaRecuperado: 0,
     };
 
@@ -708,6 +1053,7 @@ export class Juego {
   procesarPulsosTemporalesHasta(tiempoDestino) {
     const recuperacionTotal = {
       vidaRecuperada: 0,
+
       manaRecuperado: 0,
     };
 
@@ -762,6 +1108,7 @@ export class Juego {
 
     const recuperacionTotal = {
       vidaRecuperada: 0,
+
       manaRecuperado: 0,
     };
 
@@ -891,7 +1238,9 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -919,7 +1268,9 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
+
         turnoConsumido: false,
+
         redibujar: false,
       };
     }
@@ -974,6 +1325,7 @@ export class Juego {
       };
     }
 
+    // Los interactuables no bloquean esta operación.
     this.player.x = nuevaX;
 
     this.player.y = nuevaY;
@@ -984,8 +1336,14 @@ export class Juego {
       y: movimientoY,
     };
 
+    const interaccion = this.obtenerInteraccionPrioritaria();
+
+    const mensajeInteraccion = interaccion
+      ? `\n${interaccion.texto}: presioná R.`
+      : "";
+
     return this.finalizarAccionJugador({
-      mensaje: "Te moviste por la mazmorra.",
+      mensaje: "Te moviste por la mazmorra." + mensajeInteraccion,
 
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
 

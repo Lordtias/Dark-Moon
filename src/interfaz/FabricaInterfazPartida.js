@@ -12,6 +12,8 @@ import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
 
 import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
 
+import { ModalContenedorObjetos } from "./objetos/ModalContenedorObjetos.js";
+
 // Crea todos los componentes visuales
 // utilizados durante una partida.
 //
@@ -77,9 +79,14 @@ export function crearInterfazPartida({ tileSize } = {}) {
     ),
   });
 
-  // El modal se crea dinámicamente y podrá reutilizarse
-  // luego desde botín, cofres o comerciantes.
+  // El modal de detalle se utiliza desde
+  // inventario y equipamiento.
   const modalDetalleObjeto = new ModalDetalleObjeto();
+
+  // La ventana de contenedores reutiliza
+  // la misma vista de detalle para botines,
+  // cofres y futuros comerciantes.
+  const modalContenedorObjetos = new ModalContenedorObjetos();
 
   const panelOrdenTemporal = new PanelOrdenTemporal({
     referenciaInsercion: panelMapa,
@@ -107,6 +114,7 @@ export function crearInterfazPartida({ tileSize } = {}) {
     panelEquipamiento,
     panelOrdenTemporal,
     modalDetalleObjeto,
+    modalContenedorObjetos,
   };
 }
 

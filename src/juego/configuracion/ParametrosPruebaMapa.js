@@ -3,10 +3,12 @@
 //
 // Ejemplo:
 //
-// ?mapa=cementerio&semilla=123456
+// ?mapa=cementerio&semilla=123456&botin=prueba
 const PARAMETRO_MAPA = "mapa";
 
 const PARAMETRO_SEMILLA = "semilla";
+
+const PARAMETRO_BOTIN = "botin";
 
 // Lee los parámetros opcionales de la URL.
 //
@@ -21,7 +23,6 @@ export function leerParametrosPruebaMapa(
 
   const url = new URL(
     urlActual,
-
     globalThis.location?.origin ?? "http://localhost",
   );
 
@@ -29,14 +30,21 @@ export function leerParametrosPruebaMapa(
 
   const textoSemilla = normalizarTexto(url.searchParams.get(PARAMETRO_SEMILLA));
 
+  const textoBotin = normalizarTexto(url.searchParams.get(PARAMETRO_BOTIN));
+
   const semillaMapa =
     textoSemilla === null ? null : convertirSemilla(textoSemilla);
+
+  // Cualquier valor no vacío activa
+  // el botín de validación.
+  const botinPrueba = textoBotin !== null;
 
   return {
     idMapaForzado,
     semillaMapa,
+    botinPrueba,
 
-    activo: idMapaForzado !== null || semillaMapa !== null,
+    activo: idMapaForzado !== null || semillaMapa !== null || botinPrueba,
   };
 }
 
@@ -72,7 +80,11 @@ function normalizarTexto(valor) {
 function crearResultadoVacio() {
   return {
     idMapaForzado: null,
+
     semillaMapa: null,
+
+    botinPrueba: false,
+
     activo: false,
   };
 }

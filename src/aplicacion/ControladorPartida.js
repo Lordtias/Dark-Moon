@@ -1,7 +1,7 @@
 import {
   crearConfiguracionInicial,
   TILE_SIZE,
-} from "../juego/ConfiguracionInicial.js";
+} from "../juego/configuracion/ConfiguracionInicial.js";
 
 import { Juego } from "../juego/Juego.js";
 

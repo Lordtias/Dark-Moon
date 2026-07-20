@@ -1,6 +1,6 @@
-import { Player } from "../entidad/destructible/combatiente/Player.js";
+import { Player } from "../../entidad/destructible/combatiente/Player.js";
 
-import { crearObjetosDesdeDefiniciones } from "../objetos/FabricaObjetos.js";
+import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 
 import {
   seleccionarPlantillaMapa,
@@ -10,11 +10,11 @@ import {
 import {
   crearGeneradorAleatorio,
   crearSemillaAleatoria,
-} from "./GeneradorAleatorio.js";
+} from "../GeneradorAleatorio.js";
 
-import { generarTerreno } from "./GeneradorTerreno.js";
+import { generarTerreno } from "../GeneradorTerreno.js";
 
-import { generarContenidoMapa } from "./GeneradorContenidoMapa.js";
+import { generarContenidoMapa } from "../GeneradorContenidoMapa.js";
 
 export const TILE_SIZE = 32;
 

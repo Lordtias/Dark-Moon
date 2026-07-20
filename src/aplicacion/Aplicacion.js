@@ -5,7 +5,7 @@ import {
   cargarConfiguracionEnemigos,
   cargarConfiguracionObjetos,
   cargarConfiguracionMapas,
-} from "../juego/CargadorConfiguracion.js";
+} from "../juego/configuracion/CargadorConfiguracion.js";
 
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";

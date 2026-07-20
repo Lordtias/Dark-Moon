@@ -1,15 +1,26 @@
 import { usarConsumibleDesdeInventario } from "./SistemaConsumibles.js";
 
+import { transferirObjetoEntreContenedores } from "./SistemaTransferenciaObjetos.js";
+
 const ETIQUETAS_RANURAS = {
   cabeza: "Cabeza",
+
   torso: "Torso",
+
   manos: "Manos",
+
   piernas: "Piernas",
+
   pies: "Pies",
+
   arma: "Arma",
+
   secundaria: "Secundaria",
+
   collar: "Collar",
+
   anillo_derecho: "Anillo derecho",
+
   anillo_izquierdo: "Anillo izquierdo",
 };
 
@@ -60,6 +71,13 @@ export function interactuarConObjetoInventario(player, indiceInventario) {
 
 // Carga munición desde el inventario
 // al carcaj equipado.
+//
+// El movimiento real se delega al sistema
+// común de transferencias entre contenedores.
+//
+// Esta misma lógica será reutilizada
+// posteriormente por botines, cofres
+// y comerciantes.
 export function cargarMunicionDesdeInventario(player, indiceInventario) {
   validarPlayer(player);
 
@@ -91,86 +109,56 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
     };
   }
 
-  const contenedor = quiver.contenedorObjetos;
+  const nombreMunicion = municion.nombre;
 
-  // Solamente se apilan
-  // objetos idénticos.
-  const pilaExistente = contenedor.buscarPrimerObjeto(
-    (objeto) => objeto.esMunicion && objeto.id === municion.id,
-  );
+  const resultadoTransferencia = transferirObjetoEntreContenedores({
+    contenedorOrigen: player.inventario,
 
-  if (pilaExistente) {
-    const espacioDisponible =
-      pilaExistente.cantidadMaxima - pilaExistente.cantidad;
+    contenedorDestino: quiver.contenedorObjetos,
 
-    if (espacioDisponible <= 0) {
-      return {
-        exito: false,
+    indiceOrigen: indiceInventario,
+  });
 
-        mensaje:
-          `${quiver.nombre} ya tiene la pila de ` +
-          `${municion.nombre} completa.`,
-      };
-    }
-
-    const cantidadTransferida = Math.min(espacioDisponible, municion.cantidad);
-
-    pilaExistente.cantidad += cantidadTransferida;
-
-    municion.cantidad -= cantidadTransferida;
-
-    if (municion.cantidad === 0) {
-      player.inventario.retirarObjeto(indiceInventario);
-    }
-
-    return {
-      exito: true,
-      cantidadTransferida,
-
-      mensaje:
-        `Cargaste ${cantidadTransferida} ` +
-        `${municion.nombre} en ${quiver.nombre}.\n` +
-        `Ahora contiene ${quiver.cantidadMunicion}.`,
-    };
-  }
-
-  // Si no existe una pila igual,
-  // se necesita una posición libre
-  // dentro del carcaj.
-  if (contenedor.estaLleno()) {
-    const contenidoActual = contenedor.obtenerObjetos()[0];
+  if (!resultadoTransferencia.exito) {
+    const contenidoActual = quiver.contenedorObjetos.obtenerObjetos()[0];
 
     return {
       exito: false,
 
-      mensaje:
-        `${quiver.nombre} ya contiene ` +
-        `${contenidoActual?.nombre ?? "otra munición"}.`,
+      mensaje: contenidoActual
+        ? `${quiver.nombre} ya contiene ` +
+          `${contenidoActual.nombre} y no tiene espacio disponible.`
+        : `No se pudo cargar ${nombreMunicion} ` + `en ${quiver.nombre}.`,
     };
   }
 
-  const objetoRetirado = player.inventario.retirarObjeto(indiceInventario);
+  const mensajes = [
+    `Cargaste ${resultadoTransferencia.cantidadTransferida} ` +
+      `${nombreMunicion} en ${quiver.nombre}.`,
 
-  const agregado = contenedor.agregarObjeto(objetoRetirado);
+    `Ahora contiene ${quiver.cantidadMunicion}.`,
+  ];
 
-  if (!agregado) {
-    player.inventario.colocarObjetoEn(indiceInventario, objetoRetirado);
-
-    return {
-      exito: false,
-
-      mensaje: "No se pudo cargar la munición en el carcaj.",
-    };
+  // Una transferencia puede ser parcial
+  // cuando solamente existe espacio
+  // dentro de una pila ya iniciada.
+  if (resultadoTransferencia.cantidadRestante > 0) {
+    mensajes.push(
+      `Quedaron ${resultadoTransferencia.cantidadRestante} ` +
+        `${nombreMunicion} en el inventario.`,
+    );
   }
 
   return {
     exito: true,
 
-    cantidadTransferida: objetoRetirado.cantidad,
+    cantidadTransferida: resultadoTransferencia.cantidadTransferida,
 
-    mensaje:
-      `Cargaste ${objetoRetirado.cantidad} ` +
-      `${objetoRetirado.nombre} en ${quiver.nombre}.`,
+    cantidadRestante: resultadoTransferencia.cantidadRestante,
+
+    transferenciaCompleta: resultadoTransferencia.completa,
+
+    mensaje: mensajes.join("\n"),
   };
 }
 
@@ -221,6 +209,7 @@ export function equiparObjetoDesdeInventario(
   } catch (error) {
     return {
       exito: false,
+
       mensaje: error.message,
     };
   }
@@ -250,6 +239,7 @@ export function equiparObjetoDesdeInventario(
 
     return {
       exito: false,
+
       mensaje: error.message,
     };
   }
@@ -278,7 +268,9 @@ export function equiparObjetoDesdeInventario(
 
   return {
     exito: true,
+
     mensaje,
+
     ...resultado,
   };
 }
@@ -340,6 +332,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
 
   return {
     exito: true,
+
     objetoDesequipado,
 
     mensaje: `${objetoDesequipado.nombre} volvió al inventario.`,

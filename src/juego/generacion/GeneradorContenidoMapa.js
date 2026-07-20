@@ -101,7 +101,18 @@ export function generarContenidoMapa({
 
       cantidadEnemigos: resultadoEnemigos.enemigos.length,
 
+      // Cantidad que finalmente pudo colocarse
+      // sin afectar la conectividad del mapa.
       cantidadDestructibles: resultadoDestructibles.destructibles.length,
+
+      // Cantidad inicialmente solicitada por
+      // el porcentaje configurado.
+      cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
+
+      // Diferencia entre el objetivo y la
+      // cantidad realmente colocada.
+      cantidadDestructiblesNoColocados:
+        resultadoDestructibles.cantidadNoColocada,
 
       porcentajeDestructibles: resultadoDestructibles.porcentajeSeleccionado,
 
@@ -321,11 +332,23 @@ function generarDestructibles({
     });
   }
 
-  if (destructibles.length < cantidadObjetivo) {
-    throw new Error(
-      `El mapa "${plantilla.nombre}" solamente permitió colocar ` +
-        `${destructibles.length} de ${cantidadObjetivo} destructibles ` +
-        "sin romper la conectividad.",
+  // Calculamos cuántos destructibles no pudieron
+  // colocarse sin bloquear caminos importantes.
+  const cantidadNoColocada = cantidadObjetivo - destructibles.length;
+
+  // Los destructibles son contenido secundario.
+  //
+  // La generación del mapa no debe cancelarse
+  // solamente porque una distribución concreta
+  // no permita colocar todos los barriles.
+  //
+  // Conservamos siempre la conectividad y usamos
+  // la cantidad configurada como un objetivo máximo.
+  if (cantidadNoColocada > 0) {
+    console.warn(
+      `[Mapa] "${plantilla.nombre}" colocó ` +
+        `${destructibles.length} de ${cantidadObjetivo} ` +
+        "destructibles para conservar la conectividad.",
     );
   }
 
@@ -333,6 +356,11 @@ function generarDestructibles({
     destructibles,
     detalle,
     porcentajeSeleccionado,
+
+    // Estos datos quedan disponibles para
+    // depuración y para el resumen de generación.
+    cantidadObjetivo,
+    cantidadNoColocada,
   };
 }
 

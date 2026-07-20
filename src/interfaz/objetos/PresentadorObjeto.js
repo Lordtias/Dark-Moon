@@ -8,35 +8,49 @@ import {
 // a textos más claros dentro de la interfaz.
 const ETIQUETAS_TIPO = Object.freeze({
   arma: "Arma",
+
   armadura: "Armadura",
+
   quiver: "Carcaj",
+
   municion: "Munición",
+
   consumible: "Consumible",
+
   material: "Material",
 });
 
 const ETIQUETAS_ATRIBUTO = Object.freeze({
   fuerza: "Fuerza",
+
   destreza: "Destreza",
+
   constitucion: "Constitución",
+
   inteligencia: "Inteligencia",
+
   sabiduria: "Sabiduría",
+
   carisma: "Carisma",
 });
 
 const ETIQUETAS_TIPO_ATAQUE = Object.freeze({
   cuerpoACuerpo: "Cuerpo a cuerpo",
+
   distancia: "Distancia",
 });
 
 const ETIQUETAS_PATRON_ATAQUE = Object.freeze({
   adyacente: "Adyacente",
+
   lineal: "Lineal",
+
   libre: "Libre",
 });
 
 const ETIQUETAS_EFECTO = Object.freeze({
   recuperarVida: "Recupera Vida",
+
   recuperarMana: "Recupera Maná",
 });
 
@@ -46,8 +60,11 @@ const ETIQUETAS_EFECTO = Object.freeze({
 export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
   validarObjeto(objeto);
 
+  const esMaterial = objeto.tipo === "material";
+
   return {
     nombre: objeto.nombre,
+
     subtitulo: crearSubtitulo(objeto),
 
     descripcion:
@@ -57,12 +74,23 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
 
     recursoVisual: normalizarRuta(objeto.recursoVisual),
 
+    // La cantidad continúa siendo información contextual
+    // de la pila y se muestra en la cabecera cuando
+    // existen dos o más unidades.
     cantidad: Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1,
 
     estadisticas: crearEstadisticasObjeto({
       objeto,
       combatiente,
     }),
+
+    // Un material puede no tener estadísticas porque
+    // su valor se encuentra en su identidad, descripción
+    // y futuros usos de fabricación o misión.
+    //
+    // Por eso no mostramos un mensaje indicando
+    // que carece de propiedades especiales.
+    mostrarMensajeSinEstadisticas: !esMaterial,
   };
 }
 
@@ -75,7 +103,7 @@ function crearSubtitulo(objeto) {
   if (objeto.esArma) {
     const manos = objeto.propiedades.manos;
 
-    return `${tipo} · ${manos} ${manos === 1 ? "mano" : "manos"}`;
+    return `${tipo} · ${manos} ` + (manos === 1 ? "mano" : "manos");
   }
 
   if (objeto.esArmadura) {
@@ -115,6 +143,15 @@ function crearEstadisticasObjeto({ objeto, combatiente }) {
     return crearEstadisticasConsumible(objeto);
   }
 
+  // La cantidad de una pila no es una propiedad
+  // intrínseca del material.
+  //
+  // Tampoco mostramos su máximo por pila como
+  // una característica del objeto.
+  if (objeto.tipo === "material") {
+    return [];
+  }
+
   return crearEstadisticasGenericas(objeto);
 }
 
@@ -146,7 +183,7 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   // Por ejemplo:
   //
   // 90 unidades = 0,90 segundos
-  // 100 / 90 = 1,11 ataques por segundo
+  // 100 / 90 = 1,11 ataques por segundo.
   const velocidadAtaque = TIEMPO_REFERENCIA / costoEfectivo;
 
   const estadisticas = [
@@ -282,6 +319,7 @@ function crearEstadisticasQuiver(objeto) {
       (Number.isInteger(objetoContenido.cantidad)
         ? objetoContenido.cantidad
         : 1),
+
     0,
   );
 
@@ -354,9 +392,11 @@ function crearEstadisticasConsumible(objeto) {
   return estadisticas;
 }
 
-// Permite que materiales y futuros tipos de objetos
-// tengan un detalle útil aunque todavía no posean
-// propiedades específicas.
+// Mantiene un respaldo para futuros tipos
+// de objetos apilables que todavía no tengan
+// una presentación específica.
+//
+// Los materiales no llegan a esta función.
 function crearEstadisticasGenericas(objeto) {
   const estadisticas = [];
 
@@ -420,7 +460,7 @@ function formatearNumeroConSigno(valor) {
 
   const signo = valor > 0 ? "+" : "";
 
-  return `${signo}${formatearNumero(valor)}`;
+  return `${signo}` + `${formatearNumero(valor)}`;
 }
 
 function formatearIdentificador(valor) {

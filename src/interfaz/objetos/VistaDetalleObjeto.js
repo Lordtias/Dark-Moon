@@ -37,8 +37,11 @@ export class VistaDetalleObjeto {
     this.imagen.classList.add("detalle-objeto__imagen");
 
     this.imagen.alt = "";
+
     this.imagen.draggable = false;
+
     this.imagen.decoding = "async";
+
     this.imagen.hidden = true;
 
     this.respaldoImagen = document.createElement("span");
@@ -107,6 +110,8 @@ export class VistaDetalleObjeto {
 
     this.descripcion.textContent = presentacion.descripcion;
 
+    // La cantidad es información contextual
+    // de la pila y no una estadística del objeto.
     this.cantidad.textContent =
       presentacion.cantidad > 1 ? `Cantidad: ${presentacion.cantidad}` : "";
 
@@ -114,7 +119,11 @@ export class VistaDetalleObjeto {
 
     this.actualizarImagen(presentacion);
 
-    this.actualizarEstadisticas(presentacion.estadisticas);
+    this.actualizarEstadisticas({
+      estadisticas: presentacion.estadisticas,
+
+      mostrarMensajeSinEstadisticas: presentacion.mostrarMensajeSinEstadisticas,
+    });
   }
 
   actualizarImagen(presentacion) {
@@ -126,6 +135,7 @@ export class VistaDetalleObjeto {
     // Retiramos callbacks y ruta anteriores
     // antes de representar otro objeto.
     this.imagen.onload = null;
+
     this.imagen.onerror = null;
 
     this.imagen.removeAttribute("src");
@@ -153,7 +163,7 @@ export class VistaDetalleObjeto {
     this.imagen.src = presentacion.recursoVisual;
   }
 
-  actualizarEstadisticas(estadisticas) {
+  actualizarEstadisticas({ estadisticas, mostrarMensajeSinEstadisticas }) {
     this.listaEstadisticas.replaceChildren();
 
     const tieneEstadisticas =
@@ -161,7 +171,13 @@ export class VistaDetalleObjeto {
 
     this.listaEstadisticas.hidden = !tieneEstadisticas;
 
-    this.mensajeSinEstadisticas.hidden = tieneEstadisticas;
+    // Un material vacío de estadísticas
+    // no necesita un mensaje aclaratorio.
+    //
+    // Para otros tipos futuros conservamos
+    // el aviso existente.
+    this.mensajeSinEstadisticas.hidden =
+      tieneEstadisticas || !mostrarMensajeSinEstadisticas;
 
     if (!tieneEstadisticas) {
       return;
@@ -190,7 +206,8 @@ function validarPresentacion(presentacion) {
     !presentacion ||
     typeof presentacion !== "object" ||
     typeof presentacion.nombre !== "string" ||
-    !Array.isArray(presentacion.estadisticas)
+    !Array.isArray(presentacion.estadisticas) ||
+    typeof presentacion.mostrarMensajeSinEstadisticas !== "boolean"
   ) {
     throw new Error("VistaDetalleObjeto necesita una presentación válida.");
   }

@@ -4,10 +4,19 @@
 // sin modificar directamente la lógica.
 export const CONFIGURACION_COMBATE = {
   atributos: {
-    danioPorPuntoRespectoDiez: 0.02,
-    precisionPorDestreza: 3,
+    // Cada punto por encima o debajo de 10 modifica
+    // el daño físico en un 3%.
+    danioPorPuntoRespectoDiez: 0.03,
+
+    // Destreza continúa aumentando tanto precisión
+    // como evasión, pero con una progresión más moderada.
+    precisionPorDestreza: 2,
     evasionPorDestreza: 2,
-    vidaPorConstitucion: 5,
+
+    // La Constitución sigue siendo la fuente principal
+    // de Vida, sin generar reservas excesivas en nivel 1.
+    vidaPorConstitucion: 2,
+
     manaPorInteligencia: 4,
     regeneracionVidaPorConstitucion: 0.1,
     regeneracionManaPorSabiduria: 0.1,
@@ -19,27 +28,25 @@ export const CONFIGURACION_COMBATE = {
   },
 
   impacto: {
-    factorFormula: 200,
+    // El factor aumentado reduce la frecuencia de fallos
+    // durante los combates iniciales.
+    factorFormula: 240,
     probabilidadMinima: 5,
     probabilidadMaxima: 95,
   },
 
   armadura: {
-    factorDanio: 10,
+    // Un valor mayor hace que la armadura reduzca menos
+    // los golpes pequeños, evitando daños redondeados a cero.
+    factorDanio: 20,
   },
 
-  // Eficiencia inicial al combatir con dos armas.
-  //
-  // La suma de los multiplicadores de daño es 100%,
-  // por lo que dos armas iguales mantienen un daño
-  // aproximado al de una sola arma, pero producen
-  // dos impactos independientes.
-  //
-  // El recargo temporal representa el tiempo adicional
-  // necesario para utilizar también la mano secundaria.
+  // Combatir con dos armas produce más daño,
+  // pero obliga a renunciar al escudo y consume
+  // tiempo adicional.
   dosArmas: {
-    multiplicadorManoPrincipal: 0.6,
-    multiplicadorManoSecundaria: 0.4,
+    multiplicadorManoPrincipal: 1,
+    multiplicadorManoSecundaria: 0.5,
 
     // El ataque utiliza el coste completo del arma
     // más lenta y agrega el 30% del arma más rápida.

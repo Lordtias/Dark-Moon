@@ -31,13 +31,10 @@
       }
     ]
   },
-
   "profesionInicial": "guerrero",
-
   "profesiones": {
     "guerrero": {
       "nombre": "Guerrero",
-
       "pesosAtributos": {
         "fuerza": 5,
         "destreza": 2,
@@ -46,11 +43,10 @@
         "sabiduria": 1,
         "carisma": 1
       },
-
       "estadisticasBase": {
-        "vida": 30,
+        "vida": 20,
         "mana": 10,
-        "vidaPorNivel": 8,
+        "vidaPorNivel": 6,
         "manaPorNivel": 2,
         "precision": 10,
         "evasion": 5,
@@ -63,7 +59,6 @@
         "potenciaEfectos": 0,
         "resistenciaMental": 0,
         "potenciaAura": 0,
-
         "resistencias": {
           "fuego": 0,
           "frio": 0,
@@ -71,41 +66,39 @@
           "veneno": 0
         }
       },
-
       "contenedor": {
         "capacidad": 12,
-
         "objetosIniciales": [
-          "pocion_curacion",
+          {
+            "id": "pocion_curacion",
+            "cantidad": 2
+          },
           "daga_hierro",
+          "hacha_mano",
           "mandoble_hierro",
           "lanza",
           "arco_corto",
           "quiver_cuero",
-
           {
             "id": "flecha_madera",
             "cantidad": 15
           }
         ]
       },
-
       "equipamiento": {
         "objetosIniciales": [
-          "casco_hierro",
-          "coraza_hierro",
-          "guantes_hierro",
-          "grebas_hierro",
-          "botas_hierro",
+          "capucha_cuero",
+          "jubon_acolchado",
+          "guantes_cuero",
+          "pantalones_cuero",
+          "botas_cuero",
           "espada_larga",
           "escudo_madera"
         ]
       }
     },
-
     "rogue": {
       "nombre": "Rogue",
-
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 5,
@@ -114,11 +107,10 @@
         "sabiduria": 2,
         "carisma": 2
       },
-
       "estadisticasBase": {
-        "vida": 24,
+        "vida": 16,
         "mana": 14,
-        "vidaPorNivel": 6,
+        "vidaPorNivel": 5,
         "manaPorNivel": 3,
         "precision": 14,
         "evasion": 8,
@@ -131,7 +123,6 @@
         "potenciaEfectos": 0,
         "resistenciaMental": 0,
         "potenciaAura": 0,
-
         "resistencias": {
           "fuego": 0,
           "frio": 0,
@@ -140,10 +131,8 @@
         }
       }
     },
-
     "mago": {
       "nombre": "Mago",
-
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 2,
@@ -152,9 +141,8 @@
         "sabiduria": 3,
         "carisma": 1
       },
-
       "estadisticasBase": {
-        "vida": 18,
+        "vida": 12,
         "mana": 24,
         "vidaPorNivel": 4,
         "manaPorNivel": 6,
@@ -169,7 +157,6 @@
         "potenciaEfectos": 0,
         "resistenciaMental": 0,
         "potenciaAura": 0,
-
         "resistencias": {
           "fuego": 0,
           "frio": 0,

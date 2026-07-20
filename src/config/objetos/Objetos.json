@@ -2,43 +2,42 @@
   "daga_hierro": {
     "nombre": "Daga de hierro",
     "tipo": "arma",
-    "descripcion": "Una daga ligera y muy rápida que puede utilizarse en cualquiera de las dos manos.",
+    "descripcion": "Una daga ligera, rápida y precisa que puede utilizarse en cualquiera de las dos manos.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
-      "danioFisicoMinimo": 2,
+      "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,
       "atributoAtaque": "destreza",
-      "precision": 14,
+      "precision": 16,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
       "patronAtaque": "adyacente",
-      "probabilidadCritico": 10,
+      "probabilidadCritico": 12,
       "multiplicadorCritico": 1.5,
-      "costoAtaque": 75,
+      "costoAtaque": 70,
       "manos": 1,
       "bloqueaSecundaria": false,
       "requiereQuiver": false
     }
   },
-
   "espada_larga": {
     "nombre": "Espada larga",
     "tipo": "arma",
-    "descripcion": "Una espada equilibrada que puede utilizarse como arma principal o secundaria.",
+    "descripcion": "Una espada equilibrada que combina buen daño, precisión y velocidad.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
-      "danioFisicoMinimo": 4,
+      "danioFisicoMinimo": 5,
       "danioFisicoMaximo": 8,
       "atributoAtaque": "fuerza",
-      "precision": 10,
+      "precision": 12,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
       "patronAtaque": "adyacente",
-      "probabilidadCritico": 5,
+      "probabilidadCritico": 7,
       "multiplicadorCritico": 1.5,
       "costoAtaque": 90,
       "manos": 1,
@@ -46,116 +45,187 @@
       "requiereQuiver": false
     }
   },
-
-  "mandoble_hierro": {
-    "nombre": "Mandoble de hierro",
+  "hacha_mano": {
+    "nombre": "Hacha de mano",
     "tipo": "arma",
-    "descripcion": "Una pesada espada de dos manos que impide utilizar la ranura secundaria.",
+    "descripcion": "Un arma de una mano con golpes fuertes, aunque menos precisos que los de una espada.",
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": ["arma"],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
-      "danioFisicoMinimo": 8,
-      "danioFisicoMaximo": 14,
+      "danioFisicoMinimo": 6,
+      "danioFisicoMaximo": 10,
       "atributoAtaque": "fuerza",
-      "precision": 6,
+      "precision": 8,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
       "patronAtaque": "adyacente",
       "probabilidadCritico": 6,
       "multiplicadorCritico": 1.6,
-      "costoAtaque": 110,
+      "costoAtaque": 100,
+      "manos": 1,
+      "bloqueaSecundaria": false,
+      "requiereQuiver": false
+    }
+  },
+  "mandoble_hierro": {
+    "nombre": "Mandoble de hierro",
+    "tipo": "arma",
+    "descripcion": "Una espada pesada de dos manos, lenta y poco precisa, capaz de causar un gran daño.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["arma"],
+    "propiedades": {
+      "danioFisicoMinimo": 9,
+      "danioFisicoMaximo": 14,
+      "atributoAtaque": "fuerza",
+      "precision": 5,
+      "alcance": 1,
+      "tipoAtaque": "cuerpoACuerpo",
+      "patronAtaque": "adyacente",
+      "probabilidadCritico": 6,
+      "multiplicadorCritico": 1.6,
+      "costoAtaque": 125,
       "manos": 2,
       "bloqueaSecundaria": true,
       "requiereQuiver": false
     }
   },
-
   "lanza": {
     "nombre": "Lanza",
     "tipo": "arma",
-    "descripcion": "Un arma de dos manos capaz de atacar desde una casilla adicional.",
+    "descripcion": "Un arma de dos manos que sacrifica velocidad para atacar desde una casilla adicional.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 5,
-      "danioFisicoMaximo": 10,
+      "danioFisicoMaximo": 8,
       "atributoAtaque": "fuerza",
-      "precision": 8,
+      "precision": 10,
       "alcance": 2,
       "tipoAtaque": "cuerpoACuerpo",
       "patronAtaque": "lineal",
       "probabilidadCritico": 5,
       "multiplicadorCritico": 1.5,
-      "costoAtaque": 110,
+      "costoAtaque": 105,
       "manos": 2,
       "bloqueaSecundaria": true,
       "requiereQuiver": false
     }
   },
-
   "arco_corto": {
     "nombre": "Arco corto",
     "tipo": "arma",
-    "descripcion": "Un arco de dos manos que necesita un quiver equipado para disparar.",
+    "descripcion": "Un arco preciso que permite atacar a distancia, pero necesita un quiver equipado.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 4,
-      "danioFisicoMaximo": 8,
+      "danioFisicoMaximo": 7,
       "atributoAtaque": "destreza",
-      "precision": 12,
+      "precision": 14,
       "alcance": 6,
       "tipoAtaque": "distancia",
       "patronAtaque": "libre",
-      "probabilidadCritico": 7,
+      "probabilidadCritico": 8,
       "multiplicadorCritico": 1.5,
-      "costoAtaque": 120,
+      "costoAtaque": 105,
       "manos": 2,
       "bloqueaSecundaria": false,
       "requiereQuiver": true,
       "tipoMunicion": "flecha"
     }
   },
-
-  "casco_hierro": {
-    "nombre": "Casco de hierro",
+  "capucha_cuero": {
+    "nombre": "Capucha de cuero",
     "tipo": "armadura",
-    "descripcion": "Un casco básico de hierro.",
+    "descripcion": "Una protección ligera para la cabeza.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["cabeza"],
     "propiedades": {
-      "armadura": 8
+      "armadura": 1
     }
   },
-
-  "coraza_hierro": {
-    "nombre": "Coraza de hierro",
+  "jubon_acolchado": {
+    "nombre": "Jubón acolchado",
     "tipo": "armadura",
-    "descripcion": "Una protección pesada para el torso.",
+    "descripcion": "Una protección flexible para el torso, adecuada para comenzar una aventura.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["torso"],
     "propiedades": {
-      "armadura": 20
+      "armadura": 3
     }
   },
-
-  "guantes_hierro": {
-    "nombre": "Guantes de hierro",
+  "guantes_cuero": {
+    "nombre": "Guantes de cuero",
     "tipo": "armadura",
-    "descripcion": "Guantes metálicos que protegen las manos.",
+    "descripcion": "Guantes ligeros que protegen las manos sin dificultar el movimiento.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["manos"],
     "propiedades": {
-      "armadura": 6
+      "armadura": 1
     }
   },
-
+  "pantalones_cuero": {
+    "nombre": "Pantalones de cuero",
+    "tipo": "armadura",
+    "descripcion": "Una protección ligera para las piernas.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "botas_cuero": {
+    "nombre": "Botas de cuero",
+    "tipo": "armadura",
+    "descripcion": "Botas flexibles que ofrecen una protección básica.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "casco_hierro": {
+    "nombre": "Casco de hierro",
+    "tipo": "armadura",
+    "descripcion": "Un casco de hierro más resistente que las protecciones iniciales de cuero.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["cabeza"],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "coraza_hierro": {
+    "nombre": "Coraza de hierro",
+    "tipo": "armadura",
+    "descripcion": "Una protección pesada de hierro para el torso.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 7
+    }
+  },
+  "guantes_hierro": {
+    "nombre": "Guantes de hierro",
+    "tipo": "armadura",
+    "descripcion": "Guantes metálicos que protegen mejor que los de cuero.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
   "grebas_hierro": {
     "nombre": "Grebas de hierro",
     "tipo": "armadura",
@@ -164,36 +234,46 @@
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["piernas"],
     "propiedades": {
-      "armadura": 12
+      "armadura": 4
     }
   },
-
   "botas_hierro": {
     "nombre": "Botas de hierro",
     "tipo": "armadura",
-    "descripcion": "Botas pesadas que protegen los pies.",
+    "descripcion": "Botas pesadas con una protección superior.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["pies"],
     "propiedades": {
-      "armadura": 6
+      "armadura": 2
     }
   },
-
   "escudo_madera": {
     "nombre": "Escudo de madera",
     "tipo": "armadura",
-    "descripcion": "Un escudo básico para la ranura secundaria.",
+    "descripcion": "Un escudo básico que ofrece armadura y una posibilidad de bloquear parte del daño.",
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["secundaria"],
     "propiedades": {
-      "armadura": 10,
-      "probabilidadBloqueo": 8,
+      "armadura": 3,
+      "probabilidadBloqueo": 10,
       "mitigacionBloqueo": 50
     }
   },
-
+  "escudo_hierro": {
+    "nombre": "Escudo de hierro",
+    "tipo": "armadura",
+    "descripcion": "Un escudo pesado que mejora la armadura y el bloqueo.",
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["secundaria"],
+    "propiedades": {
+      "armadura": 5,
+      "probabilidadBloqueo": 12,
+      "mitigacionBloqueo": 55
+    }
+  },
   "quiver_cuero": {
     "nombre": "Quiver de cuero",
     "tipo": "quiver",
@@ -214,7 +294,6 @@
       ]
     }
   },
-
   "flecha_madera": {
     "nombre": "Flecha de madera",
     "tipo": "municion",
@@ -226,11 +305,10 @@
       "tipoMunicion": "flecha"
     }
   },
-
   "pocion_curacion": {
     "nombre": "Poción de curación",
     "tipo": "consumible",
-    "descripcion": "Una pequeña poción que recupera Vida.",
+    "descripcion": "Una pequeña poción que recupera una cantidad significativa de Vida.",
     "apilable": true,
     "cantidadMaxima": 5,
     "ranurasCompatibles": [],
@@ -239,7 +317,7 @@
       "efectos": [
         {
           "tipo": "recuperarVida",
-          "cantidad": 5
+          "cantidad": 15
         }
       ]
     }

@@ -3,7 +3,7 @@
     "alcantarilla": {
       "nombre": "Alcantarilla",
       "bioma": "alcantarilla",
-      "pesoSeleccion": 1,
+      "pesoSeleccion": 5,
       "apariencia": {
         "colorSuelo": "#26372f",
         "colorPared": "#53695d",
@@ -21,7 +21,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 3
+        "maximo": 1
       },
       "generacion": {
         "tipo": "habitaciones",
@@ -34,7 +34,7 @@
       },
       "enemigos": {
         "cantidad": {
-          "minimo": 3,
+          "minimo": 4,
           "maximo": 6
         },
         "distanciaSeguraJugador": 4,
@@ -42,12 +42,16 @@
         "permitidos": [
           {
             "id": "rata",
-            "peso": 100
+            "peso": 70
+          },
+          {
+            "id": "cucaracha",
+            "peso": 30
           }
         ],
         "probabilidadesVariantes": {
-          "normal": 80,
-          "enfermo": 15,
+          "normal": 85,
+          "enfermo": 10,
           "gigante": 4,
           "elite": 1
         }
@@ -68,7 +72,7 @@
     "cementerio": {
       "nombre": "Cementerio",
       "bioma": "cementerio",
-      "pesoSeleccion": 1,
+      "pesoSeleccion": 4,
       "apariencia": {
         "colorSuelo": "#302f3b",
         "colorPared": "#686879",
@@ -86,7 +90,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 4
+        "maximo": 1
       },
       "generacion": {
         "tipo": "habitaciones",
@@ -100,25 +104,29 @@
       "enemigos": {
         "cantidad": {
           "minimo": 3,
-          "maximo": 6
+          "maximo": 5
         },
         "distanciaSeguraJugador": 4,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
           {
-            "id": "esqueleto_guerrero",
-            "peso": 60
+            "id": "esqueleto_guardia",
+            "peso": 45
           },
           {
-            "id": "esqueleto_rogue",
-            "peso": 40
+            "id": "esqueleto_arquero",
+            "peso": 35
+          },
+          {
+            "id": "zombi",
+            "peso": 20
           }
         ],
         "probabilidadesVariantes": {
-          "normal": 78,
-          "enfermo": 7,
+          "normal": 82,
+          "enfermo": 5,
           "gigante": 8,
-          "elite": 7
+          "elite": 5
         }
       },
       "destructibles": {
@@ -155,7 +163,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 5
+        "maximo": 1
       },
       "generacion": {
         "tipo": "habitaciones",
@@ -169,29 +177,41 @@
       "enemigos": {
         "cantidad": {
           "minimo": 4,
-          "maximo": 8
+          "maximo": 6
         },
         "distanciaSeguraJugador": 4,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
           {
             "id": "rata",
-            "peso": 40
+            "peso": 10
           },
           {
-            "id": "esqueleto_guerrero",
-            "peso": 35
+            "id": "cucaracha",
+            "peso": 10
           },
           {
-            "id": "esqueleto_rogue",
+            "id": "esqueleto_arquero",
+            "peso": 20
+          },
+          {
+            "id": "esqueleto_guardia",
             "peso": 25
+          },
+          {
+            "id": "zombi",
+            "peso": 30
+          },
+          {
+            "id": "caballero_oseo",
+            "peso": 5
           }
         ],
         "probabilidadesVariantes": {
-          "normal": 65,
-          "enfermo": 12,
-          "gigante": 13,
-          "elite": 10
+          "normal": 88,
+          "enfermo": 4,
+          "gigante": 6,
+          "elite": 2
         }
       },
       "destructibles": {

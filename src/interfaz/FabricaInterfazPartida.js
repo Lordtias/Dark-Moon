@@ -1,5 +1,7 @@
 import { Renderizador } from "./Renderizador.js";
 
+import { RenderizadorCanvas2D } from "./graficos/RenderizadorCanvas2D.js";
+
 import { PanelPersonaje } from "./PanelPersonaje.js";
 
 import { PanelInventario } from "./PanelInventario.js";
@@ -11,32 +13,33 @@ import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
 // Crea todos los componentes visuales
 // utilizados durante una partida.
 //
-// Esta fábrica centraliza:
+// Esta fábrica es el único lugar que decide
+// qué tecnología gráfica representa el mapa.
 //
-// - Referencias al HTML.
-// - Creación de paneles.
-// - Dependencias del renderizador.
-//
-// De esta manera, los controladores y game.js
-// no necesitan conocer los elementos internos
-// de la interfaz.
+// Cuando utilicemos Phaser, la sustitución
+// principal ocurrirá aquí.
 export function crearInterfazPartida({ tileSize } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
-    throw new Error("La interfaz necesita un tamaño " + "de casilla válido.");
+    throw new Error("La interfaz necesita un tamaño de casilla válido.");
   }
 
-  // Canvas donde se representa el mapa.
+  // Actualmente utilizamos un canvas HTML,
+  // pero el resto de la aplicación ya no
+  // dependerá directamente de él.
   const canvas = obtenerElementoObligatorio("gameCanvas", "canvas del mapa");
 
-  // El panel temporal se insertará
-  // inmediatamente después del panel del mapa.
   const panelMapa = canvas.closest(".panel-mapa");
 
   if (!panelMapa) {
-    throw new Error(
-      "No se encontró el panel que contiene " + "el canvas del mapa.",
-    );
+    throw new Error("No se encontró el panel que contiene el canvas del mapa.");
   }
+
+  // Backend encargado exclusivamente
+  // de representar la escena del mapa.
+  const renderizadorMapa = new RenderizadorCanvas2D({
+    canvas,
+    tileSize,
+  });
 
   // Panel con estadísticas y atributos.
   const panelPersonaje = new PanelPersonaje({
@@ -74,8 +77,8 @@ export function crearInterfazPartida({ tileSize } = {}) {
 
   // Vista compacta del sistema temporal.
   //
-  // El panel se crea desde JavaScript para evitar
-  // modificar la estructura extensa de index.html.
+  // Aunque actualmente está visualmente
+  // deshabilitada, conservamos su actualización.
   const panelOrdenTemporal = new PanelOrdenTemporal({
     referenciaInsercion: panelMapa,
 
@@ -88,20 +91,17 @@ export function crearInterfazPartida({ tileSize } = {}) {
     "registro de combate",
   );
 
-  // El renderizador recibe todos los componentes
-  // que debe mantener actualizados.
+  // Fachada general de la interfaz.
   const renderizador = new Renderizador({
-    canvas,
+    renderizadorMapa,
     panelPersonaje,
     panelInventario,
     panelEquipamiento,
     panelOrdenTemporal,
     combatLogText,
-    tileSize,
   });
 
   return {
-    canvas,
     renderizador,
     panelInventario,
     panelEquipamiento,
@@ -115,7 +115,7 @@ function obtenerElementoObligatorio(id, descripcion) {
   const elemento = document.getElementById(id);
 
   if (!elemento) {
-    throw new Error(`No se encontró ${descripcion} ` + `con id "${id}".`);
+    throw new Error(`No se encontró ${descripcion} con id "${id}".`);
   }
 
   return elemento;

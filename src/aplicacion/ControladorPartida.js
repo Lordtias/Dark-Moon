@@ -30,11 +30,8 @@ export class ControladorPartida {
 
     this.juego = null;
     this.renderizador = null;
-
     this.controladorTeclado = null;
-
     this.controladorEquipamiento = null;
-
     this.partidaIniciada = false;
   }
 
@@ -57,13 +54,11 @@ export class ControladorPartida {
       configuracionEnemigos,
       configuracionObjetos,
       configuracionMapas,
-
       semillaMapa: parametrosPrueba.semillaMapa,
-
       idMapaForzado: parametrosPrueba.idMapaForzado,
     });
 
-    const { canvas, renderizador, panelInventario, panelEquipamiento } =
+    const { renderizador, panelInventario, panelEquipamiento } =
       crearInterfazPartida({
         tileSize: TILE_SIZE,
       });
@@ -72,9 +67,15 @@ export class ControladorPartida {
 
     const cantidadColumnas = configuracionInicial.map[0].length;
 
-    canvas.width = cantidadColumnas * TILE_SIZE;
-
-    canvas.height = cantidadFilas * TILE_SIZE;
+    // El controlador ya no modifica
+    // directamente el canvas.
+    //
+    // La implementación gráfica decide cómo
+    // representar estas dimensiones.
+    renderizador.configurarDimensionesMapa({
+      columnas: cantidadColumnas,
+      filas: cantidadFilas,
+    });
 
     const juego = new Juego(configuracionInicial);
 
@@ -91,7 +92,6 @@ export class ControladorPartida {
     });
 
     this.juego = juego;
-
     this.renderizador = renderizador;
 
     this.controladorTeclado = controladorTeclado;
@@ -121,7 +121,7 @@ export class ControladorPartida {
       : "";
 
     this.renderizador.mostrarMensaje(
-      `Mapa generado: ${mapaSeleccionado.nombre}. ` +
+      `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
         `Semilla: ${generacion.semilla}. ` +
         `Tamaño: ${generacion.ancho} × ${generacion.alto}. ` +
@@ -130,7 +130,7 @@ export class ControladorPartida {
         `(objetivo ${generacion.porcentajeNoCaminableObjetivo}%). ` +
         `Enemigos: ${generacion.cantidadEnemigos} ` +
         `(${tiposEnemigos}). ` +
-        `Variantes: ${variantes}. ` +
+        `Variantes: ${variantes}.\n` +
         `Destructibles: ${generacion.cantidadDestructibles}.` +
         mensajeModoPrueba,
     );
@@ -161,6 +161,8 @@ export class ControladorPartida {
   }
 }
 
+// Convierte los contadores internos
+// en texto legible para el registro.
 function formatearConteo(conteo) {
   const elementos = Object.entries(conteo ?? {});
 
@@ -173,6 +175,8 @@ function formatearConteo(conteo) {
     .join(", ");
 }
 
+// Convierte IDs de configuración
+// en nombres más legibles.
 function formatearId(id) {
   return id.replaceAll("_", " ");
 }

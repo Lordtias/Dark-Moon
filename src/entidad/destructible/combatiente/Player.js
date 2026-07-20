@@ -3,7 +3,7 @@ import { Combatiente } from "./Combatiente.js";
 import {
   calcularExperienciaNecesaria,
   calcularPuntosAtributoGanados,
-} from "../../../juego/SistemaProgresion.js";
+} from "../../../juego/progresion/SistemaProgresion.js";
 
 import {
   interactuarConObjetoInventario,

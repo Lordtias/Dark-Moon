@@ -12,7 +12,7 @@ import {
   crearSemillaAleatoria,
 } from "../generacion/GeneradorAleatorio.js";
 
-import { generarTerreno } from "../GeneradorTerreno.js";
+import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 

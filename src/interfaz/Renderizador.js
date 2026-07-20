@@ -1,6 +1,6 @@
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
-import { normalizarMensajesJuego } from "../juego/MensajesJuego.js";
+import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
 
 const MAXIMO_MENSAJES_REGISTRO = 120;
 

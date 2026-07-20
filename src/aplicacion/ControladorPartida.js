@@ -11,7 +11,7 @@ import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
 
-import { leerParametrosPruebaMapa } from "../juego/ParametrosPruebaMapa.js";
+import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 
 // Coordina la creación y activación
 // de una partida completa.

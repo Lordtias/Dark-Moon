@@ -4,6 +4,15 @@ import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 
 import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js";
 
+// Recurso visual predeterminado utilizado
+// por todas las pilas de botín.
+//
+// La entidad conserva también el símbolo "*"
+// como respaldo para renderizadores sin imágenes
+// o ante un fallo de carga.
+const RECURSO_VISUAL_BOTIN_PREDETERMINADO =
+  "assets/imagenes/interactuables/botin.png";
+
 // Representa una pila de objetos abandonada
 // dentro del mapa.
 //
@@ -20,7 +29,14 @@ export class BotinSuelo extends Entidad {
     x = 0,
     y = 0,
     simbolo = "*",
+
+    // Cuando no se especifica una imagen
+    // utilizamos la bolsa de botín estándar.
+    //
+    // También tratamos null como ausencia
+    // de una configuración personalizada.
     recursoVisual = null,
+
     contenedorObjetos,
   } = {}) {
     super({
@@ -36,16 +52,23 @@ export class BotinSuelo extends Entidad {
       );
     }
 
+    const recursoVisualFinal =
+      recursoVisual ?? RECURSO_VISUAL_BOTIN_PREDETERMINADO;
+
     if (
-      recursoVisual !== null &&
-      (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
+      typeof recursoVisualFinal !== "string" ||
+      recursoVisualFinal.trim() === ""
     ) {
       throw new Error(
         `El recurso visual de ${this.nombre} debe ser una ruta válida.`,
       );
     }
 
-    this.recursoVisual = recursoVisual?.trim() ?? null;
+    // BotinSuelo solamente conserva la ruta.
+    //
+    // La carga y caché de la imagen continúan
+    // perteneciendo a la capa gráfica.
+    this.recursoVisual = recursoVisualFinal.trim();
 
     this.contenedorObjetos = contenedorObjetos;
   }

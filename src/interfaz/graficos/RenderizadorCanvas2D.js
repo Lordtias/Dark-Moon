@@ -42,9 +42,13 @@ const ESTILOS_ENTIDADES = {
 // Solamente recibe una escena visual preparada
 // por AdaptadorEscenaJuego.
 export class RenderizadorCanvas2D {
-  constructor({ canvas, tileSize } = {}) {
+  constructor({ canvas, contenedor, tileSize } = {}) {
     if (!canvas) {
       throw new Error("RenderizadorCanvas2D necesita un canvas.");
+    }
+
+    if (!contenedor) {
+      throw new Error("RenderizadorCanvas2D necesita el contenedor del mapa.");
     }
 
     const context = canvas.getContext("2d");
@@ -58,19 +62,32 @@ export class RenderizadorCanvas2D {
     }
 
     this.canvas = canvas;
+    this.contenedor = contenedor;
     this.context = context;
     this.tileSize = tileSize;
 
-    // Evita suavizados no deseados cuando
-    // posteriormente utilicemos pixel art.
+    // Evita el suavizado de píxeles cuando
+    // el canvas cambia de tamaño visualmente.
     this.context.imageSmoothingEnabled = false;
+
+    // Observamos el panel que contiene el mapa.
+    //
+    // Cuando cambia el tamaño de la ventana,
+    // de las columnas laterales o del propio panel,
+    // recalculamos la escala visual del canvas.
+    this.observadorDimensiones = new ResizeObserver(() => {
+      this.ajustarTamanoVisual();
+    });
+
+    this.observadorDimensiones.observe(this.contenedor);
   }
 
-  // Ajusta el tamaño interno de la superficie
-  // gráfica a las dimensiones del mapa.
+  // Ajusta el tamaño interno del canvas
+  // según las dimensiones lógicas del mapa.
   //
-  // El controlador de la partida ya no necesita
-  // saber que actualmente utilizamos un canvas.
+  // El tamaño interno conserva el TILE_SIZE real.
+  // El tamaño visual se calcula por separado para
+  // que las casillas nunca se deformen.
   configurarDimensiones({ columnas, filas } = {}) {
     if (
       !Number.isInteger(columnas) ||
@@ -87,10 +104,103 @@ export class RenderizadorCanvas2D {
 
     this.canvas.height = filas * this.tileSize;
 
-    // Cambiar width o height reinicia el estado
-    // del contexto, por lo que volvemos
-    // a desactivar el suavizado.
+    // Cambiar width o height reinicia
+    // las propiedades del contexto.
     this.context.imageSmoothingEnabled = false;
+
+    this.ajustarTamanoVisual();
+  }
+
+  // Calcula el mayor tamaño posible para el canvas
+  // dentro de su panel conservando la proporción.
+  //
+  // Como ancho y alto utilizan la misma escala,
+  // todas las casillas continúan siendo cuadradas.
+  ajustarTamanoVisual() {
+    const espacioDisponible = this.obtenerEspacioDisponible();
+
+    if (
+      espacioDisponible.ancho <= 0 ||
+      espacioDisponible.alto <= 0 ||
+      this.canvas.width <= 0 ||
+      this.canvas.height <= 0
+    ) {
+      // El panel puede estar oculto durante
+      // la creación inicial de la partida.
+      //
+      // ResizeObserver volverá a ejecutar este
+      // método cuando la pantalla sea visible.
+      return;
+    }
+
+    const escalaHorizontal = espacioDisponible.ancho / this.canvas.width;
+
+    const escalaVertical = espacioDisponible.alto / this.canvas.height;
+
+    // Utilizamos una sola escala para ambos ejes.
+    //
+    // Esto evita que una casilla de 32 × 32
+    // termine representándose, por ejemplo,
+    // como una casilla de 48 × 28.
+    const escalaVisual = Math.min(escalaHorizontal, escalaVertical);
+
+    const anchoVisual = this.canvas.width * escalaVisual;
+
+    const altoVisual = this.canvas.height * escalaVisual;
+
+    this.canvas.style.width = `${anchoVisual}px`;
+
+    this.canvas.style.height = `${altoVisual}px`;
+  }
+
+  // Obtiene el espacio interior realmente disponible
+  // dentro del panel del mapa.
+  //
+  // Se descuentan:
+  //
+  // - Padding del panel.
+  // - Bordes del canvas.
+  //
+  // De esta manera el canvas completo queda visible
+  // y no se corta en los extremos.
+  obtenerEspacioDisponible() {
+    const estiloContenedor = window.getComputedStyle(this.contenedor);
+
+    const estiloCanvas = window.getComputedStyle(this.canvas);
+
+    const paddingHorizontal =
+      convertirPixeles(estiloContenedor.paddingLeft) +
+      convertirPixeles(estiloContenedor.paddingRight);
+
+    const paddingVertical =
+      convertirPixeles(estiloContenedor.paddingTop) +
+      convertirPixeles(estiloContenedor.paddingBottom);
+
+    const bordeHorizontal =
+      convertirPixeles(estiloCanvas.borderLeftWidth) +
+      convertirPixeles(estiloCanvas.borderRightWidth);
+
+    const bordeVertical =
+      convertirPixeles(estiloCanvas.borderTopWidth) +
+      convertirPixeles(estiloCanvas.borderBottomWidth);
+
+    return {
+      ancho: Math.max(
+        0,
+        this.contenedor.clientWidth - paddingHorizontal - bordeHorizontal,
+      ),
+
+      alto: Math.max(
+        0,
+        this.contenedor.clientHeight - paddingVertical - bordeVertical,
+      ),
+    };
+  }
+
+  // Permite detener el observador cuando en el futuro
+  // exista destrucción o reemplazo de una partida.
+  destruir() {
+    this.observadorDimensiones?.disconnect();
   }
 
   // Dibuja una escena completa.
@@ -585,4 +695,14 @@ function validarEscena(escena) {
   if (!Array.isArray(escena.entidades)) {
     throw new Error("La escena necesita una lista de entidades.");
   }
+}
+
+// Convierte un valor CSS expresado en píxeles
+// a un número utilizable en los cálculos.
+//
+// Los valores vacíos o inválidos se consideran 0.
+function convertirPixeles(valor) {
+  const numero = Number.parseFloat(valor);
+
+  return Number.isFinite(numero) ? numero : 0;
 }

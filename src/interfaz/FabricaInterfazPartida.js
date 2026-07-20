@@ -34,10 +34,14 @@ export function crearInterfazPartida({ tileSize } = {}) {
     throw new Error("No se encontró el panel que contiene el canvas del mapa.");
   }
 
-  // Backend encargado exclusivamente
-  // de representar la escena del mapa.
+  // El backend gráfico recibe también el panel
+  // disponible para calcular su escala visual.
+  //
+  // Esta responsabilidad queda aislada dentro
+  // de la implementación de Canvas 2D.
   const renderizadorMapa = new RenderizadorCanvas2D({
     canvas,
+    contenedor: panelMapa,
     tileSize,
   });
 

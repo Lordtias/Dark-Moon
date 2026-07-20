@@ -494,25 +494,44 @@ main {
   gap: 12px;
 }
 
-/* El mapa recibe la mayor parte del espacio disponible. */
+/* El panel centra el mapa dentro del espacio disponible.
+ *
+ * El tamaño concreto del canvas es calculado por
+ * RenderizadorCanvas2D para conservar su proporción.
+ */
 .panel-mapa {
   min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
 }
 
-/* El canvas puede crecer visualmente sin cambiar la lógica del mapa. */
+/* No forzamos el ancho ni la altura desde CSS.
+ *
+ * El backend gráfico aplica ambos valores utilizando
+ * exactamente la misma escala, manteniendo cuadradas
+ * todas las casillas.
+ */
 .panel-mapa canvas {
   display: block;
+  flex: 0 0 auto;
 
-  width: 100%;
+  width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 100%;
+
+  max-width: none;
+  max-height: none;
 
   margin: 0;
+
+  /* El tamaño calculado corresponde al contenido
+     * del canvas; el borde se mide por separado.
+     */
+  box-sizing: content-box;
+
   border: 1px solid #7586ff;
   background-color: #171b2e;
-
   image-rendering: pixelated;
 }
 

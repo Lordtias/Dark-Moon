@@ -3,9 +3,9 @@ import { ContenedorObjetos } from "./ContenedorObjetos.js";
 import {
   PATRONES_ATAQUE,
   normalizarPatronAtaque,
-} from "../juego/PatronesAtaque.js";
+} from "../juego/combate/PatronesAtaque.js";
 
-import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/SistemaConsumibles.js";
+import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/inventario/SistemaConsumibles.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 

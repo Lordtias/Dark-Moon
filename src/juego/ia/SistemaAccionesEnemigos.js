@@ -1,11 +1,11 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 
-import { buscarSiguientePaso } from "../BuscadorCamino.js";
+import { buscarSiguientePaso } from "./BuscadorCamino.js";
 
 import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
-} from "../SistemaAlcanceAtaque.js";
+} from "../combate/SistemaAlcanceAtaque.js";
 
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
@@ -16,7 +16,7 @@ import {
 
 // Conservamos esta exportación porque la distancia
 // también puede ser utilizada por otros sistemas.
-export { calcularDistanciaCuadricula } from "../SistemaAlcanceAtaque.js";
+export { calcularDistanciaCuadricula } from "../combate/SistemaAlcanceAtaque.js";
 
 // Crea una clave utilizable dentro
 // de una colección Set.

@@ -1,11 +1,11 @@
-import { Destructible } from "../entidad/destructible/Destructible.js";
+import { Destructible } from "../../entidad/destructible/Destructible.js";
 
-import { CONFIGURACION_COMBATE } from "../config/ConfiguracionCombate.js";
+import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
 import {
   verificarRequisitosAtaque,
   consumirMunicionAtaque,
-} from "../entidad/destructible/combatiente/ConfiguracionAtaque.js";
+} from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
 function limitar(valor, minimo, maximo) {
   return Math.max(minimo, Math.min(maximo, valor));

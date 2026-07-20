@@ -7,7 +7,7 @@ import { procesarAccionEnemigo } from "./ia/SistemaAccionesEnemigos.js";
 import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
-} from "./SistemaAlcanceAtaque.js";
+} from "./combate/SistemaAlcanceAtaque.js";
 
 import {
   COSTOS_TEMPORALES_BASE,

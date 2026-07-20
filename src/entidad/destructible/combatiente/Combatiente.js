@@ -12,13 +12,13 @@ import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
   resolverAtaque,
   resolverAtaqueSinObjetivo,
-} from "../../../juego/SistemaCombate.js";
+} from "../../../juego/combate/SistemaCombate.js";
 
 import {
   PATRONES_ATAQUE,
   normalizarPatronAtaque,
   obtenerPatronAtaquePredeterminado,
-} from "../../../juego/PatronesAtaque.js";
+} from "../../../juego/combate/PatronesAtaque.js";
 
 import {
   FACTORES_TEMPORALES_PREDETERMINADOS,

@@ -8,7 +8,7 @@ import {
 import {
   interactuarConObjetoInventario,
   desequiparObjetoAInventario,
-} from "../../../juego/SistemaInventarioEquipamiento.js";
+} from "../../../juego/inventario/SistemaInventarioEquipamiento.js";
 
 const ATRIBUTOS_VALIDOS = [
   "fuerza",

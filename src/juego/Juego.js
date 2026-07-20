@@ -23,6 +23,11 @@ import {
   obtenerInteraccionPrioritaria as resolverInteraccionPrioritaria,
 } from "./interacciones/SistemaInteracciones.js";
 
+import {
+  crearOpcionesInteraccion,
+  seleccionarOpcionEnDireccion,
+} from "./interacciones/SelectorInteracciones.js";
+
 import { TIPOS_INTERACCION } from "./interacciones/TiposInteraccion.js";
 
 import {
@@ -81,20 +86,12 @@ export class Juego {
 
     this.objetivos = objetivos;
 
-    // Las entidades interactuables no se mezclan
-    // con objetivos de combate.
-    //
     // Botines, cofres, NPC y objetos de misión
-    // pueden vivir dentro de esta colección.
+    // permanecen separados de los objetivos.
     this.interactuables = interactuables;
 
-    // Los drops utilizan una secuencia propia.
-    //
-    // Se deriva de la semilla del mapa para que:
-    //
-    // - Sean reproducibles.
-    // - No alteren la generación del terreno.
-    // - No alteren la generación de enemigos.
+    // Los drops utilizan una secuencia propia
+    // derivada de la semilla del mapa.
     const semillaMapa =
       this.mapaSeleccionado.generacionActual?.semilla ?? "partida";
 
@@ -108,32 +105,35 @@ export class Juego {
       y: player.y,
     };
 
+    // El selector de interacción posee
+    // un estado independiente del combate.
+    this.modoInteraccionActivo = false;
+
+    this.selectorInteraccion = {
+      entidad: null,
+
+      x: player.x,
+
+      y: player.y,
+    };
+
     this.ultimaDireccionJugador = {
       x: 0,
 
       y: -1,
     };
 
-    // Agenda temporal de la partida.
     this.sistemaTiempo = new SistemaTiempo();
 
-    // La regeneración se procesa cada
-    // 100 unidades temporales.
     this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
 
-    // El jugador se registra primero para
-    // conservar un desempate determinista.
     this.sistemaTiempo.registrarActor(this.player);
 
     this.sincronizarEnemigosConAgenda();
 
-    // La partida comienza con el jugador
-    // disponible en el instante cero.
     this.avanzarHastaSiguienteActorConPulsos();
   }
 
-  // Permite consultar el tiempo real
-  // alcanzado por el mundo.
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
   }
@@ -151,8 +151,6 @@ export class Juego {
     );
   }
 
-  // Resuelve todas las capacidades de interacción
-  // disponibles alrededor del jugador.
   obtenerInteraccionesDisponibles() {
     return resolverInteraccionesDisponibles({
       actor: this.player,
@@ -177,6 +175,248 @@ export class Juego {
     });
   }
 
+  // Agrupa las interacciones por entidad.
+  //
+  // Una entidad futura que ofrezca Hablar
+  // y Comerciar aparece una sola vez.
+  obtenerOpcionesInteraccion() {
+    return crearOpcionesInteraccion(this.obtenerInteraccionesDisponibles());
+  }
+
+  obtenerOpcionInteraccionSeleccionada() {
+    if (!this.selectorInteraccion.entidad) {
+      return null;
+    }
+
+    return (
+      this.obtenerOpcionesInteraccion().find(
+        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
+      ) ?? null
+    );
+  }
+
+  entrarModoInteraccion() {
+    const bloqueo = this.obtenerBloqueoInteraccion();
+
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    if (this.modoInteraccionActivo) {
+      return {
+        exito: false,
+
+        mensaje: "Ya estás seleccionando una interacción.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    const opciones = this.obtenerOpcionesInteraccion();
+
+    if (opciones.length === 0) {
+      return {
+        exito: false,
+
+        mensaje: "No hay nada para revisar cerca.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (opciones.length === 1) {
+      return {
+        exito: false,
+
+        mensaje: "Solo hay una entidad interactuable disponible.",
+
+        interaccion: opciones[0].interaccionPrioritaria,
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    this.modoInteraccionActivo = true;
+
+    this.establecerSelectorInteraccion(opciones[0]);
+
+    return {
+      exito: true,
+
+      mensaje:
+        `Seleccionaste ${opciones[0].entidad.nombre}. ` +
+        "Mové el selector y confirmá con R.",
+
+      turnoConsumido: false,
+
+      redibujar: true,
+    };
+  }
+
+  moverSelectorInteraccion(movimientoX, movimientoY) {
+    if (!this.modoInteraccionActivo) {
+      return {
+        mensaje: null,
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    const opciones = this.obtenerOpcionesInteraccion();
+
+    if (opciones.length === 0) {
+      this.limpiarSelectorInteraccion();
+
+      return {
+        mensaje: "Ya no hay interacciones disponibles.",
+
+        turnoConsumido: false,
+
+        redibujar: true,
+      };
+    }
+
+    const opcionActual =
+      opciones.find(
+        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
+      ) ?? opciones[0];
+
+    const siguienteOpcion = seleccionarOpcionEnDireccion({
+      opciones,
+      opcionActual,
+      movimientoX,
+      movimientoY,
+    });
+
+    if (siguienteOpcion === opcionActual) {
+      return {
+        mensaje: "No hay otro interactuable en esa dirección.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    this.establecerSelectorInteraccion(siguienteOpcion);
+
+    return {
+      mensaje:
+        `Seleccionaste ${siguienteOpcion.entidad.nombre}. ` + "Confirmá con R.",
+
+      turnoConsumido: false,
+
+      redibujar: true,
+    };
+  }
+
+  confirmarInteraccionSeleccionada() {
+    if (!this.modoInteraccionActivo) {
+      return {
+        exito: false,
+
+        mensaje: null,
+
+        interaccion: null,
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    const opciones = this.obtenerOpcionesInteraccion();
+
+    const opcionSeleccionada =
+      opciones.find(
+        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
+      ) ??
+      opciones[0] ??
+      null;
+
+    this.limpiarSelectorInteraccion();
+
+    if (!opcionSeleccionada) {
+      return {
+        exito: false,
+
+        mensaje: "La interacción seleccionada ya no está disponible.",
+
+        interaccion: null,
+
+        turnoConsumido: false,
+
+        redibujar: true,
+      };
+    }
+
+    return {
+      exito: true,
+
+      mensaje: null,
+
+      interaccion: opcionSeleccionada.interaccionPrioritaria,
+
+      entidad: opcionSeleccionada.entidad,
+
+      turnoConsumido: false,
+
+      redibujar: true,
+    };
+  }
+
+  cancelarModoInteraccion() {
+    if (!this.modoInteraccionActivo) {
+      return {
+        mensaje: null,
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    this.limpiarSelectorInteraccion();
+
+    return {
+      mensaje: "Cancelaste la selección de interacción.",
+
+      turnoConsumido: false,
+
+      redibujar: true,
+    };
+  }
+
+  establecerSelectorInteraccion(opcion) {
+    this.selectorInteraccion = {
+      entidad: opcion.entidad,
+
+      x: opcion.x,
+
+      y: opcion.y,
+    };
+  }
+
+  limpiarSelectorInteraccion() {
+    this.modoInteraccionActivo = false;
+
+    this.selectorInteraccion = {
+      entidad: null,
+
+      x: this.player.x,
+
+      y: this.player.y,
+    };
+  }
+
   estaDentroMapa(x, y) {
     return y >= 0 && y < this.map.length && x >= 0 && x < this.map[y].length;
   }
@@ -185,10 +425,6 @@ export class Juego {
     return this.estaDentroMapa(x, y) && this.map[y][x] !== "#";
   }
 
-  // Comprueba únicamente la distancia numérica.
-  //
-  // El selector puede recorrer el rango completo,
-  // aunque una trayectoria concreta esté bloqueada.
   estaCasillaDentroAlcance(x, y) {
     const distancia = calcularDistanciaCuadricula(
       {
@@ -196,6 +432,7 @@ export class Juego {
 
         y: this.player.y,
       },
+
       {
         x,
         y,
@@ -205,8 +442,6 @@ export class Juego {
     return distancia >= 1 && distancia <= this.player.alcanceAtaque;
   }
 
-  // Evalúa distancia, patrón,
-  // dirección y línea de visión.
   evaluarCasillaAtaque(x, y) {
     return evaluarAtaqueCasilla({
       atacante: this.player,
@@ -246,12 +481,6 @@ export class Juego {
     return horizontalBloqueada && verticalBloqueada;
   }
 
-  // Busca automáticamente el enemigo atacable
-  // con mayor prioridad.
-  //
-  // 1. Menor distancia.
-  // 2. Menor Vida actual.
-  // 3. Primer enemigo encontrado.
   obtenerEnemigoPrioritarioCombate() {
     let enemigoSeleccionado = null;
 
@@ -272,6 +501,7 @@ export class Juego {
 
           y: this.player.y,
         },
+
         {
           x: objetivo.x,
 
@@ -291,57 +521,52 @@ export class Juego {
 
         distanciaSeleccionada = distancia;
       }
-
-      // Si también empatan en Vida,
-      // se conserva el primero encontrado.
     }
 
     return enemigoSeleccionado;
   }
 
-  // Mantiene el comportamiento anterior
-  // cuando no hay enemigos atacables.
   obtenerCasillaInicialCombate() {
     const direcciones = [
       this.ultimaDireccionJugador,
+
       {
         x: 0,
-
         y: -1,
       },
+
       {
         x: 1,
-
         y: 0,
       },
+
       {
         x: 0,
-
         y: 1,
       },
+
       {
         x: -1,
-
         y: 0,
       },
+
       {
         x: 1,
-
         y: -1,
       },
+
       {
         x: 1,
-
         y: 1,
       },
+
       {
         x: -1,
-
         y: 1,
       },
+
       {
         x: -1,
-
         y: -1,
       },
     ];
@@ -362,8 +587,6 @@ export class Juego {
     return null;
   }
 
-  // Al entrar en modo combate se prioriza
-  // automáticamente un enemigo atacable.
   obtenerSeleccionInicialCombate() {
     const enemigoPrioritario = this.obtenerEnemigoPrioritarioCombate();
 
@@ -382,6 +605,16 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (this.modoInteraccionActivo) {
+      return {
+        mensaje: "Confirmá la interacción con R o cancelá con Escape.",
 
         turnoConsumido: false,
 
@@ -532,8 +765,6 @@ export class Juego {
 
   atacarObjetivo(objetivo) {
     if (objetivo instanceof Enemigo) {
-      // Atacar provoca a enemigos reactivos,
-      // incluso cuando el ataque falla.
       objetivo.activarAgresividad();
     }
 
@@ -543,14 +774,10 @@ export class Juego {
 
     if (objetivo.estaDestruido) {
       if (objetivo instanceof Enemigo) {
-        // Un actor derrotado se elimina
-        // inmediatamente de la agenda.
         this.sistemaTiempo.eliminarActor(objetivo);
 
         mensajes.push(`${objetivo.nombre} fue derrotado.`);
 
-        // La tabla se resuelve una sola vez,
-        // en el momento exacto de la derrota.
         const resultadoBotin = generarBotinEnSuelo({
           fuente: objetivo,
 
@@ -626,8 +853,6 @@ export class Juego {
       };
     }
 
-    // El coste se captura antes de consumir
-    // munición o modificar el equipamiento.
     const costoAtaque = this.player.costoAtaqueActual;
 
     const objetivo = this.obtenerObjetivoEn(x, y);
@@ -653,14 +878,12 @@ export class Juego {
     });
   }
 
-  // Comprueba las restricciones comunes
-  // de las acciones realizadas desde paneles.
   obtenerBloqueoAccionPanelObjetos() {
     if (!this.player.estaVivo) {
       return {
         exito: false,
 
-        mensaje: "No podés modificar el equipamiento " + "estando derrotado.",
+        mensaje: "No podés modificar el equipamiento estando derrotado.",
 
         turnoConsumido: false,
 
@@ -672,8 +895,19 @@ export class Juego {
       return {
         exito: false,
 
-        mensaje:
-          "Cancelá el modo combate antes de " + "cambiar el equipamiento.",
+        mensaje: "Cancelá el modo combate antes de cambiar el equipamiento.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
+    if (this.modoInteraccionActivo) {
+      return {
+        exito: false,
+
+        mensaje: "Cancelá la selección de interacción antes de usar objetos.",
 
         turnoConsumido: false,
 
@@ -684,9 +918,6 @@ export class Juego {
     return null;
   }
 
-  // Las interacciones también se bloquean
-  // cuando el jugador fue derrotado o está
-  // seleccionando un ataque.
   obtenerBloqueoInteraccion() {
     if (!this.player.estaVivo) {
       return {
@@ -715,10 +946,6 @@ export class Juego {
     return null;
   }
 
-  // Selecciona un objeto del inventario.
-  //
-  // Equipamiento y munición utilizan ACCION.
-  // Pociones y futuros pergaminos utilizan CONSUMO.
   interactuarConObjetoInventario(indiceInventario) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
 
@@ -726,9 +953,6 @@ export class Juego {
       return bloqueo;
     }
 
-    // La referencia se obtiene antes de ejecutar
-    // la acción porque un consumible puede
-    // desaparecer de la pila.
     const objetoSeleccionado =
       this.player.inventario.obtenerObjetoEn(indiceInventario);
 
@@ -752,8 +976,6 @@ export class Juego {
     });
   }
 
-  // Devuelve un objeto equipado
-  // al inventario.
   desequiparObjetoAInventario(nombreRanura) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
 
@@ -772,14 +994,6 @@ export class Juego {
     });
   }
 
-  // Transfiere una posición concreta desde
-  // un contenedor interactuable al inventario.
-  //
-  // Una transferencia exitosa consume una única
-  // acción genérica, por lo que utiliza:
-  //
-  // - factorTiempo.
-  // - factorAccion.
   recogerObjetoInteractuable(interactuable, indiceOrigen) {
     const validacion = this.validarInteraccionContenedor(interactuable);
 
@@ -853,8 +1067,6 @@ export class Juego {
     });
   }
 
-  // Transfiere todo lo posible mediante
-  // una sola acción temporal.
   recogerTodoInteractuable(interactuable) {
     const validacion = this.validarInteraccionContenedor(interactuable);
 
@@ -1000,13 +1212,13 @@ export class Juego {
 
     this.interactuables.splice(indice, 1);
 
+    if (this.selectorInteraccion.entidad === interactuable) {
+      this.limpiarSelectorInteraccion();
+    }
+
     return true;
   }
 
-  // Convierte una operación de inventario
-  // en una acción temporal.
-  //
-  // Los resultados fallidos no consumen tiempo.
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     if (
       !resultado ||
@@ -1014,7 +1226,7 @@ export class Juego {
       typeof resultado.exito !== "boolean"
     ) {
       throw new Error(
-        "La acción de inventario debe devolver " + "un resultado válido.",
+        "La acción de inventario debe devolver un resultado válido.",
       );
     }
 
@@ -1043,8 +1255,6 @@ export class Juego {
     };
   }
 
-  // Registra enemigos nuevos y retira
-  // automáticamente los derrotados.
   sincronizarEnemigosConAgenda() {
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Enemigo)) {
@@ -1063,8 +1273,6 @@ export class Juego {
     }
   }
 
-  // Aplica un pulso de regeneración
-  // a todos los combatientes vivos.
   aplicarPulsoRegeneracion() {
     const combatientes = [
       this.player,
@@ -1083,8 +1291,6 @@ export class Juego {
         continue;
       }
 
-      // La regeneración depende del reloj mundial,
-      // no de una acción o turno particular.
       const resultado = combatiente.procesarPulsoRegeneracion();
 
       if (combatiente === this.player) {
@@ -1095,8 +1301,6 @@ export class Juego {
     return resultadoJugador;
   }
 
-  // Procesa todos los pulsos periódicos
-  // atravesados hasta un instante concreto.
   procesarPulsosTemporalesHasta(tiempoDestino) {
     const recuperacionTotal = {
       vidaRecuperada: 0,
@@ -1119,8 +1323,6 @@ export class Juego {
     return recuperacionTotal;
   }
 
-  // Avanza hasta el actor siguiente
-  // procesando primero los pulsos intermedios.
   avanzarHastaSiguienteActorConPulsos() {
     const tiempoSiguienteActor =
       this.sistemaTiempo.obtenerTiempoSiguienteActor();
@@ -1148,8 +1350,6 @@ export class Juego {
     };
   }
 
-  // Ejecuta acciones enemigas hasta que
-  // el jugador vuelva a ser el siguiente actor.
   procesarHastaTurnoJugador() {
     const mensajes = [];
 
@@ -1182,8 +1382,6 @@ export class Juego {
 
       const enemigo = avance.actor;
 
-      // Cada enemigo resuelve exactamente
-      // una acción cuando llega su instante.
       const resultadoEnemigo = procesarAccionEnemigo({
         enemigo,
 
@@ -1240,17 +1438,13 @@ export class Juego {
     return "Recuperaste " + `${recursosRecuperados.join(" y ")}.`;
   }
 
-  // Finaliza una acción real del jugador
-  // y registra su coste en la agenda.
   finalizarAccionJugador({ mensaje, tipoAccion, costoBase }) {
     this.sincronizarEnemigosConAgenda();
 
     const actorActual = this.sistemaTiempo.obtenerSiguienteActor();
 
     if (actorActual !== this.player) {
-      throw new Error(
-        "El jugador intentó actuar fuera " + "de su turno temporal.",
-      );
+      throw new Error("El jugador intentó actuar fuera de su turno temporal.");
     }
 
     this.sistemaTiempo.registrarAccion({
@@ -1292,6 +1486,16 @@ export class Juego {
       };
     }
 
+    if (this.modoInteraccionActivo) {
+      return {
+        mensaje: "Confirmá la interacción con R o cancelá con Escape.",
+
+        turnoConsumido: false,
+
+        redibujar: false,
+      };
+    }
+
     if (this.modoCombateActivo) {
       return {
         mensaje: "Confirmá con F o cancelá con Escape.",
@@ -1320,6 +1524,12 @@ export class Juego {
 
         redibujar: false,
       };
+    }
+
+    // Respaldo adicional por si el movimiento
+    // llega desde otro controlador.
+    if (this.modoInteraccionActivo) {
+      return this.moverSelectorInteraccion(movimientoX, movimientoY);
     }
 
     if (this.modoCombateActivo) {
@@ -1372,7 +1582,6 @@ export class Juego {
       };
     }
 
-    // Los interactuables no bloquean esta operación.
     this.player.x = nuevaX;
 
     this.player.y = nuevaY;
@@ -1383,11 +1592,17 @@ export class Juego {
       y: movimientoY,
     };
 
-    const interaccion = this.obtenerInteraccionPrioritaria();
+    const opcionesInteraccion = this.obtenerOpcionesInteraccion();
 
-    const mensajeInteraccion = interaccion
-      ? `\n${interaccion.texto}: presioná R.`
-      : "";
+    let mensajeInteraccion = "";
+
+    if (opcionesInteraccion.length === 1) {
+      mensajeInteraccion =
+        `\n${opcionesInteraccion[0].interaccionPrioritaria.texto}: ` +
+        "presioná R.";
+    } else if (opcionesInteraccion.length > 1) {
+      mensajeInteraccion = "\nHay varias entidades para revisar: presioná R.";
+    }
 
     return this.finalizarAccionJugador({
       mensaje: "Te moviste por la mazmorra." + mensajeInteraccion,

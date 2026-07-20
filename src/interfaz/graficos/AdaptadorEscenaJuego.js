@@ -5,43 +5,56 @@ import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
 // Convierte el estado completo de Juego
 // en una escena gráfica sencilla.
 //
-// La escena contiene únicamente los datos
-// necesarios para dibujar:
+// La escena contiene únicamente:
 //
 // - Mapa.
 // - Apariencia del bioma.
-// - Casillas atacables.
-// - Selector de combate.
+// - Rango y selector de combate.
+// - Selector de interacción.
 // - Entidades visibles.
 //
-// De esta forma, el renderizador gráfico
-// no necesita conocer las clases internas
-// del dominio del juego.
+// El selector de interacción reutiliza el dibujo
+// de esquinas que ya posee Canvas.
+//
+// Esto no reutiliza el estado del combate:
+// solamente aprovecha el mismo contrato visual.
 export function crearEscenaJuego(juego) {
   validarJuego(juego);
 
   const combateActivo = juego.modoCombateActivo === true;
+
+  const interaccionActiva = juego.modoInteraccionActivo === true;
+
+  // RenderizadorCanvas2D actualmente recibe
+  // el selector dentro del bloque "combate".
+  //
+  // Mientras el modo de interacción está activo,
+  // entregamos el selector en ese mismo espacio,
+  // pero sin casillas atacables.
+  const selectorMapaActivo = combateActivo || interaccionActiva;
 
   return {
     mapa: {
       casillas: juego.map,
 
       // Copiamos la apariencia para evitar
-      // entregar al renderizador una referencia
-      // directa a la configuración del mapa.
+      // entregar una referencia directa
+      // a la configuración del mapa.
       apariencia: {
         ...juego.mapaSeleccionado?.apariencia,
       },
     },
 
     combate: {
-      activo: combateActivo,
+      activo: selectorMapaActivo,
 
-      // Las casillas atacables ya fueron resueltas
-      // por Juego utilizando alcance, patrón y LOS.
       casillasAtacables: combateActivo ? obtenerCasillasAtacables(juego) : [],
 
-      selector: combateActivo ? crearSelectorVisual(juego) : null,
+      selector: combateActivo
+        ? crearSelectorCombateVisual(juego)
+        : interaccionActiva
+          ? crearSelectorInteraccionVisual(juego)
+          : null,
     },
 
     // Los interactuables se dibujan primero.
@@ -49,7 +62,11 @@ export function crearEscenaJuego(juego) {
     // visible cuando comparte una casilla con botín.
     entidades: [
       ...juego.interactuables.map((interactuable) =>
-        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE),
+        crearEntidadVisual(
+          interactuable,
+
+          TIPOS_ENTIDAD_VISUAL.INTERACTUABLE,
+        ),
       ),
 
       ...juego.objetivos
@@ -64,7 +81,11 @@ export function crearEscenaJuego(juego) {
           ),
         ),
 
-      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR),
+      crearEntidadVisual(
+        juego.player,
+
+        TIPOS_ENTIDAD_VISUAL.JUGADOR,
+      ),
     ],
   };
 }
@@ -95,9 +116,6 @@ function validarJuego(juego) {
 
 // Obtiene todas las casillas que ya cumplen
 // las reglas de ataque del juego.
-//
-// El renderizador no vuelve a calcular alcance,
-// patrón ni línea de visión.
 function obtenerCasillasAtacables(juego) {
   const casillas = [];
 
@@ -119,7 +137,7 @@ function obtenerCasillasAtacables(juego) {
 
 // Convierte el selector interno del combate
 // en una representación gráfica independiente.
-function crearSelectorVisual(juego) {
+function crearSelectorCombateVisual(juego) {
   const selector = juego.selectorCombate;
 
   if (!selector) {
@@ -131,9 +149,28 @@ function crearSelectorVisual(juego) {
 
     y: selector.y,
 
-    // Juego continúa siendo responsable
-    // de decidir si la casilla es válida.
     esValido: juego.esCasillaAtacable(selector.x, selector.y),
+  };
+}
+
+// Convierte el selector de interacción
+// al mismo formato visual utilizado por Canvas.
+//
+// Las opciones del selector siempre representan
+// entidades interactuables válidas.
+function crearSelectorInteraccionVisual(juego) {
+  const selector = juego.selectorInteraccion;
+
+  if (!selector || !selector.entidad) {
+    return null;
+  }
+
+  return {
+    x: selector.x,
+
+    y: selector.y,
+
+    esValido: true,
   };
 }
 

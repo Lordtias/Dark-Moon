@@ -7,14 +7,19 @@ const TECLA_INTERACCION = "KeyR";
 // Conecta las capacidades de interacción del dominio
 // con las ventanas de la interfaz.
 //
-// Este controlador no determina qué entidades
-// pueden interactuarse: esa decisión pertenece a Juego
-// y SistemaInteracciones.
+// Este controlador administra:
+//
+// - La tecla R.
+// - La apertura de contenedores.
+// - La confirmación del selector de interacción.
+// - La actualización de la ventana de botín.
 export class ControladorInteracciones {
   constructor({ juego, renderizador, modalContenedorObjetos } = {}) {
     if (
       !juego ||
-      typeof juego.obtenerInteraccionPrioritaria !== "function" ||
+      typeof juego.obtenerOpcionesInteraccion !== "function" ||
+      typeof juego.entrarModoInteraccion !== "function" ||
+      typeof juego.confirmarInteraccionSeleccionada !== "function" ||
       typeof juego.recogerObjetoInteractuable !== "function" ||
       typeof juego.recogerTodoInteractuable !== "function"
     ) {
@@ -92,6 +97,20 @@ export class ControladorInteracciones {
 
     event.preventDefault();
 
+    // Cuando el selector ya está activo,
+    // R confirma la entidad seleccionada.
+    if (this.juego.modoInteraccionActivo) {
+      const resultado = this.juego.confirmarInteraccionSeleccionada();
+
+      this.procesarResultado(resultado);
+
+      if (resultado?.interaccion) {
+        this.ejecutarInteraccion(resultado.interaccion);
+      }
+
+      return;
+    }
+
     const bloqueo = this.juego.obtenerBloqueoInteraccion();
 
     if (bloqueo) {
@@ -100,15 +119,27 @@ export class ControladorInteracciones {
       return;
     }
 
-    const interaccion = this.juego.obtenerInteraccionPrioritaria();
+    const opciones = this.juego.obtenerOpcionesInteraccion();
 
-    if (!interaccion) {
+    if (opciones.length === 0) {
       this.renderizador.mostrarMensaje("No hay nada para revisar cerca.");
 
       return;
     }
 
-    this.ejecutarInteraccion(interaccion);
+    // Con una sola entidad no agregamos
+    // una confirmación innecesaria.
+    if (opciones.length === 1) {
+      this.ejecutarInteraccion(opciones[0].interaccionPrioritaria);
+
+      return;
+    }
+
+    // Con varias entidades activamos
+    // el selector visual.
+    const resultado = this.juego.entrarModoInteraccion();
+
+    this.procesarResultado(resultado);
   }
 
   ejecutarInteraccion(interaccion) {

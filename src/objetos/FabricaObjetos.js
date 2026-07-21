@@ -2,6 +2,8 @@ import { Objeto } from "./Objeto.js";
 
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
+import { RAREZAS_OBJETO } from "../juego/objetos/RarezasObjeto.js";
+
 // Crea una instancia independiente desde
 // el catálogo combinado de objetos.
 //
@@ -14,6 +16,23 @@ export function crearObjeto({
   configuracionObjetos,
   idObjeto,
   cantidad = 1,
+
+  // Toda creación tradicional continúa
+  // generando objetos comunes de nivel 1.
+  rareza = RAREZAS_OBJETO.COMUN,
+
+  nivelObjeto = 1,
+  prefijos = [],
+  sufijos = [],
+
+  // El futuro generador de afijos compondrá
+  // las propiedades finales y las entregará aquí.
+  //
+  // Cuando no se proporciona este valor,
+  // se utilizan las propiedades originales
+  // de la plantilla.
+  propiedadesFinales = null,
+
   rutaCreacion = [],
 } = {}) {
   if (
@@ -26,6 +45,16 @@ export function crearObjeto({
 
   if (typeof idObjeto !== "string" || idObjeto.trim() === "") {
     throw new Error("Se necesita el identificador del objeto.");
+  }
+
+  if (
+    propiedadesFinales !== null &&
+    (typeof propiedadesFinales !== "object" ||
+      Array.isArray(propiedadesFinales))
+  ) {
+    throw new Error(
+      "Las propiedades finales del objeto deben formar un objeto válido.",
+    );
   }
 
   const idNormalizado = idObjeto.trim().toLowerCase();
@@ -53,6 +82,8 @@ export function crearObjeto({
     rutaCreacion: nuevaRuta,
   });
 
+  const propiedadesBase = plantilla.propiedades ?? {};
+
   return new Objeto({
     id: idNormalizado,
 
@@ -74,9 +105,16 @@ export function crearObjeto({
 
     ranurasCompatibles: [...(plantilla.ranurasCompatibles ?? [])],
 
-    propiedades: {
-      ...(plantilla.propiedades ?? {}),
-    },
+    // Objeto realiza copias profundas independientes
+    // de las propiedades base y finales.
+    propiedadesBase,
+
+    propiedades: propiedadesFinales ?? propiedadesBase,
+
+    rareza,
+    nivelObjeto,
+    prefijos,
+    sufijos,
 
     contenedorObjetos,
   });
@@ -84,6 +122,10 @@ export function crearObjeto({
 
 // Crea el contenido interno de un objeto,
 // como las flechas almacenadas en un quiver.
+//
+// Los objetos internos continúan siendo comunes
+// salvo que su propia definición especifique
+// explícitamente otros metadatos.
 function crearContenedorInterno({
   configuracionObjetos,
   configuracionContenedor,
@@ -126,6 +168,17 @@ function crearContenedorInterno({
 //     "id": "flecha_madera",
 //     "cantidad": 20
 // }
+//
+// También queda preparado:
+//
+// {
+//     "id": "daga_hierro",
+//     "rareza": "magico",
+//     "nivelObjeto": 2,
+//     "prefijos": [...],
+//     "sufijos": [...],
+//     "propiedadesFinales": {...}
+// }
 export function crearObjetosDesdeDefiniciones({
   configuracionObjetos,
   definiciones = [],
@@ -159,6 +212,16 @@ export function crearObjetosDesdeDefiniciones({
         idObjeto: definicion.id,
 
         cantidad: definicion.cantidad ?? 1,
+
+        rareza: definicion.rareza ?? RAREZAS_OBJETO.COMUN,
+
+        nivelObjeto: definicion.nivelObjeto ?? 1,
+
+        prefijos: definicion.prefijos ?? [],
+
+        sufijos: definicion.sufijos ?? [],
+
+        propiedadesFinales: definicion.propiedadesFinales ?? null,
 
         rutaCreacion,
       });

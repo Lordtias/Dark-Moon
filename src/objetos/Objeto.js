@@ -7,10 +7,25 @@ import {
 
 import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/inventario/SistemaConsumibles.js";
 
+import {
+  RAREZAS_OBJETO,
+  TIPOS_AFIJO_OBJETO,
+  normalizarIdRarezaObjeto,
+  normalizarTipoAfijoObjeto,
+} from "../juego/objetos/RarezasObjeto.js";
+
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 // Representa una instancia real
 // de cualquier objeto del juego.
+//
+// Una instancia conserva:
+//
+// - La plantilla base que le dio origen.
+// - Su rareza.
+// - Su nivel de objeto.
+// - Los prefijos y sufijos obtenidos.
+// - Las propiedades finales que utiliza el motor.
 export class Objeto {
   constructor({
     id,
@@ -26,7 +41,32 @@ export class Objeto {
     cantidadMaxima = 1,
     cantidad = 1,
     ranurasCompatibles = [],
+
+    // Propiedades originales de la plantilla.
+    //
+    // Ejemplo:
+    // el daño definido directamente en Armas.json.
+    propiedadesBase = null,
+
+    // Propiedades finales utilizadas por combate,
+    // equipamiento, inventario y presentación.
+    //
+    // En un objeto común son iguales
+    // a propiedadesBase.
     propiedades = {},
+
+    // Toda instancia tiene una rareza
+    // y un nivel, incluso cuando es común.
+    rareza = RAREZAS_OBJETO.COMUN,
+
+    nivelObjeto = 1,
+
+    // Los afijos se almacenan separados
+    // para conservar los límites propios
+    // de prefijos y sufijos.
+    prefijos = [],
+    sufijos = [],
+
     contenedorObjetos = null,
   } = {}) {
     this.validarTexto(id, "id");
@@ -83,12 +123,20 @@ export class Objeto {
       throw new Error(`Las ranuras de "${nombre}" deben ser una lista.`);
     }
 
-    if (
-      propiedades === null ||
-      typeof propiedades !== "object" ||
-      Array.isArray(propiedades)
-    ) {
-      throw new Error(`Las propiedades de "${nombre}" deben ser un objeto.`);
+    this.validarObjetoPlano(propiedades, `Las propiedades de "${nombre}"`);
+
+    const propiedadesBaseRecibidas = propiedadesBase ?? propiedades;
+
+    this.validarObjetoPlano(
+      propiedadesBaseRecibidas,
+      `Las propiedades base de "${nombre}"`,
+    );
+
+    if (!Number.isInteger(nivelObjeto) || nivelObjeto < 1) {
+      throw new Error(
+        `El nivel de objeto de "${nombre}" ` +
+          "debe ser un entero mayor o igual que 1.",
+      );
     }
 
     if (
@@ -120,12 +168,33 @@ export class Objeto {
 
     this.ranurasCompatibles = this.normalizarRanuras(ranurasCompatibles);
 
-    this.propiedades = {
-      ...propiedades,
-    };
+    this.rareza = normalizarIdRarezaObjeto(rareza);
+
+    this.nivelObjeto = nivelObjeto;
+
+    // Conservamos copias profundas independientes.
+    //
+    // De esta forma, modificar propiedades finales
+    // no altera propiedadesBase ni la plantilla JSON.
+    this.propiedadesBase = copiarDatosConfiguracion(propiedadesBaseRecibidas);
+
+    this.propiedades = copiarDatosConfiguracion(propiedades);
+
+    this.prefijos = this.normalizarAfijos({
+      afijos: prefijos,
+
+      tipoEsperado: TIPOS_AFIJO_OBJETO.PREFIJO,
+    });
+
+    this.sufijos = this.normalizarAfijos({
+      afijos: sufijos,
+
+      tipoEsperado: TIPOS_AFIJO_OBJETO.SUFIJO,
+    });
 
     this.contenedorObjetos = contenedorObjetos;
 
+    this.validarCoherenciaAfijos();
     this.validarPropiedadesPorTipo();
   }
 
@@ -202,6 +271,18 @@ export class Objeto {
     // Guardamos la versión normalizada para que
     // todo el juego utilice el mismo formato.
     this.propiedades.patronAtaque = patronNormalizado;
+
+    // La propiedad base también conserva
+    // el formato normalizado cuando existe.
+    if (this.propiedadesBase.patronAtaque !== undefined) {
+      const patronBaseNormalizado = normalizarPatronAtaque(
+        this.propiedadesBase.patronAtaque,
+      );
+
+      if (patronBaseNormalizado) {
+        this.propiedadesBase.patronAtaque = patronBaseNormalizado;
+      }
+    }
 
     if (patronNormalizado === PATRONES_ATAQUE.ADYACENTE && alcance !== 1) {
       throw new Error(
@@ -370,9 +451,204 @@ export class Objeto {
     }
   }
 
+  // Normaliza una lista de afijos generados.
+  //
+  // La clase no decide si el afijo era elegible:
+  // eso pertenecerá al futuro SistemaAfijos.
+  //
+  // Aquí comprobamos que el resultado almacenado
+  // sea estructuralmente válido.
+  normalizarAfijos({ afijos, tipoEsperado }) {
+    if (!Array.isArray(afijos)) {
+      throw new Error(
+        `Los ${tipoEsperado}s de "${this.nombre}" deben ser una lista.`,
+      );
+    }
+
+    return afijos.map((afijo, indice) =>
+      this.normalizarAfijo({
+        afijo,
+        tipoEsperado,
+        indice,
+      }),
+    );
+  }
+
+  normalizarAfijo({ afijo, tipoEsperado, indice }) {
+    this.validarObjetoPlano(
+      afijo,
+
+      `El ${tipoEsperado} ${indice + 1} de "${this.nombre}"`,
+    );
+
+    this.validarTexto(afijo.id, `id del ${tipoEsperado}`);
+
+    this.validarTexto(afijo.nombre, `nombre del ${tipoEsperado}`);
+
+    const tipoNormalizado = normalizarTipoAfijoObjeto(afijo.tipoAfijo);
+
+    if (tipoNormalizado !== tipoEsperado) {
+      throw new Error(
+        `El afijo "${afijo.id}" fue colocado como ` +
+          `${tipoEsperado}, pero declara ser ${tipoNormalizado}.`,
+      );
+    }
+
+    if (!Number.isInteger(afijo.grado) || afijo.grado < 1) {
+      throw new Error(
+        `El grado del afijo "${afijo.id}" ` +
+          "debe ser un entero mayor o igual que 1.",
+      );
+    }
+
+    if (
+      afijo.nivelObjetoMinimo !== undefined &&
+      (!Number.isInteger(afijo.nivelObjetoMinimo) ||
+        afijo.nivelObjetoMinimo < 1)
+    ) {
+      throw new Error(`El nivel mínimo del afijo "${afijo.id}" no es válido.`);
+    }
+
+    if (
+      Number.isInteger(afijo.nivelObjetoMinimo) &&
+      afijo.nivelObjetoMinimo > this.nivelObjeto
+    ) {
+      throw new Error(
+        `El objeto "${this.nombre}" es de nivel ` +
+          `${this.nivelObjeto}, pero el afijo "${afijo.id}" ` +
+          `requiere nivel ${afijo.nivelObjetoMinimo}.`,
+      );
+    }
+
+    this.validarObjetoPlano(
+      afijo.valores,
+
+      `Los valores del afijo "${afijo.id}"`,
+    );
+
+    for (const [propiedad, valor] of Object.entries(afijo.valores)) {
+      if (
+        typeof propiedad !== "string" ||
+        propiedad.trim() === "" ||
+        !Number.isFinite(valor)
+      ) {
+        throw new Error(
+          `El afijo "${afijo.id}" contiene ` + "un valor generado inválido.",
+        );
+      }
+    }
+
+    if (
+      afijo.grupoExclusion !== undefined &&
+      afijo.grupoExclusion !== null &&
+      (typeof afijo.grupoExclusion !== "string" ||
+        afijo.grupoExclusion.trim() === "")
+    ) {
+      throw new Error(
+        `El grupo de exclusión del afijo "${afijo.id}" no es válido.`,
+      );
+    }
+
+    if (
+      afijo.descripcion !== undefined &&
+      typeof afijo.descripcion !== "string"
+    ) {
+      throw new Error(
+        `La descripción del afijo "${afijo.id}" debe ser un texto.`,
+      );
+    }
+
+    // Copiamos todos los metadatos de la tirada.
+    //
+    // Esto permite conservar en el futuro:
+    //
+    // - ID.
+    // - Grado.
+    // - Grupo de exclusión.
+    // - Descripción.
+    // - Nivel mínimo.
+    // - Valores exactos obtenidos.
+    const normalizado = copiarDatosConfiguracion(afijo);
+
+    normalizado.id = afijo.id.trim().toLowerCase();
+
+    normalizado.nombre = afijo.nombre.trim();
+
+    normalizado.tipoAfijo = tipoNormalizado;
+
+    normalizado.grupoExclusion =
+      typeof afijo.grupoExclusion === "string"
+        ? afijo.grupoExclusion.trim().toLowerCase()
+        : null;
+
+    normalizado.valores = copiarDatosConfiguracion(afijo.valores);
+
+    return normalizado;
+  }
+
+  // Comprueba coherencia entre todos
+  // los afijos almacenados en la instancia.
+  validarCoherenciaAfijos() {
+    const afijos = this.afijos;
+
+    // En la primera versión los afijos aleatorios
+    // pertenecen solamente a objetos equipables.
+    if (afijos.length > 0 && !this.esEquipable) {
+      throw new Error(
+        `El objeto no equipable "${this.nombre}" ` +
+          "no puede recibir afijos aleatorios.",
+      );
+    }
+
+    // Un objeto común nunca debe contener afijos.
+    //
+    // Los límites de las demás rarezas seguirán
+    // siendo controlados por Rarezas.json
+    // y por el futuro generador.
+    if (this.rareza === RAREZAS_OBJETO.COMUN && afijos.length > 0) {
+      throw new Error(
+        `El objeto común "${this.nombre}" no puede tener afijos.`,
+      );
+    }
+
+    const ids = new Set();
+
+    const gruposExclusion = new Set();
+
+    for (const afijo of afijos) {
+      if (ids.has(afijo.id)) {
+        throw new Error(
+          `El objeto "${this.nombre}" contiene ` +
+            `el afijo repetido "${afijo.id}".`,
+        );
+      }
+
+      ids.add(afijo.id);
+
+      if (!afijo.grupoExclusion) {
+        continue;
+      }
+
+      if (gruposExclusion.has(afijo.grupoExclusion)) {
+        throw new Error(
+          `El objeto "${this.nombre}" contiene más de un ` +
+            `afijo del grupo "${afijo.grupoExclusion}".`,
+        );
+      }
+
+      gruposExclusion.add(afijo.grupoExclusion);
+    }
+  }
+
   validarTexto(valor, nombreCampo) {
     if (typeof valor !== "string" || valor.trim() === "") {
       throw new Error(`El campo "${nombreCampo}" es obligatorio.`);
+    }
+  }
+
+  validarObjetoPlano(valor, descripcion) {
+    if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
+      throw new Error(`${descripcion} deben formar un objeto válido.`);
     }
   }
 
@@ -416,6 +692,29 @@ export class Objeto {
 
   get esConsumible() {
     return this.tipo === "consumible";
+  }
+
+  get esComun() {
+    return this.rareza === RAREZAS_OBJETO.COMUN;
+  }
+
+  get esMagico() {
+    return this.rareza === RAREZAS_OBJETO.MAGICO;
+  }
+
+  get tieneAfijos() {
+    return this.cantidadAfijos > 0;
+  }
+
+  // Devuelve una lista nueva para impedir
+  // que se modifiquen ambas colecciones
+  // reemplazando directamente el resultado.
+  get afijos() {
+    return [...this.prefijos, ...this.sufijos];
+  }
+
+  get cantidadAfijos() {
+    return this.prefijos.length + this.sufijos.length;
   }
 
   get manosRequeridas() {
@@ -475,4 +774,32 @@ export class Objeto {
 
     return this.ranurasCompatibles.includes(nombreRanura.trim().toLowerCase());
   }
+}
+
+// Realiza una copia profunda de valores
+// procedentes de configuración o generación.
+//
+// Los catálogos utilizan únicamente:
+//
+// - Valores primitivos.
+// - Listas.
+// - Objetos JSON.
+//
+// No necesitamos copiar clases ni funciones.
+function copiarDatosConfiguracion(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map(copiarDatosConfiguracion);
+  }
+
+  if (valor !== null && typeof valor === "object") {
+    const copia = {};
+
+    for (const [clave, contenido] of Object.entries(valor)) {
+      copia[clave] = copiarDatosConfiguracion(contenido);
+    }
+
+    return copia;
+  }
+
+  return valor;
 }

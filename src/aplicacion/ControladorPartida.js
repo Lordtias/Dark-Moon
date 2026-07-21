@@ -17,6 +17,8 @@ import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPrueb
 
 import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGeneracionBotin.js";
 
+import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
+
 // Coordina la creación y activación
 // de una partida completa.
 export class ControladorPartida {
@@ -88,6 +90,13 @@ export class ControladorPartida {
       semillaMapa: generacionMapa.semilla,
 
       nivelMapa: generacionMapa.nivelMapa,
+    });
+
+    // La interfaz utiliza el nombre y el color declarados
+    // en Rarezas.json para inventario, equipamiento,
+    // contenedores y ventanas de detalle.
+    configurarContextoPresentacionObjetos({
+      configuracionRarezas: configuracionGeneracionObjetos.rarezas,
     });
 
     const {

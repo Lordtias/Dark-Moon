@@ -4,8 +4,8 @@ import {
   TIPOS_ACCION_TEMPORAL,
 } from "../../juego/tiempo/SistemaTiempo.js";
 
-// Etiquetas utilizadas para traducir los IDs internos
-// a textos más claros dentro de la interfaz.
+import { obtenerPresentacionRarezaObjeto } from "./ContextoPresentacionObjetos.js";
+
 const ETIQUETAS_TIPO = Object.freeze({
   arma: "Arma",
 
@@ -54,6 +54,88 @@ const ETIQUETAS_EFECTO = Object.freeze({
   recuperarMana: "Recupera Maná",
 });
 
+const PRESENTACION_VALORES_AFIJO = Object.freeze({
+  danioFisicoLocalPorcentaje: {
+    etiqueta: "daño físico local",
+
+    porcentaje: true,
+  },
+
+  armadura: {
+    etiqueta: "Armadura",
+  },
+
+  vidaMaxima: {
+    etiqueta: "Vida máxima",
+  },
+
+  manaMaximo: {
+    etiqueta: "Maná máximo",
+  },
+
+  precision: {
+    etiqueta: "Precisión",
+  },
+
+  probabilidadCritico: {
+    etiqueta: "probabilidad de crítico",
+
+    porcentaje: true,
+  },
+
+  multiplicadorCritico: {
+    etiqueta: "multiplicador crítico",
+  },
+
+  evasion: {
+    etiqueta: "Evasión",
+  },
+
+  regeneracionVida: {
+    etiqueta: "regeneración de Vida",
+  },
+
+  regeneracionMana: {
+    etiqueta: "regeneración de Maná",
+  },
+
+  resistenciaFuego: {
+    etiqueta: "resistencia al fuego",
+
+    porcentaje: true,
+  },
+
+  resistenciaFrio: {
+    etiqueta: "resistencia al frío",
+
+    porcentaje: true,
+  },
+
+  resistenciaRayo: {
+    etiqueta: "resistencia al rayo",
+
+    porcentaje: true,
+  },
+
+  resistenciaVeneno: {
+    etiqueta: "resistencia al veneno",
+
+    porcentaje: true,
+  },
+
+  probabilidadBloqueo: {
+    etiqueta: "probabilidad de bloqueo",
+
+    porcentaje: true,
+  },
+
+  mitigacionBloqueo: {
+    etiqueta: "mitigación al bloquear",
+
+    porcentaje: true,
+  },
+});
+
 // Convierte una instancia de Objeto en un modelo visual
 // sencillo que puede utilizar un modal, una ventana de botín,
 // un comercio o cualquier otra interfaz futura.
@@ -74,28 +156,30 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
 
     recursoVisual: normalizarRuta(objeto.recursoVisual),
 
-    // La cantidad continúa siendo información contextual
-    // de la pila y se muestra en la cabecera cuando
-    // existen dos o más unidades.
     cantidad: Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1,
+
+    rareza: obtenerPresentacionRarezaObjeto(objeto.rareza),
+
+    nivelObjeto: Number.isInteger(objeto.nivelObjeto) ? objeto.nivelObjeto : 1,
+
+    // Rareza y nivel son información relevante
+    // para bases equipables con afijos.
+    //
+    // Materiales, municiones y consumibles conservan
+    // una presentación más compacta.
+    mostrarMetadatosGeneracion: objeto.esEquipable === true,
+
+    afijos: crearPresentacionAfijos(objeto),
 
     estadisticas: crearEstadisticasObjeto({
       objeto,
       combatiente,
     }),
 
-    // Un material puede no tener estadísticas porque
-    // su valor se encuentra en su identidad, descripción
-    // y futuros usos de fabricación o misión.
-    //
-    // Por eso no mostramos un mensaje indicando
-    // que carece de propiedades especiales.
     mostrarMensajeSinEstadisticas: !esMaterial,
   };
 }
 
-// Crea un subtítulo corto para identificar rápidamente
-// la categoría y las características principales del objeto.
 function crearSubtitulo(objeto) {
   const tipo =
     ETIQUETAS_TIPO[objeto.tipo] ?? formatearIdentificador(objeto.tipo);
@@ -117,8 +201,86 @@ function crearSubtitulo(objeto) {
   return tipo;
 }
 
-// Selecciona únicamente las estadísticas que tienen sentido
-// para el tipo concreto del objeto.
+function crearPresentacionAfijos(objeto) {
+  const afijos = Array.isArray(objeto.afijos) ? objeto.afijos : [];
+
+  return afijos.map((afijo) => ({
+    id: afijo.id,
+
+    tipo: afijo.tipoAfijo,
+
+    tipoEtiqueta: afijo.tipoAfijo === "prefijo" ? "Prefijo" : "Sufijo",
+
+    nombre: afijo.nombre,
+
+    grado: afijo.grado,
+
+    descripcion: typeof afijo.descripcion === "string" ? afijo.descripcion : "",
+
+    efectos: crearTextosEfectosAfijo(afijo),
+  }));
+}
+
+function crearTextosEfectosAfijo(afijo) {
+  const valores = afijo.valores ?? {};
+
+  const textos = [];
+
+  const propiedadesProcesadas = new Set();
+
+  const minimoLocal = valores.danioFisicoLocalMinimo;
+
+  const maximoLocal = valores.danioFisicoLocalMaximo;
+
+  if (Number.isFinite(minimoLocal) && Number.isFinite(maximoLocal)) {
+    textos.push(
+      `Agrega ${formatearNumeroFlexible(minimoLocal)}–${formatearNumeroFlexible(
+        maximoLocal,
+      )} de daño físico local`,
+    );
+
+    propiedadesProcesadas.add("danioFisicoLocalMinimo");
+
+    propiedadesProcesadas.add("danioFisicoLocalMaximo");
+  }
+
+  for (const [propiedad, valor] of Object.entries(valores)) {
+    if (propiedadesProcesadas.has(propiedad) || !Number.isFinite(valor)) {
+      continue;
+    }
+
+    const configuracion = PRESENTACION_VALORES_AFIJO[propiedad];
+
+    if (!configuracion) {
+      textos.push(
+        `${formatearNumeroConSignoFlexible(valor)} ${formatearIdentificador(
+          propiedad,
+        )}`,
+      );
+
+      continue;
+    }
+
+    const valorFormateado = formatearNumeroConSignoFlexible(valor);
+
+    textos.push(
+      configuracion.porcentaje
+        ? `${valorFormateado} % de ${configuracion.etiqueta}`
+        : `${valorFormateado} de ${configuracion.etiqueta}`,
+    );
+  }
+
+  if (
+    textos.length === 0 &&
+    typeof afijo.descripcion === "string" &&
+    afijo.descripcion.trim() !== ""
+  ) {
+    textos.push(afijo.descripcion.trim());
+  }
+
+  return textos;
+}
+
 function crearEstadisticasObjeto({ objeto, combatiente }) {
   if (objeto.esArma) {
     return crearEstadisticasArma({
@@ -143,11 +305,6 @@ function crearEstadisticasObjeto({ objeto, combatiente }) {
     return crearEstadisticasConsumible(objeto);
   }
 
-  // La cantidad de una pila no es una propiedad
-  // intrínseca del material.
-  //
-  // Tampoco mostramos su máximo por pila como
-  // una característica del objeto.
   if (objeto.tipo === "material") {
     return [];
   }
@@ -155,14 +312,6 @@ function crearEstadisticasObjeto({ objeto, combatiente }) {
   return crearEstadisticasGenericas(objeto);
 }
 
-// Presenta las propiedades ofensivas de un arma.
-//
-// La velocidad de ataque utiliza exactamente los mismos
-// factores temporales que una acción real de ataque:
-//
-// - Coste configurado en el arma.
-// - factorTiempo del combatiente.
-// - factorAtaque del combatiente.
 function crearEstadisticasArma({ objeto, combatiente }) {
   const propiedades = objeto.propiedades;
 
@@ -178,20 +327,16 @@ function crearEstadisticasArma({ objeto, combatiente }) {
       })
     : costoBase;
 
-  // Cien unidades temporales representan un segundo.
-  //
-  // Por ejemplo:
-  //
-  // 90 unidades = 0,90 segundos
-  // 100 / 90 = 1,11 ataques por segundo.
   const velocidadAtaque = TIEMPO_REFERENCIA / costoEfectivo;
+
+  const rangoLocal = calcularRangoDanioFisicoLocal(propiedades);
 
   const estadisticas = [
     crearEstadistica(
       "Daño físico",
 
-      `${formatearNumero(propiedades.danioFisicoMinimo)} – ${formatearNumero(
-        propiedades.danioFisicoMaximo,
+      `${formatearNumero(rangoLocal.minimo)} – ${formatearNumero(
+        rangoLocal.maximo,
       )}`,
     ),
 
@@ -262,10 +407,37 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   return estadisticas;
 }
 
-// Presenta armadura y bloqueo.
-//
-// Los valores que no aportan nada se omiten
-// para evitar ruido visual.
+// Reproduce exactamente la parte local de la fórmula
+// utilizada por EstadisticasDerivadas.
+function calcularRangoDanioFisicoLocal(propiedades) {
+  const minimoBase = propiedades.danioFisicoMinimo;
+
+  const maximoBase = propiedades.danioFisicoMaximo;
+
+  const planoMinimo = propiedades.danioFisicoLocalMinimo ?? 0;
+
+  const planoMaximo = propiedades.danioFisicoLocalMaximo ?? 0;
+
+  const porcentaje = (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
+
+  const minimo = Math.max(
+    0,
+
+    Math.floor((minimoBase + planoMinimo) * (1 + porcentaje)),
+  );
+
+  const maximo = Math.max(
+    minimo,
+
+    Math.ceil((maximoBase + planoMaximo) * (1 + porcentaje)),
+  );
+
+  return {
+    minimo,
+    maximo,
+  };
+}
+
 function crearEstadisticasArmadura(objeto) {
   const propiedades = objeto.propiedades;
 
@@ -306,8 +478,6 @@ function crearEstadisticasArmadura(objeto) {
   return estadisticas;
 }
 
-// Muestra la capacidad y el contenido actual
-// de un carcaj.
 function crearEstadisticasQuiver(objeto) {
   const contenedor = objeto.contenedorObjetos;
 
@@ -344,8 +514,6 @@ function crearEstadisticasQuiver(objeto) {
   ];
 }
 
-// Presenta el tipo de munición
-// y el tamaño actual de la pila.
 function crearEstadisticasMunicion(objeto) {
   return [
     crearEstadistica(
@@ -368,8 +536,6 @@ function crearEstadisticasMunicion(objeto) {
   ];
 }
 
-// Convierte los efectos configurables de un consumible
-// en filas legibles para el jugador.
 function crearEstadisticasConsumible(objeto) {
   const efectos = objeto.propiedades.efectos ?? [];
 
@@ -392,11 +558,6 @@ function crearEstadisticasConsumible(objeto) {
   return estadisticas;
 }
 
-// Mantiene un respaldo para futuros tipos
-// de objetos apilables que todavía no tengan
-// una presentación específica.
-//
-// Los materiales no llegan a esta función.
 function crearEstadisticasGenericas(objeto) {
   const estadisticas = [];
 
@@ -453,6 +614,18 @@ function formatearNumero(valor, decimalesMaximos = 0) {
   }).format(valor);
 }
 
+function formatearNumeroFlexible(valor) {
+  if (!Number.isFinite(valor)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("es-UY", {
+    minimumFractionDigits: 0,
+
+    maximumFractionDigits: 2,
+  }).format(valor);
+}
+
 function formatearNumeroConSigno(valor) {
   if (!Number.isFinite(valor)) {
     return "—";
@@ -461,6 +634,16 @@ function formatearNumeroConSigno(valor) {
   const signo = valor > 0 ? "+" : "";
 
   return `${signo}` + `${formatearNumero(valor)}`;
+}
+
+function formatearNumeroConSignoFlexible(valor) {
+  if (!Number.isFinite(valor)) {
+    return "—";
+  }
+
+  const signo = valor > 0 ? "+" : "";
+
+  return `${signo}` + `${formatearNumeroFlexible(valor)}`;
 }
 
 function formatearIdentificador(valor) {

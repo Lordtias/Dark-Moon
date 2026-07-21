@@ -8,7 +8,6 @@
 /* Resaltado al pasar el cursor. */
 .slot-inventario.interactuable:hover,
 .slot-equipamiento.interactuable:hover {
-  border-color: #aeb8ff;
   background-color: #242d58;
 }
 
@@ -19,6 +18,33 @@
   outline-offset: 2px;
 }
 
+/* Cada representación recibe estas variables
+   desde ContextoPresentacionObjetos. */
+.slot-inventario.objeto-con-rareza,
+.casilla-equipamiento.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 1px var(--color-rareza-objeto-suave) inset,
+    0 0 8px var(--color-rareza-objeto-suave);
+}
+
+.slot-inventario.interactuable.objeto-con-rareza:hover,
+.slot-equipamiento.interactuable:hover .casilla-equipamiento.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 1px var(--color-rareza-objeto-suave) inset,
+    0 0 14px var(--color-rareza-objeto-suave);
+}
+
+.objeto-con-rareza .nombre-objeto,
+.objeto-con-rareza .nombre-objeto-equipado {
+  color: var(--color-rareza-objeto);
+}
+
+.objeto-con-rareza .imagen-objeto {
+  filter: drop-shadow(0 0 3px var(--color-rareza-objeto-suave));
+}
+
 /* Reserva visual de un arma de dos manos. */
 .casilla-equipamiento.reservada {
   border-style: dashed;
@@ -26,26 +52,22 @@
 }
 
 /* La casilla equipada sirve como referencia
-para ubicar la cantidad del carcaj. */
+   para ubicar la cantidad del carcaj. */
 .casilla-equipamiento {
   position: relative;
   overflow: hidden;
 }
 
-/* Cantidad de flechas del carcaj dentro
-del inventario. Se muestra como insignia. */
+/* Cantidad de flechas del carcaj dentro del inventario. */
 .detalle-contenido-objeto {
   position: absolute;
   left: 3px;
   bottom: 2px;
   z-index: 2;
-
   min-width: 17px;
   padding: 1px 3px;
-
   border-radius: 3px;
   background-color: rgba(0, 0, 0, 0.88);
-
   color: #ffe66d;
   font-size: 10px;
   font-weight: bold;
@@ -60,13 +82,10 @@ del inventario. Se muestra como insignia. */
   right: 2px;
   bottom: 1px;
   z-index: 2;
-
   min-width: 15px;
   padding: 1px 2px;
-
   border-radius: 3px;
   background-color: rgba(0, 0, 0, 0.88);
-
   color: #ffe66d;
   font-size: 9px;
   font-weight: bold;

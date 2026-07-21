@@ -1,5 +1,7 @@
 import { validarConfiguracionMapas } from "./ValidadorConfiguracionMapas.js";
 
+import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfiguracionGeneracionObjetos.js";
+
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
 
@@ -9,6 +11,19 @@ const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
 
 const RUTA_MAPAS = "./src/config/mapas/Mapas.json";
 
+// Catálogos que describen rarezas y afijos.
+//
+// Se cargan separados de las plantillas de objetos porque:
+//
+// - Las plantillas definen la base de cada objeto.
+// - Las rarezas definen cuántos afijos puede recibir.
+// - Los afijos definen mejoras posibles y sus grados.
+const RUTA_RAREZAS_OBJETOS = "./src/config/objetos/Rarezas.json";
+
+const RUTA_PREFIJOS_OBJETOS = "./src/config/objetos/afijos/Prefijos.json";
+
+const RUTA_SUFIJOS_OBJETOS = "./src/config/objetos/afijos/Sufijos.json";
+
 // Los objetos se dividen por categoría para evitar
 // que un único archivo crezca indefinidamente.
 //
@@ -17,32 +32,44 @@ const RUTA_MAPAS = "./src/config/mapas/Mapas.json";
 const CATALOGOS_OBJETOS = Object.freeze([
   {
     id: "armas",
+
     ruta: "./src/config/objetos/Armas.json",
+
     descripcion: "el catálogo de armas",
   },
   {
     id: "armaduras",
+
     ruta: "./src/config/objetos/Armaduras.json",
+
     descripcion: "el catálogo de armaduras",
   },
   {
     id: "consumibles",
+
     ruta: "./src/config/objetos/Consumibles.json",
+
     descripcion: "el catálogo de consumibles",
   },
   {
     id: "municiones",
+
     ruta: "./src/config/objetos/Municiones.json",
+
     descripcion: "el catálogo de municiones",
   },
   {
     id: "contenedores",
+
     ruta: "./src/config/objetos/Contenedores.json",
+
     descripcion: "el catálogo de contenedores",
   },
   {
     id: "materiales",
+
     ruta: "./src/config/objetos/Materiales.json",
+
     descripcion: "el catálogo de materiales",
   },
 ]);
@@ -112,6 +139,36 @@ export async function cargarConfiguracionObjetos() {
   return combinarCatalogosObjetos(catalogosCargados);
 }
 
+// Carga y valida los catálogos que controlarán
+// la generación aleatoria de objetos.
+//
+// En esta primera etapa la configuración se valida
+// durante el inicio, pero todavía no modifica drops.
+export async function cargarConfiguracionGeneracionObjetos() {
+  const [rarezas, prefijos, sufijos] = await Promise.all([
+    cargarArchivoJson(
+      RUTA_RAREZAS_OBJETOS,
+      "el catálogo de rarezas de objetos",
+    ),
+
+    cargarArchivoJson(
+      RUTA_PREFIJOS_OBJETOS,
+      "el catálogo de prefijos de objetos",
+    ),
+
+    cargarArchivoJson(
+      RUTA_SUFIJOS_OBJETOS,
+      "el catálogo de sufijos de objetos",
+    ),
+  ]);
+
+  return validarConfiguracionGeneracionObjetos({
+    rarezas,
+    prefijos,
+    sufijos,
+  });
+}
+
 // Une los catálogos conservando el formato
 // utilizado actualmente por FabricaObjetos.
 //
@@ -133,6 +190,7 @@ function combinarCatalogosObjetos(catalogosCargados) {
       validarPlantillaObjeto({
         idObjeto,
         plantilla,
+
         descripcionCatalogo: catalogo.descripcion,
       });
 
@@ -191,7 +249,7 @@ function validarPlantillaObjeto({ idObjeto, plantilla, descripcionCatalogo }) {
 function normalizarIdObjeto(idOriginal, descripcionCatalogo) {
   if (typeof idOriginal !== "string" || idOriginal.trim() === "") {
     throw new Error(
-      `Existe un ID de objeto vacío en ` + `${descripcionCatalogo}.`,
+      "Existe un ID de objeto vacío en " + `${descripcionCatalogo}.`,
     );
   }
 

@@ -1,0 +1,1155 @@
+{
+  "de_precision": {
+    "nombre": "De precisión",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La precisión propia del arma ya participa en cada componente de ataque.",
+    "descripcion": "Aumenta la precisión del arma.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "precision_local",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "precision",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "precision": {
+            "minimo": 1,
+            "maximo": 3
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "precision": {
+            "minimo": 4,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "precision": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      }
+    ],
+    "notasDiseno": ["La bonificación pertenece al arma que contiene el sufijo."]
+  },
+  "del_verdugo": {
+    "nombre": "Del verdugo",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La probabilidad de crítico propia del arma ya se utiliza al resolver el ataque.",
+    "descripcion": "Aumenta la probabilidad de crítico del arma.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "critico_local_probabilidad",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "probabilidadCritico",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "probabilidadCritico": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "probabilidadCritico": {
+            "minimo": 3,
+            "maximo": 4
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "probabilidadCritico": {
+            "minimo": 5,
+            "maximo": 6
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_devastacion": {
+    "nombre": "De devastación",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "El multiplicador crítico propio del arma ya forma parte del cálculo de cada golpe.",
+    "descripcion": "Aumenta el multiplicador de los golpes críticos.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "critico_local_multiplicador",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "multiplicadorCritico",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "multiplicadorCritico": {
+            "minimo": 0.05,
+            "maximo": 0.1,
+            "decimales": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "multiplicadorCritico": {
+            "minimo": 0.11,
+            "maximo": 0.16,
+            "decimales": 2
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "multiplicadorCritico": {
+            "minimo": 0.17,
+            "maximo": 0.25,
+            "decimales": 2
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_evasion": {
+    "nombre": "De evasión",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La Evasión plana del equipamiento ya se suma a la estadística final.",
+    "descripcion": "Aumenta la Evasión.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "evasion_plana",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "evasion",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "evasion": {
+            "minimo": 1,
+            "maximo": 3
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "evasion": {
+            "minimo": 4,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "evasion": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_regeneracion": {
+    "nombre": "De regeneración",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La regeneración plana de Vida del equipamiento ya se procesa en los pulsos temporales.",
+    "descripcion": "Aumenta la regeneración plana de Vida.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "regeneracion_vida_plana",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "regeneracionVida",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "regeneracionVida": {
+            "minimo": 0.1,
+            "maximo": 0.2,
+            "decimales": 1
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "regeneracionVida": {
+            "minimo": 0.3,
+            "maximo": 0.5,
+            "decimales": 1
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "regeneracionVida": {
+            "minimo": 0.6,
+            "maximo": 0.9,
+            "decimales": 1
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_claridad": {
+    "nombre": "De claridad",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La regeneración plana de Maná del equipamiento ya se procesa en los pulsos temporales.",
+    "descripcion": "Aumenta la regeneración plana de Maná.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "regeneracion_mana_plana",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "regeneracionMana",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "regeneracionMana": {
+            "minimo": 0.1,
+            "maximo": 0.2,
+            "decimales": 1
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "regeneracionMana": {
+            "minimo": 0.3,
+            "maximo": 0.5,
+            "decimales": 1
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "regeneracionMana": {
+            "minimo": 0.6,
+            "maximo": 0.9,
+            "decimales": 1
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_ascuas": {
+    "nombre": "De ascuas",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia al fuego otorgada por equipamiento ya se suma y respeta los límites del combate.",
+    "descripcion": "Aumenta la resistencia al fuego.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "resistencia_fuego",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaFuego",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaFuego": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaFuego": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaFuego": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_escarcha": {
+    "nombre": "De escarcha",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia al frío otorgada por equipamiento ya se suma y respeta los límites del combate.",
+    "descripcion": "Aumenta la resistencia al frío.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "resistencia_frío",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaFrio",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaFrio": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaFrio": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaFrio": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_tormenta": {
+    "nombre": "De tormenta",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia al rayo otorgada por equipamiento ya se suma y respeta los límites del combate.",
+    "descripcion": "Aumenta la resistencia al rayo.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "resistencia_rayo",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaRayo",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaRayo": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaRayo": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaRayo": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "del_antidoto": {
+    "nombre": "Del antídoto",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia al veneno otorgada por equipamiento ya se suma y respeta los límites del combate.",
+    "descripcion": "Aumenta la resistencia al veneno.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "resistencia_veneno",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaVeneno",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaVeneno": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaVeneno": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaVeneno": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "del_guardian": {
+    "nombre": "Del guardián",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La probabilidad de bloqueo del equipamiento ya se suma al valor final.",
+    "descripcion": "Aumenta la probabilidad de bloqueo de un escudo.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "bloqueo_probabilidad",
+    "aplicaA": {
+      "tipos": ["armadura"],
+      "ranurasIncluidas": ["secundaria"],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "probabilidadBloqueo",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "probabilidadBloqueo": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "probabilidadBloqueo": {
+            "minimo": 3,
+            "maximo": 4
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "probabilidadBloqueo": {
+            "minimo": 5,
+            "maximo": 6
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_absorcion": {
+    "nombre": "De absorción",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La mitigación al bloquear ya se suma desde el equipamiento y respeta su límite global.",
+    "descripcion": "Aumenta el porcentaje de daño mitigado al bloquear.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "bloqueo_mitigacion",
+    "aplicaA": {
+      "tipos": ["armadura"],
+      "ranurasIncluidas": ["secundaria"],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "mitigacionBloqueo",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "mitigacionBloqueo": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "mitigacionBloqueo": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "mitigacionBloqueo": {
+            "minimo": 9,
+            "maximo": 12
+          }
+        }
+      }
+    ],
+    "notasDiseno": []
+  },
+  "de_fatalidad": {
+    "nombre": "De fatalidad",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_balance",
+    "motivoEstado": "El crítico global afecta cualquier arma equipada y necesita balancearse frente al crítico local.",
+    "descripcion": "Aumentaría la probabilidad de crítico de todos los ataques.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "critico_global_probabilidad",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "probabilidadCriticoGlobal",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: probabilidadCriticoGlobal: 1–2.",
+    "grados": []
+  },
+  "de_carniceria": {
+    "nombre": "De carnicería",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_balance",
+    "motivoEstado": "El multiplicador crítico global escala con todas las fuentes de daño y puede crecer demasiado rápido.",
+    "descripcion": "Aumentaría el multiplicador crítico de todos los ataques.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "critico_global_multiplicador",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "multiplicadorCriticoAdicional",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: multiplicadorCriticoAdicional: 0.05–0.1.",
+    "grados": []
+  },
+  "de_renovacion": {
+    "nombre": "De renovación",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_balance",
+    "motivoEstado": "La regeneración porcentual escala automáticamente con la Vida máxima y necesita pruebas de balance.",
+    "descripcion": "Regeneraría un porcentaje de la Vida máxima.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "regeneracion_vida_porcentaje",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "regeneracionVidaPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: regeneracionVidaPorcentaje: 0.2–0.5.",
+    "grados": []
+  },
+  "de_meditacion": {
+    "nombre": "De meditación",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_balance",
+    "motivoEstado": "La regeneración porcentual de Maná necesita balancearse junto con habilidades y costes de Maná.",
+    "descripcion": "Regeneraría un porcentaje del Maná máximo.",
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "regeneracion_mana_porcentaje",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "regeneracionManaPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: regeneracionManaPorcentaje: 0.2–0.5.",
+    "grados": []
+  },
+  "del_oso": {
+    "nombre": "Del oso",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Fuerza.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_fuerza",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "fuerza",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: fuerza: 1–2.",
+    "grados": []
+  },
+  "del_lince": {
+    "nombre": "Del lince",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Destreza.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_destreza",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "destreza",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: destreza: 1–2.",
+    "grados": []
+  },
+  "del_roble": {
+    "nombre": "Del roble",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Constitución.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_constitucion",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "constitucion",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: constitucion: 1–2.",
+    "grados": []
+  },
+  "del_sabio": {
+    "nombre": "Del sabio",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Inteligencia.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_inteligencia",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "inteligencia",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: inteligencia: 1–2.",
+    "grados": []
+  },
+  "del_buho": {
+    "nombre": "Del búho",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Sabiduría.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_sabiduria",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "sabiduria",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: sabiduria: 1–2.",
+    "grados": []
+  },
+  "del_soberano": {
+    "nombre": "Del soberano",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
+    "descripcion": "Aumentaría la Carisma.",
+    "requiere": ["atributos_por_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "atributo_carisma",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "carisma",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: carisma: 1–2.",
+    "grados": []
+  },
+  "de_celeridad": {
+    "nombre": "De celeridad",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "El movimiento utiliza factores temporales. Falta definir una propiedad de equipamiento y su composición con factorMovimiento.",
+    "descripcion": "Aumentaría la velocidad de movimiento.",
+    "requiere": ["velocidad_movimiento_equipamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "velocidad_movimiento",
+    "aplicaA": {
+      "tipos": ["armadura"],
+      "ranurasIncluidas": ["pies"],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "velocidadMovimientoPorcentaje",
+        "operacion": "aumentarVelocidad"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: velocidadMovimientoPorcentaje: 5–8.",
+    "grados": []
+  },
+  "del_vampiro": {
+    "nombre": "Del vampiro",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta una mecánica que convierta parte del daño realmente aplicado en curación y defina su interacción con doble arma y daño elemental.",
+    "descripcion": "Recuperaría Vida según el daño causado.",
+    "requiere": ["robo_recursos"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "robo_vida",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "roboVidaPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: roboVidaPorcentaje: 1–2.",
+    "grados": []
+  },
+  "del_devorador": {
+    "nombre": "Del devorador",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta una mecánica de robo de Maná y suficientes habilidades con coste de Maná para balancearla.",
+    "descripcion": "Recuperaría Maná según el daño causado.",
+    "requiere": ["robo_recursos"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "robo_mana",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "roboManaPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: roboManaPorcentaje: 1–2.",
+    "grados": []
+  },
+  "de_fortuna": {
+    "nombre": "De fortuna",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta decidir si modifica la rareza, los grados de afijo o la calidad de las bases encontradas.",
+    "descripcion": "Aumentaría la calidad de los objetos encontrados.",
+    "requiere": ["calidad_botin"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "rareza_encontrada",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "rarezaObjetosEncontradosPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: rarezaObjetosEncontradosPorcentaje: 5–10.",
+    "grados": []
+  },
+  "de_abundancia": {
+    "nombre": "De abundancia",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta una economía estable y una regla clara para aumentar cantidades sin duplicar indiscriminadamente todos los drops.",
+    "descripcion": "Aumentaría la cantidad de objetos encontrados.",
+    "requiere": ["cantidad_botin"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "cantidad_encontrada",
+    "aplicaA": {
+      "tipos": ["armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "cantidadObjetosEncontradosPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: cantidadObjetosEncontradosPorcentaje: 5–10.",
+    "grados": []
+  },
+  "del_taumaturgo": {
+    "nombre": "Del taumaturgo",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Todavía no existe un sistema de hechizos ni una estadística de daño de hechizos.",
+    "descripcion": "Aumentaría el daño de los hechizos.",
+    "requiere": ["hechizos"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "danio_hechizos",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "danioHechizosAumentadoPorcentaje",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: danioHechizosAumentadoPorcentaje: 8–15.",
+    "grados": []
+  },
+  "de_canalizacion": {
+    "nombre": "De canalización",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Todavía no existe velocidad de lanzamiento ni costes temporales específicos para hechizos.",
+    "descripcion": "Aumentaría la velocidad de lanzamiento.",
+    "requiere": ["hechizos", "velocidad_lanzamiento"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "velocidad_lanzamiento",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "velocidadLanzamientoPorcentaje",
+        "operacion": "aumentarVelocidad"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: velocidadLanzamientoPorcentaje: 5–8.",
+    "grados": []
+  },
+  "de_concentracion": {
+    "nombre": "De concentración",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Todavía no existe una tirada de precisión separada para hechizos.",
+    "descripcion": "Aumentaría la precisión de los hechizos.",
+    "requiere": ["hechizos", "precision_hechizos"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "precision_hechizos",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "precisionHechizos",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: precisionHechizos: 2–5.",
+    "grados": []
+  },
+  "del_archimago": {
+    "nombre": "Del archimago",
+    "tipoAfijo": "sufijo",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta definir potencia de hechizos y su relación con el Maná máximo.",
+    "descripcion": "Aumentaría el Maná y la potencia de los hechizos.",
+    "requiere": ["hechizos", "potencia_hechizos"],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "archimago",
+    "aplicaA": {
+      "tipos": ["arma", "armadura", "quiver"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "potenciaHechizos",
+        "operacion": "sumar"
+      },
+      {
+        "propiedad": "manaMaximo",
+        "operacion": "sumar"
+      }
+    ],
+    "notasDiseno": [],
+    "propuestaBalance": "Primer rango sugerido: potenciaHechizos: 1–2; manaMaximo: 10–20.",
+    "grados": []
+  }
+}

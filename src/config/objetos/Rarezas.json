@@ -1,0 +1,54 @@
+{
+  "comun": {
+    "nombre": "Común",
+    "estado": "activo",
+    "motivoEstado": "Es la rareza base y no necesita afijos.",
+    "colorInterfaz": "#d4d4d4",
+    "pesoBase": 7000,
+    "generaAfijosAleatorios": false,
+    "afijosMinimos": 0,
+    "afijosMaximos": 0,
+    "prefijosMaximos": 0,
+    "sufijosMaximos": 0,
+    "nivelObjetoMinimo": 1
+  },
+  "magico": {
+    "nombre": "Mágico",
+    "estado": "activo",
+    "motivoEstado": "La primera versión del generador implementará uno o dos afijos, con un máximo de un prefijo y un sufijo.",
+    "colorInterfaz": "#528cff",
+    "pesoBase": 3000,
+    "generaAfijosAleatorios": true,
+    "afijosMinimos": 1,
+    "afijosMaximos": 2,
+    "prefijosMaximos": 1,
+    "sufijosMaximos": 1,
+    "nivelObjetoMinimo": 1
+  },
+  "raro": {
+    "nombre": "Raro",
+    "estado": "pendiente_motor",
+    "motivoEstado": "Falta implementar entre tres y seis afijos, con un máximo de tres prefijos y tres sufijos, además de nombres especiales para objetos raros.",
+    "colorInterfaz": "#e8cf5a",
+    "pesoBase": 0,
+    "generaAfijosAleatorios": true,
+    "afijosMinimos": 3,
+    "afijosMaximos": 6,
+    "prefijosMaximos": 3,
+    "sufijosMaximos": 3,
+    "nivelObjetoMinimo": 2
+  },
+  "unico": {
+    "nombre": "Único",
+    "estado": "pendiente_diseno",
+    "motivoEstado": "Los objetos únicos utilizarán plantillas y modificadores fijos diseñados manualmente en lugar de afijos aleatorios comunes.",
+    "colorInterfaz": "#c77838",
+    "pesoBase": 0,
+    "generaAfijosAleatorios": false,
+    "afijosMinimos": 0,
+    "afijosMaximos": 0,
+    "prefijosMaximos": 0,
+    "sufijosMaximos": 0,
+    "nivelObjetoMinimo": 1
+  }
+}

@@ -164,7 +164,7 @@ function validarRarezaForzadaNoEquipable(rarezaForzada) {
 function validarConfiguracionGeneracion(configuracion) {
   validarObjetoPlano(configuracion, "La configuración de generación");
 
-  for (const catalogo of ["rarezas", "prefijos", "sufijos"]) {
+  for (const catalogo of ["reglas", "rarezas", "prefijos", "sufijos"]) {
     validarObjetoPlano(configuracion[catalogo], `El catálogo de ${catalogo}`);
   }
 }

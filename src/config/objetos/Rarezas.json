@@ -10,7 +10,13 @@
     "afijosMaximos": 0,
     "prefijosMaximos": 0,
     "sufijosMaximos": 0,
-    "nivelObjetoMinimo": 1
+    "nivelObjetoMinimo": 1,
+    "distribucionCantidadAfijos": [
+      {
+        "cantidad": 0,
+        "peso": 100
+      }
+    ]
   },
   "magico": {
     "nombre": "Mágico",
@@ -23,7 +29,17 @@
     "afijosMaximos": 2,
     "prefijosMaximos": 1,
     "sufijosMaximos": 1,
-    "nivelObjetoMinimo": 1
+    "nivelObjetoMinimo": 1,
+    "distribucionCantidadAfijos": [
+      {
+        "cantidad": 1,
+        "peso": 60
+      },
+      {
+        "cantidad": 2,
+        "peso": 40
+      }
+    ]
   },
   "raro": {
     "nombre": "Raro",
@@ -36,7 +52,25 @@
     "afijosMaximos": 6,
     "prefijosMaximos": 3,
     "sufijosMaximos": 3,
-    "nivelObjetoMinimo": 2
+    "nivelObjetoMinimo": 2,
+    "distribucionCantidadAfijos": [
+      {
+        "cantidad": 3,
+        "peso": 40
+      },
+      {
+        "cantidad": 4,
+        "peso": 30
+      },
+      {
+        "cantidad": 5,
+        "peso": 20
+      },
+      {
+        "cantidad": 6,
+        "peso": 10
+      }
+    ]
   },
   "unico": {
     "nombre": "Único",
@@ -49,6 +83,12 @@
     "afijosMaximos": 0,
     "prefijosMaximos": 0,
     "sufijosMaximos": 0,
-    "nivelObjetoMinimo": 1
+    "nivelObjetoMinimo": 1,
+    "distribucionCantidadAfijos": [
+      {
+        "cantidad": 0,
+        "peso": 100
+      }
+    ]
   }
 }

@@ -280,6 +280,9 @@ function crearObjetosParaCantidad({
       const nivelObjeto = generarNivelObjeto({
         nivelBase: nivelBaseObjeto,
 
+        configuracionNivelObjeto:
+          configuracionGeneracionObjetos.reglas.nivelObjeto,
+
         aleatorio: aleatorioObjetos,
       });
 
@@ -304,6 +307,8 @@ function crearObjetosParaCantidad({
 
   const nivelObjeto = generarNivelObjeto({
     nivelBase: nivelBaseObjeto,
+
+    configuracionNivelObjeto: configuracionGeneracionObjetos.reglas.nivelObjeto,
 
     aleatorio: aleatorioObjetos,
   });
@@ -651,6 +656,7 @@ function validarConfiguracionGeneracionObjetos(configuracion) {
     configuracion === null ||
     typeof configuracion !== "object" ||
     Array.isArray(configuracion) ||
+    !configuracion.reglas ||
     !configuracion.rarezas ||
     !configuracion.prefijos ||
     !configuracion.sufijos

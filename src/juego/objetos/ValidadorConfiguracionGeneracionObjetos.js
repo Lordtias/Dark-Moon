@@ -46,16 +46,20 @@ const PROPIEDADES_ACTIVAS = new Set([
   "mitigacionBloqueo",
 ]);
 
-// Valida conjuntamente rarezas, prefijos y sufijos.
+// Valida conjuntamente reglas generales, rarezas,
+// prefijos y sufijos.
 //
 // El catálogo completo se conserva en memoria,
-// pero el generador futuro utilizará solamente
-// entradas cuyo estado sea "activo".
+// pero la generación utiliza solamente entradas
+// cuyo estado sea "activo" y cuyo peso sea mayor que cero.
 export function validarConfiguracionGeneracionObjetos({
+  reglas,
   rarezas,
   prefijos,
   sufijos,
 } = {}) {
+  validarReglasGeneracion(reglas);
+
   validarCatalogoRarezas(rarezas);
 
   const idsRarezas = new Set(Object.keys(rarezas));
@@ -93,10 +97,138 @@ export function validarConfiguracionGeneracionObjetos({
   });
 
   return {
+    reglas,
     rarezas,
     prefijos,
     sufijos,
   };
+}
+
+function validarReglasGeneracion(reglas) {
+  validarObjetoRaiz(reglas, "las reglas de generación de objetos");
+
+  const configuracionNivel = reglas.nivelObjeto;
+
+  validarObjetoConfiguracion({
+    valor: configuracionNivel,
+
+    descripcion: "La configuración del nivel de objeto",
+  });
+
+  validarTexto(
+    configuracionNivel.descripcion,
+    "descripción de la generación del nivel de objeto",
+  );
+
+  if (
+    !Number.isInteger(configuracionNivel.nivelMinimo) ||
+    configuracionNivel.nivelMinimo < 1
+  ) {
+    throw new Error(
+      "El nivel mínimo de los objetos debe ser un entero mayor o igual que uno.",
+    );
+  }
+
+  if (
+    !Array.isArray(configuracionNivel.distribucion) ||
+    configuracionNivel.distribucion.length === 0
+  ) {
+    throw new Error(
+      "La generación del nivel de objeto necesita una distribución.",
+    );
+  }
+
+  const desplazamientos = new Set();
+
+  for (const entrada of configuracionNivel.distribucion) {
+    validarObjetoConfiguracion({
+      valor: entrada,
+
+      descripcion: "Una entrada de la distribución del nivel de objeto",
+    });
+
+    if (!Number.isInteger(entrada.desplazamiento)) {
+      throw new Error("Cada desplazamiento de nivel debe ser un entero.");
+    }
+
+    if (desplazamientos.has(entrada.desplazamiento)) {
+      throw new Error(
+        `La distribución del nivel repite el desplazamiento ` +
+          `${entrada.desplazamiento}.`,
+      );
+    }
+
+    desplazamientos.add(entrada.desplazamiento);
+
+    validarEnteroPositivo(
+      entrada.peso,
+      `peso del desplazamiento ${entrada.desplazamiento}`,
+    );
+  }
+
+  validarListaTextos({
+    lista: configuracionNivel.notasDiseno ?? [],
+
+    descripcion: "notas de diseño de la generación del nivel de objeto",
+
+    permitirVacia: true,
+  });
+}
+
+function validarDistribucionCantidadAfijos({ idRareza, rareza }) {
+  const distribucion = rareza.distribucionCantidadAfijos;
+
+  if (!Array.isArray(distribucion) || distribucion.length === 0) {
+    throw new Error(
+      `La rareza "${idRareza}" necesita una distribución ` +
+        "de cantidad de afijos.",
+    );
+  }
+
+  const cantidades = new Set();
+
+  for (const entrada of distribucion) {
+    validarObjetoConfiguracion({
+      valor: entrada,
+
+      descripcion: `Una cantidad de afijos de la rareza "${idRareza}"`,
+    });
+
+    if (
+      !Number.isInteger(entrada.cantidad) ||
+      entrada.cantidad < rareza.afijosMinimos ||
+      entrada.cantidad > rareza.afijosMaximos
+    ) {
+      throw new Error(
+        `La rareza "${idRareza}" contiene la cantidad de afijos ` +
+          `inválida ${entrada.cantidad}.`,
+      );
+    }
+
+    if (cantidades.has(entrada.cantidad)) {
+      throw new Error(
+        `La rareza "${idRareza}" repite la cantidad ` +
+          `${entrada.cantidad} en su distribución.`,
+      );
+    }
+
+    cantidades.add(entrada.cantidad);
+
+    validarEnteroPositivo(
+      entrada.peso,
+      `peso de ${entrada.cantidad} afijos en la rareza "${idRareza}"`,
+    );
+  }
+
+  if (
+    rareza.generaAfijosAleatorios !== true &&
+    (distribucion.length !== 1 || distribucion[0].cantidad !== 0)
+  ) {
+    throw new Error(
+      `La rareza "${idRareza}" no genera afijos aleatorios ` +
+        "y solamente puede configurar la cantidad cero.",
+    );
+  }
 }
 
 function validarCatalogoRarezas(rarezas) {
@@ -142,13 +274,6 @@ function validarCatalogoRarezas(rarezas) {
       rareza.pesoBase,
       `peso base de la rareza "${idRareza}"`,
     );
-
-    if (rareza.estado === "activo" && rareza.pesoBase <= 0) {
-      throw new Error(
-        `La rareza activa "${idRareza}" ` +
-          "necesita un peso base mayor que cero.",
-      );
-    }
 
     if (typeof rareza.generaAfijosAleatorios !== "boolean") {
       throw new Error(
@@ -200,6 +325,25 @@ function validarCatalogoRarezas(rarezas) {
           "debe ser un entero mayor o igual que uno.",
       );
     }
+
+    validarDistribucionCantidadAfijos({
+      idRareza,
+      rareza,
+    });
+  }
+
+  const pesoTotalRarezasActivas = Object.values(rarezas)
+    .filter((rareza) => rareza.estado === "activo")
+    .reduce(
+      (total, rareza) => total + rareza.pesoBase,
+
+      0,
+    );
+
+  if (pesoTotalRarezasActivas <= 0) {
+    throw new Error(
+      "Las rarezas activas necesitan un peso total mayor que cero.",
+    );
   }
 
   if (rarezas.comun?.estado !== "activo") {
@@ -260,6 +404,15 @@ function validarCatalogoAfijos({
     validarTexto(afijo.motivoEstado, `motivo de estado del afijo "${idAfijo}"`);
 
     validarTexto(afijo.descripcion, `descripción del afijo "${idAfijo}"`);
+
+    validarEnteroNoNegativo(afijo.pesoBase, `peso base del afijo "${idAfijo}"`);
+
+    if (afijo.estado === "activo" && afijo.pesoBase <= 0) {
+      throw new Error(
+        `El afijo activo "${idAfijo}" necesita ` +
+          "un peso base mayor que cero.",
+      );
+    }
 
     validarListaTextos({
       lista: afijo.requiere,
@@ -613,6 +766,14 @@ function validarListaTextos({ lista, descripcion, permitirVacia }) {
     }
 
     normalizados.add(normalizado);
+  }
+}
+
+function validarEnteroPositivo(valor, descripcion) {
+  if (!Number.isInteger(valor) || valor <= 0) {
+    throw new Error(
+      `El campo ${descripcion} debe ser un entero mayor que cero.`,
+    );
   }
 }
 

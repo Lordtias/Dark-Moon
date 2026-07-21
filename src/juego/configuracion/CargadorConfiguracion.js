@@ -18,6 +18,9 @@ const RUTA_MAPAS = "./src/config/mapas/Mapas.json";
 // - Las plantillas definen la base de cada objeto.
 // - Las rarezas definen cuántos afijos puede recibir.
 // - Los afijos definen mejoras posibles y sus grados.
+const RUTA_REGLAS_GENERACION_OBJETOS =
+  "./src/config/objetos/GeneracionObjetos.json";
+
 const RUTA_RAREZAS_OBJETOS = "./src/config/objetos/Rarezas.json";
 
 const RUTA_PREFIJOS_OBJETOS = "./src/config/objetos/afijos/Prefijos.json";
@@ -139,13 +142,21 @@ export async function cargarConfiguracionObjetos() {
   return combinarCatalogosObjetos(catalogosCargados);
 }
 
-// Carga y valida los catálogos que controlarán
+// Carga y valida todas las reglas que controlan
 // la generación aleatoria de objetos.
 //
-// En esta primera etapa la configuración se valida
-// durante el inicio, pero todavía no modifica drops.
+// La configuración queda separada en:
+//
+// - Reglas generales de nivel.
+// - Rarezas y cantidad de afijos.
+// - Prefijos y sufijos disponibles.
 export async function cargarConfiguracionGeneracionObjetos() {
-  const [rarezas, prefijos, sufijos] = await Promise.all([
+  const [reglas, rarezas, prefijos, sufijos] = await Promise.all([
+    cargarArchivoJson(
+      RUTA_REGLAS_GENERACION_OBJETOS,
+      "las reglas generales de generación de objetos",
+    ),
+
     cargarArchivoJson(
       RUTA_RAREZAS_OBJETOS,
       "el catálogo de rarezas de objetos",
@@ -163,6 +174,7 @@ export async function cargarConfiguracionGeneracionObjetos() {
   ]);
 
   return validarConfiguracionGeneracionObjetos({
+    reglas,
     rarezas,
     prefijos,
     sufijos,

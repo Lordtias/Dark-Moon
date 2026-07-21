@@ -1,0 +1,25 @@
+{
+  "nivelObjeto": {
+    "descripcion": "Distribución del nivel de una instancia respecto al nivel base de la fuente que entrega el botín.",
+    "nivelMinimo": 1,
+    "distribucion": [
+      {
+        "desplazamiento": -1,
+        "peso": 20
+      },
+      {
+        "desplazamiento": 0,
+        "peso": 70
+      },
+      {
+        "desplazamiento": 1,
+        "peso": 10
+      }
+    ],
+    "notasDiseno": [
+      "Cuando varios desplazamientos terminan en el nivel mínimo, sus pesos se acumulan.",
+      "El nivel del objeto habilita grados de afijos, pero no modifica automáticamente las propiedades base de la plantilla.",
+      "Las futuras bases de equipamiento podrán declarar su propio nivel mínimo sin cambiar esta distribución."
+    ]
+  }
+}

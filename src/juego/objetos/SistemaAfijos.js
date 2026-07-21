@@ -80,10 +80,20 @@ export function generarAfijosObjeto({
     );
   }
 
-  // Rarezas.json define mínimos y máximos, pero todavía no pesos
-  // por cantidad. Por ahora cada cantidad del rango es equiprobable.
-  // En Mágico, 1 y 2 afijos tienen inicialmente 50 % cada uno.
-  const cantidadObjetivo = aleatorio.entero(minimo, maximo);
+  // La cantidad final se selecciona mediante
+  // la distribución configurada dentro de la rareza.
+  //
+  // Para Mágico, la configuración inicial utiliza:
+  //
+  // - Un afijo: peso 60.
+  // - Dos afijos: peso 40.
+  const cantidadObjetivo = seleccionarCantidadAfijos({
+    idRareza,
+    configuracionRareza,
+    minimo,
+    maximo,
+    aleatorio,
+  });
   const prefijos = [];
   const sufijos = [];
   const idsSeleccionados = new Set();
@@ -114,32 +124,41 @@ export function generarAfijosObjeto({
           })
         : [];
 
-    const tiposDisponibles = [];
-    if (prefijosDisponibles.length > 0) tiposDisponibles.push("prefijo");
-    if (sufijosDisponibles.length > 0) tiposDisponibles.push("sufijo");
+    const opciones = [...prefijosDisponibles, ...sufijosDisponibles];
 
-    if (tiposDisponibles.length === 0) {
+    if (opciones.length === 0) {
       throw new Error(
         `No quedan afijos compatibles para completar ` +
           `la rareza "${idRareza}".`,
       );
     }
 
-    const tipo = aleatorio.elegir(tiposDisponibles);
-    const opciones =
-      tipo === "prefijo" ? prefijosDisponibles : sufijosDisponibles;
+    // Cada familia declara su peso dentro del propio catálogo.
+    //
+    // La selección se realiza sobre el conjunto completo de
+    // prefijos y sufijos que todavía tienen espacio disponible.
+    const seleccion = seleccionarEntradaPonderada({
+      entradas: opciones,
 
-    // Las familias todavía no tienen un peso propio en el JSON.
-    // Todas las familias compatibles son equiprobables.
-    const seleccion = aleatorio.elegir(opciones);
+      obtenerPeso: (opcion) => opcion.configuracion.pesoBase,
+
+      aleatorio,
+
+      descripcion: `un afijo para la rareza "${idRareza}"`,
+    });
+
     const generado = generarInstanciaAfijo({
       afijoSeleccionado: seleccion,
+
       nivelObjeto,
       aleatorio,
     });
 
-    if (tipo === "prefijo") prefijos.push(generado);
-    else sufijos.push(generado);
+    if (generado.tipoAfijo === "prefijo") {
+      prefijos.push(generado);
+    } else {
+      sufijos.push(generado);
+    }
 
     idsSeleccionados.add(generado.id);
     if (generado.grupoExclusion) {
@@ -148,6 +167,38 @@ export function generarAfijosObjeto({
   }
 
   return { prefijos, sufijos };
+}
+
+function seleccionarCantidadAfijos({
+  idRareza,
+  configuracionRareza,
+  minimo,
+  maximo,
+  aleatorio,
+}) {
+  const opciones = configuracionRareza.distribucionCantidadAfijos.filter(
+    (entrada) =>
+      entrada.cantidad >= minimo &&
+      entrada.cantidad <= maximo &&
+      entrada.peso > 0,
+  );
+
+  if (opciones.length === 0) {
+    throw new Error(
+      `La rareza "${idRareza}" no tiene una cantidad de afijos ` +
+        `configurada entre ${minimo} y ${maximo}.`,
+    );
+  }
+
+  return seleccionarEntradaPonderada({
+    entradas: opciones,
+
+    obtenerPeso: (entrada) => entrada.peso,
+
+    aleatorio,
+
+    descripcion: `una cantidad de afijos para la rareza "${idRareza}"`,
+  }).cantidad;
 }
 
 // Aplica sobre una copia de las propiedades base los valores
@@ -244,7 +295,11 @@ function esAfijoCompatible({
   idsSeleccionados,
   gruposSeleccionados,
 }) {
-  if (afijo.estado !== ESTADO_ACTIVO || idsSeleccionados.has(idAfijo)) {
+  if (
+    afijo.estado !== ESTADO_ACTIVO ||
+    afijo.pesoBase <= 0 ||
+    idsSeleccionados.has(idAfijo)
+  ) {
     return false;
   }
 
@@ -407,8 +462,7 @@ function validarAleatorio(aleatorio) {
   if (
     !aleatorio ||
     typeof aleatorio.siguiente !== "function" ||
-    typeof aleatorio.entero !== "function" ||
-    typeof aleatorio.elegir !== "function"
+    typeof aleatorio.entero !== "function"
   ) {
     throw new Error(
       "Se necesita un generador aleatorio válido para crear afijos.",

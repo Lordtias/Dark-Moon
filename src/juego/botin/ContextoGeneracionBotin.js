@@ -99,7 +99,7 @@ function validarConfiguracionGeneracion(configuracion) {
     );
   }
 
-  for (const nombreCatalogo of ["rarezas", "prefijos", "sufijos"]) {
+  for (const nombreCatalogo of ["reglas", "rarezas", "prefijos", "sufijos"]) {
     const catalogo = configuracion[nombreCatalogo];
 
     if (

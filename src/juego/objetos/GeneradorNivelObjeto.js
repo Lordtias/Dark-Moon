@@ -1,55 +1,38 @@
 import { seleccionarEntradaPonderada } from "./GeneradorRarezaObjeto.js";
 
-// Distribución inicial del nivel de un objeto
-// respecto al nivel base de su fuente.
+// Genera el nivel de una instancia mediante
+// la distribución declarada en GeneracionObjetos.json.
 //
-// Ejemplo con una fuente de nivel 2:
+// Ejemplo con una fuente de nivel 2 y la configuración inicial:
 //
-// - Nivel 1: 20 %.
-// - Nivel 2: 70 %.
-// - Nivel 3: 10 %.
-//
-// En nivel base 1, el resultado inferior se limita
-// a nivel 1 y ambos pesos se acumulan:
-//
-// - Nivel 1: 90 %.
-// - Nivel 2: 10 %.
-const DISTRIBUCION_NIVEL_OBJETO = Object.freeze([
-  Object.freeze({
-    desplazamiento: -1,
-
-    peso: 20,
-  }),
-
-  Object.freeze({
-    desplazamiento: 0,
-
-    peso: 70,
-  }),
-
-  Object.freeze({
-    desplazamiento: 1,
-
-    peso: 10,
-  }),
-]);
-
-// Genera el nivel de una instancia de objeto
-// mediante una selección ponderada reproducible.
-export function generarNivelObjeto({ nivelBase, aleatorio } = {}) {
+// - Nivel 1: peso 20.
+// - Nivel 2: peso 70.
+// - Nivel 3: peso 10.
+export function generarNivelObjeto({
+  nivelBase,
+  configuracionNivelObjeto,
+  aleatorio,
+} = {}) {
   validarNivel(nivelBase, "nivel base del objeto");
+
+  validarConfiguracionNivel(configuracionNivelObjeto);
 
   validarAleatorio(aleatorio);
 
-  // Al limitar el nivel mínimo a 1 pueden aparecer
-  // dos entradas con el mismo nivel.
+  // Al aplicar el nivel mínimo pueden aparecer
+  // varias entradas con el mismo resultado.
   //
-  // Acumulamos sus pesos antes de seleccionar.
+  // Ejemplo en nivel base 1:
+  //
+  // - Desplazamiento -1 termina en nivel 1.
+  // - Desplazamiento 0 también termina en nivel 1.
+  //
+  // Sus pesos se acumulan antes de seleccionar.
   const pesosPorNivel = new Map();
 
-  for (const entrada of DISTRIBUCION_NIVEL_OBJETO) {
+  for (const entrada of configuracionNivelObjeto.distribucion) {
     const nivel = Math.max(
-      1,
+      configuracionNivelObjeto.nivelMinimo,
 
       nivelBase + entrada.desplazamiento,
     );
@@ -104,6 +87,22 @@ export function obtenerNivelBaseObjeto({ fuente, nivelMapa = 1 } = {}) {
   validarNivel(fuente.nivel, `nivel de ${fuente.nombre ?? "la fuente"}`);
 
   return fuente.nivel;
+}
+
+function validarConfiguracionNivel(configuracion) {
+  if (
+    configuracion === null ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion) ||
+    !Number.isInteger(configuracion.nivelMinimo) ||
+    configuracion.nivelMinimo < 1 ||
+    !Array.isArray(configuracion.distribucion) ||
+    configuracion.distribucion.length === 0
+  ) {
+    throw new Error(
+      "Se necesita una configuración válida para generar el nivel del objeto.",
+    );
+  }
 }
 
 function validarNivel(nivel, descripcion) {

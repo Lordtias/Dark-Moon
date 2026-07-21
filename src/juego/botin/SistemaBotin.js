@@ -2,7 +2,14 @@ import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
 
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 
-import { crearObjeto } from "../../objetos/FabricaObjetos.js";
+import { crearObjetoGenerado } from "../objetos/GeneradorObjetoAleatorio.js";
+
+import {
+  generarNivelObjeto,
+  obtenerNivelBaseObjeto,
+} from "../objetos/GeneradorNivelObjeto.js";
+
+import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 
 // La ventana de botín queda visualmente más estable
 // cuando conserva algunas posiciones disponibles.
@@ -35,17 +42,37 @@ export function generarBotinEnSuelo({
 
   validarConfiguracionObjetos(configuracionObjetos);
 
-  validarGeneradorAleatorio(aleatorio);
+  validarGeneradorAleatorioBotin(aleatorio);
 
   if (!Array.isArray(interactuables)) {
     throw new Error("Los interactuables deben estar dentro de una lista.");
   }
 
+  const contextoGeneracion = obtenerContextoGeneracionBotin();
+
+  const nivelBaseObjeto = obtenerNivelBaseObjeto({
+    fuente,
+
+    nivelMapa: contextoGeneracion.nivelMapa,
+  });
+
   const resultadoTabla = resolverTablaBotin({
     tablaBotin: fuente.tablaBotin,
 
     configuracionObjetos,
-    aleatorio,
+
+    configuracionGeneracionObjetos:
+      contextoGeneracion.configuracionGeneracionObjetos,
+
+    // Esta secuencia conserva exactamente
+    // las tiradas tradicionales de la tabla.
+    aleatorioBotin: aleatorio,
+
+    // Esta segunda secuencia se utiliza
+    // solamente para construir las instancias.
+    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
+
+    nivelBaseObjeto,
   });
 
   // Una tabla puede no entregar ningún objeto.
@@ -93,7 +120,10 @@ export function generarBotinEnSuelo({
 export function resolverTablaBotin({
   tablaBotin,
   configuracionObjetos,
-  aleatorio,
+  configuracionGeneracionObjetos,
+  aleatorioBotin,
+  aleatorioObjetos,
+  nivelBaseObjeto = 1,
 } = {}) {
   if (!Array.isArray(tablaBotin)) {
     throw new Error("La tabla de botín debe ser una lista.");
@@ -101,9 +131,20 @@ export function resolverTablaBotin({
 
   validarConfiguracionObjetos(configuracionObjetos);
 
-  validarGeneradorAleatorio(aleatorio);
+  validarConfiguracionGeneracionObjetos(configuracionGeneracionObjetos);
+
+  validarGeneradorAleatorioBotin(aleatorioBotin);
+
+  validarGeneradorAleatorioObjetos(aleatorioObjetos);
+
+  if (!Number.isInteger(nivelBaseObjeto) || nivelBaseObjeto < 1) {
+    throw new Error(
+      "El nivel base del botín debe ser un entero mayor o igual que 1.",
+    );
+  }
 
   const objetosGenerados = [];
+
   const resultadosTiradas = [];
 
   tablaBotin.forEach((entrada, indice) => {
@@ -118,7 +159,7 @@ export function resolverTablaBotin({
     //
     // Esto mantiene una secuencia pseudoaleatoria
     // consistente y fácil de reproducir.
-    const tirada = aleatorio.siguiente() * 100;
+    const tirada = aleatorioBotin.siguiente() * 100;
 
     const exito = tirada < normalizada.probabilidad;
 
@@ -133,12 +174,14 @@ export function resolverTablaBotin({
         cantidad: 0,
 
         cantidadPilas: 0,
+
+        objetos: [],
       });
 
       return;
     }
 
-    const cantidad = aleatorio.entero(
+    const cantidad = aleatorioBotin.entero(
       normalizada.cantidadMinima,
 
       normalizada.cantidadMaxima,
@@ -146,10 +189,15 @@ export function resolverTablaBotin({
 
     const objetosEntrada = crearObjetosParaCantidad({
       configuracionObjetos,
+      configuracionGeneracionObjetos,
 
       idObjeto: normalizada.idObjeto,
 
       cantidadTotal: cantidad,
+
+      nivelBaseObjeto,
+
+      aleatorioObjetos,
     });
 
     objetosGenerados.push(...objetosEntrada);
@@ -164,6 +212,10 @@ export function resolverTablaBotin({
       cantidad,
 
       cantidadPilas: objetosEntrada.length,
+
+      // Este detalle permite revisar la
+      // integración desde la consola.
+      objetos: objetosEntrada.map(crearDetalleObjetoGenerado),
     });
   });
 
@@ -186,6 +238,7 @@ export function resolverTablaBotin({
 
     cantidadUnidades: resumen.reduce(
       (total, entrada) => total + entrada.cantidad,
+
       0,
     ),
   };
@@ -194,16 +247,19 @@ export function resolverTablaBotin({
 // Crea tantas pilas como sean necesarias
 // para representar la cantidad obtenida.
 //
-// Ejemplo:
+// Los objetos no apilables realizan una generación
+// independiente por unidad. Dos dagas de una misma
+// entrada pueden obtener niveles, rarezas y afijos distintos.
 //
-// 65 flechas con máximo 50:
-//
-// - Pila de 50.
-// - Pila de 15.
+// Los apilables comparten una única tirada de nivel
+// porque su nivel no altera actualmente su comportamiento.
 function crearObjetosParaCantidad({
   configuracionObjetos,
+  configuracionGeneracionObjetos,
   idObjeto,
   cantidadTotal,
+  nivelBaseObjeto,
+  aleatorioObjetos,
 }) {
   const plantilla = configuracionObjetos[idObjeto];
 
@@ -219,16 +275,56 @@ function crearObjetosParaCantidad({
 
   const objetos = [];
 
+  if (!apilable) {
+    for (let indice = 0; indice < cantidadTotal; indice++) {
+      const nivelObjeto = generarNivelObjeto({
+        nivelBase: nivelBaseObjeto,
+
+        aleatorio: aleatorioObjetos,
+      });
+
+      objetos.push(
+        crearObjetoGenerado({
+          configuracionObjetos,
+          configuracionGeneracionObjetos,
+
+          idObjeto,
+
+          cantidad: 1,
+
+          nivelObjeto,
+
+          aleatorio: aleatorioObjetos,
+        }),
+      );
+    }
+
+    return objetos;
+  }
+
+  const nivelObjeto = generarNivelObjeto({
+    nivelBase: nivelBaseObjeto,
+
+    aleatorio: aleatorioObjetos,
+  });
+
   let cantidadRestante = cantidadTotal;
 
   while (cantidadRestante > 0) {
     const cantidadPila = Math.min(cantidadRestante, cantidadMaxima);
 
     objetos.push(
-      crearObjeto({
+      crearObjetoGenerado({
         configuracionObjetos,
+        configuracionGeneracionObjetos,
+
         idObjeto,
+
         cantidad: cantidadPila,
+
+        nivelObjeto,
+
+        aleatorio: aleatorioObjetos,
       }),
     );
 
@@ -241,8 +337,14 @@ function crearObjetosParaCantidad({
 // Mantiene una sola pila mientras exista
 // espacio disponible para objetos compatibles.
 //
-// Los objetos no apilables se conservan
-// como instancias independientes.
+// En la etapa actual solamente se apilan:
+//
+// - Materiales.
+// - Municiones.
+// - Consumibles.
+//
+// Estas categorías permanecen comunes y sin afijos,
+// por lo que su nivel no modifica la compatibilidad.
 function consolidarPilasCompatibles(objetos) {
   if (!Array.isArray(objetos)) {
     throw new Error("Los objetos de botín deben estar dentro de una lista.");
@@ -302,7 +404,10 @@ function sonPilasCompatibles(objetoA, objetoB) {
     objetoA.apilable === true &&
     objetoB.apilable === true &&
     objetoA.id === objetoB.id &&
-    objetoA.cantidadMaxima === objetoB.cantidadMaxima
+    objetoA.cantidadMaxima === objetoB.cantidadMaxima &&
+    objetoA.rareza === objetoB.rareza &&
+    objetoA.cantidadAfijos === 0 &&
+    objetoB.cantidadAfijos === 0
   );
 }
 
@@ -368,34 +473,94 @@ function crearOActualizarBotinSuelo({ x, y, objetosNuevos, interactuables }) {
 // Agrupa los objetos generados para construir
 // mensajes claros en el registro.
 //
-// Varias pilas de flechas aparecerían como
-// una sola línea con su cantidad total.
+// Los objetos mágicos con tiradas diferentes
+// se mantienen como entradas independientes.
 function crearResumenObjetos(objetos) {
-  const resumenPorId = new Map();
+  const resumenPorFirma = new Map();
 
   for (const objeto of objetos) {
     const cantidad = objeto.apilable ? objeto.cantidad : 1;
 
-    if (!resumenPorId.has(objeto.id)) {
-      resumenPorId.set(objeto.id, {
+    const firma = crearFirmaObjeto(objeto);
+
+    if (!resumenPorFirma.has(firma)) {
+      resumenPorFirma.set(firma, {
         idObjeto: objeto.id,
 
-        nombre: objeto.nombre,
+        nombre: crearNombreResumenObjeto(objeto),
 
         cantidad: 0,
+
+        rareza: objeto.rareza,
+
+        nivelObjeto: objeto.nivelObjeto,
+
+        afijos: objeto.afijos,
       });
     }
 
-    resumenPorId.get(objeto.id).cantidad += cantidad;
+    resumenPorFirma.get(firma).cantidad += cantidad;
   }
 
-  return [...resumenPorId.values()];
+  return [...resumenPorFirma.values()];
+}
+
+function crearFirmaObjeto(objeto) {
+  const firmaAfijos = objeto.afijos
+    .map((afijo) =>
+      [
+        afijo.tipoAfijo,
+        afijo.id,
+        afijo.grado,
+        JSON.stringify(afijo.valores),
+      ].join(":"),
+    )
+    .join("|");
+
+  return [objeto.id, objeto.rareza, objeto.nivelObjeto, firmaAfijos].join("::");
+}
+
+function crearNombreResumenObjeto(objeto) {
+  if (objeto.rareza === "comun") {
+    return objeto.nombre;
+  }
+
+  return (
+    `${objeto.nombre} [` +
+    `${formatearRareza(objeto.rareza)}, nivel ${objeto.nivelObjeto}]`
+  );
+}
+
+function formatearRareza(rareza) {
+  if (typeof rareza !== "string" || rareza.trim() === "") {
+    return "Sin rareza";
+  }
+
+  const normalizada = rareza.trim().toLowerCase();
+
+  return normalizada.charAt(0).toUpperCase() + normalizada.slice(1);
 }
 
 function crearResumenTexto(resumen) {
   return resumen
     .map((entrada) => `${entrada.cantidad} ` + `${entrada.nombre}`)
     .join(", ");
+}
+
+function crearDetalleObjetoGenerado(objeto) {
+  return {
+    idObjeto: objeto.id,
+
+    nombre: objeto.nombre,
+
+    rareza: objeto.rareza,
+
+    nivelObjeto: objeto.nivelObjeto,
+
+    prefijos: objeto.prefijos.map((afijo) => afijo.nombre),
+
+    sufijos: objeto.sufijos.map((afijo) => afijo.nombre),
+  };
 }
 
 function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
@@ -420,7 +585,7 @@ function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
 
   if (!configuracionObjetos[idObjeto]) {
     throw new Error(
-      `La tabla de botín referencia el objeto inexistente ` + `"${idObjeto}".`,
+      "La tabla de botín referencia el objeto inexistente " + `"${idObjeto}".`,
     );
   }
 
@@ -481,12 +646,42 @@ function validarConfiguracionObjetos(configuracionObjetos) {
   }
 }
 
-function validarGeneradorAleatorio(aleatorio) {
+function validarConfiguracionGeneracionObjetos(configuracion) {
+  if (
+    configuracion === null ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion) ||
+    !configuracion.rarezas ||
+    !configuracion.prefijos ||
+    !configuracion.sufijos
+  ) {
+    throw new Error(
+      "Se necesita una configuración válida de rarezas y afijos.",
+    );
+  }
+}
+
+function validarGeneradorAleatorioBotin(aleatorio) {
   if (
     !aleatorio ||
     typeof aleatorio.siguiente !== "function" ||
     typeof aleatorio.entero !== "function"
   ) {
-    throw new Error("Se necesita un generador aleatorio válido para el botín.");
+    throw new Error(
+      "Se necesita un generador aleatorio válido para la tabla de botín.",
+    );
+  }
+}
+
+function validarGeneradorAleatorioObjetos(aleatorio) {
+  if (
+    !aleatorio ||
+    typeof aleatorio.siguiente !== "function" ||
+    typeof aleatorio.entero !== "function" ||
+    typeof aleatorio.elegir !== "function"
+  ) {
+    throw new Error(
+      "Se necesita un generador aleatorio válido para crear los objetos del botín.",
+    );
   }
 }

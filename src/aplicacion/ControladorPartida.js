@@ -15,6 +15,8 @@ import { ControladorInteracciones } from "../controles/ControladorInteracciones.
 
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 
+import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGeneracionBotin.js";
+
 // Coordina la creación y activación
 // de una partida completa.
 export class ControladorPartida {
@@ -48,6 +50,7 @@ export class ControladorPartida {
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionGeneracionObjetos,
     configuracionMapas,
   } = {}) {
     if (this.partidaIniciada) {
@@ -68,6 +71,23 @@ export class ControladorPartida {
       idMapaForzado: parametrosPrueba.idMapaForzado,
 
       botinPrueba: parametrosPrueba.botinPrueba,
+    });
+
+    const generacionMapa =
+      configuracionInicial.mapaSeleccionado.generacionActual;
+
+    // Preparamos una secuencia dedicada a la generación
+    // de niveles, rarezas y afijos de los drops.
+    //
+    // Cuando se incorporen entradas y salidas,
+    // deberá repetirse esta configuración al crear
+    // cada mapa nuevo.
+    configurarContextoGeneracionBotin({
+      configuracionGeneracionObjetos,
+
+      semillaMapa: generacionMapa.semilla,
+
+      nivelMapa: generacionMapa.nivelMapa,
     });
 
     const {
@@ -92,14 +112,13 @@ export class ControladorPartida {
       filas: cantidadFilas,
     });
 
-    // Juego recibe también el catálogo combinado.
+    // Juego continúa recibiendo el catálogo combinado
+    // necesario para resolver los IDs de las tablas.
     //
-    // De esta forma puede convertir los IDs
-    // de las tablas de botín en objetos reales
-    // sin conocer los archivos JSON individuales.
+    // La configuración de rarezas queda administrada
+    // por el contexto del mapa activo.
     const juego = new Juego({
       ...configuracionInicial,
-
       configuracionObjetos,
     });
 

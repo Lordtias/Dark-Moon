@@ -1,29 +1,19 @@
 /* =========================================================
-   MODAL DE DETALLE Y COMPARACIÓN DE OBJETOS
+   MODAL DE DETALLE DE OBJETOS
 
-   Este archivo define:
-
-   - La ventana modal de detalle.
-   - La presentación general del objeto.
-   - La tabla comparativa con el objeto equipado.
-   - Los colores de mejora, pérdida y cambio neutral.
-   - Los afijos ganados, perdidos o modificados.
-   - El comportamiento adaptable para pantallas pequeñas.
-   ========================================================= */
-
-/* =========================================================
-   VENTANA MODAL
+   La comparación se integra dentro de las estadísticas normales.
+   No existe una segunda tabla ni se muestra el nombre del objeto
+   equipado, lo que mantiene el modal compacto.
    ========================================================= */
 
 .modal-detalle-objeto {
-  width: min(940px, calc(100vw - 32px));
+  width: min(720px, calc(100vw - 32px));
 
-  max-width: 940px;
+  max-width: 720px;
   max-height: calc(100vh - 32px);
 
   margin: auto;
   padding: 0;
-
   overflow: visible;
 
   border: 2px solid #8a78c9;
@@ -39,24 +29,16 @@
     0 0 0 1px rgba(188, 168, 255, 0.12) inset;
 }
 
-/* Oscurece y desenfoca ligeramente el juego
-   mientras el modal permanece abierto. */
 .modal-detalle-objeto::backdrop {
   background-color: rgba(0, 0, 0, 0.8);
 
   backdrop-filter: blur(2px);
 }
 
-/* Evita que reglas flex o grid hagan visibles
-   elementos marcados mediante el atributo hidden. */
 .modal-detalle-objeto [hidden] {
   display: none !important;
 }
 
-/* Contenedor interno del modal.
-
-   El detalle puede desplazarse verticalmente,
-   pero la barra de acciones permanece visible. */
 .modal-detalle-objeto__contenido {
   position: relative;
 
@@ -74,7 +56,7 @@
 }
 
 /* =========================================================
-   BOTÓN DE CIERRE SUPERIOR
+   CIERRE SUPERIOR
    ========================================================= */
 
 .modal-detalle-objeto__cerrar-superior {
@@ -126,7 +108,7 @@
 }
 
 /* =========================================================
-   DETALLE GENERAL DEL OBJETO
+   DETALLE GENERAL
    ========================================================= */
 
 .detalle-objeto {
@@ -141,7 +123,6 @@
   scrollbar-width: thin;
 }
 
-/* Cabecera compuesta por imagen e identidad. */
 .detalle-objeto__cabecera {
   display: grid;
 
@@ -160,7 +141,7 @@
 }
 
 /* =========================================================
-   IMAGEN DEL OBJETO
+   IMAGEN
    ========================================================= */
 
 .detalle-objeto__imagen-contenedor {
@@ -189,20 +170,16 @@
   height: 82px;
 
   object-fit: contain;
-
   image-rendering: pixelated;
-
   user-select: none;
 }
 
-/* Letra mostrada cuando el objeto todavía
-   no tiene una imagen configurada. */
 .detalle-objeto__imagen-respaldo {
-  display: grid;
-  place-items: center;
-
   width: 70px;
   height: 70px;
+
+  display: grid;
+  place-items: center;
 
   border: 1px solid #6c5f91;
   border-radius: 50%;
@@ -213,12 +190,11 @@
 
   font-size: 32px;
   font-weight: bold;
-
   text-transform: uppercase;
 }
 
 /* =========================================================
-   IDENTIDAD DEL OBJETO
+   IDENTIDAD
    ========================================================= */
 
 .detalle-objeto__identidad {
@@ -254,7 +230,6 @@
 
 .detalle-objeto__cantidad {
   width: fit-content;
-
   padding: 4px 8px;
 
   border: 1px solid #6f6239;
@@ -269,20 +244,12 @@
 }
 
 /* =========================================================
-   ESTADÍSTICAS DEL OBJETO
+   ESTADÍSTICAS Y DIFERENCIAS
    ========================================================= */
 
 .detalle-objeto__estadisticas {
   margin: 18px 0 0;
-  padding: 14px 16px;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(150px, 1fr)
-    minmax(100px, auto);
-
-  gap: 8px 18px;
+  padding: 8px 0;
 
   border: 1px solid #393454;
   border-radius: 6px;
@@ -290,24 +257,92 @@
   background-color: rgba(9, 12, 22, 0.58);
 }
 
-.detalle-objeto__estadisticas dt {
+/* Cada fila tiene únicamente:
+
+   Propiedad | Valor nuevo | Diferencia
+
+   La primera columna ocupa el espacio flexible.
+   Valor y diferencia permanecen juntos a la derecha.
+*/
+.detalle-objeto__estadistica {
+  min-height: 34px;
+  padding: 7px 12px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(130px, 1fr)
+    max-content
+    minmax(0, max-content);
+
+  align-items: center;
+
+  column-gap: 14px;
+
+  border-bottom: 1px solid rgba(71, 65, 95, 0.5);
+}
+
+.detalle-objeto__estadistica:last-child {
+  border-bottom: 0;
+}
+
+.detalle-objeto__estadistica dt,
+.detalle-objeto__estadistica dd {
   margin: 0;
+}
 
+.detalle-objeto__estadistica dt {
   color: #aaa4bd;
-
   line-height: 1.4;
 }
 
-.detalle-objeto__estadisticas dd {
-  margin: 0;
-
+.detalle-objeto__estadistica dd {
   color: #f1edf9;
 
   font-weight: bold;
   line-height: 1.4;
   text-align: right;
 
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+}
+
+.detalle-objeto__estadistica-diferencia {
+  min-width: 0;
+
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.35;
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+.detalle-objeto__estadistica-diferencia--mejora,
+.detalle-objeto__estadistica-diferencia--agregada {
+  color: #7ee787;
+}
+
+.detalle-objeto__estadistica-diferencia--empeora,
+.detalle-objeto__estadistica-diferencia--perdida {
+  color: #ff7b72;
+}
+
+/* Las filas agregadas por una propiedad perdida
+   conservan el mismo bloque visual, sin crear otra tabla. */
+.detalle-objeto__estadistica--perdida {
+  background-color: rgba(212, 63, 63, 0.06);
+}
+
+.detalle-objeto__estadistica--perdida dt {
+  color: #c9a7aa;
+}
+
+.detalle-objeto__estadistica--perdida dd {
+  color: #777184;
+}
+
+.detalle-objeto__estadistica--perdida .detalle-objeto__estadistica-diferencia {
+  color: #ff7b72;
 }
 
 .detalle-objeto__sin-estadisticas {
@@ -315,6 +350,7 @@
   padding: 12px 14px;
 
   border: 1px dashed #47415f;
+
   border-radius: 5px;
 
   color: #8f899f;
@@ -327,353 +363,40 @@
   margin: 16px 0 0;
 
   color: #c9c4d7;
-
   line-height: 1.55;
 
   white-space: pre-line;
 }
 
 /* =========================================================
-   SECCIÓN DE COMPARACIÓN
+   CAMBIOS COMPACTOS DE AFIJOS
    ========================================================= */
 
-.detalle-objeto__comparacion {
-  margin-top: 22px;
-  padding-top: 20px;
-
-  border-top: 1px solid #51486d;
-}
-
-.detalle-objeto__comparacion-titulo {
-  margin: 0 0 14px;
-
-  color: #d8c8ff;
-
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.detalle-objeto__comparacion-mensaje {
-  margin: 0;
-  padding: 12px 14px;
-
-  border: 1px solid #51486d;
-  border-radius: 5px;
-
-  background-color: rgba(49, 42, 77, 0.35);
-
-  color: #c8c1dd;
-
-  line-height: 1.45;
-}
-
-/* =========================================================
-   RESUMEN DEL OBJETO EQUIPADO
-   ========================================================= */
-
-.detalle-objeto__equipado-resumen {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(130px, auto)
-    minmax(140px, 1fr);
-
-  align-items: center;
-
-  gap: 4px 14px;
-
-  border: 1px solid #47415f;
-  border-radius: 6px;
-
-  background: linear-gradient(
-    90deg,
-    rgba(84, 69, 126, 0.2),
-    rgba(17, 20, 34, 0.55)
-  );
-}
-
-.detalle-objeto__equipado-etiqueta {
-  grid-row: 1 / span 2;
-
-  color: #9690a7;
-
-  font-size: 11px;
-  font-weight: bold;
-
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.detalle-objeto__equipado-nombre {
-  min-width: 0;
-
-  color: #f2edff;
-
-  font-size: 15px;
-
-  overflow-wrap: anywhere;
-}
-
-.detalle-objeto__equipado-subtitulo {
-  color: #aaa4bd;
-
-  font-size: 12px;
-
-  overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   TABLA COMPARATIVA
-   ========================================================= */
-
-.detalle-objeto__comparacion-tabla-contenedor {
-  width: 100%;
-
-  overflow-x: auto;
-
-  border: 1px solid #393454;
-  border-radius: 6px;
-
-  background-color: rgba(9, 12, 22, 0.55);
-
-  scrollbar-color: #62568f #171a2a;
-
-  scrollbar-width: thin;
-}
-
-.detalle-objeto__comparacion-tabla {
-  width: 100%;
-  min-width: 660px;
-
-  border-collapse: collapse;
-
-  color: #d6d1df;
-
-  font-size: 12px;
-}
-
-.detalle-objeto__comparacion-tabla th {
+.detalle-objeto__cambios-afijos {
+  margin: 16px 0 0;
   padding: 10px 12px;
 
-  border-bottom: 1px solid #51486d;
+  display: flex;
+  flex-direction: column;
 
-  background-color: rgba(39, 34, 60, 0.92);
-
-  color: #bdb5d4;
-
-  font-size: 11px;
-  text-align: left;
-
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  white-space: nowrap;
-}
-
-.detalle-objeto__comparacion-tabla th:nth-child(2),
-.detalle-objeto__comparacion-tabla th:nth-child(3) {
-  text-align: right;
-}
-
-.detalle-objeto__comparacion-celda {
-  padding: 10px 12px;
-
-  border-bottom: 1px solid rgba(71, 65, 95, 0.66);
-
-  line-height: 1.4;
-  vertical-align: middle;
-}
-
-.detalle-objeto__comparacion-fila:last-child
-  .detalle-objeto__comparacion-celda {
-  border-bottom: 0;
-}
-
-.detalle-objeto__comparacion-celda--propiedad {
-  color: #aaa4bd;
-
-  font-weight: bold;
-}
-
-.detalle-objeto__comparacion-celda--candidato,
-.detalle-objeto__comparacion-celda--equipado {
-  text-align: right;
-
-  white-space: nowrap;
-}
-
-.detalle-objeto__comparacion-celda--candidato {
-  color: #f4f1ff;
-}
-
-.detalle-objeto__comparacion-celda--equipado {
-  color: #aaa4bd;
-}
-
-.detalle-objeto__comparacion-celda--diferencia {
-  font-weight: bold;
-}
-
-/* =========================================================
-   TENDENCIAS DE COMPARACIÓN
-   ========================================================= */
-
-/* Mejora numérica respecto al objeto equipado. */
-.detalle-objeto__comparacion-fila--mejora {
-  background-color: rgba(46, 160, 67, 0.1);
-}
-
-.detalle-objeto__comparacion-fila--mejora
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #63d77a;
-}
-
-.detalle-objeto__comparacion-fila--mejora
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #7ee787;
-}
-
-/* Valor inferior al objeto actualmente equipado. */
-.detalle-objeto__comparacion-fila--empeora {
-  background-color: rgba(212, 63, 63, 0.1);
-}
-
-.detalle-objeto__comparacion-fila--empeora
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #e35d6a;
-}
-
-.detalle-objeto__comparacion-fila--empeora
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #ff7b72;
-}
-
-/* Propiedad con el mismo valor. */
-.detalle-objeto__comparacion-fila--igual {
-  background-color: rgba(151, 157, 166, 0.04);
-}
-
-.detalle-objeto__comparacion-fila--igual
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #666d78;
-}
-
-.detalle-objeto__comparacion-fila--igual
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #8f96a3;
-}
-
-/* Diferencia descriptiva donde el sistema
-   no puede decidir automáticamente cuál opción es mejor. */
-.detalle-objeto__comparacion-fila--neutral {
-  background-color: rgba(210, 153, 34, 0.07);
-}
-
-.detalle-objeto__comparacion-fila--neutral
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #b89042;
-}
-
-.detalle-objeto__comparacion-fila--neutral
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #d6b45f;
-}
-
-/* Propiedad nueva que no existe en el objeto equipado. */
-.detalle-objeto__comparacion-fila--agregada {
-  background-color: rgba(33, 168, 181, 0.09);
-}
-
-.detalle-objeto__comparacion-fila--agregada
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #4ac1cc;
-}
-
-.detalle-objeto__comparacion-fila--agregada
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #65d9e3;
-}
-
-/* Propiedad que dejaría de existir al reemplazar el objeto. */
-.detalle-objeto__comparacion-fila--perdida {
-  background-color: rgba(212, 63, 63, 0.1);
-}
-
-.detalle-objeto__comparacion-fila--perdida
-  .detalle-objeto__comparacion-celda:first-child {
-  border-left: 3px solid #e35d6a;
-}
-
-.detalle-objeto__comparacion-fila--perdida
-  .detalle-objeto__comparacion-celda--diferencia {
-  color: #ff7b72;
-}
-
-/* =========================================================
-   MENSAJES SIN CAMBIOS
-   ========================================================= */
-
-.detalle-objeto__comparacion-sin-cambios {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-
-  border: 1px dashed #47415f;
-  border-radius: 5px;
-
-  color: #8f899f;
-
-  font-size: 12px;
-  font-style: italic;
-  line-height: 1.4;
-}
-
-/* =========================================================
-   COMPARACIÓN DE AFIJOS
-   ========================================================= */
-
-.detalle-objeto__comparacion-afijos {
-  margin-top: 16px;
-  padding: 14px;
+  gap: 7px;
 
   border: 1px solid #393454;
   border-radius: 6px;
 
   background-color: rgba(9, 12, 22, 0.5);
-}
-
-.detalle-objeto__comparacion-afijos-titulo {
-  margin: 0 0 10px;
-
-  color: #beb5d6;
-
-  font-size: 13px;
-
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detalle-objeto__comparacion-afijos-lista {
-  margin: 0;
-  padding: 0;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 8px;
 
   list-style: none;
 }
 
-.detalle-objeto__comparacion-afijo {
-  padding: 9px 11px;
+.detalle-objeto__cambio-afijo {
+  display: grid;
 
-  border-left: 3px solid #686172;
-  border-radius: 3px;
+  grid-template-columns:
+    18px
+    minmax(0, 1fr);
 
-  background-color: rgba(255, 255, 255, 0.025);
+  gap: 7px;
 
   color: #cbc6d5;
 
@@ -683,41 +406,26 @@
   overflow-wrap: anywhere;
 }
 
-/* Afijo que aporta el objeto nuevo. */
-.detalle-objeto__comparacion-afijo--agregado {
-  border-left-color: #63d77a;
-
-  background-color: rgba(46, 160, 67, 0.1);
+.detalle-objeto__cambio-afijo-indicador {
+  text-align: center;
 }
 
-.detalle-objeto__comparacion-afijo--agregado strong {
+.detalle-objeto__cambio-afijo--agregado
+  .detalle-objeto__cambio-afijo-indicador {
   color: #7ee787;
 }
 
-/* Afijo que se perdería al equipar el objeto nuevo. */
-.detalle-objeto__comparacion-afijo--perdido {
-  border-left-color: #e35d6a;
-
-  background-color: rgba(212, 63, 63, 0.1);
-}
-
-.detalle-objeto__comparacion-afijo--perdido strong {
+.detalle-objeto__cambio-afijo--perdido .detalle-objeto__cambio-afijo-indicador {
   color: #ff7b72;
 }
 
-/* Mismo afijo, pero con grado o valores diferentes. */
-.detalle-objeto__comparacion-afijo--modificado {
-  border-left-color: #d0a84d;
-
-  background-color: rgba(210, 153, 34, 0.08);
-}
-
-.detalle-objeto__comparacion-afijo--modificado strong {
+.detalle-objeto__cambio-afijo--modificado
+  .detalle-objeto__cambio-afijo-indicador {
   color: #e3c46f;
 }
 
 /* =========================================================
-   BARRA DE ACCIONES
+   ACCIONES
    ========================================================= */
 
 .modal-detalle-objeto__acciones {
@@ -826,7 +534,6 @@
       minmax(0, 1fr);
 
     gap: 14px;
-
     padding-right: 40px;
   }
 
@@ -851,26 +558,13 @@
     font-size: 20px;
   }
 
-  .detalle-objeto__estadisticas {
+  .detalle-objeto__estadistica {
     grid-template-columns:
-      minmax(120px, 1fr)
-      minmax(90px, auto);
-  }
+      minmax(110px, 1fr)
+      max-content
+      max-content;
 
-  .detalle-objeto__equipado-resumen {
-    grid-template-columns: 1fr;
-
-    gap: 5px;
-  }
-
-  .detalle-objeto__equipado-etiqueta {
-    grid-row: auto;
-  }
-
-  /* La tabla conserva sus columnas completas
-       y permite desplazamiento horizontal. */
-  .detalle-objeto__comparacion-tabla {
-    min-width: 620px;
+    column-gap: 10px;
   }
 }
 
@@ -903,43 +597,28 @@
     align-self: center;
   }
 
-  .detalle-objeto__estadisticas {
-    padding: 12px;
+  .detalle-objeto__estadistica {
+    grid-template-columns:
+      minmax(90px, 1fr)
+      max-content;
 
-    grid-template-columns: 1fr;
-
-    gap: 3px;
+    row-gap: 3px;
   }
 
-  .detalle-objeto__estadisticas dt {
-    margin-top: 7px;
-  }
+  .detalle-objeto__estadistica-diferencia {
+    grid-column: 2;
 
-  .detalle-objeto__estadisticas dt:first-child {
-    margin-top: 0;
-  }
-
-  .detalle-objeto__estadisticas dd {
-    padding-bottom: 5px;
-
-    border-bottom: 1px solid rgba(71, 65, 95, 0.46);
-
-    text-align: left;
-  }
-
-  .detalle-objeto__estadisticas dd:last-child {
-    border-bottom: 0;
+    white-space: normal;
+    text-align: right;
   }
 
   .modal-detalle-objeto__acciones {
     padding: 12px;
-
     justify-content: stretch;
   }
 
   .modal-detalle-objeto__boton {
     min-width: 0;
-
     flex: 1 1 0;
   }
 }
@@ -975,15 +654,10 @@
   .detalle-objeto__estadisticas {
     margin-top: 13px;
   }
-
-  .detalle-objeto__comparacion {
-    margin-top: 16px;
-    padding-top: 15px;
-  }
 }
 
 /* =========================================================
-   ACCESIBILIDAD: MOVIMIENTO REDUCIDO
+   ACCESIBILIDAD
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {

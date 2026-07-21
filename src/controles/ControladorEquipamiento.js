@@ -5,11 +5,9 @@
 // - El modal de objetos.
 // - Las acciones expuestas por Juego.
 //
-// El controlador solamente selecciona referencias
-// y solicita confirmaciones.
-//
-// Las reglas definitivas, validaciones y costes temporales
-// siguen perteneciendo a Juego.
+// El controlador decide qué referencias deben compararse,
+// pero las reglas definitivas, las validaciones y los costes
+// temporales continúan perteneciendo a Juego.
 export class ControladorEquipamiento {
   constructor({
     juego,
@@ -118,9 +116,7 @@ export class ControladorEquipamiento {
   }
 
   // Un clic en el inventario abre primero el detalle.
-  //
-  // La acción real se ejecuta solamente después
-  // de confirmar el botón principal del modal.
+  // La acción real se ejecuta al confirmar el botón principal.
   seleccionarInventario(indiceInventario) {
     const objeto =
       this.juego.player.inventario.obtenerObjetoEn(indiceInventario);
@@ -129,18 +125,17 @@ export class ControladorEquipamiento {
       return;
     }
 
-    const objetoEquipado = objeto.esEquipable
-      ? this.obtenerObjetoEquipadoComparable(objeto)
-      : null;
+    const objetosDesplazados =
+      objeto.esEquipable === true
+        ? this.obtenerObjetosParaComparacion(objeto)
+        : [];
 
     this.modalDetalleObjeto.abrir({
       objeto,
 
       combatiente: this.juego.player,
 
-      objetoEquipado,
-
-      mostrarComparacion: objeto.esEquipable === true,
+      objetosDesplazados,
 
       accion: this.crearAccionInventario({
         objeto,
@@ -152,13 +147,7 @@ export class ControladorEquipamiento {
   // Un clic sobre una ranura equipada abre su detalle
   // antes de permitir devolver el objeto al inventario.
   seleccionarEquipamiento(nombreRanura) {
-    const estados = this.juego.player.equipamiento.obtenerEstadoRanuras();
-
-    const estado = estados[nombreRanura];
-
-    // Una ranura puede contener directamente el objeto
-    // o estar reservada por un objeto de dos manos.
-    const objeto = estado?.objeto ?? estado?.reservadaPor ?? null;
+    const objeto = this.obtenerObjetoVisibleEnRanura(nombreRanura);
 
     if (!objeto) {
       return;
@@ -169,7 +158,7 @@ export class ControladorEquipamiento {
 
       combatiente: this.juego.player,
 
-      mostrarComparacion: false,
+      objetosDesplazados: [],
 
       accion: {
         texto: "Desequipar",
@@ -184,11 +173,6 @@ export class ControladorEquipamiento {
     });
   }
 
-  // Define el texto del botón sin duplicar
-  // las reglas internas de uso del objeto.
-  //
-  // Juego continúa resolviendo qué sucede realmente
-  // cuando el jugador confirma la acción.
   crearAccionInventario({ objeto, indiceInventario }) {
     let texto = null;
 
@@ -200,8 +184,8 @@ export class ControladorEquipamiento {
       texto = "Equipar";
     }
 
-    // Los materiales u objetos sin interacción
-    // pueden inspeccionarse sin mostrar un botón principal.
+    // Los materiales y objetos sin interacción
+    // pueden inspeccionarse sin botón principal.
     if (texto === null) {
       return null;
     }
@@ -218,102 +202,162 @@ export class ControladorEquipamiento {
     };
   }
 
-  // Determina el objeto equipado contra el cual
-  // debe compararse el objeto inspeccionado.
-  obtenerObjetoEquipadoComparable(objeto) {
-    const ranura = this.elegirRanuraAutomatica(objeto);
+  // Devuelve los objetos cuyas estadísticas deben usarse
+  // como referencia visual.
+  //
+  // Esta resolución corrige especialmente dos casos:
+  //
+  // 1. Un arma de una mano se compara con el arma principal
+  //    cuando la secundaria contiene un escudo o un carcaj.
+  //
+  // 2. Un arma de dos manos compara su parte ofensiva con el arma
+  //    principal y también muestra las pérdidas únicas del objeto
+  //    secundario, como Armadura, Bloqueo o sus afijos.
+  obtenerObjetosParaComparacion(objeto) {
+    if (objeto.esArma === true) {
+      return this.obtenerReferenciasArma(objeto);
+    }
+
+    const ranura = this.elegirRanuraGenerica(objeto);
 
     if (!ranura) {
+      return [];
+    }
+
+    const objetoActual = this.obtenerObjetoVisibleEnRanura(ranura);
+
+    return objetoActual ? [objetoActual] : [];
+  }
+
+  obtenerReferenciasArma(objeto) {
+    const armaPrincipal = this.obtenerObjetoVisibleEnRanura("arma");
+
+    const objetoSecundario = this.obtenerObjetoDirectoEnRanura("secundaria");
+
+    const referencias = [];
+
+    // Las armas de dos manos sustituyen la fuente ofensiva principal
+    // y además dejan sin efecto el objeto secundario.
+    if (objeto.bloqueaSecundaria === true) {
+      agregarReferenciaUnica(referencias, armaPrincipal);
+
+      agregarReferenciaUnica(referencias, objetoSecundario);
+
+      return referencias;
+    }
+
+    // Sin arma principal no existe una referencia ofensiva.
+    if (!armaPrincipal) {
+      return referencias;
+    }
+
+    // Si la secundaria contiene otra arma, la comparación se realiza
+    // contra esa arma porque representa la alternativa de doble arma.
+    if (objetoSecundario?.esArma === true) {
+      agregarReferenciaUnica(referencias, objetoSecundario);
+
+      return referencias;
+    }
+
+    // Un escudo, carcaj u objeto utilitario de secundaria
+    // nunca debe utilizarse como referencia ofensiva para una daga,
+    // espada o hacha de una mano.
+    agregarReferenciaUnica(referencias, armaPrincipal);
+
+    return referencias;
+  }
+
+  // Para armaduras, escudos, carcajes, anillos y otros objetos
+  // se mantiene una selección sencilla:
+  //
+  // - Primera ranura compatible libre.
+  // - Si todas están ocupadas, primera ranura compatible.
+  elegirRanuraGenerica(objeto) {
+    const equipamiento = this.juego.player.equipamiento;
+
+    if (!Array.isArray(objeto.ranurasCompatibles)) {
       return null;
     }
 
-    const estados = this.juego.player.equipamiento.obtenerEstadoRanuras();
-
-    const estado = estados[ranura];
-
-    return estado?.objeto ?? estado?.reservadaPor ?? null;
-  }
-
-  // Mantiene la misma prioridad general utilizada
-  // por el equipamiento automático:
-  //
-  // - Arma principal.
-  // - Arma secundaria.
-  // - Reservas producidas por armas de dos manos.
-  // - Primera ranura compatible que esté libre.
-  //
-  // Esta selección solo decide qué objeto mostrar
-  // en la comparación. La acción real sigue siendo
-  // resuelta y validada por Juego.
-  elegirRanuraAutomatica(objeto) {
-    const equipamiento = this.juego.player.equipamiento;
-
-    const compatibles = objeto.ranurasCompatibles.filter((ranura) =>
-      equipamiento.tieneRanura(ranura),
-    );
+    const compatibles = objeto.ranurasCompatibles
+      .map((ranura) => normalizarNombreRanura(ranura))
+      .filter(
+        (ranura) =>
+          typeof equipamiento.tieneRanura !== "function" ||
+          equipamiento.tieneRanura(ranura),
+      );
 
     if (compatibles.length === 0) {
       return null;
     }
 
-    if (compatibles.length === 1) {
-      return compatibles[0];
-    }
-
-    const puedePrincipal = compatibles.includes("arma");
-
-    const puedeSecundaria = compatibles.includes("secundaria");
-
-    // Las armas de una mano pueden ocupar
-    // la mano principal o la secundaria.
-    if (objeto.esArma && puedePrincipal && puedeSecundaria) {
-      const principal = equipamiento.obtenerObjetoEnRanura("arma");
-
-      const secundaria = equipamiento.obtenerObjetoEnRanura("secundaria");
-
-      const secundariaReservada =
-        equipamiento.estaRanuraReservada("secundaria");
-
-      // Sin arma principal, el objeto se equipará allí.
-      //
-      // Si la principal actual bloquea la secundaria,
-      // también debe reemplazarse desde la ranura principal.
-      if (!principal || principal.bloqueaSecundaria) {
-        return "arma";
-      }
-
-      // Cuando la principal es un arma a distancia,
-      // la nueva arma de una mano se dirige a secundaria.
-      if (principal.propiedades?.tipoAtaque === "distancia") {
-        return "secundaria";
-      }
-
-      if (!secundaria && !secundariaReservada) {
-        return "secundaria";
-      }
-
-      // Si ambas manos están ocupadas,
-      // la acción automática reemplaza la secundaria.
-      return "secundaria";
-    }
-
-    // Para objetos compatibles con varias ranuras,
-    // se prioriza la primera que esté realmente libre.
     const ranuraLibre = compatibles.find(
       (ranura) =>
-        equipamiento.obtenerObjetoEnRanura(ranura) === null &&
-        !equipamiento.estaRanuraReservada(ranura),
+        this.obtenerObjetoDirectoEnRanura(ranura) === null &&
+        !this.estaRanuraReservada(ranura),
     );
 
     return ranuraLibre ?? compatibles[0];
   }
 
-  // Muestra el mensaje producido por Juego
-  // y actualiza la interfaz cuando corresponde.
-  //
-  // No dependemos únicamente de "éxito", porque
-  // una acción temporal puede provocar movimiento,
-  // ataques enemigos, regeneración o derrota.
+  // Devuelve el objeto que ocupa directamente la ranura.
+  // No devuelve el objeto que solamente la reserva.
+  obtenerObjetoDirectoEnRanura(nombreRanura) {
+    const estado = this.obtenerEstadoRanura(nombreRanura);
+
+    if (estado) {
+      return estado.objeto ?? null;
+    }
+
+    const equipamiento = this.juego.player.equipamiento;
+
+    if (typeof equipamiento.obtenerObjetoEnRanura === "function") {
+      return equipamiento.obtenerObjetoEnRanura(nombreRanura) ?? null;
+    }
+
+    return null;
+  }
+
+  // Devuelve el objeto visible desde una ranura.
+  // Si la ranura está reservada por un arma de dos manos,
+  // devuelve esa arma para poder abrir su detalle correctamente.
+  obtenerObjetoVisibleEnRanura(nombreRanura) {
+    const estado = this.obtenerEstadoRanura(nombreRanura);
+
+    if (estado) {
+      return estado.objeto ?? estado.reservadaPor ?? null;
+    }
+
+    return this.obtenerObjetoDirectoEnRanura(nombreRanura);
+  }
+
+  obtenerEstadoRanura(nombreRanura) {
+    const equipamiento = this.juego.player.equipamiento;
+
+    if (typeof equipamiento.obtenerEstadoRanuras !== "function") {
+      return null;
+    }
+
+    const estados = equipamiento.obtenerEstadoRanuras();
+
+    return estados?.[normalizarNombreRanura(nombreRanura)] ?? null;
+  }
+
+  estaRanuraReservada(nombreRanura) {
+    const equipamiento = this.juego.player.equipamiento;
+
+    if (typeof equipamiento.estaRanuraReservada === "function") {
+      return equipamiento.estaRanuraReservada(nombreRanura);
+    }
+
+    const estado = this.obtenerEstadoRanura(nombreRanura);
+
+    return estado?.reservadaPor != null;
+  }
+
+  // Muestra el mensaje producido por Juego y actualiza la interfaz.
+  // No dependemos solo de "éxito", porque una acción temporal
+  // también puede provocar ataques enemigos o regeneración.
   procesarResultado(resultado) {
     if (!resultado) {
       return;
@@ -330,4 +374,14 @@ export class ControladorEquipamiento {
       this.renderizador.dibujarJuego(this.juego);
     }
   }
+}
+
+function agregarReferenciaUnica(referencias, objeto) {
+  if (objeto && !referencias.includes(objeto)) {
+    referencias.push(objeto);
+  }
+}
+
+function normalizarNombreRanura(nombreRanura) {
+  return String(nombreRanura).trim().toLowerCase();
 }

@@ -1,20 +1,22 @@
-// Estados visuales que puede producir una comparación.
-// La interfaz puede usar estos valores para mostrar mejoras en verde,
-// pérdidas en rojo y diferencias descriptivas como información neutral.
+// Estados visuales que puede producir una diferencia.
+//
+// La vista utiliza estos valores para aplicar colores sin conocer
+// cómo se calculó cada estadística.
 export const TENDENCIAS_COMPARACION_OBJETO = Object.freeze({
   MEJORA: "mejora",
   EMPEORA: "empeora",
-  IGUAL: "igual",
-  NEUTRAL: "neutral",
   AGREGADA: "agregada",
   PERDIDA: "perdida",
 });
 
-// Reglas para las estadísticas cuyo valor puede compararse numéricamente.
-// Las etiquetas se normalizan sin tildes y en minúsculas antes de buscarlas.
+// Reglas de las estadísticas que pueden compararse de forma objetiva.
+//
+// Las propiedades descriptivas, como Atributo, Tipo de ataque o Patrón,
+// no se califican como mejores o peores porque dependen del contexto.
 const REGLAS_ESTADISTICAS = Object.freeze({
   "dano fisico": {
     tipo: "rangoDanio",
+    unidad: " de daño medio",
   },
 
   precision: {
@@ -29,6 +31,7 @@ const REGLAS_ESTADISTICAS = Object.freeze({
 
   critico: {
     tipo: "critico",
+    unidad: " % crítico",
   },
 
   alcance: {
@@ -57,63 +60,66 @@ const REGLAS_ESTADISTICAS = Object.freeze({
   },
 });
 
-// Crea un modelo de comparación independiente del DOM.
+// Construye una comparación compacta entre el objeto inspeccionado
+// y los objetos que dejarían de aportar estadísticas al equiparlo.
 //
-// Recibe las presentaciones construidas por PresentadorObjeto para poder
-// reutilizar esta lógica en inventario, botín, comerciantes y recompensas.
+// El primer objeto desplazado actúa como referencia principal.
+// Los siguientes solamente agregan propiedades que la referencia
+// principal no tenía.
+//
+// Esto permite mostrar, por ejemplo, la pérdida de Armadura y Bloqueo
+// de un escudo al equipar un arma de dos manos, sin sumar
+// incorrectamente el daño de dos armas distintas.
 export function crearComparacionObjetos({
   presentacionCandidata,
-  presentacionEquipada = null,
-  mismoObjeto = false,
+  presentacionesDesplazadas = [],
 } = {}) {
   validarPresentacionObjeto(presentacionCandidata, "candidata");
 
-  if (presentacionEquipada !== null) {
-    validarPresentacionObjeto(presentacionEquipada, "equipada");
+  if (!Array.isArray(presentacionesDesplazadas)) {
+    throw new Error("Las presentaciones desplazadas deben ser una lista.");
   }
 
-  // No hay nada con qué comparar cuando la ranura está vacía.
-  if (presentacionEquipada === null) {
-    return crearComparacionNoDisponible(
-      "No hay un objeto equipado en la ranura correspondiente.",
-    );
+  for (const presentacion of presentacionesDesplazadas) {
+    validarPresentacionObjeto(presentacion, "desplazada");
   }
 
-  // Comparar una instancia consigo misma solamente agregaría ruido visual.
-  if (mismoObjeto === true) {
-    return crearComparacionNoDisponible(
-      "El objeto inspeccionado ya está equipado.",
-    );
+  if (presentacionesDesplazadas.length === 0) {
+    return crearComparacionVacia();
   }
+
+  const estadisticasReferencia = crearMapaEstadisticasReferencia(
+    presentacionesDesplazadas,
+  );
+
+  const resultadoEstadisticas = compararEstadisticas({
+    estadisticasCandidatas: presentacionCandidata.estadisticas,
+
+    estadisticasReferencia,
+  });
 
   return {
     disponible: true,
-    motivo: "",
 
-    equipado: crearResumenObjeto(presentacionEquipada),
+    diferenciasEstadisticas: resultadoEstadisticas.diferencias,
 
-    filasEstadisticas: compararEstadisticas({
-      estadisticasCandidatas: presentacionCandidata.estadisticas,
-
-      estadisticasEquipadas: presentacionEquipada.estadisticas,
-    }),
+    filasAdicionales: resultadoEstadisticas.filasAdicionales,
 
     cambiosAfijos: compararAfijos({
       afijosCandidatos: presentacionCandidata.afijos,
 
-      afijosEquipados: presentacionEquipada.afijos,
+      afijosDesplazados: presentacionesDesplazadas.flatMap(
+        (presentacion) => presentacion.afijos,
+      ),
     }),
   };
 }
 
-// Devuelve siempre la misma estructura aunque la comparación
-// no pueda mostrarse.
-function crearComparacionNoDisponible(motivo) {
+function crearComparacionVacia() {
   return {
     disponible: false,
-    motivo,
-    equipado: null,
-    filasEstadisticas: [],
+    diferenciasEstadisticas: [],
+    filasAdicionales: [],
 
     cambiosAfijos: {
       agregados: [],
@@ -123,324 +129,293 @@ function crearComparacionNoDisponible(motivo) {
   };
 }
 
-// Crea la información mínima necesaria para identificar
-// visualmente el objeto equipado.
-function crearResumenObjeto(presentacion) {
-  return {
-    nombre: presentacion.nombre,
-    subtitulo: presentacion.subtitulo,
-    nivelObjeto: presentacion.nivelObjeto,
+// Conserva todas las estadísticas del primer objeto desplazado.
+//
+// De los objetos adicionales se incorporan únicamente propiedades
+// nuevas. De esta forma un escudo puede aportar Armadura y Bloqueo
+// a la comparación, pero una segunda arma no duplica Daño físico,
+// Precisión o Crítico de manera matemáticamente incorrecta.
+function crearMapaEstadisticasReferencia(presentaciones) {
+  const mapa = new Map();
 
-    rareza: {
-      ...presentacion.rareza,
-    },
-  };
+  for (const presentacion of presentaciones) {
+    for (const estadistica of presentacion.estadisticas) {
+      const clave = normalizarEtiqueta(estadistica.etiqueta);
+
+      if (!mapa.has(clave)) {
+        mapa.set(clave, estadistica);
+      }
+    }
+  }
+
+  return mapa;
 }
 
-// Compara las estadísticas mostradas por ambas presentaciones.
 function compararEstadisticas({
   estadisticasCandidatas,
-  estadisticasEquipadas,
+  estadisticasReferencia,
 }) {
-  const equipadasPorEtiqueta = new Map(
-    estadisticasEquipadas.map((estadistica) => [
-      normalizarEtiqueta(estadistica.etiqueta),
+  const diferencias = [];
+  const filasAdicionales = [];
+  const clavesCandidatas = new Set();
 
-      estadistica,
-    ]),
-  );
-
-  const etiquetasProcesadas = new Set();
-  const filas = [];
-
-  // Conservamos primero el orden visual del objeto candidato.
   for (const estadisticaCandidata of estadisticasCandidatas) {
     const clave = normalizarEtiqueta(estadisticaCandidata.etiqueta);
 
-    etiquetasProcesadas.add(clave);
+    clavesCandidatas.add(clave);
 
-    const estadisticaEquipada = equipadasPorEtiqueta.get(clave) ?? null;
+    const regla = REGLAS_ESTADISTICAS[clave];
 
-    // La propiedad existe solamente en el objeto candidato.
-    if (estadisticaEquipada === null) {
-      filas.push({
+    // Las propiedades descriptivas no generan una diferencia.
+    if (!regla) {
+      continue;
+    }
+
+    const estadisticaReferencia = estadisticasReferencia.get(clave) ?? null;
+
+    const diferencia = evaluarDiferencia({
+      regla,
+      estadisticaCandidata,
+      estadisticaReferencia,
+    });
+
+    if (diferencia !== null) {
+      diferencias.push({
         etiqueta: estadisticaCandidata.etiqueta,
 
-        valorCandidato: estadisticaCandidata.valor,
-
-        valorEquipado: "—",
-
-        tendencia: TENDENCIAS_COMPARACION_OBJETO.AGREGADA,
-
-        diferencia: "Nueva propiedad",
+        ...diferencia,
       });
-
-      continue;
     }
-
-    filas.push(
-      evaluarEstadistica({
-        clave,
-        estadisticaCandidata,
-        estadisticaEquipada,
-      }),
-    );
   }
 
-  // Las propiedades exclusivas del objeto equipado
-  // se perderían al cambiarlo.
-  for (const estadisticaEquipada of estadisticasEquipadas) {
-    const clave = normalizarEtiqueta(estadisticaEquipada.etiqueta);
-
-    if (etiquetasProcesadas.has(clave)) {
+  // Una propiedad que solo estaba en el equipamiento actual
+  // debe aparecer como una fila compacta con valor nuevo "—".
+  for (const [
+    clave,
+    estadisticaReferencia,
+  ] of estadisticasReferencia.entries()) {
+    if (clavesCandidatas.has(clave)) {
       continue;
     }
 
-    filas.push({
-      etiqueta: estadisticaEquipada.etiqueta,
+    const regla = REGLAS_ESTADISTICAS[clave];
 
-      valorCandidato: "—",
+    if (!regla) {
+      continue;
+    }
 
-      valorEquipado: estadisticaEquipada.valor,
+    const diferencia = evaluarDiferenciaPerdida({
+      regla,
+      estadisticaReferencia,
+    });
 
-      tendencia: TENDENCIAS_COMPARACION_OBJETO.PERDIDA,
+    if (diferencia === null) {
+      continue;
+    }
 
-      diferencia: "Se pierde",
+    filasAdicionales.push({
+      etiqueta: estadisticaReferencia.etiqueta,
+
+      valor: "—",
+
+      ...diferencia,
     });
   }
 
-  return filas;
+  return {
+    diferencias,
+    filasAdicionales,
+  };
 }
 
-// Decide qué regla de comparación corresponde a una estadística.
-function evaluarEstadistica({
-  clave,
+function evaluarDiferencia({
+  regla,
   estadisticaCandidata,
-  estadisticaEquipada,
+  estadisticaReferencia,
 }) {
-  const valorCandidato = String(estadisticaCandidata.valor);
-
-  const valorEquipado = String(estadisticaEquipada.valor);
-
-  // Los textos exactamente iguales no necesitan
-  // ninguna interpretación adicional.
-  if (valorCandidato === valorEquipado) {
-    return crearFilaComparacion({
-      estadisticaCandidata,
-      estadisticaEquipada,
-
-      tendencia: TENDENCIAS_COMPARACION_OBJETO.IGUAL,
-
-      diferencia: "Sin cambios",
-    });
-  }
-
-  const regla = REGLAS_ESTADISTICAS[clave];
-
-  // Patrón, atributo, tipo de ataque y otros textos
-  // se muestran lado a lado sin afirmar automáticamente
-  // que uno sea mejor que otro.
-  if (!regla) {
-    return crearFilaComparacion({
-      estadisticaCandidata,
-      estadisticaEquipada,
-
-      tendencia: TENDENCIAS_COMPARACION_OBJETO.NEUTRAL,
-
-      diferencia: "Diferente",
-    });
-  }
-
   switch (regla.tipo) {
     case "rangoDanio":
       return evaluarRangoDanio({
-        estadisticaCandidata,
-        estadisticaEquipada,
+        valorCandidato: estadisticaCandidata.valor,
+
+        valorReferencia: estadisticaReferencia?.valor ?? null,
+
+        unidad: regla.unidad,
       });
 
     case "critico":
       return evaluarCritico({
-        estadisticaCandidata,
-        estadisticaEquipada,
+        valorCandidato: estadisticaCandidata.valor,
+
+        valorReferencia: estadisticaReferencia?.valor ?? null,
+
+        unidad: regla.unidad,
       });
 
     case "numero":
       return evaluarNumeroSimple({
-        estadisticaCandidata,
-        estadisticaEquipada,
+        valorCandidato: estadisticaCandidata.valor,
+
+        valorReferencia: estadisticaReferencia?.valor ?? null,
+
         unidad: regla.unidad,
       });
 
     default:
-      return crearFilaNeutral({
-        estadisticaCandidata,
-        estadisticaEquipada,
+      return null;
+  }
+}
+
+function evaluarDiferenciaPerdida({ regla, estadisticaReferencia }) {
+  switch (regla.tipo) {
+    case "rangoDanio":
+      return evaluarRangoDanio({
+        valorCandidato: null,
+
+        valorReferencia: estadisticaReferencia.valor,
+
+        unidad: regla.unidad,
       });
+
+    case "critico":
+      return evaluarCritico({
+        valorCandidato: null,
+
+        valorReferencia: estadisticaReferencia.valor,
+
+        unidad: regla.unidad,
+      });
+
+    case "numero":
+      return evaluarNumeroSimple({
+        valorCandidato: null,
+
+        valorReferencia: estadisticaReferencia.valor,
+
+        unidad: regla.unidad,
+      });
+
+    default:
+      return null;
   }
 }
 
-// Compara dos rangos de daño utilizando su promedio.
-function evaluarRangoDanio({ estadisticaCandidata, estadisticaEquipada }) {
-  const numerosCandidato = extraerNumeros(estadisticaCandidata.valor);
+function evaluarRangoDanio({ valorCandidato, valorReferencia, unidad }) {
+  const promedioCandidato =
+    valorCandidato === null ? 0 : obtenerPromedioRango(valorCandidato);
 
-  const numerosEquipado = extraerNumeros(estadisticaEquipada.valor);
+  const promedioReferencia =
+    valorReferencia === null ? 0 : obtenerPromedioRango(valorReferencia);
 
-  if (numerosCandidato.length < 2 || numerosEquipado.length < 2) {
-    return crearFilaNeutral({
-      estadisticaCandidata,
-      estadisticaEquipada,
-    });
+  if (promedioCandidato === null || promedioReferencia === null) {
+    return null;
   }
 
-  const promedioCandidato = (numerosCandidato[0] + numerosCandidato[1]) / 2;
+  return crearResultadoNumerico({
+    diferencia: promedioCandidato - promedioReferencia,
 
-  const promedioEquipado = (numerosEquipado[0] + numerosEquipado[1]) / 2;
-
-  const diferencia = promedioCandidato - promedioEquipado;
-
-  return crearFilaComparacion({
-    estadisticaCandidata,
-    estadisticaEquipada,
-
-    tendencia: compararNumeros(promedioCandidato, promedioEquipado),
-
-    diferencia:
-      diferencia === 0
-        ? "Mismo daño medio"
-        : `${formatearNumeroConSigno(diferencia)} de daño medio`,
+    unidad,
   });
 }
 
-// Compara probabilidad y multiplicador de crítico
-// mediante su aporte promedio.
-function evaluarCritico({ estadisticaCandidata, estadisticaEquipada }) {
-  const numerosCandidato = extraerNumeros(estadisticaCandidata.valor);
+function evaluarNumeroSimple({ valorCandidato, valorReferencia, unidad }) {
+  const numeroCandidato =
+    valorCandidato === null ? 0 : obtenerPrimerNumero(valorCandidato);
 
-  const numerosEquipado = extraerNumeros(estadisticaEquipada.valor);
+  const numeroReferencia =
+    valorReferencia === null ? 0 : obtenerPrimerNumero(valorReferencia);
 
-  if (numerosCandidato.length < 2 || numerosEquipado.length < 2) {
-    return crearFilaNeutral({
-      estadisticaCandidata,
-      estadisticaEquipada,
-    });
+  if (numeroCandidato === null || numeroReferencia === null) {
+    return null;
   }
 
-  // Fórmula usada:
-  //
-  // 1 + probabilidad × (multiplicador - 1)
-  //
-  // No representa el DPS completo del arma,
-  // pero permite comparar conjuntamente ambos valores.
-  const factorCandidato =
-    1 + (numerosCandidato[0] / 100) * (numerosCandidato[1] - 1);
+  return crearResultadoNumerico({
+    diferencia: numeroCandidato - numeroReferencia,
 
-  const factorEquipado =
-    1 + (numerosEquipado[0] / 100) * (numerosEquipado[1] - 1);
-
-  const diferenciaPorcentual = (factorCandidato - factorEquipado) * 100;
-
-  return crearFilaComparacion({
-    estadisticaCandidata,
-    estadisticaEquipada,
-
-    tendencia: compararNumeros(factorCandidato, factorEquipado),
-
-    diferencia:
-      Math.abs(diferenciaPorcentual) < 0.0001
-        ? "Mismo aporte crítico"
-        : `${formatearNumeroConSigno(
-            diferenciaPorcentual,
-          )} % de aporte crítico`,
+    unidad,
   });
 }
 
-// Compara estadísticas representadas por un único número.
-function evaluarNumeroSimple({
-  estadisticaCandidata,
-  estadisticaEquipada,
-  unidad,
-}) {
-  const numerosCandidato = extraerNumeros(estadisticaCandidata.valor);
+function evaluarCritico({ valorCandidato, valorReferencia, unidad }) {
+  const aporteCandidato =
+    valorCandidato === null ? 0 : obtenerAporteCritico(valorCandidato);
 
-  const numerosEquipado = extraerNumeros(estadisticaEquipada.valor);
+  const aporteReferencia =
+    valorReferencia === null ? 0 : obtenerAporteCritico(valorReferencia);
 
-  if (numerosCandidato.length === 0 || numerosEquipado.length === 0) {
-    return crearFilaNeutral({
-      estadisticaCandidata,
-      estadisticaEquipada,
-    });
+  if (aporteCandidato === null || aporteReferencia === null) {
+    return null;
   }
 
-  const numeroCandidato = numerosCandidato[0];
+  return crearResultadoNumerico({
+    diferencia: aporteCandidato - aporteReferencia,
 
-  const numeroEquipado = numerosEquipado[0];
-
-  const diferencia = numeroCandidato - numeroEquipado;
-
-  return crearFilaComparacion({
-    estadisticaCandidata,
-    estadisticaEquipada,
-
-    tendencia: compararNumeros(numeroCandidato, numeroEquipado),
-
-    diferencia:
-      diferencia === 0
-        ? "Sin cambios"
-        : `${formatearNumeroConSigno(diferencia)}${unidad}`,
+    unidad,
   });
 }
 
-// Crea una comparación descriptiva cuando no puede
-// determinarse automáticamente qué opción es mejor.
-function crearFilaNeutral({ estadisticaCandidata, estadisticaEquipada }) {
-  return crearFilaComparacion({
-    estadisticaCandidata,
-    estadisticaEquipada,
+function crearResultadoNumerico({ diferencia, unidad }) {
+  const tolerancia = 0.0001;
 
-    tendencia: TENDENCIAS_COMPARACION_OBJETO.NEUTRAL,
+  if (Math.abs(diferencia) <= tolerancia) {
+    return null;
+  }
 
-    diferencia: "Diferente",
-  });
-}
-
-// Construye una fila común para la futura interfaz.
-function crearFilaComparacion({
-  estadisticaCandidata,
-  estadisticaEquipada,
-  tendencia,
-  diferencia,
-}) {
   return {
-    etiqueta: estadisticaCandidata.etiqueta,
+    tendencia:
+      diferencia > 0
+        ? TENDENCIAS_COMPARACION_OBJETO.MEJORA
+        : TENDENCIAS_COMPARACION_OBJETO.EMPEORA,
 
-    valorCandidato: estadisticaCandidata.valor,
-
-    valorEquipado: estadisticaEquipada.valor,
-
-    tendencia,
-    diferencia,
+    diferencia: `${formatearNumeroConSigno(diferencia)}${unidad}`,
   };
 }
 
-// Compara dos números usando una pequeña tolerancia
-// para evitar diferencias producidas por decimales.
-function compararNumeros(candidato, equipado) {
-  const tolerancia = 0.0001;
+function obtenerPromedioRango(valor) {
+  const numeros = extraerNumeros(valor);
 
-  if (Math.abs(candidato - equipado) <= tolerancia) {
-    return TENDENCIAS_COMPARACION_OBJETO.IGUAL;
+  if (numeros.length < 2) {
+    return null;
   }
 
-  return candidato > equipado
-    ? TENDENCIAS_COMPARACION_OBJETO.MEJORA
-    : TENDENCIAS_COMPARACION_OBJETO.EMPEORA;
+  return (numeros[0] + numeros[1]) / 2;
 }
 
-// Compara los afijos de ambos objetos.
-function compararAfijos({ afijosCandidatos, afijosEquipados }) {
-  const equipadosPorClave = new Map(
-    afijosEquipados.map((afijo) => [crearClaveAfijo(afijo), afijo]),
-  );
+function obtenerPrimerNumero(valor) {
+  const numeros = extraerNumeros(valor);
+
+  return numeros.length > 0 ? numeros[0] : null;
+}
+
+// Devuelve cuánto daño medio adicional aporta el crítico,
+// expresado en puntos porcentuales.
+//
+// Ejemplo:
+// 6 % × 1,60 produce 3,6 puntos porcentuales de aporte.
+function obtenerAporteCritico(valor) {
+  const numeros = extraerNumeros(valor);
+
+  if (numeros.length < 2) {
+    return null;
+  }
+
+  const probabilidad = numeros[0] / 100;
+
+  const multiplicador = numeros[1];
+
+  return probabilidad * (multiplicador - 1) * 100;
+}
+
+function compararAfijos({ afijosCandidatos, afijosDesplazados }) {
+  const desplazadosPorClave = new Map();
+
+  for (const afijo of afijosDesplazados) {
+    const clave = crearClaveAfijo(afijo);
+
+    if (!desplazadosPorClave.has(clave)) {
+      desplazadosPorClave.set(clave, afijo);
+    }
+  }
 
   const clavesProcesadas = new Set();
 
@@ -455,50 +430,39 @@ function compararAfijos({ afijosCandidatos, afijosEquipados }) {
 
     clavesProcesadas.add(clave);
 
-    const afijoEquipado = equipadosPorClave.get(clave) ?? null;
+    const afijoDesplazado = desplazadosPorClave.get(clave) ?? null;
 
-    // El objeto candidato incorpora un afijo nuevo.
-    if (afijoEquipado === null) {
+    if (afijoDesplazado === null) {
       cambios.agregados.push(copiarAfijo(afijoCandidato));
 
       continue;
     }
 
-    // El mismo afijo mantiene grado y valores.
     if (
-      afijosSonIguales({
+      !afijosSonIguales({
         afijoCandidato,
-        afijoEquipado,
+        afijoDesplazado,
       })
     ) {
-      continue;
+      cambios.modificados.push({
+        candidato: copiarAfijo(afijoCandidato),
+
+        equipado: copiarAfijo(afijoDesplazado),
+      });
     }
-
-    // El afijo existe en ambos objetos,
-    // pero cambia de grado o de valores.
-    cambios.modificados.push({
-      candidato: copiarAfijo(afijoCandidato),
-
-      equipado: copiarAfijo(afijoEquipado),
-    });
   }
 
-  // Los afijos que existen solamente en el objeto equipado
-  // se perderían al reemplazarlo.
-  for (const afijoEquipado of afijosEquipados) {
-    const clave = crearClaveAfijo(afijoEquipado);
-
+  for (const [clave, afijoDesplazado] of desplazadosPorClave.entries()) {
     if (clavesProcesadas.has(clave)) {
       continue;
     }
 
-    cambios.perdidos.push(copiarAfijo(afijoEquipado));
+    cambios.perdidos.push(copiarAfijo(afijoDesplazado));
   }
 
   return cambios;
 }
 
-// Genera una identidad estable para comparar afijos.
 function crearClaveAfijo(afijo) {
   const tipo = typeof afijo.tipo === "string" ? afijo.tipo : "afijo";
 
@@ -510,24 +474,18 @@ function crearClaveAfijo(afijo) {
   return `${tipo}:${identidad}`;
 }
 
-// Determina si dos instancias del mismo afijo
-// mantienen exactamente su grado y sus efectos.
-function afijosSonIguales({ afijoCandidato, afijoEquipado }) {
-  if (afijoCandidato.grado !== afijoEquipado.grado) {
-    return false;
-  }
-
+function afijosSonIguales({ afijoCandidato, afijoDesplazado }) {
   return (
+    afijoCandidato.grado === afijoDesplazado.grado &&
     JSON.stringify(afijoCandidato.efectos) ===
-    JSON.stringify(afijoEquipado.efectos)
+      JSON.stringify(afijoDesplazado.efectos)
   );
 }
 
-// Copia únicamente la información visual necesaria.
-// Así evitamos modificar accidentalmente las presentaciones originales.
 function copiarAfijo(afijo) {
   return {
     id: afijo.id,
+
     tipo: afijo.tipo,
 
     tipoEtiqueta: afijo.tipoEtiqueta,
@@ -540,12 +498,6 @@ function copiarAfijo(afijo) {
   };
 }
 
-// Extrae números desde textos como:
-//
-// "4 - 8"
-// "12 %"
-// "5 % ×1.5"
-// "1,25 ataques/s"
 function extraerNumeros(valor) {
   const coincidencias = String(valor).match(/[-+]?\d+(?:[.,]\d+)?/g) ?? [];
 
@@ -554,18 +506,16 @@ function extraerNumeros(valor) {
     .filter(Number.isFinite);
 }
 
-// Redondea un número a dos decimales
-// y agrega el signo positivo cuando corresponde.
 function formatearNumeroConSigno(valor) {
-  const numeroRedondeado = Math.round(valor * 100) / 100;
+  const redondeado = Math.round(valor * 100) / 100;
 
-  const signo = numeroRedondeado > 0 ? "+" : "";
+  const signo = redondeado > 0 ? "+" : "";
 
-  return `${signo}${numeroRedondeado}`;
+  const texto = String(redondeado).replace(".", ",");
+
+  return `${signo}${texto}`;
 }
 
-// Normaliza las etiquetas para que diferencias de tildes,
-// espacios o mayúsculas no rompan la comparación.
 function normalizarEtiqueta(etiqueta) {
   return String(etiqueta)
     .trim()
@@ -574,19 +524,11 @@ function normalizarEtiqueta(etiqueta) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-// Valida la estructura mínima que necesita el comparador.
-//
-// Esta validación permite detectar rápidamente si el PresentadorObjeto
-// cambia en el futuro y deja de entregar el formato esperado.
 function validarPresentacionObjeto(presentacion, nombre) {
   if (
     !presentacion ||
     typeof presentacion !== "object" ||
     typeof presentacion.nombre !== "string" ||
-    typeof presentacion.subtitulo !== "string" ||
-    !presentacion.rareza ||
-    typeof presentacion.rareza.nombre !== "string" ||
-    !Number.isInteger(presentacion.nivelObjeto) ||
     !Array.isArray(presentacion.estadisticas) ||
     !Array.isArray(presentacion.afijos)
   ) {

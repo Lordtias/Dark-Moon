@@ -9,11 +9,10 @@ const ID_HOJA_ESTILOS = "hojaEstilosModalDetalleObjeto";
 const RUTA_HOJA_ESTILOS = "./modal-detalle-objeto.css";
 
 // Administra una ventana modal reutilizable para inspeccionar objetos,
-// compararlos con el equipamiento actual y ejecutar una acción opcional.
+// mostrar diferencias compactas y ejecutar una acción opcional.
 //
 // El modal no modifica inventarios ni equipamiento directamente.
-// Solamente muestra la información y ejecuta la función que recibe
-// cuando el jugador confirma la acción principal.
+// Solamente ejecuta la función recibida cuando el jugador confirma.
 export class ModalDetalleObjeto {
   constructor() {
     asegurarHojaEstilos();
@@ -112,22 +111,22 @@ export class ModalDetalleObjeto {
     this.botonAccion.addEventListener("click", this.ejecutarAccionPrincipal);
   }
 
-  // mostrarComparacion permite distinguir entre:
+  // objetosDesplazados contiene las referencias que dejan
+  // de aportar estadísticas al confirmar Equipar.
   //
-  // - Un objeto que no necesita comparación.
-  // - Un objeto equipable cuya ranura correspondiente está vacía.
+  // Puede incluir:
   //
-  // En el segundo caso se muestra igualmente la sección,
-  // indicando que todavía no existe un objeto equipado.
+  // - Solo el arma principal.
+  // - El arma principal y el escudo.
+  // - Una pieza de armadura de la misma ranura.
   abrir({
     objeto,
     combatiente = null,
-    objetoEquipado = null,
-    mostrarComparacion = false,
+    objetosDesplazados = [],
     accion = null,
   } = {}) {
-    if (typeof mostrarComparacion !== "boolean") {
-      throw new Error("La indicación de comparación debe ser booleana.");
+    if (!Array.isArray(objetosDesplazados)) {
+      throw new Error("Los objetos desplazados deben ser una lista.");
     }
 
     const presentacion = crearPresentacionObjeto({
@@ -135,23 +134,37 @@ export class ModalDetalleObjeto {
       combatiente,
     });
 
+    // Eliminamos valores nulos, referencias repetidas
+    // y la propia instancia inspeccionada.
+    const objetosUnicos = [];
+
+    for (const objetoDesplazado of objetosDesplazados) {
+      if (
+        !objetoDesplazado ||
+        objetoDesplazado === objeto ||
+        objetosUnicos.includes(objetoDesplazado)
+      ) {
+        continue;
+      }
+
+      objetosUnicos.push(objetoDesplazado);
+    }
+
     let comparacion = null;
 
-    if (mostrarComparacion) {
-      const presentacionEquipada = objetoEquipado
-        ? crearPresentacionObjeto({
-            objeto: objetoEquipado,
+    if (objetosUnicos.length > 0) {
+      const presentacionesDesplazadas = objetosUnicos.map((objetoDesplazado) =>
+        crearPresentacionObjeto({
+          objeto: objetoDesplazado,
 
-            combatiente,
-          })
-        : null;
+          combatiente,
+        }),
+      );
 
       comparacion = crearComparacionObjetos({
         presentacionCandidata: presentacion,
 
-        presentacionEquipada,
-
-        mismoObjeto: objetoEquipado === objeto,
+        presentacionesDesplazadas,
       });
     }
 
@@ -163,8 +176,6 @@ export class ModalDetalleObjeto {
       this.dialogo.showModal();
     }
 
-    // Priorizamos el botón de acción cuando existe.
-    // De lo contrario, el foco queda en Cerrar.
     if (this.accionActual) {
       this.botonAccion.focus();
     } else {
@@ -210,10 +221,9 @@ export class ModalDetalleObjeto {
       return;
     }
 
-    // Cerramos antes de ejecutar para evitar conservar en pantalla
-    // una referencia que puede moverse o desaparecer del inventario.
+    // Cerramos antes de ejecutar para no conservar en pantalla
+    // un objeto que puede moverse o desaparecer del inventario.
     this.cerrar();
-
     accion.ejecutar();
   }
 
@@ -224,16 +234,14 @@ export class ModalDetalleObjeto {
   }
 
   manejarClickDialogo(event) {
-    // Un clic sobre el fondo oscuro,
-    // fuera del contenido, también cierra el modal.
     if (event.target === this.dialogo) {
       this.cerrar();
     }
   }
 
   manejarTeclaDialogo(event) {
-    // Evita que WASD, flechas, F o Espacio
-    // alcancen los controles del juego.
+    // Impide que las teclas del modal alcancen
+    // los controles generales de la partida.
     event.stopPropagation();
   }
 
@@ -268,9 +276,6 @@ export class ModalDetalleObjeto {
 }
 
 // Carga la hoja específica una sola vez.
-//
-// La creación dinámica permite agregar el modal
-// sin acoplarlo al HTML principal.
 function asegurarHojaEstilos() {
   if (document.getElementById(ID_HOJA_ESTILOS)) {
     return;

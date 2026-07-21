@@ -1,18 +1,21 @@
 let siguienteIdVista = 1;
 
 // Construye una representación visual reutilizable de un objeto.
-// La vista no conoce inventarios, equipamiento ni acciones: solamente
-// recibe modelos ya preparados y los transforma en elementos del DOM.
+//
+// La vista no conoce inventarios ni reglas de equipamiento.
+// Solamente recibe una presentación y, cuando corresponde,
+// un modelo compacto de diferencias.
 export class VistaDetalleObjeto {
   constructor() {
     this.idTitulo = `tituloDetalleObjeto${siguienteIdVista}`;
+
     siguienteIdVista++;
 
     this.elemento = crearElemento("article", "detalle-objeto");
+
     this.construirEstructura();
   }
 
-  // Crea una sola vez el detalle normal y la sección de comparación.
   construirEstructura() {
     const cabecera = crearElemento("header", "detalle-objeto__cabecera");
 
@@ -51,6 +54,8 @@ export class VistaDetalleObjeto {
 
     cabecera.append(this.contenedorImagen, identidad);
 
+    // El bloque normal de estadísticas también muestra
+    // la única columna adicional necesaria: Diferencia.
     this.listaEstadisticas = crearElemento(
       "dl",
       "detalle-objeto__estadisticas",
@@ -64,141 +69,32 @@ export class VistaDetalleObjeto {
 
     this.descripcion = crearElemento("p", "detalle-objeto__descripcion");
 
-    this.construirSeccionComparacion();
+    // Los cambios de afijos se muestran de forma compacta
+    // y solamente cuando realmente existe alguno.
+    this.listaCambiosAfijos = crearElemento(
+      "ul",
+      "detalle-objeto__cambios-afijos",
+    );
+
+    this.listaCambiosAfijos.hidden = true;
 
     this.elemento.append(
       cabecera,
       this.listaEstadisticas,
       this.mensajeSinEstadisticas,
       this.descripcion,
-      this.seccionComparacion,
+      this.listaCambiosAfijos,
     );
   }
 
-  // Prepara el sector que mostrará el objeto equipado, las diferencias
-  // numéricas y los cambios de afijos. Empieza oculto hasta recibir datos.
-  construirSeccionComparacion() {
-    this.seccionComparacion = crearElemento(
-      "section",
-      "detalle-objeto__comparacion",
-    );
-
-    this.seccionComparacion.hidden = true;
-
-    const titulo = crearElemento(
-      "h3",
-      "detalle-objeto__comparacion-titulo",
-      "Comparación con equipado",
-    );
-
-    this.mensajeComparacion = crearElemento(
-      "p",
-      "detalle-objeto__comparacion-mensaje",
-    );
-
-    this.resumenEquipado = crearElemento(
-      "div",
-      "detalle-objeto__equipado-resumen",
-    );
-
-    const etiquetaEquipado = crearElemento(
-      "span",
-      "detalle-objeto__equipado-etiqueta",
-      "Actualmente equipado",
-    );
-
-    this.nombreEquipado = crearElemento(
-      "strong",
-      "detalle-objeto__equipado-nombre",
-    );
-
-    this.subtituloEquipado = crearElemento(
-      "span",
-      "detalle-objeto__equipado-subtitulo",
-    );
-
-    this.resumenEquipado.append(
-      etiquetaEquipado,
-      this.nombreEquipado,
-      this.subtituloEquipado,
-    );
-
-    this.contenedorTabla = crearElemento(
-      "div",
-      "detalle-objeto__comparacion-tabla-contenedor",
-    );
-
-    const tabla = crearElemento("table", "detalle-objeto__comparacion-tabla");
-
-    const cabeceraTabla = document.createElement("thead");
-
-    const filaCabecera = document.createElement("tr");
-
-    for (const texto of ["Propiedad", "Nuevo", "Equipado", "Diferencia"]) {
-      const celda = document.createElement("th");
-
-      celda.scope = "col";
-      celda.textContent = texto;
-
-      filaCabecera.appendChild(celda);
-    }
-
-    cabeceraTabla.appendChild(filaCabecera);
-
-    this.cuerpoTabla = document.createElement("tbody");
-
-    tabla.append(cabeceraTabla, this.cuerpoTabla);
-
-    this.contenedorTabla.appendChild(tabla);
-
-    this.mensajeSinFilas = crearElemento(
-      "p",
-      "detalle-objeto__comparacion-sin-cambios",
-      "No hay estadísticas comparables.",
-    );
-
-    this.contenedorAfijos = crearElemento(
-      "div",
-      "detalle-objeto__comparacion-afijos",
-    );
-
-    const tituloAfijos = crearElemento(
-      "h4",
-      "detalle-objeto__comparacion-afijos-titulo",
-      "Cambios de afijos",
-    );
-
-    this.listaAfijos = crearElemento(
-      "ul",
-      "detalle-objeto__comparacion-afijos-lista",
-    );
-
-    this.mensajeSinAfijos = crearElemento(
-      "p",
-      "detalle-objeto__comparacion-sin-cambios",
-      "No hay cambios de afijos.",
-    );
-
-    this.contenedorAfijos.append(
-      tituloAfijos,
-      this.listaAfijos,
-      this.mensajeSinAfijos,
-    );
-
-    this.seccionComparacion.append(
-      titulo,
-      this.mensajeComparacion,
-      this.resumenEquipado,
-      this.contenedorTabla,
-      this.mensajeSinFilas,
-      this.contenedorAfijos,
-    );
-  }
-
-  // El segundo parámetro es opcional para conservar compatibilidad con
-  // cualquier pantalla que todavía muestre únicamente el detalle normal.
+  // El parámetro comparación es opcional para que la misma vista
+  // siga funcionando con consumibles, materiales y objetos equipados.
   mostrar(presentacion, comparacion = null) {
     validarPresentacion(presentacion);
+
+    if (comparacion !== null) {
+      validarComparacion(comparacion);
+    }
 
     this.titulo.textContent = presentacion.nombre;
 
@@ -213,12 +109,15 @@ export class VistaDetalleObjeto {
 
     this.actualizarImagen(presentacion);
 
-    this.actualizarEstadisticas(
-      presentacion.estadisticas,
-      presentacion.mostrarMensajeSinEstadisticas !== false,
-    );
+    this.actualizarEstadisticas({
+      estadisticas: presentacion.estadisticas,
 
-    this.actualizarComparacion(comparacion);
+      mostrarMensaje: presentacion.mostrarMensajeSinEstadisticas !== false,
+
+      comparacion,
+    });
+
+    this.actualizarCambiosAfijos(comparacion?.cambiosAfijos ?? null);
   }
 
   actualizarImagen(presentacion) {
@@ -253,128 +152,24 @@ export class VistaDetalleObjeto {
     this.imagen.src = presentacion.recursoVisual;
   }
 
-  actualizarEstadisticas(estadisticas, mostrarMensaje) {
+  actualizarEstadisticas({ estadisticas, mostrarMensaje, comparacion }) {
     this.listaEstadisticas.replaceChildren();
 
-    const tieneEstadisticas = estadisticas.length > 0;
+    const diferenciasPorEtiqueta = new Map(
+      (comparacion?.diferenciasEstadisticas ?? []).map((diferencia) => [
+        normalizarEtiqueta(diferencia.etiqueta),
 
-    this.listaEstadisticas.hidden = !tieneEstadisticas;
+        diferencia,
+      ]),
+    );
 
-    this.mensajeSinEstadisticas.hidden = tieneEstadisticas || !mostrarMensaje;
+    const filasAdicionales = comparacion?.filasAdicionales ?? [];
 
-    if (!tieneEstadisticas) {
-      return;
-    }
+    const tieneFilas = estadisticas.length > 0 || filasAdicionales.length > 0;
 
-    const fragmento = document.createDocumentFragment();
+    this.listaEstadisticas.hidden = !tieneFilas;
 
-    for (const estadistica of estadisticas) {
-      const etiqueta = document.createElement("dt");
-
-      etiqueta.textContent = estadistica.etiqueta;
-
-      const valor = document.createElement("dd");
-
-      valor.textContent = estadistica.valor;
-
-      fragmento.append(etiqueta, valor);
-    }
-
-    this.listaEstadisticas.appendChild(fragmento);
-  }
-
-  actualizarComparacion(comparacion) {
-    this.limpiarComparacion();
-
-    if (comparacion === null) {
-      this.seccionComparacion.hidden = true;
-
-      return;
-    }
-
-    validarComparacion(comparacion);
-
-    this.seccionComparacion.hidden = false;
-
-    if (!comparacion.disponible) {
-      this.mensajeComparacion.textContent =
-        comparacion.motivo || "No hay una comparación disponible.";
-
-      this.mensajeComparacion.hidden = false;
-
-      this.resumenEquipado.hidden = true;
-
-      this.contenedorTabla.hidden = true;
-
-      this.mensajeSinFilas.hidden = true;
-
-      this.contenedorAfijos.hidden = true;
-
-      return;
-    }
-
-    this.actualizarResumenEquipado(comparacion.equipado);
-
-    this.actualizarFilas(comparacion.filasEstadisticas);
-
-    this.actualizarAfijos(comparacion.cambiosAfijos);
-  }
-
-  limpiarComparacion() {
-    this.mensajeComparacion.textContent = "";
-
-    this.mensajeComparacion.hidden = true;
-
-    this.nombreEquipado.textContent = "";
-
-    this.nombreEquipado.style.removeProperty("color");
-
-    this.subtituloEquipado.textContent = "";
-
-    this.cuerpoTabla.replaceChildren();
-    this.listaAfijos.replaceChildren();
-
-    this.resumenEquipado.hidden = false;
-
-    this.contenedorTabla.hidden = false;
-
-    this.mensajeSinFilas.hidden = true;
-
-    this.contenedorAfijos.hidden = false;
-
-    this.listaAfijos.hidden = false;
-
-    this.mensajeSinAfijos.hidden = true;
-  }
-
-  actualizarResumenEquipado(equipado) {
-    this.nombreEquipado.textContent = equipado.nombre;
-
-    const partes = [];
-
-    if (equipado.subtitulo.trim() !== "") {
-      partes.push(equipado.subtitulo.trim());
-    }
-
-    if (Number.isInteger(equipado.nivelObjeto)) {
-      partes.push(`Nivel ${equipado.nivelObjeto}`);
-    }
-
-    this.subtituloEquipado.textContent = partes.join(" · ");
-
-    const color = equipado.rareza?.color;
-
-    if (typeof color === "string" && color.trim() !== "") {
-      this.nombreEquipado.style.color = color;
-    }
-  }
-
-  actualizarFilas(filas) {
-    const tieneFilas = filas.length > 0;
-
-    this.contenedorTabla.hidden = !tieneFilas;
-
-    this.mensajeSinFilas.hidden = tieneFilas;
+    this.mensajeSinEstadisticas.hidden = tieneFilas || !mostrarMensaje;
 
     if (!tieneFilas) {
       return;
@@ -382,113 +177,154 @@ export class VistaDetalleObjeto {
 
     const fragmento = document.createDocumentFragment();
 
-    for (const fila of filas) {
-      const elementoFila = document.createElement("tr");
+    for (const estadistica of estadisticas) {
+      const diferencia =
+        diferenciasPorEtiqueta.get(normalizarEtiqueta(estadistica.etiqueta)) ??
+        null;
 
-      elementoFila.classList.add(
-        "detalle-objeto__comparacion-fila",
-        `detalle-objeto__comparacion-fila--${fila.tendencia}`,
+      fragmento.appendChild(
+        crearFilaEstadistica({
+          etiqueta: estadistica.etiqueta,
+
+          valor: estadistica.valor,
+
+          diferencia,
+        }),
       );
-
-      elementoFila.dataset.tendencia = fila.tendencia;
-
-      elementoFila.append(
-        crearCelda(fila.etiqueta, "propiedad"),
-
-        crearCelda(fila.valorCandidato, "candidato"),
-
-        crearCelda(fila.valorEquipado, "equipado"),
-
-        crearCelda(fila.diferencia, "diferencia"),
-      );
-
-      fragmento.appendChild(elementoFila);
     }
 
-    this.cuerpoTabla.appendChild(fragmento);
+    // Estas filas representan propiedades que se perderían,
+    // como Armadura o Bloqueo de un escudo al equipar un mandoble.
+    for (const fila of filasAdicionales) {
+      fragmento.appendChild(
+        crearFilaEstadistica({
+          etiqueta: fila.etiqueta,
+
+          valor: fila.valor,
+
+          diferencia: fila,
+
+          esPerdidaCompleta: true,
+        }),
+      );
+    }
+
+    this.listaEstadisticas.appendChild(fragmento);
   }
 
-  actualizarAfijos(cambios) {
+  actualizarCambiosAfijos(cambios) {
+    this.listaCambiosAfijos.replaceChildren();
+
+    if (!cambios) {
+      this.listaCambiosAfijos.hidden = true;
+
+      return;
+    }
+
     const elementos = [];
 
     for (const afijo of cambios.agregados) {
       elementos.push(
-        crearCambioAfijo("agregado", "Gana", formatearAfijo(afijo)),
+        crearCambioAfijo({
+          tipo: "agregado",
+
+          simbolo: "+",
+
+          texto: formatearAfijo(afijo),
+        }),
       );
     }
 
     for (const afijo of cambios.perdidos) {
       elementos.push(
-        crearCambioAfijo("perdido", "Pierde", formatearAfijo(afijo)),
+        crearCambioAfijo({
+          tipo: "perdido",
+
+          simbolo: "−",
+
+          texto: formatearAfijo(afijo),
+        }),
       );
     }
 
     for (const cambio of cambios.modificados) {
       elementos.push(
-        crearCambioAfijo(
-          "modificado",
-          "Cambia",
+        crearCambioAfijo({
+          tipo: "modificado",
 
-          `${formatearAfijo(cambio.equipado)} → ` +
+          simbolo: "↔",
+
+          texto:
+            `${formatearAfijo(cambio.equipado)} → ` +
             `${formatearAfijo(cambio.candidato)}`,
-        ),
+        }),
       );
     }
 
-    const tieneCambios = elementos.length > 0;
+    this.listaCambiosAfijos.hidden = elementos.length === 0;
 
-    this.listaAfijos.hidden = !tieneCambios;
-
-    this.mensajeSinAfijos.hidden = tieneCambios;
-
-    if (tieneCambios) {
-      this.listaAfijos.append(...elementos);
+    if (elementos.length > 0) {
+      this.listaCambiosAfijos.append(...elementos);
     }
   }
 }
 
-function crearElemento(etiqueta, clase, texto = "") {
-  const elemento = document.createElement(etiqueta);
+function crearFilaEstadistica({
+  etiqueta,
+  valor,
+  diferencia = null,
+  esPerdidaCompleta = false,
+}) {
+  const fila = crearElemento("div", "detalle-objeto__estadistica");
 
-  elemento.classList.add(clase);
-
-  if (texto !== "") {
-    elemento.textContent = texto;
+  if (esPerdidaCompleta) {
+    fila.classList.add("detalle-objeto__estadistica--perdida");
   }
 
-  return elemento;
-}
+  const termino = document.createElement("dt");
 
-function crearCelda(texto, tipo) {
-  const celda = document.createElement("td");
+  termino.textContent = etiqueta;
 
-  celda.classList.add(
-    "detalle-objeto__comparacion-celda",
-    `detalle-objeto__comparacion-celda--${tipo}`,
+  const descripcion = document.createElement("dd");
+
+  descripcion.textContent = valor;
+
+  const diferenciaElemento = crearElemento(
+    "dd",
+    "detalle-objeto__estadistica-diferencia",
   );
 
-  celda.textContent = String(texto ?? "—");
+  if (diferencia === null) {
+    diferenciaElemento.hidden = true;
+  } else {
+    diferenciaElemento.textContent = diferencia.diferencia;
 
-  return celda;
+    diferenciaElemento.classList.add(
+      `detalle-objeto__estadistica-diferencia--${diferencia.tendencia}`,
+    );
+  }
+
+  fila.append(termino, descripcion, diferenciaElemento);
+
+  return fila;
 }
 
-function crearCambioAfijo(tipo, etiqueta, texto) {
-  const elemento = document.createElement("li");
+function crearCambioAfijo({ tipo, simbolo, texto }) {
+  const elemento = crearElemento("li", "detalle-objeto__cambio-afijo");
 
-  elemento.classList.add(
-    "detalle-objeto__comparacion-afijo",
-    `detalle-objeto__comparacion-afijo--${tipo}`,
+  elemento.classList.add(`detalle-objeto__cambio-afijo--${tipo}`);
+
+  const indicador = crearElemento(
+    "strong",
+    "detalle-objeto__cambio-afijo-indicador",
+    simbolo,
   );
-
-  const titulo = document.createElement("strong");
-
-  titulo.textContent = `${etiqueta}: `;
 
   const contenido = document.createElement("span");
 
   contenido.textContent = texto;
 
-  elemento.append(titulo, contenido);
+  elemento.append(indicador, contenido);
 
   return elemento;
 }
@@ -535,6 +371,26 @@ function formatearEfecto(efecto) {
   return "";
 }
 
+function crearElemento(etiqueta, clase, texto = "") {
+  const elemento = document.createElement(etiqueta);
+
+  elemento.classList.add(clase);
+
+  if (texto !== "") {
+    elemento.textContent = texto;
+  }
+
+  return elemento;
+}
+
+function normalizarEtiqueta(etiqueta) {
+  return String(etiqueta)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function validarPresentacion(presentacion) {
   if (
     !presentacion ||
@@ -553,22 +409,13 @@ function validarComparacion(comparacion) {
     !comparacion ||
     typeof comparacion !== "object" ||
     typeof comparacion.disponible !== "boolean" ||
-    typeof comparacion.motivo !== "string" ||
-    !Array.isArray(comparacion.filasEstadisticas) ||
+    !Array.isArray(comparacion.diferenciasEstadisticas) ||
+    !Array.isArray(comparacion.filasAdicionales) ||
     !comparacion.cambiosAfijos ||
     !Array.isArray(comparacion.cambiosAfijos.agregados) ||
     !Array.isArray(comparacion.cambiosAfijos.perdidos) ||
     !Array.isArray(comparacion.cambiosAfijos.modificados)
   ) {
     throw new Error("VistaDetalleObjeto recibió una comparación inválida.");
-  }
-
-  if (
-    comparacion.disponible &&
-    (!comparacion.equipado ||
-      typeof comparacion.equipado.nombre !== "string" ||
-      typeof comparacion.equipado.subtitulo !== "string")
-  ) {
-    throw new Error("La comparación necesita un objeto equipado válido.");
   }
 }

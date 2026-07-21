@@ -2,17 +2,18 @@ import { crearPresentacionObjeto } from "./PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
 
+import { crearComparacionObjetos } from "./ComparadorObjetos.js";
+
 const ID_HOJA_ESTILOS = "hojaEstilosModalDetalleObjeto";
 
 const RUTA_HOJA_ESTILOS = "./modal-detalle-objeto.css";
 
-// Administra una ventana modal reutilizable
-// para inspeccionar objetos y ejecutar una acción
-// contextual opcional.
+// Administra una ventana modal reutilizable para inspeccionar objetos,
+// compararlos con el equipamiento actual y ejecutar una acción opcional.
 //
-// El modal no conoce inventarios ni equipamiento.
-// Recibe una función desde el controlador y la ejecuta
-// solamente cuando el jugador confirma la acción.
+// El modal no modifica inventarios ni equipamiento directamente.
+// Solamente muestra la información y ejecuta la función que recibe
+// cuando el jugador confirma la acción principal.
 export class ModalDetalleObjeto {
   constructor() {
     asegurarHojaEstilos();
@@ -111,17 +112,50 @@ export class ModalDetalleObjeto {
     this.botonAccion.addEventListener("click", this.ejecutarAccionPrincipal);
   }
 
-  // Abre el detalle sin consumir tiempo.
+  // mostrarComparacion permite distinguir entre:
   //
-  // accion puede ser null para objetos que solo
-  // puedan inspeccionarse, como futuros materiales.
-  abrir({ objeto, combatiente = null, accion = null } = {}) {
+  // - Un objeto que no necesita comparación.
+  // - Un objeto equipable cuya ranura correspondiente está vacía.
+  //
+  // En el segundo caso se muestra igualmente la sección,
+  // indicando que todavía no existe un objeto equipado.
+  abrir({
+    objeto,
+    combatiente = null,
+    objetoEquipado = null,
+    mostrarComparacion = false,
+    accion = null,
+  } = {}) {
+    if (typeof mostrarComparacion !== "boolean") {
+      throw new Error("La indicación de comparación debe ser booleana.");
+    }
+
     const presentacion = crearPresentacionObjeto({
       objeto,
       combatiente,
     });
 
-    this.vista.mostrar(presentacion);
+    let comparacion = null;
+
+    if (mostrarComparacion) {
+      const presentacionEquipada = objetoEquipado
+        ? crearPresentacionObjeto({
+            objeto: objetoEquipado,
+
+            combatiente,
+          })
+        : null;
+
+      comparacion = crearComparacionObjetos({
+        presentacionCandidata: presentacion,
+
+        presentacionEquipada,
+
+        mismoObjeto: objetoEquipado === objeto,
+      });
+    }
+
+    this.vista.mostrar(presentacion, comparacion);
 
     this.configurarAccion(accion);
 
@@ -129,7 +163,7 @@ export class ModalDetalleObjeto {
       this.dialogo.showModal();
     }
 
-    // Priorizamos la acción contextual cuando existe.
+    // Priorizamos el botón de acción cuando existe.
     // De lo contrario, el foco queda en Cerrar.
     if (this.accionActual) {
       this.botonAccion.focus();
@@ -141,7 +175,9 @@ export class ModalDetalleObjeto {
   configurarAccion(accion) {
     if (accion === null) {
       this.accionActual = null;
+
       this.botonAccion.hidden = true;
+
       this.botonAccion.textContent = "";
 
       return;
@@ -174,8 +210,8 @@ export class ModalDetalleObjeto {
       return;
     }
 
-    // Cerramos antes de ejecutar para que la interfaz
-    // pueda redibujarse sin conservar un objeto obsoleto.
+    // Cerramos antes de ejecutar para evitar conservar en pantalla
+    // una referencia que puede moverse o desaparecer del inventario.
     this.cerrar();
 
     accion.ejecutar();
@@ -188,17 +224,16 @@ export class ModalDetalleObjeto {
   }
 
   manejarClickDialogo(event) {
-    // Un clic sobre el fondo oscuro, fuera de la ventana,
-    // también cierra el modal.
+    // Un clic sobre el fondo oscuro,
+    // fuera del contenido, también cierra el modal.
     if (event.target === this.dialogo) {
       this.cerrar();
     }
   }
 
   manejarTeclaDialogo(event) {
-    // Evita que WASD, flechas, F o Espacio lleguen
-    // a los controles del juego mientras se inspecciona
-    // un objeto.
+    // Evita que WASD, flechas, F o Espacio
+    // alcancen los controles del juego.
     event.stopPropagation();
   }
 
@@ -235,8 +270,7 @@ export class ModalDetalleObjeto {
 // Carga la hoja específica una sola vez.
 //
 // La creación dinámica permite agregar el modal
-// sin acoplarlo al HTML principal ni repetir su estructura
-// en futuras pantallas.
+// sin acoplarlo al HTML principal.
 function asegurarHojaEstilos() {
   if (document.getElementById(ID_HOJA_ESTILOS)) {
     return;

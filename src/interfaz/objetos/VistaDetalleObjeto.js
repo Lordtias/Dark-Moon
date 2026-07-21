@@ -1,146 +1,204 @@
-import { aplicarAparienciaRarezaObjeto } from "./ContextoPresentacionObjetos.js";
-
 let siguienteIdVista = 1;
 
-// Construye la representación visual reutilizable
-// de un objeto.
-//
-// Esta vista no abre modales ni ejecuta acciones.
-// Puede utilizarse dentro de inventario, botín,
-// cofres, comerciantes o comparaciones futuras.
+// Construye una representación visual reutilizable de un objeto.
+// La vista no conoce inventarios, equipamiento ni acciones: solamente
+// recibe modelos ya preparados y los transforma en elementos del DOM.
 export class VistaDetalleObjeto {
   constructor() {
     this.idTitulo = `tituloDetalleObjeto${siguienteIdVista}`;
-
     siguienteIdVista++;
 
-    this.elemento = document.createElement("article");
-
-    this.elemento.classList.add("detalle-objeto");
-
+    this.elemento = crearElemento("article", "detalle-objeto");
     this.construirEstructura();
   }
 
+  // Crea una sola vez el detalle normal y la sección de comparación.
   construirEstructura() {
-    const cabecera = document.createElement("header");
+    const cabecera = crearElemento("header", "detalle-objeto__cabecera");
 
-    cabecera.classList.add("detalle-objeto__cabecera");
+    this.contenedorImagen = crearElemento(
+      "div",
+      "detalle-objeto__imagen-contenedor",
+    );
 
-    this.contenedorImagen = document.createElement("div");
-
-    this.contenedorImagen.classList.add("detalle-objeto__imagen-contenedor");
-
-    this.imagen = document.createElement("img");
-
-    this.imagen.classList.add("detalle-objeto__imagen");
+    this.imagen = crearElemento("img", "detalle-objeto__imagen");
 
     this.imagen.alt = "";
-
     this.imagen.draggable = false;
-
     this.imagen.decoding = "async";
-
     this.imagen.hidden = true;
 
-    this.respaldoImagen = document.createElement("span");
-
-    this.respaldoImagen.classList.add("detalle-objeto__imagen-respaldo");
+    this.respaldoImagen = crearElemento(
+      "span",
+      "detalle-objeto__imagen-respaldo",
+    );
 
     this.respaldoImagen.setAttribute("aria-hidden", "true");
 
     this.contenedorImagen.append(this.imagen, this.respaldoImagen);
 
-    const identidad = document.createElement("div");
+    const identidad = crearElemento("div", "detalle-objeto__identidad");
 
-    identidad.classList.add("detalle-objeto__identidad");
-
-    this.titulo = document.createElement("h2");
+    this.titulo = crearElemento("h2", "detalle-objeto__titulo");
 
     this.titulo.id = this.idTitulo;
 
-    this.titulo.classList.add("detalle-objeto__titulo");
+    this.subtitulo = crearElemento("p", "detalle-objeto__subtitulo");
 
-    this.subtitulo = document.createElement("p");
+    this.cantidad = crearElemento("span", "detalle-objeto__cantidad");
 
-    this.subtitulo.classList.add("detalle-objeto__subtitulo");
-
-    this.metadatosGeneracion = document.createElement("div");
-
-    this.metadatosGeneracion.classList.add("detalle-objeto__metadatos");
-
-    this.insigniaRareza = document.createElement("span");
-
-    this.insigniaRareza.classList.add("detalle-objeto__rareza");
-
-    this.insigniaNivel = document.createElement("span");
-
-    this.insigniaNivel.classList.add("detalle-objeto__nivel");
-
-    this.metadatosGeneracion.append(this.insigniaRareza, this.insigniaNivel);
-
-    this.cantidad = document.createElement("span");
-
-    this.cantidad.classList.add("detalle-objeto__cantidad");
-
-    identidad.append(
-      this.titulo,
-      this.subtitulo,
-      this.metadatosGeneracion,
-      this.cantidad,
-    );
+    identidad.append(this.titulo, this.subtitulo, this.cantidad);
 
     cabecera.append(this.contenedorImagen, identidad);
 
-    this.listaEstadisticas = document.createElement("dl");
-
-    this.listaEstadisticas.classList.add("detalle-objeto__estadisticas");
-
-    this.seccionAfijos = document.createElement("section");
-
-    this.seccionAfijos.classList.add("detalle-objeto__seccion-afijos");
-
-    const tituloAfijos = document.createElement("h3");
-
-    tituloAfijos.classList.add("detalle-objeto__titulo-afijos");
-
-    tituloAfijos.textContent = "Afijos";
-
-    this.listaAfijos = document.createElement("div");
-
-    this.listaAfijos.classList.add("detalle-objeto__afijos");
-
-    this.seccionAfijos.append(tituloAfijos, this.listaAfijos);
-
-    this.mensajeSinEstadisticas = document.createElement("p");
-
-    this.mensajeSinEstadisticas.classList.add(
-      "detalle-objeto__sin-estadisticas",
+    this.listaEstadisticas = crearElemento(
+      "dl",
+      "detalle-objeto__estadisticas",
     );
 
-    this.mensajeSinEstadisticas.textContent =
-      "Este objeto no tiene propiedades especiales.";
+    this.mensajeSinEstadisticas = crearElemento(
+      "p",
+      "detalle-objeto__sin-estadisticas",
+      "Este objeto no tiene propiedades especiales.",
+    );
 
-    this.descripcion = document.createElement("p");
+    this.descripcion = crearElemento("p", "detalle-objeto__descripcion");
 
-    this.descripcion.classList.add("detalle-objeto__descripcion");
+    this.construirSeccionComparacion();
 
     this.elemento.append(
       cabecera,
       this.listaEstadisticas,
-      this.seccionAfijos,
       this.mensajeSinEstadisticas,
       this.descripcion,
+      this.seccionComparacion,
     );
   }
 
-  mostrar(presentacion) {
+  // Prepara el sector que mostrará el objeto equipado, las diferencias
+  // numéricas y los cambios de afijos. Empieza oculto hasta recibir datos.
+  construirSeccionComparacion() {
+    this.seccionComparacion = crearElemento(
+      "section",
+      "detalle-objeto__comparacion",
+    );
+
+    this.seccionComparacion.hidden = true;
+
+    const titulo = crearElemento(
+      "h3",
+      "detalle-objeto__comparacion-titulo",
+      "Comparación con equipado",
+    );
+
+    this.mensajeComparacion = crearElemento(
+      "p",
+      "detalle-objeto__comparacion-mensaje",
+    );
+
+    this.resumenEquipado = crearElemento(
+      "div",
+      "detalle-objeto__equipado-resumen",
+    );
+
+    const etiquetaEquipado = crearElemento(
+      "span",
+      "detalle-objeto__equipado-etiqueta",
+      "Actualmente equipado",
+    );
+
+    this.nombreEquipado = crearElemento(
+      "strong",
+      "detalle-objeto__equipado-nombre",
+    );
+
+    this.subtituloEquipado = crearElemento(
+      "span",
+      "detalle-objeto__equipado-subtitulo",
+    );
+
+    this.resumenEquipado.append(
+      etiquetaEquipado,
+      this.nombreEquipado,
+      this.subtituloEquipado,
+    );
+
+    this.contenedorTabla = crearElemento(
+      "div",
+      "detalle-objeto__comparacion-tabla-contenedor",
+    );
+
+    const tabla = crearElemento("table", "detalle-objeto__comparacion-tabla");
+
+    const cabeceraTabla = document.createElement("thead");
+
+    const filaCabecera = document.createElement("tr");
+
+    for (const texto of ["Propiedad", "Nuevo", "Equipado", "Diferencia"]) {
+      const celda = document.createElement("th");
+
+      celda.scope = "col";
+      celda.textContent = texto;
+
+      filaCabecera.appendChild(celda);
+    }
+
+    cabeceraTabla.appendChild(filaCabecera);
+
+    this.cuerpoTabla = document.createElement("tbody");
+
+    tabla.append(cabeceraTabla, this.cuerpoTabla);
+
+    this.contenedorTabla.appendChild(tabla);
+
+    this.mensajeSinFilas = crearElemento(
+      "p",
+      "detalle-objeto__comparacion-sin-cambios",
+      "No hay estadísticas comparables.",
+    );
+
+    this.contenedorAfijos = crearElemento(
+      "div",
+      "detalle-objeto__comparacion-afijos",
+    );
+
+    const tituloAfijos = crearElemento(
+      "h4",
+      "detalle-objeto__comparacion-afijos-titulo",
+      "Cambios de afijos",
+    );
+
+    this.listaAfijos = crearElemento(
+      "ul",
+      "detalle-objeto__comparacion-afijos-lista",
+    );
+
+    this.mensajeSinAfijos = crearElemento(
+      "p",
+      "detalle-objeto__comparacion-sin-cambios",
+      "No hay cambios de afijos.",
+    );
+
+    this.contenedorAfijos.append(
+      tituloAfijos,
+      this.listaAfijos,
+      this.mensajeSinAfijos,
+    );
+
+    this.seccionComparacion.append(
+      titulo,
+      this.mensajeComparacion,
+      this.resumenEquipado,
+      this.contenedorTabla,
+      this.mensajeSinFilas,
+      this.contenedorAfijos,
+    );
+  }
+
+  // El segundo parámetro es opcional para conservar compatibilidad con
+  // cualquier pantalla que todavía muestre únicamente el detalle normal.
+  mostrar(presentacion, comparacion = null) {
     validarPresentacion(presentacion);
-
-    aplicarAparienciaRarezaObjeto({
-      elemento: this.elemento,
-
-      rareza: presentacion.rareza,
-    });
 
     this.titulo.textContent = presentacion.nombre;
 
@@ -153,35 +211,14 @@ export class VistaDetalleObjeto {
 
     this.cantidad.hidden = presentacion.cantidad <= 1;
 
-    this.actualizarMetadatos(presentacion);
-
     this.actualizarImagen(presentacion);
 
-    this.actualizarEstadisticas({
-      estadisticas: presentacion.estadisticas,
+    this.actualizarEstadisticas(
+      presentacion.estadisticas,
+      presentacion.mostrarMensajeSinEstadisticas !== false,
+    );
 
-      mostrarMensajeSinEstadisticas: presentacion.mostrarMensajeSinEstadisticas,
-    });
-
-    this.actualizarAfijos(presentacion.afijos);
-  }
-
-  actualizarMetadatos(presentacion) {
-    const mostrar = presentacion.mostrarMetadatosGeneracion;
-
-    this.metadatosGeneracion.hidden = !mostrar;
-
-    if (!mostrar) {
-      this.insigniaRareza.textContent = "";
-
-      this.insigniaNivel.textContent = "";
-
-      return;
-    }
-
-    this.insigniaRareza.textContent = presentacion.rareza.nombre;
-
-    this.insigniaNivel.textContent = `Nivel de objeto ${presentacion.nivelObjeto}`;
+    this.actualizarComparacion(comparacion);
   }
 
   actualizarImagen(presentacion) {
@@ -190,14 +227,13 @@ export class VistaDetalleObjeto {
 
     this.respaldoImagen.textContent = letraRespaldo;
 
+    // Limpiamos la imagen anterior antes
+    // de representar otro objeto.
     this.imagen.onload = null;
-
     this.imagen.onerror = null;
-
     this.imagen.removeAttribute("src");
 
     this.imagen.hidden = true;
-
     this.respaldoImagen.hidden = false;
 
     if (!presentacion.recursoVisual) {
@@ -206,29 +242,25 @@ export class VistaDetalleObjeto {
 
     this.imagen.onload = () => {
       this.imagen.hidden = false;
-
       this.respaldoImagen.hidden = true;
     };
 
     this.imagen.onerror = () => {
       this.imagen.hidden = true;
-
       this.respaldoImagen.hidden = false;
     };
 
     this.imagen.src = presentacion.recursoVisual;
   }
 
-  actualizarEstadisticas({ estadisticas, mostrarMensajeSinEstadisticas }) {
+  actualizarEstadisticas(estadisticas, mostrarMensaje) {
     this.listaEstadisticas.replaceChildren();
 
-    const tieneEstadisticas =
-      Array.isArray(estadisticas) && estadisticas.length > 0;
+    const tieneEstadisticas = estadisticas.length > 0;
 
     this.listaEstadisticas.hidden = !tieneEstadisticas;
 
-    this.mensajeSinEstadisticas.hidden =
-      tieneEstadisticas || !mostrarMensajeSinEstadisticas;
+    this.mensajeSinEstadisticas.hidden = tieneEstadisticas || !mostrarMensaje;
 
     if (!tieneEstadisticas) {
       return;
@@ -251,81 +283,256 @@ export class VistaDetalleObjeto {
     this.listaEstadisticas.appendChild(fragmento);
   }
 
-  actualizarAfijos(afijos) {
+  actualizarComparacion(comparacion) {
+    this.limpiarComparacion();
+
+    if (comparacion === null) {
+      this.seccionComparacion.hidden = true;
+
+      return;
+    }
+
+    validarComparacion(comparacion);
+
+    this.seccionComparacion.hidden = false;
+
+    if (!comparacion.disponible) {
+      this.mensajeComparacion.textContent =
+        comparacion.motivo || "No hay una comparación disponible.";
+
+      this.mensajeComparacion.hidden = false;
+
+      this.resumenEquipado.hidden = true;
+
+      this.contenedorTabla.hidden = true;
+
+      this.mensajeSinFilas.hidden = true;
+
+      this.contenedorAfijos.hidden = true;
+
+      return;
+    }
+
+    this.actualizarResumenEquipado(comparacion.equipado);
+
+    this.actualizarFilas(comparacion.filasEstadisticas);
+
+    this.actualizarAfijos(comparacion.cambiosAfijos);
+  }
+
+  limpiarComparacion() {
+    this.mensajeComparacion.textContent = "";
+
+    this.mensajeComparacion.hidden = true;
+
+    this.nombreEquipado.textContent = "";
+
+    this.nombreEquipado.style.removeProperty("color");
+
+    this.subtituloEquipado.textContent = "";
+
+    this.cuerpoTabla.replaceChildren();
     this.listaAfijos.replaceChildren();
 
-    const tieneAfijos = Array.isArray(afijos) && afijos.length > 0;
+    this.resumenEquipado.hidden = false;
 
-    this.seccionAfijos.hidden = !tieneAfijos;
+    this.contenedorTabla.hidden = false;
 
-    if (!tieneAfijos) {
+    this.mensajeSinFilas.hidden = true;
+
+    this.contenedorAfijos.hidden = false;
+
+    this.listaAfijos.hidden = false;
+
+    this.mensajeSinAfijos.hidden = true;
+  }
+
+  actualizarResumenEquipado(equipado) {
+    this.nombreEquipado.textContent = equipado.nombre;
+
+    const partes = [];
+
+    if (equipado.subtitulo.trim() !== "") {
+      partes.push(equipado.subtitulo.trim());
+    }
+
+    if (Number.isInteger(equipado.nivelObjeto)) {
+      partes.push(`Nivel ${equipado.nivelObjeto}`);
+    }
+
+    this.subtituloEquipado.textContent = partes.join(" · ");
+
+    const color = equipado.rareza?.color;
+
+    if (typeof color === "string" && color.trim() !== "") {
+      this.nombreEquipado.style.color = color;
+    }
+  }
+
+  actualizarFilas(filas) {
+    const tieneFilas = filas.length > 0;
+
+    this.contenedorTabla.hidden = !tieneFilas;
+
+    this.mensajeSinFilas.hidden = tieneFilas;
+
+    if (!tieneFilas) {
       return;
     }
 
     const fragmento = document.createDocumentFragment();
 
-    for (const afijo of afijos) {
-      fragmento.appendChild(this.crearTarjetaAfijo(afijo));
+    for (const fila of filas) {
+      const elementoFila = document.createElement("tr");
+
+      elementoFila.classList.add(
+        "detalle-objeto__comparacion-fila",
+        `detalle-objeto__comparacion-fila--${fila.tendencia}`,
+      );
+
+      elementoFila.dataset.tendencia = fila.tendencia;
+
+      elementoFila.append(
+        crearCelda(fila.etiqueta, "propiedad"),
+
+        crearCelda(fila.valorCandidato, "candidato"),
+
+        crearCelda(fila.valorEquipado, "equipado"),
+
+        crearCelda(fila.diferencia, "diferencia"),
+      );
+
+      fragmento.appendChild(elementoFila);
     }
 
-    this.listaAfijos.appendChild(fragmento);
+    this.cuerpoTabla.appendChild(fragmento);
   }
 
-  crearTarjetaAfijo(afijo) {
-    const tarjeta = document.createElement("article");
+  actualizarAfijos(cambios) {
+    const elementos = [];
 
-    tarjeta.classList.add(
-      "detalle-objeto__afijo",
-
-      `detalle-objeto__afijo--${afijo.tipo}`,
-    );
-
-    const cabecera = document.createElement("header");
-
-    cabecera.classList.add("detalle-objeto__afijo-cabecera");
-
-    const identidad = document.createElement("div");
-
-    identidad.classList.add("detalle-objeto__afijo-identidad");
-
-    const tipo = document.createElement("span");
-
-    tipo.classList.add("detalle-objeto__afijo-tipo");
-
-    tipo.textContent = afijo.tipoEtiqueta;
-
-    const nombre = document.createElement("strong");
-
-    nombre.classList.add("detalle-objeto__afijo-nombre");
-
-    nombre.textContent = afijo.nombre;
-
-    identidad.append(tipo, nombre);
-
-    const grado = document.createElement("span");
-
-    grado.classList.add("detalle-objeto__afijo-grado");
-
-    grado.textContent = `Grado ${afijo.grado}`;
-
-    cabecera.append(identidad, grado);
-
-    const listaEfectos = document.createElement("ul");
-
-    listaEfectos.classList.add("detalle-objeto__afijo-efectos");
-
-    for (const efecto of afijo.efectos) {
-      const elemento = document.createElement("li");
-
-      elemento.textContent = efecto;
-
-      listaEfectos.appendChild(elemento);
+    for (const afijo of cambios.agregados) {
+      elementos.push(
+        crearCambioAfijo("agregado", "Gana", formatearAfijo(afijo)),
+      );
     }
 
-    tarjeta.append(cabecera, listaEfectos);
+    for (const afijo of cambios.perdidos) {
+      elementos.push(
+        crearCambioAfijo("perdido", "Pierde", formatearAfijo(afijo)),
+      );
+    }
 
-    return tarjeta;
+    for (const cambio of cambios.modificados) {
+      elementos.push(
+        crearCambioAfijo(
+          "modificado",
+          "Cambia",
+
+          `${formatearAfijo(cambio.equipado)} → ` +
+            `${formatearAfijo(cambio.candidato)}`,
+        ),
+      );
+    }
+
+    const tieneCambios = elementos.length > 0;
+
+    this.listaAfijos.hidden = !tieneCambios;
+
+    this.mensajeSinAfijos.hidden = tieneCambios;
+
+    if (tieneCambios) {
+      this.listaAfijos.append(...elementos);
+    }
   }
+}
+
+function crearElemento(etiqueta, clase, texto = "") {
+  const elemento = document.createElement(etiqueta);
+
+  elemento.classList.add(clase);
+
+  if (texto !== "") {
+    elemento.textContent = texto;
+  }
+
+  return elemento;
+}
+
+function crearCelda(texto, tipo) {
+  const celda = document.createElement("td");
+
+  celda.classList.add(
+    "detalle-objeto__comparacion-celda",
+    `detalle-objeto__comparacion-celda--${tipo}`,
+  );
+
+  celda.textContent = String(texto ?? "—");
+
+  return celda;
+}
+
+function crearCambioAfijo(tipo, etiqueta, texto) {
+  const elemento = document.createElement("li");
+
+  elemento.classList.add(
+    "detalle-objeto__comparacion-afijo",
+    `detalle-objeto__comparacion-afijo--${tipo}`,
+  );
+
+  const titulo = document.createElement("strong");
+
+  titulo.textContent = `${etiqueta}: `;
+
+  const contenido = document.createElement("span");
+
+  contenido.textContent = texto;
+
+  elemento.append(titulo, contenido);
+
+  return elemento;
+}
+
+function formatearAfijo(afijo) {
+  const tipo =
+    typeof afijo.tipoEtiqueta === "string" && afijo.tipoEtiqueta.trim() !== ""
+      ? `${afijo.tipoEtiqueta.trim()} `
+      : "";
+
+  const grado = Number.isInteger(afijo.grado) ? ` (grado ${afijo.grado})` : "";
+
+  const efectos = Array.isArray(afijo.efectos)
+    ? afijo.efectos
+        .map(formatearEfecto)
+        .filter((texto) => texto !== "")
+        .join(", ")
+    : "";
+
+  return (
+    `${tipo}${afijo.nombre}${grado}` + (efectos !== "" ? `: ${efectos}` : "")
+  );
+}
+
+function formatearEfecto(efecto) {
+  if (typeof efecto === "string") {
+    return efecto.trim();
+  }
+
+  if (!efecto || typeof efecto !== "object") {
+    return "";
+  }
+
+  if (typeof efecto.texto === "string") {
+    return efecto.texto.trim();
+  }
+
+  if (typeof efecto.etiqueta === "string") {
+    const valor = efecto.valor ?? efecto.cantidad ?? "";
+
+    return `${efecto.etiqueta} ${valor}`.trim();
+  }
+
+  return "";
 }
 
 function validarPresentacion(presentacion) {
@@ -333,14 +540,35 @@ function validarPresentacion(presentacion) {
     !presentacion ||
     typeof presentacion !== "object" ||
     typeof presentacion.nombre !== "string" ||
-    !presentacion.rareza ||
-    typeof presentacion.rareza.nombre !== "string" ||
-    !Number.isInteger(presentacion.nivelObjeto) ||
-    typeof presentacion.mostrarMetadatosGeneracion !== "boolean" ||
-    !Array.isArray(presentacion.afijos) ||
-    !Array.isArray(presentacion.estadisticas) ||
-    typeof presentacion.mostrarMensajeSinEstadisticas !== "boolean"
+    typeof presentacion.subtitulo !== "string" ||
+    typeof presentacion.descripcion !== "string" ||
+    !Array.isArray(presentacion.estadisticas)
   ) {
     throw new Error("VistaDetalleObjeto necesita una presentación válida.");
+  }
+}
+
+function validarComparacion(comparacion) {
+  if (
+    !comparacion ||
+    typeof comparacion !== "object" ||
+    typeof comparacion.disponible !== "boolean" ||
+    typeof comparacion.motivo !== "string" ||
+    !Array.isArray(comparacion.filasEstadisticas) ||
+    !comparacion.cambiosAfijos ||
+    !Array.isArray(comparacion.cambiosAfijos.agregados) ||
+    !Array.isArray(comparacion.cambiosAfijos.perdidos) ||
+    !Array.isArray(comparacion.cambiosAfijos.modificados)
+  ) {
+    throw new Error("VistaDetalleObjeto recibió una comparación inválida.");
+  }
+
+  if (
+    comparacion.disponible &&
+    (!comparacion.equipado ||
+      typeof comparacion.equipado.nombre !== "string" ||
+      typeof comparacion.equipado.subtitulo !== "string")
+  ) {
+    throw new Error("La comparación necesita un objeto equipado válido.");
   }
 }

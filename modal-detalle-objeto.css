@@ -1,347 +1,833 @@
 /* =========================================================
-   MODAL DE DETALLE DE OBJETOS
+   MODAL DE DETALLE Y COMPARACIÓN DE OBJETOS
+
+   Este archivo define:
+
+   - La ventana modal de detalle.
+   - La presentación general del objeto.
+   - La tabla comparativa con el objeto equipado.
+   - Los colores de mejora, pérdida y cambio neutral.
+   - Los afijos ganados, perdidos o modificados.
+   - El comportamiento adaptable para pantallas pequeñas.
+   ========================================================= */
+
+/* =========================================================
+   VENTANA MODAL
    ========================================================= */
 
 .modal-detalle-objeto {
-  width: min(560px, calc(100vw - 32px));
+  width: min(940px, calc(100vw - 32px));
+
+  max-width: 940px;
   max-height: calc(100vh - 32px);
+
+  margin: auto;
   padding: 0;
+
   overflow: visible;
+
   border: 2px solid #8a78c9;
   border-radius: 8px;
+
   background-color: #0c0f1c;
   color: #f4f1ff;
+
   font-family: monospace;
+
   box-shadow:
     0 18px 55px rgba(0, 0, 0, 0.78),
     0 0 0 1px rgba(188, 168, 255, 0.12) inset;
 }
 
+/* Oscurece y desenfoca ligeramente el juego
+   mientras el modal permanece abierto. */
 .modal-detalle-objeto::backdrop {
-  background-color: rgba(0, 0, 0, 0.78);
+  background-color: rgba(0, 0, 0, 0.8);
+
   backdrop-filter: blur(2px);
 }
 
+/* Evita que reglas flex o grid hagan visibles
+   elementos marcados mediante el atributo hidden. */
+.modal-detalle-objeto [hidden] {
+  display: none !important;
+}
+
+/* Contenedor interno del modal.
+
+   El detalle puede desplazarse verticalmente,
+   pero la barra de acciones permanece visible. */
 .modal-detalle-objeto__contenido {
   position: relative;
+
   max-height: calc(100vh - 36px);
+
   display: flex;
   flex-direction: column;
+
   overflow: hidden;
+
   border-radius: 6px;
+
   background:
-    linear-gradient(180deg, rgba(73, 58, 115, 0.2), transparent 130px), #0f1323;
+    linear-gradient(180deg, rgba(73, 58, 115, 0.2), transparent 150px), #0f1323;
 }
+
+/* =========================================================
+   BOTÓN DE CIERRE SUPERIOR
+   ========================================================= */
 
 .modal-detalle-objeto__cerrar-superior {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+
   width: 34px;
   height: 34px;
   padding: 0;
+
   display: grid;
   place-items: center;
+
   border: 1px solid #655895;
   border-radius: 4px;
-  background-color: rgba(12, 15, 28, 0.92);
+
+  background-color: rgba(12, 15, 28, 0.94);
+
   color: #c9c1e6;
+
+  font-family: inherit;
   font-size: 24px;
   line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
 }
 
 .modal-detalle-objeto__cerrar-superior:hover {
+  border-color: #a58ce6;
   background-color: #30294c;
   color: #ffffff;
 }
 
-/* La vista puede reutilizarse sin depender del dialog. */
+.modal-detalle-objeto__cerrar-superior:active {
+  transform: translateY(1px);
+}
+
+.modal-detalle-objeto__cerrar-superior:focus-visible {
+  outline: 2px solid #e4c56e;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   DETALLE GENERAL DEL OBJETO
+   ========================================================= */
+
 .detalle-objeto {
   min-height: 0;
-  padding: 24px;
+  padding: 22px;
+
+  overflow-x: hidden;
   overflow-y: auto;
 
-  /* Respaldo utilizado antes de aplicar una rareza. */
-  --color-rareza-objeto: #d4d4d4;
-  --color-rareza-objeto-suave: rgba(212, 212, 212, 0.24);
+  scrollbar-color: #62568f #171a2a;
+
+  scrollbar-width: thin;
 }
 
+/* Cabecera compuesta por imagen e identidad. */
 .detalle-objeto__cabecera {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 18px;
+
+  grid-template-columns:
+    104px
+    minmax(0, 1fr);
+
   align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--color-rareza-objeto-suave);
+
+  gap: 18px;
+
+  padding-right: 48px;
+  padding-bottom: 18px;
+
+  border-bottom: 1px solid #393454;
 }
 
+/* =========================================================
+   IMAGEN DEL OBJETO
+   ========================================================= */
+
 .detalle-objeto__imagen-contenedor {
-  width: 112px;
-  height: 112px;
+  width: 104px;
+  height: 104px;
+
   display: grid;
   place-items: center;
-  border: 2px solid var(--color-rareza-objeto);
-  border-radius: 6px;
+
+  overflow: hidden;
+
+  border: 1px solid #51486d;
+  border-radius: 7px;
+
   background: radial-gradient(
     circle,
-    var(--color-rareza-objeto-suave),
-    rgba(9, 12, 22, 0.88)
+    rgba(128, 102, 194, 0.22),
+    rgba(15, 18, 32, 0.96)
   );
-  box-shadow:
-    0 0 0 3px rgba(0, 0, 0, 0.24) inset,
-    0 0 18px var(--color-rareza-objeto-suave);
+
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
 }
 
 .detalle-objeto__imagen {
-  width: 80px;
-  height: 80px;
+  width: 82px;
+  height: 82px;
+
   object-fit: contain;
+
   image-rendering: pixelated;
-  filter: drop-shadow(0 0 5px var(--color-rareza-objeto-suave));
+
+  user-select: none;
 }
 
+/* Letra mostrada cuando el objeto todavía
+   no tiene una imagen configurada. */
 .detalle-objeto__imagen-respaldo {
-  color: var(--color-rareza-objeto);
-  font-size: 48px;
+  display: grid;
+  place-items: center;
+
+  width: 70px;
+  height: 70px;
+
+  border: 1px solid #6c5f91;
+  border-radius: 50%;
+
+  background-color: rgba(33, 29, 52, 0.86);
+
+  color: #d9ccff;
+
+  font-size: 32px;
   font-weight: bold;
-  text-shadow: 0 2px 4px #000000;
+
+  text-transform: uppercase;
 }
+
+/* =========================================================
+   IDENTIDAD DEL OBJETO
+   ========================================================= */
 
 .detalle-objeto__identidad {
   min-width: 0;
-  padding-right: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
 }
 
 .detalle-objeto__titulo {
-  margin: 0 0 8px;
-  color: var(--color-rareza-objeto);
-  font-size: 24px;
+  margin: 0;
+
+  color: #efeaff;
+
+  font-size: 25px;
   line-height: 1.2;
+
   overflow-wrap: anywhere;
-  text-shadow: 0 0 12px var(--color-rareza-objeto-suave);
 }
 
 .detalle-objeto__subtitulo {
   margin: 0;
-  color: #a8a0c1;
-  font-size: 14px;
-}
 
-.detalle-objeto__metadatos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 11px;
-}
-
-.detalle-objeto__rareza,
-.detalle-objeto__nivel,
-.detalle-objeto__cantidad {
-  display: inline-block;
-  padding: 4px 7px;
-  border-radius: 4px;
-  background-color: #171b2d;
-  font-size: 12px;
-}
-
-.detalle-objeto__rareza {
-  border: 1px solid var(--color-rareza-objeto);
-  color: var(--color-rareza-objeto);
-  font-weight: bold;
-}
-
-.detalle-objeto__nivel {
-  border: 1px solid #514873;
-  color: #cfc8e0;
-}
-
-.detalle-objeto__cantidad {
-  margin-top: 10px;
-  border: 1px solid #514873;
-  color: #e2dcf4;
-}
-
-.detalle-objeto__estadisticas {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0;
-  margin: 20px 0 0;
-  border: 1px solid #34304a;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.detalle-objeto__estadisticas dt,
-.detalle-objeto__estadisticas dd {
-  margin: 0;
-  padding: 9px 11px;
-  border-bottom: 1px solid #2c293f;
-}
-
-.detalle-objeto__estadisticas dt {
-  background-color: rgba(24, 28, 48, 0.82);
   color: #aaa4bd;
-}
 
-.detalle-objeto__estadisticas dd {
-  min-width: 128px;
-  background-color: rgba(14, 17, 31, 0.84);
-  color: #f0c96d;
-  text-align: right;
-  font-weight: bold;
-}
-
-.detalle-objeto__estadisticas dt:last-of-type,
-.detalle-objeto__estadisticas dd:last-of-type {
-  border-bottom: 0;
-}
-
-.detalle-objeto__seccion-afijos {
-  margin-top: 20px;
-}
-
-.detalle-objeto__titulo-afijos {
-  margin: 0 0 9px;
-  color: var(--color-rareza-objeto);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.detalle-objeto__afijos {
-  display: grid;
-  gap: 9px;
-}
-
-.detalle-objeto__afijo {
-  padding: 10px 11px;
-  border: 1px solid var(--color-rareza-objeto-suave);
-  border-left: 3px solid var(--color-rareza-objeto);
-  border-radius: 5px;
-  background:
-    linear-gradient(90deg, var(--color-rareza-objeto-suave), transparent 62%),
-    rgba(14, 17, 31, 0.84);
-}
-
-.detalle-objeto__afijo-cabecera {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.detalle-objeto__afijo-identidad {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detalle-objeto__afijo-tipo {
-  color: #8f88a5;
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.detalle-objeto__afijo-nombre {
-  color: var(--color-rareza-objeto);
   font-size: 14px;
-  overflow-wrap: anywhere;
-}
-
-.detalle-objeto__afijo-grado {
-  flex: 0 0 auto;
-  padding: 2px 5px;
-  border: 1px solid #4c465e;
-  border-radius: 3px;
-  color: #aaa4bd;
-  font-size: 10px;
-}
-
-.detalle-objeto__afijo-efectos {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-  color: #d5d0e1;
-  font-size: 12px;
   line-height: 1.45;
-}
 
-.detalle-objeto__afijo-efectos li::before {
-  content: "•";
-  display: inline-block;
-  width: 14px;
-  color: var(--color-rareza-objeto);
-  font-weight: bold;
-}
-
-/* Los textos ya incluyen su signo numérico.
-   El símbolo visual funciona solamente como viñeta. */
-.detalle-objeto__afijo-efectos li {
-  display: flex;
-  gap: 3px;
-}
-
-.detalle-objeto__sin-estadisticas {
-  margin: 20px 0 0;
-  padding: 13px;
-  border: 1px dashed #45405e;
-  border-radius: 5px;
-  color: #88829d;
-  text-align: center;
-}
-
-.detalle-objeto__descripcion {
-  margin: 20px 0 0;
-  padding: 15px;
-  border-left: 3px solid var(--color-rareza-objeto);
-  background-color: rgba(17, 21, 39, 0.74);
-  color: #c8c3d6;
-  line-height: 1.55;
   white-space: pre-line;
 }
 
+.detalle-objeto__cantidad {
+  width: fit-content;
+
+  padding: 4px 8px;
+
+  border: 1px solid #6f6239;
+  border-radius: 12px;
+
+  background-color: rgba(17, 17, 23, 0.9);
+
+  color: #f0d681;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* =========================================================
+   ESTADÍSTICAS DEL OBJETO
+   ========================================================= */
+
+.detalle-objeto__estadisticas {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(150px, 1fr)
+    minmax(100px, auto);
+
+  gap: 8px 18px;
+
+  border: 1px solid #393454;
+  border-radius: 6px;
+
+  background-color: rgba(9, 12, 22, 0.58);
+}
+
+.detalle-objeto__estadisticas dt {
+  margin: 0;
+
+  color: #aaa4bd;
+
+  line-height: 1.4;
+}
+
+.detalle-objeto__estadisticas dd {
+  margin: 0;
+
+  color: #f1edf9;
+
+  font-weight: bold;
+  line-height: 1.4;
+  text-align: right;
+
+  overflow-wrap: anywhere;
+}
+
+.detalle-objeto__sin-estadisticas {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+
+  border: 1px dashed #47415f;
+  border-radius: 5px;
+
+  color: #8f899f;
+
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.detalle-objeto__descripcion {
+  margin: 16px 0 0;
+
+  color: #c9c4d7;
+
+  line-height: 1.55;
+
+  white-space: pre-line;
+}
+
+/* =========================================================
+   SECCIÓN DE COMPARACIÓN
+   ========================================================= */
+
+.detalle-objeto__comparacion {
+  margin-top: 22px;
+  padding-top: 20px;
+
+  border-top: 1px solid #51486d;
+}
+
+.detalle-objeto__comparacion-titulo {
+  margin: 0 0 14px;
+
+  color: #d8c8ff;
+
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.detalle-objeto__comparacion-mensaje {
+  margin: 0;
+  padding: 12px 14px;
+
+  border: 1px solid #51486d;
+  border-radius: 5px;
+
+  background-color: rgba(49, 42, 77, 0.35);
+
+  color: #c8c1dd;
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   RESUMEN DEL OBJETO EQUIPADO
+   ========================================================= */
+
+.detalle-objeto__equipado-resumen {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(130px, auto)
+    minmax(140px, 1fr);
+
+  align-items: center;
+
+  gap: 4px 14px;
+
+  border: 1px solid #47415f;
+  border-radius: 6px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(84, 69, 126, 0.2),
+    rgba(17, 20, 34, 0.55)
+  );
+}
+
+.detalle-objeto__equipado-etiqueta {
+  grid-row: 1 / span 2;
+
+  color: #9690a7;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.detalle-objeto__equipado-nombre {
+  min-width: 0;
+
+  color: #f2edff;
+
+  font-size: 15px;
+
+  overflow-wrap: anywhere;
+}
+
+.detalle-objeto__equipado-subtitulo {
+  color: #aaa4bd;
+
+  font-size: 12px;
+
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   TABLA COMPARATIVA
+   ========================================================= */
+
+.detalle-objeto__comparacion-tabla-contenedor {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border: 1px solid #393454;
+  border-radius: 6px;
+
+  background-color: rgba(9, 12, 22, 0.55);
+
+  scrollbar-color: #62568f #171a2a;
+
+  scrollbar-width: thin;
+}
+
+.detalle-objeto__comparacion-tabla {
+  width: 100%;
+  min-width: 660px;
+
+  border-collapse: collapse;
+
+  color: #d6d1df;
+
+  font-size: 12px;
+}
+
+.detalle-objeto__comparacion-tabla th {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid #51486d;
+
+  background-color: rgba(39, 34, 60, 0.92);
+
+  color: #bdb5d4;
+
+  font-size: 11px;
+  text-align: left;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  white-space: nowrap;
+}
+
+.detalle-objeto__comparacion-tabla th:nth-child(2),
+.detalle-objeto__comparacion-tabla th:nth-child(3) {
+  text-align: right;
+}
+
+.detalle-objeto__comparacion-celda {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid rgba(71, 65, 95, 0.66);
+
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.detalle-objeto__comparacion-fila:last-child
+  .detalle-objeto__comparacion-celda {
+  border-bottom: 0;
+}
+
+.detalle-objeto__comparacion-celda--propiedad {
+  color: #aaa4bd;
+
+  font-weight: bold;
+}
+
+.detalle-objeto__comparacion-celda--candidato,
+.detalle-objeto__comparacion-celda--equipado {
+  text-align: right;
+
+  white-space: nowrap;
+}
+
+.detalle-objeto__comparacion-celda--candidato {
+  color: #f4f1ff;
+}
+
+.detalle-objeto__comparacion-celda--equipado {
+  color: #aaa4bd;
+}
+
+.detalle-objeto__comparacion-celda--diferencia {
+  font-weight: bold;
+}
+
+/* =========================================================
+   TENDENCIAS DE COMPARACIÓN
+   ========================================================= */
+
+/* Mejora numérica respecto al objeto equipado. */
+.detalle-objeto__comparacion-fila--mejora {
+  background-color: rgba(46, 160, 67, 0.1);
+}
+
+.detalle-objeto__comparacion-fila--mejora
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #63d77a;
+}
+
+.detalle-objeto__comparacion-fila--mejora
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #7ee787;
+}
+
+/* Valor inferior al objeto actualmente equipado. */
+.detalle-objeto__comparacion-fila--empeora {
+  background-color: rgba(212, 63, 63, 0.1);
+}
+
+.detalle-objeto__comparacion-fila--empeora
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #e35d6a;
+}
+
+.detalle-objeto__comparacion-fila--empeora
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #ff7b72;
+}
+
+/* Propiedad con el mismo valor. */
+.detalle-objeto__comparacion-fila--igual {
+  background-color: rgba(151, 157, 166, 0.04);
+}
+
+.detalle-objeto__comparacion-fila--igual
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #666d78;
+}
+
+.detalle-objeto__comparacion-fila--igual
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #8f96a3;
+}
+
+/* Diferencia descriptiva donde el sistema
+   no puede decidir automáticamente cuál opción es mejor. */
+.detalle-objeto__comparacion-fila--neutral {
+  background-color: rgba(210, 153, 34, 0.07);
+}
+
+.detalle-objeto__comparacion-fila--neutral
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #b89042;
+}
+
+.detalle-objeto__comparacion-fila--neutral
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #d6b45f;
+}
+
+/* Propiedad nueva que no existe en el objeto equipado. */
+.detalle-objeto__comparacion-fila--agregada {
+  background-color: rgba(33, 168, 181, 0.09);
+}
+
+.detalle-objeto__comparacion-fila--agregada
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #4ac1cc;
+}
+
+.detalle-objeto__comparacion-fila--agregada
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #65d9e3;
+}
+
+/* Propiedad que dejaría de existir al reemplazar el objeto. */
+.detalle-objeto__comparacion-fila--perdida {
+  background-color: rgba(212, 63, 63, 0.1);
+}
+
+.detalle-objeto__comparacion-fila--perdida
+  .detalle-objeto__comparacion-celda:first-child {
+  border-left: 3px solid #e35d6a;
+}
+
+.detalle-objeto__comparacion-fila--perdida
+  .detalle-objeto__comparacion-celda--diferencia {
+  color: #ff7b72;
+}
+
+/* =========================================================
+   MENSAJES SIN CAMBIOS
+   ========================================================= */
+
+.detalle-objeto__comparacion-sin-cambios {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+
+  border: 1px dashed #47415f;
+  border-radius: 5px;
+
+  color: #8f899f;
+
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   COMPARACIÓN DE AFIJOS
+   ========================================================= */
+
+.detalle-objeto__comparacion-afijos {
+  margin-top: 16px;
+  padding: 14px;
+
+  border: 1px solid #393454;
+  border-radius: 6px;
+
+  background-color: rgba(9, 12, 22, 0.5);
+}
+
+.detalle-objeto__comparacion-afijos-titulo {
+  margin: 0 0 10px;
+
+  color: #beb5d6;
+
+  font-size: 13px;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detalle-objeto__comparacion-afijos-lista {
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  list-style: none;
+}
+
+.detalle-objeto__comparacion-afijo {
+  padding: 9px 11px;
+
+  border-left: 3px solid #686172;
+  border-radius: 3px;
+
+  background-color: rgba(255, 255, 255, 0.025);
+
+  color: #cbc6d5;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+/* Afijo que aporta el objeto nuevo. */
+.detalle-objeto__comparacion-afijo--agregado {
+  border-left-color: #63d77a;
+
+  background-color: rgba(46, 160, 67, 0.1);
+}
+
+.detalle-objeto__comparacion-afijo--agregado strong {
+  color: #7ee787;
+}
+
+/* Afijo que se perdería al equipar el objeto nuevo. */
+.detalle-objeto__comparacion-afijo--perdido {
+  border-left-color: #e35d6a;
+
+  background-color: rgba(212, 63, 63, 0.1);
+}
+
+.detalle-objeto__comparacion-afijo--perdido strong {
+  color: #ff7b72;
+}
+
+/* Mismo afijo, pero con grado o valores diferentes. */
+.detalle-objeto__comparacion-afijo--modificado {
+  border-left-color: #d0a84d;
+
+  background-color: rgba(210, 153, 34, 0.08);
+}
+
+.detalle-objeto__comparacion-afijo--modificado strong {
+  color: #e3c46f;
+}
+
+/* =========================================================
+   BARRA DE ACCIONES
+   ========================================================= */
+
 .modal-detalle-objeto__acciones {
+  flex: 0 0 auto;
+
+  padding: 14px 18px;
+
   display: flex;
   justify-content: flex-end;
+
   gap: 10px;
-  padding: 14px 18px;
+
   border-top: 1px solid #393454;
-  background-color: #0b0e19;
+
+  background-color: rgba(9, 12, 22, 0.94);
+
+  box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.18);
 }
 
 .modal-detalle-objeto__boton {
   min-width: 110px;
-  padding: 10px 16px;
+  min-height: 36px;
+
+  padding: 8px 16px;
+
+  border: 1px solid #625887;
+  border-radius: 4px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.modal-detalle-objeto__boton:hover {
+  transform: translateY(-1px);
+}
+
+.modal-detalle-objeto__boton:active {
+  transform: translateY(1px);
+}
+
+.modal-detalle-objeto__boton:focus-visible {
+  outline: 2px solid #e4c56e;
+  outline-offset: 2px;
 }
 
 .modal-detalle-objeto__boton--secundario {
-  border-color: #514a68;
-  background-color: #1b1d2b;
-  color: #cbc6d8;
+  background-color: #191c2d;
+  color: #c5bfd4;
+}
+
+.modal-detalle-objeto__boton--secundario:hover {
+  border-color: #8477b3;
+  background-color: #28243d;
+  color: #ffffff;
 }
 
 .modal-detalle-objeto__boton--principal {
-  border-color: #9c7eea;
-  background-color: #4a3979;
-  color: #ffffff;
-  font-weight: bold;
+  border-color: #a68d4e;
+
+  background: linear-gradient(180deg, #5b4c28, #3e351f);
+
+  color: #f5dfa0;
+
+  box-shadow: 0 0 0 1px rgba(255, 224, 137, 0.08) inset;
 }
 
-.modal-detalle-objeto__boton--principal:hover:not(:disabled) {
-  background-color: #624b9d;
+.modal-detalle-objeto__boton--principal:hover {
+  border-color: #d2b75f;
+
+  background: linear-gradient(180deg, #725e2d, #4c3f22);
+
+  color: #fff0b9;
 }
 
-@media (max-width: 520px) {
+/* =========================================================
+   PANTALLAS MEDIANAS
+   ========================================================= */
+
+@media (max-width: 760px) {
+  .modal-detalle-objeto {
+    width: calc(100vw - 18px);
+
+    max-height: calc(100vh - 18px);
+  }
+
+  .modal-detalle-objeto__contenido {
+    max-height: calc(100vh - 22px);
+  }
+
   .detalle-objeto {
     padding: 18px;
   }
 
   .detalle-objeto__cabecera {
-    grid-template-columns: 82px minmax(0, 1fr);
-    gap: 13px;
+    grid-template-columns:
+      82px
+      minmax(0, 1fr);
+
+    gap: 14px;
+
+    padding-right: 40px;
   }
 
   .detalle-objeto__imagen-contenedor {
@@ -350,23 +836,166 @@
   }
 
   .detalle-objeto__imagen {
+    width: 66px;
+    height: 66px;
+  }
+
+  .detalle-objeto__imagen-respaldo {
+    width: 56px;
+    height: 56px;
+
+    font-size: 25px;
+  }
+
+  .detalle-objeto__titulo {
+    font-size: 20px;
+  }
+
+  .detalle-objeto__estadisticas {
+    grid-template-columns:
+      minmax(120px, 1fr)
+      minmax(90px, auto);
+  }
+
+  .detalle-objeto__equipado-resumen {
+    grid-template-columns: 1fr;
+
+    gap: 5px;
+  }
+
+  .detalle-objeto__equipado-etiqueta {
+    grid-row: auto;
+  }
+
+  /* La tabla conserva sus columnas completas
+       y permite desplazamiento horizontal. */
+  .detalle-objeto__comparacion-tabla {
+    min-width: 620px;
+  }
+}
+
+/* =========================================================
+   PANTALLAS PEQUEÑAS
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .detalle-objeto {
+    padding: 14px;
+  }
+
+  .detalle-objeto__cabecera {
+    grid-template-columns: 1fr;
+
+    padding-right: 36px;
+
+    text-align: center;
+  }
+
+  .detalle-objeto__imagen-contenedor {
+    justify-self: center;
+  }
+
+  .detalle-objeto__identidad {
+    align-items: center;
+  }
+
+  .detalle-objeto__cantidad {
+    align-self: center;
+  }
+
+  .detalle-objeto__estadisticas {
+    padding: 12px;
+
+    grid-template-columns: 1fr;
+
+    gap: 3px;
+  }
+
+  .detalle-objeto__estadisticas dt {
+    margin-top: 7px;
+  }
+
+  .detalle-objeto__estadisticas dt:first-child {
+    margin-top: 0;
+  }
+
+  .detalle-objeto__estadisticas dd {
+    padding-bottom: 5px;
+
+    border-bottom: 1px solid rgba(71, 65, 95, 0.46);
+
+    text-align: left;
+  }
+
+  .detalle-objeto__estadisticas dd:last-child {
+    border-bottom: 0;
+  }
+
+  .modal-detalle-objeto__acciones {
+    padding: 12px;
+
+    justify-content: stretch;
+  }
+
+  .modal-detalle-objeto__boton {
+    min-width: 0;
+
+    flex: 1 1 0;
+  }
+}
+
+/* =========================================================
+   PANTALLAS CON POCA ALTURA
+   ========================================================= */
+
+@media (max-height: 650px) {
+  .detalle-objeto {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .detalle-objeto__imagen-contenedor {
+    width: 76px;
+    height: 76px;
+  }
+
+  .detalle-objeto__imagen {
     width: 60px;
     height: 60px;
   }
 
-  .detalle-objeto__titulo {
-    font-size: 19px;
+  .detalle-objeto__cabecera {
+    grid-template-columns:
+      76px
+      minmax(0, 1fr);
+
+    padding-bottom: 13px;
   }
 
-  .detalle-objeto__estadisticas dd {
-    min-width: 104px;
+  .detalle-objeto__estadisticas {
+    margin-top: 13px;
   }
 
-  .modal-detalle-objeto__acciones {
-    flex-direction: column-reverse;
+  .detalle-objeto__comparacion {
+    margin-top: 16px;
+    padding-top: 15px;
   }
+}
 
+/* =========================================================
+   ACCESIBILIDAD: MOVIMIENTO REDUCIDO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-detalle-objeto__cerrar-superior,
   .modal-detalle-objeto__boton {
-    width: 100%;
+    transition: none;
+  }
+
+  .modal-detalle-objeto__cerrar-superior:hover,
+  .modal-detalle-objeto__cerrar-superior:active,
+  .modal-detalle-objeto__boton:hover,
+  .modal-detalle-objeto__boton:active {
+    transform: none;
   }
 }

@@ -1,3 +1,5 @@
+import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
+
 const MOVIMIENTOS_POR_TECLA = {
   ArrowUp: {
     x: 0,
@@ -200,18 +202,14 @@ export class ControladorTeclado {
       resultado = this.juego.esperarTurno();
     }
 
-    if (!resultado) {
-      return;
-    }
-
-    if (resultado.mensaje !== null) {
-      this.renderizador.mostrarMensaje(resultado.mensaje);
-    }
-
-    // También redibujamos cambios que no consumen turno,
-    // como entrar, mover o cancelar un selector.
-    if (resultado.turnoConsumido || resultado.redibujar) {
-      this.renderizador.dibujarJuego(this.juego);
-    }
+    // Todos los resultados pasan por un único procesador.
+    //
+    // Esto evita que cada controlador tenga reglas diferentes
+    // para mostrar mensajes, redibujar o procesar eventos.
+    aplicarResultadoAccion({
+      resultado,
+      juego: this.juego,
+      renderizador: this.renderizador,
+    });
   }
 }

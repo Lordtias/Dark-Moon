@@ -1,5 +1,7 @@
 import { TIPOS_INTERACCION } from "../juego/interacciones/TiposInteraccion.js";
 
+import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
+
 // E ya se utiliza para el movimiento diagonal noreste.
 // Utilizamos R como abreviatura de Revisar.
 const TECLA_INTERACCION = "KeyR";
@@ -207,20 +209,16 @@ export class ControladorInteracciones {
     this.modalContenedorObjetos.actualizar();
   }
 
+  // Procesa el resultado utilizando el contrato compartido.
+  //
+  // El valor normalizado se devuelve porque una interacción
+  // puede agregar propiedades específicas, como:
+  // "interaccion", "entidad" o información de transferencia.
   procesarResultado(resultado) {
-    if (!resultado) {
-      return;
-    }
-
-    if (
-      typeof resultado.mensaje === "string" &&
-      resultado.mensaje.trim() !== ""
-    ) {
-      this.renderizador.mostrarMensaje(resultado.mensaje);
-    }
-
-    if (resultado.redibujar) {
-      this.renderizador.dibujarJuego(this.juego);
-    }
+    return aplicarResultadoAccion({
+      resultado,
+      juego: this.juego,
+      renderizador: this.renderizador,
+    });
   }
 }

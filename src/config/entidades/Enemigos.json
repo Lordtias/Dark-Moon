@@ -356,7 +356,7 @@
       },
       {
         "idObjeto": "arco_corto",
-        "probabilidad": 100,
+        "probabilidad": 3,
         "cantidadMinima": 1,
         "cantidadMaxima": 1
       }
@@ -464,7 +464,7 @@
       },
       {
         "idObjeto": "espada_larga",
-        "probabilidad": 100,
+        "probabilidad": 3,
         "cantidadMinima": 1,
         "cantidadMaxima": 1
       },

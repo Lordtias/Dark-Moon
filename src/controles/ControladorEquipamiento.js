@@ -1,3 +1,5 @@
+import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
+
 // Coordina inventario, equipamiento, modal
 // y acciones expuestas por Juego.
 //
@@ -230,21 +232,16 @@ export class ControladorEquipamiento {
     return objetosEquipados;
   }
 
+  // Entrega el resultado al procesador común.
+  //
+  // De esta manera, inventario, equipamiento, teclado
+  // e interacciones respetan el mismo contrato.
   procesarResultado(resultado) {
-    if (!resultado) {
-      return;
-    }
-
-    if (
-      typeof resultado.mensaje === "string" &&
-      resultado.mensaje.trim() !== ""
-    ) {
-      this.renderizador.mostrarMensaje(resultado.mensaje);
-    }
-
-    if (resultado.redibujar) {
-      this.renderizador.dibujarJuego(this.juego);
-    }
+    return aplicarResultadoAccion({
+      resultado,
+      juego: this.juego,
+      renderizador: this.renderizador,
+    });
   }
 }
 

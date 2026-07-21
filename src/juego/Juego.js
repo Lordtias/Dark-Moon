@@ -1,8 +1,8 @@
-import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js";
-
 import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
 
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
+
+import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
 
 import {
   COSTOS_TEMPORALES_BASE,
@@ -51,6 +51,7 @@ export class Juego {
     }
 
     this.map = map;
+
     this.mapaSeleccionado = mapaSeleccionado;
 
     this.configuracionObjetos = configuracionObjetos;
@@ -122,6 +123,44 @@ export class Juego {
 
       finalizarResultadoAccionJugador: (parametros) =>
         this.finalizarResultadoAccionJugador(parametros),
+    });
+
+    // El sistema de movimiento administra:
+    //
+    // - Los límites y casillas caminables.
+    // - El bloqueo de diagonales.
+    // - Las colisiones con objetivos.
+    // - El desplazamiento del jugador.
+    // - La redirección hacia selectores activos.
+    this.sistemaMovimientoJugador = new SistemaMovimientoJugador({
+      mapa: this.map,
+      jugador: this.player,
+
+      obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
+
+      obtenerModoInteraccionActivo: () => this.modoInteraccionActivo,
+
+      moverSelectorInteraccion: (movimientoX, movimientoY) =>
+        this.moverSelectorInteraccion(movimientoX, movimientoY),
+
+      obtenerModoCombateActivo: () => this.modoCombateActivo,
+
+      moverSelectorCombate: (movimientoX, movimientoY) =>
+        this.moverSelectorCombate(movimientoX, movimientoY),
+
+      registrarUltimaDireccionCombate: (movimientoX, movimientoY) =>
+        this.sistemaCombateJugador.registrarUltimaDireccion(
+          movimientoX,
+          movimientoY,
+        ),
+
+      entrarModoCombate: (selectorX, selectorY) =>
+        this.entrarModoCombate(selectorX, selectorY),
+
+      obtenerOpcionesInteraccion: () => this.obtenerOpcionesInteraccion(),
+
+      finalizarAccionJugador: (parametros) =>
+        this.finalizarAccionJugador(parametros),
     });
   }
 
@@ -216,33 +255,24 @@ export class Juego {
     return this.sistemaInteraccionJugador.limpiarSelector();
   }
 
+  // Fachada pública del movimiento y del mapa.
   estaDentroMapa(x, y) {
-    return y >= 0 && y < this.map.length && x >= 0 && x < this.map[y].length;
+    return this.sistemaMovimientoJugador.estaDentroMapa(x, y);
   }
 
   esCaminable(x, y) {
-    return this.estaDentroMapa(x, y) && this.map[y][x] !== "#";
+    return this.sistemaMovimientoJugador.esCaminable(x, y);
   }
 
   estaDiagonalBloqueada(movimientoX, movimientoY) {
-    const esDiagonal =
-      Math.abs(movimientoX) === 1 && Math.abs(movimientoY) === 1;
-
-    if (!esDiagonal) {
-      return false;
-    }
-
-    const horizontalBloqueada = !this.esCaminable(
-      this.player.x + movimientoX,
-      this.player.y,
+    return this.sistemaMovimientoJugador.estaDiagonalBloqueada(
+      movimientoX,
+      movimientoY,
     );
+  }
 
-    const verticalBloqueada = !this.esCaminable(
-      this.player.x,
-      this.player.y + movimientoY,
-    );
-
-    return horizontalBloqueada && verticalBloqueada;
+  moverJugador(movimientoX, movimientoY) {
+    return this.sistemaMovimientoJugador.mover(movimientoX, movimientoY);
   }
 
   // Fachada pública del combate.
@@ -439,92 +469,6 @@ export class Juego {
       mensaje: "Esperaste una acción.",
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
-    });
-  }
-
-  moverJugador(movimientoX, movimientoY) {
-    if (!this.player.estaVivo) {
-      return {
-        mensaje: null,
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
-    // Los selectores consumen el movimiento
-    // sin desplazar al jugador.
-    if (this.modoInteraccionActivo) {
-      return this.moverSelectorInteraccion(movimientoX, movimientoY);
-    }
-
-    if (this.modoCombateActivo) {
-      return this.moverSelectorCombate(movimientoX, movimientoY);
-    }
-
-    const nuevaX = this.player.x + movimientoX;
-
-    const nuevaY = this.player.y + movimientoY;
-
-    if (!this.esCaminable(nuevaX, nuevaY)) {
-      return {
-        mensaje: "No podés atravesar una pared.",
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
-    if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
-      return {
-        mensaje: "No podés atravesar esa esquina.",
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
-    const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
-
-    if (objetivo instanceof Combatiente) {
-      this.sistemaCombateJugador.registrarUltimaDireccion(
-        movimientoX,
-        movimientoY,
-      );
-
-      return this.entrarModoCombate(nuevaX, nuevaY);
-    }
-
-    if (objetivo) {
-      return {
-        mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
-    this.player.x = nuevaX;
-    this.player.y = nuevaY;
-
-    this.sistemaCombateJugador.registrarUltimaDireccion(
-      movimientoX,
-      movimientoY,
-    );
-
-    const opcionesInteraccion = this.obtenerOpcionesInteraccion();
-
-    let mensajeInteraccion = "";
-
-    if (opcionesInteraccion.length === 1) {
-      mensajeInteraccion =
-        "\n" +
-        `${opcionesInteraccion[0].interaccionPrioritaria.texto}: ` +
-        "presioná R.";
-    } else if (opcionesInteraccion.length > 1) {
-      mensajeInteraccion = "\nHay varias entidades para revisar: presioná R.";
-    }
-
-    return this.finalizarAccionJugador({
-      mensaje: "Te moviste por la mazmorra." + mensajeInteraccion,
-      tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
-      costoBase: COSTOS_TEMPORALES_BASE.movimiento,
     });
   }
 }

@@ -1,5 +1,4 @@
 import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
-
 import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js";
 
 import {
@@ -8,25 +7,9 @@ import {
 } from "./combate/SistemaAlcanceAtaque.js";
 
 import { generarBotinEnSuelo } from "./botin/SistemaBotin.js";
-
 import { crearGeneradorAleatorio } from "./generacion/GeneradorAleatorio.js";
 
-import {
-  transferirObjetoEntreContenedores,
-  transferirTodosLosObjetos,
-} from "./inventario/SistemaTransferenciaObjetos.js";
-
-import {
-  obtenerInteraccionesDisponibles as resolverInteraccionesDisponibles,
-  obtenerInteraccionPrioritaria as resolverInteraccionPrioritaria,
-} from "./interacciones/SistemaInteracciones.js";
-
-import {
-  crearOpcionesInteraccion,
-  seleccionarOpcionEnDireccion,
-} from "./interacciones/SelectorInteracciones.js";
-
-import { TIPOS_INTERACCION } from "./interacciones/TiposInteraccion.js";
+import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
 
 import {
   COSTOS_TEMPORALES_BASE,
@@ -75,13 +58,10 @@ export class Juego {
     }
 
     this.map = map;
-
     this.mapaSeleccionado = mapaSeleccionado;
-
     this.configuracionObjetos = configuracionObjetos;
 
     this.player = player;
-
     this.objetivos = objetivos;
 
     // Botines, cofres, NPC y objetos de misión
@@ -99,25 +79,11 @@ export class Juego {
 
     this.selectorCombate = {
       x: player.x,
-
-      y: player.y,
-    };
-
-    // El selector de interacción posee
-    // un estado independiente del combate.
-    this.modoInteraccionActivo = false;
-
-    this.selectorInteraccion = {
-      entidad: null,
-
-      x: player.x,
-
       y: player.y,
     };
 
     this.ultimaDireccionJugador = {
       x: 0,
-
       y: -1,
     };
 
@@ -130,6 +96,29 @@ export class Juego {
       mapa: this.map,
       jugador: this.player,
       objetivos: this.objetivos,
+    });
+
+    // El sistema de interacción administra:
+    //
+    // - El selector de interactuables.
+    // - Las validaciones de alcance.
+    // - La transferencia de botín.
+    // - El retiro de contenedores vacíos.
+    //
+    // Juego entrega funciones pequeñas para evitar
+    // que el sistema dependa de toda su implementación.
+    this.sistemaInteraccionJugador = new SistemaInteraccionJugador({
+      jugador: this.player,
+      interactuables: this.interactuables,
+
+      obtenerModoCombateActivo: () => this.modoCombateActivo,
+
+      obtenerContextoInteraccion: () => ({
+        juego: this,
+      }),
+
+      finalizarResultadoAccionJugador: (parametros) =>
+        this.finalizarResultadoAccionJugador(parametros),
     });
   }
 
@@ -147,6 +136,19 @@ export class Juego {
     return this.coordinadorTiempo.tiempoActual;
   }
 
+  // Conservamos juego.modoInteraccionActivo
+  // porque los controladores y el adaptador visual
+  // todavía consultan esta propiedad directamente.
+  get modoInteraccionActivo() {
+    return this.sistemaInteraccionJugador.modoActivo;
+  }
+
+  // Conservamos juego.selectorInteraccion
+  // para no modificar el adaptador de escena actual.
+  get selectorInteraccion() {
+    return this.sistemaInteraccionJugador.selector;
+  }
+
   obtenerObjetivoEn(x, y) {
     return this.objetivos.find(
       (objetivo) =>
@@ -160,270 +162,51 @@ export class Juego {
     );
   }
 
+  // Juego conserva estos métodos como fachada pública.
+  //
+  // Los controladores no necesitan saber que la lógica
+  // fue trasladada a SistemaInteraccionJugador.
   obtenerInteraccionesDisponibles() {
-    return resolverInteraccionesDisponibles({
-      actor: this.player,
-
-      interactuables: this.interactuables,
-
-      contexto: {
-        juego: this,
-      },
-    });
+    return this.sistemaInteraccionJugador.obtenerInteraccionesDisponibles();
   }
 
   obtenerInteraccionPrioritaria() {
-    return resolverInteraccionPrioritaria({
-      actor: this.player,
-
-      interactuables: this.interactuables,
-
-      contexto: {
-        juego: this,
-      },
-    });
+    return this.sistemaInteraccionJugador.obtenerInteraccionPrioritaria();
   }
 
-  // Agrupa las interacciones por entidad.
-  //
-  // Una entidad futura que ofrezca Hablar
-  // y Comerciar aparece una sola vez.
   obtenerOpcionesInteraccion() {
-    return crearOpcionesInteraccion(this.obtenerInteraccionesDisponibles());
+    return this.sistemaInteraccionJugador.obtenerOpcionesInteraccion();
   }
 
   obtenerOpcionInteraccionSeleccionada() {
-    if (!this.selectorInteraccion.entidad) {
-      return null;
-    }
-
-    return (
-      this.obtenerOpcionesInteraccion().find(
-        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
-      ) ?? null
-    );
+    return this.sistemaInteraccionJugador.obtenerOpcionSeleccionada();
   }
 
   entrarModoInteraccion() {
-    const bloqueo = this.obtenerBloqueoInteraccion();
-
-    if (bloqueo) {
-      return bloqueo;
-    }
-
-    if (this.modoInteraccionActivo) {
-      return {
-        exito: false,
-
-        mensaje: "Ya estás seleccionando una interacción.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    const opciones = this.obtenerOpcionesInteraccion();
-
-    if (opciones.length === 0) {
-      return {
-        exito: false,
-
-        mensaje: "No hay nada para revisar cerca.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    if (opciones.length === 1) {
-      return {
-        exito: false,
-
-        mensaje: "Solo hay una entidad interactuable disponible.",
-
-        interaccion: opciones[0].interaccionPrioritaria,
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    this.modoInteraccionActivo = true;
-
-    this.establecerSelectorInteraccion(opciones[0]);
-
-    return {
-      exito: true,
-
-      mensaje:
-        `Seleccionaste ${opciones[0].entidad.nombre}. ` +
-        "Mové el selector y confirmá con R.",
-
-      turnoConsumido: false,
-
-      redibujar: true,
-    };
+    return this.sistemaInteraccionJugador.entrarModoInteraccion();
   }
 
   moverSelectorInteraccion(movimientoX, movimientoY) {
-    if (!this.modoInteraccionActivo) {
-      return {
-        mensaje: null,
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    const opciones = this.obtenerOpcionesInteraccion();
-
-    if (opciones.length === 0) {
-      this.limpiarSelectorInteraccion();
-
-      return {
-        mensaje: "Ya no hay interacciones disponibles.",
-
-        turnoConsumido: false,
-
-        redibujar: true,
-      };
-    }
-
-    const opcionActual =
-      opciones.find(
-        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
-      ) ?? opciones[0];
-
-    const siguienteOpcion = seleccionarOpcionEnDireccion({
-      opciones,
-      opcionActual,
+    return this.sistemaInteraccionJugador.moverSelector(
       movimientoX,
       movimientoY,
-    });
-
-    if (siguienteOpcion === opcionActual) {
-      return {
-        mensaje: "No hay otro interactuable en esa dirección.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    this.establecerSelectorInteraccion(siguienteOpcion);
-
-    return {
-      mensaje:
-        `Seleccionaste ${siguienteOpcion.entidad.nombre}. ` + "Confirmá con R.",
-
-      turnoConsumido: false,
-
-      redibujar: true,
-    };
+    );
   }
 
   confirmarInteraccionSeleccionada() {
-    if (!this.modoInteraccionActivo) {
-      return {
-        exito: false,
-
-        mensaje: null,
-
-        interaccion: null,
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    const opciones = this.obtenerOpcionesInteraccion();
-
-    const opcionSeleccionada =
-      opciones.find(
-        (opcion) => opcion.entidad === this.selectorInteraccion.entidad,
-      ) ??
-      opciones[0] ??
-      null;
-
-    this.limpiarSelectorInteraccion();
-
-    if (!opcionSeleccionada) {
-      return {
-        exito: false,
-
-        mensaje: "La interacción seleccionada ya no está disponible.",
-
-        interaccion: null,
-
-        turnoConsumido: false,
-
-        redibujar: true,
-      };
-    }
-
-    return {
-      exito: true,
-
-      mensaje: null,
-
-      interaccion: opcionSeleccionada.interaccionPrioritaria,
-
-      entidad: opcionSeleccionada.entidad,
-
-      turnoConsumido: false,
-
-      redibujar: true,
-    };
+    return this.sistemaInteraccionJugador.confirmarSeleccion();
   }
 
   cancelarModoInteraccion() {
-    if (!this.modoInteraccionActivo) {
-      return {
-        mensaje: null,
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    this.limpiarSelectorInteraccion();
-
-    return {
-      mensaje: "Cancelaste la selección de interacción.",
-
-      turnoConsumido: false,
-
-      redibujar: true,
-    };
+    return this.sistemaInteraccionJugador.cancelarModoInteraccion();
   }
 
   establecerSelectorInteraccion(opcion) {
-    this.selectorInteraccion = {
-      entidad: opcion.entidad,
-
-      x: opcion.x,
-
-      y: opcion.y,
-    };
+    return this.sistemaInteraccionJugador.establecerSelector(opcion);
   }
 
   limpiarSelectorInteraccion() {
-    this.modoInteraccionActivo = false;
-
-    this.selectorInteraccion = {
-      entidad: null,
-
-      x: this.player.x,
-
-      y: this.player.y,
-    };
+    return this.sistemaInteraccionJugador.limpiarSelector();
   }
 
   estaDentroMapa(x, y) {
@@ -438,10 +221,8 @@ export class Juego {
     const distancia = calcularDistanciaCuadricula(
       {
         x: this.player.x,
-
         y: this.player.y,
       },
-
       {
         x,
         y,
@@ -454,11 +235,8 @@ export class Juego {
   evaluarCasillaAtaque(x, y) {
     return evaluarAtaqueCasilla({
       atacante: this.player,
-
       xObjetivo: x,
-
       yObjetivo: y,
-
       mapa: this.map,
     });
   }
@@ -477,13 +255,11 @@ export class Juego {
 
     const horizontalBloqueada = !this.esCaminable(
       this.player.x + movimientoX,
-
       this.player.y,
     );
 
     const verticalBloqueada = !this.esCaminable(
       this.player.x,
-
       this.player.y + movimientoY,
     );
 
@@ -492,7 +268,6 @@ export class Juego {
 
   obtenerEnemigoPrioritarioCombate() {
     let enemigoSeleccionado = null;
-
     let distanciaSeleccionada = Infinity;
 
     for (const objetivo of this.objetivos) {
@@ -507,13 +282,10 @@ export class Juego {
       const distancia = calcularDistanciaCuadricula(
         {
           x: this.player.x,
-
           y: this.player.y,
         },
-
         {
           x: objetivo.x,
-
           y: objetivo.y,
         },
       );
@@ -527,7 +299,6 @@ export class Juego {
 
       if (estaMasCerca || mismaDistanciaConMenosVida) {
         enemigoSeleccionado = objetivo;
-
         distanciaSeleccionada = distancia;
       }
     }
@@ -538,42 +309,34 @@ export class Juego {
   obtenerCasillaInicialCombate() {
     const direcciones = [
       this.ultimaDireccionJugador,
-
       {
         x: 0,
         y: -1,
       },
-
       {
         x: 1,
         y: 0,
       },
-
       {
         x: 0,
         y: 1,
       },
-
       {
         x: -1,
         y: 0,
       },
-
       {
         x: 1,
         y: -1,
       },
-
       {
         x: 1,
         y: 1,
       },
-
       {
         x: -1,
         y: 1,
       },
-
       {
         x: -1,
         y: -1,
@@ -602,7 +365,6 @@ export class Juego {
     if (enemigoPrioritario) {
       return {
         x: enemigoPrioritario.x,
-
         y: enemigoPrioritario.y,
       };
     }
@@ -614,9 +376,7 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -624,9 +384,7 @@ export class Juego {
     if (this.modoInteraccionActivo) {
       return {
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -636,7 +394,6 @@ export class Juego {
     const seleccion = seleccionExplicita
       ? {
           x: selectorX,
-
           y: selectorY,
         }
       : this.obtenerSeleccionInicialCombate();
@@ -644,9 +401,7 @@ export class Juego {
     if (seleccion === null) {
       return {
         mensaje: "No hay una casilla válida para atacar.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -656,9 +411,7 @@ export class Juego {
     if (seleccionExplicita && !evaluacion.puedeAtacar) {
       return {
         mensaje: evaluacion.mensaje,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -669,15 +422,12 @@ export class Juego {
     ) {
       return {
         mensaje: "No hay una casilla válida para atacar.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     this.modoCombateActivo = true;
-
     this.selectorCombate = seleccion;
 
     const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
@@ -686,9 +436,7 @@ export class Juego {
       mensaje: objetivo
         ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
         : `Modo combate: casilla ${seleccion.x}, ${seleccion.y}.`,
-
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
@@ -697,9 +445,7 @@ export class Juego {
     if (!this.modoCombateActivo) {
       return {
         mensaje: null,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -708,15 +454,12 @@ export class Juego {
 
     this.selectorCombate = {
       x: this.player.x,
-
       y: this.player.y,
     };
 
     return {
       mensaje: "Cancelaste el modo combate.",
-
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
@@ -729,9 +472,7 @@ export class Juego {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return {
         mensaje: "No podés seleccionar una pared.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -740,16 +481,13 @@ export class Juego {
       return {
         mensaje:
           "Esa casilla supera el alcance " + `${this.player.alcanceAtaque}.`,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     this.selectorCombate = {
       x: nuevaX,
-
       y: nuevaY,
     };
 
@@ -765,9 +503,7 @@ export class Juego {
       mensaje: evaluacion.puedeAtacar
         ? textoSeleccion
         : `${textoSeleccion} ${evaluacion.mensaje}`,
-
       turnoConsumido: false,
-
       redibujar: true,
     };
   }
@@ -791,11 +527,8 @@ export class Juego {
 
         const resultadoBotin = generarBotinEnSuelo({
           fuente: objetivo,
-
           configuracionObjetos: this.configuracionObjetos,
-
           aleatorio: this.aleatorioBotin,
-
           interactuables: this.interactuables,
         });
 
@@ -843,9 +576,7 @@ export class Juego {
     if (!this.modoCombateActivo) {
       return {
         mensaje: null,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -857,9 +588,7 @@ export class Juego {
     if (!evaluacion.puedeAtacar) {
       return {
         mensaje: evaluacion.mensaje,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -872,7 +601,6 @@ export class Juego {
 
     this.selectorCombate = {
       x: this.player.x,
-
       y: this.player.y,
     };
 
@@ -882,9 +610,7 @@ export class Juego {
 
     return this.finalizarAccionJugador({
       mensaje,
-
       tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
-
       costoBase: costoAtaque,
     });
   }
@@ -893,11 +619,8 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         exito: false,
-
         mensaje: "No podés modificar el equipamiento estando derrotado.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -905,11 +628,8 @@ export class Juego {
     if (this.modoCombateActivo) {
       return {
         exito: false,
-
         mensaje: "Cancelá el modo combate antes de cambiar el equipamiento.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -917,11 +637,8 @@ export class Juego {
     if (this.modoInteraccionActivo) {
       return {
         exito: false,
-
         mensaje: "Cancelá la selección de interacción antes de usar objetos.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -929,32 +646,10 @@ export class Juego {
     return null;
   }
 
+  // Las validaciones y transferencias de botín
+  // pertenecen ahora al sistema de interacción.
   obtenerBloqueoInteraccion() {
-    if (!this.player.estaVivo) {
-      return {
-        exito: false,
-
-        mensaje: "No podés interactuar estando derrotado.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    if (this.modoCombateActivo) {
-      return {
-        exito: false,
-
-        mensaje: "Cancelá el modo combate antes de interactuar.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    return null;
+    return this.sistemaInteraccionJugador.obtenerBloqueoInteraccion();
   }
 
   interactuarConObjetoInventario(indiceInventario) {
@@ -998,236 +693,32 @@ export class Juego {
 
     return this.finalizarResultadoAccionJugador({
       resultado,
-
       tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
-
       costoBase: COSTOS_TEMPORALES_BASE.accion,
     });
   }
 
   recogerObjetoInteractuable(interactuable, indiceOrigen) {
-    const validacion = this.validarInteraccionContenedor(interactuable);
-
-    if (validacion) {
-      return validacion;
-    }
-
-    const objeto =
-      interactuable.contenedorObjetos.obtenerObjetoEn(indiceOrigen);
-
-    if (!objeto) {
-      return {
-        exito: false,
-
-        mensaje: "Ese espacio del contenedor está vacío.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    const resultadoTransferencia = transferirObjetoEntreContenedores({
-      contenedorOrigen: interactuable.contenedorObjetos,
-
-      contenedorDestino: this.player.inventario,
-
+    return this.sistemaInteraccionJugador.recogerObjeto(
+      interactuable,
       indiceOrigen,
-    });
-
-    if (!resultadoTransferencia.exito) {
-      return {
-        exito: false,
-
-        mensaje: "No hay espacio suficiente en el inventario.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    this.retirarInteractuableSiVacio(interactuable);
-
-    const mensajes = [
-      `Recogiste ${resultadoTransferencia.cantidadTransferida} ` +
-        `${resultadoTransferencia.nombreObjeto}.`,
-    ];
-
-    if (resultadoTransferencia.cantidadRestante > 0) {
-      mensajes.push(
-        `Quedaron ${resultadoTransferencia.cantidadRestante} ` +
-          `${resultadoTransferencia.nombreObjeto} en el botín.`,
-      );
-    }
-
-    const resultado = {
-      exito: true,
-
-      mensaje: mensajes.join("\n"),
-
-      ...resultadoTransferencia,
-    };
-
-    return this.finalizarResultadoAccionJugador({
-      resultado,
-
-      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
-
-      costoBase: COSTOS_TEMPORALES_BASE.accion,
-    });
+    );
   }
 
   recogerTodoInteractuable(interactuable) {
-    const validacion = this.validarInteraccionContenedor(interactuable);
-
-    if (validacion) {
-      return validacion;
-    }
-
-    const resultadoTransferencia = transferirTodosLosObjetos({
-      contenedorOrigen: interactuable.contenedorObjetos,
-
-      contenedorDestino: this.player.inventario,
-    });
-
-    if (!resultadoTransferencia.exito) {
-      return {
-        exito: false,
-
-        mensaje: "No hay espacio suficiente en el inventario.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    this.retirarInteractuableSiVacio(interactuable);
-
-    const detalles = resultadoTransferencia.resultados
-      .filter((resultado) => resultado.cantidadTransferida > 0)
-      .map(
-        (resultado) =>
-          `${resultado.cantidadTransferida} ` + `${resultado.nombreObjeto}`,
-      );
-
-    const mensajes = ["Recogiste todo lo posible:", ...detalles];
-
-    if (!resultadoTransferencia.origenVacio) {
-      mensajes.push(
-        "Algunos objetos quedaron en el botín porque el inventario no tiene espacio.",
-      );
-    }
-
-    const resultado = {
-      exito: true,
-
-      mensaje: mensajes.join("\n"),
-
-      ...resultadoTransferencia,
-    };
-
-    return this.finalizarResultadoAccionJugador({
-      resultado,
-
-      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
-
-      costoBase: COSTOS_TEMPORALES_BASE.accion,
-    });
+    return this.sistemaInteraccionJugador.recogerTodo(interactuable);
   }
 
   validarInteraccionContenedor(interactuable) {
-    const bloqueo = this.obtenerBloqueoInteraccion();
-
-    if (bloqueo) {
-      return bloqueo;
-    }
-
-    if (!this.interactuables.includes(interactuable)) {
-      return {
-        exito: false,
-
-        mensaje: "Ese contenedor ya no está disponible.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    if (
-      !interactuable?.contenedorObjetos ||
-      typeof interactuable.contenedorObjetos.estaVacio !== "function"
-    ) {
-      return {
-        exito: false,
-
-        mensaje: "La entidad seleccionada no contiene objetos.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    if (interactuable.contenedorObjetos.estaVacio()) {
-      this.retirarInteractuableSiVacio(interactuable);
-
-      return {
-        exito: false,
-
-        mensaje: "El contenedor está vacío.",
-
-        turnoConsumido: false,
-
-        redibujar: true,
-      };
-    }
-
-    const interaccionDisponible = this.obtenerInteraccionesDisponibles().some(
-      (interaccion) =>
-        interaccion.entidad === interactuable &&
-        interaccion.tipo === TIPOS_INTERACCION.ABRIR_CONTENEDOR,
+    return this.sistemaInteraccionJugador.validarInteraccionContenedor(
+      interactuable,
     );
-
-    if (!interaccionDisponible) {
-      return {
-        exito: false,
-
-        mensaje: "Acercate al contenedor para recoger sus objetos.",
-
-        turnoConsumido: false,
-
-        redibujar: false,
-      };
-    }
-
-    return null;
   }
 
   retirarInteractuableSiVacio(interactuable) {
-    const estaVacio =
-      interactuable?.estaVacio === true ||
-      interactuable?.contenedorObjetos?.estaVacio?.() === true;
-
-    if (!estaVacio) {
-      return false;
-    }
-
-    const indice = this.interactuables.indexOf(interactuable);
-
-    if (indice === -1) {
-      return false;
-    }
-
-    this.interactuables.splice(indice, 1);
-
-    if (this.selectorInteraccion.entidad === interactuable) {
-      this.limpiarSelectorInteraccion();
-    }
-
-    return true;
+    return this.sistemaInteraccionJugador.retirarInteractuableSiVacio(
+      interactuable,
+    );
   }
 
   // Mantiene el método público de Juego para evitar
@@ -1259,9 +750,7 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -1269,9 +758,7 @@ export class Juego {
     if (this.modoInteraccionActivo) {
       return {
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -1279,18 +766,14 @@ export class Juego {
     if (this.modoCombateActivo) {
       return {
         mensaje: "Confirmá con F o cancelá con Escape.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     return this.finalizarAccionJugador({
       mensaje: "Esperaste una acción.",
-
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
-
       costoBase: COSTOS_TEMPORALES_BASE.espera,
     });
   }
@@ -1299,9 +782,7 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         mensaje: null,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -1323,9 +804,7 @@ export class Juego {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return {
         mensaje: "No podés atravesar una pared.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -1333,9 +812,7 @@ export class Juego {
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
       return {
         mensaje: "No podés atravesar esa esquina.",
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
@@ -1345,7 +822,6 @@ export class Juego {
     if (objetivo instanceof Combatiente) {
       this.ultimaDireccionJugador = {
         x: movimientoX,
-
         y: movimientoY,
       };
 
@@ -1355,20 +831,16 @@ export class Juego {
     if (objetivo) {
       return {
         mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
-
         turnoConsumido: false,
-
         redibujar: false,
       };
     }
 
     this.player.x = nuevaX;
-
     this.player.y = nuevaY;
 
     this.ultimaDireccionJugador = {
       x: movimientoX,
-
       y: movimientoY,
     };
 
@@ -1386,9 +858,7 @@ export class Juego {
 
     return this.finalizarAccionJugador({
       mensaje: "Te moviste por la mazmorra." + mensajeInteraccion,
-
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
-
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
     });
   }

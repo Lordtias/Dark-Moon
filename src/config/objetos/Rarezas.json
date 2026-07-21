@@ -23,7 +23,7 @@
     "estado": "activo",
     "motivoEstado": "La primera versión del generador implementará uno o dos afijos, con un máximo de un prefijo y un sufijo.",
     "colorInterfaz": "#528cff",
-    "pesoBase": 3000,
+    "pesoBase": 10000,
     "generaAfijosAleatorios": true,
     "afijosMinimos": 1,
     "afijosMaximos": 2,

@@ -1,15 +1,11 @@
 /* =========================================================
-   MODAL DE DETALLE DE OBJETOS
-
-   La comparación se integra dentro de las estadísticas normales.
-   No existe una segunda tabla ni se muestra el nombre del objeto
-   equipado, lo que mantiene el modal compacto.
+   MODAL DE DETALLE Y COMPARACIÓN MANUAL
    ========================================================= */
 
 .modal-detalle-objeto {
-  width: min(720px, calc(100vw - 32px));
+  width: min(640px, calc(100vw - 32px));
 
-  max-width: 720px;
+  max-width: 640px;
   max-height: calc(100vh - 32px);
 
   margin: auto;
@@ -27,6 +23,22 @@
   box-shadow:
     0 18px 55px rgba(0, 0, 0, 0.78),
     0 0 0 1px rgba(188, 168, 255, 0.12) inset;
+
+  transition:
+    width 140ms ease,
+    max-width 140ms ease;
+}
+
+.modal-detalle-objeto--selector {
+  width: min(720px, calc(100vw - 32px));
+
+  max-width: 720px;
+}
+
+.modal-detalle-objeto--comparacion {
+  width: min(960px, calc(100vw - 32px));
+
+  max-width: 960px;
 }
 
 .modal-detalle-objeto::backdrop {
@@ -53,6 +65,11 @@
 
   background:
     linear-gradient(180deg, rgba(73, 58, 115, 0.2), transparent 150px), #0f1323;
+}
+
+.modal-detalle-objeto__vistas {
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* =========================================================
@@ -108,11 +125,14 @@
 }
 
 /* =========================================================
-   DETALLE GENERAL
+   VISTAS DESPLAZABLES
    ========================================================= */
 
-.detalle-objeto {
+.detalle-objeto,
+.comparacion-objetos {
   min-height: 0;
+  max-height: calc(100vh - 112px);
+
   padding: 22px;
 
   overflow-x: hidden;
@@ -123,6 +143,10 @@
   scrollbar-width: thin;
 }
 
+/* =========================================================
+   DETALLE NORMAL
+   ========================================================= */
+
 .detalle-objeto__cabecera {
   display: grid;
 
@@ -131,7 +155,6 @@
     minmax(0, 1fr);
 
   align-items: center;
-
   gap: 18px;
 
   padding-right: 48px;
@@ -139,10 +162,6 @@
 
   border-bottom: 1px solid #393454;
 }
-
-/* =========================================================
-   IMAGEN
-   ========================================================= */
 
 .detalle-objeto__imagen-contenedor {
   width: 104px;
@@ -171,6 +190,7 @@
 
   object-fit: contain;
   image-rendering: pixelated;
+
   user-select: none;
 }
 
@@ -190,12 +210,9 @@
 
   font-size: 32px;
   font-weight: bold;
+
   text-transform: uppercase;
 }
-
-/* =========================================================
-   IDENTIDAD
-   ========================================================= */
 
 .detalle-objeto__identidad {
   min-width: 0;
@@ -217,19 +234,31 @@
   overflow-wrap: anywhere;
 }
 
-.detalle-objeto__subtitulo {
+.detalle-objeto__subtitulo,
+.detalle-objeto__metadatos,
+.detalle-objeto__descripcion {
   margin: 0;
+  line-height: 1.45;
+}
 
+.detalle-objeto__subtitulo {
   color: #aaa4bd;
 
   font-size: 14px;
-  line-height: 1.45;
 
   white-space: pre-line;
 }
 
+.detalle-objeto__metadatos {
+  color: #d7c67a;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .detalle-objeto__cantidad {
   width: fit-content;
+
   padding: 4px 8px;
 
   border: 1px solid #6f6239;
@@ -243,13 +272,17 @@
   font-weight: bold;
 }
 
-/* =========================================================
-   ESTADÍSTICAS Y DIFERENCIAS
-   ========================================================= */
-
 .detalle-objeto__estadisticas {
   margin: 18px 0 0;
-  padding: 8px 0;
+  padding: 14px 16px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(150px, 1fr)
+    minmax(100px, auto);
+
+  gap: 8px 18px;
 
   border: 1px solid #393454;
   border-radius: 6px;
@@ -257,96 +290,27 @@
   background-color: rgba(9, 12, 22, 0.58);
 }
 
-/* Cada fila tiene únicamente:
-
-   Propiedad | Valor nuevo | Diferencia
-
-   La primera columna ocupa el espacio flexible.
-   Valor y diferencia permanecen juntos a la derecha.
-*/
-.detalle-objeto__estadistica {
-  min-height: 34px;
-  padding: 7px 12px;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(130px, 1fr)
-    max-content
-    minmax(0, max-content);
-
-  align-items: center;
-
-  column-gap: 14px;
-
-  border-bottom: 1px solid rgba(71, 65, 95, 0.5);
-}
-
-.detalle-objeto__estadistica:last-child {
-  border-bottom: 0;
-}
-
-.detalle-objeto__estadistica dt,
-.detalle-objeto__estadistica dd {
+.detalle-objeto__estadisticas dt,
+.detalle-objeto__estadisticas dd {
   margin: 0;
-}
-
-.detalle-objeto__estadistica dt {
-  color: #aaa4bd;
   line-height: 1.4;
 }
 
-.detalle-objeto__estadistica dd {
+.detalle-objeto__estadisticas dt {
+  color: #aaa4bd;
+}
+
+.detalle-objeto__estadisticas dd {
   color: #f1edf9;
 
   font-weight: bold;
-  line-height: 1.4;
   text-align: right;
 
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
-.detalle-objeto__estadistica-diferencia {
-  min-width: 0;
-
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1.35;
-  text-align: left;
-
-  white-space: nowrap;
-}
-
-.detalle-objeto__estadistica-diferencia--mejora,
-.detalle-objeto__estadistica-diferencia--agregada {
-  color: #7ee787;
-}
-
-.detalle-objeto__estadistica-diferencia--empeora,
-.detalle-objeto__estadistica-diferencia--perdida {
-  color: #ff7b72;
-}
-
-/* Las filas agregadas por una propiedad perdida
-   conservan el mismo bloque visual, sin crear otra tabla. */
-.detalle-objeto__estadistica--perdida {
-  background-color: rgba(212, 63, 63, 0.06);
-}
-
-.detalle-objeto__estadistica--perdida dt {
-  color: #c9a7aa;
-}
-
-.detalle-objeto__estadistica--perdida dd {
-  color: #777184;
-}
-
-.detalle-objeto__estadistica--perdida .detalle-objeto__estadistica-diferencia {
-  color: #ff7b72;
-}
-
-.detalle-objeto__sin-estadisticas {
-  margin: 18px 0 0;
+.detalle-objeto__sin-estadisticas,
+.comparacion-objetos__mensaje {
   padding: 12px 14px;
 
   border: 1px dashed #47415f;
@@ -359,44 +323,478 @@
   line-height: 1.45;
 }
 
-.detalle-objeto__descripcion {
-  margin: 16px 0 0;
+.detalle-objeto__sin-estadisticas {
+  margin: 18px 0 0;
+}
+
+.detalle-objeto__afijos {
+  margin-top: 18px;
+}
+
+.detalle-objeto__afijos-titulo,
+.comparacion-objetos__afijos-titulo {
+  margin: 0 0 10px;
+
+  color: #c9bcf3;
+
+  font-size: 13px;
+  line-height: 1.3;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detalle-objeto__afijos-lista {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.detalle-objeto__afijo {
+  padding: 11px 13px;
+
+  border: 1px solid #4c4565;
+  border-left: 3px solid #8a78c9;
+  border-radius: 5px;
+
+  background-color: rgba(25, 23, 40, 0.72);
+}
+
+.detalle-objeto__afijo-cabecera {
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.detalle-objeto__afijo-tipo {
+  padding: 2px 6px;
+
+  border: 1px solid #625887;
+  border-radius: 10px;
+
+  color: #bdb4d5;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  text-transform: uppercase;
+}
+
+.detalle-objeto__afijo-nombre {
+  color: #efeaff;
+
+  overflow-wrap: anywhere;
+}
+
+.detalle-objeto__afijo-grado {
+  color: #d7c67a;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  white-space: nowrap;
+}
+
+.detalle-objeto__afijo-efectos {
+  margin: 8px 0 0;
+  padding-left: 18px;
 
   color: #c9c4d7;
-  line-height: 1.55;
 
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.detalle-objeto__afijo-efectos li + li {
+  margin-top: 3px;
+}
+
+.detalle-objeto__descripcion {
+  margin-top: 16px;
+
+  color: #c9c4d7;
+
+  line-height: 1.55;
   white-space: pre-line;
 }
 
 /* =========================================================
-   CAMBIOS COMPACTOS DE AFIJOS
+   SELECTOR MANUAL
    ========================================================= */
 
-.detalle-objeto__cambios-afijos {
-  margin: 16px 0 0;
-  padding: 10px 12px;
+.comparacion-objetos__titulo {
+  margin: 0;
+  padding-right: 48px;
+
+  color: #efeaff;
+
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.comparacion-objetos__subtitulo {
+  margin: 7px 0 18px;
+  padding-right: 48px;
+
+  color: #aaa4bd;
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.comparacion-objetos__mensaje {
+  margin: 0;
+}
+
+.comparacion-objetos__opciones {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.comparacion-objetos__opcion {
+  min-width: 0;
+  padding: 12px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(90px, auto)
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 12px;
+
+  border: 1px solid #4c4565;
+  border-radius: 6px;
+
+  background-color: rgba(18, 21, 36, 0.86);
+
+  color: inherit;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.comparacion-objetos__opcion:hover {
+  border-color: #8a78c9;
+
+  background-color: rgba(53, 44, 81, 0.72);
+
+  transform: translateY(-1px);
+}
+
+.comparacion-objetos__opcion:active {
+  transform: translateY(1px);
+}
+
+.comparacion-objetos__opcion:focus-visible {
+  outline: 2px solid #e4c56e;
+  outline-offset: 2px;
+}
+
+.comparacion-objetos__opcion-ranura {
+  color: #9c93b3;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.comparacion-objetos__opcion-identidad {
+  min-width: 0;
 
   display: flex;
   flex-direction: column;
 
-  gap: 7px;
+  gap: 4px;
+}
+
+.comparacion-objetos__opcion-nombre {
+  color: #f0ebff;
+
+  font-size: 13px;
+  line-height: 1.3;
+
+  overflow-wrap: anywhere;
+}
+
+.comparacion-objetos__opcion-subtitulo {
+  color: #aaa4bd;
+
+  font-size: 11px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   RESULTADO DE COMPARACIÓN
+   ========================================================= */
+
+.comparacion-objetos__resumen {
+  margin-bottom: 14px;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.comparacion-objetos__resumen-tarjeta {
+  min-width: 0;
+  padding: 11px 13px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  border: 1px solid #47415f;
+  border-radius: 6px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(84, 69, 126, 0.2),
+    rgba(17, 20, 34, 0.55)
+  );
+}
+
+.comparacion-objetos__resumen-etiqueta {
+  color: #9690a7;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.comparacion-objetos__resumen-nombre {
+  color: #f2edff;
+
+  font-size: 14px;
+  line-height: 1.3;
+
+  overflow-wrap: anywhere;
+}
+
+.comparacion-objetos__resumen-subtitulo {
+  color: #aaa4bd;
+
+  font-size: 11px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+.comparacion-objetos__tabla-contenedor {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border: 1px solid #393454;
+  border-radius: 6px;
+
+  background-color: rgba(9, 12, 22, 0.55);
+
+  scrollbar-color: #62568f #171a2a;
+
+  scrollbar-width: thin;
+}
+
+.comparacion-objetos__tabla {
+  width: 100%;
+  min-width: 700px;
+
+  border-collapse: collapse;
+
+  color: #d6d1df;
+
+  font-size: 12px;
+}
+
+.comparacion-objetos__tabla th {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid #51486d;
+
+  background-color: rgba(39, 34, 60, 0.92);
+
+  color: #bdb5d4;
+
+  font-size: 10px;
+  text-align: left;
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  white-space: nowrap;
+}
+
+.comparacion-objetos__tabla th:nth-child(2),
+.comparacion-objetos__tabla th:nth-child(3) {
+  text-align: right;
+}
+
+.comparacion-objetos__celda {
+  padding: 9px 12px;
+
+  border-bottom: 1px solid rgba(71, 65, 95, 0.66);
+
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.comparacion-objetos__fila:last-child .comparacion-objetos__celda {
+  border-bottom: 0;
+}
+
+.comparacion-objetos__celda--propiedad {
+  color: #aaa4bd;
+
+  font-weight: bold;
+}
+
+.comparacion-objetos__celda--inspeccionado,
+.comparacion-objetos__celda--elegido {
+  text-align: right;
+
+  white-space: nowrap;
+}
+
+.comparacion-objetos__celda--inspeccionado {
+  color: #f4f1ff;
+
+  font-weight: bold;
+}
+
+.comparacion-objetos__celda--elegido {
+  color: #aaa4bd;
+}
+
+.comparacion-objetos__celda--diferencia {
+  font-weight: bold;
+}
+
+.comparacion-objetos__fila--mejora {
+  background-color: rgba(46, 160, 67, 0.1);
+}
+
+.comparacion-objetos__fila--mejora .comparacion-objetos__celda:first-child {
+  border-left: 3px solid #63d77a;
+}
+
+.comparacion-objetos__fila--mejora .comparacion-objetos__celda--diferencia {
+  color: #7ee787;
+}
+
+.comparacion-objetos__fila--empeora,
+.comparacion-objetos__fila--perdida {
+  background-color: rgba(212, 63, 63, 0.1);
+}
+
+.comparacion-objetos__fila--empeora .comparacion-objetos__celda:first-child,
+.comparacion-objetos__fila--perdida .comparacion-objetos__celda:first-child {
+  border-left: 3px solid #e35d6a;
+}
+
+.comparacion-objetos__fila--empeora .comparacion-objetos__celda--diferencia,
+.comparacion-objetos__fila--perdida .comparacion-objetos__celda--diferencia {
+  color: #ff7b72;
+}
+
+.comparacion-objetos__fila--igual {
+  background-color: rgba(151, 157, 166, 0.04);
+}
+
+.comparacion-objetos__fila--igual .comparacion-objetos__celda:first-child {
+  border-left: 3px solid #666d78;
+}
+
+.comparacion-objetos__fila--igual .comparacion-objetos__celda--diferencia {
+  color: #8f96a3;
+}
+
+.comparacion-objetos__fila--neutral {
+  background-color: rgba(210, 153, 34, 0.07);
+}
+
+.comparacion-objetos__fila--neutral .comparacion-objetos__celda:first-child {
+  border-left: 3px solid #b89042;
+}
+
+.comparacion-objetos__fila--neutral .comparacion-objetos__celda--diferencia {
+  color: #d6b45f;
+}
+
+.comparacion-objetos__fila--agregada {
+  background-color: rgba(33, 168, 181, 0.09);
+}
+
+.comparacion-objetos__fila--agregada .comparacion-objetos__celda:first-child {
+  border-left: 3px solid #4ac1cc;
+}
+
+.comparacion-objetos__fila--agregada .comparacion-objetos__celda--diferencia {
+  color: #65d9e3;
+}
+
+/* =========================================================
+   DIFERENCIAS DE AFIJOS
+   ========================================================= */
+
+.comparacion-objetos__afijos {
+  margin-top: 16px;
+  padding: 14px;
 
   border: 1px solid #393454;
   border-radius: 6px;
 
   background-color: rgba(9, 12, 22, 0.5);
+}
+
+.comparacion-objetos__afijos-lista {
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
 
   list-style: none;
 }
 
-.detalle-objeto__cambio-afijo {
-  display: grid;
+.comparacion-objetos__afijo {
+  padding: 9px 11px;
 
-  grid-template-columns:
-    18px
-    minmax(0, 1fr);
+  border-left: 3px solid #686172;
 
-  gap: 7px;
+  border-radius: 3px;
+
+  background-color: rgba(255, 255, 255, 0.025);
 
   color: #cbc6d5;
 
@@ -406,21 +804,33 @@
   overflow-wrap: anywhere;
 }
 
-.detalle-objeto__cambio-afijo-indicador {
-  text-align: center;
+.comparacion-objetos__afijo--agregado {
+  border-left-color: #63d77a;
+
+  background-color: rgba(46, 160, 67, 0.1);
 }
 
-.detalle-objeto__cambio-afijo--agregado
-  .detalle-objeto__cambio-afijo-indicador {
+.comparacion-objetos__afijo--agregado strong {
   color: #7ee787;
 }
 
-.detalle-objeto__cambio-afijo--perdido .detalle-objeto__cambio-afijo-indicador {
+.comparacion-objetos__afijo--perdido {
+  border-left-color: #e35d6a;
+
+  background-color: rgba(212, 63, 63, 0.1);
+}
+
+.comparacion-objetos__afijo--perdido strong {
   color: #ff7b72;
 }
 
-.detalle-objeto__cambio-afijo--modificado
-  .detalle-objeto__cambio-afijo-indicador {
+.comparacion-objetos__afijo--modificado {
+  border-left-color: #d0a84d;
+
+  background-color: rgba(210, 153, 34, 0.08);
+}
+
+.comparacion-objetos__afijo--modificado strong {
   color: #e3c46f;
 }
 
@@ -435,6 +845,7 @@
 
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
 
   gap: 10px;
 
@@ -491,6 +902,18 @@
   color: #ffffff;
 }
 
+.modal-detalle-objeto__boton--comparar {
+  border-color: #6654a4;
+  background-color: #25203c;
+  color: #d9ccff;
+}
+
+.modal-detalle-objeto__boton--comparar:hover {
+  border-color: #9b83df;
+  background-color: #372e58;
+  color: #ffffff;
+}
+
 .modal-detalle-objeto__boton--principal {
   border-color: #a68d4e;
 
@@ -510,12 +933,16 @@
 }
 
 /* =========================================================
-   PANTALLAS MEDIANAS
+   RESPONSIVE
    ========================================================= */
 
 @media (max-width: 760px) {
-  .modal-detalle-objeto {
+  .modal-detalle-objeto,
+  .modal-detalle-objeto--selector,
+  .modal-detalle-objeto--comparacion {
     width: calc(100vw - 18px);
+
+    max-width: calc(100vw - 18px);
 
     max-height: calc(100vh - 18px);
   }
@@ -524,7 +951,10 @@
     max-height: calc(100vh - 22px);
   }
 
-  .detalle-objeto {
+  .detalle-objeto,
+  .comparacion-objetos {
+    max-height: calc(100vh - 104px);
+
     padding: 18px;
   }
 
@@ -534,6 +964,7 @@
       minmax(0, 1fr);
 
     gap: 14px;
+
     padding-right: 40px;
   }
 
@@ -558,22 +989,14 @@
     font-size: 20px;
   }
 
-  .detalle-objeto__estadistica {
-    grid-template-columns:
-      minmax(110px, 1fr)
-      max-content
-      max-content;
-
-    column-gap: 10px;
+  .comparacion-objetos__opciones {
+    grid-template-columns: 1fr;
   }
 }
 
-/* =========================================================
-   PANTALLAS PEQUEÑAS
-   ========================================================= */
-
 @media (max-width: 520px) {
-  .detalle-objeto {
+  .detalle-objeto,
+  .comparacion-objetos {
     padding: 14px;
   }
 
@@ -597,38 +1020,65 @@
     align-self: center;
   }
 
-  .detalle-objeto__estadistica {
-    grid-template-columns:
-      minmax(90px, 1fr)
-      max-content;
+  .detalle-objeto__estadisticas {
+    padding: 12px;
 
-    row-gap: 3px;
+    grid-template-columns: 1fr;
+
+    gap: 3px;
   }
 
-  .detalle-objeto__estadistica-diferencia {
-    grid-column: 2;
+  .detalle-objeto__estadisticas dt {
+    margin-top: 7px;
+  }
 
-    white-space: normal;
-    text-align: right;
+  .detalle-objeto__estadisticas dt:first-child {
+    margin-top: 0;
+  }
+
+  .detalle-objeto__estadisticas dd {
+    padding-bottom: 5px;
+
+    border-bottom: 1px solid rgba(71, 65, 95, 0.46);
+
+    text-align: left;
+  }
+
+  .detalle-objeto__estadisticas dd:last-child {
+    border-bottom: 0;
+  }
+
+  .detalle-objeto__afijo-cabecera,
+  .comparacion-objetos__resumen,
+  .comparacion-objetos__opcion {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-objeto__afijo-tipo,
+  .detalle-objeto__afijo-grado {
+    width: fit-content;
+  }
+
+  .comparacion-objetos__opcion {
+    gap: 5px;
   }
 
   .modal-detalle-objeto__acciones {
     padding: 12px;
+
     justify-content: stretch;
   }
 
   .modal-detalle-objeto__boton {
     min-width: 0;
-    flex: 1 1 0;
+
+    flex: 1 1 130px;
   }
 }
 
-/* =========================================================
-   PANTALLAS CON POCA ALTURA
-   ========================================================= */
-
 @media (max-height: 650px) {
-  .detalle-objeto {
+  .detalle-objeto,
+  .comparacion-objetos {
     padding-top: 16px;
     padding-bottom: 16px;
   }
@@ -656,20 +1106,20 @@
   }
 }
 
-/* =========================================================
-   ACCESIBILIDAD
-   ========================================================= */
-
 @media (prefers-reduced-motion: reduce) {
+  .modal-detalle-objeto,
   .modal-detalle-objeto__cerrar-superior,
-  .modal-detalle-objeto__boton {
+  .modal-detalle-objeto__boton,
+  .comparacion-objetos__opcion {
     transition: none;
   }
 
   .modal-detalle-objeto__cerrar-superior:hover,
   .modal-detalle-objeto__cerrar-superior:active,
   .modal-detalle-objeto__boton:hover,
-  .modal-detalle-objeto__boton:active {
+  .modal-detalle-objeto__boton:active,
+  .comparacion-objetos__opcion:hover,
+  .comparacion-objetos__opcion:active {
     transform: none;
   }
 }

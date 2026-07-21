@@ -1,10 +1,9 @@
 let siguienteIdVista = 1;
 
-// Construye una representación visual reutilizable de un objeto.
+// Construye la representación visual reutilizable de un objeto.
 //
-// La vista no conoce inventarios ni reglas de equipamiento.
-// Solamente recibe una presentación y, cuando corresponde,
-// un modelo compacto de diferencias.
+// Esta vista solamente muestra información. No conoce inventarios,
+// equipamiento, comparaciones ni acciones del juego.
 export class VistaDetalleObjeto {
   constructor() {
     this.idTitulo = `tituloDetalleObjeto${siguienteIdVista}`;
@@ -48,14 +47,19 @@ export class VistaDetalleObjeto {
 
     this.subtitulo = crearElemento("p", "detalle-objeto__subtitulo");
 
+    this.metadatos = crearElemento("p", "detalle-objeto__metadatos");
+
     this.cantidad = crearElemento("span", "detalle-objeto__cantidad");
 
-    identidad.append(this.titulo, this.subtitulo, this.cantidad);
+    identidad.append(
+      this.titulo,
+      this.subtitulo,
+      this.metadatos,
+      this.cantidad,
+    );
 
     cabecera.append(this.contenedorImagen, identidad);
 
-    // El bloque normal de estadísticas también muestra
-    // la única columna adicional necesaria: Diferencia.
     this.listaEstadisticas = crearElemento(
       "dl",
       "detalle-objeto__estadisticas",
@@ -67,34 +71,33 @@ export class VistaDetalleObjeto {
       "Este objeto no tiene propiedades especiales.",
     );
 
-    this.descripcion = crearElemento("p", "detalle-objeto__descripcion");
+    this.seccionAfijos = crearElemento("section", "detalle-objeto__afijos");
 
-    // Los cambios de afijos se muestran de forma compacta
-    // y solamente cuando realmente existe alguno.
-    this.listaCambiosAfijos = crearElemento(
-      "ul",
-      "detalle-objeto__cambios-afijos",
+    const tituloAfijos = crearElemento(
+      "h3",
+      "detalle-objeto__afijos-titulo",
+      "Afijos",
     );
 
-    this.listaCambiosAfijos.hidden = true;
+    this.listaAfijos = crearElemento("div", "detalle-objeto__afijos-lista");
+
+    this.seccionAfijos.append(tituloAfijos, this.listaAfijos);
+
+    this.descripcion = crearElemento("p", "detalle-objeto__descripcion");
 
     this.elemento.append(
       cabecera,
       this.listaEstadisticas,
       this.mensajeSinEstadisticas,
+      this.seccionAfijos,
       this.descripcion,
-      this.listaCambiosAfijos,
     );
   }
 
-  // El parámetro comparación es opcional para que la misma vista
-  // siga funcionando con consumibles, materiales y objetos equipados.
-  mostrar(presentacion, comparacion = null) {
+  // Actualiza la vista con un modelo producido
+  // por PresentadorObjeto.
+  mostrar(presentacion) {
     validarPresentacion(presentacion);
-
-    if (comparacion !== null) {
-      validarComparacion(comparacion);
-    }
 
     this.titulo.textContent = presentacion.nombre;
 
@@ -102,22 +105,68 @@ export class VistaDetalleObjeto {
 
     this.descripcion.textContent = presentacion.descripcion;
 
-    this.cantidad.textContent =
-      presentacion.cantidad > 1 ? `Cantidad: ${presentacion.cantidad}` : "";
+    this.actualizarRareza(presentacion);
 
-    this.cantidad.hidden = presentacion.cantidad <= 1;
+    this.actualizarCantidad(presentacion);
 
     this.actualizarImagen(presentacion);
 
-    this.actualizarEstadisticas({
-      estadisticas: presentacion.estadisticas,
+    this.actualizarEstadisticas(
+      presentacion.estadisticas,
 
-      mostrarMensaje: presentacion.mostrarMensajeSinEstadisticas !== false,
+      presentacion.mostrarMensajeSinEstadisticas !== false,
+    );
 
-      comparacion,
-    });
+    this.actualizarAfijos(
+      Array.isArray(presentacion.afijos) ? presentacion.afijos : [],
+    );
+  }
 
-    this.actualizarCambiosAfijos(comparacion?.cambiosAfijos ?? null);
+  // Muestra rareza y nivel sin mezclarlos
+  // con las estadísticas funcionales del objeto.
+  actualizarRareza(presentacion) {
+    this.titulo.style.removeProperty("color");
+
+    const rareza =
+      presentacion.rareza && typeof presentacion.rareza === "object"
+        ? presentacion.rareza
+        : null;
+
+    const partes = [];
+
+    if (
+      rareza &&
+      typeof rareza.nombre === "string" &&
+      rareza.nombre.trim() !== ""
+    ) {
+      partes.push(rareza.nombre.trim());
+    }
+
+    if (Number.isInteger(presentacion.nivelObjeto)) {
+      partes.push(`Nivel de objeto ${presentacion.nivelObjeto}`);
+    }
+
+    this.metadatos.textContent = partes.join(" · ");
+
+    this.metadatos.hidden = partes.length === 0;
+
+    if (
+      rareza &&
+      typeof rareza.color === "string" &&
+      rareza.color.trim() !== ""
+    ) {
+      this.titulo.style.color = rareza.color.trim();
+    }
+  }
+
+  actualizarCantidad(presentacion) {
+    const cantidad = Number.isInteger(presentacion.cantidad)
+      ? presentacion.cantidad
+      : 1;
+
+    this.cantidad.textContent = cantidad > 1 ? `Cantidad: ${cantidad}` : "";
+
+    this.cantidad.hidden = cantidad <= 1;
   }
 
   actualizarImagen(presentacion) {
@@ -126,10 +175,11 @@ export class VistaDetalleObjeto {
 
     this.respaldoImagen.textContent = letraRespaldo;
 
-    // Limpiamos la imagen anterior antes
-    // de representar otro objeto.
+    // Retiramos callbacks y ruta anteriores
+    // antes de representar otro objeto.
     this.imagen.onload = null;
     this.imagen.onerror = null;
+
     this.imagen.removeAttribute("src");
 
     this.imagen.hidden = true;
@@ -152,201 +202,123 @@ export class VistaDetalleObjeto {
     this.imagen.src = presentacion.recursoVisual;
   }
 
-  actualizarEstadisticas({ estadisticas, mostrarMensaje, comparacion }) {
+  actualizarEstadisticas(estadisticas, mostrarMensaje) {
     this.listaEstadisticas.replaceChildren();
 
-    const diferenciasPorEtiqueta = new Map(
-      (comparacion?.diferenciasEstadisticas ?? []).map((diferencia) => [
-        normalizarEtiqueta(diferencia.etiqueta),
+    const tieneEstadisticas =
+      Array.isArray(estadisticas) && estadisticas.length > 0;
 
-        diferencia,
-      ]),
-    );
+    this.listaEstadisticas.hidden = !tieneEstadisticas;
 
-    const filasAdicionales = comparacion?.filasAdicionales ?? [];
+    this.mensajeSinEstadisticas.hidden = tieneEstadisticas || !mostrarMensaje;
 
-    const tieneFilas = estadisticas.length > 0 || filasAdicionales.length > 0;
-
-    this.listaEstadisticas.hidden = !tieneFilas;
-
-    this.mensajeSinEstadisticas.hidden = tieneFilas || !mostrarMensaje;
-
-    if (!tieneFilas) {
+    if (!tieneEstadisticas) {
       return;
     }
 
     const fragmento = document.createDocumentFragment();
 
     for (const estadistica of estadisticas) {
-      const diferencia =
-        diferenciasPorEtiqueta.get(normalizarEtiqueta(estadistica.etiqueta)) ??
-        null;
+      const etiqueta = document.createElement("dt");
 
-      fragmento.appendChild(
-        crearFilaEstadistica({
-          etiqueta: estadistica.etiqueta,
+      etiqueta.textContent = estadistica.etiqueta;
 
-          valor: estadistica.valor,
+      const valor = document.createElement("dd");
 
-          diferencia,
-        }),
-      );
-    }
+      valor.textContent = estadistica.valor;
 
-    // Estas filas representan propiedades que se perderían,
-    // como Armadura o Bloqueo de un escudo al equipar un mandoble.
-    for (const fila of filasAdicionales) {
-      fragmento.appendChild(
-        crearFilaEstadistica({
-          etiqueta: fila.etiqueta,
-
-          valor: fila.valor,
-
-          diferencia: fila,
-
-          esPerdidaCompleta: true,
-        }),
-      );
+      fragmento.append(etiqueta, valor);
     }
 
     this.listaEstadisticas.appendChild(fragmento);
   }
 
-  actualizarCambiosAfijos(cambios) {
-    this.listaCambiosAfijos.replaceChildren();
+  actualizarAfijos(afijos) {
+    this.listaAfijos.replaceChildren();
 
-    if (!cambios) {
-      this.listaCambiosAfijos.hidden = true;
+    this.seccionAfijos.hidden = afijos.length === 0;
 
+    if (afijos.length === 0) {
       return;
     }
 
-    const elementos = [];
+    const fragmento = document.createDocumentFragment();
 
-    for (const afijo of cambios.agregados) {
-      elementos.push(
-        crearCambioAfijo({
-          tipo: "agregado",
-
-          simbolo: "+",
-
-          texto: formatearAfijo(afijo),
-        }),
-      );
+    for (const afijo of afijos) {
+      fragmento.appendChild(crearTarjetaAfijo(afijo));
     }
 
-    for (const afijo of cambios.perdidos) {
-      elementos.push(
-        crearCambioAfijo({
-          tipo: "perdido",
-
-          simbolo: "−",
-
-          texto: formatearAfijo(afijo),
-        }),
-      );
-    }
-
-    for (const cambio of cambios.modificados) {
-      elementos.push(
-        crearCambioAfijo({
-          tipo: "modificado",
-
-          simbolo: "↔",
-
-          texto:
-            `${formatearAfijo(cambio.equipado)} → ` +
-            `${formatearAfijo(cambio.candidato)}`,
-        }),
-      );
-    }
-
-    this.listaCambiosAfijos.hidden = elementos.length === 0;
-
-    if (elementos.length > 0) {
-      this.listaCambiosAfijos.append(...elementos);
-    }
+    this.listaAfijos.appendChild(fragmento);
   }
 }
 
-function crearFilaEstadistica({
-  etiqueta,
-  valor,
-  diferencia = null,
-  esPerdidaCompleta = false,
-}) {
-  const fila = crearElemento("div", "detalle-objeto__estadistica");
+function crearTarjetaAfijo(afijo) {
+  const tarjeta = crearElemento("article", "detalle-objeto__afijo");
 
-  if (esPerdidaCompleta) {
-    fila.classList.add("detalle-objeto__estadistica--perdida");
-  }
+  const cabecera = crearElemento("div", "detalle-objeto__afijo-cabecera");
 
-  const termino = document.createElement("dt");
-
-  termino.textContent = etiqueta;
-
-  const descripcion = document.createElement("dd");
-
-  descripcion.textContent = valor;
-
-  const diferenciaElemento = crearElemento(
-    "dd",
-    "detalle-objeto__estadistica-diferencia",
+  const tipo = crearElemento(
+    "span",
+    "detalle-objeto__afijo-tipo",
+    obtenerTipoAfijo(afijo),
   );
 
-  if (diferencia === null) {
-    diferenciaElemento.hidden = true;
-  } else {
-    diferenciaElemento.textContent = diferencia.diferencia;
-
-    diferenciaElemento.classList.add(
-      `detalle-objeto__estadistica-diferencia--${diferencia.tendencia}`,
-    );
-  }
-
-  fila.append(termino, descripcion, diferenciaElemento);
-
-  return fila;
-}
-
-function crearCambioAfijo({ tipo, simbolo, texto }) {
-  const elemento = crearElemento("li", "detalle-objeto__cambio-afijo");
-
-  elemento.classList.add(`detalle-objeto__cambio-afijo--${tipo}`);
-
-  const indicador = crearElemento(
+  const nombre = crearElemento(
     "strong",
-    "detalle-objeto__cambio-afijo-indicador",
-    simbolo,
+    "detalle-objeto__afijo-nombre",
+
+    typeof afijo.nombre === "string" ? afijo.nombre : "Afijo",
   );
 
-  const contenido = document.createElement("span");
+  const grado = crearElemento(
+    "span",
+    "detalle-objeto__afijo-grado",
 
-  contenido.textContent = texto;
+    Number.isInteger(afijo.grado) ? `Grado ${afijo.grado}` : "",
+  );
 
-  elemento.append(indicador, contenido);
+  grado.hidden = !Number.isInteger(afijo.grado);
 
-  return elemento;
+  cabecera.append(tipo, nombre, grado);
+
+  const listaEfectos = crearElemento("ul", "detalle-objeto__afijo-efectos");
+
+  const efectos = Array.isArray(afijo.efectos) ? afijo.efectos : [];
+
+  for (const efecto of efectos) {
+    const texto = formatearEfecto(efecto);
+
+    if (texto === "") {
+      continue;
+    }
+
+    const elemento = document.createElement("li");
+
+    elemento.textContent = texto;
+
+    listaEfectos.appendChild(elemento);
+  }
+
+  listaEfectos.hidden = listaEfectos.children.length === 0;
+
+  tarjeta.append(cabecera, listaEfectos);
+
+  return tarjeta;
 }
 
-function formatearAfijo(afijo) {
-  const tipo =
-    typeof afijo.tipoEtiqueta === "string" && afijo.tipoEtiqueta.trim() !== ""
-      ? `${afijo.tipoEtiqueta.trim()} `
-      : "";
+function obtenerTipoAfijo(afijo) {
+  if (
+    typeof afijo.tipoEtiqueta === "string" &&
+    afijo.tipoEtiqueta.trim() !== ""
+  ) {
+    return afijo.tipoEtiqueta.trim();
+  }
 
-  const grado = Number.isInteger(afijo.grado) ? ` (grado ${afijo.grado})` : "";
+  if (typeof afijo.tipo === "string" && afijo.tipo.trim() !== "") {
+    return formatearIdentificador(afijo.tipo);
+  }
 
-  const efectos = Array.isArray(afijo.efectos)
-    ? afijo.efectos
-        .map(formatearEfecto)
-        .filter((texto) => texto !== "")
-        .join(", ")
-    : "";
-
-  return (
-    `${tipo}${afijo.nombre}${grado}` + (efectos !== "" ? `: ${efectos}` : "")
-  );
+  return "Afijo";
 }
 
 function formatearEfecto(efecto) {
@@ -358,14 +330,20 @@ function formatearEfecto(efecto) {
     return "";
   }
 
-  if (typeof efecto.texto === "string") {
+  if (typeof efecto.texto === "string" && efecto.texto.trim() !== "") {
     return efecto.texto.trim();
   }
 
-  if (typeof efecto.etiqueta === "string") {
+  if (typeof efecto.etiqueta === "string" && efecto.etiqueta.trim() !== "") {
     const valor = efecto.valor ?? efecto.cantidad ?? "";
 
     return `${efecto.etiqueta} ${valor}`.trim();
+  }
+
+  if (typeof efecto.propiedad === "string" && efecto.propiedad.trim() !== "") {
+    const valor = efecto.valor ?? efecto.cantidad ?? "";
+
+    return `${formatearIdentificador(efecto.propiedad)} ${valor}`.trim();
   }
 
   return "";
@@ -383,12 +361,18 @@ function crearElemento(etiqueta, clase, texto = "") {
   return elemento;
 }
 
-function normalizarEtiqueta(etiqueta) {
-  return String(etiqueta)
+function formatearIdentificador(valor) {
+  if (typeof valor !== "string" || valor.trim() === "") {
+    return "—";
+  }
+
+  const texto = valor
+    .replace(/([a-záéíóúñ])([A-Z])/g, "$1 $2")
+    .replaceAll("_", " ")
     .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .toLowerCase();
+
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function validarPresentacion(presentacion) {
@@ -401,21 +385,5 @@ function validarPresentacion(presentacion) {
     !Array.isArray(presentacion.estadisticas)
   ) {
     throw new Error("VistaDetalleObjeto necesita una presentación válida.");
-  }
-}
-
-function validarComparacion(comparacion) {
-  if (
-    !comparacion ||
-    typeof comparacion !== "object" ||
-    typeof comparacion.disponible !== "boolean" ||
-    !Array.isArray(comparacion.diferenciasEstadisticas) ||
-    !Array.isArray(comparacion.filasAdicionales) ||
-    !comparacion.cambiosAfijos ||
-    !Array.isArray(comparacion.cambiosAfijos.agregados) ||
-    !Array.isArray(comparacion.cambiosAfijos.perdidos) ||
-    !Array.isArray(comparacion.cambiosAfijos.modificados)
-  ) {
-    throw new Error("VistaDetalleObjeto recibió una comparación inválida.");
   }
 }

@@ -2,22 +2,46 @@ import { crearPresentacionObjeto } from "./PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
 
+import { VistaComparacionObjetos } from "./VistaComparacionObjetos.js";
+
 import { crearComparacionObjetos } from "./ComparadorObjetos.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalDetalleObjeto";
 
 const RUTA_HOJA_ESTILOS = "./modal-detalle-objeto.css";
 
-// Administra una ventana modal reutilizable para inspeccionar objetos,
-// mostrar diferencias compactas y ejecutar una acción opcional.
+const ESTADOS_MODAL = Object.freeze({
+  DETALLE: "detalle",
+
+  SELECTOR: "selector",
+
+  COMPARACION: "comparacion",
+});
+
+// Administra tres estados dentro del mismo modal:
 //
-// El modal no modifica inventarios ni equipamiento directamente.
-// Solamente ejecuta la función recibida cuando el jugador confirma.
+// - Detalle normal del objeto.
+// - Selector manual de equipamiento.
+// - Tabla de comparación.
+//
+// Comparar no consume tiempo ni modifica el equipamiento.
 export class ModalDetalleObjeto {
   constructor() {
     asegurarHojaEstilos();
 
-    this.vista = new VistaDetalleObjeto();
+    this.vistaDetalle = new VistaDetalleObjeto();
+
+    this.vistaComparacion = new VistaComparacionObjetos();
+
+    this.estadoActual = ESTADOS_MODAL.DETALLE;
+
+    this.objetoActual = null;
+
+    this.combatienteActual = null;
+
+    this.presentacionActual = null;
+
+    this.opcionesComparacion = [];
 
     this.accionActual = null;
 
@@ -29,16 +53,28 @@ export class ModalDetalleObjeto {
 
     this.ejecutarAccionPrincipal = this.ejecutarAccionPrincipal.bind(this);
 
+    this.mostrarSelectorComparacion =
+      this.mostrarSelectorComparacion.bind(this);
+
+    this.mostrarComparacionSeleccionada =
+      this.mostrarComparacionSeleccionada.bind(this);
+
+    this.volverAlDetalle = this.volverAlDetalle.bind(this);
+
+    this.elegirOtroObjeto = this.elegirOtroObjeto.bind(this);
+
     this.construirDialogo();
     this.registrarEventos();
+
+    this.vistaComparacion.configurarSeleccionador(
+      this.mostrarComparacionSeleccionada,
+    );
   }
 
   construirDialogo() {
     this.dialogo = document.createElement("dialog");
 
     this.dialogo.classList.add("modal-detalle-objeto");
-
-    this.dialogo.setAttribute("aria-labelledby", this.vista.idTitulo);
 
     const contenido = document.createElement("div");
 
@@ -61,33 +97,41 @@ export class ModalDetalleObjeto {
       "Cerrar detalle del objeto",
     );
 
+    const vistas = document.createElement("div");
+
+    vistas.classList.add("modal-detalle-objeto__vistas");
+
+    this.vistaComparacion.elemento.hidden = true;
+
+    vistas.append(
+      this.vistaDetalle.elemento,
+
+      this.vistaComparacion.elemento,
+    );
+
     const acciones = document.createElement("footer");
 
     acciones.classList.add("modal-detalle-objeto__acciones");
 
-    this.botonCerrar = document.createElement("button");
+    this.botonCerrar = crearBoton("Cerrar", "secundario");
 
-    this.botonCerrar.type = "button";
+    this.botonVolver = crearBoton("Volver al objeto", "secundario");
 
-    this.botonCerrar.classList.add(
-      "modal-detalle-objeto__boton",
-      "modal-detalle-objeto__boton--secundario",
+    this.botonComparar = crearBoton("Comparar", "comparar");
+
+    this.botonElegirOtro = crearBoton("Elegir otro", "secundario");
+
+    this.botonAccion = crearBoton("", "principal");
+
+    acciones.append(
+      this.botonCerrar,
+      this.botonVolver,
+      this.botonComparar,
+      this.botonElegirOtro,
+      this.botonAccion,
     );
 
-    this.botonCerrar.textContent = "Cerrar";
-
-    this.botonAccion = document.createElement("button");
-
-    this.botonAccion.type = "button";
-
-    this.botonAccion.classList.add(
-      "modal-detalle-objeto__boton",
-      "modal-detalle-objeto__boton--principal",
-    );
-
-    acciones.append(this.botonCerrar, this.botonAccion);
-
-    contenido.append(this.botonCerrarSuperior, this.vista.elemento, acciones);
+    contenido.append(this.botonCerrarSuperior, vistas, acciones);
 
     this.dialogo.appendChild(contenido);
 
@@ -108,69 +152,44 @@ export class ModalDetalleObjeto {
 
     this.botonCerrar.addEventListener("click", this.manejarCierreSolicitado);
 
+    this.botonVolver.addEventListener("click", this.volverAlDetalle);
+
+    this.botonComparar.addEventListener(
+      "click",
+      this.mostrarSelectorComparacion,
+    );
+
+    this.botonElegirOtro.addEventListener("click", this.elegirOtroObjeto);
+
     this.botonAccion.addEventListener("click", this.ejecutarAccionPrincipal);
   }
 
-  // objetosDesplazados contiene las referencias que dejan
-  // de aportar estadísticas al confirmar Equipar.
-  //
-  // Puede incluir:
-  //
-  // - Solo el arma principal.
-  // - El arma principal y el escudo.
-  // - Una pieza de armadura de la misma ranura.
+  // objetosEquipados contiene todas las piezas actuales.
+  // La propia instancia inspeccionada y los duplicados se eliminan.
   abrir({
     objeto,
     combatiente = null,
-    objetosDesplazados = [],
+    objetosEquipados = [],
     accion = null,
   } = {}) {
-    if (!Array.isArray(objetosDesplazados)) {
-      throw new Error("Los objetos desplazados deben ser una lista.");
+    if (!Array.isArray(objetosEquipados)) {
+      throw new Error("Los objetos equipados deben recibirse en una lista.");
     }
 
-    const presentacion = crearPresentacionObjeto({
+    this.objetoActual = objeto;
+
+    this.combatienteActual = combatiente;
+
+    this.presentacionActual = crearPresentacionObjeto({
       objeto,
       combatiente,
     });
 
-    // Eliminamos valores nulos, referencias repetidas
-    // y la propia instancia inspeccionada.
-    const objetosUnicos = [];
-
-    for (const objetoDesplazado of objetosDesplazados) {
-      if (
-        !objetoDesplazado ||
-        objetoDesplazado === objeto ||
-        objetosUnicos.includes(objetoDesplazado)
-      ) {
-        continue;
-      }
-
-      objetosUnicos.push(objetoDesplazado);
-    }
-
-    let comparacion = null;
-
-    if (objetosUnicos.length > 0) {
-      const presentacionesDesplazadas = objetosUnicos.map((objetoDesplazado) =>
-        crearPresentacionObjeto({
-          objeto: objetoDesplazado,
-
-          combatiente,
-        }),
-      );
-
-      comparacion = crearComparacionObjetos({
-        presentacionCandidata: presentacion,
-
-        presentacionesDesplazadas,
-      });
-    }
-
-    this.vista.mostrar(presentacion, comparacion);
+    this.opcionesComparacion = this.crearOpcionesComparacion(objetosEquipados);
 
     this.configurarAccion(accion);
+
+    this.mostrarDetalle();
 
     if (!this.dialogo.open) {
       this.dialogo.showModal();
@@ -178,16 +197,161 @@ export class ModalDetalleObjeto {
 
     if (this.accionActual) {
       this.botonAccion.focus();
+    } else if (!this.botonComparar.hidden) {
+      this.botonComparar.focus();
     } else {
       this.botonCerrar.focus();
     }
   }
 
+  crearOpcionesComparacion(objetosEquipados) {
+    const objetosProcesados = new Set();
+
+    const opciones = [];
+
+    for (const entrada of objetosEquipados) {
+      if (!entrada || typeof entrada !== "object" || !entrada.objeto) {
+        continue;
+      }
+
+      const objetoEquipado = entrada.objeto;
+
+      if (
+        objetoEquipado === this.objetoActual ||
+        objetosProcesados.has(objetoEquipado)
+      ) {
+        continue;
+      }
+
+      objetosProcesados.add(objetoEquipado);
+
+      opciones.push({
+        objeto: objetoEquipado,
+
+        nombreRanura:
+          typeof entrada.nombreRanura === "string" ? entrada.nombreRanura : "",
+
+        etiquetaRanura:
+          typeof entrada.etiquetaRanura === "string" &&
+          entrada.etiquetaRanura.trim() !== ""
+            ? entrada.etiquetaRanura.trim()
+            : "Equipado",
+
+        presentacion: crearPresentacionObjeto({
+          objeto: objetoEquipado,
+
+          combatiente: this.combatienteActual,
+        }),
+      });
+    }
+
+    return opciones;
+  }
+
+  mostrarDetalle() {
+    this.estadoActual = ESTADOS_MODAL.DETALLE;
+
+    this.vistaDetalle.mostrar(this.presentacionActual);
+
+    this.vistaDetalle.elemento.hidden = false;
+
+    this.vistaComparacion.elemento.hidden = true;
+
+    this.dialogo.setAttribute("aria-labelledby", this.vistaDetalle.idTitulo);
+
+    this.actualizarControles();
+  }
+
+  mostrarSelectorComparacion() {
+    if (this.opcionesComparacion.length === 0) {
+      return;
+    }
+
+    this.estadoActual = ESTADOS_MODAL.SELECTOR;
+
+    this.vistaComparacion.mostrarSelector({
+      presentacionBase: this.presentacionActual,
+
+      opciones: this.opcionesComparacion,
+    });
+
+    this.vistaDetalle.elemento.hidden = true;
+
+    this.vistaComparacion.elemento.hidden = false;
+
+    this.dialogo.setAttribute(
+      "aria-labelledby",
+      this.vistaComparacion.idTitulo,
+    );
+
+    this.actualizarControles();
+    this.enfocarPrimeraOpcion();
+  }
+
+  mostrarComparacionSeleccionada(indice) {
+    const opcion = this.opcionesComparacion[indice];
+
+    if (!opcion) {
+      return;
+    }
+
+    const comparacion = crearComparacionObjetos({
+      presentacionInspeccionada: this.presentacionActual,
+
+      presentacionElegida: opcion.presentacion,
+    });
+
+    this.estadoActual = ESTADOS_MODAL.COMPARACION;
+
+    this.vistaComparacion.mostrarComparacion(comparacion);
+
+    this.actualizarControles();
+    this.botonElegirOtro.focus();
+  }
+
+  volverAlDetalle() {
+    this.mostrarDetalle();
+  }
+
+  elegirOtroObjeto() {
+    this.mostrarSelectorComparacion();
+  }
+
+  actualizarControles() {
+    const enDetalle = this.estadoActual === ESTADOS_MODAL.DETALLE;
+
+    const enSelector = this.estadoActual === ESTADOS_MODAL.SELECTOR;
+
+    const enComparacion = this.estadoActual === ESTADOS_MODAL.COMPARACION;
+
+    this.botonVolver.hidden = enDetalle;
+
+    this.botonComparar.hidden =
+      !enDetalle ||
+      this.opcionesComparacion.length === 0 ||
+      this.objetoActual?.esEquipable !== true;
+
+    this.botonElegirOtro.hidden = !enComparacion;
+
+    this.botonAccion.hidden = this.accionActual === null;
+
+    this.dialogo.classList.toggle("modal-detalle-objeto--selector", enSelector);
+
+    this.dialogo.classList.toggle(
+      "modal-detalle-objeto--comparacion",
+      enComparacion,
+    );
+  }
+
+  enfocarPrimeraOpcion() {
+    this.vistaComparacion.elemento
+      .querySelector("[data-indice-comparacion]")
+      ?.focus();
+  }
+
   configurarAccion(accion) {
     if (accion === null) {
       this.accionActual = null;
-
-      this.botonAccion.hidden = true;
 
       this.botonAccion.textContent = "";
 
@@ -209,8 +373,6 @@ export class ModalDetalleObjeto {
       ejecutar: accion.ejecutar,
     };
 
-    this.botonAccion.hidden = false;
-
     this.botonAccion.textContent = this.accionActual.texto;
   }
 
@@ -221,15 +383,12 @@ export class ModalDetalleObjeto {
       return;
     }
 
-    // Cerramos antes de ejecutar para no conservar en pantalla
-    // un objeto que puede moverse o desaparecer del inventario.
     this.cerrar();
     accion.ejecutar();
   }
 
   manejarCierreSolicitado(event) {
     event?.preventDefault();
-
     this.cerrar();
   }
 
@@ -240,8 +399,8 @@ export class ModalDetalleObjeto {
   }
 
   manejarTeclaDialogo(event) {
-    // Impide que las teclas del modal alcancen
-    // los controles generales de la partida.
+    // Evita que las teclas utilizadas dentro
+    // del modal lleguen a los controles del juego.
     event.stopPropagation();
   }
 
@@ -249,6 +408,16 @@ export class ModalDetalleObjeto {
     if (this.dialogo.open) {
       this.dialogo.close();
     }
+
+    this.estadoActual = ESTADOS_MODAL.DETALLE;
+
+    this.objetoActual = null;
+
+    this.combatienteActual = null;
+
+    this.presentacionActual = null;
+
+    this.opcionesComparacion = [];
 
     this.accionActual = null;
   }
@@ -269,13 +438,38 @@ export class ModalDetalleObjeto {
 
     this.botonCerrar.removeEventListener("click", this.manejarCierreSolicitado);
 
+    this.botonVolver.removeEventListener("click", this.volverAlDetalle);
+
+    this.botonComparar.removeEventListener(
+      "click",
+      this.mostrarSelectorComparacion,
+    );
+
+    this.botonElegirOtro.removeEventListener("click", this.elegirOtroObjeto);
+
     this.botonAccion.removeEventListener("click", this.ejecutarAccionPrincipal);
+
+    this.vistaComparacion.destruir();
 
     this.dialogo.remove();
   }
 }
 
-// Carga la hoja específica una sola vez.
+function crearBoton(texto, modificador) {
+  const boton = document.createElement("button");
+
+  boton.type = "button";
+
+  boton.classList.add(
+    "modal-detalle-objeto__boton",
+    `modal-detalle-objeto__boton--${modificador}`,
+  );
+
+  boton.textContent = texto;
+
+  return boton;
+}
+
 function asegurarHojaEstilos() {
   if (document.getElementById(ID_HOJA_ESTILOS)) {
     return;

@@ -4,8 +4,7 @@
     "tipoAfijo": "prefijo",
     "estado": "activo",
     "motivoEstado": "El motor ya permite agregar daño físico local a la fuente de ataque.",
-    "descripcion": "Agrega daño físico mínimo y máximo al arma.",
-    "pesoBase": 1000,
+    "descripcion": "Aumenta solamente el daño físico mínimo del arma para volver sus golpes más consistentes.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_plano",
@@ -18,62 +17,47 @@
       {
         "propiedad": "danioFisicoLocalMinimo",
         "operacion": "sumar"
-      },
-      {
-        "propiedad": "danioFisicoLocalMaximo",
-        "operacion": "sumar"
       }
     ],
     "grados": [
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "danioFisicoLocalMinimo": {
             "minimo": 1,
             "maximo": 1
-          },
-          "danioFisicoLocalMaximo": {
-            "minimo": 1,
-            "maximo": 2
           }
         }
       },
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "danioFisicoLocalMinimo": {
             "minimo": 1,
             "maximo": 2
-          },
-          "danioFisicoLocalMaximo": {
-            "minimo": 2,
-            "maximo": 3
           }
         }
       },
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "danioFisicoLocalMinimo": {
             "minimo": 2,
             "maximo": 3
-          },
-          "danioFisicoLocalMaximo": {
-            "minimo": 3,
-            "maximo": 5
           }
         }
       }
     ],
     "notasDiseno": [
       "El daño pertenece solamente al arma que contiene el afijo.",
-      "No afecta el ataque natural ni la otra mano."
+      "No afecta el ataque natural ni la otra mano.",
+      "Al modificar solo el daño mínimo, mejora la consistencia sin superar de forma general a Brutal."
     ]
   },
   "brutal": {
@@ -82,7 +66,6 @@
     "estado": "activo",
     "motivoEstado": "El motor ya calcula daño físico local aumentado porcentualmente.",
     "descripcion": "Aumenta porcentualmente el daño físico local del arma.",
-    "pesoBase": 700,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_porcentaje",
@@ -101,7 +84,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "danioFisicoLocalPorcentaje": {
             "minimo": 8,
@@ -112,7 +95,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "danioFisicoLocalPorcentaje": {
             "minimo": 13,
@@ -123,7 +106,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "danioFisicoLocalPorcentaje": {
             "minimo": 19,
@@ -140,7 +123,6 @@
     "estado": "activo",
     "motivoEstado": "La armadura plana de los objetos equipados ya se suma a la estadística final.",
     "descripcion": "Agrega Armadura a la pieza.",
-    "pesoBase": 1000,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "armadura_plana",
@@ -159,7 +141,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "armadura": {
             "minimo": 1,
@@ -170,7 +152,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "armadura": {
             "minimo": 2,
@@ -181,7 +163,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "armadura": {
             "minimo": 4,
@@ -198,7 +180,6 @@
     "estado": "activo",
     "motivoEstado": "La Vida máxima otorgada por equipamiento ya forma parte del cálculo de recursos.",
     "descripcion": "Aumenta la Vida máxima.",
-    "pesoBase": 850,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "vida_maxima_plana",
@@ -217,46 +198,47 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "vidaMaxima": {
-            "minimo": 3,
-            "maximo": 6
+            "minimo": 2,
+            "maximo": 3
           }
         }
       },
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "vidaMaxima": {
-            "minimo": 7,
-            "maximo": 12
+            "minimo": 4,
+            "maximo": 6
           }
         }
       },
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "vidaMaxima": {
-            "minimo": 13,
-            "maximo": 20
+            "minimo": 7,
+            "maximo": 10
           }
         }
       }
     ],
-    "notasDiseno": []
+    "notasDiseno": [
+      "Sus rangos se mantienen por debajo de la progresión natural de Vida para no borrar las diferencias entre profesiones."
+    ]
   },
   "arcano": {
     "nombre": "Arcano",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El Maná máximo otorgado por equipamiento ya forma parte del cálculo de recursos.",
-    "descripcion": "Aumenta el Maná máximo.",
-    "pesoBase": 850,
+    "estado": "pendiente_balance",
+    "motivoEstado": "El motor ya aplica Maná máximo, pero todavía no existen habilidades con consumo regular que permitan medir su utilidad real.",
+    "descripcion": "Aumentaría el Maná máximo.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "mana_maximo_plano",
@@ -275,7 +257,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "manaMaximo": {
             "minimo": 3,
@@ -286,7 +268,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "manaMaximo": {
             "minimo": 7,
@@ -297,7 +279,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "manaMaximo": {
             "minimo": 13,
@@ -306,7 +288,9 @@
         }
       }
     ],
-    "notasDiseno": []
+    "notasDiseno": [
+      "Debe volver a activo cuando sea posible medir cuántos usos adicionales de habilidades permite cada grado."
+    ]
   },
   "ligero": {
     "nombre": "Ligero",

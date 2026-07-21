@@ -5,7 +5,6 @@
     "estado": "activo",
     "motivoEstado": "La precisión propia del arma ya participa en cada componente de ataque.",
     "descripcion": "Aumenta la precisión del arma.",
-    "pesoBase": 1000,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "precision_local",
@@ -24,7 +23,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "precision": {
             "minimo": 1,
@@ -35,7 +34,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "precision": {
             "minimo": 4,
@@ -46,7 +45,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "precision": {
             "minimo": 7,
@@ -63,7 +62,6 @@
     "estado": "activo",
     "motivoEstado": "La probabilidad de crítico propia del arma ya se utiliza al resolver el ataque.",
     "descripcion": "Aumenta la probabilidad de crítico del arma.",
-    "pesoBase": 550,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "critico_local_probabilidad",
@@ -82,7 +80,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "probabilidadCritico": {
             "minimo": 1,
@@ -93,7 +91,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "probabilidadCritico": {
             "minimo": 3,
@@ -104,7 +102,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "probabilidadCritico": {
             "minimo": 5,
@@ -121,7 +119,6 @@
     "estado": "activo",
     "motivoEstado": "El multiplicador crítico propio del arma ya forma parte del cálculo de cada golpe.",
     "descripcion": "Aumenta el multiplicador de los golpes críticos.",
-    "pesoBase": 350,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "critico_local_multiplicador",
@@ -140,7 +137,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "multiplicadorCritico": {
             "minimo": 0.05,
@@ -152,7 +149,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "multiplicadorCritico": {
             "minimo": 0.11,
@@ -164,7 +161,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "multiplicadorCritico": {
             "minimo": 0.17,
@@ -182,7 +179,6 @@
     "estado": "activo",
     "motivoEstado": "La Evasión plana del equipamiento ya se suma a la estadística final.",
     "descripcion": "Aumenta la Evasión.",
-    "pesoBase": 900,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "evasion_plana",
@@ -201,7 +197,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "evasion": {
             "minimo": 1,
@@ -212,7 +208,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "evasion": {
             "minimo": 4,
@@ -223,7 +219,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "evasion": {
             "minimo": 7,
@@ -240,7 +236,6 @@
     "estado": "activo",
     "motivoEstado": "La regeneración plana de Vida del equipamiento ya se procesa en los pulsos temporales.",
     "descripcion": "Aumenta la regeneración plana de Vida.",
-    "pesoBase": 650,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "regeneracion_vida_plana",
@@ -259,7 +254,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "regeneracionVida": {
             "minimo": 0.1,
@@ -271,7 +266,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "regeneracionVida": {
             "minimo": 0.3,
@@ -283,7 +278,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "regeneracionVida": {
             "minimo": 0.6,
@@ -298,10 +293,9 @@
   "de_claridad": {
     "nombre": "De claridad",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La regeneración plana de Maná del equipamiento ya se procesa en los pulsos temporales.",
-    "descripcion": "Aumenta la regeneración plana de Maná.",
-    "pesoBase": 650,
+    "estado": "pendiente_balance",
+    "motivoEstado": "La regeneración de Maná ya funciona, pero todavía no existen habilidades con consumo regular que permitan valorar este sufijo.",
+    "descripcion": "Aumentaría la regeneración plana de Maná.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "regeneracion_mana_plana",
@@ -359,10 +353,9 @@
   "de_ascuas": {
     "nombre": "De ascuas",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al fuego otorgada por equipamiento ya se suma y respeta los límites del combate.",
-    "descripcion": "Aumenta la resistencia al fuego.",
-    "pesoBase": 800,
+    "estado": "pendiente_balance",
+    "motivoEstado": "La resistencia al fuego ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de fuego.",
+    "descripcion": "Aumentaría la resistencia al fuego.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_fuego",
@@ -417,10 +410,9 @@
   "de_escarcha": {
     "nombre": "De escarcha",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al frío otorgada por equipamiento ya se suma y respeta los límites del combate.",
-    "descripcion": "Aumenta la resistencia al frío.",
-    "pesoBase": 800,
+    "estado": "pendiente_balance",
+    "motivoEstado": "La resistencia al frío ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de frío.",
+    "descripcion": "Aumentaría la resistencia al frío.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_frío",
@@ -475,10 +467,9 @@
   "de_tormenta": {
     "nombre": "De tormenta",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al rayo otorgada por equipamiento ya se suma y respeta los límites del combate.",
-    "descripcion": "Aumenta la resistencia al rayo.",
-    "pesoBase": 800,
+    "estado": "pendiente_balance",
+    "motivoEstado": "La resistencia al rayo ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de rayo.",
+    "descripcion": "Aumentaría la resistencia al rayo.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_rayo",
@@ -533,10 +524,9 @@
   "del_antidoto": {
     "nombre": "Del antídoto",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al veneno otorgada por equipamiento ya se suma y respeta los límites del combate.",
-    "descripcion": "Aumenta la resistencia al veneno.",
-    "pesoBase": 800,
+    "estado": "pendiente_balance",
+    "motivoEstado": "La resistencia al veneno ya funciona, pero el contenido actual todavía no posee ataques de veneno relevantes.",
+    "descripcion": "Aumentaría la resistencia al veneno.",
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_veneno",
@@ -594,7 +584,6 @@
     "estado": "activo",
     "motivoEstado": "La probabilidad de bloqueo del equipamiento ya se suma al valor final.",
     "descripcion": "Aumenta la probabilidad de bloqueo de un escudo.",
-    "pesoBase": 500,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "bloqueo_probabilidad",
@@ -613,7 +602,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "probabilidadBloqueo": {
             "minimo": 1,
@@ -624,7 +613,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "probabilidadBloqueo": {
             "minimo": 3,
@@ -635,7 +624,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "probabilidadBloqueo": {
             "minimo": 5,
@@ -652,7 +641,6 @@
     "estado": "activo",
     "motivoEstado": "La mitigación al bloquear ya se suma desde el equipamiento y respeta su límite global.",
     "descripcion": "Aumenta el porcentaje de daño mitigado al bloquear.",
-    "pesoBase": 400,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "bloqueo_mitigacion",
@@ -671,7 +659,7 @@
       {
         "grado": 1,
         "nivelObjetoMinimo": 1,
-        "peso": 1000,
+        "peso": 600,
         "valores": {
           "mitigacionBloqueo": {
             "minimo": 3,
@@ -682,7 +670,7 @@
       {
         "grado": 2,
         "nivelObjetoMinimo": 3,
-        "peso": 700,
+        "peso": 800,
         "valores": {
           "mitigacionBloqueo": {
             "minimo": 6,
@@ -693,7 +681,7 @@
       {
         "grado": 3,
         "nivelObjetoMinimo": 6,
-        "peso": 400,
+        "peso": 1000,
         "valores": {
           "mitigacionBloqueo": {
             "minimo": 9,
@@ -710,7 +698,6 @@
     "estado": "pendiente_balance",
     "motivoEstado": "El crítico global afecta cualquier arma equipada y necesita balancearse frente al crítico local.",
     "descripcion": "Aumentaría la probabilidad de crítico de todos los ataques.",
-    "pesoBase": 0,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "critico_global_probabilidad",
@@ -735,7 +722,6 @@
     "estado": "pendiente_balance",
     "motivoEstado": "El multiplicador crítico global escala con todas las fuentes de daño y puede crecer demasiado rápido.",
     "descripcion": "Aumentaría el multiplicador crítico de todos los ataques.",
-    "pesoBase": 0,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "critico_global_multiplicador",
@@ -760,7 +746,6 @@
     "estado": "pendiente_balance",
     "motivoEstado": "La regeneración porcentual escala automáticamente con la Vida máxima y necesita pruebas de balance.",
     "descripcion": "Regeneraría un porcentaje de la Vida máxima.",
-    "pesoBase": 0,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "regeneracion_vida_porcentaje",
@@ -785,7 +770,6 @@
     "estado": "pendiente_balance",
     "motivoEstado": "La regeneración porcentual de Maná necesita balancearse junto con habilidades y costes de Maná.",
     "descripcion": "Regeneraría un porcentaje del Maná máximo.",
-    "pesoBase": 0,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "regeneracion_mana_porcentaje",
@@ -809,8 +793,7 @@
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Fuerza.",
-    "pesoBase": 0,
+    "descripcion": "Aumentaría Fuerza.",
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_fuerza",
@@ -834,8 +817,7 @@
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Destreza.",
-    "pesoBase": 0,
+    "descripcion": "Aumentaría Destreza.",
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_destreza",
@@ -859,8 +841,7 @@
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Constitución.",
-    "pesoBase": 0,
+    "descripcion": "Aumentaría Constitución.",
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_constitucion",
@@ -884,8 +865,7 @@
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Inteligencia.",
-    "pesoBase": 0,
+    "descripcion": "Aumentaría Inteligencia.",
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_inteligencia",
@@ -909,8 +889,7 @@
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Sabiduría.",
-    "pesoBase": 0,
+    "descripcion": "Aumentaría Sabiduría.",
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_sabiduria",
@@ -935,7 +914,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría la Carisma.",
-    "pesoBase": 0,
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "atributo_carisma",
@@ -960,7 +938,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "El movimiento utiliza factores temporales. Falta definir una propiedad de equipamiento y su composición con factorMovimiento.",
     "descripcion": "Aumentaría la velocidad de movimiento.",
-    "pesoBase": 0,
     "requiere": ["velocidad_movimiento_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "velocidad_movimiento",
@@ -985,7 +962,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta una mecánica que convierta parte del daño realmente aplicado en curación y defina su interacción con doble arma y daño elemental.",
     "descripcion": "Recuperaría Vida según el daño causado.",
-    "pesoBase": 0,
     "requiere": ["robo_recursos"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "robo_vida",
@@ -1010,7 +986,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta una mecánica de robo de Maná y suficientes habilidades con coste de Maná para balancearla.",
     "descripcion": "Recuperaría Maná según el daño causado.",
-    "pesoBase": 0,
     "requiere": ["robo_recursos"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "robo_mana",
@@ -1035,7 +1010,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta decidir si modifica la rareza, los grados de afijo o la calidad de las bases encontradas.",
     "descripcion": "Aumentaría la calidad de los objetos encontrados.",
-    "pesoBase": 0,
     "requiere": ["calidad_botin"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "rareza_encontrada",
@@ -1060,7 +1034,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta una economía estable y una regla clara para aumentar cantidades sin duplicar indiscriminadamente todos los drops.",
     "descripcion": "Aumentaría la cantidad de objetos encontrados.",
-    "pesoBase": 0,
     "requiere": ["cantidad_botin"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "cantidad_encontrada",
@@ -1085,7 +1058,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Todavía no existe un sistema de hechizos ni una estadística de daño de hechizos.",
     "descripcion": "Aumentaría el daño de los hechizos.",
-    "pesoBase": 0,
     "requiere": ["hechizos"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_hechizos",
@@ -1110,7 +1082,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Todavía no existe velocidad de lanzamiento ni costes temporales específicos para hechizos.",
     "descripcion": "Aumentaría la velocidad de lanzamiento.",
-    "pesoBase": 0,
     "requiere": ["hechizos", "velocidad_lanzamiento"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "velocidad_lanzamiento",
@@ -1135,7 +1106,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Todavía no existe una tirada de precisión separada para hechizos.",
     "descripcion": "Aumentaría la precisión de los hechizos.",
-    "pesoBase": 0,
     "requiere": ["hechizos", "precision_hechizos"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "precision_hechizos",
@@ -1160,7 +1130,6 @@
     "estado": "pendiente_motor",
     "motivoEstado": "Falta definir potencia de hechizos y su relación con el Maná máximo.",
     "descripcion": "Aumentaría el Maná y la potencia de los hechizos.",
-    "pesoBase": 0,
     "requiere": ["hechizos", "potencia_hechizos"],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "archimago",

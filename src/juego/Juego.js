@@ -2,8 +2,6 @@ import { Enemigo } from "../entidad/destructible/combatiente/Enemigo.js";
 
 import { Combatiente } from "../entidad/destructible/combatiente/Combatiente.js";
 
-import { procesarAccionEnemigo } from "./ia/SistemaAccionesEnemigos.js";
-
 import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
@@ -32,10 +30,10 @@ import { TIPOS_INTERACCION } from "./interacciones/TiposInteraccion.js";
 
 import {
   COSTOS_TEMPORALES_BASE,
-  SistemaTiempo,
-  TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
 } from "./tiempo/SistemaTiempo.js";
+
+import { CoordinadorTiempoPartida } from "./tiempo/CoordinadorTiempoPartida.js";
 
 export class Juego {
   constructor({
@@ -123,19 +121,30 @@ export class Juego {
       y: -1,
     };
 
-    this.sistemaTiempo = new SistemaTiempo();
-
-    this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
-
-    this.sistemaTiempo.registrarActor(this.player);
-
-    this.sincronizarEnemigosConAgenda();
-
-    this.avanzarHastaSiguienteActorConPulsos();
+    // El coordinador temporal administra la agenda,
+    // la regeneración y las acciones enemigas.
+    //
+    // Juego conserva solamente la responsabilidad
+    // de iniciar y consultar ese coordinador.
+    this.coordinadorTiempo = new CoordinadorTiempoPartida({
+      mapa: this.map,
+      jugador: this.player,
+      objetivos: this.objetivos,
+    });
   }
 
+  // Conservamos el acceso juego.sistemaTiempo para no romper
+  // PanelOrdenTemporal ni cualquier herramienta de diagnóstico.
+  //
+  // El dueño real del sistema ahora es CoordinadorTiempoPartida.
+  get sistemaTiempo() {
+    return this.coordinadorTiempo.sistemaTiempo;
+  }
+
+  // Expone el tiempo actual sin que el resto de la aplicación
+  // necesite conocer al coordinador temporal.
   get tiempoActual() {
-    return this.sistemaTiempo.tiempoActual;
+    return this.coordinadorTiempo.tiempoActual;
   }
 
   obtenerObjetivoEn(x, y) {
@@ -774,7 +783,9 @@ export class Juego {
 
     if (objetivo.estaDestruido) {
       if (objetivo instanceof Enemigo) {
-        this.sistemaTiempo.eliminarActor(objetivo);
+        // El coordinador temporal retira al enemigo derrotado
+        // para que no conserve acciones pendientes.
+        this.coordinadorTiempo.eliminarActor(objetivo);
 
         mensajes.push(`${objetivo.nombre} fue derrotado.`);
 
@@ -1219,260 +1230,29 @@ export class Juego {
     return true;
   }
 
+  // Mantiene el método público de Juego para evitar
+  // modificar inventario, equipamiento e interacciones.
+  //
+  // La implementación real pertenece ahora
+  // al coordinador temporal.
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
-    if (
-      !resultado ||
-      typeof resultado !== "object" ||
-      typeof resultado.exito !== "boolean"
-    ) {
-      throw new Error(
-        "La acción de inventario debe devolver un resultado válido.",
-      );
-    }
-
-    if (!resultado.exito) {
-      return {
-        ...resultado,
-
-        turnoConsumido: false,
-
-        redibujar: resultado.redibujar ?? false,
-      };
-    }
-
-    const resultadoTemporal = this.finalizarAccionJugador({
-      mensaje: resultado.mensaje,
-
+    return this.coordinadorTiempo.finalizarResultadoAccionJugador({
+      resultado,
       tipoAccion,
       costoBase,
     });
-
-    return {
-      ...resultado,
-      ...resultadoTemporal,
-
-      exito: true,
-    };
   }
 
-  sincronizarEnemigosConAgenda() {
-    for (const objetivo of this.objetivos) {
-      if (!(objetivo instanceof Enemigo)) {
-        continue;
-      }
-
-      if (!objetivo.estaVivo) {
-        this.sistemaTiempo.eliminarActor(objetivo);
-
-        continue;
-      }
-
-      if (!this.sistemaTiempo.tieneActor(objetivo)) {
-        this.sistemaTiempo.registrarActor(objetivo);
-      }
-    }
-  }
-
-  aplicarPulsoRegeneracion() {
-    const combatientes = [
-      this.player,
-
-      ...this.objetivos.filter((objetivo) => objetivo instanceof Combatiente),
-    ];
-
-    let resultadoJugador = {
-      vidaRecuperada: 0,
-
-      manaRecuperado: 0,
-    };
-
-    for (const combatiente of combatientes) {
-      if (!combatiente.estaVivo) {
-        continue;
-      }
-
-      const resultado = combatiente.procesarPulsoRegeneracion();
-
-      if (combatiente === this.player) {
-        resultadoJugador = resultado;
-      }
-    }
-
-    return resultadoJugador;
-  }
-
-  procesarPulsosTemporalesHasta(tiempoDestino) {
-    const recuperacionTotal = {
-      vidaRecuperada: 0,
-
-      manaRecuperado: 0,
-    };
-
-    while (this.siguientePulsoTemporal <= tiempoDestino) {
-      this.sistemaTiempo.avanzarTiempoHasta(this.siguientePulsoTemporal);
-
-      const recuperacion = this.aplicarPulsoRegeneracion();
-
-      recuperacionTotal.vidaRecuperada += recuperacion.vidaRecuperada;
-
-      recuperacionTotal.manaRecuperado += recuperacion.manaRecuperado;
-
-      this.siguientePulsoTemporal += TIEMPO_REFERENCIA;
-    }
-
-    return recuperacionTotal;
-  }
-
-  avanzarHastaSiguienteActorConPulsos() {
-    const tiempoSiguienteActor =
-      this.sistemaTiempo.obtenerTiempoSiguienteActor();
-
-    if (tiempoSiguienteActor === null) {
-      return {
-        actor: null,
-
-        recuperacionJugador: {
-          vidaRecuperada: 0,
-
-          manaRecuperado: 0,
-        },
-      };
-    }
-
-    const recuperacionJugador =
-      this.procesarPulsosTemporalesHasta(tiempoSiguienteActor);
-
-    const actor = this.sistemaTiempo.avanzarHastaSiguienteActor();
-
-    return {
-      actor,
-      recuperacionJugador,
-    };
-  }
-
-  procesarHastaTurnoJugador() {
-    const mensajes = [];
-
-    const recuperacionTotal = {
-      vidaRecuperada: 0,
-
-      manaRecuperado: 0,
-    };
-
-    while (this.player.estaVivo) {
-      this.sincronizarEnemigosConAgenda();
-
-      const siguienteActor = this.sistemaTiempo.obtenerSiguienteActor();
-
-      if (!siguienteActor) {
-        break;
-      }
-
-      const avance = this.avanzarHastaSiguienteActorConPulsos();
-
-      recuperacionTotal.vidaRecuperada +=
-        avance.recuperacionJugador.vidaRecuperada;
-
-      recuperacionTotal.manaRecuperado +=
-        avance.recuperacionJugador.manaRecuperado;
-
-      if (avance.actor === this.player) {
-        break;
-      }
-
-      const enemigo = avance.actor;
-
-      const resultadoEnemigo = procesarAccionEnemigo({
-        enemigo,
-
-        jugador: this.player,
-
-        mapa: this.map,
-
-        objetivos: this.objetivos,
-      });
-
-      mensajes.push(...resultadoEnemigo.mensajes);
-
-      if (enemigo.estaVivo) {
-        this.sistemaTiempo.registrarAccion({
-          actor: enemigo,
-
-          tipoAccion: resultadoEnemigo.tipoAccion,
-
-          costoBase: resultadoEnemigo.costoBase,
-        });
-      } else {
-        this.sistemaTiempo.eliminarActor(enemigo);
-      }
-
-      if (!this.player.estaVivo) {
-        break;
-      }
-    }
-
-    return {
-      mensajes,
-
-      mensaje: mensajes.filter(Boolean).join("\n"),
-
-      recuperacionJugador: recuperacionTotal,
-    };
-  }
-
-  crearMensajeRegeneracion(regeneracion) {
-    const recursosRecuperados = [];
-
-    if (regeneracion.vidaRecuperada > 0) {
-      recursosRecuperados.push(`${regeneracion.vidaRecuperada} de Vida`);
-    }
-
-    if (regeneracion.manaRecuperado > 0) {
-      recursosRecuperados.push(`${regeneracion.manaRecuperado} de Maná`);
-    }
-
-    if (recursosRecuperados.length === 0) {
-      return null;
-    }
-
-    return "Recuperaste " + `${recursosRecuperados.join(" y ")}.`;
-  }
-
-  finalizarAccionJugador({ mensaje, tipoAccion, costoBase }) {
-    this.sincronizarEnemigosConAgenda();
-
-    const actorActual = this.sistemaTiempo.obtenerSiguienteActor();
-
-    if (actorActual !== this.player) {
-      throw new Error("El jugador intentó actuar fuera de su turno temporal.");
-    }
-
-    this.sistemaTiempo.registrarAccion({
-      actor: this.player,
-
+  // Juego continúa ofreciendo este método como fachada.
+  //
+  // Los sistemas de movimiento, combate, espera e inventario
+  // no necesitan saber que la coordinación temporal fue extraída.
+  finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
+    return this.coordinadorTiempo.finalizarAccionJugador({
+      mensaje,
       tipoAccion,
       costoBase,
     });
-
-    const resultadoTemporal = this.procesarHastaTurnoJugador();
-
-    const mensajes = [mensaje, ...resultadoTemporal.mensajes];
-
-    const mensajeRegeneracion = this.crearMensajeRegeneracion(
-      resultadoTemporal.recuperacionJugador,
-    );
-
-    if (mensajeRegeneracion) {
-      mensajes.push(mensajeRegeneracion);
-    }
-
-    return {
-      mensaje: mensajes.filter(Boolean).join("\n"),
-
-      turnoConsumido: true,
-
-      redibujar: true,
-    };
   }
 
   esperarTurno() {

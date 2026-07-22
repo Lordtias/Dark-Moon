@@ -9,6 +9,8 @@ import { EstadoPartida } from "../Partida/EstadoPartida.js";
 
 import { GestorMapasPartida } from "../Partida/GestorMapasPartida.js";
 
+import { GestorMercaderesPartida } from "../Partida/GestorMercaderesPartida.js";
+
 import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
@@ -29,8 +31,8 @@ import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/Conte
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
 //
-// EstadoPartida y GestorMapasPartida viven
-// durante toda la sesión.
+// EstadoPartida, GestorMapasPartida y
+// GestorMercaderesPartida viven durante toda la sesión.
 //
 // Juego y sus controladores se reemplazan
 // cada vez que se activa un mapa diferente.
@@ -50,6 +52,7 @@ export class ControladorPartida {
     // Estado persistente de la sesión.
     this.estadoPartida = null;
     this.gestorMapasPartida = null;
+    this.gestorMercaderesPartida = null;
 
     // La interfaz se crea una sola vez
     // y se reutiliza cuando cambia el mapa.
@@ -75,6 +78,7 @@ export class ControladorPartida {
     configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionCiudad,
+    configuracionComercio,
   } = {}) {
     if (this.partidaIniciada) {
       return false;
@@ -94,6 +98,21 @@ export class ControladorPartida {
 
     this.estadoPartida = new EstadoPartida({
       jugador,
+    });
+
+    // Los mercaderes pertenecen a la sesión completa,
+    // no al Juego correspondiente al mapa activo.
+    this.gestorMercaderesPartida = new GestorMercaderesPartida({
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      configuracionComercio,
+    });
+
+    // La ciudad ya debe comenzar con un stock disponible.
+    // Este stock permanecerá hasta que se inicie
+    // la primera expedición.
+    this.gestorMercaderesPartida.inicializarStocks({
+      nivelReferencia: jugador.nivel,
     });
 
     this.gestorMapasPartida = new GestorMapasPartida({
@@ -191,7 +210,11 @@ export class ControladorPartida {
     portalPrueba = false,
     parametrosPrueba = null,
   } = {}) {
-    if (!this.partidaIniciada || !this.gestorMapasPartida) {
+    if (
+      !this.partidaIniciada ||
+      !this.gestorMapasPartida ||
+      !this.gestorMercaderesPartida
+    ) {
       throw new Error(
         "No se puede iniciar una expedición sin una partida activa.",
       );
@@ -205,6 +228,21 @@ export class ControladorPartida {
     });
 
     this.activarMapa(configuracionMapa);
+
+    const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
+
+    // El stock se renueva cuando la expedición
+    // ya fue creada y activada correctamente.
+    //
+    // El jugador verá esta renovación cuando
+    // regrese a la ciudad.
+    this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
+      semillaMapa: generacion.semilla,
+
+      nivelMapa: generacion.nivelMapa,
+
+      numeroExpedicion: this.estadoPartida.expedicionesRealizadas,
+    });
 
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
@@ -273,8 +311,9 @@ export class ControladorPartida {
   }
 
   // Reemplaza Juego y sus controladores,
-  // pero conserva EstadoPartida, el jugador
-  // y todos los componentes de la interfaz.
+  // pero conserva EstadoPartida, el jugador,
+  // los mercaderes y todos los componentes
+  // de la interfaz.
   activarMapa(configuracionMapa) {
     validarConfiguracionMapa(configuracionMapa);
 
@@ -384,6 +423,11 @@ export class ControladorPartida {
 
     console.log("Interactuables de la ciudad:", this.juego.interactuables);
 
+    console.log(
+      "Estado de mercaderes:",
+      this.gestorMercaderesPartida.obtenerResumen(),
+    );
+
     console.groupEnd();
   }
 
@@ -437,6 +481,11 @@ export class ControladorPartida {
     console.log("Resumen de generación:", generacion);
 
     console.log("Interactuables iniciales:", this.juego.interactuables);
+
+    console.log(
+      "Stock renovado de mercaderes:",
+      this.gestorMercaderesPartida.obtenerResumen(),
+    );
 
     console.table(generacion.detalleEnemigos);
 

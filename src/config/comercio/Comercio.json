@@ -9,7 +9,106 @@
     "mercader_refugio": {
       "nombre": "Edran, el mercader",
       "multiplicadorCompraJugador": 1.25,
-      "multiplicadorVentaJugador": 0.5
+      "multiplicadorVentaJugador": 0.5,
+      "stock": {
+        "capacidad": 12,
+        "nivelObjeto": {
+          "minimo": 1,
+          "maximo": 5
+        },
+        "fijo": [
+          {
+            "id": "pocion_curacion",
+            "cantidad": 5
+          },
+          {
+            "id": "flecha_madera",
+            "cantidad": 50
+          }
+        ],
+        "aleatorio": {
+          "cantidad": 6,
+          "permitirRepetidos": false,
+          "candidatos": [
+            {
+              "id": "daga_hierro",
+              "peso": 12
+            },
+            {
+              "id": "espada_larga",
+              "peso": 10
+            },
+            {
+              "id": "hacha_mano",
+              "peso": 8
+            },
+            {
+              "id": "mandoble_hierro",
+              "peso": 5
+            },
+            {
+              "id": "lanza",
+              "peso": 8
+            },
+            {
+              "id": "arco_corto",
+              "peso": 10
+            },
+            {
+              "id": "quiver_cuero",
+              "peso": 10
+            },
+            {
+              "id": "capucha_cuero",
+              "peso": 9
+            },
+            {
+              "id": "jubon_acolchado",
+              "peso": 9
+            },
+            {
+              "id": "guantes_cuero",
+              "peso": 9
+            },
+            {
+              "id": "pantalones_cuero",
+              "peso": 9
+            },
+            {
+              "id": "botas_cuero",
+              "peso": 9
+            },
+            {
+              "id": "casco_hierro",
+              "peso": 5
+            },
+            {
+              "id": "coraza_hierro",
+              "peso": 4
+            },
+            {
+              "id": "guantes_hierro",
+              "peso": 5
+            },
+            {
+              "id": "grebas_hierro",
+              "peso": 4
+            },
+            {
+              "id": "botas_hierro",
+              "peso": 5
+            },
+            {
+              "id": "escudo_madera",
+              "peso": 8
+            },
+            {
+              "id": "escudo_hierro",
+              "peso": 4
+            }
+          ]
+        }
+      }
     }
   }
 }

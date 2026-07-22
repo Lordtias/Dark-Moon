@@ -52,9 +52,8 @@ export class Aplicacion {
     // plantillas de mazmorras procedurales.
     this.configuracionCiudad = null;
 
-    // Las reglas de precios y perfiles de mercader
-    // se validan al iniciar, aunque todavía no exista
-    // una ventana visual de comercio.
+    // Las reglas de precios y stock se validan
+    // al iniciar la aplicación.
     this.configuracionComercio = null;
   }
 
@@ -157,13 +156,15 @@ export class Aplicacion {
 
           configuracionObjetos: this.configuracionObjetos,
 
-          // Entregamos las reglas de rareza
-          // al coordinador de la partida.
           configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
 
           configuracionMapas: this.configuracionMapas,
 
           configuracionCiudad: this.configuracionCiudad,
+
+          // La partida necesita estas reglas para
+          // crear y renovar el stock persistente.
+          configuracionComercio: this.configuracionComercio,
         });
       },
     });

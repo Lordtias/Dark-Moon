@@ -1,5 +1,5 @@
 // Valida las reglas económicas generales y los perfiles
-// de precio utilizados por cada mercader.
+// utilizados por cada mercader.
 //
 // Los nombres de las operaciones se interpretan siempre
 // desde la perspectiva del jugador:
@@ -103,6 +103,12 @@ function validarMercaderes({ mercaderes, reglasPrecios }) {
       mercader,
       reglasPrecios,
     });
+
+    validarStockMercader({
+      idMercader,
+
+      stock: mercader.stock,
+    });
   }
 }
 
@@ -130,6 +136,213 @@ function validarMargenesMercader({ idMercader, mercader, reglasPrecios }) {
         "comprar y revender objetos con ganancia.",
     );
   }
+}
+
+function validarStockMercader({ idMercader, stock }) {
+  validarObjetoConfiguracion({
+    valor: stock,
+
+    descripcion: `El stock de "${idMercader}"`,
+  });
+
+  if (!Number.isInteger(stock.capacidad) || stock.capacidad <= 0) {
+    throw new Error(
+      `La capacidad del stock de "${idMercader}" ` +
+        "debe ser un entero mayor que 0.",
+    );
+  }
+
+  validarNivelStock({
+    idMercader,
+
+    nivelObjeto: stock.nivelObjeto,
+  });
+
+  const idsFijos = validarStockFijo({
+    idMercader,
+
+    definiciones: stock.fijo,
+  });
+
+  const resumenAleatorio = validarStockAleatorio({
+    idMercader,
+
+    configuracionAleatoria: stock.aleatorio,
+  });
+
+  const espaciosGenerados = idsFijos.size + resumenAleatorio.cantidad;
+
+  if (espaciosGenerados > stock.capacidad) {
+    throw new Error(
+      `El stock configurado de "${idMercader}" ocupa ` +
+        `${espaciosGenerados} espacios, pero su capacidad es ` +
+        `${stock.capacidad}.`,
+    );
+  }
+
+  for (const idFijo of idsFijos) {
+    if (resumenAleatorio.ids.has(idFijo)) {
+      throw new Error(
+        `El objeto "${idFijo}" aparece tanto en el stock fijo ` +
+          `como en el stock aleatorio de "${idMercader}".`,
+      );
+    }
+  }
+}
+
+function validarNivelStock({ idMercader, nivelObjeto }) {
+  validarObjetoConfiguracion({
+    valor: nivelObjeto,
+
+    descripcion: `El nivel de stock de "${idMercader}"`,
+  });
+
+  const minimo = nivelObjeto.minimo;
+
+  const maximo = nivelObjeto.maximo;
+
+  if (!Number.isInteger(minimo) || minimo < 1) {
+    throw new Error(
+      `El nivel mínimo de stock de "${idMercader}" ` +
+        "debe ser un entero mayor que 0.",
+    );
+  }
+
+  if (!Number.isInteger(maximo) || maximo < minimo) {
+    throw new Error(
+      `El nivel máximo de stock de "${idMercader}" ` +
+        "debe ser igual o mayor que su mínimo.",
+    );
+  }
+}
+
+function validarStockFijo({ idMercader, definiciones }) {
+  if (!Array.isArray(definiciones)) {
+    throw new Error(`El stock fijo de "${idMercader}" debe ser una lista.`);
+  }
+
+  const ids = new Set();
+
+  definiciones.forEach((definicion, indice) => {
+    validarObjetoConfiguracion({
+      valor: definicion,
+
+      descripcion: `El objeto fijo ${indice} de "${idMercader}"`,
+    });
+
+    validarIdConfiguracion({
+      id: definicion.id,
+
+      descripcion: `objeto fijo de "${idMercader}"`,
+    });
+
+    if (ids.has(definicion.id)) {
+      throw new Error(
+        `El objeto fijo "${definicion.id}" está repetido ` +
+          `en el stock de "${idMercader}".`,
+      );
+    }
+
+    if (!Number.isInteger(definicion.cantidad) || definicion.cantidad <= 0) {
+      throw new Error(
+        `La cantidad fija de "${definicion.id}" en ` +
+          `"${idMercader}" debe ser un entero mayor que 0.`,
+      );
+    }
+
+    ids.add(definicion.id);
+  });
+
+  return ids;
+}
+
+function validarStockAleatorio({ idMercader, configuracionAleatoria }) {
+  validarObjetoConfiguracion({
+    valor: configuracionAleatoria,
+
+    descripcion: `El stock aleatorio de "${idMercader}"`,
+  });
+
+  if (
+    !Number.isInteger(configuracionAleatoria.cantidad) ||
+    configuracionAleatoria.cantidad < 0
+  ) {
+    throw new Error(
+      `La cantidad de stock aleatorio de "${idMercader}" ` +
+        "debe ser un entero igual o mayor que 0.",
+    );
+  }
+
+  if (typeof configuracionAleatoria.permitirRepetidos !== "boolean") {
+    throw new Error(
+      `La opción permitirRepetidos de "${idMercader}" ` + "debe ser booleana.",
+    );
+  }
+
+  if (!Array.isArray(configuracionAleatoria.candidatos)) {
+    throw new Error(
+      `Los candidatos del stock aleatorio de "${idMercader}" ` +
+        "deben estar dentro de una lista.",
+    );
+  }
+
+  if (
+    configuracionAleatoria.cantidad > 0 &&
+    configuracionAleatoria.candidatos.length === 0
+  ) {
+    throw new Error(
+      `El mercader "${idMercader}" necesita candidatos ` +
+        "para generar su stock aleatorio.",
+    );
+  }
+
+  const ids = new Set();
+
+  configuracionAleatoria.candidatos.forEach((candidato, indice) => {
+    validarObjetoConfiguracion({
+      valor: candidato,
+
+      descripcion: `El candidato aleatorio ${indice} de "${idMercader}"`,
+    });
+
+    validarIdConfiguracion({
+      id: candidato.id,
+
+      descripcion: `candidato de stock de "${idMercader}"`,
+    });
+
+    if (ids.has(candidato.id)) {
+      throw new Error(
+        `El candidato "${candidato.id}" está repetido ` +
+          `en el stock de "${idMercader}".`,
+      );
+    }
+
+    validarNumeroPositivo({
+      valor: candidato.peso,
+
+      descripcion: `El peso de selección de "${candidato.id}"`,
+    });
+
+    ids.add(candidato.id);
+  });
+
+  if (
+    !configuracionAleatoria.permitirRepetidos &&
+    configuracionAleatoria.cantidad > ids.size
+  ) {
+    throw new Error(
+      `El mercader "${idMercader}" intenta seleccionar ` +
+        `${configuracionAleatoria.cantidad} objetos distintos, ` +
+        `pero solamente tiene ${ids.size} candidatos.`,
+    );
+  }
+
+  return {
+    cantidad: configuracionAleatoria.cantidad,
+
+    ids,
+  };
 }
 
 function validarObjetoRaiz(valor, descripcion) {

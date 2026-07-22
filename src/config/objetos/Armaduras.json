@@ -1,4 +1,194 @@
 {
+  "capucha_tela": {
+    "nombre": "Capucha de tela",
+    "tipo": "armadura",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Una capucha sencilla de tela que protege la cabeza sin añadir peso innecesario.",
+    "recursoVisual": "assets/imagenes/objetos/capucha_cuero.png",
+    "valorBase": 15,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["cabeza"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "tunica_aprendiz": {
+    "nombre": "Túnica de aprendiz",
+    "tipo": "armadura",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Una túnica liviana utilizada por aprendices y viajeros que priorizan la libertad de movimiento.",
+    "recursoVisual": "assets/imagenes/objetos/jubon_acolchado.png",
+    "valorBase": 40,
+    "pesoUnitario": 1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "guantes_tela": {
+    "nombre": "Guantes de tela",
+    "tipo": "armadura",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Guantes livianos que ofrecen una protección mínima sin dificultar los movimientos de las manos.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_cuero.png",
+    "valorBase": 12,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "pantalones_tela": {
+    "nombre": "Pantalones de tela",
+    "tipo": "armadura",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Pantalones cómodos de tela preparados para viajes y exploraciones prolongadas.",
+    "recursoVisual": "assets/imagenes/objetos/pantalones_cuero.png",
+    "valorBase": 28,
+    "pesoUnitario": 0.7,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "botas_tela": {
+    "nombre": "Botas de tela",
+    "tipo": "armadura",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Botas livianas que sacrifican protección para mantener una pisada ágil.",
+    "recursoVisual": "assets/imagenes/objetos/botas_cuero.png",
+    "valorBase": 20,
+    "pesoUnitario": 0.4,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "capucha_tela_reforzada": {
+    "nombre": "Capucha de tela reforzada",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 4,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Una capucha confeccionada con varias capas de tela resistente.",
+    "recursoVisual": "assets/imagenes/objetos/capucha_cuero.png",
+    "valorBase": 40,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["cabeza"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "tunica_reforzada": {
+    "nombre": "Túnica reforzada",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 4,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Una túnica reforzada que mejora la protección sin perder flexibilidad.",
+    "recursoVisual": "assets/imagenes/objetos/jubon_acolchado.png",
+    "valorBase": 110,
+    "pesoUnitario": 1.4,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "guantes_tela_reforzados": {
+    "nombre": "Guantes de tela reforzados",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 4,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Guantes reforzados para proteger las manos manteniendo una gran libertad de movimiento.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_cuero.png",
+    "valorBase": 35,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "pantalones_tela_reforzados": {
+    "nombre": "Pantalones de tela reforzados",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 4,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Pantalones de varias capas que ofrecen una protección ligera mejorada.",
+    "recursoVisual": "assets/imagenes/objetos/pantalones_cuero.png",
+    "valorBase": 75,
+    "pesoUnitario": 1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "botas_tela_reforzadas": {
+    "nombre": "Botas de tela reforzadas",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 4,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Botas reforzadas, ligeras y adecuadas para desplazamientos rápidos.",
+    "recursoVisual": "assets/imagenes/objetos/botas_cuero.png",
+    "valorBase": 50,
+    "pesoUnitario": 0.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
   "capucha_cuero": {
     "nombre": "Capucha de cuero",
     "tipo": "armadura",
@@ -6,7 +196,7 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "armadura_media",
     "categoriaArmadura": "media",
-    "descripcion": "Una protección ligera para la cabeza.",
+    "descripcion": "Una protección flexible de cuero para la cabeza.",
     "recursoVisual": "assets/imagenes/objetos/capucha_cuero.png",
     "valorBase": 20,
     "pesoUnitario": 0.4,
@@ -44,7 +234,7 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "armadura_media",
     "categoriaArmadura": "media",
-    "descripcion": "Guantes ligeros que protegen las manos sin dificultar el movimiento.",
+    "descripcion": "Guantes de cuero que protegen las manos sin dificultar demasiado el movimiento.",
     "recursoVisual": "assets/imagenes/objetos/guantes_cuero.png",
     "valorBase": 18,
     "pesoUnitario": 0.5,
@@ -63,7 +253,7 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "armadura_media",
     "categoriaArmadura": "media",
-    "descripcion": "Una protección ligera para las piernas.",
+    "descripcion": "Una protección flexible de cuero para las piernas.",
     "recursoVisual": "assets/imagenes/objetos/pantalones_cuero.png",
     "valorBase": 35,
     "pesoUnitario": 1.5,
@@ -94,6 +284,101 @@
       "armadura": 1
     }
   },
+  "capucha_cuero_endurecido": {
+    "nombre": "Capucha de cuero endurecido",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Una capucha de cuero tratado que mejora la protección sin volverla rígida.",
+    "recursoVisual": "assets/imagenes/objetos/capucha_cuero.png",
+    "valorBase": 55,
+    "pesoUnitario": 0.7,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["cabeza"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "jubon_cuero_endurecido": {
+    "nombre": "Jubón de cuero endurecido",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Un jubón de cuero endurecido que equilibra protección, peso y movilidad.",
+    "recursoVisual": "assets/imagenes/objetos/jubon_acolchado.png",
+    "valorBase": 150,
+    "pesoUnitario": 3.4,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 4
+    }
+  },
+  "guantes_cuero_endurecido": {
+    "nombre": "Guantes de cuero endurecido",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Guantes de cuero tratado que protegen las manos durante combates prolongados.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_cuero.png",
+    "valorBase": 45,
+    "pesoUnitario": 0.8,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "pantalones_cuero_endurecido": {
+    "nombre": "Pantalones de cuero endurecido",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Pantalones reforzados con cuero endurecido para proteger mejor las piernas.",
+    "recursoVisual": "assets/imagenes/objetos/pantalones_cuero.png",
+    "valorBase": 100,
+    "pesoUnitario": 2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "botas_cuero_endurecido": {
+    "nombre": "Botas de cuero endurecido",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Botas resistentes de cuero endurecido, preparadas para terrenos hostiles.",
+    "recursoVisual": "assets/imagenes/objetos/botas_cuero.png",
+    "valorBase": 70,
+    "pesoUnitario": 1.4,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
   "casco_hierro": {
     "nombre": "Casco de hierro",
     "tipo": "armadura",
@@ -101,16 +386,16 @@
     "nivelMinimoGeneracion": 3,
     "familiaObjeto": "armadura_pesada",
     "categoriaArmadura": "pesada",
-    "descripcion": "Un casco de hierro más resistente que las protecciones iniciales de cuero.",
+    "descripcion": "Un casco de hierro que ofrece una protección sólida para la cabeza.",
     "recursoVisual": "assets/imagenes/objetos/casco_hierro.png",
     "valorBase": 70,
-    "pesoUnitario": 2.5,
+    "pesoUnitario": 2,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["cabeza"],
     "propiedades": {
-      "armadura": 3
+      "armadura": 2
     }
   },
   "coraza_hierro": {
@@ -120,16 +405,16 @@
     "nivelMinimoGeneracion": 3,
     "familiaObjeto": "armadura_pesada",
     "categoriaArmadura": "pesada",
-    "descripcion": "Una protección pesada de hierro para el torso.",
+    "descripcion": "Una coraza pesada de hierro diseñada para resistir golpes directos.",
     "recursoVisual": "assets/imagenes/objetos/coraza_hierro.png",
     "valorBase": 180,
-    "pesoUnitario": 8,
+    "pesoUnitario": 6,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["torso"],
     "propiedades": {
-      "armadura": 7
+      "armadura": 5
     }
   },
   "guantes_hierro": {
@@ -139,16 +424,16 @@
     "nivelMinimoGeneracion": 3,
     "familiaObjeto": "armadura_pesada",
     "categoriaArmadura": "pesada",
-    "descripcion": "Guantes metálicos que protegen mejor que los de cuero.",
+    "descripcion": "Guantes metálicos que protegen las manos a costa de un mayor peso.",
     "recursoVisual": "assets/imagenes/objetos/guantes_hierro.png",
     "valorBase": 55,
-    "pesoUnitario": 1.5,
+    "pesoUnitario": 1.2,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["manos"],
     "propiedades": {
-      "armadura": 2
+      "armadura": 1
     }
   },
   "grebas_hierro": {
@@ -158,16 +443,16 @@
     "nivelMinimoGeneracion": 3,
     "familiaObjeto": "armadura_pesada",
     "categoriaArmadura": "pesada",
-    "descripcion": "Protección metálica para las piernas.",
+    "descripcion": "Protecciones metálicas de hierro para las piernas.",
     "recursoVisual": "assets/imagenes/objetos/grebas_hierro.png",
     "valorBase": 110,
-    "pesoUnitario": 4,
+    "pesoUnitario": 3,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["piernas"],
     "propiedades": {
-      "armadura": 4
+      "armadura": 3
     }
   },
   "botas_hierro": {
@@ -177,10 +462,105 @@
     "nivelMinimoGeneracion": 3,
     "familiaObjeto": "armadura_pesada",
     "categoriaArmadura": "pesada",
-    "descripcion": "Botas pesadas con una protección superior.",
+    "descripcion": "Botas de hierro que ofrecen una protección firme para los pies.",
     "recursoVisual": "assets/imagenes/objetos/botas_hierro.png",
     "valorBase": 80,
-    "pesoUnitario": 2.5,
+    "pesoUnitario": 1.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["pies"],
+    "propiedades": {
+      "armadura": 1
+    }
+  },
+  "casco_acero": {
+    "nombre": "Casco de acero",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 6,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Un casco de acero resistente, preparado para enfrentamientos de alto riesgo.",
+    "recursoVisual": "assets/imagenes/objetos/casco_hierro.png",
+    "valorBase": 130,
+    "pesoUnitario": 2.8,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["cabeza"],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "coraza_acero": {
+    "nombre": "Coraza de acero",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 6,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Una coraza de acero que proporciona una defensa superior contra ataques físicos.",
+    "recursoVisual": "assets/imagenes/objetos/coraza_hierro.png",
+    "valorBase": 320,
+    "pesoUnitario": 8,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["torso"],
+    "propiedades": {
+      "armadura": 6
+    }
+  },
+  "guantes_acero": {
+    "nombre": "Guantes de acero",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 6,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Guantes de acero reforzado que protegen las manos y los antebrazos.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_hierro.png",
+    "valorBase": 100,
+    "pesoUnitario": 1.8,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["manos"],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "grebas_acero": {
+    "nombre": "Grebas de acero",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 6,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Grebas de acero diseñadas para soportar golpes fuertes en las piernas.",
+    "recursoVisual": "assets/imagenes/objetos/grebas_hierro.png",
+    "valorBase": 210,
+    "pesoUnitario": 4,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": ["piernas"],
+    "propiedades": {
+      "armadura": 4
+    }
+  },
+  "botas_acero": {
+    "nombre": "Botas de acero",
+    "tipo": "armadura",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 6,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Botas de acero pesadas que completan una defensa de primera línea.",
+    "recursoVisual": "assets/imagenes/objetos/botas_hierro.png",
+    "valorBase": 140,
+    "pesoUnitario": 2,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
@@ -215,7 +595,7 @@
     "tierBase": 2,
     "nivelMinimoGeneracion": 5,
     "familiaObjeto": "escudo",
-    "descripcion": "Un escudo pesado que mejora la armadura y el bloqueo.",
+    "descripcion": "Un escudo pesado de hierro que mejora la armadura y el bloqueo.",
     "recursoVisual": "assets/imagenes/objetos/escudo_hierro.png",
     "valorBase": 120,
     "pesoUnitario": 6,
@@ -224,7 +604,7 @@
     "cantidadMaxima": 1,
     "ranurasCompatibles": ["secundaria"],
     "propiedades": {
-      "armadura": 5,
+      "armadura": 4,
       "probabilidadBloqueo": 12,
       "mitigacionBloqueo": 55
     }

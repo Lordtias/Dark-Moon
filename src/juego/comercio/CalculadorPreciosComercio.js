@@ -12,6 +12,12 @@ export const TIPOS_OPERACION_COMERCIO = Object.freeze({
   VENTA: "venta",
 });
 
+export const MOTIVOS_OPERACION_NO_PERMITIDA = Object.freeze({
+  OBJETO_NO_VENDIBLE: "objetoNoVendible",
+
+  VALOR_INSUFICIENTE: "valorInsuficiente",
+});
+
 // Calcula cuánto debe pagar el jugador al comprar
 // una cantidad concreta de un objeto.
 //
@@ -42,10 +48,8 @@ export function calcularPrecioCompra({
     contexto.mercader.multiplicadorCompraJugador *
     factorCarisma;
 
-  const precioTotal = redondearPrecio({
+  const precioTotal = redondearPrecioCompra({
     valor: precioAntesRedondeo,
-
-    tipoOperacion: TIPOS_OPERACION_COMERCIO.COMPRA,
 
     precioMinimo: contexto.reglasPrecios.precioMinimo,
   });
@@ -56,6 +60,7 @@ export function calcularPrecioCompra({
     tipoOperacion: TIPOS_OPERACION_COMERCIO.COMPRA,
 
     permitido: true,
+    motivoNoPermitido: null,
 
     multiplicadorMercader: contexto.mercader.multiplicadorCompraJugador,
 
@@ -99,6 +104,8 @@ export function calcularPrecioVenta({
 
       permitido: false,
 
+      motivoNoPermitido: MOTIVOS_OPERACION_NO_PERMITIDA.OBJETO_NO_VENDIBLE,
+
       multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
 
       factorCarisma,
@@ -115,13 +122,36 @@ export function calcularPrecioVenta({
     contexto.mercader.multiplicadorVentaJugador *
     factorCarisma;
 
-  const precioTotal = redondearPrecio({
-    valor: precioAntesRedondeo,
+  const precioTotal = redondearPrecioVenta(precioAntesRedondeo);
 
-    tipoOperacion: TIPOS_OPERACION_COMERCIO.VENTA,
+  // No elevamos artificialmente una venta barata
+  // hasta una moneda.
+  //
+  // De lo contrario, vender muchas unidades de una
+  // en una podría entregar más oro que vender
+  // la pila completa.
+  if (precioTotal < contexto.reglasPrecios.precioMinimo) {
+    return crearResultadoPrecio({
+      contexto,
 
-    precioMinimo: contexto.reglasPrecios.precioMinimo,
-  });
+      tipoOperacion: TIPOS_OPERACION_COMERCIO.VENTA,
+
+      permitido: false,
+
+      motivoNoPermitido: MOTIVOS_OPERACION_NO_PERMITIDA.VALOR_INSUFICIENTE,
+
+      multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
+
+      factorCarisma,
+      precioAntesRedondeo,
+      precioTotal: 0,
+      puedePagar: null,
+
+      mensaje:
+        "La cantidad seleccionada no alcanza el valor mínimo de una moneda. " +
+        "Seleccioná más unidades para venderlas juntas.",
+    });
+  }
 
   return crearResultadoPrecio({
     contexto,
@@ -129,6 +159,7 @@ export function calcularPrecioVenta({
     tipoOperacion: TIPOS_OPERACION_COMERCIO.VENTA,
 
     permitido: true,
+    motivoNoPermitido: null,
 
     multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
 
@@ -158,11 +189,16 @@ export function calcularAjusteCarisma({ carisma, reglasPrecios } = {}) {
   const limite = reglasPrecios.variacionMaximaCarisma;
 
   return normalizarFactor(
-    Math.max(-limite, Math.min(limite, ajusteSinLimitar)),
+    Math.max(
+      -limite,
+
+      Math.min(limite, ajusteSinLimitar),
+    ),
   );
 }
 
-// Obtiene una copia del perfil económico de un mercader.
+// Obtiene una copia del perfil económico
+// de un mercader.
 //
 // El ID debe coincidir con el ID utilizado por el NPC
 // dentro de la configuración de la ciudad.
@@ -255,8 +291,8 @@ function prepararContextoCalculo({
 
 // Para pilas simples se utiliza el valor de una unidad.
 //
-// Para objetos no apilables y contenedores se toma el
-// valor completo, incluyendo cualquier contenido interno.
+// Para objetos no apilables y contenedores se toma
+// el valor completo, incluyendo contenido interno.
 function calcularValorUnitarioOperacion({ objeto, configuracionRarezas }) {
   const tieneContenedor =
     objeto.contenedorObjetos &&
@@ -280,6 +316,7 @@ function crearResultadoPrecio({
   contexto,
   tipoOperacion,
   permitido,
+  motivoNoPermitido,
   multiplicadorMercader,
   factorCarisma,
   precioAntesRedondeo,
@@ -290,6 +327,7 @@ function crearResultadoPrecio({
   return {
     tipoOperacion,
     permitido,
+    motivoNoPermitido,
 
     idMercader: contexto.mercader.id,
 
@@ -394,26 +432,33 @@ function validarReglasPrecios(reglasPrecios) {
   }
 }
 
-// Los precios de compra se redondean hacia arriba
-// y los de venta hacia abajo.
-//
-// Así se conservan los márgenes del mercader y se
-// evita obtener beneficios mediante redondeos repetidos.
-function redondearPrecio({ valor, tipoOperacion, precioMinimo }) {
-  if (!Number.isFinite(valor) || valor < 0) {
-    throw new Error("El precio calculado no es válido.");
-  }
+// La compra se redondea hacia arriba
+// y nunca baja del mínimo configurado.
+function redondearPrecioCompra({ valor, precioMinimo }) {
+  validarPrecioCalculado(valor);
 
   if (valor === 0) {
     return 0;
   }
 
-  const redondeado =
-    tipoOperacion === TIPOS_OPERACION_COMERCIO.COMPRA
-      ? Math.ceil(valor)
-      : Math.floor(valor);
+  return Math.max(precioMinimo, Math.ceil(valor));
+}
 
-  return Math.max(precioMinimo, redondeado);
+// La venta se redondea hacia abajo.
+//
+// No se fuerza el mínimo aquí:
+// calcularPrecioVenta rechaza las cantidades cuyo
+// valor todavía no llega a una moneda.
+function redondearPrecioVenta(valor) {
+  validarPrecioCalculado(valor);
+
+  return Math.floor(valor);
+}
+
+function validarPrecioCalculado(valor) {
+  if (!Number.isFinite(valor) || valor < 0) {
+    throw new Error("El precio calculado no es válido.");
+  }
 }
 
 function normalizarFactor(valor) {

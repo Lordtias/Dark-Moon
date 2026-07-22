@@ -7,6 +7,7 @@ import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
 import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
 import { ModalContenedorObjetos } from "./objetos/ModalContenedorObjetos.js";
 import { ModalSeleccionMazmorra } from "./ModalSeleccionMazmorra.js";
+import { ModalComercio } from "./comercio/ModalComercio.js";
 
 // Crea todos los componentes visuales
 // utilizados durante una partida.
@@ -75,18 +76,22 @@ export function crearInterfazPartida({ tileSize } = {}) {
   // inventario y equipamiento.
   const modalDetalleObjeto = new ModalDetalleObjeto();
 
-  // La ventana de contenedores reutiliza
-  // la misma vista de detalle para botines,
-  // cofres y futuros comerciantes.
+  // La ventana de contenedores se utiliza
+  // para botines, cofres y almacenamientos.
   const modalContenedorObjetos = new ModalContenedorObjetos();
 
-  // La selección de destino permanece fuera
-  // del mapa y se reutiliza en cada regreso
-  // a la ciudad.
+  // La selección de destino se reutiliza
+  // en cada regreso a la ciudad.
   const modalSeleccionMazmorra = new ModalSeleccionMazmorra();
+
+  // El comercio tiene su propia ventana porque
+  // muestra simultáneamente inventario, detalle
+  // y stock persistente.
+  const modalComercio = new ModalComercio();
 
   const panelOrdenTemporal = new PanelOrdenTemporal({
     referenciaInsercion: panelMapa,
+
     maximoActores: 8,
   });
 
@@ -112,6 +117,7 @@ export function crearInterfazPartida({ tileSize } = {}) {
     modalDetalleObjeto,
     modalContenedorObjetos,
     modalSeleccionMazmorra,
+    modalComercio,
   };
 }
 

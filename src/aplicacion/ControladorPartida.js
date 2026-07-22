@@ -24,6 +24,8 @@ import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js
 
 import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
 
+import { ControladorComercio } from "../controles/ControladorComercio.js";
+
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 
 import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
@@ -49,13 +51,12 @@ export class ControladorPartida {
 
     this.controladorPantallas = controladorPantallas;
 
-    // Estado persistente de la sesión.
+    // Estado persistente.
     this.estadoPartida = null;
     this.gestorMapasPartida = null;
     this.gestorMercaderesPartida = null;
 
-    // La interfaz se crea una sola vez
-    // y se reutiliza cuando cambia el mapa.
+    // Interfaz persistente.
     this.interfazPartida = null;
 
     // Estado y controladores del mapa activo.
@@ -64,8 +65,13 @@ export class ControladorPartida {
     this.controladorTeclado = null;
     this.controladorEquipamiento = null;
     this.controladorInteracciones = null;
+    this.controladorComercio = null;
 
+    // Configuraciones persistentes requeridas
+    // por los controladores de cada mapa.
     this.configuracionObjetos = null;
+    this.configuracionRarezas = null;
+    this.configuracionComercio = null;
 
     this.partidaIniciada = false;
   }
@@ -86,10 +92,6 @@ export class ControladorPartida {
 
     const parametrosPrueba = leerParametrosPruebaMapa();
 
-    // El jugador se crea una sola vez.
-    //
-    // GestorMapasPartida lo posicionará después
-    // dentro de cada mapa que se active.
     const jugador = crearJugadorInicial({
       datosPersonaje,
       configuracionPersonaje,
@@ -100,17 +102,12 @@ export class ControladorPartida {
       jugador,
     });
 
-    // Los mercaderes pertenecen a la sesión completa,
-    // no al Juego correspondiente al mapa activo.
     this.gestorMercaderesPartida = new GestorMercaderesPartida({
       configuracionObjetos,
       configuracionGeneracionObjetos,
       configuracionComercio,
     });
 
-    // La ciudad ya debe comenzar con un stock disponible.
-    // Este stock permanecerá hasta que se inicie
-    // la primera expedición.
     this.gestorMercaderesPartida.inicializarStocks({
       nivelReferencia: jugador.nivel,
     });
@@ -127,11 +124,12 @@ export class ControladorPartida {
 
     this.configuracionObjetos = configuracionObjetos;
 
-    // La presentación de las rarezas
-    // no depende del mapa y se configura
-    // una sola vez.
+    this.configuracionRarezas = configuracionGeneracionObjetos.rarezas;
+
+    this.configuracionComercio = configuracionComercio;
+
     configurarContextoPresentacionObjetos({
-      configuracionRarezas: configuracionGeneracionObjetos.rarezas,
+      configuracionRarezas: this.configuracionRarezas,
     });
 
     this.interfazPartida = crearInterfazPartida({
@@ -144,12 +142,6 @@ export class ControladorPartida {
 
     this.controladorPantallas.mostrarPartida();
 
-    // El inicio normal ocurre dentro
-    // del mapa fijo de la ciudad.
-    //
-    // Los parámetros de prueba conservan el acceso
-    // directo a una mazmorra para no romper las
-    // herramientas actuales de desarrollo.
     if (parametrosPrueba.activo) {
       this.iniciarNuevaExpedicion({
         semillaMapa: parametrosPrueba.semillaMapa,
@@ -173,8 +165,6 @@ export class ControladorPartida {
     return true;
   }
 
-  // Activa el mapa fijo de la ciudad
-  // conservando el mismo jugador.
   iniciarCiudad({
     puntoEntrada = "inicioPartida",
     esInicioPartida = false,
@@ -198,11 +188,6 @@ export class ControladorPartida {
     return true;
   }
 
-  // Genera y activa una mazmorra nueva
-  // conservando la misma instancia del jugador.
-  //
-  // La entrada de la ciudad entrega un ID concreto
-  // seleccionado desde ModalSeleccionMazmorra.
   iniciarNuevaExpedicion({
     semillaMapa = null,
     idMapaForzado = null,
@@ -231,11 +216,6 @@ export class ControladorPartida {
 
     const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
 
-    // El stock se renueva cuando la expedición
-    // ya fue creada y activada correctamente.
-    //
-    // El jugador verá esta renovación cuando
-    // regrese a la ciudad.
     this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
       semillaMapa: generacion.semilla,
 
@@ -256,8 +236,6 @@ export class ControladorPartida {
     return true;
   }
 
-  // Recibe solicitudes originadas por puertas,
-  // portales, NPC u objetos futuros.
   procesarSolicitudTransicionMapa(solicitud) {
     const solicitudNormalizada = normalizarSolicitudTransicionMapa(solicitud);
 
@@ -289,11 +267,6 @@ export class ControladorPartida {
     }
   }
 
-  // La primera implementación de mapas fijos
-  // solamente conoce la ciudad inicial.
-  //
-  // Mantener este método separado permitirá agregar
-  // otras ciudades, campamentos o interiores después.
   procesarActivacionMapaFijo(datos) {
     const idMapa = datos?.idMapa;
 
@@ -310,10 +283,6 @@ export class ControladorPartida {
     return false;
   }
 
-  // Reemplaza Juego y sus controladores,
-  // pero conserva EstadoPartida, el jugador,
-  // los mercaderes y todos los componentes
-  // de la interfaz.
   activarMapa(configuracionMapa) {
     validarConfiguracionMapa(configuracionMapa);
 
@@ -330,6 +299,7 @@ export class ControladorPartida {
       modalDetalleObjeto,
       modalContenedorObjetos,
       modalSeleccionMazmorra,
+      modalComercio,
     } = this.interfazPartida;
 
     const cantidadFilas = configuracionMapa.map.length;
@@ -345,9 +315,6 @@ export class ControladorPartida {
     const juego = new Juego({
       ...configuracionMapa,
 
-      // La referencia ya es la misma,
-      // pero la asignación explícita
-      // documenta la persistencia.
       player: this.estadoPartida.jugador,
 
       configuracionObjetos: this.configuracionObjetos,
@@ -366,6 +333,20 @@ export class ControladorPartida {
       modalDetalleObjeto,
     });
 
+    const controladorComercio = new ControladorComercio({
+      juego,
+      renderizador,
+      modalComercio,
+
+      gestorMercaderesPartida: this.gestorMercaderesPartida,
+
+      configuracionObjetos: this.configuracionObjetos,
+
+      configuracionRarezas: this.configuracionRarezas,
+
+      configuracionComercio: this.configuracionComercio,
+    });
+
     const controladorInteracciones = new ControladorInteracciones({
       juego,
       renderizador,
@@ -380,16 +361,22 @@ export class ControladorPartida {
           idMapaForzado: idMazmorra,
         }),
 
+      alSolicitarComercio: (idMercader) =>
+        controladorComercio.abrir(idMercader),
+
       alSolicitarTransicionMapa: (solicitud) =>
         this.procesarSolicitudTransicionMapa(solicitud),
     });
 
     this.juego = juego;
+
     this.renderizador = renderizador;
 
     this.controladorTeclado = controladorTeclado;
 
     this.controladorEquipamiento = controladorEquipamiento;
+
+    this.controladorComercio = controladorComercio;
 
     this.controladorInteracciones = controladorInteracciones;
 
@@ -411,7 +398,7 @@ export class ControladorPartida {
 
     this.renderizador.mostrarMensaje(
       `${mensajePrincipal}\n` +
-        "Acercate al mercader y presioná R para interactuar. " +
+        "Acercate al mercader y presioná R para comerciar. " +
         "La entrada a las mazmorras se encuentra al norte.",
     );
 
@@ -495,6 +482,10 @@ export class ControladorPartida {
   }
 
   desactivarControles() {
+    // Cerramos primero las ventanas
+    // asociadas al mapa anterior.
+    this.controladorComercio?.desactivar();
+
     this.controladorTeclado?.desactivar();
 
     this.controladorEquipamiento?.desactivar();
@@ -503,8 +494,6 @@ export class ControladorPartida {
   }
 }
 
-// Convierte los contadores internos
-// en texto legible para el registro.
 function formatearConteo(conteo) {
   const elementos = Object.entries(conteo ?? {});
 
@@ -517,8 +506,6 @@ function formatearConteo(conteo) {
     .join(", ");
 }
 
-// Convierte IDs de configuración
-// en nombres más legibles.
 function formatearId(id) {
   return id.replaceAll("_", " ");
 }

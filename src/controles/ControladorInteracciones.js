@@ -14,9 +14,9 @@ const TECLA_INTERACCION = "KeyR";
 // - La tecla R.
 // - La apertura de contenedores.
 // - La selección de mazmorras.
-// - La confirmación del selector de interacción.
-// - La actualización de la ventana de botín.
-// - Las solicitudes de transición entre mapas.
+// - La solicitud de comercio.
+// - La confirmación del selector.
+// - Las transiciones entre mapas.
 export class ControladorInteracciones {
   constructor({
     juego,
@@ -25,6 +25,7 @@ export class ControladorInteracciones {
     modalSeleccionMazmorra,
     obtenerMazmorrasDisponibles,
     alSeleccionarMazmorra,
+    alSolicitarComercio,
     alSolicitarTransicionMapa,
   } = {}) {
     if (
@@ -81,6 +82,12 @@ export class ControladorInteracciones {
       );
     }
 
+    if (typeof alSolicitarComercio !== "function") {
+      throw new Error(
+        "ControladorInteracciones necesita un manejador de comercio.",
+      );
+    }
+
     if (typeof alSolicitarTransicionMapa !== "function") {
       throw new Error(
         "ControladorInteracciones necesita un manejador de transiciones de mapa.",
@@ -88,6 +95,7 @@ export class ControladorInteracciones {
     }
 
     this.juego = juego;
+
     this.renderizador = renderizador;
 
     this.modalContenedorObjetos = modalContenedorObjetos;
@@ -97,6 +105,8 @@ export class ControladorInteracciones {
     this.obtenerMazmorrasDisponibles = obtenerMazmorrasDisponibles;
 
     this.alSeleccionarMazmorra = alSeleccionarMazmorra;
+
+    this.alSolicitarComercio = alSolicitarComercio;
 
     this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
 
@@ -129,6 +139,7 @@ export class ControladorInteracciones {
     this.modalSeleccionMazmorra.cerrar();
 
     this.interactuableActual = null;
+
     this.estaActivo = false;
   }
 
@@ -145,8 +156,6 @@ export class ControladorInteracciones {
 
     event.preventDefault();
 
-    // Cuando el selector ya está activo,
-    // R confirma la entidad seleccionada.
     if (this.juego.modoInteraccionActivo) {
       const resultado = this.juego.confirmarInteraccionSeleccionada();
 
@@ -163,6 +172,7 @@ export class ControladorInteracciones {
 
     if (bloqueo) {
       this.procesarResultado(bloqueo);
+
       return;
     }
 
@@ -174,16 +184,12 @@ export class ControladorInteracciones {
       return;
     }
 
-    // Con una sola entidad no agregamos
-    // una confirmación innecesaria.
     if (opciones.length === 1) {
       this.ejecutarInteraccion(opciones[0].interaccionPrioritaria);
 
       return;
     }
 
-    // Con varias entidades activamos
-    // el selector visual.
     const resultado = this.juego.entrarModoInteraccion();
 
     this.procesarResultado(resultado);
@@ -193,6 +199,10 @@ export class ControladorInteracciones {
     switch (interaccion.tipo) {
       case TIPOS_INTERACCION.ABRIR_CONTENEDOR:
         this.abrirContenedor(interaccion);
+        break;
+
+      case TIPOS_INTERACCION.COMERCIAR:
+        this.solicitarComercio(interaccion);
         break;
 
       case TIPOS_INTERACCION.SELECCIONAR_MAZMORRA:
@@ -244,6 +254,28 @@ export class ControladorInteracciones {
     });
   }
 
+  solicitarComercio(interaccion) {
+    const mercader = interaccion.entidad;
+
+    if (
+      !mercader ||
+      typeof mercader.id !== "string" ||
+      mercader.id.trim() === ""
+    ) {
+      throw new Error(
+        "La interacción comercial no contiene un mercader válido.",
+      );
+    }
+
+    this.modalContenedorObjetos.cerrar();
+
+    this.modalSeleccionMazmorra.cerrar();
+
+    this.interactuableActual = null;
+
+    this.alSolicitarComercio(mercader.id);
+  }
+
   abrirSeleccionMazmorra() {
     const mazmorras = this.obtenerMazmorrasDisponibles();
 
@@ -254,10 +286,6 @@ export class ControladorInteracciones {
     });
   }
 
-  // Entrega la solicitud al coordinador superior.
-  //
-  // El portal no conoce ControladorPartida y este
-  // controlador tampoco genera mapas directamente.
   solicitarTransicionMapa(interaccion) {
     const solicitud = interaccion.solicitudTransicionMapa;
 
@@ -287,21 +315,19 @@ export class ControladorInteracciones {
       this.modalContenedorObjetos.cerrar();
 
       this.interactuableActual = null;
+
       return;
     }
 
     this.modalContenedorObjetos.actualizar();
   }
 
-  // Procesa el resultado utilizando el contrato compartido.
-  //
-  // El valor normalizado se devuelve porque una interacción
-  // puede agregar propiedades específicas, como:
-  // "interaccion", "entidad" o información de transferencia.
   procesarResultado(resultado) {
     return aplicarResultadoAccion({
       resultado,
+
       juego: this.juego,
+
       renderizador: this.renderizador,
     });
   }

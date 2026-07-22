@@ -1,0 +1,538 @@
+/* =========================================================
+   MODAL DE COMERCIO
+   ========================================================= */
+
+.modal-comercio {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  padding: 0;
+  overflow: visible;
+  border: 2px solid #b49345;
+  border-radius: 9px;
+  background: #0c0f19;
+  color: #f3f0e6;
+  font-family: monospace;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.82),
+    0 0 0 1px rgba(241, 205, 112, 0.12) inset;
+}
+
+.modal-comercio::backdrop {
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(2px);
+}
+
+.modal-comercio__contenido {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(116, 88, 35, 0.16), transparent 160px), #101521;
+}
+
+.modal-comercio__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 18px;
+  border-bottom: 1px solid #4b422b;
+  background: rgba(11, 14, 22, 0.9);
+}
+
+.modal-comercio__bloque-titulo {
+  min-width: 0;
+}
+
+.modal-comercio__titulo {
+  margin: 0;
+  color: #f0d37b;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.modal-comercio__subtitulo {
+  margin: 5px 0 0;
+  color: #aaa594;
+  font-size: 12px;
+}
+
+.modal-comercio__estado-jugador {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+
+.modal-comercio__estado-etiqueta {
+  color: #aaa38d;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.modal-comercio__oro {
+  min-width: 72px;
+  padding: 7px 10px;
+  border: 1px solid rgba(219, 185, 88, 0.48);
+  border-radius: 6px;
+  background: rgba(62, 49, 16, 0.62);
+  color: #f2d56e;
+  text-align: right;
+}
+
+.modal-comercio__cerrar-superior {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #655d48;
+  border-radius: 5px;
+  background: #181b24;
+  color: #cfc9b9;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.modal-comercio__cerrar-superior:hover {
+  border-color: #b49345;
+  background: #302a1d;
+  color: #ffffff;
+}
+
+.modal-comercio__cuerpo {
+  min-height: 0;
+  display: grid;
+  grid-template-columns:
+    minmax(250px, 0.82fr)
+    minmax(380px, 1.36fr)
+    minmax(250px, 0.82fr);
+  overflow: hidden;
+}
+
+.modal-comercio__seccion-lista {
+  min-width: 0;
+  min-height: 0;
+  padding: 15px;
+  overflow-y: auto;
+  background: rgba(9, 12, 20, 0.7);
+}
+
+.modal-comercio__seccion-lista--jugador {
+  border-right: 1px solid #343847;
+}
+
+.modal-comercio__seccion-lista--mercader {
+  border-left: 1px solid #4b422b;
+}
+
+.modal-comercio__titulo-seccion {
+  margin: 0 0 12px;
+  color: #b8b4a8;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.modal-comercio__seccion-lista--mercader .modal-comercio__titulo-seccion {
+  color: #d8bf70;
+}
+
+.modal-comercio__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.modal-comercio__slot {
+  position: relative;
+  min-width: 0;
+  min-height: 96px;
+  padding: 8px 5px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid #444858;
+  border-radius: 6px;
+  background: radial-gradient(
+    circle,
+    rgba(91, 99, 127, 0.14),
+    rgba(14, 17, 27, 0.96)
+  );
+  color: #d8d5cd;
+  overflow: hidden;
+}
+
+button.modal-comercio__slot {
+  cursor: pointer;
+}
+
+button.modal-comercio__slot:hover {
+  border-color: #7f879e;
+  background-color: #252937;
+}
+
+.modal-comercio__slot.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 1px var(--color-rareza-objeto-suave) inset,
+    0 0 8px var(--color-rareza-objeto-suave);
+}
+
+.modal-comercio__slot.seleccionado {
+  border-color: #efd06d;
+  box-shadow:
+    0 0 0 2px rgba(239, 208, 109, 0.27),
+    0 0 17px rgba(239, 208, 109, 0.12);
+}
+
+.modal-comercio__slot.seleccionado.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 2px rgba(239, 208, 109, 0.27),
+    0 0 18px var(--color-rareza-objeto-suave);
+}
+
+.modal-comercio__slot--vacio {
+  min-height: 96px;
+  border-style: dashed;
+  border-color: rgba(91, 96, 112, 0.28);
+  background: rgba(12, 15, 23, 0.45);
+}
+
+.modal-comercio__slot .imagen-objeto {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.modal-comercio__nombre-respaldo,
+.modal-comercio__nombre {
+  max-width: 100%;
+  overflow: hidden;
+  color: #d7d2c5;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-comercio__slot.objeto-con-rareza .modal-comercio__nombre,
+.modal-comercio__slot.objeto-con-rareza .modal-comercio__nombre-respaldo {
+  color: var(--color-rareza-objeto);
+}
+
+.modal-comercio__precio-slot {
+  max-width: 100%;
+  overflow: hidden;
+  color: #d9bd68;
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-comercio__cantidad-slot {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  min-width: 20px;
+  padding: 2px 5px;
+  border: 1px solid #6f6239;
+  border-radius: 10px;
+  background: rgba(11, 12, 17, 0.94);
+  color: #f0d681;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.modal-comercio__vacio {
+  margin: 0;
+  padding: 18px 10px;
+  border: 1px dashed #444858;
+  border-radius: 5px;
+  color: #838799;
+  text-align: center;
+}
+
+.modal-comercio__detalle {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow-y: auto;
+  background: #121725;
+}
+
+.modal-comercio__detalle-vacio {
+  margin: auto;
+  padding: 30px;
+  color: #8c91a1;
+  text-align: center;
+}
+
+.modal-comercio__vista-detalle {
+  min-height: 0;
+}
+
+.modal-comercio .detalle-objeto {
+  padding: 18px 20px 12px;
+}
+
+.modal-comercio__operacion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: center;
+  padding: 14px 18px;
+  border-top: 1px solid #3e3a2d;
+  background: rgba(10, 13, 20, 0.9);
+}
+
+.modal-comercio__operacion[hidden] {
+  display: none;
+}
+
+.modal-comercio__operacion-titulo {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #d9c075;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.modal-comercio__cantidad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.modal-comercio__cantidad[hidden] {
+  display: none;
+}
+
+.modal-comercio__cantidad-etiqueta,
+.modal-comercio__precio-etiqueta {
+  color: #969aa8;
+  font-size: 11px;
+}
+
+.modal-comercio__cantidad-controles {
+  display: flex;
+  align-items: center;
+}
+
+.modal-comercio__cantidad-boton,
+.modal-comercio__cantidad-input,
+.modal-comercio__cantidad-preset {
+  height: 30px;
+  border: 1px solid #535868;
+  background: #1b1f2b;
+  color: #eeeae0;
+  font-family: inherit;
+}
+
+.modal-comercio__cantidad-boton {
+  width: 30px;
+  padding: 0;
+  font-size: 17px;
+}
+
+.modal-comercio__cantidad-input {
+  width: 55px;
+  padding: 0 5px;
+  border-right: 0;
+  border-left: 0;
+  text-align: center;
+}
+
+.modal-comercio__cantidad-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.modal-comercio__cantidad-presets[hidden] {
+  display: none;
+}
+
+.modal-comercio__cantidad-preset {
+  min-width: 34px;
+  padding: 0 7px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.modal-comercio__cantidad-boton:hover:not(:disabled),
+.modal-comercio__cantidad-preset:hover:not(:disabled) {
+  border-color: #b49345;
+  background: #342c1c;
+}
+
+.modal-comercio__cantidad-boton:disabled,
+.modal-comercio__cantidad-preset:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.modal-comercio__precio {
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+}
+
+.modal-comercio__precio-valor {
+  color: #f0d36e;
+  font-size: 16px;
+}
+
+.modal-comercio__operacion-mensaje {
+  min-height: 16px;
+  margin: 0;
+  color: #d89c91;
+  font-size: 11px;
+}
+
+.modal-comercio__operacion .modal-comercio__boton--principal {
+  min-width: 170px;
+}
+
+.modal-comercio__acciones {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  border-top: 1px solid #3d3b34;
+  background: #0b0e16;
+}
+
+.modal-comercio__mensaje-estado {
+  margin: 0;
+  color: #c9c4b7;
+  font-size: 11px;
+}
+
+.modal-comercio__boton {
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid #615f58;
+  border-radius: 5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.modal-comercio__boton--secundario {
+  min-width: 110px;
+  background: #1b1e28;
+  color: #d1cdc3;
+}
+
+.modal-comercio__boton--principal {
+  border-color: #c0a34f;
+  background: #735d25;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.modal-comercio__boton--principal:hover:not(:disabled) {
+  background: #94772e;
+}
+
+.modal-comercio__boton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .modal-comercio__cuerpo {
+    grid-template-columns: 1fr 1.35fr;
+    overflow-y: auto;
+  }
+
+  .modal-comercio__seccion-lista--jugador,
+  .modal-comercio__seccion-lista--mercader {
+    border: 0;
+    border-bottom: 1px solid #3b3e4b;
+  }
+
+  .modal-comercio__detalle {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    overflow: visible;
+  }
+
+  .modal-comercio__seccion-lista--mercader {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  .modal-comercio__cabecera {
+    align-items: flex-start;
+  }
+
+  .modal-comercio__subtitulo {
+    display: none;
+  }
+
+  .modal-comercio__cuerpo {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-comercio__seccion-lista--mercader,
+  .modal-comercio__detalle {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .modal-comercio__lista {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .modal-comercio__operacion {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-comercio__precio {
+    justify-items: start;
+  }
+
+  .modal-comercio__operacion .modal-comercio__boton--principal {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-comercio__lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .modal-comercio__estado-etiqueta {
+    display: none;
+  }
+
+  .modal-comercio__oro {
+    min-width: 54px;
+  }
+
+  .modal-comercio__acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .modal-comercio__boton--secundario {
+    width: 100%;
+  }
+}

@@ -18,6 +18,8 @@ import { ControladorPantallas } from "./ControladorPantallas.js";
 
 import { ControladorPartida } from "./ControladorPartida.js";
 
+import { ControladorDerrota } from "../controles/ControladorDerrota.js";
+
 // Aplicacion funciona como coordinador general.
 //
 // Sus responsabilidades son:
@@ -26,12 +28,14 @@ import { ControladorPartida } from "./ControladorPartida.js";
 // - Cargar las configuraciones.
 // - Construir el menú de creación.
 // - Solicitar el inicio de una partida.
+// - Mantener disponible el cierre global por derrota.
 export class Aplicacion {
   constructor() {
     // Los controladores se crearán cuando
     // se inicie formalmente la aplicación.
     this.controladorPantallas = null;
     this.controladorPartida = null;
+    this.controladorDerrota = null;
 
     // Conservamos la referencia al menú para
     // futuras acciones como reiniciarlo o destruirlo.
@@ -76,7 +80,7 @@ export class Aplicacion {
   }
 
   // Crea los componentes que coordinan
-  // las pantallas y la partida.
+  // las pantallas, la partida y su finalización.
   crearControladores() {
     this.controladorPantallas = new ControladorPantallas({
       pantallaMenuPrincipal: document.getElementById("mainMenu"),
@@ -100,6 +104,11 @@ export class Aplicacion {
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
     });
+
+    // La derrota se observa a nivel de aplicación.
+    // Así funciona con cualquier Juego activo sin
+    // acoplarla al mapa, combate o controlador concreto.
+    this.controladorDerrota = new ControladorDerrota();
   }
 
   // Carga en paralelo todas las configuraciones

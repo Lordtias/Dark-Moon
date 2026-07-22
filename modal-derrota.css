@@ -1,0 +1,181 @@
+/* =========================================================
+   MODAL DE DERROTA
+   ========================================================= */
+
+.modal-derrota {
+  width: min(500px, calc(100vw - 32px));
+  padding: 0;
+  overflow: visible;
+
+  border: 2px solid #9d3d4a;
+  border-radius: 9px;
+
+  background: #0c0f18;
+  color: #f2edf0;
+
+  font-family: monospace;
+
+  box-shadow:
+    0 24px 75px rgba(0, 0, 0, 0.86),
+    0 0 0 1px rgba(226, 93, 109, 0.13) inset,
+    0 0 32px rgba(138, 40, 54, 0.22);
+}
+
+.modal-derrota::backdrop {
+  background: radial-gradient(
+    circle,
+    rgba(69, 17, 25, 0.28),
+    rgba(0, 0, 0, 0.9)
+  );
+
+  backdrop-filter: blur(3px);
+}
+
+.modal-derrota__contenido {
+  overflow: hidden;
+  border-radius: 7px;
+
+  background:
+    linear-gradient(180deg, rgba(122, 38, 50, 0.24), transparent 180px), #10141f;
+}
+
+.modal-derrota__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 20px 22px;
+  border-bottom: 1px solid rgba(164, 75, 88, 0.42);
+
+  background: rgba(9, 11, 18, 0.72);
+}
+
+.modal-derrota__emblema {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(222, 92, 108, 0.5);
+  border-radius: 50%;
+
+  background: rgba(70, 20, 29, 0.68);
+  color: #e67a87;
+
+  font-family: serif;
+  font-size: 32px;
+  line-height: 1;
+
+  box-shadow: 0 0 18px rgba(202, 57, 75, 0.18);
+}
+
+.modal-derrota__bloque-titulo {
+  min-width: 0;
+}
+
+.modal-derrota__titulo {
+  margin: 0;
+  color: #efabb3;
+  font-size: 1.65rem;
+  line-height: 1.15;
+}
+
+.modal-derrota__descripcion {
+  margin: 6px 0 0;
+  color: #aaa3ad;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.modal-derrota__resumen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0;
+
+  margin: 0;
+  padding: 18px 22px;
+}
+
+.modal-derrota__etiqueta,
+.modal-derrota__valor {
+  margin: 0;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(105, 108, 125, 0.24);
+}
+
+.modal-derrota__etiqueta {
+  color: #9995a4;
+}
+
+.modal-derrota__valor {
+  color: #f1edf2;
+  font-weight: 700;
+  text-align: right;
+}
+
+.modal-derrota__dato--oro {
+  border-bottom: 0;
+}
+
+.modal-derrota__valor.modal-derrota__dato--oro {
+  color: #efd16b;
+}
+
+.modal-derrota__acciones {
+  display: flex;
+  justify-content: flex-end;
+
+  padding: 15px 22px 20px;
+  border-top: 1px solid rgba(164, 75, 88, 0.34);
+
+  background: rgba(8, 10, 16, 0.72);
+}
+
+.modal-derrota__boton {
+  min-width: 175px;
+  min-height: 40px;
+  padding: 10px 18px;
+
+  border: 1px solid #b95361;
+  border-radius: 5px;
+
+  background: #682d38;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.modal-derrota__boton:hover {
+  background: #873846;
+}
+
+.modal-derrota__boton:focus-visible {
+  outline: 2px solid #efabb3;
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .modal-derrota__cabecera {
+    align-items: flex-start;
+  }
+
+  .modal-derrota__emblema {
+    width: 48px;
+    height: 48px;
+    font-size: 27px;
+  }
+
+  .modal-derrota__acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .modal-derrota__boton {
+    width: 100%;
+  }
+}

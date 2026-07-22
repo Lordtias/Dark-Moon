@@ -12,6 +12,14 @@ const ID_HOJA_ESTILOS_CONTENEDOR = "hojaEstilosModalContenedorObjetos";
 
 const RUTA_HOJA_ESTILOS_CONTENEDOR = "./modal-contenedor-objetos.css";
 
+// Esta hoja reúne correcciones compartidas por
+// el detalle reutilizado y el modal de comercio.
+const ID_HOJA_ESTILOS_AJUSTES = "hojaEstilosAjustesModales";
+
+const RUTA_HOJA_ESTILOS_AJUSTES = "./ajustes-modales.css";
+
+const TECLA_RECOGER_TODO = "KeyR";
+
 let siguienteIdModal = 1;
 
 // Muestra el contenido de cualquier ContenedorObjetos.
@@ -37,6 +45,12 @@ export class ModalContenedorObjetos {
       ruta: RUTA_HOJA_ESTILOS_CONTENEDOR,
     });
 
+    asegurarHojaEstilos({
+      id: ID_HOJA_ESTILOS_AJUSTES,
+
+      ruta: RUTA_HOJA_ESTILOS_AJUSTES,
+    });
+
     this.idTitulo = `tituloModalContenedor${siguienteIdModal}`;
 
     siguienteIdModal++;
@@ -44,13 +58,9 @@ export class ModalContenedorObjetos {
     this.vistaDetalle = new VistaDetalleObjeto();
 
     this.contenedorObjetos = null;
-
     this.combatiente = null;
-
     this.alRecoger = null;
-
     this.alRecogerTodo = null;
-
     this.indiceSeleccionado = null;
 
     this.manejarCierreSolicitado = this.manejarCierreSolicitado.bind(this);
@@ -159,6 +169,10 @@ export class ModalContenedorObjetos {
 
       clase: "modal-contenedor-objetos__boton--secundario",
     });
+
+    this.botonRecogerTodo.title = "Recoger todo (R)";
+
+    this.botonRecogerTodo.setAttribute("aria-keyshortcuts", "R");
 
     this.botonRecoger = crearBotonAccion({
       texto: "Recoger",
@@ -346,6 +360,7 @@ export class ModalContenedorObjetos {
 
     const presentacion = crearPresentacionObjeto({
       objeto,
+
       combatiente: this.combatiente,
     });
 
@@ -379,7 +394,11 @@ export class ModalContenedorObjetos {
       return;
     }
 
-    const indice = Number.parseInt(boton.dataset.indiceContenedor, 10);
+    const indice = Number.parseInt(
+      boton.dataset.indiceContenedor,
+
+      10,
+    );
 
     if (!Number.isInteger(indice)) {
       return;
@@ -402,7 +421,6 @@ export class ModalContenedorObjetos {
 
   manejarCierreSolicitado(event) {
     event?.preventDefault();
-
     this.cerrar();
   }
 
@@ -416,6 +434,18 @@ export class ModalContenedorObjetos {
     // Impide que las teclas del modal alcancen
     // los controladores del mapa.
     event.stopPropagation();
+
+    if (
+      event.code !== TECLA_RECOGER_TODO ||
+      event.repeat ||
+      this.botonRecogerTodo.disabled
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    this.ejecutarRecogerTodo();
   }
 
   cerrar() {
@@ -424,13 +454,9 @@ export class ModalContenedorObjetos {
     }
 
     this.contenedorObjetos = null;
-
     this.combatiente = null;
-
     this.alRecoger = null;
-
     this.alRecogerTodo = null;
-
     this.indiceSeleccionado = null;
   }
 

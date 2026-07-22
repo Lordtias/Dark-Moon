@@ -1,0 +1,56 @@
+/* =========================================================
+   AJUSTES COMPARTIDOS DE MODALES
+   =========================================================
+ *
+ * Esta hoja corrige comportamientos visuales de componentes
+ * reutilizados dentro de varias ventanas.
+ */
+
+/* VistaDetalleObjeto alterna entre la imagen real y un
+ * respaldo circular con la inicial del objeto.
+ *
+ * El atributo hidden se respetaba dentro de ModalDetalleObjeto,
+ * pero no dentro del modal de botín. Como resultado, el borde
+ * circular del respaldo quedaba visible detrás de PNG transparentes.
+ */
+.detalle-objeto__imagen[hidden],
+.detalle-objeto__imagen-respaldo[hidden] {
+  display: none !important;
+}
+
+/* En escritorio, el comercio conserva una altura estable.
+ *
+ * Los objetos con más propiedades desplazan únicamente el
+ * contenido interno del detalle y ya no agrandan el diálogo.
+ */
+@media (min-width: 981px) {
+  .modal-comercio {
+    height: min(760px, calc(100vh - 28px));
+    max-height: calc(100vh - 28px);
+  }
+
+  .modal-comercio__contenido {
+    height: 100%;
+    max-height: none;
+  }
+
+  .modal-comercio__cuerpo,
+  .modal-comercio__detalle,
+  .modal-comercio__vista-detalle {
+    min-height: 0;
+  }
+
+  .modal-comercio__detalle {
+    overflow: hidden;
+  }
+
+  .modal-comercio__vista-detalle {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .modal-comercio__vista-detalle > .detalle-objeto {
+    max-height: none;
+    overflow: visible;
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "id": "ciudad_inicial",
+  "nombre": "Refugio de la Luna Oscura",
+  "tipo": "fijo",
+  "bioma": "ciudad",
+  "nivel": 1,
+  "apariencia": {
+    "colorSuelo": "#6f716d",
+    "colorPared": "#596273",
+    "colorGrilla": "#27302c",
+    "terrenos": {
+      "#": {
+        "tipo": "pared",
+        "caminable": false,
+        "color": "#596273",
+        "detalle": "mamposteria"
+      },
+      ".": {
+        "tipo": "suelo",
+        "caminable": true,
+        "color": "#77746e",
+        "detalle": "adoquin"
+      },
+      ",": {
+        "tipo": "suelo",
+        "caminable": true,
+        "color": "#3f6847",
+        "detalle": "cesped"
+      },
+      "=": {
+        "tipo": "suelo",
+        "caminable": true,
+        "color": "#805a38",
+        "detalle": "madera"
+      },
+      ":": {
+        "tipo": "suelo",
+        "caminable": true,
+        "color": "#6e5638",
+        "detalle": "tierra"
+      }
+    }
+  },
+  "terreno": [
+    "############################",
+    "#,,,,,,,,,,,,..,,,,,,,,,,,,#",
+    "#,#######,,,,..,,,,#######,#",
+    "#,#=====#,,,,..,,,,#=====#,#",
+    "#,#=====#,,,,..,,,,#=====#,#",
+    "#,#=====#,,,,..,,,,#=====#,#",
+    "#,###.###,........,###.###,#",
+    "#,,,,..................,,,,#",
+    "#,..#.....................,#",
+    "#,.....................#..,#",
+    "#,........................,#",
+    "#,#########.......,,,,,,,,,#",
+    "#,#=======#.......,::::::,,#",
+    "#,#=#####=#,,..,,,,:#::#:,,#",
+    "#,#=======#,,.......:::::,,#",
+    "#,#####.###,,..,,,,:#::#:,,#",
+    "#,,,,,,........,,,,,,,,,,,,#",
+    "############################"
+  ],
+  "posicionesJugador": {
+    "inicioPartida": {
+      "x": 13,
+      "y": 16
+    },
+    "regresoDungeon": {
+      "x": 13,
+      "y": 1
+    }
+  },
+  "entidades": [
+    {
+      "tipo": "npc",
+      "id": "mercader_refugio",
+      "nombre": "Edran, el mercader",
+      "rol": "mercader",
+      "x": 6,
+      "y": 13,
+      "simbolo": "M",
+      "recursoVisual": null,
+      "interacciones": [
+        {
+          "tipo": "comerciar",
+          "texto": "Comerciar con Edran",
+          "alcance": 1,
+          "prioridad": 80
+        }
+      ]
+    },
+    {
+      "tipo": "portalMapa",
+      "nombre": "Entrada a las mazmorras",
+      "x": 13,
+      "y": 0,
+      "simbolo": "D",
+      "recursoVisual": null,
+      "textoInteraccion": "Entrar a las mazmorras",
+      "alcance": 1,
+      "prioridad": 100,
+      "solicitudTransicionMapa": {
+        "tipo": "nuevaExpedicion",
+        "datos": {}
+      }
+    }
+  ]
+}

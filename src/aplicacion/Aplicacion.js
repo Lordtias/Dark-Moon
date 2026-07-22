@@ -6,6 +6,7 @@ import {
   cargarConfiguracionObjetos,
   cargarConfiguracionGeneracionObjetos,
   cargarConfiguracionMapas,
+  cargarConfiguracionCiudad,
 } from "../juego/configuracion/CargadorConfiguracion.js";
 
 // Pantalla utilizada para crear al personaje.
@@ -29,7 +30,6 @@ export class Aplicacion {
     // Los controladores se crearán cuando
     // se inicie formalmente la aplicación.
     this.controladorPantallas = null;
-
     this.controladorPartida = null;
 
     // Conservamos la referencia al menú para
@@ -38,9 +38,7 @@ export class Aplicacion {
 
     // Configuraciones cargadas desde JSON.
     this.configuracionPersonaje = null;
-
     this.configuracionEnemigos = null;
-
     this.configuracionObjetos = null;
 
     // Rarezas y afijos ya participan
@@ -48,6 +46,10 @@ export class Aplicacion {
     this.configuracionGeneracionObjetos = null;
 
     this.configuracionMapas = null;
+
+    // La ciudad fija se carga separada de las
+    // plantillas de mazmorras procedurales.
+    this.configuracionCiudad = null;
   }
 
   // Punto principal de inicio de Dark Moon.
@@ -104,12 +106,14 @@ export class Aplicacion {
       configuracionObjetos,
       configuracionGeneracionObjetos,
       configuracionMapas,
+      configuracionCiudad,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
       cargarConfiguracionObjetos(),
       cargarConfiguracionGeneracionObjetos(),
       cargarConfiguracionMapas(),
+      cargarConfiguracionCiudad(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -121,6 +125,8 @@ export class Aplicacion {
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
 
     this.configuracionMapas = configuracionMapas;
+
+    this.configuracionCiudad = configuracionCiudad;
   }
 
   // Construye la pantalla de creación
@@ -146,6 +152,8 @@ export class Aplicacion {
           configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
 
           configuracionMapas: this.configuracionMapas,
+
+          configuracionCiudad: this.configuracionCiudad,
         });
       },
     });

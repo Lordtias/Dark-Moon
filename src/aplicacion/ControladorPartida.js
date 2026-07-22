@@ -52,7 +52,7 @@ export class ControladorPartida {
     this.gestorMapasPartida = null;
 
     // La interfaz se crea una sola vez
-    // y se reutiliza cuando cambie el mapa.
+    // y se reutiliza cuando cambia el mapa.
     this.interfazPartida = null;
 
     // Estado y controladores del mapa activo.
@@ -74,6 +74,7 @@ export class ControladorPartida {
     configuracionObjetos,
     configuracionGeneracionObjetos,
     configuracionMapas,
+    configuracionCiudad,
   } = {}) {
     if (this.partidaIniciada) {
       return false;
@@ -102,6 +103,7 @@ export class ControladorPartida {
       configuracionObjetos,
       configuracionGeneracionObjetos,
       configuracionMapas,
+      configuracionCiudad,
     });
 
     this.configuracionObjetos = configuracionObjetos;
@@ -123,21 +125,55 @@ export class ControladorPartida {
 
     this.controladorPantallas.mostrarPartida();
 
-    // El flujo actual continúa comenzando
-    // directamente en una mazmorra.
+    // El inicio normal ahora ocurre dentro
+    // del mapa fijo de la ciudad.
     //
-    // Más adelante esta llamada será reemplazada
-    // por la activación del mapa fijo de la ciudad.
-    this.iniciarNuevaExpedicion({
-      semillaMapa: parametrosPrueba.semillaMapa,
+    // Los parámetros de prueba conservan el acceso
+    // directo a una mazmorra para no romper las
+    // herramientas actuales de desarrollo.
+    if (parametrosPrueba.activo) {
+      this.iniciarNuevaExpedicion({
+        semillaMapa: parametrosPrueba.semillaMapa,
 
-      idMapaForzado: parametrosPrueba.idMapaForzado,
+        idMapaForzado: parametrosPrueba.idMapaForzado,
 
-      botinPrueba: parametrosPrueba.botinPrueba,
+        botinPrueba: parametrosPrueba.botinPrueba,
 
-      portalPrueba: parametrosPrueba.portalPrueba,
+        portalPrueba: parametrosPrueba.portalPrueba,
 
-      parametrosPrueba,
+        parametrosPrueba,
+      });
+    } else {
+      this.iniciarCiudad({
+        puntoEntrada: "inicioPartida",
+
+        esInicioPartida: true,
+      });
+    }
+
+    return true;
+  }
+
+  // Activa el mapa fijo de la ciudad
+  // conservando el mismo jugador.
+  iniciarCiudad({
+    puntoEntrada = "inicioPartida",
+    esInicioPartida = false,
+  } = {}) {
+    if (!this.partidaIniciada || !this.gestorMapasPartida) {
+      throw new Error(
+        "No se puede activar la ciudad sin una partida iniciada.",
+      );
+    }
+
+    const configuracionMapa = this.gestorMapasPartida.crearCiudad({
+      puntoEntrada,
+    });
+
+    this.activarMapa(configuracionMapa);
+
+    this.mostrarResumenCiudad({
+      esInicioPartida,
     });
 
     return true;
@@ -146,8 +182,8 @@ export class ControladorPartida {
   // Genera y activa una mazmorra nueva
   // conservando la misma instancia del jugador.
   //
-  // Este método será utilizado posteriormente
-  // por la entrada de la ciudad y por portales.
+  // Este método es utilizado por la entrada
+  // de la ciudad y por portales de prueba.
   iniciarNuevaExpedicion({
     semillaMapa = null,
     idMapaForzado = null,
@@ -172,7 +208,11 @@ export class ControladorPartida {
 
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
-        activo: botinPrueba || portalPrueba,
+        activo:
+          botinPrueba ||
+          portalPrueba ||
+          idMapaForzado !== null ||
+          semillaMapa !== null,
 
         botinPrueba,
         portalPrueba,
@@ -184,35 +224,56 @@ export class ControladorPartida {
 
   // Recibe solicitudes originadas por puertas,
   // portales, NPC u objetos futuros.
-  //
-  // En esta etapa solamente está conectada
-  // la creación de una nueva expedición.
   procesarSolicitudTransicionMapa(solicitud) {
     const solicitudNormalizada = normalizarSolicitudTransicionMapa(solicitud);
 
     switch (solicitudNormalizada.tipo) {
       case TIPOS_TRANSICION_MAPA.NUEVA_EXPEDICION:
         return this.iniciarNuevaExpedicion({
+          semillaMapa: solicitudNormalizada.datos.semillaMapa ?? null,
+
+          idMapaForzado: solicitudNormalizada.datos.idMapaForzado ?? null,
+
+          botinPrueba: solicitudNormalizada.datos.botinPrueba === true,
+
           portalPrueba: solicitudNormalizada.datos.portalPrueba === true,
         });
 
       case TIPOS_TRANSICION_MAPA.REGRESAR_CIUDAD:
-        this.renderizador.mostrarMensaje(
-          "La transición a la ciudad todavía no está disponible.",
-        );
-        return false;
+        return this.iniciarCiudad({
+          puntoEntrada:
+            solicitudNormalizada.datos.puntoEntrada ?? "regresoDungeon",
+        });
 
       case TIPOS_TRANSICION_MAPA.ACTIVAR_MAPA_FIJO:
-        this.renderizador.mostrarMensaje(
-          "La activación de mapas fijos todavía no está disponible.",
-        );
-        return false;
+        return this.procesarActivacionMapaFijo(solicitudNormalizada.datos);
 
       default:
         throw new Error(
           "ControladorPartida recibió una transición desconocida.",
         );
     }
+  }
+
+  // La primera implementación de mapas fijos
+  // solamente conoce la ciudad inicial.
+  //
+  // Mantener este método separado permitirá agregar
+  // otras ciudades, campamentos o interiores después.
+  procesarActivacionMapaFijo(datos) {
+    const idMapa = datos?.idMapa;
+
+    if (idMapa === this.gestorMapasPartida.idCiudad) {
+      return this.iniciarCiudad({
+        puntoEntrada: datos.puntoEntrada ?? "inicioPartida",
+      });
+    }
+
+    this.renderizador.mostrarMensaje(
+      `El mapa fijo "${idMapa}" todavía no está disponible.`,
+    );
+
+    return false;
   }
 
   // Reemplaza Juego y sus controladores,
@@ -279,7 +340,6 @@ export class ControladorPartida {
     });
 
     this.juego = juego;
-
     this.renderizador = renderizador;
 
     this.controladorTeclado = controladorTeclado;
@@ -295,6 +355,30 @@ export class ControladorPartida {
     this.controladorInteracciones.activar();
 
     this.renderizador.dibujarJuego(this.juego);
+  }
+
+  mostrarResumenCiudad({ esInicioPartida } = {}) {
+    const mapaSeleccionado = this.juego.mapaSeleccionado;
+
+    const mensajePrincipal = esInicioPartida
+      ? `Comenzaste tu aventura en ${mapaSeleccionado.nombre}.`
+      : `Regresaste a ${mapaSeleccionado.nombre}.`;
+
+    this.renderizador.mostrarMensaje(
+      `${mensajePrincipal}\n` +
+        "Acercate al mercader y presioná R para interactuar. " +
+        "La entrada a las mazmorras se encuentra al norte.",
+    );
+
+    console.groupCollapsed(`[Ciudad] ${mapaSeleccionado.nombre}`);
+
+    console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
+
+    console.log("Configuración del mapa:", mapaSeleccionado.generacionActual);
+
+    console.log("Interactuables de la ciudad:", this.juego.interactuables);
+
+    console.groupEnd();
   }
 
   mostrarResumenMazmorra({ parametrosPrueba } = {}) {
@@ -329,7 +413,8 @@ export class ControladorPartida {
         `Enemigos: ${generacion.cantidadEnemigos} ` +
         `(${tiposEnemigos}). ` +
         `Variantes: ${variantes}.\n` +
-        `Destructibles: ${generacion.cantidadDestructibles}.` +
+        `Destructibles: ${generacion.cantidadDestructibles}. ` +
+        "La salida hacia la ciudad está ubicada en un borde del mapa." +
         mensajeModoPrueba +
         mensajeBotinPrueba +
         mensajePortalPrueba,

@@ -11,6 +11,8 @@ const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
 
 const RUTA_MAPAS = "./src/config/mapas/Mapas.json";
 
+const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
+
 // Catálogos que describen rarezas y afijos.
 //
 // Se cargan separados de las plantillas de objetos porque:
@@ -188,7 +190,6 @@ export async function cargarConfiguracionGeneracionObjetos() {
 // para detectar definiciones duplicadas.
 function combinarCatalogosObjetos(catalogosCargados) {
   const configuracionCombinada = {};
-
   const origenPorId = new Map();
 
   for (const catalogo of catalogosCargados) {
@@ -277,4 +278,16 @@ export async function cargarConfiguracionMapas() {
   );
 
   return validarConfiguracionMapas(configuracion);
+}
+
+// Carga la definición del primer mapa fijo.
+//
+// La validación específica de filas, terrenos,
+// posiciones y entidades se ejecuta al construir
+// la ciudad dentro de ConfiguracionCiudad.
+export function cargarConfiguracionCiudad() {
+  return cargarArchivoJson(
+    RUTA_CIUDAD_INICIAL,
+    "la configuración de la ciudad inicial",
+  );
 }

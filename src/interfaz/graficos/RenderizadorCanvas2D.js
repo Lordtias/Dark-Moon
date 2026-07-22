@@ -11,21 +11,37 @@ import { CargadorImagenes } from "./CargadorImagenes.js";
 const ESTILOS_ENTIDADES = {
   [TIPOS_ENTIDAD_VISUAL.JUGADOR]: {
     colorSimbolo: "#ffe66d",
+
     colorFondo: "rgba(52, 46, 15, 0.90)",
+
     colorBorde: "#d6bd45",
   },
 
   [TIPOS_ENTIDAD_VISUAL.ENEMIGO]: {
     colorSimbolo: "#ffb0b0",
+
     colorFondo: "rgba(55, 16, 21, 0.90)",
+
     colorBorde: "#bd4b55",
     colorAgresividad: "#ff3f4d",
   },
 
   [TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE]: {
     colorSimbolo: "#e2b276",
+
     colorFondo: "rgba(52, 34, 17, 0.88)",
+
     colorBorde: "#a97942",
+  },
+
+  // Los NPC, portales y botines reciben un estilo
+  // propio para diferenciarlos de los destructibles.
+  [TIPOS_ENTIDAD_VISUAL.INTERACTUABLE]: {
+    colorSimbolo: "#c8f1ff",
+
+    colorFondo: "rgba(18, 48, 61, 0.90)",
+
+    colorBorde: "#68b7d3",
   },
 };
 
@@ -169,7 +185,7 @@ export class RenderizadorCanvas2D {
   }
 
   // Obtiene el espacio interior realmente disponible
-  // dentro del panel del mapa.
+  // dentro del panel que contiene el mapa.
   //
   // Se descuentan:
   //
@@ -202,11 +218,13 @@ export class RenderizadorCanvas2D {
     return {
       ancho: Math.max(
         0,
+
         this.contenedor.clientWidth - paddingHorizontal - bordeHorizontal,
       ),
 
       alto: Math.max(
         0,
+
         this.contenedor.clientHeight - paddingVertical - bordeVertical,
       ),
     };
@@ -245,8 +263,13 @@ export class RenderizadorCanvas2D {
     }
   }
 
-  // Dibuja todas las casillas del mapa
-  // utilizando los colores del bioma.
+  // Dibuja todas las casillas del mapa.
+  //
+  // Los mapas procedurales pueden continuar usando
+  // colorSuelo y colorPared.
+  //
+  // Los mapas fijos pueden declarar una apariencia
+  // distinta para cada símbolo de terreno.
   dibujarMapa({ casillas, apariencia = {} }) {
     const colorSuelo = apariencia.colorSuelo ?? "#252b45";
 
@@ -254,19 +277,31 @@ export class RenderizadorCanvas2D {
 
     const colorGrilla = apariencia.colorGrilla ?? "#171b2e";
 
+    const terrenos = apariencia.terrenos ?? {};
+
     for (let y = 0; y < casillas.length; y++) {
       for (let x = 0; x < casillas[y].length; x++) {
         const pixelX = x * this.tileSize;
 
         const pixelY = y * this.tileSize;
 
-        if (casillas[y][x] === "#") {
+        const simbolo = casillas[y][x];
+
+        const configuracionTerreno = terrenos[simbolo] ?? {};
+
+        const tipoTerreno =
+          configuracionTerreno.tipo ?? (simbolo === "#" ? "pared" : "suelo");
+
+        if (tipoTerreno === "pared") {
           this.dibujarPared({
             x,
             y,
             pixelX,
             pixelY,
-            colorPared,
+
+            colorPared: configuracionTerreno.color ?? colorPared,
+
+            detalle: configuracionTerreno.detalle ?? "piedra",
           });
         } else {
           this.dibujarSuelo({
@@ -274,7 +309,10 @@ export class RenderizadorCanvas2D {
             y,
             pixelX,
             pixelY,
-            colorSuelo,
+
+            colorSuelo: configuracionTerreno.color ?? colorSuelo,
+
+            detalle: configuracionTerreno.detalle ?? "natural",
           });
         }
 
@@ -292,7 +330,7 @@ export class RenderizadorCanvas2D {
   //
   // No utilizamos Math.random porque provocaría
   // cambios visuales en cada redibujado.
-  dibujarSuelo({ x, y, pixelX, pixelY, colorSuelo }) {
+  dibujarSuelo({ x, y, pixelX, pixelY, colorSuelo, detalle = "natural" }) {
     const hash = obtenerHashCasilla(x, y);
 
     this.context.fillStyle = colorSuelo;
@@ -313,31 +351,210 @@ export class RenderizadorCanvas2D {
       this.tileSize - 2,
     );
 
-    // Algunas casillas reciben una pequeña
-    // marca visual similar a una piedra
-    // o irregularidad del terreno.
-    if (hash % 3 === 0) {
-      const espacioDisponible = Math.max(1, this.tileSize - 10);
-
-      const detalleX = pixelX + 5 + (hash % espacioDisponible);
-
-      const detalleY = pixelY + 5 + ((hash >>> 8) % espacioDisponible);
-
-      this.context.fillStyle = "rgba(255, 255, 255, 0.08)";
-
-      this.context.fillRect(detalleX, detalleY, 1, 1);
-
-      this.context.fillStyle = "rgba(0, 0, 0, 0.10)";
-
-      this.context.fillRect(detalleX + 1, detalleY + 1, 1, 1);
-    }
+    this.dibujarDetalleSuelo({
+      detalle,
+      hash,
+      pixelX,
+      pixelY,
+    });
 
     this.context.restore();
   }
 
+  // Agrega patrones sencillos para que la ciudad
+  // pueda distinguir caminos, césped, madera y tierra
+  // sin necesitar todavía un tileset externo.
+  dibujarDetalleSuelo({ detalle, hash, pixelX, pixelY }) {
+    switch (detalle) {
+      case "adoquin":
+        this.dibujarDetalleAdoquin({
+          hash,
+          pixelX,
+          pixelY,
+        });
+        break;
+
+      case "cesped":
+        this.dibujarDetalleCesped({
+          hash,
+          pixelX,
+          pixelY,
+        });
+        break;
+
+      case "madera":
+        this.dibujarDetalleMadera({
+          hash,
+          pixelX,
+          pixelY,
+        });
+        break;
+
+      case "tierra":
+        this.dibujarDetalleTierra({
+          hash,
+          pixelX,
+          pixelY,
+        });
+        break;
+
+      default:
+        this.dibujarDetalleNatural({
+          hash,
+          pixelX,
+          pixelY,
+        });
+    }
+  }
+
+  dibujarDetalleAdoquin({ hash, pixelX, pixelY }) {
+    const mitad = Math.floor(this.tileSize / 2);
+
+    this.context.strokeStyle = "rgba(20, 20, 22, 0.18)";
+
+    this.context.lineWidth = 1;
+    this.context.beginPath();
+
+    this.context.moveTo(pixelX + 1, pixelY + mitad + 0.5);
+
+    this.context.lineTo(pixelX + this.tileSize - 1, pixelY + mitad + 0.5);
+
+    const desplazamiento = hash % 2 === 0 ? mitad : Math.floor(mitad * 0.55);
+
+    this.context.moveTo(pixelX + desplazamiento + 0.5, pixelY + 1);
+
+    this.context.lineTo(pixelX + desplazamiento + 0.5, pixelY + mitad);
+
+    this.context.moveTo(
+      pixelX + this.tileSize - desplazamiento + 0.5,
+
+      pixelY + mitad,
+    );
+
+    this.context.lineTo(
+      pixelX + this.tileSize - desplazamiento + 0.5,
+
+      pixelY + this.tileSize - 1,
+    );
+
+    this.context.stroke();
+
+    this.context.fillStyle = "rgba(255, 255, 255, 0.06)";
+
+    this.context.fillRect(
+      pixelX + 4 + (hash % 7),
+      pixelY + 4 + ((hash >>> 6) % 7),
+      2,
+      1,
+    );
+  }
+
+  dibujarDetalleCesped({ hash, pixelX, pixelY }) {
+    const cantidad = 1 + (hash % 3);
+
+    this.context.strokeStyle = "rgba(210, 245, 190, 0.18)";
+
+    this.context.lineWidth = 1;
+
+    for (let indice = 0; indice < cantidad; indice++) {
+      const baseX =
+        pixelX +
+        5 +
+        ((hash >>> (indice * 5)) % Math.max(1, this.tileSize - 10));
+
+      const baseY =
+        pixelY +
+        8 +
+        ((hash >>> (indice * 7 + 3)) % Math.max(1, this.tileSize - 13));
+
+      this.context.beginPath();
+
+      this.context.moveTo(baseX, baseY + 3);
+
+      this.context.lineTo(baseX - 1, baseY);
+
+      this.context.moveTo(baseX, baseY + 3);
+
+      this.context.lineTo(baseX + 2, baseY + 1);
+
+      this.context.stroke();
+    }
+  }
+
+  dibujarDetalleMadera({ hash, pixelX, pixelY }) {
+    const altoTabla = Math.max(5, Math.floor(this.tileSize / 3));
+
+    this.context.strokeStyle = "rgba(25, 13, 7, 0.22)";
+
+    this.context.lineWidth = 1;
+    this.context.beginPath();
+
+    for (let y = altoTabla; y < this.tileSize; y += altoTabla) {
+      this.context.moveTo(pixelX + 1, pixelY + y + 0.5);
+
+      this.context.lineTo(pixelX + this.tileSize - 1, pixelY + y + 0.5);
+    }
+
+    const unionX = pixelX + 6 + (hash % Math.max(1, this.tileSize - 12));
+
+    this.context.moveTo(unionX + 0.5, pixelY + 1);
+
+    this.context.lineTo(unionX + 0.5, pixelY + altoTabla);
+
+    this.context.stroke();
+
+    this.context.fillStyle = "rgba(255, 238, 190, 0.09)";
+
+    this.context.fillRect(pixelX + 3, pixelY + 3, this.tileSize - 6, 1);
+  }
+
+  dibujarDetalleTierra({ hash, pixelX, pixelY }) {
+    const cantidad = 2 + (hash % 3);
+
+    for (let indice = 0; indice < cantidad; indice++) {
+      const puntoX =
+        pixelX + 4 + ((hash >>> (indice * 4)) % Math.max(1, this.tileSize - 8));
+
+      const puntoY =
+        pixelY +
+        4 +
+        ((hash >>> (indice * 6 + 2)) % Math.max(1, this.tileSize - 8));
+
+      this.context.fillStyle =
+        indice % 2 === 0
+          ? "rgba(25, 15, 8, 0.18)"
+          : "rgba(255, 235, 190, 0.08)";
+
+      this.context.fillRect(puntoX, puntoY, 1, 1);
+    }
+  }
+
+  dibujarDetalleNatural({ hash, pixelX, pixelY }) {
+    // Algunas casillas reciben una pequeña
+    // marca visual similar a una piedra
+    // o irregularidad del terreno.
+    if (hash % 3 !== 0) {
+      return;
+    }
+
+    const espacioDisponible = Math.max(1, this.tileSize - 10);
+
+    const detalleX = pixelX + 5 + (hash % espacioDisponible);
+
+    const detalleY = pixelY + 5 + ((hash >>> 8) % espacioDisponible);
+
+    this.context.fillStyle = "rgba(255, 255, 255, 0.08)";
+
+    this.context.fillRect(detalleX, detalleY, 1, 1);
+
+    this.context.fillStyle = "rgba(0, 0, 0, 0.10)";
+
+    this.context.fillRect(detalleX + 1, detalleY + 1, 1, 1);
+  }
+
   // Dibuja una pared con borde superior claro
   // y borde inferior oscuro para simular volumen.
-  dibujarPared({ x, y, pixelX, pixelY, colorPared }) {
+  dibujarPared({ x, y, pixelX, pixelY, colorPared, detalle = "piedra" }) {
     const hash = obtenerHashCasilla(x, y);
 
     this.context.fillStyle = colorPared;
@@ -376,6 +593,14 @@ export class RenderizadorCanvas2D {
       this.tileSize - 6,
     );
 
+    if (detalle === "mamposteria") {
+      this.dibujarDetalleMamposteria({
+        hash,
+        pixelX,
+        pixelY,
+      });
+    }
+
     // Algunas paredes muestran una grieta
     // simple y determinista.
     if (hash % 5 === 0) {
@@ -386,7 +611,6 @@ export class RenderizadorCanvas2D {
       this.context.strokeStyle = "rgba(0, 0, 0, 0.18)";
 
       this.context.lineWidth = 1;
-
       this.context.beginPath();
 
       this.context.moveTo(inicioX, inicioY);
@@ -401,13 +625,46 @@ export class RenderizadorCanvas2D {
     this.context.restore();
   }
 
+  dibujarDetalleMamposteria({ hash, pixelX, pixelY }) {
+    const mitad = Math.floor(this.tileSize / 2);
+
+    this.context.strokeStyle = "rgba(15, 18, 22, 0.20)";
+
+    this.context.lineWidth = 1;
+    this.context.beginPath();
+
+    this.context.moveTo(pixelX + 1, pixelY + mitad + 0.5);
+
+    this.context.lineTo(pixelX + this.tileSize - 1, pixelY + mitad + 0.5);
+
+    const unionSuperior =
+      pixelX + (hash % 2 === 0 ? mitad : Math.floor(mitad * 0.65));
+
+    this.context.moveTo(unionSuperior + 0.5, pixelY + 2);
+
+    this.context.lineTo(unionSuperior + 0.5, pixelY + mitad);
+
+    const unionInferior =
+      pixelX +
+      this.tileSize -
+      (hash % 2 === 0 ? Math.floor(mitad * 0.65) : mitad);
+
+    this.context.moveTo(unionInferior + 0.5, pixelY + mitad);
+
+    this.context.lineTo(unionInferior + 0.5, pixelY + this.tileSize - 2);
+
+    this.context.stroke();
+  }
+
   // Dibuja la división entre casillas
   // con menor intensidad que el sistema anterior.
   dibujarGrilla({ pixelX, pixelY, colorGrilla }) {
     this.context.save();
 
     this.context.globalAlpha = 0.58;
+
     this.context.strokeStyle = colorGrilla;
+
     this.context.lineWidth = 1;
 
     // El desplazamiento de medio píxel ayuda
@@ -510,7 +767,6 @@ export class RenderizadorCanvas2D {
       this.context.strokeStyle = estilo.colorAgresividad;
 
       this.context.lineWidth = 3;
-
       this.context.beginPath();
 
       this.context.arc(centroX, centroY, radio + 2, 0, Math.PI * 2);
@@ -562,7 +818,11 @@ export class RenderizadorCanvas2D {
   // Se utilizan posiciones y tamaños enteros
   // para conservar píxeles nítidos.
   dibujarImagenEntidad({ imagen, centroX, centroY }) {
-    const tamano = Math.max(16, Math.floor(this.tileSize * 0.72));
+    const tamano = Math.max(
+      16,
+
+      Math.floor(this.tileSize * 0.72),
+    );
 
     const x = Math.round(centroX - tamano / 2);
 
@@ -574,12 +834,13 @@ export class RenderizadorCanvas2D {
   }
 
   // Conserva el sistema ASCII como respaldo
-  // para jugador, barriles o imágenes faltantes.
+  // para jugador, NPC, portales o imágenes faltantes.
   dibujarSimboloEntidad({ entidad, estilo, centroX, centroY }) {
     this.context.fillStyle = estilo.colorSimbolo;
 
     this.context.font = `bold ${Math.max(
       12,
+
       Math.floor(this.tileSize * 0.58),
     )}px monospace`;
 
@@ -617,14 +878,23 @@ export class RenderizadorCanvas2D {
   dibujarBarraVida(entidad, pixelX, pixelY) {
     const porcentaje = Math.max(
       0,
-      Math.min(1, entidad.vidaActual / entidad.vidaMaxima),
+
+      Math.min(
+        1,
+
+        entidad.vidaActual / entidad.vidaMaxima,
+      ),
     );
 
     const margen = 3;
 
     const anchoTotal = this.tileSize - margen * 2;
 
-    const alto = Math.max(3, Math.floor(this.tileSize * 0.11));
+    const alto = Math.max(
+      3,
+
+      Math.floor(this.tileSize * 0.11),
+    );
 
     const barraX = pixelX + margen;
 
@@ -649,7 +919,9 @@ export class RenderizadorCanvas2D {
     this.context.fillRect(
       barraX + 1,
       barraY + 1,
+
       Math.max(0, (anchoTotal - 2) * porcentaje),
+
       Math.max(1, alto - 2),
     );
 
@@ -691,7 +963,11 @@ export class RenderizadorCanvas2D {
 
     const finY = pixelY + this.tileSize - margen;
 
-    const longitud = Math.max(6, Math.floor(this.tileSize * 0.25));
+    const longitud = Math.max(
+      6,
+
+      Math.floor(this.tileSize * 0.25),
+    );
 
     this.context.save();
 
@@ -705,9 +981,9 @@ export class RenderizadorCanvas2D {
     );
 
     this.context.strokeStyle = color;
+
     this.context.lineWidth = 3;
     this.context.lineCap = "square";
-
     this.context.beginPath();
 
     // Esquina superior izquierda.

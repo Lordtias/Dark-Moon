@@ -5,6 +5,8 @@ import {
 
 import { Juego } from "../juego/Juego.js";
 
+import { EstadoPartida } from "../partida/EstadoPartida.js";
+
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
@@ -34,14 +36,15 @@ export class ControladorPartida {
 
     this.controladorPantallas = controladorPantallas;
 
+    // Estado persistente que sobrevivirá
+    // a los futuros cambios de mapa.
+    this.estadoPartida = null;
+
+    // Estado y componentes del mapa activo.
     this.juego = null;
-
     this.renderizador = null;
-
     this.controladorTeclado = null;
-
     this.controladorEquipamiento = null;
-
     this.controladorInteracciones = null;
 
     this.partidaIniciada = false;
@@ -73,6 +76,24 @@ export class ControladorPartida {
       idMapaForzado: parametrosPrueba.idMapaForzado,
 
       botinPrueba: parametrosPrueba.botinPrueba,
+    });
+
+    // EstadoPartida conserva la misma instancia
+    // del jugador creada para el mapa inicial.
+    //
+    // En etapas posteriores, los mapas cambiarán,
+    // pero esta referencia continuará siendo la misma.
+    const estadoPartida = new EstadoPartida({
+      jugador: configuracionInicial.player,
+    });
+
+    // El flujo actual todavía comienza directamente
+    // dentro de una mazmorra procedural.
+    //
+    // Cuando incorporemos la ciudad, el inicio normal
+    // registrará primero el mapa fijo de la ciudad.
+    estadoPartida.iniciarExpedicion({
+      idMapa: configuracionInicial.mapaSeleccionado.id,
     });
 
     const generacionMapa =
@@ -117,17 +138,20 @@ export class ControladorPartida {
     // la superficie gráfica utilizada.
     renderizador.configurarDimensionesMapa({
       columnas: cantidadColumnas,
-
       filas: cantidadFilas,
     });
 
-    // Juego continúa recibiendo el catálogo combinado
-    // necesario para resolver los IDs de las tablas.
+    // Juego recibe el jugador persistente conservado
+    // dentro de EstadoPartida.
     //
-    // La configuración de rarezas queda administrada
-    // por el contexto del mapa activo.
+    // Hoy es la misma instancia creada por
+    // crearConfiguracionInicial. En el futuro será
+    // reutilizada al construir la ciudad y cada dungeon.
     const juego = new Juego({
       ...configuracionInicial,
+
+      player: estadoPartida.jugador,
+
       configuracionObjetos,
     });
 
@@ -149,6 +173,8 @@ export class ControladorPartida {
       renderizador,
       modalContenedorObjetos,
     });
+
+    this.estadoPartida = estadoPartida;
 
     this.juego = juego;
 
@@ -207,6 +233,8 @@ export class ControladorPartida {
     console.groupCollapsed(
       `[Mapa] ${mapaSeleccionado.nombre} | ` + `semilla ${generacion.semilla}`,
     );
+
+    console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
 
     console.log("Parámetros de prueba:", parametrosPrueba);
 

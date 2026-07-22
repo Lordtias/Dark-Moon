@@ -1,8 +1,9 @@
 import { Objeto } from "./Objeto.js";
-
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
 import { RAREZAS_OBJETO } from "../juego/objetos/RarezasObjeto.js";
+
+import { aplicarMetadatosComercialesObjeto } from "../juego/comercio/MetadatosComercialesObjeto.js";
 
 // Crea una instancia independiente desde
 // el catálogo combinado de objetos.
@@ -25,8 +26,8 @@ export function crearObjeto({
   prefijos = [],
   sufijos = [],
 
-  // El futuro generador de afijos compondrá
-  // las propiedades finales y las entregará aquí.
+  // El generador de afijos compone las propiedades
+  // finales y las entrega aquí.
   //
   // Cuando no se proporciona este valor,
   // se utilizan las propiedades originales
@@ -53,7 +54,7 @@ export function crearObjeto({
       Array.isArray(propiedadesFinales))
   ) {
     throw new Error(
-      "Las propiedades finales del objeto deben formar un objeto válido.",
+      "Las propiedades finales del objeto " + "deben formar un objeto válido.",
     );
   }
 
@@ -61,8 +62,9 @@ export function crearObjeto({
 
   if (rutaCreacion.includes(idNormalizado)) {
     throw new Error(
-      `La configuración del objeto "${idNormalizado}" ` +
-        "contiene una referencia circular.",
+      `La configuración del objeto ` +
+        `"${idNormalizado}" contiene ` +
+        "una referencia circular.",
     );
   }
 
@@ -84,7 +86,7 @@ export function crearObjeto({
 
   const propiedadesBase = plantilla.propiedades ?? {};
 
-  return new Objeto({
+  const objeto = new Objeto({
     id: idNormalizado,
 
     nombre: plantilla.nombre,
@@ -105,8 +107,9 @@ export function crearObjeto({
 
     ranurasCompatibles: [...(plantilla.ranurasCompatibles ?? [])],
 
-    // Objeto realiza copias profundas independientes
-    // de las propiedades base y finales.
+    // Objeto realiza copias profundas
+    // independientes de las propiedades
+    // base y finales.
     propiedadesBase,
 
     propiedades: propiedadesFinales ?? propiedadesBase,
@@ -115,8 +118,17 @@ export function crearObjeto({
     nivelObjeto,
     prefijos,
     sufijos,
-
     contenedorObjetos,
+  });
+
+  // Los datos comerciales no participan
+  // del combate ni de los afijos.
+  //
+  // Se agregan después de construir la instancia,
+  // utilizando siempre la plantilla base.
+  return aplicarMetadatosComercialesObjeto({
+    objeto,
+    plantilla,
   });
 }
 
@@ -165,19 +177,19 @@ function crearContenedorInterno({
 // "pocion_curacion"
 //
 // {
-//     "id": "flecha_madera",
-//     "cantidad": 20
+//   "id": "flecha_madera",
+//   "cantidad": 20
 // }
 //
-// También queda preparado:
+// También admite objetos generados:
 //
 // {
-//     "id": "daga_hierro",
-//     "rareza": "magico",
-//     "nivelObjeto": 2,
-//     "prefijos": [...],
-//     "sufijos": [...],
-//     "propiedadesFinales": {...}
+//   "id": "daga_hierro",
+//   "rareza": "magico",
+//   "nivelObjeto": 2,
+//   "prefijos": [...],
+//   "sufijos": [...],
+//   "propiedadesFinales": {...}
 // }
 export function crearObjetosDesdeDefiniciones({
   configuracionObjetos,
@@ -196,7 +208,6 @@ export function crearObjetosDesdeDefiniciones({
         idObjeto: definicion,
 
         cantidad: 1,
-
         rutaCreacion,
       });
     }

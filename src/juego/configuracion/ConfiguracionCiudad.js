@@ -135,7 +135,10 @@ function crearEntidadCiudad(configuracionEntidad) {
 
         prioridad: configuracionEntidad.prioridad,
 
-        solicitudTransicionMapa: configuracionEntidad.solicitudTransicionMapa,
+        tipoInteraccion: configuracionEntidad.tipoInteraccion,
+
+        solicitudTransicionMapa:
+          configuracionEntidad.solicitudTransicionMapa ?? null,
       });
 
     default:

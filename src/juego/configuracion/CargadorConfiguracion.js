@@ -9,7 +9,10 @@ const RUTA_PLANTILLAS_ENEMIGOS = "./src/config/entidades/Enemigos.json";
 
 const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
 
-const RUTA_MAPAS = "./src/config/mapas/Mapas.json";
+// El archivo existente utiliza minúscula.
+// Mantener la misma capitalización evita errores
+// al publicar en servidores Linux o GitHub Pages.
+const RUTA_MAPAS = "./src/config/mapas/mapas.json";
 
 const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
 

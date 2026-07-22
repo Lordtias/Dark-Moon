@@ -13,6 +13,7 @@ const TECLA_INTERACCION = "KeyR";
 //
 // - La tecla R.
 // - La apertura de contenedores.
+// - La selección de mazmorras.
 // - La confirmación del selector de interacción.
 // - La actualización de la ventana de botín.
 // - Las solicitudes de transición entre mapas.
@@ -21,6 +22,9 @@ export class ControladorInteracciones {
     juego,
     renderizador,
     modalContenedorObjetos,
+    modalSeleccionMazmorra,
+    obtenerMazmorrasDisponibles,
+    alSeleccionarMazmorra,
     alSolicitarTransicionMapa,
   } = {}) {
     if (
@@ -55,6 +59,28 @@ export class ControladorInteracciones {
       );
     }
 
+    if (
+      !modalSeleccionMazmorra ||
+      typeof modalSeleccionMazmorra.abrir !== "function" ||
+      typeof modalSeleccionMazmorra.cerrar !== "function"
+    ) {
+      throw new Error(
+        "ControladorInteracciones necesita un selector de mazmorras.",
+      );
+    }
+
+    if (typeof obtenerMazmorrasDisponibles !== "function") {
+      throw new Error(
+        "ControladorInteracciones necesita consultar las mazmorras disponibles.",
+      );
+    }
+
+    if (typeof alSeleccionarMazmorra !== "function") {
+      throw new Error(
+        "ControladorInteracciones necesita una acción para seleccionar mazmorras.",
+      );
+    }
+
     if (typeof alSolicitarTransicionMapa !== "function") {
       throw new Error(
         "ControladorInteracciones necesita un manejador de transiciones de mapa.",
@@ -63,7 +89,14 @@ export class ControladorInteracciones {
 
     this.juego = juego;
     this.renderizador = renderizador;
+
     this.modalContenedorObjetos = modalContenedorObjetos;
+
+    this.modalSeleccionMazmorra = modalSeleccionMazmorra;
+
+    this.obtenerMazmorrasDisponibles = obtenerMazmorrasDisponibles;
+
+    this.alSeleccionarMazmorra = alSeleccionarMazmorra;
 
     this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
 
@@ -92,6 +125,8 @@ export class ControladorInteracciones {
     document.removeEventListener("keydown", this.manejarTecla);
 
     this.modalContenedorObjetos.cerrar();
+
+    this.modalSeleccionMazmorra.cerrar();
 
     this.interactuableActual = null;
     this.estaActivo = false;
@@ -160,6 +195,10 @@ export class ControladorInteracciones {
         this.abrirContenedor(interaccion);
         break;
 
+      case TIPOS_INTERACCION.SELECCIONAR_MAZMORRA:
+        this.abrirSeleccionMazmorra();
+        break;
+
       case TIPOS_INTERACCION.TRANSICION_MAPA:
         this.solicitarTransicionMapa(interaccion);
         break;
@@ -205,6 +244,16 @@ export class ControladorInteracciones {
     });
   }
 
+  abrirSeleccionMazmorra() {
+    const mazmorras = this.obtenerMazmorrasDisponibles();
+
+    this.modalSeleccionMazmorra.abrir({
+      mazmorras,
+
+      alConfirmar: (idMazmorra) => this.alSeleccionarMazmorra(idMazmorra),
+    });
+  }
+
   // Entrega la solicitud al coordinador superior.
   //
   // El portal no conoce ControladorPartida y este
@@ -219,6 +268,8 @@ export class ControladorInteracciones {
     }
 
     this.modalContenedorObjetos.cerrar();
+
+    this.modalSeleccionMazmorra.cerrar();
 
     this.interactuableActual = null;
 

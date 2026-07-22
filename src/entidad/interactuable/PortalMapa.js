@@ -4,12 +4,17 @@ import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js
 
 import { normalizarSolicitudTransicionMapa } from "../../Partida/TransicionesMapa.js";
 
+const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
+  TIPOS_INTERACCION.TRANSICION_MAPA,
+  TIPOS_INTERACCION.SELECCIONAR_MAZMORRA,
+]);
+
 // Representa una puerta, portal, escalera o salida
-// capaz de solicitar un cambio de mapa.
+// capaz de ofrecer una interacción relacionada con mapas.
 //
-// PortalMapa no conoce ControladorPartida ni crea mapas.
-// Solamente ofrece una interacción con una solicitud
-// independiente de la tecnología visual.
+// Una salida normal entrega una solicitud de transición.
+// La entrada principal de la ciudad puede solicitar primero
+// que el jugador elija una mazmorra.
 export class PortalMapa extends Entidad {
   constructor({
     nombre = "Portal",
@@ -20,7 +25,8 @@ export class PortalMapa extends Entidad {
     textoInteraccion = "Usar portal",
     alcance = 1,
     prioridad = 90,
-    solicitudTransicionMapa,
+    tipoInteraccion = TIPOS_INTERACCION.TRANSICION_MAPA,
+    solicitudTransicionMapa = null,
   } = {}) {
     super({
       nombre,
@@ -57,39 +63,50 @@ export class PortalMapa extends Entidad {
       );
     }
 
+    if (!TIPOS_INTERACCION_PORTAL_VALIDOS.has(tipoInteraccion)) {
+      throw new Error(
+        `El tipo de interacción "${tipoInteraccion}" ` +
+          `no es válido para ${this.nombre}.`,
+      );
+    }
+
     this.recursoVisual = recursoVisual === null ? null : recursoVisual.trim();
 
     this.textoInteraccion = textoInteraccion.trim();
 
     this.alcance = alcance;
     this.prioridad = prioridad;
+    this.tipoInteraccion = tipoInteraccion;
 
-    this.solicitudTransicionMapa = normalizarSolicitudTransicionMapa(
-      solicitudTransicionMapa,
-    );
+    // Solamente las transiciones inmediatas necesitan
+    // contener una solicitud concreta.
+    this.solicitudTransicionMapa =
+      tipoInteraccion === TIPOS_INTERACCION.TRANSICION_MAPA
+        ? normalizarSolicitudTransicionMapa(solicitudTransicionMapa)
+        : null;
   }
 
-  // Devuelve la solicitud, pero no realiza
-  // directamente el cambio de mapa.
   obtenerInteracciones() {
-    return [
-      {
-        tipo: TIPOS_INTERACCION.TRANSICION_MAPA,
+    const interaccion = {
+      tipo: this.tipoInteraccion,
 
-        texto: this.textoInteraccion,
+      texto: this.textoInteraccion,
 
-        alcance: this.alcance,
+      alcance: this.alcance,
 
-        prioridad: this.prioridad,
+      prioridad: this.prioridad,
+    };
 
-        solicitudTransicionMapa: {
-          tipo: this.solicitudTransicionMapa.tipo,
+    if (this.solicitudTransicionMapa) {
+      interaccion.solicitudTransicionMapa = {
+        tipo: this.solicitudTransicionMapa.tipo,
 
-          datos: {
-            ...this.solicitudTransicionMapa.datos,
-          },
+        datos: {
+          ...this.solicitudTransicionMapa.datos,
         },
-      },
-    ];
+      };
+    }
+
+    return [interaccion];
   }
 }

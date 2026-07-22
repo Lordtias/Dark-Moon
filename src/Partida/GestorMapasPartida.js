@@ -63,6 +63,45 @@ export class GestorMapasPartida {
     return this.configuracionCiudad.id;
   }
 
+  // Entrega una vista segura de las plantillas
+  // disponibles para la ventana de selección.
+  //
+  // La interfaz no recibe la configuración completa
+  // ni puede modificar los pesos o reglas internas.
+  obtenerMazmorrasDisponibles() {
+    return Object.entries(this.configuracionMapas.plantillas).map(
+      ([id, plantilla]) => ({
+        id,
+
+        nombre: plantilla.nombre,
+
+        descripcion:
+          plantilla.descripcion ??
+          `Explorá una expedición del bioma ${plantilla.bioma}.`,
+
+        bioma: plantilla.bioma,
+
+        nivelMinimo: plantilla.niveles.minimo,
+
+        nivelMaximo: plantilla.niveles.maximo,
+
+        anchoMinimo: plantilla.dimensiones.ancho.minimo,
+
+        anchoMaximo: plantilla.dimensiones.ancho.maximo,
+
+        altoMinimo: plantilla.dimensiones.alto.minimo,
+
+        altoMaximo: plantilla.dimensiones.alto.maximo,
+
+        cantidadEnemigosMinima: plantilla.enemigos.cantidad.minimo,
+
+        cantidadEnemigosMaxima: plantilla.enemigos.cantidad.maximo,
+
+        enemigos: plantilla.enemigos.permitidos.map((enemigo) => enemigo.id),
+      }),
+    );
+  }
+
   // Construye la ciudad fija reutilizando
   // al mismo jugador de toda la partida.
   crearCiudad({ puntoEntrada = "inicioPartida" } = {}) {

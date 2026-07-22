@@ -50,8 +50,8 @@
     "#,#=====#,,,,..,,,,#=====#,#",
     "#,###.###,........,###.###,#",
     "#,,,,..................,,,,#",
-    "#,..#.....................,#",
-    "#,.....................#..,#",
+    "#,........................,#",
+    "#,..#..................#..,#",
     "#,........................,#",
     "#,#########.......,,,,,,,,,#",
     "#,#=======#.......,::::::,,#",
@@ -97,13 +97,10 @@
       "y": 0,
       "simbolo": "D",
       "recursoVisual": null,
-      "textoInteraccion": "Entrar a las mazmorras",
+      "textoInteraccion": "Elegir mazmorra",
       "alcance": 1,
       "prioridad": 100,
-      "solicitudTransicionMapa": {
-        "tipo": "nuevaExpedicion",
-        "datos": {}
-      }
+      "tipoInteraccion": "seleccionarMazmorra"
     }
   ]
 }

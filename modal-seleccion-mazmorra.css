@@ -1,0 +1,200 @@
+.modal-seleccion-mazmorra {
+  width: min(900px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 1px solid #59647e;
+  border-radius: 12px;
+  background: #151a2b;
+  color: #eef2ff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.modal-seleccion-mazmorra::backdrop {
+  background: rgba(5, 8, 16, 0.76);
+}
+
+.modal-seleccion-mazmorra__contenido {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100vh - 34px);
+}
+
+.modal-seleccion-mazmorra__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #313a55;
+  background: #1b2135;
+}
+
+.modal-seleccion-mazmorra__bloque-titulo h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.modal-seleccion-mazmorra__bloque-titulo p {
+  margin: 6px 0 0;
+  color: #abb5ce;
+}
+
+.modal-seleccion-mazmorra__cerrar-superior {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #4b5570;
+  border-radius: 8px;
+  background: #252c43;
+  color: #eef2ff;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-seleccion-mazmorra__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(300px, 1.1fr);
+  min-height: 360px;
+  overflow: hidden;
+}
+
+.modal-seleccion-mazmorra__lista {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+  border-right: 1px solid #313a55;
+  background: #111625;
+}
+
+.modal-seleccion-mazmorra__opcion {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #39435f;
+  border-radius: 10px;
+  background: #1a2033;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.modal-seleccion-mazmorra__opcion:hover {
+  border-color: #7183b2;
+  background: #202941;
+}
+
+.modal-seleccion-mazmorra__opcion.seleccionada {
+  border-color: #d3b85a;
+  background: #2b2a32;
+  box-shadow: inset 4px 0 0 #d3b85a;
+}
+
+.modal-seleccion-mazmorra__nombre {
+  font-size: 1.05rem;
+}
+
+.modal-seleccion-mazmorra__descripcion-corta {
+  color: #c7cede;
+  line-height: 1.4;
+}
+
+.modal-seleccion-mazmorra__resumen {
+  color: #95a2bf;
+  font-size: 0.88rem;
+}
+
+.modal-seleccion-mazmorra__detalle {
+  padding: 24px;
+  overflow-y: auto;
+  background: #181e30;
+}
+
+.modal-seleccion-mazmorra__detalle h3 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+}
+
+.modal-seleccion-mazmorra__descripcion {
+  margin: 0 0 22px;
+  color: #c7cede;
+  line-height: 1.55;
+}
+
+.modal-seleccion-mazmorra__datos {
+  display: grid;
+  grid-template-columns: minmax(100px, auto) 1fr;
+  gap: 12px 18px;
+  margin: 0;
+}
+
+.modal-seleccion-mazmorra__datos dt {
+  color: #919db8;
+  font-weight: 600;
+}
+
+.modal-seleccion-mazmorra__datos dd {
+  margin: 0;
+  color: #f1f4ff;
+}
+
+.modal-seleccion-mazmorra__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid #313a55;
+  background: #1b2135;
+}
+
+.modal-seleccion-mazmorra__boton {
+  min-width: 120px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-seleccion-mazmorra__boton--secundario {
+  border: 1px solid #56617d;
+  background: #252c43;
+  color: #eef2ff;
+}
+
+.modal-seleccion-mazmorra__boton--principal {
+  border: 1px solid #e1c964;
+  background: #b99b35;
+  color: #111318;
+}
+
+.modal-seleccion-mazmorra__boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .modal-seleccion-mazmorra__cuerpo {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .modal-seleccion-mazmorra__lista {
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid #313a55;
+  }
+
+  .modal-seleccion-mazmorra__detalle {
+    overflow: visible;
+  }
+
+  .modal-seleccion-mazmorra__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .modal-seleccion-mazmorra__boton {
+    width: 100%;
+  }
+}

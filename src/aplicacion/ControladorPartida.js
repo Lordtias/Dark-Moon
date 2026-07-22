@@ -125,7 +125,7 @@ export class ControladorPartida {
 
     this.controladorPantallas.mostrarPartida();
 
-    // El inicio normal ahora ocurre dentro
+    // El inicio normal ocurre dentro
     // del mapa fijo de la ciudad.
     //
     // Los parámetros de prueba conservan el acceso
@@ -182,8 +182,8 @@ export class ControladorPartida {
   // Genera y activa una mazmorra nueva
   // conservando la misma instancia del jugador.
   //
-  // Este método es utilizado por la entrada
-  // de la ciudad y por portales de prueba.
+  // La entrada de la ciudad entrega un ID concreto
+  // seleccionado desde ModalSeleccionMazmorra.
   iniciarNuevaExpedicion({
     semillaMapa = null,
     idMapaForzado = null,
@@ -208,11 +208,7 @@ export class ControladorPartida {
 
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
-        activo:
-          botinPrueba ||
-          portalPrueba ||
-          idMapaForzado !== null ||
-          semillaMapa !== null,
+        activo: botinPrueba || portalPrueba || semillaMapa !== null,
 
         botinPrueba,
         portalPrueba,
@@ -294,6 +290,7 @@ export class ControladorPartida {
       panelEquipamiento,
       modalDetalleObjeto,
       modalContenedorObjetos,
+      modalSeleccionMazmorra,
     } = this.interfazPartida;
 
     const cantidadFilas = configuracionMapa.map.length;
@@ -334,6 +331,15 @@ export class ControladorPartida {
       juego,
       renderizador,
       modalContenedorObjetos,
+      modalSeleccionMazmorra,
+
+      obtenerMazmorrasDisponibles: () =>
+        this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
+
+      alSeleccionarMazmorra: (idMazmorra) =>
+        this.iniciarNuevaExpedicion({
+          idMapaForzado: idMazmorra,
+        }),
 
       alSolicitarTransicionMapa: (solicitud) =>
         this.procesarSolicitudTransicionMapa(solicitud),

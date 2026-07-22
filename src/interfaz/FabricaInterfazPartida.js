@@ -1,18 +1,12 @@
 import { Renderizador } from "./Renderizador.js";
-
 import { RenderizadorCanvas2D } from "./graficos/RenderizadorCanvas2D.js";
-
 import { PanelPersonaje } from "./PanelPersonaje.js";
-
 import { PanelInventario } from "./PanelInventario.js";
-
 import { PanelEquipamiento } from "./PanelEquipamiento.js";
-
 import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
-
 import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
-
 import { ModalContenedorObjetos } from "./objetos/ModalContenedorObjetos.js";
+import { ModalSeleccionMazmorra } from "./ModalSeleccionMazmorra.js";
 
 // Crea todos los componentes visuales
 // utilizados durante una partida.
@@ -42,9 +36,7 @@ export function crearInterfazPartida({ tileSize } = {}) {
   // Backend gráfico intercambiable.
   const renderizadorMapa = new RenderizadorCanvas2D({
     canvas,
-
     contenedor: panelMapa,
-
     tileSize,
   });
 
@@ -88,9 +80,13 @@ export function crearInterfazPartida({ tileSize } = {}) {
   // cofres y futuros comerciantes.
   const modalContenedorObjetos = new ModalContenedorObjetos();
 
+  // La selección de destino permanece fuera
+  // del mapa y se reutiliza en cada regreso
+  // a la ciudad.
+  const modalSeleccionMazmorra = new ModalSeleccionMazmorra();
+
   const panelOrdenTemporal = new PanelOrdenTemporal({
     referenciaInsercion: panelMapa,
-
     maximoActores: 8,
   });
 
@@ -115,6 +111,7 @@ export function crearInterfazPartida({ tileSize } = {}) {
     panelOrdenTemporal,
     modalDetalleObjeto,
     modalContenedorObjetos,
+    modalSeleccionMazmorra,
   };
 }
 

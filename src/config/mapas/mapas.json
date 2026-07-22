@@ -2,6 +2,7 @@
   "plantillas": {
     "alcantarilla": {
       "nombre": "Alcantarilla",
+      "descripcion": "Túneles húmedos y estrechos infestados de alimañas. Es el destino más directo para una primera expedición.",
       "bioma": "alcantarilla",
       "pesoSeleccion": 5,
       "apariencia": {
@@ -71,6 +72,7 @@
     },
     "cementerio": {
       "nombre": "Cementerio",
+      "descripcion": "Un camposanto abandonado donde los muertos patrullan entre criptas y pasajes de piedra.",
       "bioma": "cementerio",
       "pesoSeleccion": 4,
       "apariencia": {
@@ -144,6 +146,7 @@
     },
     "especial": {
       "nombre": "Mapa especial",
+      "descripcion": "Una zona inestable que mezcla enemigos de distintos biomas y ofrece encuentros menos predecibles.",
       "bioma": "especial",
       "pesoSeleccion": 1,
       "apariencia": {

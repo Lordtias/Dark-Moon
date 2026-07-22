@@ -1,6 +1,9 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 
-import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
+import {
+  ESTADOS_HOSTILIDAD_VISUAL,
+  TIPOS_ENTIDAD_VISUAL,
+} from "./TiposEscena.js";
 
 // Convierte el estado completo de Juego
 // en una escena gráfica sencilla.
@@ -81,11 +84,7 @@ export function crearEscenaJuego(juego) {
           ),
         ),
 
-      crearEntidadVisual(
-        juego.player,
-
-        TIPOS_ENTIDAD_VISUAL.JUGADOR,
-      ),
+      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR),
     ],
   };
 }
@@ -203,10 +202,17 @@ function crearEntidadVisual(entidad, tipo) {
 
     estaViva,
 
-    // Solo los enemigos controlados por IA
-    // pueden mostrar agresividad.
-    estaAgresiva:
-      tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO && entidad.estaAgresivo === true,
+    // El backend gráfico recibe un estado textual
+    // en lugar del booleano propio de Enemigo.
+    //
+    // Esto permite ampliar la representación visual
+    // sin acoplarla al dominio o a una tecnología.
+    estadoHostilidad:
+      tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
+        ? entidad.estaAgresivo === true
+          ? ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
+          : ESTADOS_HOSTILIDAD_VISUAL.PASIVO
+        : null,
 
     vidaActual,
     vidaMaxima,

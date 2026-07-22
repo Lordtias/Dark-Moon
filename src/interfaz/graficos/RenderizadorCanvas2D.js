@@ -1,47 +1,51 @@
-import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
+import {
+  ESTADOS_HOSTILIDAD_VISUAL,
+  TIPOS_ENTIDAD_VISUAL,
+} from "./TiposEscena.js";
 
 import { CargadorImagenes } from "./CargadorImagenes.js";
 
-// Colores utilizados por cada categoría
-// de entidad.
+// Colores utilizados por los respaldos ASCII
+// y los indicadores de estado.
 //
-// Más adelante estos valores podrán moverse
-// a una configuración visual o reemplazarse
-// por sprites.
+// Los sprites se dibujan directamente sobre el mapa,
+// sin círculos de fondo ni anillos alrededor.
 const ESTILOS_ENTIDADES = {
   [TIPOS_ENTIDAD_VISUAL.JUGADOR]: {
     colorSimbolo: "#ffe66d",
 
-    colorFondo: "rgba(52, 46, 15, 0.90)",
+    colorFondoRespaldo: "rgba(52, 46, 15, 0.90)",
 
-    colorBorde: "#d6bd45",
+    colorBordeRespaldo: "#d6bd45",
   },
 
   [TIPOS_ENTIDAD_VISUAL.ENEMIGO]: {
     colorSimbolo: "#ffb0b0",
 
-    colorFondo: "rgba(55, 16, 21, 0.90)",
+    colorFondoRespaldo: "rgba(55, 16, 21, 0.90)",
 
-    colorBorde: "#bd4b55",
+    colorBordeRespaldo: "#bd4b55",
+
     colorAgresividad: "#ff3f4d",
   },
 
   [TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE]: {
     colorSimbolo: "#e2b276",
 
-    colorFondo: "rgba(52, 34, 17, 0.88)",
+    colorFondoRespaldo: "rgba(52, 34, 17, 0.88)",
 
-    colorBorde: "#a97942",
+    colorBordeRespaldo: "#a97942",
   },
 
-  // Los NPC, portales y botines reciben un estilo
-  // propio para diferenciarlos de los destructibles.
+  // Los NPC, portales y botines reciben
+  // colores propios cuando necesitan usar
+  // su símbolo de respaldo.
   [TIPOS_ENTIDAD_VISUAL.INTERACTUABLE]: {
     colorSimbolo: "#c8f1ff",
 
-    colorFondo: "rgba(18, 48, 61, 0.90)",
+    colorFondoRespaldo: "rgba(18, 48, 61, 0.90)",
 
-    colorBorde: "#68b7d3",
+    colorBordeRespaldo: "#68b7d3",
   },
 };
 
@@ -80,13 +84,17 @@ export class RenderizadorCanvas2D {
     }
 
     this.canvas = canvas;
+
     this.contenedor = contenedor;
+
     this.context = context;
+
     this.tileSize = tileSize;
 
     // Conservamos la última escena para volver
     // a dibujarla cuando termine de cargar una imagen.
     this.ultimaEscena = null;
+
     this.redibujoPendiente = false;
 
     // La carga y caché quedan aisladas dentro
@@ -230,8 +238,9 @@ export class RenderizadorCanvas2D {
     };
   }
 
-  // Permite detener el observador cuando en el futuro
-  // exista destrucción o reemplazo de una partida.
+  // Permite detener el observador cuando
+  // en el futuro exista destrucción o
+  // reemplazo de una partida.
   destruir() {
     this.observadorDimensiones?.disconnect();
 
@@ -413,17 +422,30 @@ export class RenderizadorCanvas2D {
     this.context.strokeStyle = "rgba(20, 20, 22, 0.18)";
 
     this.context.lineWidth = 1;
+
     this.context.beginPath();
 
     this.context.moveTo(pixelX + 1, pixelY + mitad + 0.5);
 
-    this.context.lineTo(pixelX + this.tileSize - 1, pixelY + mitad + 0.5);
+    this.context.lineTo(
+      pixelX + this.tileSize - 1,
+
+      pixelY + mitad + 0.5,
+    );
 
     const desplazamiento = hash % 2 === 0 ? mitad : Math.floor(mitad * 0.55);
 
-    this.context.moveTo(pixelX + desplazamiento + 0.5, pixelY + 1);
+    this.context.moveTo(
+      pixelX + desplazamiento + 0.5,
 
-    this.context.lineTo(pixelX + desplazamiento + 0.5, pixelY + mitad);
+      pixelY + 1,
+    );
+
+    this.context.lineTo(
+      pixelX + desplazamiento + 0.5,
+
+      pixelY + mitad,
+    );
 
     this.context.moveTo(
       pixelX + this.tileSize - desplazamiento + 0.5,
@@ -443,7 +465,9 @@ export class RenderizadorCanvas2D {
 
     this.context.fillRect(
       pixelX + 4 + (hash % 7),
+
       pixelY + 4 + ((hash >>> 6) % 7),
+
       2,
       1,
     );
@@ -482,17 +506,26 @@ export class RenderizadorCanvas2D {
   }
 
   dibujarDetalleMadera({ hash, pixelX, pixelY }) {
-    const altoTabla = Math.max(5, Math.floor(this.tileSize / 3));
+    const altoTabla = Math.max(
+      5,
+
+      Math.floor(this.tileSize / 3),
+    );
 
     this.context.strokeStyle = "rgba(25, 13, 7, 0.22)";
 
     this.context.lineWidth = 1;
+
     this.context.beginPath();
 
     for (let y = altoTabla; y < this.tileSize; y += altoTabla) {
       this.context.moveTo(pixelX + 1, pixelY + y + 0.5);
 
-      this.context.lineTo(pixelX + this.tileSize - 1, pixelY + y + 0.5);
+      this.context.lineTo(
+        pixelX + this.tileSize - 1,
+
+        pixelY + y + 0.5,
+      );
     }
 
     const unionX = pixelX + 6 + (hash % Math.max(1, this.tileSize - 12));
@@ -578,7 +611,9 @@ export class RenderizadorCanvas2D {
 
     this.context.fillRect(
       pixelX + 1,
+
       pixelY + this.tileSize - 3,
+
       this.tileSize - 2,
       2,
     );
@@ -588,8 +623,11 @@ export class RenderizadorCanvas2D {
 
     this.context.fillRect(
       pixelX + this.tileSize - 2,
+
       pixelY + 3,
+
       1,
+
       this.tileSize - 6,
     );
 
@@ -611,6 +649,7 @@ export class RenderizadorCanvas2D {
       this.context.strokeStyle = "rgba(0, 0, 0, 0.18)";
 
       this.context.lineWidth = 1;
+
       this.context.beginPath();
 
       this.context.moveTo(inicioX, inicioY);
@@ -631,11 +670,16 @@ export class RenderizadorCanvas2D {
     this.context.strokeStyle = "rgba(15, 18, 22, 0.20)";
 
     this.context.lineWidth = 1;
+
     this.context.beginPath();
 
     this.context.moveTo(pixelX + 1, pixelY + mitad + 0.5);
 
-    this.context.lineTo(pixelX + this.tileSize - 1, pixelY + mitad + 0.5);
+    this.context.lineTo(
+      pixelX + this.tileSize - 1,
+
+      pixelY + mitad + 0.5,
+    );
 
     const unionSuperior =
       pixelX + (hash % 2 === 0 ? mitad : Math.floor(mitad * 0.65));
@@ -651,7 +695,11 @@ export class RenderizadorCanvas2D {
 
     this.context.moveTo(unionInferior + 0.5, pixelY + mitad);
 
-    this.context.lineTo(unionInferior + 0.5, pixelY + this.tileSize - 2);
+    this.context.lineTo(
+      unionInferior + 0.5,
+
+      pixelY + this.tileSize - 2,
+    );
 
     this.context.stroke();
   }
@@ -722,11 +770,14 @@ export class RenderizadorCanvas2D {
 
   // Dibuja una entidad utilizando:
   //
-  // - Sombra.
-  // - Fondo.
-  // - Borde.
-  // - Imagen o símbolo de respaldo.
-  // - Barra de Vida opcional.
+  // - Una sombra rectangular muy sutil.
+  // - La imagen directamente sobre el mapa.
+  // - Un respaldo cuadrado cuando no existe imagen.
+  // - Un indicador de hostilidad para enemigos agresivos.
+  // - Una barra de Vida opcional.
+  //
+  // Ya no se dibujan círculos de fondo,
+  // bordes circulares ni anillos de agresividad.
   dibujarEntidad(entidad) {
     const estilo =
       ESTILOS_ENTIDADES[entidad.tipo] ??
@@ -740,54 +791,12 @@ export class RenderizadorCanvas2D {
 
     const centroY = pixelY + this.tileSize / 2;
 
-    const radio = this.tileSize * 0.31;
-
     this.context.save();
 
-    // Sombra debajo de la entidad.
-    this.context.fillStyle = "rgba(0, 0, 0, 0.34)";
-
-    this.context.beginPath();
-
-    this.context.ellipse(
+    this.dibujarSombraEntidad({
       centroX,
-      centroY + this.tileSize * 0.2,
-      radio * 0.85,
-      radio * 0.36,
-      0,
-      0,
-      Math.PI * 2,
-    );
-
-    this.context.fill();
-
-    // Los enemigos que detectaron al jugador
-    // conservan el anillo rojo.
-    if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO && entidad.estaAgresiva) {
-      this.context.strokeStyle = estilo.colorAgresividad;
-
-      this.context.lineWidth = 3;
-      this.context.beginPath();
-
-      this.context.arc(centroX, centroY, radio + 2, 0, Math.PI * 2);
-
-      this.context.stroke();
-    }
-
-    // Fondo de contraste.
-    this.context.fillStyle = estilo.colorFondo;
-
-    this.context.beginPath();
-
-    this.context.arc(centroX, centroY, radio, 0, Math.PI * 2);
-
-    this.context.fill();
-
-    // Borde principal.
-    this.context.strokeStyle = estilo.colorBorde;
-
-    this.context.lineWidth = 2;
-    this.context.stroke();
+      pixelY,
+    });
 
     const imagen = this.cargadorImagenes.obtener(entidad.recursoVisual);
 
@@ -806,11 +815,50 @@ export class RenderizadorCanvas2D {
       });
     }
 
+    if (
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
+      entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
+    ) {
+      this.dibujarIndicadorAgresividad({
+        pixelX,
+        pixelY,
+
+        color: estilo.colorAgresividad,
+      });
+    }
+
     this.context.restore();
 
     if (entidad.mostrarBarraVida) {
       this.dibujarBarraVida(entidad, pixelX, pixelY);
     }
+  }
+
+  // Conserva una referencia de profundidad
+  // sin volver a encerrar cada sprite en una figura.
+  dibujarSombraEntidad({ centroX, pixelY }) {
+    const ancho = Math.max(
+      10,
+
+      Math.floor(this.tileSize * 0.48),
+    );
+
+    const alto = Math.max(
+      2,
+
+      Math.floor(this.tileSize * 0.08),
+    );
+
+    this.context.fillStyle = "rgba(0, 0, 0, 0.30)";
+
+    this.context.fillRect(
+      Math.round(centroX - ancho / 2),
+
+      Math.round(pixelY + this.tileSize * 0.78),
+
+      ancho,
+      alto,
+    );
   }
 
   // Dibuja un sprite pixel-art centrado.
@@ -821,7 +869,7 @@ export class RenderizadorCanvas2D {
     const tamano = Math.max(
       16,
 
-      Math.floor(this.tileSize * 0.72),
+      Math.floor(this.tileSize * 0.78),
     );
 
     const x = Math.round(centroX - tamano / 2);
@@ -830,29 +878,149 @@ export class RenderizadorCanvas2D {
 
     this.context.imageSmoothingEnabled = false;
 
+    // La sombra pertenece al sprite y no forma
+    // un círculo alrededor de la entidad.
+    this.context.shadowColor = "rgba(0, 0, 0, 0.58)";
+
+    this.context.shadowBlur = 2;
+
+    this.context.shadowOffsetX = 1;
+
+    this.context.shadowOffsetY = 2;
+
     this.context.drawImage(imagen, x, y, tamano, tamano);
+
+    this.context.shadowColor = "transparent";
+
+    this.context.shadowBlur = 0;
+
+    this.context.shadowOffsetX = 0;
+
+    this.context.shadowOffsetY = 0;
   }
 
   // Conserva el sistema ASCII como respaldo
-  // para jugador, NPC, portales o imágenes faltantes.
+  // para imágenes ausentes o fallidas.
+  //
+  // En lugar del círculo anterior, utiliza
+  // una placa cuadrada compacta.
   dibujarSimboloEntidad({ entidad, estilo, centroX, centroY }) {
+    const tamanoFondo = Math.max(
+      18,
+
+      Math.floor(this.tileSize * 0.68),
+    );
+
+    const inicioX = Math.round(centroX - tamanoFondo / 2);
+
+    const inicioY = Math.round(centroY - tamanoFondo / 2);
+
+    this.context.fillStyle = estilo.colorFondoRespaldo;
+
+    this.context.fillRect(inicioX, inicioY, tamanoFondo, tamanoFondo);
+
+    this.context.strokeStyle = estilo.colorBordeRespaldo;
+
+    this.context.lineWidth = 2;
+
+    this.context.strokeRect(
+      inicioX + 0.5,
+      inicioY + 0.5,
+      tamanoFondo - 1,
+      tamanoFondo - 1,
+    );
+
     this.context.fillStyle = estilo.colorSimbolo;
 
     this.context.font = `bold ${Math.max(
       12,
 
-      Math.floor(this.tileSize * 0.58),
+      Math.floor(this.tileSize * 0.54),
     )}px monospace`;
 
     this.context.textAlign = "center";
+
     this.context.textBaseline = "middle";
 
     this.context.shadowColor = "rgba(0, 0, 0, 0.75)";
 
     this.context.shadowBlur = 2;
+
     this.context.shadowOffsetY = 1;
 
     this.context.fillText(entidad.simbolo, centroX, centroY + 1);
+
+    this.context.shadowColor = "transparent";
+
+    this.context.shadowBlur = 0;
+
+    this.context.shadowOffsetY = 0;
+  }
+
+  // Muestra un rombo pequeño con "!" cuando
+  // el enemigo ya detectó al jugador y está
+  // persiguiendo o atacando.
+  //
+  // Los enemigos pasivos no reciben ninguna marca,
+  // por lo que la lectura queda limpia hasta que
+  // existe una amenaza real.
+  dibujarIndicadorAgresividad({ pixelX, pixelY, color }) {
+    const tamano = Math.max(
+      7,
+
+      Math.floor(this.tileSize * 0.25),
+    );
+
+    const centroIndicadorX = pixelX + this.tileSize - Math.ceil(tamano * 0.75);
+
+    // Se coloca debajo de la barra de Vida
+    // para que ambos indicadores puedan convivir.
+    const centroIndicadorY = pixelY + Math.ceil(this.tileSize * 0.32);
+
+    this.context.save();
+
+    this.context.translate(centroIndicadorX, centroIndicadorY);
+
+    this.context.rotate(Math.PI / 4);
+
+    this.context.fillStyle = "rgba(55, 8, 13, 0.94)";
+
+    this.context.fillRect(-tamano / 2, -tamano / 2, tamano, tamano);
+
+    this.context.strokeStyle = color;
+
+    this.context.lineWidth = 2;
+
+    this.context.strokeRect(
+      -tamano / 2 + 0.5,
+      -tamano / 2 + 0.5,
+      tamano - 1,
+      tamano - 1,
+    );
+
+    this.context.restore();
+
+    this.context.save();
+
+    this.context.fillStyle = "#ffffff";
+
+    this.context.font = `bold ${Math.max(
+      8,
+
+      Math.floor(tamano * 0.95),
+    )}px monospace`;
+
+    this.context.textAlign = "center";
+
+    this.context.textBaseline = "middle";
+
+    this.context.shadowColor = "rgba(0, 0, 0, 0.9)";
+
+    this.context.shadowBlur = 1;
+
+    this.context.fillText("!", centroIndicadorX, centroIndicadorY + 0.5);
+
+    this.context.restore();
   }
 
   // Agrupa varias cargas terminadas dentro
@@ -920,7 +1088,11 @@ export class RenderizadorCanvas2D {
       barraX + 1,
       barraY + 1,
 
-      Math.max(0, (anchoTotal - 2) * porcentaje),
+      Math.max(
+        0,
+
+        (anchoTotal - 2) * porcentaje,
+      ),
 
       Math.max(1, alto - 2),
     );
@@ -983,7 +1155,9 @@ export class RenderizadorCanvas2D {
     this.context.strokeStyle = color;
 
     this.context.lineWidth = 3;
+
     this.context.lineCap = "square";
+
     this.context.beginPath();
 
     // Esquina superior izquierda.
@@ -1015,6 +1189,7 @@ export class RenderizadorCanvas2D {
     this.context.lineTo(inicioX, finY - longitud);
 
     this.context.stroke();
+
     this.context.restore();
   }
 }

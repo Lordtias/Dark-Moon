@@ -4,6 +4,9 @@ import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js
 
 import { normalizarSolicitudTransicionMapa } from "../../Partida/TransicionesMapa.js";
 
+export const RECURSO_VISUAL_PORTAL_PREDETERMINADO =
+  "assets/imagenes/interactuables/portal_magico.png";
+
 const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
   TIPOS_INTERACCION.TRANSICION_MAPA,
   TIPOS_INTERACCION.SELECCIONAR_MAZMORRA,
@@ -15,17 +18,25 @@ const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
 // Una salida normal entrega una solicitud de transición.
 // La entrada principal de la ciudad puede solicitar primero
 // que el jugador elija una mazmorra.
+//
+// Cuando no se define una imagen concreta, utiliza
+// el portal mágico genérico. Una puerta o escalera puede
+// reemplazarlo desde su configuración mediante recursoVisual.
 export class PortalMapa extends Entidad {
   constructor({
     nombre = "Portal",
     x = 0,
     y = 0,
     simbolo = "O",
-    recursoVisual = null,
+
+    recursoVisual = RECURSO_VISUAL_PORTAL_PREDETERMINADO,
+
     textoInteraccion = "Usar portal",
     alcance = 1,
     prioridad = 90,
+
     tipoInteraccion = TIPOS_INTERACCION.TRANSICION_MAPA,
+
     solicitudTransicionMapa = null,
   } = {}) {
     super({
@@ -59,7 +70,8 @@ export class PortalMapa extends Entidad {
       (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
     ) {
       throw new Error(
-        `El recurso visual de ${this.nombre} debe ser una ruta válida o null.`,
+        `El recurso visual de ${this.nombre} ` +
+          "debe ser una ruta válida o null.",
       );
     }
 
@@ -75,7 +87,9 @@ export class PortalMapa extends Entidad {
     this.textoInteraccion = textoInteraccion.trim();
 
     this.alcance = alcance;
+
     this.prioridad = prioridad;
+
     this.tipoInteraccion = tipoInteraccion;
 
     // Solamente las transiciones inmediatas necesitan

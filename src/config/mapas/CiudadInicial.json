@@ -76,11 +76,16 @@
       "tipo": "npc",
       "id": "mercader_refugio",
       "nombre": "Edran, el mercader",
-      "rol": "mercader",
+      "descripcion": "Un comerciante del refugio que compra botines y prepara provisiones para nuevas expediciones.",
+      "roles": ["mercader"],
+      "faccion": "refugio_luna_oscura",
       "x": 6,
       "y": 13,
       "simbolo": "M",
-      "recursoVisual": null,
+      "recursoVisual": "assets/imagenes/npc/edran_mercader.png",
+      "datos": {
+        "idMercader": "mercader_refugio"
+      },
       "interacciones": [
         {
           "tipo": "comerciar",
@@ -96,7 +101,7 @@
       "x": 13,
       "y": 0,
       "simbolo": "D",
-      "recursoVisual": null,
+      "recursoVisual": "assets/imagenes/interactuables/puerta_mazmorra.png",
       "textoInteraccion": "Elegir mazmorra",
       "alcance": 1,
       "prioridad": 100,

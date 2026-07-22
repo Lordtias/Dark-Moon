@@ -35,6 +35,7 @@ export function crearConfiguracionCiudad({
   });
 
   player.x = posicionJugador.x;
+
   player.y = posicionJugador.y;
 
   const map = configuracion.terreno.map((fila) => Array.from(fila));
@@ -44,6 +45,7 @@ export function crearConfiguracionCiudad({
   );
 
   const alto = map.length;
+
   const ancho = map[0].length;
 
   const mapaSeleccionado = {
@@ -71,12 +73,15 @@ export function crearConfiguracionCiudad({
       nivelMapa: configuracion.nivel ?? 1,
 
       cantidadEnemigos: 0,
+
       enemigosPorTipo: {},
+
       variantes: {},
 
       cantidadDestructibles: 0,
 
       detalleEnemigos: [],
+
       detalleDestructibles: [],
 
       puntoEntrada,
@@ -91,7 +96,6 @@ export function crearConfiguracionCiudad({
     // La primera ciudad no posee enemigos
     // ni destructibles atacables.
     objetivos: [],
-
     interactuables,
   };
 }
@@ -99,47 +103,10 @@ export function crearConfiguracionCiudad({
 function crearEntidadCiudad(configuracionEntidad) {
   switch (configuracionEntidad.tipo) {
     case TIPOS_ENTIDAD_CIUDAD.NPC:
-      return new NPC({
-        id: configuracionEntidad.id,
-
-        nombre: configuracionEntidad.nombre,
-
-        rol: configuracionEntidad.rol,
-
-        x: configuracionEntidad.x,
-
-        y: configuracionEntidad.y,
-
-        simbolo: configuracionEntidad.simbolo,
-
-        recursoVisual: configuracionEntidad.recursoVisual ?? null,
-
-        interacciones: configuracionEntidad.interacciones,
-      });
+      return crearNpcCiudad(configuracionEntidad);
 
     case TIPOS_ENTIDAD_CIUDAD.PORTAL_MAPA:
-      return new PortalMapa({
-        nombre: configuracionEntidad.nombre,
-
-        x: configuracionEntidad.x,
-
-        y: configuracionEntidad.y,
-
-        simbolo: configuracionEntidad.simbolo,
-
-        recursoVisual: configuracionEntidad.recursoVisual ?? null,
-
-        textoInteraccion: configuracionEntidad.textoInteraccion,
-
-        alcance: configuracionEntidad.alcance,
-
-        prioridad: configuracionEntidad.prioridad,
-
-        tipoInteraccion: configuracionEntidad.tipoInteraccion,
-
-        solicitudTransicionMapa:
-          configuracionEntidad.solicitudTransicionMapa ?? null,
-      });
+      return crearPortalCiudad(configuracionEntidad);
 
     default:
       throw new Error(
@@ -147,6 +114,76 @@ function crearEntidadCiudad(configuracionEntidad) {
           "no está soportada.",
       );
   }
+}
+
+// Construye un NPC únicamente con datos de configuración.
+//
+// No se crean clases específicas como Mercader, Herrero
+// o Alquimista. Sus capacidades se expresan mediante:
+//
+// - Roles.
+// - Interacciones.
+// - Facción.
+// - Datos adicionales.
+//
+// Esto permite combinar funciones sin aumentar la cantidad
+// de clases del dominio.
+function crearNpcCiudad(configuracionNpc) {
+  return new NPC({
+    id: configuracionNpc.id,
+
+    nombre: configuracionNpc.nombre,
+
+    rol: configuracionNpc.rol,
+
+    roles: configuracionNpc.roles ?? null,
+
+    descripcion: configuracionNpc.descripcion ?? "",
+
+    faccion: configuracionNpc.faccion ?? "neutral",
+
+    x: configuracionNpc.x,
+
+    y: configuracionNpc.y,
+
+    simbolo: configuracionNpc.simbolo,
+
+    recursoVisual: configuracionNpc.recursoVisual ?? null,
+
+    interacciones: configuracionNpc.interacciones,
+
+    datos: configuracionNpc.datos ?? {},
+  });
+}
+
+function crearPortalCiudad(configuracionPortal) {
+  return new PortalMapa({
+    nombre: configuracionPortal.nombre,
+
+    x: configuracionPortal.x,
+
+    y: configuracionPortal.y,
+
+    simbolo: configuracionPortal.simbolo,
+
+    // No utilizamos "?? null".
+    //
+    // Cuando la propiedad no existe, PortalMapa
+    // puede aplicar su imagen genérica predeterminada.
+    // Un valor null explícito continúa desactivándola.
+    recursoVisual: configuracionPortal.recursoVisual,
+
+    textoInteraccion: configuracionPortal.textoInteraccion,
+
+    alcance: configuracionPortal.alcance,
+
+    prioridad: configuracionPortal.prioridad,
+
+    tipoInteraccion: configuracionPortal.tipoInteraccion,
+
+    solicitudTransicionMapa:
+      configuracionPortal.solicitudTransicionMapa ?? null,
+  });
 }
 
 function validarConfiguracionCiudad(configuracion) {
@@ -167,7 +204,9 @@ function validarConfiguracionCiudad(configuracion) {
   validarTexto(configuracion.bioma, "bioma de la ciudad");
 
   validarTerreno(configuracion);
+
   validarPosicionesJugador(configuracion);
+
   validarEntidades(configuracion);
 
   return configuracion;
@@ -267,6 +306,8 @@ function validarEntidades(configuracion) {
 
     validarTexto(entidad.nombre, `nombre de la entidad ${indice}`);
 
+    validarRecursoVisualOpcional(entidad.recursoVisual, entidad.nombre);
+
     validarPosicionMapa({
       configuracion,
       posicion: entidad,
@@ -275,7 +316,103 @@ function validarEntidades(configuracion) {
 
       necesitaSerCaminable: false,
     });
+
+    if (entidad.tipo === TIPOS_ENTIDAD_CIUDAD.NPC) {
+      validarConfiguracionNpc(entidad);
+    }
+
+    if (entidad.tipo === TIPOS_ENTIDAD_CIUDAD.PORTAL_MAPA) {
+      validarConfiguracionPortal(entidad);
+    }
   });
+}
+
+function validarConfiguracionNpc(configuracionNpc) {
+  validarTexto(configuracionNpc.id, `ID de ${configuracionNpc.nombre}`);
+
+  if (
+    configuracionNpc.descripcion !== undefined &&
+    typeof configuracionNpc.descripcion !== "string"
+  ) {
+    throw new Error(
+      `La descripción de ${configuracionNpc.nombre} debe ser un texto.`,
+    );
+  }
+
+  if (configuracionNpc.faccion !== undefined) {
+    validarTexto(
+      configuracionNpc.faccion,
+      `facción de ${configuracionNpc.nombre}`,
+    );
+  }
+
+  const roles = configuracionNpc.roles;
+
+  if (roles !== undefined) {
+    if (!Array.isArray(roles) || roles.length === 0) {
+      throw new Error(
+        `Los roles de ${configuracionNpc.nombre} ` +
+          "deben formar una lista no vacía.",
+      );
+    }
+
+    for (const rol of roles) {
+      validarTexto(rol, `rol de ${configuracionNpc.nombre}`);
+    }
+  } else {
+    validarTexto(
+      configuracionNpc.rol ?? "npc",
+      `rol de ${configuracionNpc.nombre}`,
+    );
+  }
+
+  if (
+    !Array.isArray(configuracionNpc.interacciones) ||
+    configuracionNpc.interacciones.length === 0
+  ) {
+    throw new Error(
+      `${configuracionNpc.nombre} necesita al menos una interacción.`,
+    );
+  }
+
+  if (
+    configuracionNpc.datos !== undefined &&
+    (!configuracionNpc.datos ||
+      typeof configuracionNpc.datos !== "object" ||
+      Array.isArray(configuracionNpc.datos))
+  ) {
+    throw new Error(
+      `Los datos adicionales de ${configuracionNpc.nombre} ` +
+        "deben formar un objeto válido.",
+    );
+  }
+}
+
+function validarConfiguracionPortal(configuracionPortal) {
+  validarTexto(
+    configuracionPortal.textoInteraccion,
+    `texto de interacción de ${configuracionPortal.nombre}`,
+  );
+
+  if (
+    configuracionPortal.alcance !== undefined &&
+    (!Number.isInteger(configuracionPortal.alcance) ||
+      configuracionPortal.alcance < 0)
+  ) {
+    throw new Error(
+      `El alcance de ${configuracionPortal.nombre} ` +
+        "debe ser un entero no negativo.",
+    );
+  }
+
+  if (
+    configuracionPortal.prioridad !== undefined &&
+    !Number.isFinite(configuracionPortal.prioridad)
+  ) {
+    throw new Error(
+      `La prioridad de ${configuracionPortal.nombre} ` + "debe ser numérica.",
+    );
+  }
 }
 
 function obtenerPosicionJugador({ configuracion, puntoEntrada }) {
@@ -285,12 +422,13 @@ function obtenerPosicionJugador({ configuracion, puntoEntrada }) {
 
   if (!posicion) {
     throw new Error(
-      `La ciudad no contiene el punto de entrada ` + `"${puntoEntrada}".`,
+      "La ciudad no contiene el punto de entrada " + `"${puntoEntrada}".`,
     );
   }
 
   return {
     x: posicion.x,
+
     y: posicion.y,
   };
 }
@@ -356,6 +494,18 @@ function copiarApariencia(apariencia) {
 function validarJugador(player) {
   if (!player || typeof player !== "object") {
     throw new Error("Se necesita un jugador persistente para crear la ciudad.");
+  }
+}
+
+function validarRecursoVisualOpcional(recursoVisual, nombre) {
+  if (
+    recursoVisual !== undefined &&
+    recursoVisual !== null &&
+    (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
+  ) {
+    throw new Error(
+      `El recurso visual de ${nombre} ` + "debe ser una ruta válida o null.",
+    );
   }
 }
 

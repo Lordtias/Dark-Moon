@@ -7,18 +7,55 @@ const TIPOS_INTERACCION_VALIDOS = new Set(Object.values(TIPOS_INTERACCION));
 // Representa una entidad neutral capaz de ofrecer
 // una o varias interacciones al jugador.
 //
-// La clase no conoce ventanas, comercio ni misiones.
-// Solamente describe qué acciones ofrece el NPC.
+// NPC es deliberadamente genérico:
+//
+// - No conoce comercio, misiones ni diálogos concretos.
+// - Puede poseer uno o varios roles simultáneos.
+// - Puede pertenecer a cualquier facción.
+// - Puede guardar datos específicos para sistemas futuros.
+// - Su comportamiento se describe mediante interacciones.
+//
+// De esta manera un mismo NPC puede funcionar como:
+//
+// - Mercader.
+// - Herrero.
+// - Alquimista.
+// - Guardia.
+// - Personaje de misión.
+// - Entrenador.
+// - Combinación de varios roles.
 export class NPC extends Entidad {
   constructor({
     id,
     nombre,
+
+    // rol se conserva por compatibilidad con
+    // configuraciones y código existentes.
     rol = "npc",
+
+    // roles permite declarar varias funciones
+    // sin crear una subclase por cada tipo de NPC.
+    roles = null,
+
+    descripcion = "",
+    faccion = "neutral",
+
     x = 0,
     y = 0,
     simbolo = "N",
     recursoVisual = null,
+
     interacciones = [],
+
+    // datos admite metadatos propios del NPC.
+    //
+    // Ejemplos futuros:
+    //
+    // {
+    //   idTienda: "herrero_refugio",
+    //   idDialogo: "bienvenida_herrero"
+    // }
+    datos = {},
   } = {}) {
     super({
       nombre,
@@ -28,7 +65,10 @@ export class NPC extends Entidad {
     });
 
     validarId(id);
-    validarRol(rol);
+
+    validarDescripcion(descripcion, nombre);
+
+    validarFaccion(faccion, nombre);
 
     validarRecursoVisual(recursoVisual, nombre);
 
@@ -40,27 +80,103 @@ export class NPC extends Entidad {
       throw new Error(`${nombre} necesita al menos una interacción.`);
     }
 
+    const rolesNormalizados = normalizarRoles({
+      rol,
+      roles,
+      nombre,
+    });
+
+    validarDatos(datos, nombre);
+
     this.id = id.trim();
-    this.rol = rol.trim();
+
+    // rol continúa exponiendo el rol principal
+    // para no romper consumidores actuales.
+    this.rol = rolesNormalizados[0];
+
+    this.roles = Object.freeze([...rolesNormalizados]);
+
+    this.descripcion = descripcion.trim();
+
+    this.faccion = faccion.trim();
 
     this.recursoVisual = recursoVisual === null ? null : recursoVisual.trim();
 
-    // Guardamos copias normalizadas para evitar
-    // que la configuración externa pueda modificarlas
-    // después de crear el NPC.
-    this.interacciones = interacciones.map((interaccion) =>
-      normalizarInteraccion(interaccion, nombre),
+    // Las interacciones se normalizan y congelan
+    // para que la configuración externa no pueda
+    // modificarlas después de crear el NPC.
+    this.interacciones = Object.freeze(
+      interacciones.map((interaccion) =>
+        Object.freeze(normalizarInteraccion(interaccion, nombre)),
+      ),
     );
+
+    // Guardamos una copia independiente de los datos.
+    // Los sistemas que los consulten recibirán otra copia.
+    this._datos = clonarDatos(datos);
   }
 
   // Devuelve copias nuevas porque el sistema de
   // interacciones puede agregar información temporal,
-  // como la entidad, distancia y orden de selección.
+  // como entidad, distancia y orden de selección.
   obtenerInteracciones() {
-    return this.interacciones.map((interaccion) => ({
-      ...interaccion,
-    }));
+    return this.interacciones.map((interaccion) => clonarDatos(interaccion));
   }
+
+  // Permite consultar capacidades sin depender
+  // del rol principal.
+  tieneRol(rol) {
+    if (typeof rol !== "string" || rol.trim() === "") {
+      return false;
+    }
+
+    const rolNormalizado = rol.trim();
+
+    return this.roles.includes(rolNormalizado);
+  }
+
+  // Permite comprobar si el NPC ofrece una acción
+  // sin conocer la posición de esa interacción
+  // dentro de la lista.
+  ofreceInteraccion(tipo) {
+    if (!TIPOS_INTERACCION_VALIDOS.has(tipo)) {
+      return false;
+    }
+
+    return this.interacciones.some((interaccion) => interaccion.tipo === tipo);
+  }
+
+  // Devuelve una copia de los metadatos genéricos
+  // para impedir modificaciones externas accidentales.
+  obtenerDatos() {
+    return clonarDatos(this._datos);
+  }
+}
+
+function normalizarRoles({ rol, roles, nombre }) {
+  const origen = roles === null || roles === undefined ? [rol] : roles;
+
+  if (!Array.isArray(origen)) {
+    throw new Error(`Los roles de ${nombre} deben estar dentro de una lista.`);
+  }
+
+  if (origen.length === 0) {
+    throw new Error(`${nombre} necesita al menos un rol.`);
+  }
+
+  const normalizados = [];
+
+  for (const valor of origen) {
+    validarRol(valor, nombre);
+
+    const rolNormalizado = valor.trim();
+
+    if (!normalizados.includes(rolNormalizado)) {
+      normalizados.push(rolNormalizado);
+    }
+  }
+
+  return normalizados;
 }
 
 function normalizarInteraccion(interaccion, nombreNpc) {
@@ -104,7 +220,7 @@ function normalizarInteraccion(interaccion, nombreNpc) {
   }
 
   return {
-    ...interaccion,
+    ...clonarDatos(interaccion),
 
     texto: interaccion.texto.trim(),
 
@@ -119,9 +235,21 @@ function validarId(id) {
   }
 }
 
-function validarRol(rol) {
+function validarRol(rol, nombre) {
   if (typeof rol !== "string" || rol.trim() === "") {
-    throw new Error("Todo NPC necesita un rol válido.");
+    throw new Error(`Todo rol de ${nombre} debe ser un texto válido.`);
+  }
+}
+
+function validarDescripcion(descripcion, nombre) {
+  if (typeof descripcion !== "string") {
+    throw new Error(`La descripción de ${nombre} debe ser un texto.`);
+  }
+}
+
+function validarFaccion(faccion, nombre) {
+  if (typeof faccion !== "string" || faccion.trim() === "") {
+    throw new Error(`La facción de ${nombre} debe ser un texto válido.`);
   }
 }
 
@@ -131,7 +259,39 @@ function validarRecursoVisual(recursoVisual, nombre) {
     (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
   ) {
     throw new Error(
-      `El recurso visual de ${nombre} debe ser una ruta válida o null.`,
+      `El recurso visual de ${nombre} ` + "debe ser una ruta válida o null.",
     );
   }
+}
+
+function validarDatos(datos, nombre) {
+  if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
+    throw new Error(
+      `Los datos adicionales de ${nombre} ` + "deben formar un objeto válido.",
+    );
+  }
+}
+
+// Crea copias recursivas de listas y objetos JSON.
+//
+// Los datos de configuración utilizados por los NPC
+// no necesitan conservar prototipos ni métodos.
+function clonarDatos(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map(clonarDatos);
+  }
+
+  if (valor && typeof valor === "object") {
+    return Object.entries(valor).reduce(
+      (resultado, [clave, contenido]) => {
+        resultado[clave] = clonarDatos(contenido);
+
+        return resultado;
+      },
+
+      {},
+    );
+  }
+
+  return valor;
 }

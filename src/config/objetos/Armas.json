@@ -2,6 +2,9 @@
   "daga_hierro": {
     "nombre": "Daga de hierro",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "daga",
     "descripcion": "Una daga ligera, rápida y precisa que puede utilizarse en cualquiera de las dos manos.",
     "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
     "valorBase": 35,
@@ -29,6 +32,9 @@
   "espada_larga": {
     "nombre": "Espada larga",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "espada",
     "descripcion": "Una espada equilibrada que combina buen daño, precisión y velocidad.",
     "recursoVisual": "assets/imagenes/objetos/espada_larga.png",
     "valorBase": 70,
@@ -56,6 +62,9 @@
   "hacha_mano": {
     "nombre": "Hacha de mano",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 2,
+    "familiaObjeto": "hacha",
     "descripcion": "Un arma de una mano con golpes fuertes, aunque menos precisos que los de una espada.",
     "recursoVisual": "assets/imagenes/objetos/hacha_mano.png",
     "valorBase": 80,
@@ -83,6 +92,9 @@
   "mandoble_hierro": {
     "nombre": "Mandoble de hierro",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 3,
+    "familiaObjeto": "mandoble",
     "descripcion": "Una espada pesada de dos manos, lenta y poco precisa, capaz de causar un gran daño.",
     "recursoVisual": "assets/imagenes/objetos/mandoble_hierro.png",
     "valorBase": 150,
@@ -110,6 +122,9 @@
   "lanza": {
     "nombre": "Lanza",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 2,
+    "familiaObjeto": "lanza",
     "descripcion": "Un arma de dos manos que sacrifica velocidad para atacar desde una casilla adicional.",
     "recursoVisual": "assets/imagenes/objetos/lanza.png",
     "valorBase": 85,
@@ -137,6 +152,9 @@
   "arco_corto": {
     "nombre": "Arco corto",
     "tipo": "arma",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "arco",
     "descripcion": "Un arco preciso que permite atacar a distancia, pero necesita un quiver equipado.",
     "recursoVisual": "assets/imagenes/objetos/arco_corto.png",
     "valorBase": 90,

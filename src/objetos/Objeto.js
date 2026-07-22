@@ -1,27 +1,31 @@
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
-
 import {
   PATRONES_ATAQUE,
   normalizarPatronAtaque,
 } from "../juego/combate/PatronesAtaque.js";
-
 import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/inventario/SistemaConsumibles.js";
-
 import {
   RAREZAS_OBJETO,
   TIPOS_AFIJO_OBJETO,
   normalizarIdRarezaObjeto,
   normalizarTipoAfijoObjeto,
 } from "../juego/objetos/RarezasObjeto.js";
+import {
+  CATEGORIAS_ARMADURA,
+  normalizarCategoriaArmadura,
+  normalizarFamiliaObjeto,
+  normalizarNivelMinimoGeneracion,
+  normalizarTierBase,
+} from "../juego/objetos/MetadatosObjeto.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
-// Representa una instancia real
-// de cualquier objeto del juego.
+// Representa una instancia real de cualquier objeto del juego.
 //
 // Una instancia conserva:
 //
 // - La plantilla base que le dio origen.
+// - Su tier y familia de progresión.
 // - Su rareza.
 // - Su nivel de objeto.
 // - Los prefijos y sufijos obtenidos.
@@ -33,46 +37,40 @@ export class Objeto {
     tipo,
     descripcion = "",
 
-    // Ruta opcional del icono utilizado
-    // por la interfaz.
+    // Ruta opcional del icono utilizado por la interfaz.
     recursoVisual = null,
-
     apilable = false,
     cantidadMaxima = 1,
     cantidad = 1,
     ranurasCompatibles = [],
 
+    // Metadatos estructurales de la plantilla.
+    // No cambian por rareza, nivel de objeto o afijos.
+    tierBase = 1,
+    nivelMinimoGeneracion = 1,
+    familiaObjeto = null,
+    categoriaArmadura = null,
+
     // Propiedades originales de la plantilla.
-    //
-    // Ejemplo:
-    // el daño definido directamente en Armas.json.
     propiedadesBase = null,
 
     // Propiedades finales utilizadas por combate,
     // equipamiento, inventario y presentación.
-    //
-    // En un objeto común son iguales
-    // a propiedadesBase.
     propiedades = {},
 
-    // Toda instancia tiene una rareza
-    // y un nivel, incluso cuando es común.
+    // Toda instancia tiene rareza y nivel,
+    // incluso cuando es común.
     rareza = RAREZAS_OBJETO.COMUN,
-
     nivelObjeto = 1,
 
-    // Los afijos se almacenan separados
-    // para conservar los límites propios
-    // de prefijos y sufijos.
+    // Los afijos se almacenan separados para conservar
+    // los límites propios de prefijos y sufijos.
     prefijos = [],
     sufijos = [],
-
     contenedorObjetos = null,
   } = {}) {
     this.validarTexto(id, "id");
-
     this.validarTexto(nombre, "nombre");
-
     this.validarTexto(tipo, "tipo");
 
     if (typeof descripcion !== "string") {
@@ -80,9 +78,7 @@ export class Objeto {
     }
 
     // El objeto puede no tener una imagen.
-    //
-    // Esto permite que configuraciones antiguas
-    // continúen utilizando el nombre como respaldo.
+    // Esto permite utilizar el nombre como respaldo.
     if (
       recursoVisual !== null &&
       (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
@@ -94,13 +90,13 @@ export class Objeto {
 
     if (typeof apilable !== "boolean") {
       throw new Error(
-        `La propiedad apilable de "${nombre}" ` + "debe ser booleana.",
+        `La propiedad apilable de "${nombre}" debe ser booleana.`,
       );
     }
 
     if (!Number.isInteger(cantidadMaxima) || cantidadMaxima <= 0) {
       throw new Error(
-        `La cantidad máxima de "${nombre}" ` + "debe ser mayor que 0.",
+        `La cantidad máxima de "${nombre}" debe ser mayor que 0.`,
       );
     }
 
@@ -147,55 +143,82 @@ export class Objeto {
     }
 
     this.id = id.trim().toLowerCase();
-
     this.nombre = nombre.trim();
-
     this.tipo = tipo.trim().toLowerCase();
-
     this.descripcion = descripcion;
 
     // El dominio conserva solamente la ruta.
-    //
-    // No carga imágenes ni conoce Canvas, HTML
-    // o futuras librerías gráficas.
+    // No carga imágenes ni conoce Canvas o HTML.
     this.recursoVisual = recursoVisual?.trim() ?? null;
 
     this.apilable = apilable;
-
     this.cantidadMaxima = cantidadMaxima;
-
     this.cantidad = cantidad;
-
     this.ranurasCompatibles = this.normalizarRanuras(ranurasCompatibles);
 
-    this.rareza = normalizarIdRarezaObjeto(rareza);
+    // Los metadatos se normalizan antes de validar
+    // su coherencia con el tipo del objeto.
+    this.tierBase = normalizarTierBase(tierBase);
+    this.nivelMinimoGeneracion = normalizarNivelMinimoGeneracion(
+      nivelMinimoGeneracion,
+    );
+    this.familiaObjeto = normalizarFamiliaObjeto(familiaObjeto);
+    this.categoriaArmadura = normalizarCategoriaArmadura(categoriaArmadura);
 
+    this.rareza = normalizarIdRarezaObjeto(rareza);
     this.nivelObjeto = nivelObjeto;
 
-    // Conservamos copias profundas independientes.
-    //
-    // De esta forma, modificar propiedades finales
-    // no altera propiedadesBase ni la plantilla JSON.
+    // Las propiedades base y finales se copian para que
+    // ninguna instancia modifique la plantilla JSON.
     this.propiedadesBase = copiarDatosConfiguracion(propiedadesBaseRecibidas);
-
     this.propiedades = copiarDatosConfiguracion(propiedades);
 
     this.prefijos = this.normalizarAfijos({
       afijos: prefijos,
-
       tipoEsperado: TIPOS_AFIJO_OBJETO.PREFIJO,
     });
-
     this.sufijos = this.normalizarAfijos({
       afijos: sufijos,
-
       tipoEsperado: TIPOS_AFIJO_OBJETO.SUFIJO,
     });
 
     this.contenedorObjetos = contenedorObjetos;
 
+    this.validarMetadatosProgresion();
     this.validarCoherenciaAfijos();
     this.validarPropiedadesPorTipo();
+  }
+
+  // Comprueba que los metadatos declarados
+  // sean coherentes con el tipo del objeto.
+  validarMetadatosProgresion() {
+    if ((this.esArma || this.esArmadura) && this.familiaObjeto === null) {
+      throw new Error(`"${this.nombre}" debe declarar una familia de objeto.`);
+    }
+
+    if (!this.esArmadura && this.categoriaArmadura !== null) {
+      throw new Error(
+        `"${this.nombre}" declara una categoría de armadura ` +
+          "pero no es una armadura.",
+      );
+    }
+
+    // Los escudos continúan utilizando el tipo armadura
+    // porque aportan armadura y bloqueo, pero no pertenecen
+    // a una rama de vestimenta.
+    if (this.esEscudo && this.categoriaArmadura !== null) {
+      throw new Error(
+        `El escudo "${this.nombre}" no debe declarar ` +
+          "una categoría de armadura.",
+      );
+    }
+
+    if (this.esArmadura && !this.esEscudo && this.categoriaArmadura === null) {
+      throw new Error(
+        `La armadura "${this.nombre}" debe declarar ` +
+          "si es ligera, media o pesada.",
+      );
+    }
   }
 
   // Ejecuta las validaciones particulares
@@ -268,12 +291,9 @@ export class Objeto {
       throw new Error(`El patrón de ataque de "${this.nombre}" no es válido.`);
     }
 
-    // Guardamos la versión normalizada para que
-    // todo el juego utilice el mismo formato.
+    // Todo el juego utiliza el mismo formato normalizado.
     this.propiedades.patronAtaque = patronNormalizado;
 
-    // La propiedad base también conserva
-    // el formato normalizado cuando existe.
     if (this.propiedadesBase.patronAtaque !== undefined) {
       const patronBaseNormalizado = normalizarPatronAtaque(
         this.propiedadesBase.patronAtaque,
@@ -300,8 +320,8 @@ export class Objeto {
       );
     }
 
-    // Menor coste significa que el arma
-    // permite actuar nuevamente antes.
+    // Menor coste significa que el arma permite
+    // actuar nuevamente antes.
     if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
       throw new Error(
         `El costo de ataque de "${this.nombre}" ` +
@@ -329,11 +349,7 @@ export class Objeto {
     }
 
     if (requiereQuiver) {
-      this.validarTexto(
-        this.propiedades.tipoMunicion,
-
-        "tipo de munición",
-      );
+      this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
     }
   }
 
@@ -341,9 +357,7 @@ export class Objeto {
   // y porcentaje de daño mitigado.
   validarPropiedadesArmadura() {
     const armadura = this.propiedades.armadura ?? 0;
-
     const probabilidadBloqueo = this.propiedades.probabilidadBloqueo ?? 0;
-
     const mitigacionBloqueo = this.propiedades.mitigacionBloqueo ?? 0;
 
     if (!Number.isFinite(armadura) || armadura < 0) {
@@ -388,11 +402,7 @@ export class Objeto {
   }
 
   validarPropiedadesQuiver() {
-    this.validarTexto(
-      this.propiedades.tipoMunicion,
-
-      "tipo de munición",
-    );
+    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
 
     if (!this.contenedorObjetos) {
       throw new Error(`El carcaj "${this.nombre}" necesita un contenedor.`);
@@ -400,11 +410,7 @@ export class Objeto {
   }
 
   validarPropiedadesMunicion() {
-    this.validarTexto(
-      this.propiedades.tipoMunicion,
-
-      "tipo de munición",
-    );
+    this.validarTexto(this.propiedades.tipoMunicion, "tipo de munición");
   }
 
   // Valida la configuración común de pociones,
@@ -452,16 +458,12 @@ export class Objeto {
   }
 
   // Normaliza una lista de afijos generados.
-  //
-  // La clase no decide si el afijo era elegible:
-  // eso pertenecerá al futuro SistemaAfijos.
-  //
-  // Aquí comprobamos que el resultado almacenado
-  // sea estructuralmente válido.
+  // La clase comprueba su estructura, pero no decide
+  // si el afijo era elegible para la generación.
   normalizarAfijos({ afijos, tipoEsperado }) {
     if (!Array.isArray(afijos)) {
       throw new Error(
-        `Los ${tipoEsperado}s de "${this.nombre}" deben ser una lista.`,
+        `Los ${tipoEsperado}s de "${this.nombre}" ` + "deben ser una lista.",
       );
     }
 
@@ -477,12 +479,9 @@ export class Objeto {
   normalizarAfijo({ afijo, tipoEsperado, indice }) {
     this.validarObjetoPlano(
       afijo,
-
       `El ${tipoEsperado} ${indice + 1} de "${this.nombre}"`,
     );
-
     this.validarTexto(afijo.id, `id del ${tipoEsperado}`);
-
     this.validarTexto(afijo.nombre, `nombre del ${tipoEsperado}`);
 
     const tipoNormalizado = normalizarTipoAfijoObjeto(afijo.tipoAfijo);
@@ -522,7 +521,6 @@ export class Objeto {
 
     this.validarObjetoPlano(
       afijo.valores,
-
       `Los valores del afijo "${afijo.id}"`,
     );
 
@@ -545,7 +543,7 @@ export class Objeto {
         afijo.grupoExclusion.trim() === "")
     ) {
       throw new Error(
-        `El grupo de exclusión del afijo "${afijo.id}" no es válido.`,
+        `El grupo de exclusión del afijo ` + `"${afijo.id}" no es válido.`,
       );
     }
 
@@ -554,33 +552,20 @@ export class Objeto {
       typeof afijo.descripcion !== "string"
     ) {
       throw new Error(
-        `La descripción del afijo "${afijo.id}" debe ser un texto.`,
+        `La descripción del afijo "${afijo.id}" ` + "debe ser un texto.",
       );
     }
 
     // Copiamos todos los metadatos de la tirada.
-    //
-    // Esto permite conservar en el futuro:
-    //
-    // - ID.
-    // - Grado.
-    // - Grupo de exclusión.
-    // - Descripción.
-    // - Nivel mínimo.
-    // - Valores exactos obtenidos.
     const normalizado = copiarDatosConfiguracion(afijo);
 
     normalizado.id = afijo.id.trim().toLowerCase();
-
     normalizado.nombre = afijo.nombre.trim();
-
     normalizado.tipoAfijo = tipoNormalizado;
-
     normalizado.grupoExclusion =
       typeof afijo.grupoExclusion === "string"
         ? afijo.grupoExclusion.trim().toLowerCase()
         : null;
-
     normalizado.valores = copiarDatosConfiguracion(afijo.valores);
 
     return normalizado;
@@ -591,8 +576,6 @@ export class Objeto {
   validarCoherenciaAfijos() {
     const afijos = this.afijos;
 
-    // En la primera versión los afijos aleatorios
-    // pertenecen solamente a objetos equipables.
     if (afijos.length > 0 && !this.esEquipable) {
       throw new Error(
         `El objeto no equipable "${this.nombre}" ` +
@@ -600,11 +583,6 @@ export class Objeto {
       );
     }
 
-    // Un objeto común nunca debe contener afijos.
-    //
-    // Los límites de las demás rarezas seguirán
-    // siendo controlados por Rarezas.json
-    // y por el futuro generador.
     if (this.rareza === RAREZAS_OBJETO.COMUN && afijos.length > 0) {
       throw new Error(
         `El objeto común "${this.nombre}" no puede tener afijos.`,
@@ -612,7 +590,6 @@ export class Objeto {
     }
 
     const ids = new Set();
-
     const gruposExclusion = new Set();
 
     for (const afijo of afijos) {
@@ -655,7 +632,6 @@ export class Objeto {
   normalizarRanuras(ranuras) {
     const normalizadas = ranuras.map((ranura) => {
       this.validarTexto(ranura, "ranura compatible");
-
       return ranura.trim().toLowerCase();
     });
 
@@ -702,13 +678,42 @@ export class Objeto {
     return this.rareza === RAREZAS_OBJETO.MAGICO;
   }
 
+  get esTierUno() {
+    return this.tierBase === 1;
+  }
+
+  get esTierDos() {
+    return this.tierBase === 2;
+  }
+
+  get esArmaduraLigera() {
+    return (
+      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.LIGERA
+    );
+  }
+
+  get esArmaduraMedia() {
+    return (
+      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.MEDIA
+    );
+  }
+
+  get esArmaduraPesada() {
+    return (
+      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.PESADA
+    );
+  }
+
+  get esEscudo() {
+    return this.esArmadura && this.familiaObjeto === "escudo";
+  }
+
   get tieneAfijos() {
     return this.cantidadAfijos > 0;
   }
 
-  // Devuelve una lista nueva para impedir
-  // que se modifiquen ambas colecciones
-  // reemplazando directamente el resultado.
+  // Devuelve una lista nueva para impedir que se modifiquen
+  // las colecciones reemplazando directamente el resultado.
   get afijos() {
     return [...this.prefijos, ...this.sufijos];
   }
@@ -737,23 +742,22 @@ export class Objeto {
     return this.esArma && this.propiedades.requiereQuiver === true;
   }
 
-  // Cantidad total almacenada
-  // dentro del objeto.
+  // Cantidad total almacenada dentro del objeto.
   get cantidadContenido() {
     if (!this.contenedorObjetos) {
       return 0;
     }
 
-    return this.contenedorObjetos.obtenerObjetos().reduce(
-      (total, objeto) =>
-        total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
-
-      0,
-    );
+    return this.contenedorObjetos
+      .obtenerObjetos()
+      .reduce(
+        (total, objeto) =>
+          total + (Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1),
+        0,
+      );
   }
 
-  // Cantidad total de municiones
-  // almacenadas en el carcaj.
+  // Cantidad total de municiones almacenadas en el carcaj.
   get cantidadMunicion() {
     if (!this.esQuiver) {
       return 0;
@@ -762,11 +766,7 @@ export class Objeto {
     return this.contenedorObjetos
       .obtenerObjetos()
       .filter((objeto) => objeto.esMunicion)
-      .reduce(
-        (total, objeto) => total + objeto.cantidad,
-
-        0,
-      );
+      .reduce((total, objeto) => total + objeto.cantidad, 0);
   }
 
   puedeEquiparseEn(nombreRanura) {
@@ -776,16 +776,8 @@ export class Objeto {
   }
 }
 
-// Realiza una copia profunda de valores
-// procedentes de configuración o generación.
-//
-// Los catálogos utilizan únicamente:
-//
-// - Valores primitivos.
-// - Listas.
-// - Objetos JSON.
-//
-// No necesitamos copiar clases ni funciones.
+// Realiza una copia profunda de valores procedentes
+// de configuración o generación.
 function copiarDatosConfiguracion(valor) {
   if (Array.isArray(valor)) {
     return valor.map(copiarDatosConfiguracion);

@@ -1,4 +1,5 @@
 import { Objeto } from "./Objeto.js";
+
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
 import { RAREZAS_OBJETO } from "../juego/objetos/RarezasObjeto.js";
@@ -23,7 +24,9 @@ export function crearObjeto({
   rareza = RAREZAS_OBJETO.COMUN,
 
   nivelObjeto = 1,
+
   prefijos = [],
+
   sufijos = [],
 
   // El generador de afijos compone las propiedades
@@ -62,7 +65,7 @@ export function crearObjeto({
 
   if (rutaCreacion.includes(idNormalizado)) {
     throw new Error(
-      `La configuración del objeto ` +
+      "La configuración del objeto " +
         `"${idNormalizado}" contiene ` +
         "una referencia circular.",
     );
@@ -106,6 +109,17 @@ export function crearObjeto({
     cantidad,
 
     ranurasCompatibles: [...(plantilla.ranurasCompatibles ?? [])],
+
+    // Los metadatos de progresión pertenecen
+    // a la plantilla base y no cambian
+    // al generar rareza o afijos.
+    tierBase: plantilla.tierBase ?? 1,
+
+    nivelMinimoGeneracion: plantilla.nivelMinimoGeneracion ?? 1,
+
+    familiaObjeto: plantilla.familiaObjeto ?? null,
+
+    categoriaArmadura: plantilla.categoriaArmadura ?? null,
 
     // Objeto realiza copias profundas
     // independientes de las propiedades
@@ -177,23 +191,24 @@ function crearContenedorInterno({
 // "pocion_curacion"
 //
 // {
-//   "id": "flecha_madera",
-//   "cantidad": 20
+//     "id": "flecha_madera",
+//     "cantidad": 20
 // }
 //
 // También admite objetos generados:
 //
 // {
-//   "id": "daga_hierro",
-//   "rareza": "magico",
-//   "nivelObjeto": 2,
-//   "prefijos": [...],
-//   "sufijos": [...],
-//   "propiedadesFinales": {...}
+//     "id": "daga_hierro",
+//     "rareza": "magico",
+//     "nivelObjeto": 2,
+//     "prefijos": [...],
+//     "sufijos": [...],
+//     "propiedadesFinales": {...}
 // }
 export function crearObjetosDesdeDefiniciones({
   configuracionObjetos,
   definiciones = [],
+
   rutaCreacion = [],
 } = {}) {
   if (!Array.isArray(definiciones)) {
@@ -208,6 +223,7 @@ export function crearObjetosDesdeDefiniciones({
         idObjeto: definicion,
 
         cantidad: 1,
+
         rutaCreacion,
       });
     }

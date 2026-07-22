@@ -1,0 +1,15 @@
+{
+  "reglasPrecios": {
+    "carismaReferencia": 10,
+    "variacionPorPuntoCarisma": 0.02,
+    "variacionMaximaCarisma": 0.2,
+    "precioMinimo": 1
+  },
+  "mercaderes": {
+    "mercader_refugio": {
+      "nombre": "Edran, el mercader",
+      "multiplicadorCompraJugador": 1.25,
+      "multiplicadorVentaJugador": 0.5
+    }
+  }
+}

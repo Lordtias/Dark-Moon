@@ -7,6 +7,7 @@ import {
   cargarConfiguracionGeneracionObjetos,
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
+  cargarConfiguracionComercio,
 } from "../juego/configuracion/CargadorConfiguracion.js";
 
 // Pantalla utilizada para crear al personaje.
@@ -50,6 +51,11 @@ export class Aplicacion {
     // La ciudad fija se carga separada de las
     // plantillas de mazmorras procedurales.
     this.configuracionCiudad = null;
+
+    // Las reglas de precios y perfiles de mercader
+    // se validan al iniciar, aunque todavía no exista
+    // una ventana visual de comercio.
+    this.configuracionComercio = null;
   }
 
   // Punto principal de inicio de Dark Moon.
@@ -107,6 +113,7 @@ export class Aplicacion {
       configuracionGeneracionObjetos,
       configuracionMapas,
       configuracionCiudad,
+      configuracionComercio,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
@@ -114,6 +121,7 @@ export class Aplicacion {
       cargarConfiguracionGeneracionObjetos(),
       cargarConfiguracionMapas(),
       cargarConfiguracionCiudad(),
+      cargarConfiguracionComercio(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -127,6 +135,8 @@ export class Aplicacion {
     this.configuracionMapas = configuracionMapas;
 
     this.configuracionCiudad = configuracionCiudad;
+
+    this.configuracionComercio = configuracionComercio;
   }
 
   // Construye la pantalla de creación

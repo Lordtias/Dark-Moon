@@ -2,6 +2,8 @@ import { validarConfiguracionMapas } from "./ValidadorConfiguracionMapas.js";
 
 import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfiguracionGeneracionObjetos.js";
 
+import { validarConfiguracionComercio } from "../comercio/ValidadorConfiguracionComercio.js";
+
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
 
@@ -15,6 +17,8 @@ const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
 const RUTA_MAPAS = "./src/config/mapas/mapas.json";
 
 const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
+
+const RUTA_CONFIGURACION_COMERCIO = "./src/config/comercio/Comercio.json";
 
 // Catálogos que describen rarezas y afijos.
 //
@@ -184,6 +188,17 @@ export async function cargarConfiguracionGeneracionObjetos() {
     prefijos,
     sufijos,
   });
+}
+
+// Carga y valida las reglas de precio y los perfiles
+// económicos de los mercaderes.
+export async function cargarConfiguracionComercio() {
+  const configuracion = await cargarArchivoJson(
+    RUTA_CONFIGURACION_COMERCIO,
+    "la configuración de comercio",
+  );
+
+  return validarConfiguracionComercio(configuracion);
 }
 
 // Une los catálogos conservando el formato

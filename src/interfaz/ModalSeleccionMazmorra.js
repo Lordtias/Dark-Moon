@@ -2,17 +2,30 @@ const ID_HOJA_ESTILOS = "hojaEstilosModalSeleccionMazmorra";
 
 const RUTA_HOJA_ESTILOS = "./modal-seleccion-mazmorra.css";
 
+const ID_HOJA_ESTILOS_NIVEL = "hojaEstilosNivelExpedicion";
+
+const RUTA_HOJA_ESTILOS_NIVEL = "./nivel-expedicion.css";
+
 let siguienteIdModal = 1;
 
-// Presenta las plantillas de mazmorra disponibles
-// y devuelve el ID seleccionado al controlador.
+// Presenta las plantillas de mazmorra disponibles,
+// permite elegir su nivel y devuelve ambos valores
+// al controlador.
 //
 // El modal no genera mapas ni conoce EstadoPartida.
-// Su responsabilidad se limita a mostrar opciones
-// y comunicar la elección del jugador.
 export class ModalSeleccionMazmorra {
   constructor() {
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({
+      id: ID_HOJA_ESTILOS,
+
+      ruta: RUTA_HOJA_ESTILOS,
+    });
+
+    asegurarHojaEstilos({
+      id: ID_HOJA_ESTILOS_NIVEL,
+
+      ruta: RUTA_HOJA_ESTILOS_NIVEL,
+    });
 
     this.idTitulo = `tituloModalSeleccionMazmorra${siguienteIdModal}`;
 
@@ -20,6 +33,7 @@ export class ModalSeleccionMazmorra {
 
     this.mazmorras = [];
     this.idSeleccionado = null;
+    this.nivelSeleccionado = null;
     this.alConfirmar = null;
 
     this.manejarCierreSolicitado = this.manejarCierreSolicitado.bind(this);
@@ -58,12 +72,13 @@ export class ModalSeleccionMazmorra {
     this.titulo = document.createElement("h2");
 
     this.titulo.id = this.idTitulo;
-    this.titulo.textContent = "Elegir mazmorra";
+
+    this.titulo.textContent = "Elegir expedición";
 
     this.subtitulo = document.createElement("p");
 
     this.subtitulo.textContent =
-      "Seleccioná el destino de la próxima expedición.";
+      "Seleccioná el destino y el nivel de la próxima expedición.";
 
     bloqueTitulo.append(this.titulo, this.subtitulo);
 
@@ -76,11 +91,12 @@ export class ModalSeleccionMazmorra {
     );
 
     this.botonCerrarSuperior.textContent = "×";
+
     this.botonCerrarSuperior.title = "Cerrar";
 
     this.botonCerrarSuperior.setAttribute(
       "aria-label",
-      "Cerrar selección de mazmorra",
+      "Cerrar selección de expedición",
     );
 
     cabecera.append(bloqueTitulo, this.botonCerrarSuperior);
@@ -109,11 +125,13 @@ export class ModalSeleccionMazmorra {
 
     this.botonCancelar = crearBoton({
       texto: "Cancelar",
+
       clase: "modal-seleccion-mazmorra__boton--secundario",
     });
 
     this.botonConfirmar = crearBoton({
       texto: "Entrar",
+
       clase: "modal-seleccion-mazmorra__boton--principal",
     });
 
@@ -122,6 +140,7 @@ export class ModalSeleccionMazmorra {
     contenido.append(cabecera, cuerpo, acciones);
 
     this.dialogo.appendChild(contenido);
+
     document.body.appendChild(this.dialogo);
   }
 
@@ -159,6 +178,8 @@ export class ModalSeleccionMazmorra {
     this.alConfirmar = alConfirmar;
 
     this.idSeleccionado = this.mazmorras[0].id;
+
+    this.nivelSeleccionado = this.mazmorras[0].nivelSugerido;
 
     this.actualizar();
 
@@ -235,12 +256,15 @@ export class ModalSeleccionMazmorra {
 
     if (!mazmorra) {
       this.botonConfirmar.disabled = true;
+
       return;
     }
 
+    this.normalizarNivelSeleccionado(mazmorra);
+
     this.botonConfirmar.disabled = false;
 
-    this.botonConfirmar.textContent = `Entrar a ${mazmorra.nombre}`;
+    this.botonConfirmar.textContent = `Entrar a ${mazmorra.nombre} · Nivel ${this.nivelSeleccionado}`;
 
     const titulo = document.createElement("h3");
 
@@ -252,48 +276,186 @@ export class ModalSeleccionMazmorra {
 
     descripcion.textContent = mazmorra.descripcion;
 
+    const selectorNivel = this.crearSelectorNivel(mazmorra);
+
     const datos = document.createElement("dl");
 
     datos.classList.add("modal-seleccion-mazmorra__datos");
 
     agregarDato({
       lista: datos,
-      termino: "Nivel",
+
+      termino: "Rango disponible",
+
       valor: crearTextoNivel(mazmorra),
     });
 
     agregarDato({
       lista: datos,
+
       termino: "Tamaño",
+
       valor: crearTextoDimensiones(mazmorra),
     });
 
     agregarDato({
       lista: datos,
+
       termino: "Enemigos",
+
       valor: crearTextoEnemigos(mazmorra),
     });
 
     agregarDato({
       lista: datos,
+
       termino: "Cantidad",
+
       valor: crearTextoCantidadEnemigos(mazmorra),
     });
 
-    this.detalle.append(titulo, descripcion, datos);
+    this.detalle.append(titulo, descripcion, selectorNivel, datos);
+  }
+
+  crearSelectorNivel(mazmorra) {
+    const contenedor = document.createElement("section");
+
+    contenedor.classList.add("selector-nivel-expedicion");
+
+    const cabecera = document.createElement("div");
+
+    cabecera.classList.add("selector-nivel-expedicion__cabecera");
+
+    const titulo = document.createElement("h4");
+
+    titulo.classList.add("selector-nivel-expedicion__titulo");
+
+    titulo.textContent = "Nivel de expedición";
+
+    const rango = document.createElement("span");
+
+    rango.classList.add("selector-nivel-expedicion__rango");
+
+    rango.textContent = `${mazmorra.nivelMinimo}–${mazmorra.nivelMaximo}`;
+
+    cabecera.append(titulo, rango);
+
+    const controles = document.createElement("div");
+
+    controles.classList.add("selector-nivel-expedicion__controles");
+
+    const botonDisminuir = crearBotonNivel({
+      texto: "−",
+
+      etiqueta: "Disminuir nivel de expedición",
+    });
+
+    botonDisminuir.disabled = this.nivelSeleccionado <= mazmorra.nivelMinimo;
+
+    botonDisminuir.addEventListener(
+      "click",
+
+      () => this.cambiarNivel(-1),
+    );
+
+    const valor = document.createElement("strong");
+
+    valor.classList.add("selector-nivel-expedicion__valor");
+
+    valor.textContent = `${this.nivelSeleccionado}`;
+
+    const botonAumentar = crearBotonNivel({
+      texto: "+",
+
+      etiqueta: "Aumentar nivel de expedición",
+    });
+
+    botonAumentar.disabled = this.nivelSeleccionado >= mazmorra.nivelMaximo;
+
+    botonAumentar.addEventListener(
+      "click",
+
+      () => this.cambiarNivel(1),
+    );
+
+    controles.append(botonDisminuir, valor, botonAumentar);
+
+    const riesgo = crearPresentacionRiesgo({
+      nivelMapa: this.nivelSeleccionado,
+
+      nivelJugador: mazmorra.nivelJugador,
+    });
+
+    const resumen = document.createElement("div");
+
+    resumen.classList.add("selector-nivel-expedicion__resumen");
+
+    const nivelJugador = document.createElement("span");
+
+    nivelJugador.textContent = `Tu nivel: ${mazmorra.nivelJugador}`;
+
+    const etiquetaRiesgo = document.createElement("strong");
+
+    etiquetaRiesgo.classList.add(
+      "selector-nivel-expedicion__riesgo",
+      `selector-nivel-expedicion__riesgo--${riesgo.id}`,
+    );
+
+    etiquetaRiesgo.textContent = riesgo.texto;
+
+    resumen.append(nivelJugador, etiquetaRiesgo);
+
+    contenedor.append(cabecera, controles, resumen);
+
+    return contenedor;
   }
 
   seleccionar(idMazmorra) {
-    const existe = this.mazmorras.some(
-      (mazmorra) => mazmorra.id === idMazmorra,
-    );
+    const mazmorra = this.mazmorras.find((opcion) => opcion.id === idMazmorra);
 
-    if (!existe) {
+    if (!mazmorra) {
       return;
     }
 
     this.idSeleccionado = idMazmorra;
+
+    // Cada cambio de plantilla recupera
+    // el nivel sugerido para el jugador.
+    this.nivelSeleccionado = mazmorra.nivelSugerido;
+
     this.actualizar();
+  }
+
+  cambiarNivel(diferencia) {
+    const mazmorra = this.obtenerMazmorraSeleccionada();
+
+    if (!mazmorra) {
+      return;
+    }
+
+    this.nivelSeleccionado = Math.max(
+      mazmorra.nivelMinimo,
+
+      Math.min(
+        mazmorra.nivelMaximo,
+
+        this.nivelSeleccionado + diferencia,
+      ),
+    );
+
+    this.actualizarDetalle();
+  }
+
+  normalizarNivelSeleccionado(mazmorra) {
+    const nivelBase = Number.isInteger(this.nivelSeleccionado)
+      ? this.nivelSeleccionado
+      : mazmorra.nivelSugerido;
+
+    this.nivelSeleccionado = Math.max(
+      mazmorra.nivelMinimo,
+
+      Math.min(mazmorra.nivelMaximo, nivelBase),
+    );
   }
 
   obtenerMazmorraSeleccionada() {
@@ -322,13 +484,18 @@ export class ModalSeleccionMazmorra {
 
     const alConfirmar = this.alConfirmar;
 
-    const idMazmorra = mazmorra.id;
+    const seleccion = {
+      idMazmorra: mazmorra.id,
 
-    // Cerramos primero para que el cambio de mapa
-    // no deje una ventana perteneciente al mapa anterior.
+      nivelMapa: this.nivelSeleccionado,
+    };
+
+    // Cerramos primero para que el cambio
+    // de mapa no deje una ventana perteneciente
+    // al mapa anterior.
     this.cerrar();
 
-    alConfirmar(idMazmorra);
+    alConfirmar(seleccion);
   }
 
   manejarCierreSolicitado(event) {
@@ -355,6 +522,7 @@ export class ModalSeleccionMazmorra {
 
     this.mazmorras = [];
     this.idSeleccionado = null;
+    this.nivelSeleccionado = null;
     this.alConfirmar = null;
   }
 
@@ -401,6 +569,20 @@ function crearBoton({ texto, clase }) {
   return boton;
 }
 
+function crearBotonNivel({ texto, etiqueta }) {
+  const boton = document.createElement("button");
+
+  boton.type = "button";
+
+  boton.classList.add("selector-nivel-expedicion__boton");
+
+  boton.textContent = texto;
+
+  boton.setAttribute("aria-label", etiqueta);
+
+  return boton;
+}
+
 function agregarDato({ lista, termino, valor }) {
   const elementoTermino = document.createElement("dt");
 
@@ -411,6 +593,40 @@ function agregarDato({ lista, termino, valor }) {
   elementoValor.textContent = valor;
 
   lista.append(elementoTermino, elementoValor);
+}
+
+function crearPresentacionRiesgo({ nivelMapa, nivelJugador }) {
+  const diferencia = nivelMapa - nivelJugador;
+
+  if (diferencia <= -1) {
+    return {
+      id: "favorable",
+
+      texto: "Favorable",
+    };
+  }
+
+  if (diferencia === 0) {
+    return {
+      id: "equilibrado",
+
+      texto: "Equilibrado",
+    };
+  }
+
+  if (diferencia === 1) {
+    return {
+      id: "desafiante",
+
+      texto: "Desafiante",
+    };
+  }
+
+  return {
+    id: "peligroso",
+
+    texto: "Peligroso",
+  };
 }
 
 function crearTextoNivel(mazmorra) {
@@ -440,6 +656,7 @@ function crearTextoEnemigos(mazmorra) {
 function crearTextoCantidadEnemigos(mazmorra) {
   return crearTextoRango(
     mazmorra.cantidadEnemigosMinima,
+
     mazmorra.cantidadEnemigosMaxima,
   );
 }
@@ -449,9 +666,11 @@ function crearTextoRango(minimo, maximo) {
 }
 
 function formatearTexto(valor) {
-  return `${valor}`
-    .replaceAll("_", " ")
-    .replace(/^./, (letra) => letra.toUpperCase());
+  return `${valor}`.replaceAll("_", " ").replace(
+    /^./,
+
+    (letra) => letra.toUpperCase(),
+  );
 }
 
 function validarApertura({ mazmorras, alConfirmar }) {
@@ -461,7 +680,7 @@ function validarApertura({ mazmorras, alConfirmar }) {
 
   if (typeof alConfirmar !== "function") {
     throw new Error(
-      "El selector necesita una acción para confirmar la mazmorra.",
+      "El selector necesita una acción para confirmar la expedición.",
     );
   }
 
@@ -485,18 +704,60 @@ function validarMazmorra(mazmorra) {
       throw new Error(`La mazmorra necesita la propiedad "${propiedad}".`);
     }
   }
+
+  const enteros = [
+    "nivelJugador",
+    "nivelSugerido",
+    "nivelMinimo",
+    "nivelMaximo",
+    "anchoMinimo",
+    "anchoMaximo",
+    "altoMinimo",
+    "altoMaximo",
+    "cantidadEnemigosMinima",
+    "cantidadEnemigosMaxima",
+  ];
+
+  for (const propiedad of enteros) {
+    if (!Number.isInteger(mazmorra[propiedad])) {
+      throw new Error(
+        `La mazmorra necesita un valor entero en "${propiedad}".`,
+      );
+    }
+  }
+
+  if (
+    mazmorra.nivelJugador < 1 ||
+    mazmorra.nivelMinimo < 1 ||
+    mazmorra.nivelMaximo < mazmorra.nivelMinimo
+  ) {
+    throw new Error(
+      `El rango de niveles de "${mazmorra.nombre}" no es válido.`,
+    );
+  }
+
+  if (
+    mazmorra.nivelSugerido < mazmorra.nivelMinimo ||
+    mazmorra.nivelSugerido > mazmorra.nivelMaximo
+  ) {
+    throw new Error(
+      `El nivel sugerido de "${mazmorra.nombre}" está fuera de su rango.`,
+    );
+  }
 }
 
-function asegurarHojaEstilos() {
-  if (document.getElementById(ID_HOJA_ESTILOS)) {
+function asegurarHojaEstilos({ id, ruta }) {
+  if (document.getElementById(id)) {
     return;
   }
 
   const enlace = document.createElement("link");
 
-  enlace.id = ID_HOJA_ESTILOS;
+  enlace.id = id;
+
   enlace.rel = "stylesheet";
-  enlace.href = RUTA_HOJA_ESTILOS;
+
+  enlace.href = ruta;
 
   document.head.appendChild(enlace);
 }

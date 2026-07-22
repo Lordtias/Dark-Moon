@@ -1,0 +1,135 @@
+/* =========================================================
+   SELECTOR DE NIVEL DE EXPEDICIÓN
+   =========================================================
+ *
+ * Estos estilos se mantienen separados del modal base
+ * para que la elección de nivel pueda evolucionar
+ * sin agrandar o acoplar el selector de mazmorras.
+ */
+
+.selector-nivel-expedicion {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 14px;
+  border: 1px solid rgba(211, 184, 90, 0.36);
+  border-radius: 9px;
+  background: linear-gradient(
+    180deg,
+    rgba(76, 62, 25, 0.28),
+    rgba(22, 26, 42, 0.68)
+  );
+}
+
+.selector-nivel-expedicion__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.selector-nivel-expedicion__titulo {
+  margin: 0;
+  color: #e2d8b6;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selector-nivel-expedicion__rango {
+  padding: 3px 7px;
+  border: 1px solid rgba(127, 140, 174, 0.35);
+  border-radius: 10px;
+  color: #aeb8d0;
+  font-size: 0.76rem;
+}
+
+.selector-nivel-expedicion__controles {
+  display: grid;
+  grid-template-columns: 42px minmax(70px, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+}
+
+.selector-nivel-expedicion__boton {
+  width: 42px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #626d89;
+  border-radius: 7px;
+  background: #252c43;
+  color: #f2f4ff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.selector-nivel-expedicion__boton:hover:not(:disabled) {
+  border-color: #d3b85a;
+  background: #373329;
+  color: #f2db7d;
+}
+
+.selector-nivel-expedicion__boton:disabled {
+  opacity: 0.36;
+  cursor: not-allowed;
+}
+
+.selector-nivel-expedicion__valor {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border: 1px solid rgba(211, 184, 90, 0.48);
+  border-radius: 7px;
+  background: rgba(14, 18, 30, 0.82);
+  color: #f0d46f;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.selector-nivel-expedicion__resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #aeb7cc;
+  font-size: 0.82rem;
+}
+
+.selector-nivel-expedicion__riesgo {
+  padding: 4px 8px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+.selector-nivel-expedicion__riesgo--favorable {
+  border-color: rgba(91, 181, 112, 0.48);
+  background: rgba(31, 88, 47, 0.38);
+  color: #83d696;
+}
+
+.selector-nivel-expedicion__riesgo--equilibrado {
+  border-color: rgba(93, 146, 220, 0.48);
+  background: rgba(37, 65, 105, 0.42);
+  color: #8bb9ef;
+}
+
+.selector-nivel-expedicion__riesgo--desafiante {
+  border-color: rgba(218, 176, 71, 0.52);
+  background: rgba(92, 67, 20, 0.42);
+  color: #e5c467;
+}
+
+.selector-nivel-expedicion__riesgo--peligroso {
+  border-color: rgba(210, 88, 88, 0.56);
+  background: rgba(92, 31, 36, 0.46);
+  color: #e88f8f;
+}
+
+@media (max-width: 520px) {
+  .selector-nivel-expedicion__resumen {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

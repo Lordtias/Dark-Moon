@@ -1,6 +1,9 @@
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
+
 import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
+
 import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
+
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
@@ -85,7 +88,6 @@ export function crearJugadorInicial({
   datosPersonaje,
   configuracionPersonaje,
   configuracionObjetos,
-
   posicionInicial = {
     x: 0,
     y: 0,
@@ -147,6 +149,7 @@ export function crearJugadorInicial({
     experiencia: 0,
 
     x: posicionInicial.x,
+
     y: posicionInicial.y,
 
     capacidadInventario: configuracionContenedor.capacidad ?? 12,
@@ -170,10 +173,13 @@ export function crearConfiguracionMazmorra({
 
   // Los valores son opcionales.
   //
-  // Si no se proporcionan, la generación
-  // continúa funcionando aleatoriamente.
+  // Cuando nivelMapaForzado es null,
+  // el nivel se selecciona aleatoriamente dentro
+  // del rango de la plantilla.
   semillaMapa = null,
   idMapaForzado = null,
+  nivelMapaForzado = null,
+
   botinPrueba = false,
   portalPrueba = false,
 } = {}) {
@@ -183,9 +189,14 @@ export function crearConfiguracionMazmorra({
     configuracionMapas,
     semillaMapa,
     idMapaForzado,
+    nivelMapaForzado,
   });
 
-  posicionarJugador(player, preparacion.terreno.posicionInicialSugerida);
+  posicionarJugador(
+    player,
+
+    preparacion.terreno.posicionInicialSugerida,
+  );
 
   return completarConfiguracionMazmorra({
     player,
@@ -195,6 +206,7 @@ export function crearConfiguracionMazmorra({
     portalPrueba,
     semillaMapa,
     idMapaForzado,
+    nivelMapaForzado,
     ...preparacion,
   });
 }
@@ -211,8 +223,11 @@ export function crearConfiguracionInicial({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionMapas,
+
   semillaMapa = null,
   idMapaForzado = null,
+  nivelMapaForzado = null,
+
   botinPrueba = false,
   portalPrueba = false,
 } = {}) {
@@ -220,6 +235,7 @@ export function crearConfiguracionInicial({
     configuracionMapas,
     semillaMapa,
     idMapaForzado,
+    nivelMapaForzado,
   });
 
   const player = crearJugadorInicial({
@@ -238,6 +254,7 @@ export function crearConfiguracionInicial({
     portalPrueba,
     semillaMapa,
     idMapaForzado,
+    nivelMapaForzado,
     ...preparacion,
   });
 }
@@ -248,6 +265,7 @@ function prepararGeneracionMazmorra({
   configuracionMapas,
   semillaMapa,
   idMapaForzado,
+  nivelMapaForzado,
 }) {
   const semilla = semillaMapa ?? crearSemillaAleatoria();
 
@@ -256,14 +274,21 @@ function prepararGeneracionMazmorra({
   // Durante una partida normal se utiliza
   // la selección ponderada.
   //
-  // En modo de prueba podemos solicitar
-  // directamente una plantilla concreta.
+  // Desde la ciudad o mediante parámetros
+  // de prueba puede solicitarse una plantilla concreta.
   const mapaSeleccionado =
     idMapaForzado !== null
       ? obtenerPlantillaMapa(configuracionMapas, idMapaForzado)
-      : seleccionarPlantillaMapa(configuracionMapas, () =>
-          aleatorio.siguiente(),
+      : seleccionarPlantillaMapa(
+          configuracionMapas,
+
+          () => aleatorio.siguiente(),
         );
+
+  validarNivelMapaForzado({
+    nivelMapaForzado,
+    mapaSeleccionado,
+  });
 
   const terreno = generarTerreno({
     plantilla: mapaSeleccionado,
@@ -289,17 +314,30 @@ function completarConfiguracionMazmorra({
   portalPrueba,
   semillaMapa,
   idMapaForzado,
+  nivelMapaForzado,
   aleatorio,
   mapaSeleccionado,
   terreno,
 }) {
+  // GeneradorContenidoMapa continúa siendo
+  // responsable de elegir el nivel aleatorio.
+  //
+  // Cuando existe un nivel forzado le entregamos
+  // una copia de la plantilla cuyo rango contiene
+  // exclusivamente ese nivel.
+  const plantillaGeneracion = crearPlantillaGeneracion({
+    mapaSeleccionado,
+    nivelMapaForzado,
+  });
+
   const contenido = generarContenidoMapa({
-    plantilla: mapaSeleccionado,
+    plantilla: plantillaGeneracion,
 
     terreno,
 
     posicionJugador: {
       x: player.x,
+
       y: player.y,
     },
 
@@ -311,7 +349,9 @@ function completarConfiguracionMazmorra({
   const interactuables = crearInteractuablesIniciales({
     botinPrueba,
     portalPrueba,
+
     mapa: terreno.celdas,
+
     player,
 
     objetivos: contenido.objetivos,
@@ -326,6 +366,10 @@ function completarConfiguracionMazmorra({
     semilla: aleatorio.semilla,
 
     mapaForzado: idMapaForzado !== null,
+
+    nivelForzado: nivelMapaForzado !== null,
+
+    nivelSolicitado: nivelMapaForzado,
 
     semillaForzada: semillaMapa !== null,
 
@@ -373,12 +417,58 @@ function completarConfiguracionMazmorra({
   };
 }
 
+// Crea una copia superficial de la plantilla
+// con el rango de nivel ajustado.
+//
+// Las demás secciones pueden compartirse porque
+// GeneradorContenidoMapa solamente las consulta.
+function crearPlantillaGeneracion({ mapaSeleccionado, nivelMapaForzado }) {
+  if (nivelMapaForzado === null) {
+    return mapaSeleccionado;
+  }
+
+  return {
+    ...mapaSeleccionado,
+
+    niveles: {
+      minimo: nivelMapaForzado,
+
+      maximo: nivelMapaForzado,
+    },
+  };
+}
+
+// Comprueba el nivel después de seleccionar
+// la plantilla concreta.
+//
+// Esto permite emitir un error preciso cuando
+// se usa una URL o transición inválida.
+function validarNivelMapaForzado({ nivelMapaForzado, mapaSeleccionado }) {
+  if (nivelMapaForzado === null) {
+    return;
+  }
+
+  if (!Number.isInteger(nivelMapaForzado) || nivelMapaForzado < 1) {
+    throw new Error(
+      "El nivel forzado del mapa debe ser un entero mayor que 0.",
+    );
+  }
+
+  const minimo = mapaSeleccionado.niveles.minimo;
+
+  const maximo = mapaSeleccionado.niveles.maximo;
+
+  if (nivelMapaForzado < minimo || nivelMapaForzado > maximo) {
+    throw new Error(
+      `${mapaSeleccionado.nombre} permite niveles ` +
+        `entre ${minimo} y ${maximo}. ` +
+        `Se solicitó el nivel ${nivelMapaForzado}.`,
+    );
+  }
+}
+
 // Crea recursos controlados mediante parámetros
 // de prueba en la URL.
-//
-// Estos recursos permiten comprobar transferencias
-// y cambios reales de mapa antes de introducir
-// la ciudad definitiva.
 function crearInteractuablesIniciales({
   botinPrueba,
   portalPrueba,
@@ -418,6 +508,7 @@ function crearInteractuablesIniciales({
     });
 
     interactuables.push(botin);
+
     posicionesOcupadas.push(posicion);
   }
 
@@ -452,6 +543,7 @@ function crearInteractuablesIniciales({
     });
 
     interactuables.push(portal);
+
     posicionesOcupadas.push(posicion);
   }
 

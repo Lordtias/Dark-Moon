@@ -22,7 +22,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 1
+        "maximo": 5
       },
       "generacion": {
         "tipo": "habitaciones",
@@ -92,7 +92,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 1
+        "maximo": 5
       },
       "generacion": {
         "tipo": "habitaciones",
@@ -166,7 +166,7 @@
       },
       "niveles": {
         "minimo": 1,
-        "maximo": 1
+        "maximo": 5
       },
       "generacion": {
         "tipo": "habitaciones",

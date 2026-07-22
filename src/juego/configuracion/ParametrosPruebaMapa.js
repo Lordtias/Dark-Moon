@@ -3,16 +3,21 @@
 //
 // Ejemplo:
 //
-// ?mapa=cementerio&semilla=123456&botin=prueba&portal=prueba
+// ?mapa=cementerio&nivel=3&semilla=123456&botin=prueba
 const PARAMETRO_MAPA = "mapa";
+
+const PARAMETRO_NIVEL = "nivel";
+
 const PARAMETRO_SEMILLA = "semilla";
+
 const PARAMETRO_BOTIN = "botin";
+
 const PARAMETRO_PORTAL = "portal";
 
 // Lee los parámetros opcionales de la URL.
 //
-// Cuando no existen, la generación continúa
-// funcionando completamente al azar.
+// Cuando no existen, la partida comienza
+// normalmente dentro de la ciudad.
 export function leerParametrosPruebaMapa(
   urlActual = globalThis.location?.href ?? "",
 ) {
@@ -22,16 +27,22 @@ export function leerParametrosPruebaMapa(
 
   const url = new URL(
     urlActual,
+
     globalThis.location?.origin ?? "http://localhost",
   );
 
   const idMapaForzado = normalizarTexto(url.searchParams.get(PARAMETRO_MAPA));
+
+  const textoNivel = normalizarTexto(url.searchParams.get(PARAMETRO_NIVEL));
 
   const textoSemilla = normalizarTexto(url.searchParams.get(PARAMETRO_SEMILLA));
 
   const textoBotin = normalizarTexto(url.searchParams.get(PARAMETRO_BOTIN));
 
   const textoPortal = normalizarTexto(url.searchParams.get(PARAMETRO_PORTAL));
+
+  const nivelMapaForzado =
+    textoNivel === null ? null : convertirNivelMapa(textoNivel);
 
   const semillaMapa =
     textoSemilla === null ? null : convertirSemilla(textoSemilla);
@@ -44,16 +55,39 @@ export function leerParametrosPruebaMapa(
 
   return {
     idMapaForzado,
+    nivelMapaForzado,
     semillaMapa,
     botinPrueba,
     portalPrueba,
 
     activo:
       idMapaForzado !== null ||
+      nivelMapaForzado !== null ||
       semillaMapa !== null ||
       botinPrueba ||
       portalPrueba,
   };
+}
+
+// Convierte el nivel recibido por URL
+// en un entero mayor que cero.
+//
+// La validación contra el rango de la plantilla
+// se realiza después de seleccionar el mapa.
+function convertirNivelMapa(texto) {
+  if (!/^\d+$/.test(texto)) {
+    throw new Error(
+      `El nivel de mapa "${texto}" debe ser un entero mayor que 0.`,
+    );
+  }
+
+  const nivel = Number(texto);
+
+  if (!Number.isSafeInteger(nivel) || nivel < 1) {
+    throw new Error(`El nivel de mapa "${texto}" no es válido.`);
+  }
+
+  return nivel;
 }
 
 // Convierte semillas numéricas a número.
@@ -88,6 +122,7 @@ function normalizarTexto(valor) {
 function crearResultadoVacio() {
   return {
     idMapaForzado: null,
+    nivelMapaForzado: null,
     semillaMapa: null,
     botinPrueba: false,
     portalPrueba: false,

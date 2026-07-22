@@ -148,6 +148,8 @@ export class ControladorPartida {
 
         idMapaForzado: parametrosPrueba.idMapaForzado,
 
+        nivelMapaForzado: parametrosPrueba.nivelMapaForzado,
+
         botinPrueba: parametrosPrueba.botinPrueba,
 
         portalPrueba: parametrosPrueba.portalPrueba,
@@ -188,9 +190,12 @@ export class ControladorPartida {
     return true;
   }
 
+  // Genera y activa una mazmorra utilizando
+  // el nivel elegido por el jugador.
   iniciarNuevaExpedicion({
     semillaMapa = null,
     idMapaForzado = null,
+    nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
     parametrosPrueba = null,
@@ -208,6 +213,7 @@ export class ControladorPartida {
     const configuracionMapa = this.gestorMapasPartida.crearMazmorra({
       semillaMapa,
       idMapaForzado,
+      nivelMapaForzado,
       botinPrueba,
       portalPrueba,
     });
@@ -216,6 +222,8 @@ export class ControladorPartida {
 
     const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
 
+    // La siguiente visita a la ciudad encontrará
+    // stock generado con el nivel de esta expedición.
     this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
       semillaMapa: generacion.semilla,
 
@@ -226,14 +234,51 @@ export class ControladorPartida {
 
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
-        activo: botinPrueba || portalPrueba || semillaMapa !== null,
+        activo:
+          idMapaForzado !== null ||
+          nivelMapaForzado !== null ||
+          botinPrueba ||
+          portalPrueba ||
+          semillaMapa !== null,
 
+        idMapaForzado,
+        nivelMapaForzado,
         botinPrueba,
         portalPrueba,
+        semillaMapa,
       },
     });
 
     return true;
+  }
+
+  // Recibe la selección completa producida
+  // por ModalSeleccionMazmorra.
+  iniciarExpedicionSeleccionada(seleccion) {
+    if (
+      !seleccion ||
+      typeof seleccion !== "object" ||
+      Array.isArray(seleccion)
+    ) {
+      throw new Error("La selección de expedición no es válida.");
+    }
+
+    if (
+      typeof seleccion.idMazmorra !== "string" ||
+      seleccion.idMazmorra.trim() === ""
+    ) {
+      throw new Error("La expedición necesita una mazmorra seleccionada.");
+    }
+
+    if (!Number.isInteger(seleccion.nivelMapa) || seleccion.nivelMapa < 1) {
+      throw new Error("La expedición necesita un nivel válido.");
+    }
+
+    return this.iniciarNuevaExpedicion({
+      idMapaForzado: seleccion.idMazmorra,
+
+      nivelMapaForzado: seleccion.nivelMapa,
+    });
   }
 
   procesarSolicitudTransicionMapa(solicitud) {
@@ -245,6 +290,8 @@ export class ControladorPartida {
           semillaMapa: solicitudNormalizada.datos.semillaMapa ?? null,
 
           idMapaForzado: solicitudNormalizada.datos.idMapaForzado ?? null,
+
+          nivelMapaForzado: solicitudNormalizada.datos.nivelMapaForzado ?? null,
 
           botinPrueba: solicitudNormalizada.datos.botinPrueba === true,
 
@@ -356,10 +403,10 @@ export class ControladorPartida {
       obtenerMazmorrasDisponibles: () =>
         this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
 
-      alSeleccionarMazmorra: (idMazmorra) =>
-        this.iniciarNuevaExpedicion({
-          idMapaForzado: idMazmorra,
-        }),
+      // ControladorInteracciones reenvía
+      // el resultado completo del modal.
+      alSeleccionarMazmorra: (seleccion) =>
+        this.iniciarExpedicionSeleccionada(seleccion),
 
       alSolicitarComercio: (idMercader) =>
         controladorComercio.abrir(idMercader),
@@ -442,9 +489,9 @@ export class ControladorPartida {
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
+        `Nivel seleccionado: ${generacion.nivelMapa}. ` +
         `Semilla: ${generacion.semilla}. ` +
         `Tamaño: ${generacion.ancho} × ${generacion.alto}. ` +
-        `Nivel: ${generacion.nivelMapa}. ` +
         `Paredes: ${generacion.porcentajeNoCaminableReal}% ` +
         `(objetivo ${generacion.porcentajeNoCaminableObjetivo}%). ` +
         `Enemigos: ${generacion.cantidadEnemigos} ` +
@@ -458,7 +505,9 @@ export class ControladorPartida {
     );
 
     console.groupCollapsed(
-      `[Mapa] ${mapaSeleccionado.nombre} | ` + `semilla ${generacion.semilla}`,
+      `[Mapa] ${mapaSeleccionado.nombre} | ` +
+        `nivel ${generacion.nivelMapa} | ` +
+        `semilla ${generacion.semilla}`,
     );
 
     console.log("Estado persistente:", this.estadoPartida.obtenerResumen());

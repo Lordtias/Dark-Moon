@@ -66,39 +66,54 @@ export class GestorMapasPartida {
   // Entrega una vista segura de las plantillas
   // disponibles para la ventana de selección.
   //
-  // La interfaz no recibe la configuración completa
-  // ni puede modificar los pesos o reglas internas.
+  // También calcula el nivel sugerido a partir
+  // del nivel actual del jugador.
   obtenerMazmorrasDisponibles() {
+    const nivelJugador = this.estadoPartida.jugador.nivel;
+
     return Object.entries(this.configuracionMapas.plantillas).map(
-      ([id, plantilla]) => ({
-        id,
+      ([id, plantilla]) => {
+        const nivelSugerido = limitarNumero({
+          valor: nivelJugador,
 
-        nombre: plantilla.nombre,
+          minimo: plantilla.niveles.minimo,
 
-        descripcion:
-          plantilla.descripcion ??
-          `Explorá una expedición del bioma ${plantilla.bioma}.`,
+          maximo: plantilla.niveles.maximo,
+        });
 
-        bioma: plantilla.bioma,
+        return {
+          id,
 
-        nivelMinimo: plantilla.niveles.minimo,
+          nombre: plantilla.nombre,
 
-        nivelMaximo: plantilla.niveles.maximo,
+          descripcion:
+            plantilla.descripcion ??
+            `Explorá una expedición del bioma ${plantilla.bioma}.`,
 
-        anchoMinimo: plantilla.dimensiones.ancho.minimo,
+          bioma: plantilla.bioma,
 
-        anchoMaximo: plantilla.dimensiones.ancho.maximo,
+          nivelJugador,
+          nivelSugerido,
 
-        altoMinimo: plantilla.dimensiones.alto.minimo,
+          nivelMinimo: plantilla.niveles.minimo,
 
-        altoMaximo: plantilla.dimensiones.alto.maximo,
+          nivelMaximo: plantilla.niveles.maximo,
 
-        cantidadEnemigosMinima: plantilla.enemigos.cantidad.minimo,
+          anchoMinimo: plantilla.dimensiones.ancho.minimo,
 
-        cantidadEnemigosMaxima: plantilla.enemigos.cantidad.maximo,
+          anchoMaximo: plantilla.dimensiones.ancho.maximo,
 
-        enemigos: plantilla.enemigos.permitidos.map((enemigo) => enemigo.id),
-      }),
+          altoMinimo: plantilla.dimensiones.alto.minimo,
+
+          altoMaximo: plantilla.dimensiones.alto.maximo,
+
+          cantidadEnemigosMinima: plantilla.enemigos.cantidad.minimo,
+
+          cantidadEnemigosMaxima: plantilla.enemigos.cantidad.maximo,
+
+          enemigos: plantilla.enemigos.permitidos.map((enemigo) => enemigo.id),
+        };
+      },
     );
   }
 
@@ -130,6 +145,7 @@ export class GestorMapasPartida {
   crearMazmorra({
     semillaMapa = null,
     idMapaForzado = null,
+    nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
   } = {}) {
@@ -144,6 +160,7 @@ export class GestorMapasPartida {
 
       semillaMapa,
       idMapaForzado,
+      nivelMapaForzado,
       botinPrueba,
       portalPrueba,
     });
@@ -161,15 +178,17 @@ export class GestorMapasPartida {
 
       entidadesOcupantes: [
         ...configuracionMapa.objetivos,
+
         ...configuracionMapa.interactuables,
+
         this.estadoPartida.jugador,
       ],
     });
 
     configuracionMapa.map = salida.mapa;
 
-    // La salida se dibuja debajo del resto de
-    // interactuables, pero continúa disponible
+    // La salida se dibuja debajo del resto
+    // de interactuables, pero continúa disponible
     // para el sistema de selección.
     configuracionMapa.interactuables.unshift(salida.portal);
 
@@ -216,6 +235,14 @@ export class GestorMapasPartida {
 
     return configuracionMapa;
   }
+}
+
+function limitarNumero({ valor, minimo, maximo }) {
+  return Math.max(
+    minimo,
+
+    Math.min(maximo, valor),
+  );
 }
 
 function calcularPorcentajeNoCaminable(mapa) {

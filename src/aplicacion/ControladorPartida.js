@@ -1,11 +1,13 @@
 import {
-  crearConfiguracionInicial,
+  crearJugadorInicial,
   TILE_SIZE,
 } from "../juego/configuracion/ConfiguracionInicial.js";
 
 import { Juego } from "../juego/Juego.js";
 
-import { EstadoPartida } from "../partida/EstadoPartida.js";
+import { EstadoPartida } from "../Partida/EstadoPartida.js";
+
+import { GestorMapasPartida } from "../Partida/GestorMapasPartida.js";
 
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 
@@ -17,12 +19,16 @@ import { ControladorInteracciones } from "../controles/ControladorInteracciones.
 
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 
-import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGeneracionBotin.js";
-
 import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
 
-// Coordina la creación y activación
-// de una partida completa.
+// Coordina la sesión completa y conecta
+// el mapa activo con la interfaz.
+//
+// EstadoPartida y GestorMapasPartida viven
+// durante toda la sesión.
+//
+// Juego y sus controladores se reemplazan
+// cada vez que se activa un mapa diferente.
 export class ControladorPartida {
   constructor({ controladorPantallas } = {}) {
     if (
@@ -36,16 +42,22 @@ export class ControladorPartida {
 
     this.controladorPantallas = controladorPantallas;
 
-    // Estado persistente que sobrevivirá
-    // a los futuros cambios de mapa.
+    // Estado persistente de la sesión.
     this.estadoPartida = null;
+    this.gestorMapasPartida = null;
 
-    // Estado y componentes del mapa activo.
+    // La interfaz se crea una sola vez
+    // y se reutiliza cuando cambie el mapa.
+    this.interfazPartida = null;
+
+    // Estado y controladores del mapa activo.
     this.juego = null;
     this.renderizador = null;
     this.controladorTeclado = null;
     this.controladorEquipamiento = null;
     this.controladorInteracciones = null;
+
+    this.configuracionObjetos = null;
 
     this.partidaIniciada = false;
   }
@@ -64,61 +76,112 @@ export class ControladorPartida {
 
     const parametrosPrueba = leerParametrosPruebaMapa();
 
-    const configuracionInicial = crearConfiguracionInicial({
+    // El jugador se crea una sola vez.
+    //
+    // GestorMapasPartida lo posicionará después
+    // dentro de cada mapa que se active.
+    const jugador = crearJugadorInicial({
       datosPersonaje,
       configuracionPersonaje,
+      configuracionObjetos,
+    });
+
+    this.estadoPartida = new EstadoPartida({
+      jugador,
+    });
+
+    this.gestorMapasPartida = new GestorMapasPartida({
+      estadoPartida: this.estadoPartida,
+
       configuracionEnemigos,
       configuracionObjetos,
+      configuracionGeneracionObjetos,
       configuracionMapas,
+    });
 
+    this.configuracionObjetos = configuracionObjetos;
+
+    // La presentación de las rarezas
+    // no depende del mapa y se configura
+    // una sola vez.
+    configurarContextoPresentacionObjetos({
+      configuracionRarezas: configuracionGeneracionObjetos.rarezas,
+    });
+
+    this.interfazPartida = crearInterfazPartida({
+      tileSize: TILE_SIZE,
+    });
+
+    this.renderizador = this.interfazPartida.renderizador;
+
+    this.partidaIniciada = true;
+
+    this.controladorPantallas.mostrarPartida();
+
+    // El flujo actual continúa comenzando
+    // directamente en una mazmorra.
+    //
+    // Más adelante esta llamada será reemplazada
+    // por la activación del mapa fijo de la ciudad.
+    this.iniciarNuevaExpedicion({
       semillaMapa: parametrosPrueba.semillaMapa,
 
       idMapaForzado: parametrosPrueba.idMapaForzado,
 
       botinPrueba: parametrosPrueba.botinPrueba,
+
+      parametrosPrueba,
     });
 
-    // EstadoPartida conserva la misma instancia
-    // del jugador creada para el mapa inicial.
-    //
-    // En etapas posteriores, los mapas cambiarán,
-    // pero esta referencia continuará siendo la misma.
-    const estadoPartida = new EstadoPartida({
-      jugador: configuracionInicial.player,
+    return true;
+  }
+
+  // Genera y activa una mazmorra nueva
+  // conservando la misma instancia del jugador.
+  //
+  // Este método será utilizado posteriormente
+  // por la entrada de la ciudad y por portales.
+  iniciarNuevaExpedicion({
+    semillaMapa = null,
+    idMapaForzado = null,
+    botinPrueba = false,
+    parametrosPrueba = null,
+  } = {}) {
+    if (!this.partidaIniciada || !this.gestorMapasPartida) {
+      throw new Error(
+        "No se puede iniciar una expedición sin una partida activa.",
+      );
+    }
+
+    const configuracionMapa = this.gestorMapasPartida.crearMazmorra({
+      semillaMapa,
+      idMapaForzado,
+      botinPrueba,
     });
 
-    // El flujo actual todavía comienza directamente
-    // dentro de una mazmorra procedural.
-    //
-    // Cuando incorporemos la ciudad, el inicio normal
-    // registrará primero el mapa fijo de la ciudad.
-    estadoPartida.iniciarExpedicion({
-      idMapa: configuracionInicial.mapaSeleccionado.id,
+    this.activarMapa(configuracionMapa);
+
+    this.mostrarResumenMazmorra({
+      parametrosPrueba: parametrosPrueba ?? {
+        activo: false,
+        botinPrueba,
+      },
     });
 
-    const generacionMapa =
-      configuracionInicial.mapaSeleccionado.generacionActual;
+    return true;
+  }
 
-    // Preparamos una secuencia dedicada a la generación
-    // de niveles, rarezas y afijos de los drops.
-    //
-    // Cuando se incorporen entradas y salidas,
-    // deberá repetirse esta configuración al crear
-    // cada mapa nuevo.
-    configurarContextoGeneracionBotin({
-      configuracionGeneracionObjetos,
+  // Reemplaza Juego y sus controladores,
+  // pero conserva EstadoPartida, el jugador
+  // y todos los componentes de la interfaz.
+  activarMapa(configuracionMapa) {
+    validarConfiguracionMapa(configuracionMapa);
 
-      semillaMapa: generacionMapa.semilla,
+    if (!this.interfazPartida) {
+      throw new Error("No se puede activar un mapa sin una interfaz creada.");
+    }
 
-      nivelMapa: generacionMapa.nivelMapa,
-    });
-
-    // La interfaz utiliza el nombre y el color declarados
-    // en Rarezas.json para inventario, equipamiento,
-    // contenedores y ventanas de detalle.
-    configurarContextoPresentacionObjetos({
-      configuracionRarezas: configuracionGeneracionObjetos.rarezas,
-    });
+    this.desactivarControles();
 
     const {
       renderizador,
@@ -126,33 +189,27 @@ export class ControladorPartida {
       panelEquipamiento,
       modalDetalleObjeto,
       modalContenedorObjetos,
-    } = crearInterfazPartida({
-      tileSize: TILE_SIZE,
-    });
+    } = this.interfazPartida;
 
-    const cantidadFilas = configuracionInicial.map.length;
+    const cantidadFilas = configuracionMapa.map.length;
 
-    const cantidadColumnas = configuracionInicial.map[0].length;
+    const cantidadColumnas = configuracionMapa.map[0].length;
 
-    // El controlador no modifica directamente
-    // la superficie gráfica utilizada.
     renderizador.configurarDimensionesMapa({
       columnas: cantidadColumnas,
+
       filas: cantidadFilas,
     });
 
-    // Juego recibe el jugador persistente conservado
-    // dentro de EstadoPartida.
-    //
-    // Hoy es la misma instancia creada por
-    // crearConfiguracionInicial. En el futuro será
-    // reutilizada al construir la ciudad y cada dungeon.
     const juego = new Juego({
-      ...configuracionInicial,
+      ...configuracionMapa,
 
-      player: estadoPartida.jugador,
+      // La referencia ya es la misma,
+      // pero la asignación explícita
+      // documenta la persistencia.
+      player: this.estadoPartida.jugador,
 
-      configuracionObjetos,
+      configuracionObjetos: this.configuracionObjetos,
     });
 
     const controladorTeclado = new ControladorTeclado({
@@ -174,8 +231,6 @@ export class ControladorPartida {
       modalContenedorObjetos,
     });
 
-    this.estadoPartida = estadoPartida;
-
     this.juego = juego;
 
     this.renderizador = renderizador;
@@ -186,10 +241,6 @@ export class ControladorPartida {
 
     this.controladorInteracciones = controladorInteracciones;
 
-    this.partidaIniciada = true;
-
-    this.controladorPantallas.mostrarPartida();
-
     this.controladorTeclado.activar();
 
     this.controladorEquipamiento.activar();
@@ -197,7 +248,9 @@ export class ControladorPartida {
     this.controladorInteracciones.activar();
 
     this.renderizador.dibujarJuego(this.juego);
+  }
 
+  mostrarResumenMazmorra({ parametrosPrueba } = {}) {
     const mapaSeleccionado = this.juego.mapaSeleccionado;
 
     const generacion = mapaSeleccionado.generacionActual;
@@ -206,11 +259,11 @@ export class ControladorPartida {
 
     const variantes = formatearConteo(generacion.variantes);
 
-    const mensajeModoPrueba = parametrosPrueba.activo
+    const mensajeModoPrueba = parametrosPrueba?.activo
       ? " Modo de prueba activo."
       : "";
 
-    const mensajeBotinPrueba = parametrosPrueba.botinPrueba
+    const mensajeBotinPrueba = parametrosPrueba?.botinPrueba
       ? " Botín de prueba activo: acercate y presioná R para revisarlo."
       : "";
 
@@ -247,8 +300,6 @@ export class ControladorPartida {
     console.table(generacion.detalleDestructibles);
 
     console.groupEnd();
-
-    return true;
   }
 
   desactivarControles() {
@@ -278,4 +329,20 @@ function formatearConteo(conteo) {
 // en nombres más legibles.
 function formatearId(id) {
   return id.replaceAll("_", " ");
+}
+
+function validarConfiguracionMapa(configuracionMapa) {
+  if (
+    !configuracionMapa ||
+    !Array.isArray(configuracionMapa.map) ||
+    configuracionMapa.map.length === 0 ||
+    !configuracionMapa.player ||
+    !Array.isArray(configuracionMapa.objetivos) ||
+    !Array.isArray(configuracionMapa.interactuables) ||
+    !configuracionMapa.mapaSeleccionado
+  ) {
+    throw new Error(
+      "ControladorPartida recibió una configuración de mapa inválida.",
+    );
+  }
 }

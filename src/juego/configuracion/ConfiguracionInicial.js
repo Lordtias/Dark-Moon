@@ -1,7 +1,5 @@
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
-
 import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
-
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
@@ -25,17 +23,14 @@ export const TILE_SIZE = 32;
 const DEFINICIONES_BOTIN_PRUEBA = Object.freeze([
   {
     id: "pocion_curacion",
-
     cantidad: 1,
   },
   {
     id: "flecha_madera",
-
     cantidad: 8,
   },
   {
     id: "daga_hierro",
-
     cantidad: 1,
   },
 ]);
@@ -43,57 +38,60 @@ const DEFINICIONES_BOTIN_PRUEBA = Object.freeze([
 const DIRECCIONES_BOTIN_PRUEBA = Object.freeze([
   {
     x: 0,
-
     y: -1,
   },
   {
     x: 1,
-
     y: 0,
   },
   {
     x: 0,
-
     y: 1,
   },
   {
     x: -1,
-
     y: 0,
   },
   {
     x: 1,
-
     y: -1,
   },
   {
     x: 1,
-
     y: 1,
   },
   {
     x: -1,
-
     y: 1,
   },
   {
     x: -1,
-
     y: -1,
   },
 ]);
 
-function crearJugadorInicial(
+// Crea al jugador una única vez al comenzar
+// una partida completa.
+//
+// Los mapas posteriores reutilizarán esta misma
+// instancia en lugar de crear otro personaje.
+export function crearJugadorInicial({
   datosPersonaje,
   configuracionPersonaje,
   configuracionObjetos,
-  posicionInicial,
-) {
+
+  posicionInicial = {
+    x: 0,
+    y: 0,
+  },
+} = {}) {
   if (datosPersonaje === null || typeof datosPersonaje !== "object") {
     throw new Error(
       "Se necesitan los datos del personaje para iniciar la partida.",
     );
   }
+
+  validarPosicion(posicionInicial);
 
   const { nombre, idProfesion, clasePersonaje, atributos } = datosPersonaje;
 
@@ -140,11 +138,9 @@ function crearJugadorInicial(
     ataqueNatural: profesion.ataqueNatural ?? null,
 
     nivel: 1,
-
     experiencia: 0,
 
     x: posicionInicial.x,
-
     y: posicionInicial.y,
 
     capacidadInventario: configuracionContenedor.capacidad ?? 12,
@@ -154,94 +150,14 @@ function crearJugadorInicial(
   });
 }
 
-// Crea un botín controlado únicamente
-// mediante el parámetro ?botin=prueba.
+// Crea una nueva mazmorra utilizando un jugador
+// que ya existe dentro de EstadoPartida.
 //
-// Este recurso permite validar interacciones,
-// transferencias y la ventana de contenedores
-// antes de conectar las tablas de drop reales.
-function crearInteractuablesIniciales({
-  botinPrueba,
-  mapa,
+// Solamente cambia su posición dentro del nuevo mapa.
+// Inventario, equipamiento, experiencia y recursos
+// permanecen intactos.
+export function crearConfiguracionMazmorra({
   player,
-  objetivos,
-  configuracionObjetos,
-}) {
-  if (!botinPrueba) {
-    return [];
-  }
-
-  const objetos = crearObjetosDesdeDefiniciones({
-    configuracionObjetos,
-
-    definiciones: DEFINICIONES_BOTIN_PRUEBA,
-  });
-
-  const posicion = obtenerPosicionBotinPrueba({
-    mapa,
-    player,
-    objetivos,
-  });
-
-  const botin = new BotinSuelo({
-    nombre: "Botín de prueba",
-
-    x: posicion.x,
-
-    y: posicion.y,
-
-    contenedorObjetos: new ContenedorObjetos({
-      capacidad: 6,
-
-      objetosIniciales: objetos,
-    }),
-  });
-
-  return [botin];
-}
-
-// Busca una casilla próxima que sea caminable
-// y no esté ocupada por un objetivo.
-//
-// Si ninguna está disponible, el botín puede compartir
-// la casilla inicial con el jugador porque no bloquea
-// movimiento ni combate.
-function obtenerPosicionBotinPrueba({ mapa, player, objetivos }) {
-  for (const direccion of DIRECCIONES_BOTIN_PRUEBA) {
-    const x = player.x + direccion.x;
-
-    const y = player.y + direccion.y;
-
-    const dentroMapa =
-      y >= 0 && y < mapa.length && x >= 0 && x < mapa[y].length;
-
-    if (!dentroMapa || mapa[y][x] === "#") {
-      continue;
-    }
-
-    const ocupado = objetivos.some(
-      (objetivo) =>
-        objetivo.estaDestruido !== true && objetivo.x === x && objetivo.y === y,
-    );
-
-    if (!ocupado) {
-      return {
-        x,
-        y,
-      };
-    }
-  }
-
-  return {
-    x: player.x,
-
-    y: player.y,
-  };
-}
-
-export function crearConfiguracionInicial({
-  datosPersonaje,
-  configuracionPersonaje,
   configuracionEnemigos,
   configuracionObjetos,
   configuracionMapas,
@@ -254,6 +170,75 @@ export function crearConfiguracionInicial({
   idMapaForzado = null,
   botinPrueba = false,
 } = {}) {
+  validarJugador(player);
+
+  const preparacion = prepararGeneracionMazmorra({
+    configuracionMapas,
+    semillaMapa,
+    idMapaForzado,
+  });
+
+  posicionarJugador(player, preparacion.terreno.posicionInicialSugerida);
+
+  return completarConfiguracionMazmorra({
+    player,
+    configuracionEnemigos,
+    configuracionObjetos,
+    botinPrueba,
+    semillaMapa,
+    idMapaForzado,
+    ...preparacion,
+  });
+}
+
+// Conserva la función utilizada originalmente
+// para crear jugador y mazmorra en una sola llamada.
+//
+// El flujo nuevo crea ambas partes por separado,
+// pero mantener esta función evita romper pruebas
+// o herramientas que todavía puedan utilizarla.
+export function crearConfiguracionInicial({
+  datosPersonaje,
+  configuracionPersonaje,
+  configuracionEnemigos,
+  configuracionObjetos,
+  configuracionMapas,
+  semillaMapa = null,
+  idMapaForzado = null,
+  botinPrueba = false,
+} = {}) {
+  const preparacion = prepararGeneracionMazmorra({
+    configuracionMapas,
+    semillaMapa,
+    idMapaForzado,
+  });
+
+  const player = crearJugadorInicial({
+    datosPersonaje,
+    configuracionPersonaje,
+    configuracionObjetos,
+
+    posicionInicial: preparacion.terreno.posicionInicialSugerida,
+  });
+
+  return completarConfiguracionMazmorra({
+    player,
+    configuracionEnemigos,
+    configuracionObjetos,
+    botinPrueba,
+    semillaMapa,
+    idMapaForzado,
+    ...preparacion,
+  });
+}
+
+// Selecciona la plantilla y genera únicamente
+// la estructura física de la mazmorra.
+function prepararGeneracionMazmorra({
+  configuracionMapas,
+  semillaMapa,
+  idMapaForzado,
+}) {
   const semilla = semillaMapa ?? crearSemillaAleatoria();
 
   const aleatorio = crearGeneradorAleatorio(semilla);
@@ -272,17 +257,29 @@ export function crearConfiguracionInicial({
 
   const terreno = generarTerreno({
     plantilla: mapaSeleccionado,
-
     aleatorio,
   });
 
-  const player = crearJugadorInicial(
-    datosPersonaje,
-    configuracionPersonaje,
-    configuracionObjetos,
-    terreno.posicionInicialSugerida,
-  );
+  return {
+    aleatorio,
+    mapaSeleccionado,
+    terreno,
+  };
+}
 
+// Agrega enemigos, destructibles, botín de prueba
+// y el resumen de generación al terreno preparado.
+function completarConfiguracionMazmorra({
+  player,
+  configuracionEnemigos,
+  configuracionObjetos,
+  botinPrueba,
+  semillaMapa,
+  idMapaForzado,
+  aleatorio,
+  mapaSeleccionado,
+  terreno,
+}) {
   const contenido = generarContenidoMapa({
     plantilla: mapaSeleccionado,
 
@@ -290,7 +287,6 @@ export function crearConfiguracionInicial({
 
     posicionJugador: {
       x: player.x,
-
       y: player.y,
     },
 
@@ -301,9 +297,7 @@ export function crearConfiguracionInicial({
 
   const interactuables = crearInteractuablesIniciales({
     botinPrueba,
-
     mapa: terreno.celdas,
-
     player,
 
     objetivos: contenido.objetivos,
@@ -313,7 +307,7 @@ export function crearConfiguracionInicial({
 
   // SelectorMapa siempre devuelve una copia,
   // por lo que esta información pertenece
-  // únicamente a la partida actual.
+  // únicamente al mapa actual.
   mapaSeleccionado.generacionActual = {
     semilla: aleatorio.semilla,
 
@@ -362,4 +356,111 @@ export function crearConfiguracionInicial({
 
     interactuables,
   };
+}
+
+// Crea un botín controlado únicamente
+// mediante el parámetro ?botin=prueba.
+//
+// Este recurso permite validar interacciones,
+// transferencias y la ventana de contenedores.
+function crearInteractuablesIniciales({
+  botinPrueba,
+  mapa,
+  player,
+  objetivos,
+  configuracionObjetos,
+}) {
+  if (!botinPrueba) {
+    return [];
+  }
+
+  const objetos = crearObjetosDesdeDefiniciones({
+    configuracionObjetos,
+
+    definiciones: DEFINICIONES_BOTIN_PRUEBA,
+  });
+
+  const posicion = obtenerPosicionBotinPrueba({
+    mapa,
+    player,
+    objetivos,
+  });
+
+  const botin = new BotinSuelo({
+    nombre: "Botín de prueba",
+
+    x: posicion.x,
+
+    y: posicion.y,
+
+    contenedorObjetos: new ContenedorObjetos({
+      capacidad: 6,
+      objetosIniciales: objetos,
+    }),
+  });
+
+  return [botin];
+}
+
+// Busca una casilla próxima que sea caminable
+// y no esté ocupada por un objetivo.
+//
+// Si ninguna está disponible, el botín puede compartir
+// la casilla inicial con el jugador porque no bloquea
+// movimiento ni combate.
+function obtenerPosicionBotinPrueba({ mapa, player, objetivos }) {
+  for (const direccion of DIRECCIONES_BOTIN_PRUEBA) {
+    const x = player.x + direccion.x;
+
+    const y = player.y + direccion.y;
+
+    const dentroMapa =
+      y >= 0 && y < mapa.length && x >= 0 && x < mapa[y].length;
+
+    if (!dentroMapa || mapa[y][x] === "#") {
+      continue;
+    }
+
+    const ocupado = objetivos.some(
+      (objetivo) =>
+        objetivo.estaDestruido !== true && objetivo.x === x && objetivo.y === y,
+    );
+
+    if (!ocupado) {
+      return {
+        x,
+        y,
+      };
+    }
+  }
+
+  return {
+    x: player.x,
+
+    y: player.y,
+  };
+}
+
+function posicionarJugador(player, posicion) {
+  validarPosicion(posicion);
+
+  player.x = posicion.x;
+
+  player.y = posicion.y;
+}
+
+function validarJugador(player) {
+  if (!player || typeof player !== "object") {
+    throw new Error("Se necesita un jugador existente para crear la mazmorra.");
+  }
+}
+
+function validarPosicion(posicion) {
+  if (
+    !posicion ||
+    !Number.isInteger(posicion.x) ||
+    !Number.isInteger(posicion.y)
+  ) {
+    throw new Error("Se necesita una posición inicial válida para el jugador.");
+  }
 }

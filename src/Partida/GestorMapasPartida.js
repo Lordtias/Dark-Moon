@@ -59,6 +59,7 @@ export class GestorMapasPartida {
     semillaMapa = null,
     idMapaForzado = null,
     botinPrueba = false,
+    portalPrueba = false,
   } = {}) {
     const configuracionMapa = crearConfiguracionMazmorra({
       player: this.estadoPartida.jugador,
@@ -72,6 +73,7 @@ export class GestorMapasPartida {
       semillaMapa,
       idMapaForzado,
       botinPrueba,
+      portalPrueba,
     });
 
     const generacion = configuracionMapa.mapaSeleccionado.generacionActual;

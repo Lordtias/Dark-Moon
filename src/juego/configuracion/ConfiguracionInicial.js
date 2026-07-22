@@ -1,8 +1,14 @@
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
 import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
+import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
+
+import {
+  crearSolicitudTransicionMapa,
+  TIPOS_TRANSICION_MAPA,
+} from "../../Partida/TransicionesMapa.js";
 
 import {
   seleccionarPlantillaMapa,
@@ -35,7 +41,7 @@ const DEFINICIONES_BOTIN_PRUEBA = Object.freeze([
   },
 ]);
 
-const DIRECCIONES_BOTIN_PRUEBA = Object.freeze([
+const DIRECCIONES_INTERACTUABLES_PRUEBA = Object.freeze([
   {
     x: 0,
     y: -1,
@@ -169,6 +175,7 @@ export function crearConfiguracionMazmorra({
   semillaMapa = null,
   idMapaForzado = null,
   botinPrueba = false,
+  portalPrueba = false,
 } = {}) {
   validarJugador(player);
 
@@ -185,6 +192,7 @@ export function crearConfiguracionMazmorra({
     configuracionEnemigos,
     configuracionObjetos,
     botinPrueba,
+    portalPrueba,
     semillaMapa,
     idMapaForzado,
     ...preparacion,
@@ -206,6 +214,7 @@ export function crearConfiguracionInicial({
   semillaMapa = null,
   idMapaForzado = null,
   botinPrueba = false,
+  portalPrueba = false,
 } = {}) {
   const preparacion = prepararGeneracionMazmorra({
     configuracionMapas,
@@ -226,6 +235,7 @@ export function crearConfiguracionInicial({
     configuracionEnemigos,
     configuracionObjetos,
     botinPrueba,
+    portalPrueba,
     semillaMapa,
     idMapaForzado,
     ...preparacion,
@@ -257,6 +267,7 @@ function prepararGeneracionMazmorra({
 
   const terreno = generarTerreno({
     plantilla: mapaSeleccionado,
+
     aleatorio,
   });
 
@@ -267,13 +278,15 @@ function prepararGeneracionMazmorra({
   };
 }
 
-// Agrega enemigos, destructibles, botín de prueba
-// y el resumen de generación al terreno preparado.
+// Agrega enemigos, destructibles, interactuables
+// de prueba y el resumen de generación
+// al terreno preparado.
 function completarConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
   botinPrueba,
+  portalPrueba,
   semillaMapa,
   idMapaForzado,
   aleatorio,
@@ -297,6 +310,7 @@ function completarConfiguracionMazmorra({
 
   const interactuables = crearInteractuablesIniciales({
     botinPrueba,
+    portalPrueba,
     mapa: terreno.celdas,
     player,
 
@@ -316,6 +330,7 @@ function completarConfiguracionMazmorra({
     semillaForzada: semillaMapa !== null,
 
     botinPrueba,
+    portalPrueba,
 
     ancho: terreno.ancho,
 
@@ -358,58 +373,105 @@ function completarConfiguracionMazmorra({
   };
 }
 
-// Crea un botín controlado únicamente
-// mediante el parámetro ?botin=prueba.
+// Crea recursos controlados mediante parámetros
+// de prueba en la URL.
 //
-// Este recurso permite validar interacciones,
-// transferencias y la ventana de contenedores.
+// Estos recursos permiten comprobar transferencias
+// y cambios reales de mapa antes de introducir
+// la ciudad definitiva.
 function crearInteractuablesIniciales({
   botinPrueba,
+  portalPrueba,
   mapa,
   player,
   objetivos,
   configuracionObjetos,
 }) {
-  if (!botinPrueba) {
-    return [];
+  const interactuables = [];
+  const posicionesOcupadas = [];
+
+  if (botinPrueba) {
+    const objetos = crearObjetosDesdeDefiniciones({
+      configuracionObjetos,
+
+      definiciones: DEFINICIONES_BOTIN_PRUEBA,
+    });
+
+    const posicion = obtenerPosicionInteractuablePrueba({
+      mapa,
+      player,
+      objetivos,
+      posicionesOcupadas,
+    });
+
+    const botin = new BotinSuelo({
+      nombre: "Botín de prueba",
+
+      x: posicion.x,
+
+      y: posicion.y,
+
+      contenedorObjetos: new ContenedorObjetos({
+        capacidad: 6,
+        objetosIniciales: objetos,
+      }),
+    });
+
+    interactuables.push(botin);
+    posicionesOcupadas.push(posicion);
   }
 
-  const objetos = crearObjetosDesdeDefiniciones({
-    configuracionObjetos,
+  if (portalPrueba) {
+    const posicion = obtenerPosicionInteractuablePrueba({
+      mapa,
+      player,
+      objetivos,
+      posicionesOcupadas,
+    });
 
-    definiciones: DEFINICIONES_BOTIN_PRUEBA,
-  });
+    const portal = new PortalMapa({
+      nombre: "Portal inestable",
 
-  const posicion = obtenerPosicionBotinPrueba({
-    mapa,
-    player,
-    objetivos,
-  });
+      x: posicion.x,
 
-  const botin = new BotinSuelo({
-    nombre: "Botín de prueba",
+      y: posicion.y,
 
-    x: posicion.x,
+      simbolo: "O",
 
-    y: posicion.y,
+      textoInteraccion: "Atravesar portal",
 
-    contenedorObjetos: new ContenedorObjetos({
-      capacidad: 6,
-      objetosIniciales: objetos,
-    }),
-  });
+      solicitudTransicionMapa: crearSolicitudTransicionMapa({
+        tipo: TIPOS_TRANSICION_MAPA.NUEVA_EXPEDICION,
 
-  return [botin];
+        // El nuevo mapa también incluirá
+        // un portal para repetir la prueba.
+        datos: {
+          portalPrueba: true,
+        },
+      }),
+    });
+
+    interactuables.push(portal);
+    posicionesOcupadas.push(posicion);
+  }
+
+  return interactuables;
 }
 
-// Busca una casilla próxima que sea caminable
-// y no esté ocupada por un objetivo.
+// Busca una casilla próxima que sea caminable,
+// no esté ocupada por objetivos y no haya sido
+// utilizada por otro interactuable de prueba.
 //
-// Si ninguna está disponible, el botín puede compartir
-// la casilla inicial con el jugador porque no bloquea
-// movimiento ni combate.
-function obtenerPosicionBotinPrueba({ mapa, player, objetivos }) {
-  for (const direccion of DIRECCIONES_BOTIN_PRUEBA) {
+// Si ninguna está disponible, puede utilizarse
+// la posición del jugador porque estos elementos
+// no bloquean el movimiento.
+function obtenerPosicionInteractuablePrueba({
+  mapa,
+  player,
+  objetivos,
+  posicionesOcupadas,
+}) {
+  for (const direccion of DIRECCIONES_INTERACTUABLES_PRUEBA) {
     const x = player.x + direccion.x;
 
     const y = player.y + direccion.y;
@@ -421,12 +483,16 @@ function obtenerPosicionBotinPrueba({ mapa, player, objetivos }) {
       continue;
     }
 
-    const ocupado = objetivos.some(
+    const ocupadoPorObjetivo = objetivos.some(
       (objetivo) =>
         objetivo.estaDestruido !== true && objetivo.x === x && objetivo.y === y,
     );
 
-    if (!ocupado) {
+    const ocupadoPorInteractuable = posicionesOcupadas.some(
+      (posicion) => posicion.x === x && posicion.y === y,
+    );
+
+    if (!ocupadoPorObjetivo && !ocupadoPorInteractuable) {
       return {
         x,
         y,

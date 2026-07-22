@@ -7,7 +7,7 @@ import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 const TECLA_INTERACCION = "KeyR";
 
 // Conecta las capacidades de interacción del dominio
-// con las ventanas de la interfaz.
+// con las ventanas y acciones de la aplicación.
 //
 // Este controlador administra:
 //
@@ -15,8 +15,14 @@ const TECLA_INTERACCION = "KeyR";
 // - La apertura de contenedores.
 // - La confirmación del selector de interacción.
 // - La actualización de la ventana de botín.
+// - Las solicitudes de transición entre mapas.
 export class ControladorInteracciones {
-  constructor({ juego, renderizador, modalContenedorObjetos } = {}) {
+  constructor({
+    juego,
+    renderizador,
+    modalContenedorObjetos,
+    alSolicitarTransicionMapa,
+  } = {}) {
     if (
       !juego ||
       typeof juego.obtenerOpcionesInteraccion !== "function" ||
@@ -49,11 +55,17 @@ export class ControladorInteracciones {
       );
     }
 
+    if (typeof alSolicitarTransicionMapa !== "function") {
+      throw new Error(
+        "ControladorInteracciones necesita un manejador de transiciones de mapa.",
+      );
+    }
+
     this.juego = juego;
-
     this.renderizador = renderizador;
-
     this.modalContenedorObjetos = modalContenedorObjetos;
+
+    this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
 
     this.interactuableActual = null;
 
@@ -82,7 +94,6 @@ export class ControladorInteracciones {
     this.modalContenedorObjetos.cerrar();
 
     this.interactuableActual = null;
-
     this.estaActivo = false;
   }
 
@@ -117,7 +128,6 @@ export class ControladorInteracciones {
 
     if (bloqueo) {
       this.procesarResultado(bloqueo);
-
       return;
     }
 
@@ -148,6 +158,10 @@ export class ControladorInteracciones {
     switch (interaccion.tipo) {
       case TIPOS_INTERACCION.ABRIR_CONTENEDOR:
         this.abrirContenedor(interaccion);
+        break;
+
+      case TIPOS_INTERACCION.TRANSICION_MAPA:
+        this.solicitarTransicionMapa(interaccion);
         break;
 
       default:
@@ -191,6 +205,26 @@ export class ControladorInteracciones {
     });
   }
 
+  // Entrega la solicitud al coordinador superior.
+  //
+  // El portal no conoce ControladorPartida y este
+  // controlador tampoco genera mapas directamente.
+  solicitarTransicionMapa(interaccion) {
+    const solicitud = interaccion.solicitudTransicionMapa;
+
+    if (!solicitud || typeof solicitud !== "object") {
+      throw new Error(
+        "La interacción no contiene una solicitud de transición válida.",
+      );
+    }
+
+    this.modalContenedorObjetos.cerrar();
+
+    this.interactuableActual = null;
+
+    this.alSolicitarTransicionMapa(solicitud);
+  }
+
   actualizarModalDespuesAccion(interactuable) {
     const continuaEnMapa = this.juego.interactuables.includes(interactuable);
 
@@ -202,7 +236,6 @@ export class ControladorInteracciones {
       this.modalContenedorObjetos.cerrar();
 
       this.interactuableActual = null;
-
       return;
     }
 

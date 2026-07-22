@@ -9,6 +9,11 @@ import { EstadoPartida } from "../Partida/EstadoPartida.js";
 
 import { GestorMapasPartida } from "../Partida/GestorMapasPartida.js";
 
+import {
+  normalizarSolicitudTransicionMapa,
+  TIPOS_TRANSICION_MAPA,
+} from "../Partida/TransicionesMapa.js";
+
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
@@ -130,6 +135,8 @@ export class ControladorPartida {
 
       botinPrueba: parametrosPrueba.botinPrueba,
 
+      portalPrueba: parametrosPrueba.portalPrueba,
+
       parametrosPrueba,
     });
 
@@ -145,6 +152,7 @@ export class ControladorPartida {
     semillaMapa = null,
     idMapaForzado = null,
     botinPrueba = false,
+    portalPrueba = false,
     parametrosPrueba = null,
   } = {}) {
     if (!this.partidaIniciada || !this.gestorMapasPartida) {
@@ -157,18 +165,54 @@ export class ControladorPartida {
       semillaMapa,
       idMapaForzado,
       botinPrueba,
+      portalPrueba,
     });
 
     this.activarMapa(configuracionMapa);
 
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
-        activo: false,
+        activo: botinPrueba || portalPrueba,
+
         botinPrueba,
+        portalPrueba,
       },
     });
 
     return true;
+  }
+
+  // Recibe solicitudes originadas por puertas,
+  // portales, NPC u objetos futuros.
+  //
+  // En esta etapa solamente está conectada
+  // la creación de una nueva expedición.
+  procesarSolicitudTransicionMapa(solicitud) {
+    const solicitudNormalizada = normalizarSolicitudTransicionMapa(solicitud);
+
+    switch (solicitudNormalizada.tipo) {
+      case TIPOS_TRANSICION_MAPA.NUEVA_EXPEDICION:
+        return this.iniciarNuevaExpedicion({
+          portalPrueba: solicitudNormalizada.datos.portalPrueba === true,
+        });
+
+      case TIPOS_TRANSICION_MAPA.REGRESAR_CIUDAD:
+        this.renderizador.mostrarMensaje(
+          "La transición a la ciudad todavía no está disponible.",
+        );
+        return false;
+
+      case TIPOS_TRANSICION_MAPA.ACTIVAR_MAPA_FIJO:
+        this.renderizador.mostrarMensaje(
+          "La activación de mapas fijos todavía no está disponible.",
+        );
+        return false;
+
+      default:
+        throw new Error(
+          "ControladorPartida recibió una transición desconocida.",
+        );
+    }
   }
 
   // Reemplaza Juego y sus controladores,
@@ -229,6 +273,9 @@ export class ControladorPartida {
       juego,
       renderizador,
       modalContenedorObjetos,
+
+      alSolicitarTransicionMapa: (solicitud) =>
+        this.procesarSolicitudTransicionMapa(solicitud),
     });
 
     this.juego = juego;
@@ -267,6 +314,10 @@ export class ControladorPartida {
       ? " Botín de prueba activo: acercate y presioná R para revisarlo."
       : "";
 
+    const mensajePortalPrueba = parametrosPrueba?.portalPrueba
+      ? " Portal de prueba activo: acercate y presioná R para generar otra mazmorra."
+      : "";
+
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
@@ -280,7 +331,8 @@ export class ControladorPartida {
         `Variantes: ${variantes}.\n` +
         `Destructibles: ${generacion.cantidadDestructibles}.` +
         mensajeModoPrueba +
-        mensajeBotinPrueba,
+        mensajeBotinPrueba +
+        mensajePortalPrueba,
     );
 
     console.groupCollapsed(

@@ -1,7 +1,7 @@
 /* Resumen inferior del inventario.
  *
  * El bloque se crea desde PanelInventario para no
- * acoplar la moneda a las casillas de objetos.
+ * acoplar oro y peso a las casillas de objetos.
  */
 .resumen-inventario {
   display: grid;
@@ -20,6 +20,11 @@
   border: 1px solid rgba(116, 130, 165, 0.32);
   border-radius: 7px;
   background: rgba(18, 23, 38, 0.68);
+}
+
+.resumen-inventario__dato--peso {
+  border-color: rgba(128, 151, 174, 0.42);
+  background: rgba(22, 34, 43, 0.58);
 }
 
 .resumen-inventario__dato--oro {
@@ -43,6 +48,10 @@
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.resumen-inventario__dato--peso .resumen-inventario__valor {
+  color: #c6dfec;
 }
 
 .resumen-inventario__dato--oro .resumen-inventario__valor {

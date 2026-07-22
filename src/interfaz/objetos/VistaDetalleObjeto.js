@@ -1,3 +1,7 @@
+const ID_HOJA_ESTILOS_ECONOMICOS = "hojaEstilosDetalleEconomicoObjeto";
+
+const RUTA_HOJA_ESTILOS_ECONOMICOS = "./detalle-economico-objeto.css";
+
 let siguienteIdVista = 1;
 
 // Construye la representación visual reutilizable de un objeto.
@@ -6,6 +10,8 @@ let siguienteIdVista = 1;
 // equipamiento, comparaciones ni acciones del juego.
 export class VistaDetalleObjeto {
   constructor() {
+    asegurarHojaEstilosEconomicos();
+
     this.idTitulo = `tituloDetalleObjeto${siguienteIdVista}`;
 
     siguienteIdVista++;
@@ -49,12 +55,21 @@ export class VistaDetalleObjeto {
 
     this.metadatos = crearElemento("p", "detalle-objeto__metadatos");
 
+    // Peso y valor se mantienen dentro del bloque
+    // de identidad para no crear una sección nueva
+    // ni aumentar las dimensiones del modal.
+    this.informacionComercial = crearElemento(
+      "div",
+      "detalle-objeto__informacion-comercial",
+    );
+
     this.cantidad = crearElemento("span", "detalle-objeto__cantidad");
 
     identidad.append(
       this.titulo,
       this.subtitulo,
       this.metadatos,
+      this.informacionComercial,
       this.cantidad,
     );
 
@@ -106,6 +121,8 @@ export class VistaDetalleObjeto {
     this.descripcion.textContent = presentacion.descripcion;
 
     this.actualizarRareza(presentacion);
+
+    this.actualizarInformacionComercial(presentacion.informacionComercial);
 
     this.actualizarCantidad(presentacion);
 
@@ -159,6 +176,26 @@ export class VistaDetalleObjeto {
     }
   }
 
+  actualizarInformacionComercial(informacion) {
+    this.informacionComercial.replaceChildren();
+
+    const datos = Array.isArray(informacion) ? informacion : [];
+
+    this.informacionComercial.hidden = datos.length === 0;
+
+    if (datos.length === 0) {
+      return;
+    }
+
+    const fragmento = document.createDocumentFragment();
+
+    for (const dato of datos) {
+      fragmento.appendChild(crearDatoComercial(dato));
+    }
+
+    this.informacionComercial.appendChild(fragmento);
+  }
+
   actualizarCantidad(presentacion) {
     const cantidad = Number.isInteger(presentacion.cantidad)
       ? presentacion.cantidad
@@ -179,9 +216,7 @@ export class VistaDetalleObjeto {
     // antes de representar otro objeto.
     this.imagen.onload = null;
     this.imagen.onerror = null;
-
     this.imagen.removeAttribute("src");
-
     this.imagen.hidden = true;
     this.respaldoImagen.hidden = false;
 
@@ -250,6 +285,41 @@ export class VistaDetalleObjeto {
 
     this.listaAfijos.appendChild(fragmento);
   }
+}
+
+function crearDatoComercial(dato) {
+  const tipo = typeof dato?.tipo === "string" ? dato.tipo : "general";
+
+  const contenedor = crearElemento("span", "detalle-objeto__dato-comercial");
+
+  contenedor.classList.add(`detalle-objeto__dato-comercial--${tipo}`);
+
+  const etiqueta =
+    typeof dato?.etiqueta === "string" ? dato.etiqueta.trim() : "";
+
+  const valor = typeof dato?.valor === "string" ? dato.valor.trim() : "";
+
+  if (tipo === "no-vendible") {
+    contenedor.textContent = etiqueta || "No vendible";
+
+    return contenedor;
+  }
+
+  const elementoEtiqueta = crearElemento(
+    "span",
+    "detalle-objeto__dato-comercial-etiqueta",
+    etiqueta,
+  );
+
+  const elementoValor = crearElemento(
+    "strong",
+    "detalle-objeto__dato-comercial-valor",
+    valor,
+  );
+
+  contenedor.append(elementoEtiqueta, elementoValor);
+
+  return contenedor;
 }
 
 function crearTarjetaAfijo(afijo) {
@@ -386,4 +456,20 @@ function validarPresentacion(presentacion) {
   ) {
     throw new Error("VistaDetalleObjeto necesita una presentación válida.");
   }
+}
+
+function asegurarHojaEstilosEconomicos() {
+  if (document.getElementById(ID_HOJA_ESTILOS_ECONOMICOS)) {
+    return;
+  }
+
+  const enlace = document.createElement("link");
+
+  enlace.id = ID_HOJA_ESTILOS_ECONOMICOS;
+
+  enlace.rel = "stylesheet";
+
+  enlace.href = RUTA_HOJA_ESTILOS_ECONOMICOS;
+
+  document.head.appendChild(enlace);
 }

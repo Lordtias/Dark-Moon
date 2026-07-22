@@ -13,8 +13,8 @@ const RUTA_HOJA_ESTILOS = "./panel-resumen-inventario.css";
 //
 // También presenta un resumen persistente con:
 //
-// - Casillas ocupadas.
-// - Casillas libres.
+// - Casillas ocupadas sobre capacidad total.
+// - Peso actual de los objetos del inventario.
 // - Oro del jugador.
 export class PanelInventario {
   constructor({ cuadricula, mensajeVacio } = {}) {
@@ -153,8 +153,10 @@ export class PanelInventario {
     return lineas.join("\n");
   }
 
-  // Construye el bloque inferior que después
-  // también mostrará el peso del inventario.
+  // Construye el bloque inferior del inventario.
+  //
+  // Casillas libres no se muestran por separado:
+  // ya pueden deducirse del valor ocupado/capacidad.
   crearResumenInventario() {
     this.resumenInventario = document.createElement("section");
 
@@ -166,8 +168,10 @@ export class PanelInventario {
       etiqueta: "Casillas",
     });
 
-    const resumenLibres = crearDatoResumen({
-      etiqueta: "Libres",
+    const resumenPeso = crearDatoResumen({
+      etiqueta: "Peso",
+
+      claseAdicional: "resumen-inventario__dato--peso",
     });
 
     const resumenOro = crearDatoResumen({
@@ -178,13 +182,13 @@ export class PanelInventario {
 
     this.valorCasillas = resumenCasillas.valor;
 
-    this.valorLibres = resumenLibres.valor;
+    this.valorPeso = resumenPeso.valor;
 
     this.valorOro = resumenOro.valor;
 
     this.resumenInventario.append(
       resumenCasillas.contenedor,
-      resumenLibres.contenedor,
+      resumenPeso.contenedor,
       resumenOro.contenedor,
     );
 
@@ -205,9 +209,11 @@ export class PanelInventario {
 
     const ocupadas = inventario.capacidad - libres;
 
+    const pesoTotal = calcularPesoInventario(inventario);
+
     this.valorCasillas.textContent = `${ocupadas}/${inventario.capacidad}`;
 
-    this.valorLibres.textContent = `${libres}`;
+    this.valorPeso.textContent = formatearPeso(pesoTotal);
 
     this.valorOro.textContent = formatearCantidadMonedas(jugador.oro);
 
@@ -216,7 +222,8 @@ export class PanelInventario {
 
       `Inventario: ${ocupadas} de ` +
         `${inventario.capacidad} casillas ocupadas, ` +
-        `${libres} libres y ${jugador.oro} monedas de oro.`,
+        `peso ${formatearPeso(pesoTotal)} y ` +
+        `${jugador.oro} monedas de oro.`,
     );
   }
 
@@ -299,10 +306,36 @@ function crearDatoResumen({ etiqueta, claseAdicional = null }) {
   };
 }
 
+// Suma únicamente los objetos guardados
+// dentro del inventario.
+//
+// El equipamiento se mantiene fuera de este total
+// porque posee su propio panel y todavía no existe
+// una capacidad máxima de carga del personaje.
+function calcularPesoInventario(inventario) {
+  const objetos = inventario.obtenerObjetos();
+
+  const peso = objetos.reduce(
+    (total, objeto) => {
+      const pesoObjeto =
+        Number.isFinite(objeto.pesoTotal) && objeto.pesoTotal >= 0
+          ? objeto.pesoTotal
+          : 0;
+
+      return total + pesoObjeto;
+    },
+
+    0,
+  );
+
+  return Number(peso.toFixed(3));
+}
+
 function validarInventario(inventario) {
   if (
     !inventario ||
     typeof inventario.obtenerEspacios !== "function" ||
+    typeof inventario.obtenerObjetos !== "function" ||
     typeof inventario.estaVacio !== "function" ||
     typeof inventario.contarEspaciosLibres !== "function" ||
     !Number.isInteger(inventario.capacidad)
@@ -315,6 +348,17 @@ function validarJugador(jugador) {
   if (!jugador || !Number.isSafeInteger(jugador.oro) || jugador.oro < 0) {
     throw new Error("PanelInventario necesita un jugador con oro válido.");
   }
+}
+
+function formatearPeso(cantidad) {
+  return new Intl.NumberFormat(
+    "es-UY",
+
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 3,
+    },
+  ).format(cantidad);
 }
 
 function formatearCantidadMonedas(cantidad) {

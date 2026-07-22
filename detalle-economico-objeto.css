@@ -1,0 +1,70 @@
+/* Información económica compacta del objeto.
+ *
+ * Se mantiene dentro de la identidad de la cabecera
+ * para no agregar una sección nueva ni aumentar
+ * las dimensiones actuales del modal.
+ */
+.detalle-objeto__informacion-comercial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.detalle-objeto__informacion-comercial[hidden] {
+  display: none;
+}
+
+.detalle-objeto__dato-comercial {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid rgba(126, 140, 174, 0.3);
+  border-radius: 6px;
+  background: rgba(16, 21, 34, 0.58);
+  color: #dce3f5;
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.detalle-objeto__dato-comercial-etiqueta {
+  color: #929db7;
+}
+
+.detalle-objeto__dato-comercial-valor {
+  color: #edf2ff;
+  font-weight: 700;
+}
+
+.detalle-objeto__dato-comercial--peso {
+  border-color: rgba(128, 151, 174, 0.38);
+}
+
+.detalle-objeto__dato-comercial--valor {
+  border-color: rgba(211, 184, 90, 0.44);
+  background: rgba(56, 46, 18, 0.4);
+}
+
+.detalle-objeto__dato-comercial--valor .detalle-objeto__dato-comercial-valor {
+  color: #efd36c;
+}
+
+.detalle-objeto__dato-comercial--no-vendible {
+  border-color: rgba(183, 103, 103, 0.42);
+  background: rgba(64, 27, 31, 0.42);
+  color: #e4a4a4;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .detalle-objeto__informacion-comercial {
+    gap: 5px;
+  }
+
+  .detalle-objeto__dato-comercial {
+    width: 100%;
+  }
+}

@@ -8,56 +8,41 @@ import { obtenerPresentacionRarezaObjeto } from "./ContextoPresentacionObjetos.j
 
 const ETIQUETAS_TIPO = Object.freeze({
   arma: "Arma",
-
   armadura: "Armadura",
-
   quiver: "Carcaj",
-
   municion: "Munición",
-
   consumible: "Consumible",
-
   material: "Material",
 });
 
 const ETIQUETAS_ATRIBUTO = Object.freeze({
   fuerza: "Fuerza",
-
   destreza: "Destreza",
-
   constitucion: "Constitución",
-
   inteligencia: "Inteligencia",
-
   sabiduria: "Sabiduría",
-
   carisma: "Carisma",
 });
 
 const ETIQUETAS_TIPO_ATAQUE = Object.freeze({
   cuerpoACuerpo: "Cuerpo a cuerpo",
-
   distancia: "Distancia",
 });
 
 const ETIQUETAS_PATRON_ATAQUE = Object.freeze({
   adyacente: "Adyacente",
-
   lineal: "Lineal",
-
   libre: "Libre",
 });
 
 const ETIQUETAS_EFECTO = Object.freeze({
   recuperarVida: "Recupera Vida",
-
   recuperarMana: "Recupera Maná",
 });
 
 const PRESENTACION_VALORES_AFIJO = Object.freeze({
   danioFisicoLocalPorcentaje: {
     etiqueta: "daño físico local",
-
     porcentaje: true,
   },
 
@@ -79,7 +64,6 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
 
   probabilidadCritico: {
     etiqueta: "probabilidad de crítico",
-
     porcentaje: true,
   },
 
@@ -101,37 +85,31 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
 
   resistenciaFuego: {
     etiqueta: "resistencia al fuego",
-
     porcentaje: true,
   },
 
   resistenciaFrio: {
     etiqueta: "resistencia al frío",
-
     porcentaje: true,
   },
 
   resistenciaRayo: {
     etiqueta: "resistencia al rayo",
-
     porcentaje: true,
   },
 
   resistenciaVeneno: {
     etiqueta: "resistencia al veneno",
-
     porcentaje: true,
   },
 
   probabilidadBloqueo: {
     etiqueta: "probabilidad de bloqueo",
-
     porcentaje: true,
   },
 
   mitigacionBloqueo: {
     etiqueta: "mitigación al bloquear",
-
     porcentaje: true,
   },
 });
@@ -169,6 +147,12 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
     // una presentación más compacta.
     mostrarMetadatosGeneracion: objeto.esEquipable === true,
 
+    // Peso y valor se presentan en la cabecera.
+    //
+    // El valor mostrado es el valor propio del objeto,
+    // antes de aplicar rareza, mercader o Carisma.
+    informacionComercial: crearInformacionComercial(objeto),
+
     afijos: crearPresentacionAfijos(objeto),
 
     estadisticas: crearEstadisticasObjeto({
@@ -201,6 +185,96 @@ function crearSubtitulo(objeto) {
   return tipo;
 }
 
+// Crea la información compacta que aparece
+// junto al título del objeto.
+//
+// Casos tratados:
+//
+// - Objeto individual: muestra un único peso y valor.
+// - Pila: muestra valor/peso unitario y total.
+// - Contenedor: muestra valor/peso propio y con contenido.
+// - No vendible: reemplaza el valor por una etiqueta.
+function crearInformacionComercial(objeto) {
+  const informacion = [
+    {
+      tipo: "peso",
+      etiqueta: "Peso",
+      valor: crearTextoMagnitudComercial({
+        objeto,
+
+        valorUnitario: obtenerNumeroNoNegativo(objeto.pesoUnitario),
+
+        valorTotal: obtenerNumeroNoNegativo(objeto.pesoTotal),
+
+        formateador: formatearPeso,
+      }),
+    },
+  ];
+
+  if (objeto.vendible === false) {
+    informacion.push({
+      tipo: "no-vendible",
+      etiqueta: "No vendible",
+      valor: "",
+    });
+
+    return informacion;
+  }
+
+  informacion.push({
+    tipo: "valor",
+    etiqueta: "Valor",
+    valor: crearTextoMagnitudComercial({
+      objeto,
+
+      valorUnitario: obtenerNumeroNoNegativo(objeto.valorBase),
+
+      valorTotal: obtenerNumeroNoNegativo(objeto.valorBaseTotal),
+
+      formateador: formatearMonedas,
+    }),
+  });
+
+  return informacion;
+}
+
+function crearTextoMagnitudComercial({
+  objeto,
+  valorUnitario,
+  valorTotal,
+  formateador,
+}) {
+  const cantidad =
+    Number.isInteger(objeto.cantidad) && objeto.cantidad > 0
+      ? objeto.cantidad
+      : 1;
+
+  const tieneContenedor =
+    objeto.contenedorObjetos &&
+    typeof objeto.contenedorObjetos.obtenerObjetos === "function";
+
+  // En un carcaj u otro contenedor futuro,
+  // el valor unitario representa el objeto vacío
+  // y el total también contempla su contenido.
+  if (tieneContenedor) {
+    return (
+      `${formateador(valorUnitario)} propio` +
+      ` · ${formateador(valorTotal)} total`
+    );
+  }
+
+  // Solamente mostramos dos magnitudes cuando
+  // realmente existe una pila con más de una unidad.
+  if (objeto.apilable === true && cantidad > 1) {
+    return (
+      `${formateador(valorUnitario)} c/u` +
+      ` · ${formateador(valorTotal)} total`
+    );
+  }
+
+  return formateador(valorTotal);
+}
+
 function crearPresentacionAfijos(objeto) {
   const afijos = Array.isArray(objeto.afijos) ? objeto.afijos : [];
 
@@ -225,7 +299,6 @@ function crearTextosEfectosAfijo(afijo) {
   const valores = afijo.valores ?? {};
 
   const textos = [];
-
   const propiedadesProcesadas = new Set();
 
   const minimoLocal = valores.danioFisicoLocalMinimo;
@@ -234,9 +307,9 @@ function crearTextosEfectosAfijo(afijo) {
 
   if (Number.isFinite(minimoLocal) && Number.isFinite(maximoLocal)) {
     textos.push(
-      `Agrega ${formatearNumeroFlexible(minimoLocal)}–${formatearNumeroFlexible(
-        maximoLocal,
-      )} de daño físico local`,
+      `Agrega ${formatearNumeroFlexible(minimoLocal)}` +
+        `–${formatearNumeroFlexible(maximoLocal)}` +
+        " de daño físico local",
     );
 
     propiedadesProcesadas.add("danioFisicoLocalMinimo");
@@ -253,9 +326,8 @@ function crearTextosEfectosAfijo(afijo) {
 
     if (!configuracion) {
       textos.push(
-        `${formatearNumeroConSignoFlexible(valor)} ${formatearIdentificador(
-          propiedad,
-        )}`,
+        `${formatearNumeroConSignoFlexible(valor)} ` +
+          `${formatearIdentificador(propiedad)}`,
       );
 
       continue;
@@ -335,9 +407,8 @@ function crearEstadisticasArma({ objeto, combatiente }) {
     crearEstadistica(
       "Daño físico",
 
-      `${formatearNumero(rangoLocal.minimo)} – ${formatearNumero(
-        rangoLocal.maximo,
-      )}`,
+      `${formatearNumero(rangoLocal.minimo)} – ` +
+        `${formatearNumero(rangoLocal.maximo)}`,
     ),
 
     crearEstadistica(
@@ -587,6 +658,10 @@ function crearEstadistica(etiqueta, valor) {
   };
 }
 
+function obtenerNumeroNoNegativo(valor) {
+  return Number.isFinite(valor) && valor >= 0 ? valor : 0;
+}
+
 function validarObjeto(objeto) {
   if (
     !objeto ||
@@ -607,11 +682,15 @@ function formatearNumero(valor, decimalesMaximos = 0) {
     return "—";
   }
 
-  return new Intl.NumberFormat("es-UY", {
-    minimumFractionDigits: decimalesMaximos,
+  return new Intl.NumberFormat(
+    "es-UY",
 
-    maximumFractionDigits: decimalesMaximos,
-  }).format(valor);
+    {
+      minimumFractionDigits: decimalesMaximos,
+
+      maximumFractionDigits: decimalesMaximos,
+    },
+  ).format(valor);
 }
 
 function formatearNumeroFlexible(valor) {
@@ -619,11 +698,35 @@ function formatearNumeroFlexible(valor) {
     return "—";
   }
 
-  return new Intl.NumberFormat("es-UY", {
-    minimumFractionDigits: 0,
+  return new Intl.NumberFormat(
+    "es-UY",
 
-    maximumFractionDigits: 2,
-  }).format(valor);
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    },
+  ).format(valor);
+}
+
+function formatearPeso(valor) {
+  return new Intl.NumberFormat(
+    "es-UY",
+
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 3,
+    },
+  ).format(valor);
+}
+
+function formatearMonedas(valor) {
+  return new Intl.NumberFormat(
+    "es-UY",
+
+    {
+      maximumFractionDigits: 0,
+    },
+  ).format(Math.round(valor));
 }
 
 function formatearNumeroConSigno(valor) {

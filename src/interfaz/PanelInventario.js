@@ -1,11 +1,21 @@
 import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
 
+const ID_HOJA_ESTILOS = "hojaEstilosResumenInventario";
+
+const RUTA_HOJA_ESTILOS = "./panel-resumen-inventario.css";
+
 // Muestra el inventario y notifica
 // cuando el usuario selecciona un objeto.
 //
 // El panel no decide qué acción se ejecuta.
 // Solamente informa el índice seleccionado
 // al controlador correspondiente.
+//
+// También presenta un resumen persistente con:
+//
+// - Casillas ocupadas.
+// - Casillas libres.
+// - Oro del jugador.
 export class PanelInventario {
   constructor({ cuadricula, mensajeVacio } = {}) {
     if (!cuadricula) {
@@ -16,11 +26,15 @@ export class PanelInventario {
       throw new Error("PanelInventario necesita un mensaje vacío.");
     }
 
+    asegurarHojaEstilos();
+
     this.cuadricula = cuadricula;
-
     this.mensajeVacio = mensajeVacio;
-
     this.alSeleccionarObjeto = null;
+
+    // El resumen se crea desde JavaScript para no
+    // modificar la estructura actual de index.html.
+    this.crearResumenInventario();
 
     this.manejarClick = this.manejarClick.bind(this);
 
@@ -39,10 +53,13 @@ export class PanelInventario {
     this.alSeleccionarObjeto = callback;
   }
 
-  actualizar(inventario) {
-    if (!inventario || typeof inventario.obtenerEspacios !== "function") {
-      throw new Error("PanelInventario necesita un inventario válido.");
-    }
+  // Actualiza tanto las casillas como el resumen.
+  //
+  // Recibe al jugador completo porque el oro no
+  // pertenece al contenedor de objetos.
+  actualizar(inventario, jugador) {
+    validarInventario(inventario);
+    validarJugador(jugador);
 
     const espacios = inventario.obtenerEspacios();
 
@@ -53,11 +70,16 @@ export class PanelInventario {
     });
 
     this.mensajeVacio.classList.toggle("oculto", !inventario.estaVacio());
+
+    this.actualizarResumen({
+      inventario,
+      jugador,
+    });
   }
 
   // Crea una casilla del inventario.
   //
-  // Seleccionarla ahora abre el detalle del objeto.
+  // Seleccionarla abre el detalle del objeto.
   // La acción de equipar, consumir o cargar se confirma
   // posteriormente desde el modal.
   crearCasilla(objeto, indice) {
@@ -85,9 +107,7 @@ export class PanelInventario {
 
     agregarRepresentacionObjeto({
       contenedor: casilla,
-
       objeto,
-
       claseTexto: "nombre-objeto",
     });
 
@@ -131,6 +151,73 @@ export class PanelInventario {
     lineas.push("Clic para ver detalles.");
 
     return lineas.join("\n");
+  }
+
+  // Construye el bloque inferior que después
+  // también mostrará el peso del inventario.
+  crearResumenInventario() {
+    this.resumenInventario = document.createElement("section");
+
+    this.resumenInventario.classList.add("resumen-inventario");
+
+    this.resumenInventario.setAttribute("aria-label", "Resumen del inventario");
+
+    const resumenCasillas = crearDatoResumen({
+      etiqueta: "Casillas",
+    });
+
+    const resumenLibres = crearDatoResumen({
+      etiqueta: "Libres",
+    });
+
+    const resumenOro = crearDatoResumen({
+      etiqueta: "Oro",
+
+      claseAdicional: "resumen-inventario__dato--oro",
+    });
+
+    this.valorCasillas = resumenCasillas.valor;
+
+    this.valorLibres = resumenLibres.valor;
+
+    this.valorOro = resumenOro.valor;
+
+    this.resumenInventario.append(
+      resumenCasillas.contenedor,
+      resumenLibres.contenedor,
+      resumenOro.contenedor,
+    );
+
+    // El mensaje y la cuadrícula comparten el mismo
+    // panel. Insertamos el resumen al final para que
+    // permanezca debajo de las casillas.
+    const contenedorPanel = this.cuadricula.parentElement;
+
+    if (!contenedorPanel) {
+      throw new Error("No se encontró el contenedor del inventario.");
+    }
+
+    contenedorPanel.appendChild(this.resumenInventario);
+  }
+
+  actualizarResumen({ inventario, jugador }) {
+    const libres = inventario.contarEspaciosLibres();
+
+    const ocupadas = inventario.capacidad - libres;
+
+    this.valorCasillas.textContent = `${ocupadas}/${inventario.capacidad}`;
+
+    this.valorLibres.textContent = `${libres}`;
+
+    this.valorOro.textContent = formatearCantidadMonedas(jugador.oro);
+
+    this.resumenInventario.setAttribute(
+      "aria-label",
+
+      `Inventario: ${ocupadas} de ` +
+        `${inventario.capacidad} casillas ocupadas, ` +
+        `${libres} libres y ${jugador.oro} monedas de oro.`,
+    );
   }
 
   manejarClick(event) {
@@ -178,5 +265,72 @@ export class PanelInventario {
     this.cuadricula.removeEventListener("click", this.manejarClick);
 
     this.cuadricula.removeEventListener("keydown", this.manejarTecla);
+
+    this.resumenInventario.remove();
   }
+}
+
+function crearDatoResumen({ etiqueta, claseAdicional = null }) {
+  const contenedor = document.createElement("div");
+
+  contenedor.classList.add("resumen-inventario__dato");
+
+  if (claseAdicional) {
+    contenedor.classList.add(claseAdicional);
+  }
+
+  const elementoEtiqueta = document.createElement("span");
+
+  elementoEtiqueta.classList.add("resumen-inventario__etiqueta");
+
+  elementoEtiqueta.textContent = etiqueta;
+
+  const valor = document.createElement("strong");
+
+  valor.classList.add("resumen-inventario__valor");
+
+  valor.textContent = "0";
+
+  contenedor.append(elementoEtiqueta, valor);
+
+  return {
+    contenedor,
+    valor,
+  };
+}
+
+function validarInventario(inventario) {
+  if (
+    !inventario ||
+    typeof inventario.obtenerEspacios !== "function" ||
+    typeof inventario.estaVacio !== "function" ||
+    typeof inventario.contarEspaciosLibres !== "function" ||
+    !Number.isInteger(inventario.capacidad)
+  ) {
+    throw new Error("PanelInventario necesita un inventario válido.");
+  }
+}
+
+function validarJugador(jugador) {
+  if (!jugador || !Number.isSafeInteger(jugador.oro) || jugador.oro < 0) {
+    throw new Error("PanelInventario necesita un jugador con oro válido.");
+  }
+}
+
+function formatearCantidadMonedas(cantidad) {
+  return new Intl.NumberFormat("es-UY").format(cantidad);
+}
+
+function asegurarHojaEstilos() {
+  if (document.getElementById(ID_HOJA_ESTILOS)) {
+    return;
+  }
+
+  const enlace = document.createElement("link");
+
+  enlace.id = ID_HOJA_ESTILOS;
+  enlace.rel = "stylesheet";
+  enlace.href = RUTA_HOJA_ESTILOS;
+
+  document.head.appendChild(enlace);
 }

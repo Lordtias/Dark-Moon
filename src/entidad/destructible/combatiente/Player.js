@@ -20,7 +20,11 @@ const ATRIBUTOS_VALIDOS = [
 ];
 
 // Player conserva únicamente responsabilidades
-// propias del jugador: progresión y atributos.
+// propias del jugador:
+//
+// - Progresión y atributos.
+// - Inventario y equipamiento personal.
+// - Recursos persistentes, como el oro.
 //
 // La interacción de objetos se delega a
 // SistemaInventarioEquipamiento.
@@ -34,11 +38,11 @@ export class Player extends Combatiente {
     estadisticasBase,
     ataqueNatural = null,
 
-    // Factores que controlarán la velocidad
+    // Factores que controlan la velocidad
     // global y específica del jugador.
     //
     // Mientras no se configuren explícitamente,
-    // Combatiente utilizará 100 en todos.
+    // Combatiente utiliza 100 en todos.
     factoresTemporales = {},
 
     clasePersonaje = "Aventurero",
@@ -51,6 +55,15 @@ export class Player extends Combatiente {
 
     experiencia = 0,
     puntosAtributoDisponibles = 0,
+
+    // El oro pertenece al jugador y no ocupa
+    // una casilla dentro del inventario.
+    //
+    // Como Player se conserva entre mapas,
+    // este valor también persiste entre ciudad
+    // y mazmorras.
+    oro = 100,
+
     capacidadInventario = 12,
     objetosInventarioIniciales = [],
 
@@ -91,7 +104,7 @@ export class Player extends Combatiente {
     // La imagen es opcional.
     //
     // Si no está configurada, el renderizador
-    // continuará mostrando el símbolo "@".
+    // continúa mostrando el símbolo "@".
     if (
       recursoVisual !== null &&
       (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
@@ -117,9 +130,20 @@ export class Player extends Combatiente {
       );
     }
 
+    validarCantidadOro({
+      cantidad: oro,
+      descripcion: "El oro inicial",
+      permitirCero: true,
+    });
+
     this.clasePersonaje = clasePersonaje;
 
     this.inventario = this.contenedorObjetos;
+
+    // Utilizamos una propiedad interna para que
+    // el oro solo pueda modificarse mediante
+    // las operaciones validadas de esta clase.
+    this._oro = oro;
 
     this._experiencia = 0;
     this.experienciaTotal = 0;
@@ -133,6 +157,10 @@ export class Player extends Combatiente {
     }
   }
 
+  get oro() {
+    return this._oro;
+  }
+
   get experiencia() {
     return this._experiencia;
   }
@@ -142,7 +170,78 @@ export class Player extends Combatiente {
   }
 
   get porcentajeExperiencia() {
-    return Math.min(100, (this._experiencia / this.experienciaNecesaria) * 100);
+    return Math.min(
+      100,
+
+      (this._experiencia / this.experienciaNecesaria) * 100,
+    );
+  }
+
+  // Agrega monedas al jugador.
+  //
+  // Este método será utilizado después por
+  // la venta de objetos, recompensas y botines.
+  agregarOro(cantidad) {
+    validarCantidadOro({
+      cantidad,
+
+      descripcion: "La cantidad de oro agregada",
+    });
+
+    this._oro += cantidad;
+
+    return {
+      exito: true,
+      oroAgregado: cantidad,
+      oroActual: this._oro,
+    };
+  }
+
+  // Permite consultar si una compra puede pagarse
+  // sin modificar todavía el saldo del jugador.
+  puedePagar(cantidad) {
+    validarCantidadOro({
+      cantidad,
+
+      descripcion: "El precio consultado",
+
+      permitirCero: true,
+    });
+
+    return this._oro >= cantidad;
+  }
+
+  // Descuenta monedas únicamente cuando existe
+  // saldo suficiente.
+  //
+  // Si el jugador no puede pagar, no se modifica
+  // el oro y se devuelve un resultado fallido.
+  gastarOro(cantidad) {
+    validarCantidadOro({
+      cantidad,
+
+      descripcion: "La cantidad de oro gastada",
+    });
+
+    if (!this.puedePagar(cantidad)) {
+      return {
+        exito: false,
+        oroGastado: 0,
+        oroActual: this._oro,
+
+        mensaje: "No tenés suficiente oro.",
+      };
+    }
+
+    this._oro -= cantidad;
+
+    return {
+      exito: true,
+      oroGastado: cantidad,
+      oroActual: this._oro,
+
+      mensaje: `Gastaste ${cantidad} monedas.`,
+    };
   }
 
   ganarExperiencia(cantidad) {
@@ -185,6 +284,8 @@ export class Player extends Combatiente {
     }
 
     if (nivelesGanados > 0) {
+      // Fuerza el recálculo de estadísticas
+      // después de cambiar el nivel.
       this.estadisticasDerivadas;
 
       this.vidaActual = Math.min(
@@ -220,6 +321,7 @@ export class Player extends Combatiente {
     if (this.puntosAtributoDisponibles <= 0) {
       return {
         exito: false,
+
         mensaje: "No tenés puntos de atributo disponibles.",
       };
     }
@@ -233,9 +335,10 @@ export class Player extends Combatiente {
     const manaActualAnterior = this.manaActual;
 
     this.atributos[nombreAtributo]++;
-
     this.puntosAtributoDisponibles--;
 
+    // Fuerza el recálculo de estadísticas
+    // después de cambiar un atributo.
     this.estadisticasDerivadas;
 
     this.vidaActual = Math.min(
@@ -267,5 +370,19 @@ export class Player extends Combatiente {
 
   desequiparObjetoAInventario(nombreRanura) {
     return desequiparObjetoAInventario(this, nombreRanura);
+  }
+}
+
+// El oro se maneja siempre como monedas enteras.
+// No se aceptan valores negativos, decimales,
+// infinitos ni conversiones implícitas desde texto.
+function validarCantidadOro({ cantidad, descripcion, permitirCero = false }) {
+  const minimo = permitirCero ? 0 : 1;
+
+  if (!Number.isSafeInteger(cantidad) || cantidad < minimo) {
+    throw new Error(
+      `${descripcion} debe ser un entero ` +
+        `${permitirCero ? "igual o mayor" : "mayor"} que 0.`,
+    );
   }
 }

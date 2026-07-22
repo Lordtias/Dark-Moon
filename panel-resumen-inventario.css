@@ -1,0 +1,56 @@
+/* Resumen inferior del inventario.
+ *
+ * El bloque se crea desde PanelInventario para no
+ * acoplar la moneda a las casillas de objetos.
+ */
+.resumen-inventario {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(145, 158, 191, 0.28);
+}
+
+.resumen-inventario__dato {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(116, 130, 165, 0.32);
+  border-radius: 7px;
+  background: rgba(18, 23, 38, 0.68);
+}
+
+.resumen-inventario__dato--oro {
+  border-color: rgba(211, 184, 90, 0.46);
+  background: rgba(54, 45, 18, 0.48);
+}
+
+.resumen-inventario__etiqueta {
+  overflow: hidden;
+  color: #9da8c2;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-inventario__valor {
+  overflow: hidden;
+  color: #eef2ff;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-inventario__dato--oro .resumen-inventario__valor {
+  color: #f0d46e;
+}
+
+@media (max-width: 900px) {
+  .resumen-inventario {
+    grid-template-columns: 1fr;
+  }
+}

@@ -109,7 +109,10 @@ export class Renderizador {
     // independientes del backend del mapa.
     this.panelPersonaje.actualizar(juego.player);
 
-    this.panelInventario.actualizar(juego.player.inventario);
+    // PanelInventario recibe también al jugador
+    // porque el oro no forma parte del contenedor
+    // ni ocupa una casilla de inventario.
+    this.panelInventario.actualizar(juego.player.inventario, juego.player);
 
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
 
@@ -119,9 +122,13 @@ export class Renderizador {
   // Agrega mensajes al historial
   // sin borrar eventos anteriores.
   mostrarMensaje(mensaje) {
-    const mensajes = normalizarMensajesJuego(mensaje, {
-      nombreJugador: this.nombreJugador,
-    });
+    const mensajes = normalizarMensajesJuego(
+      mensaje,
+
+      {
+        nombreJugador: this.nombreJugador,
+      },
+    );
 
     if (mensajes.length === 0) {
       return;

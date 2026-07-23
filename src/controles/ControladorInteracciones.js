@@ -1,5 +1,9 @@
+import { ModalCuracion } from "../interfaz/curacion/ModalCuracion.js";
+import {
+  calcularEstadoCuracion,
+  curarJugador,
+} from "../juego/curacion/SistemaCuracion.js";
 import { TIPOS_INTERACCION } from "../juego/interacciones/TiposInteraccion.js";
-
 import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 
 // E ya se utiliza para el movimiento diagonal noreste.
@@ -15,6 +19,7 @@ const TECLA_INTERACCION = "KeyR";
 // - La apertura de contenedores.
 // - La selección de mazmorras.
 // - La solicitud de comercio.
+// - Los servicios de curación.
 // - La confirmación del selector.
 // - Las transiciones entre mapas.
 export class ControladorInteracciones {
@@ -95,25 +100,20 @@ export class ControladorInteracciones {
     }
 
     this.juego = juego;
-
     this.renderizador = renderizador;
-
     this.modalContenedorObjetos = modalContenedorObjetos;
-
     this.modalSeleccionMazmorra = modalSeleccionMazmorra;
-
     this.obtenerMazmorrasDisponibles = obtenerMazmorrasDisponibles;
-
     this.alSeleccionarMazmorra = alSeleccionarMazmorra;
-
     this.alSolicitarComercio = alSolicitarComercio;
-
     this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
 
+    // El modal de curación se crea de forma diferida.
+    // Así las mazmorras que no contienen curanderas
+    // no agregan una ventana innecesaria al documento.
+    this.modalCuracion = null;
     this.interactuableActual = null;
-
     this.manejarTecla = this.manejarTecla.bind(this);
-
     this.estaActivo = false;
   }
 
@@ -123,23 +123,19 @@ export class ControladorInteracciones {
     }
 
     document.addEventListener("keydown", this.manejarTecla);
-
     this.estaActivo = true;
   }
 
   desactivar() {
-    if (!this.estaActivo) {
-      return;
+    if (this.estaActivo) {
+      document.removeEventListener("keydown", this.manejarTecla);
     }
 
-    document.removeEventListener("keydown", this.manejarTecla);
-
     this.modalContenedorObjetos.cerrar();
-
     this.modalSeleccionMazmorra.cerrar();
-
+    this.modalCuracion?.destruir();
+    this.modalCuracion = null;
     this.interactuableActual = null;
-
     this.estaActivo = false;
   }
 
@@ -158,7 +154,6 @@ export class ControladorInteracciones {
 
     if (this.juego.modoInteraccionActivo) {
       const resultado = this.juego.confirmarInteraccionSeleccionada();
-
       this.procesarResultado(resultado);
 
       if (resultado?.interaccion) {
@@ -172,7 +167,6 @@ export class ControladorInteracciones {
 
     if (bloqueo) {
       this.procesarResultado(bloqueo);
-
       return;
     }
 
@@ -180,18 +174,15 @@ export class ControladorInteracciones {
 
     if (opciones.length === 0) {
       this.renderizador.mostrarMensaje("No hay nada para revisar cerca.");
-
       return;
     }
 
     if (opciones.length === 1) {
       this.ejecutarInteraccion(opciones[0].interaccionPrioritaria);
-
       return;
     }
 
     const resultado = this.juego.entrarModoInteraccion();
-
     this.procesarResultado(resultado);
   }
 
@@ -203,6 +194,10 @@ export class ControladorInteracciones {
 
       case TIPOS_INTERACCION.COMERCIAR:
         this.solicitarComercio(interaccion);
+        break;
+
+      case TIPOS_INTERACCION.CURAR:
+        this.abrirCuracion(interaccion);
         break;
 
       case TIPOS_INTERACCION.SELECCIONAR_MAZMORRA:
@@ -224,31 +219,24 @@ export class ControladorInteracciones {
   abrirContenedor(interaccion) {
     const interactuable = interaccion.entidad;
 
+    this.modalCuracion?.cerrar();
     this.interactuableActual = interactuable;
 
     this.modalContenedorObjetos.abrir({
       titulo: interactuable.nombre,
-
       contenedorObjetos: interaccion.contenedorObjetos,
-
       combatiente: this.juego.player,
-
       alRecoger: (indiceOrigen) => {
         const resultado = this.juego.recogerObjetoInteractuable(
           interactuable,
           indiceOrigen,
         );
-
         this.procesarResultado(resultado);
-
         this.actualizarModalDespuesAccion(interactuable);
       },
-
       alRecogerTodo: () => {
         const resultado = this.juego.recogerTodoInteractuable(interactuable);
-
         this.procesarResultado(resultado);
-
         this.actualizarModalDespuesAccion(interactuable);
       },
     });
@@ -268,20 +256,64 @@ export class ControladorInteracciones {
     }
 
     this.modalContenedorObjetos.cerrar();
-
     this.modalSeleccionMazmorra.cerrar();
-
+    this.modalCuracion?.cerrar();
     this.interactuableActual = null;
-
     this.alSolicitarComercio(mercader.id);
   }
 
+  abrirCuracion(interaccion) {
+    const curandera = interaccion.entidad;
+
+    if (
+      !curandera ||
+      typeof curandera.nombre !== "string" ||
+      curandera.nombre.trim() === ""
+    ) {
+      throw new Error(
+        "La interacción de curación no contiene una curandera válida.",
+      );
+    }
+
+    this.modalContenedorObjetos.cerrar();
+    this.modalSeleccionMazmorra.cerrar();
+    this.interactuableActual = null;
+
+    const modalCuracion = this.obtenerModalCuracion();
+
+    modalCuracion.abrir({
+      curandera,
+      jugador: this.juego.player,
+      calcularEstado: () =>
+        calcularEstadoCuracion({
+          jugador: this.juego.player,
+        }),
+      alCurar: (tipoServicio) => {
+        const resultado = curarJugador({
+          jugador: this.juego.player,
+          tipoServicio,
+        });
+
+        return this.procesarResultado(resultado);
+      },
+    });
+  }
+
+  obtenerModalCuracion() {
+    if (!this.modalCuracion) {
+      this.modalCuracion = new ModalCuracion();
+    }
+
+    return this.modalCuracion;
+  }
+
   abrirSeleccionMazmorra() {
+    this.modalCuracion?.cerrar();
+
     const mazmorras = this.obtenerMazmorrasDisponibles();
 
     this.modalSeleccionMazmorra.abrir({
       mazmorras,
-
       alConfirmar: (idMazmorra) => this.alSeleccionarMazmorra(idMazmorra),
     });
   }
@@ -296,11 +328,9 @@ export class ControladorInteracciones {
     }
 
     this.modalContenedorObjetos.cerrar();
-
     this.modalSeleccionMazmorra.cerrar();
-
+    this.modalCuracion?.cerrar();
     this.interactuableActual = null;
-
     this.alSolicitarTransicionMapa(solicitud);
   }
 
@@ -313,9 +343,7 @@ export class ControladorInteracciones {
       interactuable.estaVacio
     ) {
       this.modalContenedorObjetos.cerrar();
-
       this.interactuableActual = null;
-
       return;
     }
 
@@ -325,9 +353,7 @@ export class ControladorInteracciones {
   procesarResultado(resultado) {
     return aplicarResultadoAccion({
       resultado,
-
       juego: this.juego,
-
       renderizador: this.renderizador,
     });
   }

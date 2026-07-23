@@ -96,6 +96,29 @@
       ]
     },
     {
+      "tipo": "npc",
+      "id": "curandera_refugio",
+      "nombre": "Lythra, sanadora lunar",
+      "descripcion": "Una sanadora élfica que atiende a quienes regresan heridos o agotados de las mazmorras.",
+      "roles": ["curandera"],
+      "faccion": "refugio_luna_oscura",
+      "x": 21,
+      "y": 13,
+      "simbolo": "C",
+      "recursoVisual": "assets/imagenes/npc/lythra_curandera.png",
+      "datos": {
+        "idServicioCuracion": "curacion_refugio"
+      },
+      "interacciones": [
+        {
+          "tipo": "curar",
+          "texto": "Recibir cuidados de Lythra",
+          "alcance": 1,
+          "prioridad": 85
+        }
+      ]
+    },
+    {
       "tipo": "portalMapa",
       "nombre": "Entrada a las mazmorras",
       "x": 13,

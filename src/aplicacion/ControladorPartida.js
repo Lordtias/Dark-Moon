@@ -154,6 +154,10 @@ export class ControladorPartida {
 
         portalPrueba: parametrosPrueba.portalPrueba,
 
+        // Los parámetros de URL forman parte del modo
+        // de desarrollo y pueden abrir mapas bloqueados.
+        ignorarNivelDesbloqueo: true,
+
         parametrosPrueba,
       });
     } else {
@@ -169,6 +173,7 @@ export class ControladorPartida {
 
   iniciarCiudad({
     puntoEntrada = "inicioPartida",
+
     esInicioPartida = false,
   } = {}) {
     if (!this.partidaIniciada || !this.gestorMapasPartida) {
@@ -198,6 +203,7 @@ export class ControladorPartida {
     nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
+    ignorarNivelDesbloqueo = false,
     parametrosPrueba = null,
   } = {}) {
     if (
@@ -216,6 +222,7 @@ export class ControladorPartida {
       nivelMapaForzado,
       botinPrueba,
       portalPrueba,
+      ignorarNivelDesbloqueo,
     });
 
     this.activarMapa(configuracionMapa);
@@ -246,6 +253,7 @@ export class ControladorPartida {
         botinPrueba,
         portalPrueba,
         semillaMapa,
+        ignorarNivelDesbloqueo,
       },
     });
 
@@ -296,6 +304,9 @@ export class ControladorPartida {
           botinPrueba: solicitudNormalizada.datos.botinPrueba === true,
 
           portalPrueba: solicitudNormalizada.datos.portalPrueba === true,
+
+          ignorarNivelDesbloqueo:
+            solicitudNormalizada.datos.ignorarNivelDesbloqueo === true,
         });
 
       case TIPOS_TRANSICION_MAPA.REGRESAR_CIUDAD:

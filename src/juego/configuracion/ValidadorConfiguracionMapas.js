@@ -38,7 +38,26 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarTexto(plantilla.nombre, `el nombre de "${idPlantilla}"`);
 
+  validarTexto(plantilla.descripcion, `la descripción de "${idPlantilla}"`);
+
   validarTexto(plantilla.bioma, `el bioma de "${idPlantilla}"`);
+
+  validarTexto(
+    plantilla.recursoVisual,
+    `el recurso visual de "${idPlantilla}"`,
+  );
+
+  validarRutaRecursoVisual({
+    ruta: plantilla.recursoVisual,
+
+    idPlantilla,
+  });
+
+  validarEnteroMinimo(
+    plantilla.nivelDesbloqueo,
+    1,
+    `el nivel de desbloqueo de "${idPlantilla}"`,
+  );
 
   validarNumeroMayorQueCero(
     plantilla.pesoSeleccion,
@@ -57,11 +76,34 @@ function validarPlantilla(idPlantilla, plantilla) {
     minimoPermitido: 1,
   });
 
+  validarCoherenciaNiveles({
+    idPlantilla,
+
+    nivelDesbloqueo: plantilla.nivelDesbloqueo,
+
+    niveles: plantilla.niveles,
+  });
+
   validarGeneracion(idPlantilla, plantilla.generacion);
 
   validarEnemigos(idPlantilla, plantilla.enemigos);
 
   validarDestructibles(idPlantilla, plantilla.destructibles);
+}
+
+function validarRutaRecursoVisual({ ruta, idPlantilla }) {
+  const rutaNormalizada = ruta.trim();
+
+  if (
+    rutaNormalizada.startsWith("/") ||
+    rutaNormalizada.includes("..") ||
+    !/\.(png|jpg|jpeg|webp)$/i.test(rutaNormalizada)
+  ) {
+    throw new Error(
+      `El recurso visual de "${idPlantilla}" debe ser una ruta relativa ` +
+        "a una imagen PNG, JPG, JPEG o WEBP.",
+    );
+  }
 }
 
 function validarApariencia(idPlantilla, apariencia) {
@@ -101,6 +143,22 @@ function validarDimensiones(idPlantilla, dimensiones) {
   });
 }
 
+function validarCoherenciaNiveles({ idPlantilla, nivelDesbloqueo, niveles }) {
+  if (nivelDesbloqueo < niveles.minimo) {
+    throw new Error(
+      `El nivel de desbloqueo de "${idPlantilla}" no puede ser ` +
+        `menor que su nivel de expedición mínimo (${niveles.minimo}).`,
+    );
+  }
+
+  if (nivelDesbloqueo > niveles.maximo) {
+    throw new Error(
+      `El nivel de desbloqueo de "${idPlantilla}" no puede superar ` +
+        `su nivel de expedición máximo (${niveles.maximo}).`,
+    );
+  }
+}
+
 function validarGeneracion(idPlantilla, generacion) {
   validarObjeto(generacion, `la generación de "${idPlantilla}"`);
 
@@ -125,9 +183,7 @@ function validarGeneracion(idPlantilla, generacion) {
 
   validarEnteroMinimo(
     generacion.intentosMaximos,
-
     1,
-
     `los intentos máximos de "${idPlantilla}"`,
   );
 }
@@ -145,31 +201,22 @@ function validarEnemigos(idPlantilla, enemigos) {
 
   validarEnteroMinimo(
     enemigos.distanciaSeguraJugador,
-
     0,
-
     `la distancia segura de "${idPlantilla}"`,
   );
 
   validarEnteroMinimo(
     enemigos.distanciaMinimaEntreEnemigos,
-
     0,
-
     `la distancia entre enemigos de "${idPlantilla}"`,
   );
 
   validarListaPonderada(
     enemigos.permitidos,
-
     `los enemigos permitidos de "${idPlantilla}"`,
   );
 
-  validarProbabilidadesVariantes(
-    idPlantilla,
-
-    enemigos.probabilidadesVariantes,
-  );
+  validarProbabilidadesVariantes(idPlantilla, enemigos.probabilidadesVariantes);
 }
 
 function validarDestructibles(idPlantilla, destructibles) {
@@ -183,7 +230,6 @@ function validarDestructibles(idPlantilla, destructibles) {
 
   validarListaPonderada(
     destructibles.permitidos,
-
     `los destructibles permitidos de "${idPlantilla}"`,
   );
 }
@@ -205,7 +251,6 @@ function validarListaPonderada(lista, descripcion) {
 function validarProbabilidadesVariantes(idPlantilla, probabilidades) {
   validarObjeto(
     probabilidades,
-
     `las probabilidades de variantes de "${idPlantilla}"`,
   );
 
@@ -216,7 +261,6 @@ function validarProbabilidadesVariantes(idPlantilla, probabilidades) {
 
     validarPorcentaje(
       probabilidad,
-
       `la probabilidad "${variante}" de "${idPlantilla}"`,
     );
 

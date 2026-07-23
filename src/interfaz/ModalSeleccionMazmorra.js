@@ -8,11 +8,15 @@ const RUTA_HOJA_ESTILOS_NIVEL = "./nivel-expedicion.css";
 
 let siguienteIdModal = 1;
 
-// Presenta las plantillas de mazmorra disponibles,
-// permite elegir su nivel y devuelve ambos valores
-// al controlador.
+// Presenta todas las plantillas de mazmorra,
+// incluidas las que todavía están bloqueadas.
 //
-// El modal no genera mapas ni conoce EstadoPartida.
+// Las miniaturas se muestran únicamente dentro
+// de la lista de opciones. El panel derecho conserva
+// la información textual y los controles de nivel.
+//
+// Los destinos bloqueados pueden seleccionarse para
+// consultar sus requisitos, pero no pueden confirmarse.
 export class ModalSeleccionMazmorra {
   constructor() {
     asegurarHojaEstilos({
@@ -177,9 +181,13 @@ export class ModalSeleccionMazmorra {
 
     this.alConfirmar = alConfirmar;
 
-    this.idSeleccionado = this.mazmorras[0].id;
+    const primeraDisponible =
+      this.mazmorras.find((mazmorra) => mazmorra.desbloqueada) ??
+      this.mazmorras[0];
 
-    this.nivelSeleccionado = this.mazmorras[0].nivelSugerido;
+    this.idSeleccionado = primeraDisponible.id;
+
+    this.nivelSeleccionado = primeraDisponible.nivelSugerido;
 
     this.actualizar();
 
@@ -223,13 +231,42 @@ export class ModalSeleccionMazmorra {
 
     boton.classList.toggle("seleccionada", seleccionado);
 
+    boton.classList.toggle("bloqueada", !mazmorra.desbloqueada);
+
     boton.setAttribute("aria-selected", `${seleccionado}`);
+
+    // No usamos el atributo disabled porque el jugador
+    // debe poder seleccionar visualmente un mapa bloqueado
+    // para leer su información y requisito.
+    boton.setAttribute("aria-disabled", `${!mazmorra.desbloqueada}`);
+
+    const visual = this.crearVisualMazmorra(mazmorra);
+
+    const contenido = document.createElement("span");
+
+    contenido.classList.add("modal-seleccion-mazmorra__contenido-opcion");
+
+    const cabecera = document.createElement("span");
+
+    cabecera.classList.add("modal-seleccion-mazmorra__cabecera-opcion");
 
     const nombre = document.createElement("strong");
 
     nombre.classList.add("modal-seleccion-mazmorra__nombre");
 
     nombre.textContent = mazmorra.nombre;
+
+    const estado = document.createElement("span");
+
+    estado.classList.add("modal-seleccion-mazmorra__estado");
+
+    estado.classList.toggle("bloqueado", !mazmorra.desbloqueada);
+
+    estado.textContent = mazmorra.desbloqueada
+      ? "Disponible"
+      : `Nivel ${mazmorra.nivelDesbloqueo}`;
+
+    cabecera.append(nombre, estado);
 
     const descripcion = document.createElement("span");
 
@@ -241,12 +278,72 @@ export class ModalSeleccionMazmorra {
 
     resumen.classList.add("modal-seleccion-mazmorra__resumen");
 
-    resumen.textContent =
-      crearTextoNivel(mazmorra) + ` · ${formatearTexto(mazmorra.bioma)}`;
+    resumen.textContent = mazmorra.desbloqueada
+      ? `${crearTextoNivel(mazmorra)} · ${formatearTexto(mazmorra.bioma)}`
+      : `${crearTextoNivel(mazmorra)} · Mapa bloqueado`;
 
-    boton.append(nombre, descripcion, resumen);
+    contenido.append(cabecera, descripcion, resumen);
+
+    boton.append(visual, contenido);
 
     return boton;
+  }
+
+  crearVisualMazmorra(mazmorra) {
+    const visual = document.createElement("span");
+
+    visual.classList.add("modal-seleccion-mazmorra__visual");
+
+    visual.classList.toggle(
+      "modal-seleccion-mazmorra__visual--bloqueado",
+      !mazmorra.desbloqueada,
+    );
+
+    if (mazmorra.recursoVisual) {
+      const imagen = document.createElement("img");
+
+      imagen.classList.add("modal-seleccion-mazmorra__imagen");
+
+      imagen.src = mazmorra.recursoVisual;
+
+      imagen.alt = `Vista previa de ${mazmorra.nombre}`;
+
+      imagen.loading = "lazy";
+
+      imagen.addEventListener("error", () => {
+        imagen.remove();
+
+        visual.classList.add("modal-seleccion-mazmorra__visual--sin-imagen");
+      });
+
+      visual.appendChild(imagen);
+    } else {
+      visual.classList.add("modal-seleccion-mazmorra__visual--sin-imagen");
+    }
+
+    if (!mazmorra.desbloqueada) {
+      const bloqueo = document.createElement("span");
+
+      bloqueo.classList.add("modal-seleccion-mazmorra__bloqueo-visual");
+
+      const candado = document.createElement("span");
+
+      candado.classList.add("modal-seleccion-mazmorra__candado");
+
+      candado.textContent = "🔒";
+
+      candado.setAttribute("aria-hidden", "true");
+
+      const requisito = document.createElement("strong");
+
+      requisito.textContent = `Nivel ${mazmorra.nivelDesbloqueo}`;
+
+      bloqueo.append(candado, requisito);
+
+      visual.appendChild(bloqueo);
+    }
+
+    return visual;
   }
 
   actualizarDetalle() {
@@ -262,9 +359,11 @@ export class ModalSeleccionMazmorra {
 
     this.normalizarNivelSeleccionado(mazmorra);
 
-    this.botonConfirmar.disabled = false;
+    this.botonConfirmar.disabled = !mazmorra.desbloqueada;
 
-    this.botonConfirmar.textContent = `Entrar a ${mazmorra.nombre} · Nivel ${this.nivelSeleccionado}`;
+    this.botonConfirmar.textContent = mazmorra.desbloqueada
+      ? `Entrar a ${mazmorra.nombre} · Nivel ${this.nivelSeleccionado}`
+      : `Requiere nivel ${mazmorra.nivelDesbloqueo}`;
 
     const titulo = document.createElement("h3");
 
@@ -276,11 +375,21 @@ export class ModalSeleccionMazmorra {
 
     descripcion.textContent = mazmorra.descripcion;
 
+    const avisoAcceso = this.crearAvisoAcceso(mazmorra);
+
     const selectorNivel = this.crearSelectorNivel(mazmorra);
 
     const datos = document.createElement("dl");
 
     datos.classList.add("modal-seleccion-mazmorra__datos");
+
+    agregarDato({
+      lista: datos,
+
+      termino: "Desbloqueo",
+
+      valor: `Nivel ${mazmorra.nivelDesbloqueo}`,
+    });
 
     agregarDato({
       lista: datos,
@@ -314,13 +423,46 @@ export class ModalSeleccionMazmorra {
       valor: crearTextoCantidadEnemigos(mazmorra),
     });
 
-    this.detalle.append(titulo, descripcion, selectorNivel, datos);
+    this.detalle.append(titulo, descripcion);
+
+    if (avisoAcceso) {
+      this.detalle.appendChild(avisoAcceso);
+    }
+
+    this.detalle.append(selectorNivel, datos);
+  }
+
+  crearAvisoAcceso(mazmorra) {
+    if (mazmorra.desbloqueada) {
+      return null;
+    }
+
+    const aviso = document.createElement("div");
+
+    aviso.classList.add("modal-seleccion-mazmorra__aviso-bloqueo");
+
+    const titulo = document.createElement("strong");
+
+    titulo.textContent = "Mapa bloqueado";
+
+    const mensaje = document.createElement("span");
+
+    mensaje.textContent = mazmorra.mensajeBloqueo;
+
+    aviso.append(titulo, mensaje);
+
+    return aviso;
   }
 
   crearSelectorNivel(mazmorra) {
     const contenedor = document.createElement("section");
 
     contenedor.classList.add("selector-nivel-expedicion");
+
+    contenedor.classList.toggle(
+      "selector-nivel-expedicion--bloqueado",
+      !mazmorra.desbloqueada,
+    );
 
     const cabecera = document.createElement("div");
 
@@ -350,13 +492,10 @@ export class ModalSeleccionMazmorra {
       etiqueta: "Disminuir nivel de expedición",
     });
 
-    botonDisminuir.disabled = this.nivelSeleccionado <= mazmorra.nivelMinimo;
+    botonDisminuir.disabled =
+      !mazmorra.desbloqueada || this.nivelSeleccionado <= mazmorra.nivelMinimo;
 
-    botonDisminuir.addEventListener(
-      "click",
-
-      () => this.cambiarNivel(-1),
-    );
+    botonDisminuir.addEventListener("click", () => this.cambiarNivel(-1));
 
     const valor = document.createElement("strong");
 
@@ -370,21 +509,24 @@ export class ModalSeleccionMazmorra {
       etiqueta: "Aumentar nivel de expedición",
     });
 
-    botonAumentar.disabled = this.nivelSeleccionado >= mazmorra.nivelMaximo;
+    botonAumentar.disabled =
+      !mazmorra.desbloqueada || this.nivelSeleccionado >= mazmorra.nivelMaximo;
 
-    botonAumentar.addEventListener(
-      "click",
-
-      () => this.cambiarNivel(1),
-    );
+    botonAumentar.addEventListener("click", () => this.cambiarNivel(1));
 
     controles.append(botonDisminuir, valor, botonAumentar);
 
-    const riesgo = crearPresentacionRiesgo({
-      nivelMapa: this.nivelSeleccionado,
+    const riesgo = mazmorra.desbloqueada
+      ? crearPresentacionRiesgo({
+          nivelMapa: this.nivelSeleccionado,
 
-      nivelJugador: mazmorra.nivelJugador,
-    });
+          nivelJugador: mazmorra.nivelJugador,
+        })
+      : {
+          id: "bloqueado",
+
+          texto: "Bloqueada",
+        };
 
     const resumen = document.createElement("div");
 
@@ -392,7 +534,10 @@ export class ModalSeleccionMazmorra {
 
     const nivelJugador = document.createElement("span");
 
-    nivelJugador.textContent = `Tu nivel: ${mazmorra.nivelJugador}`;
+    nivelJugador.textContent = mazmorra.desbloqueada
+      ? `Tu nivel: ${mazmorra.nivelJugador}`
+      : `Tu nivel: ${mazmorra.nivelJugador} · ` +
+        `Requiere ${mazmorra.nivelDesbloqueo}`;
 
     const etiquetaRiesgo = document.createElement("strong");
 
@@ -419,8 +564,6 @@ export class ModalSeleccionMazmorra {
 
     this.idSeleccionado = idMazmorra;
 
-    // Cada cambio de plantilla recupera
-    // el nivel sugerido para el jugador.
     this.nivelSeleccionado = mazmorra.nivelSugerido;
 
     this.actualizar();
@@ -429,7 +572,7 @@ export class ModalSeleccionMazmorra {
   cambiarNivel(diferencia) {
     const mazmorra = this.obtenerMazmorraSeleccionada();
 
-    if (!mazmorra) {
+    if (!mazmorra || !mazmorra.desbloqueada) {
       return;
     }
 
@@ -478,7 +621,7 @@ export class ModalSeleccionMazmorra {
   confirmarSeleccion() {
     const mazmorra = this.obtenerMazmorraSeleccionada();
 
-    if (!mazmorra || !this.alConfirmar) {
+    if (!mazmorra || !mazmorra.desbloqueada || !this.alConfirmar) {
       return;
     }
 
@@ -490,9 +633,8 @@ export class ModalSeleccionMazmorra {
       nivelMapa: this.nivelSeleccionado,
     };
 
-    // Cerramos primero para que el cambio
-    // de mapa no deje una ventana perteneciente
-    // al mapa anterior.
+    // Cerramos primero para que el cambio de mapa
+    // no deje una ventana perteneciente al mapa anterior.
     this.cerrar();
 
     alConfirmar(seleccion);
@@ -500,6 +642,7 @@ export class ModalSeleccionMazmorra {
 
   manejarCierreSolicitado(event) {
     event?.preventDefault();
+
     this.cerrar();
   }
 
@@ -510,8 +653,8 @@ export class ModalSeleccionMazmorra {
   }
 
   manejarTeclaDialogo(event) {
-    // Impide que las teclas utilizadas dentro
-    // del modal alcancen los controladores del mapa.
+    // Impide que las teclas utilizadas dentro del modal
+    // alcancen los controladores del mapa.
     event.stopPropagation();
   }
 
@@ -634,7 +777,7 @@ function crearTextoNivel(mazmorra) {
     return `Nivel ${mazmorra.nivelMinimo}`;
   }
 
-  return `Niveles ${mazmorra.nivelMinimo}` + `–${mazmorra.nivelMaximo}`;
+  return `Niveles ${mazmorra.nivelMinimo}–${mazmorra.nivelMaximo}`;
 }
 
 function crearTextoDimensiones(mazmorra) {
@@ -666,11 +809,9 @@ function crearTextoRango(minimo, maximo) {
 }
 
 function formatearTexto(valor) {
-  return `${valor}`.replaceAll("_", " ").replace(
-    /^./,
-
-    (letra) => letra.toUpperCase(),
-  );
+  return `${valor}`
+    .replaceAll("_", " ")
+    .replace(/^./, (letra) => letra.toUpperCase());
 }
 
 function validarApertura({ mazmorras, alConfirmar }) {
@@ -694,7 +835,7 @@ function validarMazmorra(mazmorra) {
     throw new Error("El selector recibió una mazmorra inválida.");
   }
 
-  const textos = ["id", "nombre", "descripcion", "bioma"];
+  const textos = ["id", "nombre", "descripcion", "bioma", "recursoVisual"];
 
   for (const propiedad of textos) {
     if (
@@ -705,9 +846,23 @@ function validarMazmorra(mazmorra) {
     }
   }
 
+  if (typeof mazmorra.desbloqueada !== "boolean") {
+    throw new Error(
+      `La mazmorra "${mazmorra.nombre}" necesita indicar si está desbloqueada.`,
+    );
+  }
+
+  if (typeof mazmorra.mensajeBloqueo !== "string") {
+    throw new Error(
+      `La mazmorra "${mazmorra.nombre}" necesita un mensaje de bloqueo válido.`,
+    );
+  }
+
   const enteros = [
     "nivelJugador",
     "nivelSugerido",
+    "nivelDesbloqueo",
+    "nivelesFaltantes",
     "nivelMinimo",
     "nivelMaximo",
     "anchoMinimo",
@@ -733,6 +888,21 @@ function validarMazmorra(mazmorra) {
   ) {
     throw new Error(
       `El rango de niveles de "${mazmorra.nombre}" no es válido.`,
+    );
+  }
+
+  if (
+    mazmorra.nivelDesbloqueo < mazmorra.nivelMinimo ||
+    mazmorra.nivelDesbloqueo > mazmorra.nivelMaximo
+  ) {
+    throw new Error(
+      `El nivel de desbloqueo de "${mazmorra.nombre}" no es válido.`,
+    );
+  }
+
+  if (mazmorra.nivelesFaltantes < 0) {
+    throw new Error(
+      `Los niveles faltantes de "${mazmorra.nombre}" no son válidos.`,
     );
   }
 

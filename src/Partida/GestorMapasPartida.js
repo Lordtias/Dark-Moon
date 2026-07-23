@@ -6,6 +6,12 @@ import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGenera
 
 import { generarSalidaMazmorra } from "../juego/generacion/GeneradorSalidaMapa.js";
 
+import {
+  evaluarAccesoMapa,
+  filtrarConfiguracionMapasAccesibles,
+  validarAccesoMapa,
+} from "../juego/configuracion/ReglasAccesoMapas.js";
+
 // Administra la creación de los mapas utilizados
 // durante una misma partida.
 //
@@ -73,6 +79,11 @@ export class GestorMapasPartida {
 
     return Object.entries(this.configuracionMapas.plantillas).map(
       ([id, plantilla]) => {
+        const acceso = evaluarAccesoMapa({
+          plantilla,
+          nivelJugador,
+        });
+
         const nivelSugerido = limitarNumero({
           valor: nivelJugador,
 
@@ -92,8 +103,18 @@ export class GestorMapasPartida {
 
           bioma: plantilla.bioma,
 
+          recursoVisual: plantilla.recursoVisual ?? null,
+
           nivelJugador,
           nivelSugerido,
+
+          nivelDesbloqueo: acceso.nivelDesbloqueo,
+
+          desbloqueada: acceso.desbloqueada,
+
+          nivelesFaltantes: acceso.nivelesFaltantes,
+
+          mensajeBloqueo: acceso.mensajeBloqueo,
 
           nivelMinimo: plantilla.niveles.minimo,
 
@@ -148,7 +169,14 @@ export class GestorMapasPartida {
     nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
+    ignorarNivelDesbloqueo = false,
   } = {}) {
+    const configuracionMapasGeneracion =
+      this.prepararConfiguracionMapasGeneracion({
+        idMapaForzado,
+        ignorarNivelDesbloqueo,
+      });
+
     const configuracionMapa = crearConfiguracionMazmorra({
       player: this.estadoPartida.jugador,
 
@@ -156,7 +184,7 @@ export class GestorMapasPartida {
 
       configuracionObjetos: this.configuracionObjetos,
 
-      configuracionMapas: this.configuracionMapas,
+      configuracionMapas: configuracionMapasGeneracion,
 
       semillaMapa,
       idMapaForzado,
@@ -235,14 +263,64 @@ export class GestorMapasPartida {
 
     return configuracionMapa;
   }
+
+  // Prepara la configuración utilizada por el generador.
+  //
+  // Cuando se solicita una plantilla concreta, valida
+  // explícitamente el nivel del jugador antes de generar.
+  //
+  // Cuando no existe un ID forzado, conserva solamente
+  // las plantillas desbloqueadas para que la selección
+  // ponderada no pueda elegir un destino bloqueado.
+  prepararConfiguracionMapasGeneracion({
+    idMapaForzado,
+    ignorarNivelDesbloqueo,
+  }) {
+    if (typeof ignorarNivelDesbloqueo !== "boolean") {
+      throw new Error(
+        "La opción para ignorar el desbloqueo de mapas debe ser booleana.",
+      );
+    }
+
+    const nivelJugador = this.estadoPartida.jugador.nivel;
+
+    if (idMapaForzado !== null) {
+      if (typeof idMapaForzado !== "string" || idMapaForzado.trim() === "") {
+        throw new Error("La expedición necesita un ID de mapa válido.");
+      }
+
+      const idNormalizado = idMapaForzado.trim();
+
+      const plantilla = this.configuracionMapas.plantillas[idNormalizado];
+
+      if (!plantilla) {
+        throw new Error(`No existe la plantilla de mapa "${idNormalizado}".`);
+      }
+
+      validarAccesoMapa({
+        plantilla,
+        idMapa: idNormalizado,
+        nivelJugador,
+        ignorarNivelDesbloqueo,
+      });
+
+      return this.configuracionMapas;
+    }
+
+    if (ignorarNivelDesbloqueo) {
+      return this.configuracionMapas;
+    }
+
+    return filtrarConfiguracionMapasAccesibles({
+      configuracionMapas: this.configuracionMapas,
+
+      nivelJugador,
+    });
+  }
 }
 
 function limitarNumero({ valor, minimo, maximo }) {
-  return Math.max(
-    minimo,
-
-    Math.min(maximo, valor),
-  );
+  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function calcularPorcentajeNoCaminable(mapa) {

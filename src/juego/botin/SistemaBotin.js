@@ -9,14 +9,20 @@ import {
   obtenerNivelBaseObjeto,
 } from "../objetos/GeneradorNivelObjeto.js";
 
+import {
+  obtenerNivelMinimoGeneracionPlantilla,
+  puedeGenerarsePlantilla,
+} from "../objetos/ReglasProgresionObjetos.js";
+
 import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 
-// La ventana de botín queda visualmente más estable
-// cuando conserva algunas posiciones disponibles.
+// La ventana de botín queda visualmente
+// más estable cuando conserva algunas
+// posiciones disponibles.
 //
-// Si una casilla recibe nuevos drops más adelante,
-// el contenedor será reconstruido con la capacidad
-// necesaria para alojarlos.
+// Si una casilla recibe nuevos drops más
+// adelante, el contenedor será reconstruido
+// con la capacidad necesaria.
 const CAPACIDAD_MINIMA_BOTIN = 6;
 
 // Resuelve la tabla de una fuente y coloca
@@ -52,24 +58,21 @@ export function generarBotinEnSuelo({
 
   const nivelBaseObjeto = obtenerNivelBaseObjeto({
     fuente,
-
     nivelMapa: contextoGeneracion.nivelMapa,
   });
 
   const resultadoTabla = resolverTablaBotin({
     tablaBotin: fuente.tablaBotin,
-
     configuracionObjetos,
-
     configuracionGeneracionObjetos:
       contextoGeneracion.configuracionGeneracionObjetos,
 
-    // Esta secuencia conserva exactamente
-    // las tiradas tradicionales de la tabla.
+    // Esta secuencia conserva las tiradas
+    // tradicionales de la tabla.
     aleatorioBotin: aleatorio,
 
     // Esta segunda secuencia se utiliza
-    // solamente para construir las instancias.
+    // solamente para construir instancias.
     aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
 
     nivelBaseObjeto,
@@ -81,22 +84,16 @@ export function generarBotinEnSuelo({
   if (resultadoTabla.objetosGenerados.length === 0) {
     return {
       ...resultadoTabla,
-
       botin: null,
-
       botinCreado: false,
-
       botinActualizado: false,
     };
   }
 
   const resultadoSuelo = crearOActualizarBotinSuelo({
     x: fuente.x,
-
     y: fuente.y,
-
     objetosNuevos: resultadoTabla.objetosGenerados,
-
     interactuables,
   });
 
@@ -109,7 +106,7 @@ export function generarBotinEnSuelo({
 // Procesa independientemente cada entrada
 // de una tabla de botín.
 //
-// Formato de una entrada:
+// Formato:
 //
 // {
 //     "idObjeto": "cola_rata",
@@ -144,7 +141,6 @@ export function resolverTablaBotin({
   }
 
   const objetosGenerados = [];
-
   const resultadosTiradas = [];
 
   tablaBotin.forEach((entrada, indice) => {
@@ -154,27 +150,52 @@ export function resolverTablaBotin({
       configuracionObjetos,
     });
 
-    // Siempre realizamos una tirada,
-    // incluso con probabilidades de 0 o 100.
+    // Siempre realizamos la tirada porcentual,
+    // incluso cuando el objeto aún no está
+    // disponible por nivel.
     //
-    // Esto mantiene una secuencia pseudoaleatoria
-    // consistente y fácil de reproducir.
+    // Esto mantiene estable la secuencia
+    // tradicional de la tabla de botín.
     const tirada = aleatorioBotin.siguiente() * 100;
 
-    const exito = tirada < normalizada.probabilidad;
+    const exitoProbabilidad = tirada < normalizada.probabilidad;
 
-    if (!exito) {
+    const plantilla = configuracionObjetos[normalizada.idObjeto];
+
+    const habilitadaPorNivel = puedeGenerarsePlantilla({
+      plantilla,
+      nivelProgreso: nivelBaseObjeto,
+    });
+
+    // Una entrada bloqueada no consume
+    // la tirada de cantidad ni la secuencia
+    // dedicada a crear instancias.
+    if (!habilitadaPorNivel) {
       resultadosTiradas.push({
         ...normalizada,
-
         tirada,
-
+        exitoProbabilidad,
+        habilitadaPorNivel: false,
+        bloqueadaPorNivel: true,
         exito: false,
-
         cantidad: 0,
-
         cantidadPilas: 0,
+        objetos: [],
+      });
 
+      return;
+    }
+
+    if (!exitoProbabilidad) {
+      resultadosTiradas.push({
+        ...normalizada,
+        tirada,
+        exitoProbabilidad: false,
+        habilitadaPorNivel: true,
+        bloqueadaPorNivel: false,
+        exito: false,
+        cantidad: 0,
+        cantidadPilas: 0,
         objetos: [],
       });
 
@@ -183,18 +204,22 @@ export function resolverTablaBotin({
 
     const cantidad = aleatorioBotin.entero(
       normalizada.cantidadMinima,
-
       normalizada.cantidadMaxima,
     );
 
     const objetosEntrada = crearObjetosParaCantidad({
       configuracionObjetos,
       configuracionGeneracionObjetos,
-
       idObjeto: normalizada.idObjeto,
-
       cantidadTotal: cantidad,
 
+      // El nivel base funciona como
+      // nivel de progreso de la fuente.
+      nivelProgreso: nivelBaseObjeto,
+
+      // También funciona como centro
+      // de la distribución del nivel
+      // concreto de las instancias.
       nivelBaseObjeto,
 
       aleatorioObjetos,
@@ -204,17 +229,16 @@ export function resolverTablaBotin({
 
     resultadosTiradas.push({
       ...normalizada,
-
       tirada,
-
+      exitoProbabilidad: true,
+      habilitadaPorNivel: true,
+      bloqueadaPorNivel: false,
       exito: true,
-
       cantidad,
-
       cantidadPilas: objetosEntrada.length,
 
-      // Este detalle permite revisar la
-      // integración desde la consola.
+      // Este detalle permite revisar
+      // la integración desde consola.
       objetos: objetosEntrada.map(crearDetalleObjetoGenerado),
     });
   });
@@ -225,20 +249,13 @@ export function resolverTablaBotin({
 
   return {
     objetosGenerados: objetosConsolidados,
-
     resultadosTiradas,
-
     resumen,
-
     resumenTexto: crearResumenTexto(resumen),
-
     cantidadTipos: resumen.length,
-
     cantidadPilas: objetosConsolidados.length,
-
     cantidadUnidades: resumen.reduce(
       (total, entrada) => total + entrada.cantidad,
-
       0,
     ),
   };
@@ -248,17 +265,18 @@ export function resolverTablaBotin({
 // para representar la cantidad obtenida.
 //
 // Los objetos no apilables realizan una generación
-// independiente por unidad. Dos dagas de una misma
-// entrada pueden obtener niveles, rarezas y afijos distintos.
+// independiente por unidad.
 //
-// Los apilables comparten una única tirada de nivel
-// porque su nivel no altera actualmente su comportamiento.
+// Los objetos apilables comparten una única tirada
+// de nivel porque actualmente su nivel no modifica
+// su comportamiento.
 function crearObjetosParaCantidad({
   configuracionObjetos,
   configuracionGeneracionObjetos,
   idObjeto,
   cantidadTotal,
   nivelBaseObjeto,
+  nivelProgreso,
   aleatorioObjetos,
 }) {
   const plantilla = configuracionObjetos[idObjeto];
@@ -279,10 +297,8 @@ function crearObjetosParaCantidad({
     for (let indice = 0; indice < cantidadTotal; indice++) {
       const nivelObjeto = generarNivelObjeto({
         nivelBase: nivelBaseObjeto,
-
         configuracionNivelObjeto:
           configuracionGeneracionObjetos.reglas.nivelObjeto,
-
         aleatorio: aleatorioObjetos,
       });
 
@@ -290,13 +306,10 @@ function crearObjetosParaCantidad({
         crearObjetoGenerado({
           configuracionObjetos,
           configuracionGeneracionObjetos,
-
           idObjeto,
-
           cantidad: 1,
-
           nivelObjeto,
-
+          nivelProgreso,
           aleatorio: aleatorioObjetos,
         }),
       );
@@ -307,9 +320,7 @@ function crearObjetosParaCantidad({
 
   const nivelObjeto = generarNivelObjeto({
     nivelBase: nivelBaseObjeto,
-
     configuracionNivelObjeto: configuracionGeneracionObjetos.reglas.nivelObjeto,
-
     aleatorio: aleatorioObjetos,
   });
 
@@ -322,13 +333,10 @@ function crearObjetosParaCantidad({
       crearObjetoGenerado({
         configuracionObjetos,
         configuracionGeneracionObjetos,
-
         idObjeto,
-
         cantidad: cantidadPila,
-
         nivelObjeto,
-
+        nivelProgreso,
         aleatorio: aleatorioObjetos,
       }),
     );
@@ -341,15 +349,6 @@ function crearObjetosParaCantidad({
 
 // Mantiene una sola pila mientras exista
 // espacio disponible para objetos compatibles.
-//
-// En la etapa actual solamente se apilan:
-//
-// - Materiales.
-// - Municiones.
-// - Consumibles.
-//
-// Estas categorías permanecen comunes y sin afijos,
-// por lo que su nivel no modifica la compatibilidad.
 function consolidarPilasCompatibles(objetos) {
   if (!Array.isArray(objetos)) {
     throw new Error("Los objetos de botín deben estar dentro de una lista.");
@@ -364,7 +363,6 @@ function consolidarPilasCompatibles(objetos) {
 
     if (!objeto.apilable) {
       resultado.push(objeto);
-
       continue;
     }
 
@@ -419,8 +417,8 @@ function sonPilasCompatibles(objetoA, objetoB) {
 // Busca una pila de botín existente
 // dentro de la misma casilla.
 //
-// Cuando ya existe, reconstruimos esa única entidad
-// con su contenido anterior y los nuevos objetos.
+// Cuando ya existe, reconstruye una única
+// entidad con el contenido anterior y nuevo.
 function crearOActualizarBotinSuelo({ x, y, objetosNuevos, interactuables }) {
   const indiceExistente = interactuables.findIndex(
     (interactuable) =>
@@ -445,17 +443,12 @@ function crearOActualizarBotinSuelo({ x, y, objetosNuevos, interactuables }) {
 
   const botinActualizado = new BotinSuelo({
     nombre: botinExistente?.nombre ?? "Botín",
-
     x,
     y,
-
     simbolo: botinExistente?.simbolo ?? "*",
-
     recursoVisual: botinExistente?.recursoVisual ?? null,
-
     contenedorObjetos: new ContenedorObjetos({
       capacidad,
-
       objetosIniciales: objetosCombinados,
     }),
   });
@@ -468,18 +461,13 @@ function crearOActualizarBotinSuelo({ x, y, objetosNuevos, interactuables }) {
 
   return {
     botin: botinActualizado,
-
     botinCreado: indiceExistente === -1,
-
     botinActualizado: indiceExistente >= 0,
   };
 }
 
-// Agrupa los objetos generados para construir
-// mensajes claros en el registro.
-//
-// Los objetos mágicos con tiradas diferentes
-// se mantienen como entradas independientes.
+// Agrupa los objetos generados para
+// construir mensajes claros en el registro.
 function crearResumenObjetos(objetos) {
   const resumenPorFirma = new Map();
 
@@ -491,15 +479,10 @@ function crearResumenObjetos(objetos) {
     if (!resumenPorFirma.has(firma)) {
       resumenPorFirma.set(firma, {
         idObjeto: objeto.id,
-
         nombre: crearNombreResumenObjeto(objeto),
-
         cantidad: 0,
-
         rareza: objeto.rareza,
-
         nivelObjeto: objeto.nivelObjeto,
-
         afijos: objeto.afijos,
       });
     }
@@ -532,7 +515,8 @@ function crearNombreResumenObjeto(objeto) {
 
   return (
     `${objeto.nombre} [` +
-    `${formatearRareza(objeto.rareza)}, nivel ${objeto.nivelObjeto}]`
+    `${formatearRareza(objeto.rareza)}, nivel ` +
+    `${objeto.nivelObjeto}]`
   );
 }
 
@@ -555,15 +539,12 @@ function crearResumenTexto(resumen) {
 function crearDetalleObjetoGenerado(objeto) {
   return {
     idObjeto: objeto.id,
-
     nombre: objeto.nombre,
-
     rareza: objeto.rareza,
-
     nivelObjeto: objeto.nivelObjeto,
-
+    tierBase: objeto.tierBase,
+    nivelMinimoGeneracion: objeto.nivelMinimoGeneracion,
     prefijos: objeto.prefijos.map((afijo) => afijo.nombre),
-
     sufijos: objeto.sufijos.map((afijo) => afijo.nombre),
   };
 }
@@ -588,7 +569,9 @@ function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
 
   const idObjeto = entrada.idObjeto.trim().toLowerCase();
 
-  if (!configuracionObjetos[idObjeto]) {
+  const plantilla = configuracionObjetos[idObjeto];
+
+  if (!plantilla) {
     throw new Error(
       "La tabla de botín referencia el objeto inexistente " + `"${idObjeto}".`,
     );
@@ -624,6 +607,7 @@ function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
     probabilidad,
     cantidadMinima,
     cantidadMaxima,
+    nivelMinimoGeneracion: obtenerNivelMinimoGeneracionPlantilla(plantilla),
   };
 }
 

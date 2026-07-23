@@ -1,3 +1,16 @@
+const CATEGORIAS_ARMADURA_VALIDAS = new Set(["ligera", "media", "pesada"]);
+
+const CAMPOS_FILTRO_LISTA = Object.freeze([
+  "tipos",
+  "familias",
+  "categoriasArmadura",
+  "etiquetasRequeridas",
+  "etiquetasExcluidas",
+  "idsIncluidos",
+  "idsExcluidos",
+  "familiasExcluidas",
+]);
+
 // Valida las reglas económicas generales y los perfiles
 // utilizados por cada mercader.
 //
@@ -13,7 +26,6 @@ export function validarConfiguracionComercio(configuracion) {
 
   validarMercaderes({
     mercaderes: configuracion.mercaderes,
-
     reglasPrecios: configuracion.reglasPrecios,
   });
 
@@ -23,7 +35,6 @@ export function validarConfiguracionComercio(configuracion) {
 function validarReglasPrecios(reglasPrecios) {
   validarObjetoConfiguracion({
     valor: reglasPrecios,
-
     descripcion: "Las reglas generales de precios",
   });
 
@@ -38,13 +49,11 @@ function validarReglasPrecios(reglasPrecios) {
 
   validarNumeroPositivo({
     valor: reglasPrecios.variacionPorPuntoCarisma,
-
     descripcion: "La variación por punto de Carisma",
   });
 
   validarNumeroNoNegativo({
     valor: reglasPrecios.variacionMaximaCarisma,
-
     descripcion: "La variación máxima por Carisma",
   });
 
@@ -74,13 +83,11 @@ function validarMercaderes({ mercaderes, reglasPrecios }) {
   for (const [idMercader, mercader] of entradas) {
     validarIdConfiguracion({
       id: idMercader,
-
       descripcion: "mercader",
     });
 
     validarObjetoConfiguracion({
       valor: mercader,
-
       descripcion: `El mercader "${idMercader}"`,
     });
 
@@ -88,13 +95,11 @@ function validarMercaderes({ mercaderes, reglasPrecios }) {
 
     validarNumeroPositivo({
       valor: mercader.multiplicadorCompraJugador,
-
       descripcion: `El multiplicador de compra de "${idMercader}"`,
     });
 
     validarNumeroPositivo({
       valor: mercader.multiplicadorVentaJugador,
-
       descripcion: `El multiplicador de venta de "${idMercader}"`,
     });
 
@@ -106,7 +111,6 @@ function validarMercaderes({ mercaderes, reglasPrecios }) {
 
     validarStockMercader({
       idMercader,
-
       stock: mercader.stock,
     });
   }
@@ -121,7 +125,6 @@ function validarMargenesMercader({ idMercader, mercader, reglasPrecios }) {
   const variacionMaxima = reglasPrecios.variacionMaximaCarisma;
 
   const factorCompraMinimo = 1 - variacionMaxima;
-
   const factorVentaMaximo = 1 + variacionMaxima;
 
   const costoCompraMinimo =
@@ -141,7 +144,6 @@ function validarMargenesMercader({ idMercader, mercader, reglasPrecios }) {
 function validarStockMercader({ idMercader, stock }) {
   validarObjetoConfiguracion({
     valor: stock,
-
     descripcion: `El stock de "${idMercader}"`,
   });
 
@@ -154,23 +156,20 @@ function validarStockMercader({ idMercader, stock }) {
 
   validarNivelStock({
     idMercader,
-
     nivelObjeto: stock.nivelObjeto,
   });
 
-  const idsFijos = validarStockFijo({
+  const cantidadFija = validarStockFijo({
     idMercader,
-
     definiciones: stock.fijo,
   });
 
   const resumenAleatorio = validarStockAleatorio({
     idMercader,
-
     configuracionAleatoria: stock.aleatorio,
   });
 
-  const espaciosGenerados = idsFijos.size + resumenAleatorio.cantidad;
+  const espaciosGenerados = cantidadFija + resumenAleatorio.cantidad;
 
   if (espaciosGenerados > stock.capacidad) {
     throw new Error(
@@ -179,26 +178,15 @@ function validarStockMercader({ idMercader, stock }) {
         `${stock.capacidad}.`,
     );
   }
-
-  for (const idFijo of idsFijos) {
-    if (resumenAleatorio.ids.has(idFijo)) {
-      throw new Error(
-        `El objeto "${idFijo}" aparece tanto en el stock fijo ` +
-          `como en el stock aleatorio de "${idMercader}".`,
-      );
-    }
-  }
 }
 
 function validarNivelStock({ idMercader, nivelObjeto }) {
   validarObjetoConfiguracion({
     valor: nivelObjeto,
-
     descripcion: `El nivel de stock de "${idMercader}"`,
   });
 
   const minimo = nivelObjeto.minimo;
-
   const maximo = nivelObjeto.maximo;
 
   if (!Number.isInteger(minimo) || minimo < 1) {
@@ -226,13 +214,11 @@ function validarStockFijo({ idMercader, definiciones }) {
   definiciones.forEach((definicion, indice) => {
     validarObjetoConfiguracion({
       valor: definicion,
-
       descripcion: `El objeto fijo ${indice} de "${idMercader}"`,
     });
 
     validarIdConfiguracion({
       id: definicion.id,
-
       descripcion: `objeto fijo de "${idMercader}"`,
     });
 
@@ -253,13 +239,12 @@ function validarStockFijo({ idMercader, definiciones }) {
     ids.add(definicion.id);
   });
 
-  return ids;
+  return ids.size;
 }
 
 function validarStockAleatorio({ idMercader, configuracionAleatoria }) {
   validarObjetoConfiguracion({
     valor: configuracionAleatoria,
-
     descripcion: `El stock aleatorio de "${idMercader}"`,
   });
 
@@ -279,70 +264,227 @@ function validarStockAleatorio({ idMercader, configuracionAleatoria }) {
     );
   }
 
-  if (!Array.isArray(configuracionAleatoria.candidatos)) {
+  if (!Array.isArray(configuracionAleatoria.grupos)) {
     throw new Error(
-      `Los candidatos del stock aleatorio de "${idMercader}" ` +
+      `Los grupos del stock aleatorio de "${idMercader}" ` +
         "deben estar dentro de una lista.",
     );
   }
 
   if (
     configuracionAleatoria.cantidad > 0 &&
-    configuracionAleatoria.candidatos.length === 0
+    configuracionAleatoria.grupos.length === 0
   ) {
     throw new Error(
-      `El mercader "${idMercader}" necesita candidatos ` +
+      `El mercader "${idMercader}" necesita grupos ` +
         "para generar su stock aleatorio.",
     );
   }
 
-  const ids = new Set();
+  const idsGrupos = new Set();
 
-  configuracionAleatoria.candidatos.forEach((candidato, indice) => {
-    validarObjetoConfiguracion({
-      valor: candidato,
-
-      descripcion: `El candidato aleatorio ${indice} de "${idMercader}"`,
+  configuracionAleatoria.grupos.forEach((grupo, indice) => {
+    validarGrupoComercial({
+      grupo,
+      indice,
+      idMercader,
+      idsGrupos,
     });
-
-    validarIdConfiguracion({
-      id: candidato.id,
-
-      descripcion: `candidato de stock de "${idMercader}"`,
-    });
-
-    if (ids.has(candidato.id)) {
-      throw new Error(
-        `El candidato "${candidato.id}" está repetido ` +
-          `en el stock de "${idMercader}".`,
-      );
-    }
-
-    validarNumeroPositivo({
-      valor: candidato.peso,
-
-      descripcion: `El peso de selección de "${candidato.id}"`,
-    });
-
-    ids.add(candidato.id);
   });
-
-  if (
-    !configuracionAleatoria.permitirRepetidos &&
-    configuracionAleatoria.cantidad > ids.size
-  ) {
-    throw new Error(
-      `El mercader "${idMercader}" intenta seleccionar ` +
-        `${configuracionAleatoria.cantidad} objetos distintos, ` +
-        `pero solamente tiene ${ids.size} candidatos.`,
-    );
-  }
 
   return {
     cantidad: configuracionAleatoria.cantidad,
-
-    ids,
+    idsGrupos,
   };
+}
+
+function validarGrupoComercial({ grupo, indice, idMercader, idsGrupos }) {
+  validarObjetoConfiguracion({
+    valor: grupo,
+    descripcion: `El grupo comercial ${indice} de "${idMercader}"`,
+  });
+
+  validarIdConfiguracion({
+    id: grupo.id,
+    descripcion: `grupo comercial de "${idMercader}"`,
+  });
+
+  if (idsGrupos.has(grupo.id)) {
+    throw new Error(
+      `El grupo comercial "${grupo.id}" está repetido ` + `en "${idMercader}".`,
+    );
+  }
+
+  validarNumeroPositivo({
+    valor: grupo.peso,
+    descripcion: `El peso del grupo "${grupo.id}"`,
+  });
+
+  validarFiltrosGrupo({
+    filtros: grupo.filtros,
+    idGrupo: grupo.id,
+  });
+
+  idsGrupos.add(grupo.id);
+}
+
+function validarFiltrosGrupo({ filtros, idGrupo }) {
+  validarObjetoConfiguracion({
+    valor: filtros,
+    descripcion: `Los filtros del grupo "${idGrupo}"`,
+  });
+
+  validarCamposDesconocidos({
+    objeto: filtros,
+    camposPermitidos: new Set([...CAMPOS_FILTRO_LISTA, "tiers"]),
+    descripcion: `los filtros del grupo "${idGrupo}"`,
+  });
+
+  for (const campo of CAMPOS_FILTRO_LISTA) {
+    if (filtros[campo] === undefined) {
+      continue;
+    }
+
+    validarListaIdentificadores({
+      valores: filtros[campo],
+      descripcion: `${campo} del grupo "${idGrupo}"`,
+    });
+  }
+
+  if (filtros.tiers !== undefined) {
+    validarListaTiers({
+      tiers: filtros.tiers,
+      idGrupo,
+    });
+  }
+
+  if (Array.isArray(filtros.categoriasArmadura)) {
+    for (const categoria of filtros.categoriasArmadura) {
+      if (!CATEGORIAS_ARMADURA_VALIDAS.has(categoria)) {
+        throw new Error(
+          `La categoría de armadura "${categoria}" del grupo ` +
+            `"${idGrupo}" no es válida.`,
+        );
+      }
+    }
+  }
+
+  const tieneFiltroInclusivo =
+    tieneValores(filtros.tipos) ||
+    tieneValores(filtros.tiers) ||
+    tieneValores(filtros.familias) ||
+    tieneValores(filtros.categoriasArmadura) ||
+    tieneValores(filtros.etiquetasRequeridas) ||
+    tieneValores(filtros.idsIncluidos);
+
+  if (!tieneFiltroInclusivo) {
+    throw new Error(
+      `El grupo "${idGrupo}" necesita al menos un filtro inclusivo ` +
+        "por tipo, tier, familia, categoría, etiqueta o ID.",
+    );
+  }
+
+  validarListasSinInterseccion({
+    listaA: filtros.idsIncluidos,
+    descripcionA: "idsIncluidos",
+    listaB: filtros.idsExcluidos,
+    descripcionB: "idsExcluidos",
+    idGrupo,
+  });
+
+  validarListasSinInterseccion({
+    listaA: filtros.familias,
+    descripcionA: "familias",
+    listaB: filtros.familiasExcluidas,
+    descripcionB: "familiasExcluidas",
+    idGrupo,
+  });
+
+  validarListasSinInterseccion({
+    listaA: filtros.etiquetasRequeridas,
+    descripcionA: "etiquetasRequeridas",
+    listaB: filtros.etiquetasExcluidas,
+    descripcionB: "etiquetasExcluidas",
+    idGrupo,
+  });
+}
+
+function validarListaTiers({ tiers, idGrupo }) {
+  if (!Array.isArray(tiers) || tiers.length === 0) {
+    throw new Error(
+      `Los tiers del grupo "${idGrupo}" deben formar una lista no vacía.`,
+    );
+  }
+
+  for (const tier of tiers) {
+    if (!Number.isInteger(tier) || tier < 1) {
+      throw new Error(
+        `Cada tier del grupo "${idGrupo}" debe ser un entero ` +
+          "mayor o igual que 1.",
+      );
+    }
+  }
+
+  if (new Set(tiers).size !== tiers.length) {
+    throw new Error(`Los tiers del grupo "${idGrupo}" no pueden repetirse.`);
+  }
+}
+
+function validarListaIdentificadores({ valores, descripcion }) {
+  if (!Array.isArray(valores) || valores.length === 0) {
+    throw new Error(`${descripcion} debe formar una lista no vacía.`);
+  }
+
+  const normalizados = new Set();
+
+  for (const valor of valores) {
+    validarIdConfiguracion({
+      id: valor,
+      descripcion,
+    });
+
+    if (normalizados.has(valor)) {
+      throw new Error(`El valor "${valor}" está repetido en ${descripcion}.`);
+    }
+
+    normalizados.add(valor);
+  }
+}
+
+function validarListasSinInterseccion({
+  listaA,
+  descripcionA,
+  listaB,
+  descripcionB,
+  idGrupo,
+}) {
+  if (!Array.isArray(listaA) || !Array.isArray(listaB)) {
+    return;
+  }
+
+  const valoresB = new Set(listaB);
+  const repetido = listaA.find((valor) => valoresB.has(valor));
+
+  if (repetido !== undefined) {
+    throw new Error(
+      `El valor "${repetido}" aparece en ${descripcionA} y ` +
+        `${descripcionB} del grupo "${idGrupo}".`,
+    );
+  }
+}
+
+function validarCamposDesconocidos({ objeto, camposPermitidos, descripcion }) {
+  for (const campo of Object.keys(objeto)) {
+    if (!camposPermitidos.has(campo)) {
+      throw new Error(
+        `El campo "${campo}" no está permitido en ${descripcion}.`,
+      );
+    }
+  }
+}
+
+function tieneValores(valor) {
+  return Array.isArray(valor) && valor.length > 0;
 }
 
 function validarObjetoRaiz(valor, descripcion) {

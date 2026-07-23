@@ -1,42 +1,71 @@
 import { crearObjeto } from "../../objetos/FabricaObjetos.js";
+
 import { RAREZAS_OBJETO } from "./RarezasObjeto.js";
+
 import { seleccionarRarezaObjeto } from "./GeneradorRarezaObjeto.js";
+
 import {
   componerPropiedadesObjeto,
   generarAfijosObjeto,
   puedeGenerarRarezaParaPlantilla,
 } from "./SistemaAfijos.js";
 
+import { validarPlantillaDisponible } from "./ReglasProgresionObjetos.js";
+
 const TIPOS_EQUIPABLES_CON_AFIJOS = new Set(["arma", "armadura", "quiver"]);
 
-// Crea una instancia completa usando la plantilla, el nivel,
-// las rarezas activas, los afijos compatibles y el generador
-// pseudoaleatorio reproducible.
+// Crea una instancia completa usando:
 //
-// Esta función todavía no está conectada a SistemaBotin.
+// - La plantilla base.
+// - El tier propio de la plantilla.
+// - El nivel de progreso de la fuente.
+// - El nivel concreto de la instancia.
+// - Las rarezas activas.
+// - Los afijos compatibles.
+// - Un generador pseudoaleatorio reproducible.
+//
+// nivelProgreso controla si la plantilla está
+// desbloqueada.
+//
+// nivelObjeto controla los grados de los afijos.
 export function crearObjetoGenerado({
   configuracionObjetos,
   configuracionGeneracionObjetos,
   idObjeto,
   cantidad = 1,
   nivelObjeto = 1,
+  nivelProgreso = nivelObjeto,
   aleatorio,
   rarezaForzada = null,
 } = {}) {
   validarObjetoPlano(configuracionObjetos, "La configuración de objetos");
+
   validarConfiguracionGeneracion(configuracionGeneracionObjetos);
+
   validarIdObjeto(idObjeto);
   validarNivelObjeto(nivelObjeto);
+  validarNivelProgreso(nivelProgreso);
   validarAleatorio(aleatorio);
 
   const idNormalizado = idObjeto.trim().toLowerCase();
+
   const plantilla = configuracionObjetos[idNormalizado];
 
   if (!plantilla) {
     throw new Error(`No existe el objeto "${idNormalizado}".`);
   }
 
-  // Materiales, municiones y consumibles continúan siendo comunes.
+  // Esta validación representa la barrera común
+  // para botín, comercio y futuras recompensas.
+  validarPlantillaDisponible({
+    plantilla,
+    idObjeto: idNormalizado,
+    nivelProgreso,
+    contexto: "La generación aleatoria de objetos",
+  });
+
+  // Materiales, municiones y consumibles
+  // continúan siendo comunes.
   if (!puedeRecibirAfijosAleatorios(plantilla)) {
     validarRarezaForzadaNoEquipable(rarezaForzada);
 
@@ -68,6 +97,7 @@ export function crearObjetoGenerado({
   });
 
   const idRareza = rarezaSeleccionada.id;
+
   const configuracionRareza = rarezaSeleccionada.configuracion;
 
   const afijos = generarAfijosObjeto({
@@ -98,8 +128,9 @@ export function crearObjetoGenerado({
   });
 }
 
-// Excluye una rareza cuando no puede alcanzar la cantidad mínima
-// de afijos compatible con la plantilla y el nivel actuales.
+// Excluye una rareza cuando no puede alcanzar
+// la cantidad mínima de afijos compatible con
+// la plantilla y el nivel actuales.
 export function obtenerRarezasPermitidasParaPlantilla({
   plantilla,
   nivelObjeto,
@@ -149,7 +180,9 @@ function puedeRecibirAfijosAleatorios(plantilla) {
 }
 
 function validarRarezaForzadaNoEquipable(rarezaForzada) {
-  if (rarezaForzada === null) return;
+  if (rarezaForzada === null) {
+    return;
+  }
 
   if (
     typeof rarezaForzada !== "string" ||
@@ -179,6 +212,14 @@ function validarNivelObjeto(nivelObjeto) {
   if (!Number.isInteger(nivelObjeto) || nivelObjeto < 1) {
     throw new Error(
       "El nivel del objeto debe ser un entero mayor o igual que 1.",
+    );
+  }
+}
+
+function validarNivelProgreso(nivelProgreso) {
+  if (!Number.isInteger(nivelProgreso) || nivelProgreso < 1) {
+    throw new Error(
+      "El nivel de progreso debe ser un entero mayor o igual que 1.",
     );
   }
 }

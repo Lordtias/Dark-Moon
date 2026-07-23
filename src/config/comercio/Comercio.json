@@ -14,7 +14,7 @@
         "capacidad": 12,
         "nivelObjeto": {
           "minimo": 1,
-          "maximo": 5
+          "maximo": 10
         },
         "fijo": [
           {
@@ -29,82 +29,99 @@
         "aleatorio": {
           "cantidad": 6,
           "permitirRepetidos": false,
-          "candidatos": [
+          "grupos": [
             {
-              "id": "daga_hierro",
-              "peso": 12
+              "id": "armas_tier_1",
+              "peso": 30,
+              "filtros": {
+                "tipos": ["arma"],
+                "tiers": [1]
+              }
             },
             {
-              "id": "espada_larga",
-              "peso": 10
+              "id": "armas_tier_2",
+              "peso": 12,
+              "filtros": {
+                "tipos": ["arma"],
+                "tiers": [2]
+              }
             },
             {
-              "id": "hacha_mano",
-              "peso": 8
+              "id": "armaduras_ligeras_tier_1",
+              "peso": 10,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [1],
+                "categoriasArmadura": ["ligera"]
+              }
             },
             {
-              "id": "mandoble_hierro",
-              "peso": 5
+              "id": "armaduras_ligeras_tier_2",
+              "peso": 6,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [2],
+                "categoriasArmadura": ["ligera"]
+              }
             },
             {
-              "id": "lanza",
-              "peso": 8
+              "id": "armaduras_medias_tier_1",
+              "peso": 13,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [1],
+                "categoriasArmadura": ["media"]
+              }
             },
             {
-              "id": "arco_corto",
-              "peso": 10
+              "id": "armaduras_medias_tier_2",
+              "peso": 8,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [2],
+                "categoriasArmadura": ["media"]
+              }
             },
             {
-              "id": "quiver_cuero",
-              "peso": 10
+              "id": "armaduras_pesadas_tier_1",
+              "peso": 8,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [1],
+                "categoriasArmadura": ["pesada"]
+              }
             },
             {
-              "id": "capucha_cuero",
-              "peso": 9
+              "id": "armaduras_pesadas_tier_2",
+              "peso": 4,
+              "filtros": {
+                "tipos": ["armadura"],
+                "tiers": [2],
+                "categoriasArmadura": ["pesada"]
+              }
             },
             {
-              "id": "jubon_acolchado",
-              "peso": 9
+              "id": "escudos_tier_1",
+              "peso": 5,
+              "filtros": {
+                "familias": ["escudo"],
+                "tiers": [1]
+              }
             },
             {
-              "id": "guantes_cuero",
-              "peso": 9
+              "id": "escudos_tier_2",
+              "peso": 2,
+              "filtros": {
+                "familias": ["escudo"],
+                "tiers": [2]
+              }
             },
             {
-              "id": "pantalones_cuero",
-              "peso": 9
-            },
-            {
-              "id": "botas_cuero",
-              "peso": 9
-            },
-            {
-              "id": "casco_hierro",
-              "peso": 5
-            },
-            {
-              "id": "coraza_hierro",
-              "peso": 4
-            },
-            {
-              "id": "guantes_hierro",
-              "peso": 5
-            },
-            {
-              "id": "grebas_hierro",
-              "peso": 4
-            },
-            {
-              "id": "botas_hierro",
-              "peso": 5
-            },
-            {
-              "id": "escudo_madera",
-              "peso": 8
-            },
-            {
-              "id": "escudo_hierro",
-              "peso": 4
+              "id": "quivers",
+              "peso": 2,
+              "filtros": {
+                "tipos": ["quiver"]
+              }
             }
           ]
         }

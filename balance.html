@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Dark Moon — Análisis de balance</title>
+
+    <link rel="stylesheet" href="./balance.css" />
+  </head>
+
+  <body>
+    <main class="balance-pagina">
+      <header class="balance-cabecera">
+        <div>
+          <p class="balance-sobretitulo">Dark Moon</p>
+
+          <h1>Análisis de balance y progresión</h1>
+
+          <p class="balance-introduccion">
+            Estimación de experiencia por expedición utilizando las
+            configuraciones actuales de mapas, enemigos, variantes, encuentros
+            especiales y jefes.
+          </p>
+        </div>
+
+        <button id="balanceRecargar" class="balance-boton" type="button">
+          Recalcular
+        </button>
+      </header>
+
+      <section aria-labelledby="tituloEstado">
+        <h2 id="tituloEstado" class="balance-titulo-seccion">Estado general</h2>
+
+        <p id="balanceEstado" class="balance-estado">Calculando balance…</p>
+
+        <p id="balanceError" class="balance-error" hidden></p>
+
+        <div id="balanceResumen" class="balance-resumen"></div>
+      </section>
+
+      <section aria-labelledby="tituloRuta">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloRuta" class="balance-titulo-seccion">
+              Ruta recomendada
+            </h2>
+
+            <p>
+              Cantidad estimada de expediciones completas para alcanzar el
+              siguiente nivel.
+            </p>
+          </div>
+        </div>
+
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Nivel</th>
+                <th>Siguiente</th>
+                <th>Mapa</th>
+                <th>Nivel mapa</th>
+                <th>XP necesaria</th>
+                <th>XP esperada</th>
+                <th>Expediciones</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+            <tbody id="balanceRutaCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="tituloDetalle">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloDetalle" class="balance-titulo-seccion">
+              Detalle por mapa
+            </h2>
+
+            <p>
+              Valores esperados para un jugador del mismo nivel que la
+              expedición.
+            </p>
+          </div>
+        </div>
+
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Mapa</th>
+                <th>Nivel</th>
+                <th>Recurrentes</th>
+                <th>Especial</th>
+                <th>Jefe</th>
+                <th>XP recurrentes</th>
+                <th>XP especial</th>
+                <th>XP jefe</th>
+                <th>XP ajustada</th>
+              </tr>
+            </thead>
+
+            <tbody id="balanceMapasCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="balance-nota">
+        <strong> Alcance del análisis </strong>
+
+        <p>
+          Los resultados utilizan cantidades promedio y probabilidades
+          esperadas. No simulan precisión, daño recibido, duración del combate,
+          abandono de mapas ni enemigos que el jugador decida evitar.
+        </p>
+
+        <p>
+          El informe completo queda disponible en la consola mediante
+          <code>window.balanceDarkMoon</code>.
+        </p>
+      </aside>
+    </main>
+
+    <script type="module" src="./src/aplicacion/BalanceAplicacion.js"></script>
+  </body>
+</html>

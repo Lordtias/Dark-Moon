@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "descripcion": "Objetivos utilizados para medir la progresión principal de Dark Moon entre los niveles 1 y 10.",
+  "nivelMaximoContenido": 10,
+  "factorBaseExperienciaEsperado": 0.45,
+  "rangoExpedicionesObjetivo": {
+    "minimo": 0.8,
+    "maximo": 2.25
+  },
+  "rutaRecomendada": [
+    {
+      "nivelJugador": 1,
+      "idMapa": "alcantarilla",
+      "nivelMapa": 1
+    },
+    {
+      "nivelJugador": 2,
+      "idMapa": "cementerio",
+      "nivelMapa": 2
+    },
+    {
+      "nivelJugador": 3,
+      "idMapa": "cementerio",
+      "nivelMapa": 3
+    },
+    {
+      "nivelJugador": 4,
+      "idMapa": "casa_guerrero",
+      "nivelMapa": 4
+    },
+    {
+      "nivelJugador": 5,
+      "idMapa": "casa_guerrero",
+      "nivelMapa": 5
+    },
+    {
+      "nivelJugador": 6,
+      "idMapa": "fortaleza_abandonada",
+      "nivelMapa": 6
+    },
+    {
+      "nivelJugador": 7,
+      "idMapa": "fortaleza_abandonada",
+      "nivelMapa": 7
+    },
+    {
+      "nivelJugador": 8,
+      "idMapa": "sala_guerra",
+      "nivelMapa": 8
+    },
+    {
+      "nivelJugador": 9,
+      "idMapa": "sala_guerra",
+      "nivelMapa": 9
+    }
+  ]
+}

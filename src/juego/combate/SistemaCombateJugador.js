@@ -6,6 +6,8 @@ import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
 
 import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
 
+import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
+
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 
 import {
@@ -106,6 +108,7 @@ export class SistemaCombateJugador {
     this.configuracionObjetos = configuracionObjetos;
 
     this.esCaminable = esCaminable;
+
     this.obtenerObjetivoEn = obtenerObjetivoEn;
 
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
@@ -165,8 +168,11 @@ export class SistemaCombateJugador {
   evaluarCasillaAtaque(x, y) {
     return evaluarAtaqueCasilla({
       atacante: this.jugador,
+
       xObjetivo: x,
+
       yObjetivo: y,
+
       mapa: this.mapa,
     });
   }
@@ -182,6 +188,7 @@ export class SistemaCombateJugador {
   // 3. En un nuevo empate, el primero encontrado.
   obtenerEnemigoPrioritario() {
     let enemigoSeleccionado = null;
+
     let distanciaSeleccionada = Infinity;
 
     for (const objetivo of this.objetivos) {
@@ -196,10 +203,12 @@ export class SistemaCombateJugador {
       const distancia = calcularDistanciaCuadricula(
         {
           x: this.jugador.x,
+
           y: this.jugador.y,
         },
         {
           x: objetivo.x,
+
           y: objetivo.y,
         },
       );
@@ -213,6 +222,7 @@ export class SistemaCombateJugador {
 
       if (estaMasCerca || mismaDistanciaConMenosVida) {
         enemigoSeleccionado = objetivo;
+
         distanciaSeleccionada = distancia;
       }
     }
@@ -225,34 +235,42 @@ export class SistemaCombateJugador {
   obtenerCasillaInicial() {
     const direcciones = [
       this.ultimaDireccion,
+
       {
         x: 0,
         y: -1,
       },
+
       {
         x: 1,
         y: 0,
       },
+
       {
         x: 0,
         y: 1,
       },
+
       {
         x: -1,
         y: 0,
       },
+
       {
         x: 1,
         y: -1,
       },
+
       {
         x: 1,
         y: 1,
       },
+
       {
         x: -1,
         y: 1,
       },
+
       {
         x: -1,
         y: -1,
@@ -281,6 +299,7 @@ export class SistemaCombateJugador {
     if (enemigoPrioritario) {
       return {
         x: enemigoPrioritario.x,
+
         y: enemigoPrioritario.y,
       };
     }
@@ -303,6 +322,7 @@ export class SistemaCombateJugador {
     if (this.obtenerModoInteraccionActivo()) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
       });
     }
@@ -319,6 +339,7 @@ export class SistemaCombateJugador {
     if (seleccion === null) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje: "No hay una casilla válida para atacar.",
       });
     }
@@ -338,6 +359,7 @@ export class SistemaCombateJugador {
     ) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje: "No hay una casilla válida para atacar.",
       });
     }
@@ -351,6 +373,7 @@ export class SistemaCombateJugador {
       mensaje: objetivo
         ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
         : "Modo combate: casilla " + `${seleccion.x}, ${seleccion.y}.`,
+
       redibujar: true,
     });
   }
@@ -366,6 +389,7 @@ export class SistemaCombateJugador {
 
     return crearResultadoAccion({
       mensaje: "Cancelaste el modo combate.",
+
       redibujar: true,
     });
   }
@@ -384,6 +408,7 @@ export class SistemaCombateJugador {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje: "No podés seleccionar una pared.",
       });
     }
@@ -391,6 +416,7 @@ export class SistemaCombateJugador {
     if (!this.estaCasillaDentroAlcance(nuevaX, nuevaY)) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje:
           "Esa casilla supera el alcance " + `${this.jugador.alcanceAtaque}.`,
       });
@@ -413,6 +439,7 @@ export class SistemaCombateJugador {
       mensaje: evaluacion.puedeAtacar
         ? textoSeleccion
         : `${textoSeleccion} ` + `${evaluacion.mensaje}`,
+
       redibujar: true,
     });
   }
@@ -446,8 +473,11 @@ export class SistemaCombateJugador {
 
     const resultadoBotin = generarBotinEnSuelo({
       fuente: objetivo,
+
       configuracionObjetos: this.configuracionObjetos,
+
       aleatorio: this.aleatorioBotin,
+
       interactuables: this.interactuables,
     });
 
@@ -457,8 +487,21 @@ export class SistemaCombateJugador {
       );
     }
 
+    // La experiencia configurada en el enemigo
+    // representa su recompensa relativa.
+    //
+    // Antes de entregarla se aplica el factor global
+    // y el ajuste por diferencia de nivel.
+    const recompensaExperiencia = calcularRecompensaExperiencia({
+      experienciaBase: objetivo.experienciaOtorgada,
+
+      nivelJugador: this.jugador.nivel,
+
+      nivelEnemigo: objetivo.nivel,
+    });
+
     const progresion = this.jugador.ganarExperiencia(
-      objetivo.experienciaOtorgada,
+      recompensaExperiencia.experienciaFinal,
     );
 
     mensajes.push(
@@ -502,6 +545,7 @@ export class SistemaCombateJugador {
     if (!evaluacion.puedeAtacar) {
       return crearResultadoAccion({
         exito: false,
+
         mensaje: evaluacion.mensaje,
       });
     }
@@ -518,7 +562,9 @@ export class SistemaCombateJugador {
 
     return this.finalizarAccionJugador({
       mensaje,
+
       tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
+
       costoBase: costoAtaque,
     });
   }

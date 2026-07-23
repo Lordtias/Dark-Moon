@@ -4,41 +4,33 @@
       "masculino": "Enfermo",
       "femenino": "Enferma"
     },
-
     "multiplicadorAtributos": 0.75,
     "multiplicadorVida": 0.75,
     "multiplicadorExperiencia": 0.5,
-
     "multiplicadoresTemporales": {
       "factorTiempo": 1.1
     }
   },
-
   "gigante": {
     "nombreSegunGenero": {
       "masculino": "Gigante",
       "femenino": "Gigante"
     },
-
     "multiplicadorAtributos": 1,
     "multiplicadorVida": 2,
-    "multiplicadorExperiencia": 1.5,
-
+    "multiplicadorExperiencia": 2,
     "multiplicadoresTemporales": {
       "factorMovimiento": 1.25
     }
   },
-
   "elite": {
     "nombreSegunGenero": {
       "masculino": "Élite",
       "femenino": "Élite"
     },
-
     "multiplicadorAtributos": 1.25,
     "multiplicadorVida": 1.5,
-    "multiplicadorExperiencia": 3,
-
+    "multiplicadorExperiencia": 2.5,
     "multiplicadoresTemporales": {
       "factorTiempo": 0.9
     }

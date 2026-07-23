@@ -583,5 +583,175 @@
         }
       }
     ]
+  },
+  "senor_guerra": {
+    "nombre": "Señor de la Guerra",
+    "genero": "masculino",
+    "simbolo": "W",
+    "recursoVisual": "assets/imagenes/enemigos/senor_guerra.png",
+    "nivelesPermitidos": {
+      "minimo": 8,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 10,
+      "margenPersecucion": 6,
+      "estrategiaSinRecursos": "ataqueNatural"
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 100,
+      "atributos": {
+        "fuerza": 16,
+        "destreza": 11,
+        "constitucion": 14,
+        "inteligencia": 8,
+        "sabiduria": 11,
+        "carisma": 13
+      },
+      "factoresTemporales": {
+        "factorTiempo": 95,
+        "factorMovimiento": 100,
+        "factorAtaque": 90,
+        "factorAccion": 95,
+        "factorConsumo": 100
+      },
+      "estadisticasBase": {
+        "vida": 20,
+        "mana": 0,
+        "vidaPorNivel": 8,
+        "manaPorNivel": 0,
+        "precision": 15,
+        "evasion": 7,
+        "armadura": 8,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 10,
+        "multiplicadorCritico": 1.75,
+        "probabilidadBloqueo": 5,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 12,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 10,
+          "frio": 10,
+          "rayo": 5,
+          "veneno": 15
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 4,
+        "danioFisicoMaximo": 7,
+        "atributoAtaque": "fuerza",
+        "precision": 4,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 8,
+        "multiplicadorCritico": 1.6,
+        "costoAtaque": 95
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 15,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      },
+      "estadisticasBase": {
+        "armadura": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+        "precision": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        }
+      },
+      "ia": {
+        "percepcion": {
+          "aumento": 1,
+          "cadaNiveles": 4
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "objetosIniciales": [
+        "espada_acero",
+        "escudo_hierro",
+        "casco_acero",
+        "coraza_acero"
+      ]
+    },
+    "tablaBotin": [
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 100,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "espada_acero",
+        "probabilidad": 100,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1,
+        "rarezaForzada": "magico"
+      },
+      {
+        "idObjeto": "escudo_hierro",
+        "probabilidad": 10,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "hacha_batalla",
+        "probabilidad": 8,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "coraza_acero",
+        "probabilidad": 6,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "casco_acero",
+        "probabilidad": 6,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
+    "hitos": [
+      {
+        "nivel": 10,
+        "cambios": {
+          "estadisticasBase": {
+            "vida": 28,
+            "precision": 18,
+            "armadura": 12,
+            "probabilidadCritico": 12
+          }
+        }
+      }
+    ]
   }
 }

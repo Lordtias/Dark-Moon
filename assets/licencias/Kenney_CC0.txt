@@ -21,3 +21,18 @@
 
 
 ###############################################################################
+
+Recursos visuales utilizados en la Etapa 6 de Dark Moon
+
+Enemigos:
+- Basados en Kenney Roguelike Characters.
+- Licencia: Creative Commons CC0 1.0 Universal.
+- Fuente: https://kenney.nl/assets/roguelike-characters
+
+Miniaturas de mapas:
+- Compuestas a partir del Kenney Roguelike/RPG Pack entregado por el usuario.
+- Licencia: Creative Commons CC0 1.0 Universal.
+- Fuente: https://kenney.nl/assets/roguelike-rpg-pack
+
+La atribución no es obligatoria bajo CC0, aunque puede conservarse este archivo
+para documentar el origen de los recursos.

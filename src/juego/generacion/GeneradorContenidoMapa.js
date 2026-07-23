@@ -23,6 +23,11 @@ const DIRECCIONES_CARDINALES = [
   },
 ];
 
+const TIPOS_ENEMIGO_UNICO = Object.freeze({
+  ESPECIAL: "especial",
+  JEFE: "jefe",
+});
+
 // Genera todas las entidades que ocuparán
 // el terreno procedural.
 //
@@ -33,6 +38,7 @@ const DIRECCIONES_CARDINALES = [
 // - Los tipos y variantes recurrentes.
 // - La aparición del encuentro especial.
 // - La plantilla y variante del encuentro especial.
+// - La selección y posición del jefe.
 // - Las posiciones.
 // - Los destructibles.
 export function generarContenidoMapa({
@@ -75,8 +81,15 @@ export function generarContenidoMapa({
     configuracionObjetos,
   });
 
-  const resultadoEspecial = generarEncuentroEspecialEnMapa({
+  // El jefe obligatorio se coloca antes del encuentro
+  // especial opcional. De esta forma, una tirada especial
+  // nunca puede ocupar la última posición válida reservada
+  // para el objetivo principal de la expedición.
+  const resultadoJefe = generarEnemigoUnicoEnMapa({
     plantilla,
+    configuracion: plantilla.jefe ?? null,
+    tipo: TIPOS_ENEMIGO_UNICO.JEFE,
+    obligatorio: plantilla.jefe !== undefined && plantilla.jefe !== null,
     nivelMapa,
     posicionJugador,
     posicionesDisponibles,
@@ -87,25 +100,45 @@ export function generarContenidoMapa({
     numeroDetalleInicial: resultadoRecurrentes.enemigos.length + 1,
   });
 
+  const resultadoEspecial = generarEnemigoUnicoEnMapa({
+    plantilla,
+    configuracion: plantilla.encuentroEspecial ?? null,
+    tipo: TIPOS_ENEMIGO_UNICO.ESPECIAL,
+    obligatorio: false,
+    nivelMapa,
+    posicionJugador,
+    posicionesDisponibles,
+    posicionesEnemigos: resultadoRecurrentes.posicionesEnemigos,
+    aleatorio,
+    configuracionEnemigos,
+    configuracionObjetos,
+    numeroDetalleInicial:
+      resultadoRecurrentes.enemigos.length + resultadoJefe.enemigos.length + 1,
+  });
+
   const enemigos = [
     ...resultadoRecurrentes.enemigos,
+    ...resultadoJefe.enemigos,
     ...resultadoEspecial.enemigos,
   ];
 
   const detalleEnemigos = [
     ...resultadoRecurrentes.detalle,
+    ...resultadoJefe.detalle,
     ...resultadoEspecial.detalle,
   ];
 
-  const enemigosPorTipo = combinarConteos(
+  const enemigosPorTipo = combinarConteosMultiples([
     resultadoRecurrentes.enemigosPorTipo,
+    resultadoJefe.enemigosPorTipo,
     resultadoEspecial.enemigosPorTipo,
-  );
+  ]);
 
-  const variantes = combinarConteos(
+  const variantes = combinarConteosMultiples([
     resultadoRecurrentes.variantes,
+    resultadoJefe.variantes,
     resultadoEspecial.variantes,
-  );
+  ]);
 
   const resultadoDestructibles = generarDestructibles({
     plantilla,
@@ -125,7 +158,9 @@ export function generarContenidoMapa({
       cantidadEnemigos: enemigos.length,
       cantidadEnemigosRecurrentes: resultadoRecurrentes.enemigos.length,
       cantidadEnemigosEspeciales: resultadoEspecial.enemigos.length,
+      cantidadJefes: resultadoJefe.enemigos.length,
       encuentroEspecial: resultadoEspecial.resumen,
+      jefe: resultadoJefe.resumen,
       cantidadDestructibles: resultadoDestructibles.destructibles.length,
       cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
       cantidadDestructiblesNoColocados:
@@ -142,8 +177,8 @@ export function generarContenidoMapa({
 // Genera exclusivamente la población habitual
 // declarada dentro de plantilla.enemigos.
 //
-// Los enemigos poco frecuentes no deben aparecer
-// dentro de esta lista ponderada.
+// Los enemigos poco frecuentes y los jefes no deben
+// aparecer dentro de esta lista ponderada.
 function generarEnemigosRecurrentes({
   plantilla,
   nivelMapa,
@@ -224,6 +259,7 @@ function generarEnemigosRecurrentes({
       x: posicion.x,
       y: posicion.y,
       esEncuentroEspecial: false,
+      esJefe: false,
     });
   }
 
@@ -236,14 +272,20 @@ function generarEnemigosRecurrentes({
   };
 }
 
-// Resuelve y coloca como máximo un enemigo especial.
+// Resuelve y coloca una entidad única configurada
+// como encuentro especial o jefe.
 //
-// Un encuentro opcional nunca cancela la generación
-// completa del mapa si la distribución no deja una
-// posición válida. En ese caso se conserva el mapa y
-// se registra el motivo dentro del resumen.
-function generarEncuentroEspecialEnMapa({
+// Los encuentros especiales son opcionales: si no existe
+// una posición válida, el mapa continúa sin ellos.
+//
+// Los jefes son obligatorios: si fueron configurados y no
+// pueden colocarse, la generación falla para impedir crear
+// una Sala de guerra sin su objetivo principal.
+function generarEnemigoUnicoEnMapa({
   plantilla,
+  configuracion,
+  tipo,
+  obligatorio,
   nivelMapa,
   posicionJugador,
   posicionesDisponibles,
@@ -253,13 +295,24 @@ function generarEncuentroEspecialEnMapa({
   configuracionObjetos,
   numeroDetalleInicial,
 }) {
+  validarTipoEnemigoUnico({
+    tipo,
+    obligatorio,
+  });
+
   const resolucion = resolverEncuentroEspecial({
-    configuracion: plantilla.encuentroEspecial ?? null,
+    configuracion,
     aleatorio,
   });
 
+  const esJefe = tipo === TIPOS_ENEMIGO_UNICO.JEFE;
+
+  const esEncuentroEspecial = tipo === TIPOS_ENEMIGO_UNICO.ESPECIAL;
+
   const resumenBase = {
     configurado: resolucion.configurado,
+    tipo,
+    obligatorio,
     probabilidadAparicion: resolucion.probabilidadAparicion,
     tirada: resolucion.tirada,
     tiradaExitosa: resolucion.aparece,
@@ -274,7 +327,14 @@ function generarEncuentroEspecialEnMapa({
   };
 
   if (!resolucion.aparece) {
-    return crearResultadoEncuentroVacio(resumenBase);
+    if (obligatorio && resolucion.configurado) {
+      throw new Error(
+        `El jefe configurado de "${plantilla.nombre}" ` +
+          "no superó su tirada obligatoria de aparición.",
+      );
+    }
+
+    return crearResultadoEnemigoUnicoVacio(resumenBase);
   }
 
   const configuracionPosicion = plantilla.enemigos;
@@ -289,13 +349,21 @@ function generarEncuentroEspecialEnMapa({
   });
 
   if (indicePosicion === -1) {
+    if (obligatorio) {
+      throw new Error(
+        `El jefe "${resolucion.idEnemigo}" de ` +
+          `"${plantilla.nombre}" no pudo colocarse ` +
+          "respetando las distancias.",
+      );
+    }
+
     console.warn(
       `[Mapa] El encuentro especial "${resolucion.idEnemigo}" ` +
         `fue seleccionado para "${plantilla.nombre}", ` +
         "pero no pudo colocarse respetando las distancias.",
     );
 
-    return crearResultadoEncuentroVacio({
+    return crearResultadoEnemigoUnicoVacio({
       ...resumenBase,
       omitidoPorEspacio: true,
     });
@@ -316,6 +384,7 @@ function generarEncuentroEspecialEnMapa({
   agregarBotinAdicional({
     enemigo,
     tablaBotinAdicional: resolucion.tablaBotinAdicional,
+    descripcion: esJefe ? "del jefe" : "del encuentro especial",
   });
 
   posicionesEnemigos.push({
@@ -333,7 +402,8 @@ function generarEncuentroEspecialEnMapa({
         nivel: nivelMapa,
         x: posicion.x,
         y: posicion.y,
-        esEncuentroEspecial: true,
+        esEncuentroEspecial,
+        esJefe,
         probabilidadEncuentro: resolucion.probabilidadAparicion,
         tiradaEncuentro: resolucion.tirada,
         cantidadEntradasBotinAdicional: resolucion.tablaBotinAdicional.length,
@@ -355,7 +425,7 @@ function generarEncuentroEspecialEnMapa({
   };
 }
 
-function crearResultadoEncuentroVacio(resumen) {
+function crearResultadoEnemigoUnicoVacio(resumen) {
   return {
     enemigos: [],
     detalle: [],
@@ -365,11 +435,9 @@ function crearResultadoEncuentroVacio(resumen) {
   };
 }
 
-function agregarBotinAdicional({ enemigo, tablaBotinAdicional }) {
+function agregarBotinAdicional({ enemigo, tablaBotinAdicional, descripcion }) {
   if (!Array.isArray(tablaBotinAdicional)) {
-    throw new Error(
-      "El botín adicional del encuentro especial debe ser una lista.",
-    );
+    throw new Error(`El botín adicional ${descripcion} debe ser una lista.`);
   }
 
   enemigo.tablaBotin.push(
@@ -618,6 +686,13 @@ function seleccionarVariante(probabilidades, aleatorio) {
   return seleccion.id === "normal" ? null : seleccion.id;
 }
 
+function combinarConteosMultiples(conteos) {
+  return conteos.reduce(
+    (resultado, conteo) => combinarConteos(resultado, conteo),
+    {},
+  );
+}
+
 function combinarConteos(conteoA, conteoB) {
   const resultado = {
     ...conteoA,
@@ -649,6 +724,16 @@ function sonMismaPosicion(posicionA, posicionB) {
 
 function crearClave(posicion) {
   return `${posicion.x},` + `${posicion.y}`;
+}
+
+function validarTipoEnemigoUnico({ tipo, obligatorio }) {
+  if (!Object.values(TIPOS_ENEMIGO_UNICO).includes(tipo)) {
+    throw new Error(`El tipo de enemigo único "${tipo}" no es válido.`);
+  }
+
+  if (typeof obligatorio !== "boolean") {
+    throw new Error("La obligatoriedad del enemigo único debe ser booleana.");
+  }
 }
 
 function validarParametros({

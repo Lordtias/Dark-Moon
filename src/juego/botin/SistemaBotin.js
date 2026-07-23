@@ -14,6 +14,8 @@ import {
   puedeGenerarsePlantilla,
 } from "../objetos/ReglasProgresionObjetos.js";
 
+import { RAREZAS_OBJETO } from "../objetos/RarezasObjeto.js";
+
 import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 
 // La ventana de botín queda visualmente
@@ -24,6 +26,8 @@ import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 // adelante, el contenedor será reconstruido
 // con la capacidad necesaria.
 const CAPACIDAD_MINIMA_BOTIN = 6;
+
+const RAREZAS_FORZADAS_VALIDAS = new Set(Object.values(RAREZAS_OBJETO));
 
 // Resuelve la tabla de una fuente y coloca
 // los objetos generados dentro del mapa.
@@ -109,11 +113,16 @@ export function generarBotinEnSuelo({
 // Formato:
 //
 // {
-//     "idObjeto": "cola_rata",
-//     "probabilidad": 70,
-//     "cantidadMinima": 1,
-//     "cantidadMaxima": 1
+//   "idObjeto": "espada_acero",
+//   "probabilidad": 100,
+//   "cantidadMinima": 1,
+//   "cantidadMaxima": 1,
+//   "rarezaForzada": "magico"
 // }
+//
+// rarezaForzada es opcional. Cuando existe,
+// la instancia utiliza esa rareza siempre que
+// la plantilla y el nivel permitan generarla.
 export function resolverTablaBotin({
   tablaBotin,
   configuracionObjetos,
@@ -222,6 +231,8 @@ export function resolverTablaBotin({
       // concreto de las instancias.
       nivelBaseObjeto,
 
+      rarezaForzada: normalizada.rarezaForzada,
+
       aleatorioObjetos,
     });
 
@@ -277,6 +288,7 @@ function crearObjetosParaCantidad({
   cantidadTotal,
   nivelBaseObjeto,
   nivelProgreso,
+  rarezaForzada,
   aleatorioObjetos,
 }) {
   const plantilla = configuracionObjetos[idObjeto];
@@ -310,6 +322,7 @@ function crearObjetosParaCantidad({
           cantidad: 1,
           nivelObjeto,
           nivelProgreso,
+          rarezaForzada,
           aleatorio: aleatorioObjetos,
         }),
       );
@@ -337,6 +350,7 @@ function crearObjetosParaCantidad({
         cantidad: cantidadPila,
         nivelObjeto,
         nivelProgreso,
+        rarezaForzada,
         aleatorio: aleatorioObjetos,
       }),
     );
@@ -602,13 +616,41 @@ function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
     throw new Error(`Las cantidades de "${idObjeto}" no son válidas.`);
   }
 
+  const rarezaForzada = normalizarRarezaForzada({
+    rarezaForzada: entrada.rarezaForzada ?? null,
+    idObjeto,
+  });
+
   return {
     idObjeto,
     probabilidad,
     cantidadMinima,
     cantidadMaxima,
+    rarezaForzada,
     nivelMinimoGeneracion: obtenerNivelMinimoGeneracionPlantilla(plantilla),
   };
+}
+
+function normalizarRarezaForzada({ rarezaForzada, idObjeto }) {
+  if (rarezaForzada === null) {
+    return null;
+  }
+
+  if (typeof rarezaForzada !== "string" || rarezaForzada.trim() === "") {
+    throw new Error(
+      `La rareza forzada de "${idObjeto}" debe ser un texto válido.`,
+    );
+  }
+
+  const normalizada = rarezaForzada.trim().toLowerCase();
+
+  if (!RAREZAS_FORZADAS_VALIDAS.has(normalizada)) {
+    throw new Error(
+      `La rareza forzada "${rarezaForzada}" de "${idObjeto}" no es válida.`,
+    );
+  }
+
+  return normalizada;
 }
 
 function validarFuente(fuente) {

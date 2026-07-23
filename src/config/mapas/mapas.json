@@ -294,6 +294,269 @@
           }
         ]
       }
+    },
+    "fortaleza_abandonada": {
+      "nombre": "Fortaleza abandonada",
+      "descripcion": "Una fortificación derruida ocupada por ladrones y lanceros que aprovechan sus corredores defensivos. Un Comandante puede organizar la resistencia.",
+      "bioma": "fortaleza_abandonada",
+      "recursoVisual": "assets/imagenes/mapas/fortaleza_abandonada.png",
+      "nivelDesbloqueo": 6,
+      "pesoSeleccion": 1.5,
+      "apariencia": {
+        "colorSuelo": "#363942",
+        "colorPared": "#737985",
+        "colorGrilla": "#202229"
+      },
+      "dimensiones": {
+        "ancho": {
+          "minimo": 22,
+          "maximo": 28
+        },
+        "alto": {
+          "minimo": 13,
+          "maximo": 17
+        }
+      },
+      "niveles": {
+        "minimo": 6,
+        "maximo": 8
+      },
+      "generacion": {
+        "tipo": "habitaciones",
+        "porcentajeNoCaminable": {
+          "minimo": 34,
+          "maximo": 50
+        },
+        "porcentajeMinimoConectado": 92,
+        "intentosMaximos": 70
+      },
+      "enemigos": {
+        "cantidad": {
+          "minimo": 5,
+          "maximo": 7
+        },
+        "distanciaSeguraJugador": 5,
+        "distanciaMinimaEntreEnemigos": 2,
+        "permitidos": [
+          {
+            "id": "ladron",
+            "peso": 55
+          },
+          {
+            "id": "lancero",
+            "peso": 45
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 78,
+          "enfermo": 3,
+          "gigante": 8,
+          "elite": 11
+        }
+      },
+      "encuentroEspecial": {
+        "probabilidadAparicion": 15,
+        "permitidos": [
+          {
+            "id": "comandante",
+            "peso": 100,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "espada_acero",
+                "probabilidad": 4,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "coraza_acero",
+                "probabilidad": 3,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 70,
+          "enfermo": 0,
+          "gigante": 10,
+          "elite": 20
+        }
+      },
+      "destructibles": {
+        "porcentajeCasillasCaminables": {
+          "minimo": 5,
+          "maximo": 9
+        },
+        "permitidos": [
+          {
+            "id": "barril",
+            "peso": 100
+          }
+        ]
+      }
+    },
+    "sala_guerra": {
+      "nombre": "Sala de guerra",
+      "descripcion": "El núcleo militar de la fortaleza, donde combatientes de expediciones anteriores convergen bajo las órdenes del Señor de la Guerra.",
+      "bioma": "sala_guerra",
+      "recursoVisual": "assets/imagenes/mapas/sala_guerra.png",
+      "nivelDesbloqueo": 8,
+      "pesoSeleccion": 1,
+      "apariencia": {
+        "colorSuelo": "#403129",
+        "colorPared": "#8a674e",
+        "colorGrilla": "#261b17"
+      },
+      "dimensiones": {
+        "ancho": {
+          "minimo": 24,
+          "maximo": 30
+        },
+        "alto": {
+          "minimo": 15,
+          "maximo": 19
+        }
+      },
+      "niveles": {
+        "minimo": 8,
+        "maximo": 10
+      },
+      "generacion": {
+        "tipo": "habitaciones",
+        "porcentajeNoCaminable": {
+          "minimo": 30,
+          "maximo": 46
+        },
+        "porcentajeMinimoConectado": 94,
+        "intentosMaximos": 80
+      },
+      "enemigos": {
+        "cantidad": {
+          "minimo": 6,
+          "maximo": 8
+        },
+        "distanciaSeguraJugador": 5,
+        "distanciaMinimaEntreEnemigos": 2,
+        "permitidos": [
+          {
+            "id": "rata",
+            "peso": 5
+          },
+          {
+            "id": "cucaracha",
+            "peso": 5
+          },
+          {
+            "id": "esqueleto_guardia",
+            "peso": 20
+          },
+          {
+            "id": "esqueleto_arquero",
+            "peso": 15
+          },
+          {
+            "id": "ladron",
+            "peso": 30
+          },
+          {
+            "id": "lancero",
+            "peso": 25
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 70,
+          "enfermo": 2,
+          "gigante": 10,
+          "elite": 18
+        }
+      },
+      "encuentroEspecial": {
+        "probabilidadAparicion": 20,
+        "permitidos": [
+          {
+            "id": "hombre_rata_saqueador",
+            "peso": 20,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "daga_acero",
+                "probabilidad": 3,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          },
+          {
+            "id": "zombi",
+            "peso": 20,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "tunica_reforzada",
+                "probabilidad": 3,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          },
+          {
+            "id": "caballero_oseo",
+            "peso": 30,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "hacha_batalla",
+                "probabilidad": 4,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          },
+          {
+            "id": "comandante",
+            "peso": 30,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "coraza_acero",
+                "probabilidad": 4,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 60,
+          "enfermo": 0,
+          "gigante": 10,
+          "elite": 30
+        }
+      },
+      "jefe": {
+        "probabilidadAparicion": 100,
+        "permitidos": [
+          {
+            "id": "senor_guerra",
+            "peso": 100
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 100,
+          "enfermo": 0,
+          "gigante": 0,
+          "elite": 0
+        }
+      },
+      "destructibles": {
+        "porcentajeCasillasCaminables": {
+          "minimo": 5,
+          "maximo": 10
+        },
+        "permitidos": [
+          {
+            "id": "barril",
+            "peso": 100
+          }
+        ]
+      }
     }
   }
 }

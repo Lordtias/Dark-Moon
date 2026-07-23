@@ -2,6 +2,8 @@ const TIPOS_GENERACION_VALIDOS = ["habitaciones"];
 
 const VARIANTES_REQUERIDAS = ["normal", "enfermo", "gigante", "elite"];
 
+const RAREZAS_FORZADAS_VALIDAS = new Set(["comun", "magico", "raro"]);
+
 const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 
 // Valida completamente la estructura general
@@ -12,9 +14,10 @@ const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 //
 // - Enemigos recurrentes.
 // - Encuentros especiales opcionales.
+// - Jefes obligatorios.
 //
-// Un mismo enemigo no puede participar en ambas
-// listas dentro de la misma plantilla.
+// Un mismo enemigo no puede participar en más
+// de una de estas poblaciones dentro del mismo mapa.
 export function validarConfiguracionMapas(configuracion) {
   validarObjeto(configuracion, "la configuración de mapas");
 
@@ -85,10 +88,16 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
 
-  validarEncuentroEspecial({
+  const idsEspeciales = validarEncuentroEspecial({
     idPlantilla,
     encuentroEspecial: plantilla.encuentroEspecial,
-    idsRecurrentes,
+    idsExcluidos: idsRecurrentes,
+  });
+
+  validarJefe({
+    idPlantilla,
+    jefe: plantilla.jefe,
+    idsExcluidos: unirConjuntos(idsRecurrentes, idsEspeciales),
   });
 
   validarDestructibles(idPlantilla, plantilla.destructibles);
@@ -223,10 +232,10 @@ function validarEnemigos(idPlantilla, enemigos) {
 function validarEncuentroEspecial({
   idPlantilla,
   encuentroEspecial,
-  idsRecurrentes,
+  idsExcluidos,
 }) {
   if (encuentroEspecial === undefined || encuentroEspecial === null) {
-    return;
+    return new Set();
   }
 
   validarObjeto(encuentroEspecial, `el encuentro especial de "${idPlantilla}"`);
@@ -244,20 +253,73 @@ function validarEncuentroEspecial({
     },
   );
 
-  for (const idEspecial of idsEspeciales) {
-    if (idsRecurrentes.has(idEspecial)) {
-      throw new Error(
-        `El enemigo "${idEspecial}" de "${idPlantilla}" ` +
-          "no puede ser recurrente y especial al mismo tiempo.",
-      );
-    }
-  }
+  validarIdsExcluidos({
+    ids: idsEspeciales,
+    idsExcluidos,
+    idPlantilla,
+    tipoPoblacion: "especial",
+  });
 
   validarProbabilidadesVariantes(
     idPlantilla,
     encuentroEspecial.probabilidadesVariantes,
     "especiales",
   );
+
+  return idsEspeciales;
+}
+
+function validarJefe({ idPlantilla, jefe, idsExcluidos }) {
+  if (jefe === undefined || jefe === null) {
+    return new Set();
+  }
+
+  validarObjeto(jefe, `el jefe de "${idPlantilla}"`);
+
+  if (jefe.probabilidadAparicion !== 100) {
+    throw new Error(
+      `El jefe de "${idPlantilla}" debe tener una probabilidad de aparición de 100.`,
+    );
+  }
+
+  const idsJefes = validarListaPonderada(
+    jefe.permitidos,
+    `los jefes de "${idPlantilla}"`,
+    {
+      validarBotinAdicional: true,
+    },
+  );
+
+  validarIdsExcluidos({
+    ids: idsJefes,
+    idsExcluidos,
+    idPlantilla,
+    tipoPoblacion: "jefe",
+  });
+
+  validarProbabilidadesVariantes(
+    idPlantilla,
+    jefe.probabilidadesVariantes,
+    "de jefe",
+  );
+
+  return idsJefes;
+}
+
+function validarIdsExcluidos({
+  ids,
+  idsExcluidos,
+  idPlantilla,
+  tipoPoblacion,
+}) {
+  for (const id of ids) {
+    if (idsExcluidos.has(id)) {
+      throw new Error(
+        `El enemigo "${id}" de "${idPlantilla}" no puede participar ` +
+          `también como ${tipoPoblacion}.`,
+      );
+    }
+  }
 }
 
 function validarDestructibles(idPlantilla, destructibles) {
@@ -346,6 +408,12 @@ function validarTablaBotinAdicional({ tabla, descripcion }) {
       `la cantidad máxima de "${entrada.idObjeto}" dentro de ${descripcion}`,
     );
 
+    validarRarezaForzada({
+      rarezaForzada: entrada.rarezaForzada ?? null,
+      descripcion,
+      idObjeto: entrada.idObjeto,
+    });
+
     const idObjeto = entrada.idObjeto.trim();
 
     if (ids.has(idObjeto)) {
@@ -356,6 +424,21 @@ function validarTablaBotinAdicional({ tabla, descripcion }) {
 
     ids.add(idObjeto);
   });
+}
+
+function validarRarezaForzada({ rarezaForzada, descripcion, idObjeto }) {
+  if (rarezaForzada === null) {
+    return;
+  }
+
+  if (
+    typeof rarezaForzada !== "string" ||
+    !RAREZAS_FORZADAS_VALIDAS.has(rarezaForzada.trim().toLowerCase())
+  ) {
+    throw new Error(
+      `La rareza forzada de "${idObjeto}" dentro de ${descripcion} no es válida.`,
+    );
+  }
 }
 
 function validarProbabilidadesVariantes(
@@ -388,6 +471,10 @@ function validarProbabilidadesVariantes(
         `deben sumar 100. Actualmente suman ${total}.`,
     );
   }
+}
+
+function unirConjuntos(conjuntoA, conjuntoB) {
+  return new Set([...conjuntoA, ...conjuntoB]);
 }
 
 function validarRangoPorcentaje(rango, descripcion) {

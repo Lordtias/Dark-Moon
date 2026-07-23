@@ -1,11 +1,10 @@
 <!doctype html>
-
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
 
     <!-- Permite adaptar correctamente la interfaz
-  a pantallas de distintos tamaños. -->
+    a pantallas de distintos tamaños. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Dark Moon</title>
@@ -20,13 +19,11 @@
   <body>
     <main>
       <!-- ============================================
-    MENÚ PRINCIPAL
-    ============================================= -->
-
+      MENÚ PRINCIPAL
+      ============================================= -->
       <section id="mainMenu" class="pantalla-menu-principal">
         <div class="menu-principal-capa">
           <h1 class="titulo-menu-principal">Dark Moon</h1>
-
           <p class="subtitulo-menu-principal">---</p>
 
           <div id="mainMenuButtons" class="acciones-menu-principal">
@@ -49,21 +46,17 @@
 
           <div id="settingsPlaceholder" class="panel-configuracion-menu oculto">
             <h2>Configuración</h2>
-
             <p>Esta sección todavía no está implementada.</p>
-
             <button id="backToMainMenuButton" type="button">Volver</button>
           </div>
         </div>
       </section>
 
       <!-- ============================================
-    CREACIÓN DEL PERSONAJE
-    ============================================= -->
-
+      CREACIÓN DEL PERSONAJE
+      ============================================= -->
       <section id="characterCreation" class="panel-creacion oculto">
         <h1>Dark Moon</h1>
-
         <h2>Creación del personaje</h2>
 
         <div class="campo-formulario">
@@ -92,7 +85,6 @@
 
         <p class="puntos-disponibles">
           Puntos disponibles:
-
           <span id="pointsRemaining"> 0 </span>
         </p>
 
@@ -119,9 +111,8 @@
       </section>
 
       <!-- ============================================
-    PANTALLA DE LA PARTIDA
-    ============================================= -->
-
+      PANTALLA DE LA PARTIDA
+      ============================================= -->
       <section id="gameContainer" class="pantalla-juego oculto">
         <header class="cabecera-partida">
           <div>
@@ -136,7 +127,7 @@
 
         <div class="interfaz-partida">
           <!-- El contenido de este panel se obtiene
-        desde plantillaPanelPersonaje. -->
+          desde plantillaPanelPersonaje. -->
           <aside
             id="panelPersonaje"
             class="panel-juego panel-personaje"
@@ -234,26 +225,23 @@
     </main>
 
     <!-- ============================================
-  PLANTILLA DEL PANEL DEL PERSONAJE
+    PLANTILLA DEL PANEL DEL PERSONAJE
 
-  El navegador no muestra directamente el contenido
-  de un template. PanelPersonaje lo clonará dentro
-  de #panelPersonaje al comenzar la partida.
-  ============================================= -->
-
+    El navegador no muestra directamente el contenido
+    de un template. PanelPersonaje lo clonará dentro
+    de #panelPersonaje al comenzar la partida.
+    ============================================= -->
     <template id="plantillaPanelPersonaje">
       <h2>Personaje</h2>
 
       <div class="identidad-personaje">
         <strong data-personaje="nombre"> Cargando... </strong>
-
         <span data-personaje="clase"> Aventurero </span>
       </div>
 
       <div class="experiencia-personaje">
         <div class="cabecera-experiencia">
           <strong data-personaje="nivel"> Nivel 1 </strong>
-
           <span data-personaje="experiencia-texto"> 0 / 0 PX </span>
         </div>
 
@@ -269,7 +257,6 @@
       <div class="recurso-personaje">
         <div class="cabecera-recurso">
           <span>Vida</span>
-
           <span data-personaje="vida-texto"> 0 / 0 </span>
         </div>
 
@@ -285,7 +272,6 @@
       <div class="recurso-personaje">
         <div class="cabecera-recurso">
           <span>Maná</span>
-
           <span data-personaje="mana-texto"> 0 / 0 </span>
         </div>
 
@@ -307,7 +293,6 @@
             title="Puntos pendientes de repartir"
           >
             <span>Puntos</span>
-
             <strong data-personaje="puntos-atributo"> 0 </strong>
           </div>
         </div>
@@ -315,7 +300,6 @@
         <div class="lista-atributos">
           <div class="fila-atributo" data-atributo="fuerza">
             <span class="nombre-atributo-panel"> Fuerza </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -332,7 +316,6 @@
 
           <div class="fila-atributo" data-atributo="destreza">
             <span class="nombre-atributo-panel"> Destreza </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -349,7 +332,6 @@
 
           <div class="fila-atributo" data-atributo="constitucion">
             <span class="nombre-atributo-panel"> Constitución </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -366,7 +348,6 @@
 
           <div class="fila-atributo" data-atributo="inteligencia">
             <span class="nombre-atributo-panel"> Inteligencia </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -383,7 +364,6 @@
 
           <div class="fila-atributo" data-atributo="sabiduria">
             <span class="nombre-atributo-panel"> Sabiduría </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -400,7 +380,6 @@
 
           <div class="fila-atributo" data-atributo="carisma">
             <span class="nombre-atributo-panel"> Carisma </span>
-
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -500,6 +479,346 @@
           </div>
         </div>
       </section>
+    </template>
+
+    <!-- ============================================
+    PLANTILLA DEL EQUIPO EN LA CREACIÓN DEL PERSONAJE
+
+    MenuCreacionPersonaje clona esta estructura para
+    construir la columna derecha de la pantalla.
+    ============================================= -->
+    <template id="plantillaEquipoCreacion">
+      <aside
+        id="creationEquipmentPanel"
+        class="columna-creacion columna-creacion--equipo"
+      >
+        <header class="cabecera-profesion-creacion">
+          <img
+            id="creationProfessionImage"
+            class="imagen-profesion-creacion"
+            alt=""
+          />
+
+          <div>
+            <p class="etiqueta-creacion">Profesión seleccionada</p>
+            <h3 id="selectedProfessionName"></h3>
+            <p id="selectedProfessionDescription"></p>
+            <p
+              id="selectedProfessionStyle"
+              class="estilo-profesion-creacion"
+            ></p>
+          </div>
+        </header>
+
+        <section class="bloque-equipo-creacion">
+          <div class="cabecera-conjunto-creacion">
+            <div>
+              <p class="etiqueta-creacion">Conjunto inicial</p>
+              <h3 id="equipmentSetName"></h3>
+            </div>
+
+            <span
+              id="equipmentSetOrigin"
+              class="origen-conjunto-creacion"
+            ></span>
+          </div>
+
+          <p id="equipmentSetDescription"></p>
+
+          <div id="equipmentSummary" class="resumen-equipo-creacion"></div>
+
+          <h4>Equipado</h4>
+
+          <div
+            id="initialEquipmentContainer"
+            class="lista-objetos-creacion"
+          ></div>
+
+          <h4>Inventario</h4>
+
+          <div
+            id="initialInventoryContainer"
+            class="lista-objetos-creacion"
+          ></div>
+
+          <div class="acciones-equipo-creacion">
+            <button id="recommendedEquipmentButton" type="button">
+              Equipo recomendado
+            </button>
+
+            <button id="randomEquipmentButton" type="button">
+              Tirar equipo alternativo
+            </button>
+          </div>
+
+          <p
+            id="randomEquipmentStatus"
+            class="estado-equipo-aleatorio"
+            aria-live="polite"
+          ></p>
+        </section>
+      </aside>
+    </template>
+
+    <!-- ============================================
+    PLANTILLA DEL MODAL DE CURACIÓN
+
+    ModalCuracion clona este diálogo y solamente
+    administra sus datos, estados y eventos.
+    ============================================= -->
+    <template id="plantillaModalCuracion">
+      <dialog class="modal-curacion">
+        <div class="modal-curacion__contenido">
+          <header class="modal-curacion__cabecera">
+            <div>
+              <h2 class="modal-curacion__titulo"></h2>
+
+              <p class="modal-curacion__subtitulo">
+                Restaurá tus recursos antes de una nueva expedición.
+              </p>
+            </div>
+
+            <div class="modal-curacion__estado-jugador">
+              <span class="modal-curacion__estado-etiqueta"> Oro </span>
+
+              <strong class="modal-curacion__oro"> 0 </strong>
+
+              <button
+                class="modal-curacion__cerrar-superior"
+                type="button"
+                aria-label="Cerrar servicios de curación"
+                title="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+          </header>
+
+          <p class="modal-curacion__introduccion">
+            El precio depende únicamente de los puntos que necesites recuperar.
+          </p>
+
+          <div class="modal-curacion__servicios">
+            <section
+              class="modal-curacion__servicio modal-curacion__servicio--vida"
+              data-servicio-curacion="vida"
+            >
+              <div class="modal-curacion__servicio-cabecera">
+                <span class="modal-curacion__servicio-icono" aria-hidden="true">
+                  ♥
+                </span>
+
+                <div>
+                  <h3 class="modal-curacion__servicio-titulo">
+                    Restaurar Vida
+                  </h3>
+
+                  <p class="modal-curacion__servicio-descripcion">
+                    Completa todos los puntos de Vida faltantes.
+                  </p>
+                </div>
+              </div>
+
+              <div class="modal-curacion__resumen">
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Estado actual
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="actual"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Puntos faltantes
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="faltante"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta"> Precio </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="precio"
+                  >
+                    —
+                  </strong>
+                </div>
+              </div>
+
+              <button
+                class="modal-curacion__boton modal-curacion__boton--principal"
+                type="button"
+                data-accion-curacion="vida"
+              >
+                Calcular servicio
+              </button>
+            </section>
+
+            <section
+              class="modal-curacion__servicio modal-curacion__servicio--mana"
+              data-servicio-curacion="mana"
+            >
+              <div class="modal-curacion__servicio-cabecera">
+                <span class="modal-curacion__servicio-icono" aria-hidden="true">
+                  ✦
+                </span>
+
+                <div>
+                  <h3 class="modal-curacion__servicio-titulo">
+                    Restaurar Maná
+                  </h3>
+
+                  <p class="modal-curacion__servicio-descripcion">
+                    Completa todos los puntos de Maná faltantes.
+                  </p>
+                </div>
+              </div>
+
+              <div class="modal-curacion__resumen">
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Estado actual
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="actual"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Puntos faltantes
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="faltante"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta"> Precio </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="precio"
+                  >
+                    —
+                  </strong>
+                </div>
+              </div>
+
+              <button
+                class="modal-curacion__boton modal-curacion__boton--principal"
+                type="button"
+                data-accion-curacion="mana"
+              >
+                Calcular servicio
+              </button>
+            </section>
+
+            <section
+              class="modal-curacion__servicio modal-curacion__servicio--ambos"
+              data-servicio-curacion="ambos"
+            >
+              <div class="modal-curacion__servicio-cabecera">
+                <span class="modal-curacion__servicio-icono" aria-hidden="true">
+                  ✚
+                </span>
+
+                <div>
+                  <h3 class="modal-curacion__servicio-titulo">
+                    Restaurar todo
+                  </h3>
+
+                  <p class="modal-curacion__servicio-descripcion">
+                    Completa Vida y Maná en una sola operación.
+                  </p>
+                </div>
+              </div>
+
+              <div class="modal-curacion__resumen">
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Vida faltante
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="vida-faltante"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Maná faltante
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="mana-faltante"
+                  >
+                    —
+                  </strong>
+                </div>
+
+                <div class="modal-curacion__resumen-fila">
+                  <span class="modal-curacion__resumen-etiqueta">
+                    Precio total
+                  </span>
+
+                  <strong
+                    class="modal-curacion__resumen-valor"
+                    data-campo-curacion="precio"
+                  >
+                    —
+                  </strong>
+                </div>
+              </div>
+
+              <button
+                class="modal-curacion__boton modal-curacion__boton--principal"
+                type="button"
+                data-accion-curacion="ambos"
+              >
+                Calcular servicio
+              </button>
+            </section>
+          </div>
+
+          <footer class="modal-curacion__acciones">
+            <p class="modal-curacion__mensaje-estado"></p>
+
+            <button
+              class="modal-curacion__boton modal-curacion__boton--secundario"
+              type="button"
+              data-cerrar-curacion
+            >
+              Cerrar
+            </button>
+          </footer>
+        </div>
+      </dialog>
     </template>
 
     <!-- game.js utiliza importaciones y exportaciones. -->

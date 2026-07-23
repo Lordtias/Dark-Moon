@@ -2,6 +2,7 @@ import {
   crearAtributosIniciales,
   generarAtributosAleatorios,
 } from "../juego/generacion/GeneradorAtributos.js";
+
 import {
   aplicarSeleccionEquipoAProfesion,
   calcularResumenSeleccionEquipo,
@@ -11,6 +12,7 @@ import {
 
 const ID_HOJA_ESTILOS = "menuCreacionPersonajeStyles";
 const RUTA_HOJA_ESTILOS = "./menu-creacion-personaje.css";
+const ID_PLANTILLA_EQUIPO = "plantillaEquipoCreacion";
 
 /**
  * Administra la pantalla de creación del personaje.
@@ -33,12 +35,10 @@ export class MenuCreacionPersonaje {
     this.configuracion = configuracion;
     this.configuracionObjetos = configuracionObjetos;
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
-
     this.alConfirmar =
       typeof alConfirmar === "function" ? alConfirmar : () => {};
 
     this.idProfesionSeleccionada = configuracion.profesionInicial;
-
     this.atributos = crearAtributosIniciales(configuracion);
 
     // Conservamos por separado:
@@ -58,7 +58,9 @@ export class MenuCreacionPersonaje {
   }
 
   // Agrega la hoja de estilos y construye una segunda columna
-  // sin obligar a modificar el HTML general de la partida.
+  // sin obligar a duplicar la estructura general de la pantalla.
+  //
+  // El contenido visual de la columna se encuentra en index.html.
   prepararEstructuraInterfaz() {
     this.agregarHojaEstilos();
 
@@ -70,6 +72,24 @@ export class MenuCreacionPersonaje {
 
     if (document.getElementById("creationLayout")) {
       return;
+    }
+
+    const plantillaEquipo = document.getElementById(ID_PLANTILLA_EQUIPO);
+
+    if (!(plantillaEquipo instanceof HTMLTemplateElement)) {
+      throw new Error(
+        `No existe la plantilla "${ID_PLANTILLA_EQUIPO}" ` +
+          "del equipo inicial.",
+      );
+    }
+
+    const columnaEquipo =
+      plantillaEquipo.content.firstElementChild?.cloneNode(true);
+
+    if (!(columnaEquipo instanceof HTMLElement)) {
+      throw new Error(
+        "La plantilla del equipo inicial no contiene un elemento válido.",
+      );
     }
 
     panel.classList.add("panel-creacion--ampliado");
@@ -93,13 +113,7 @@ export class MenuCreacionPersonaje {
       columnaFormulario.appendChild(elemento);
     }
 
-    const columnaEquipo = document.createElement("aside");
-    columnaEquipo.id = "creationEquipmentPanel";
-    columnaEquipo.className = "columna-creacion columna-creacion--equipo";
-    columnaEquipo.innerHTML = this.crearPlantillaEquipo();
-
     distribucion.append(columnaFormulario, columnaEquipo);
-
     panel.appendChild(distribucion);
   }
 
@@ -115,80 +129,6 @@ export class MenuCreacionPersonaje {
     document.head.appendChild(enlace);
   }
 
-  crearPlantillaEquipo() {
-    return `
-            <header class="cabecera-profesion-creacion">
-                <img
-                    id="creationProfessionImage"
-                    class="imagen-profesion-creacion"
-                    alt=""
-                />
-                <div>
-                    <p class="etiqueta-creacion">Profesión seleccionada</p>
-                    <h3 id="selectedProfessionName"></h3>
-                    <p id="selectedProfessionDescription"></p>
-                    <p
-                        id="selectedProfessionStyle"
-                        class="estilo-profesion-creacion"
-                    ></p>
-                </div>
-            </header>
-
-            <section class="bloque-equipo-creacion">
-                <div class="cabecera-conjunto-creacion">
-                    <div>
-                        <p class="etiqueta-creacion">Conjunto inicial</p>
-                        <h3 id="equipmentSetName"></h3>
-                    </div>
-                    <span
-                        id="equipmentSetOrigin"
-                        class="origen-conjunto-creacion"
-                    ></span>
-                </div>
-
-                <p id="equipmentSetDescription"></p>
-
-                <div
-                    id="equipmentSummary"
-                    class="resumen-equipo-creacion"
-                ></div>
-
-                <h4>Equipado</h4>
-                <div
-                    id="initialEquipmentContainer"
-                    class="lista-objetos-creacion"
-                ></div>
-
-                <h4>Inventario</h4>
-                <div
-                    id="initialInventoryContainer"
-                    class="lista-objetos-creacion"
-                ></div>
-
-                <div class="acciones-equipo-creacion">
-                    <button
-                        id="recommendedEquipmentButton"
-                        type="button"
-                    >
-                        Equipo recomendado
-                    </button>
-                    <button
-                        id="randomEquipmentButton"
-                        type="button"
-                    >
-                        Tirar equipo alternativo
-                    </button>
-                </div>
-
-                <p
-                    id="randomEquipmentStatus"
-                    class="estado-equipo-aleatorio"
-                    aria-live="polite"
-                ></p>
-            </section>
-        `;
-  }
-
   obtenerElementos() {
     this.inputNombre = document.getElementById("playerName");
     this.selectorProfesion = document.getElementById("professionSelect");
@@ -200,33 +140,44 @@ export class MenuCreacionPersonaje {
     this.textoMensaje = document.getElementById("creationMessage");
 
     this.imagenProfesion = document.getElementById("creationProfessionImage");
+
     this.textoNombreProfesion = document.getElementById(
       "selectedProfessionName",
     );
+
     this.textoDescripcionProfesion = document.getElementById(
       "selectedProfessionDescription",
     );
+
     this.textoEstiloProfesion = document.getElementById(
       "selectedProfessionStyle",
     );
+
     this.textoNombreConjunto = document.getElementById("equipmentSetName");
     this.textoOrigenConjunto = document.getElementById("equipmentSetOrigin");
+
     this.textoDescripcionConjunto = document.getElementById(
       "equipmentSetDescription",
     );
+
     this.contenedorResumenEquipo = document.getElementById("equipmentSummary");
+
     this.contenedorEquipoInicial = document.getElementById(
       "initialEquipmentContainer",
     );
+
     this.contenedorInventarioInicial = document.getElementById(
       "initialInventoryContainer",
     );
+
     this.botonEquipoRecomendado = document.getElementById(
       "recommendedEquipmentButton",
     );
+
     this.botonEquipoAleatorio = document.getElementById(
       "randomEquipmentButton",
     );
+
     this.textoEstadoEquipoAleatorio = document.getElementById(
       "randomEquipmentStatus",
     );
@@ -247,6 +198,7 @@ export class MenuCreacionPersonaje {
     Object.entries(this.configuracion.profesiones).forEach(
       ([idProfesion, profesion]) => {
         const opcion = document.createElement("option");
+
         opcion.value = idProfesion;
         opcion.textContent = profesion.nombre;
         opcion.selected = idProfesion === this.idProfesionSeleccionada;
@@ -273,6 +225,7 @@ export class MenuCreacionPersonaje {
 
     this.botonReiniciar.addEventListener("click", () => {
       this.atributos = crearAtributosIniciales(this.configuracion);
+
       this.renderizarAtributos();
       this.mostrarMensaje("");
     });
@@ -282,6 +235,7 @@ export class MenuCreacionPersonaje {
         this.configuracion,
         this.idProfesionSeleccionada,
       );
+
       this.renderizarAtributos();
       this.mostrarMensaje("");
     });
@@ -335,7 +289,9 @@ export class MenuCreacionPersonaje {
       seleccion = crearSeleccionEquipoAleatorio({
         configuracionPersonaje: this.configuracion,
         configuracionObjetos: this.configuracionObjetos,
+
         configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
+
         idProfesion: this.idProfesionSeleccionada,
       });
 
@@ -382,6 +338,7 @@ export class MenuCreacionPersonaje {
     }
 
     this.atributos[idAtributo] = nuevoValor;
+
     this.renderizarAtributos();
     this.mostrarMensaje("");
   }
@@ -440,6 +397,7 @@ export class MenuCreacionPersonaje {
       botonSumar.textContent = "+";
       botonSumar.dataset.accion = "sumar";
       botonSumar.dataset.atributo = atributo.id;
+
       botonSumar.disabled =
         puntosRestantes <= 0 ||
         valorActual >= configuracionAtributos.valorMaximo;
@@ -450,7 +408,6 @@ export class MenuCreacionPersonaje {
     });
 
     this.textoPuntosRestantes.textContent = puntosRestantes;
-
     this.actualizarBotonComenzar();
   }
 
@@ -459,13 +416,16 @@ export class MenuCreacionPersonaje {
       this.configuracion.profesiones[this.idProfesionSeleccionada];
 
     this.textoNombreProfesion.textContent = profesion.nombre;
+
     this.textoDescripcionProfesion.textContent = profesion.descripcion ?? "";
+
     this.textoEstiloProfesion.textContent = profesion.estiloJuego ?? "";
 
     if (profesion.recursoVisual) {
       this.imagenProfesion.src = profesion.recursoVisual;
       this.imagenProfesion.alt = `Vista de ${profesion.nombre}`;
       this.imagenProfesion.hidden = false;
+
       this.imagenProfesion.onerror = () => {
         this.imagenProfesion.hidden = true;
       };
@@ -485,17 +445,22 @@ export class MenuCreacionPersonaje {
     });
 
     this.textoNombreConjunto.textContent = seleccion.nombre;
+
     this.textoDescripcionConjunto.textContent = seleccion.descripcion;
+
     this.textoOrigenConjunto.textContent =
       seleccion.origen === "aleatorio" ? "Alternativo" : "Recomendado";
+
     this.textoOrigenConjunto.dataset.origen = seleccion.origen;
 
     this.renderizarResumenEquipo(resumen);
+
     this.renderizarListaObjetos({
       contenedor: this.contenedorEquipoInicial,
       objetos: resumen.objetos.equipamiento,
       mensajeVacio: "No hay objetos equipados.",
     });
+
     this.renderizarListaObjetos({
       contenedor: this.contenedorInventarioInicial,
       objetos: resumen.objetos.inventario,
@@ -517,8 +482,10 @@ export class MenuCreacionPersonaje {
       },
       {
         etiqueta: "Daño base",
+
         valor: arma
-          ? `${arma.propiedades.danioFisicoMinimo}-${arma.propiedades.danioFisicoMaximo}`
+          ? `${arma.propiedades.danioFisicoMinimo}-` +
+            `${arma.propiedades.danioFisicoMaximo}`
           : "—",
       },
       {
@@ -551,8 +518,10 @@ export class MenuCreacionPersonaje {
 
     if (objetos.length === 0) {
       const mensaje = document.createElement("p");
+
       mensaje.className = "objeto-creacion-vacio";
       mensaje.textContent = mensajeVacio;
+
       contenedor.appendChild(mensaje);
       return;
     }
@@ -564,15 +533,18 @@ export class MenuCreacionPersonaje {
 
   crearTarjetaObjeto(objeto) {
     const tarjeta = document.createElement("article");
+
     tarjeta.className = "tarjeta-objeto-creacion";
     tarjeta.dataset.rareza = objeto.rareza ?? "comun";
 
     const imagen = document.createElement("img");
+
     imagen.className = "icono-objeto-creacion";
     imagen.alt = "";
 
     if (objeto.recursoVisual) {
       imagen.src = objeto.recursoVisual;
+
       imagen.onerror = () => {
         imagen.hidden = true;
       };
@@ -586,14 +558,17 @@ export class MenuCreacionPersonaje {
     nombre.textContent = objeto.nombreCompleto ?? objeto.nombre;
 
     const metadatos = document.createElement("span");
+
     metadatos.className = "metadatos-objeto-creacion";
     metadatos.textContent = this.crearTextoMetadatosObjeto(objeto);
 
     const detalle = document.createElement("span");
+
     detalle.className = "detalle-objeto-creacion";
     detalle.textContent = this.crearTextoDetalleObjeto(objeto);
 
     contenido.append(nombre, metadatos, detalle);
+
     tarjeta.append(imagen, contenido);
 
     return tarjeta;
@@ -627,6 +602,7 @@ export class MenuCreacionPersonaje {
 
     if (objeto.esArmadura) {
       const armadura = objeto.propiedades.armadura ?? 0;
+
       const bloqueo = objeto.propiedades.probabilidadBloqueo ?? 0;
 
       return bloqueo > 0
@@ -652,29 +628,39 @@ export class MenuCreacionPersonaje {
 
     if (!tirada) {
       this.botonEquipoAleatorio.textContent = "Tirar equipo alternativo";
+
       this.textoEstadoEquipoAleatorio.textContent =
         "Podés realizar una única tirada de equipo para esta profesión.";
+
       this.textoEstadoEquipoAleatorio.dataset.estado = "disponible";
+
       return;
     }
 
     this.botonEquipoAleatorio.textContent = "Usar equipo obtenido";
 
     if (tirada.objetoMagico) {
-      this.textoEstadoEquipoAleatorio.textContent = `Tirada utilizada. Obtuviste: ${tirada.objetoMagico.nombre}.`;
+      this.textoEstadoEquipoAleatorio.textContent =
+        `Tirada utilizada. Obtuviste: ` + `${tirada.objetoMagico.nombre}.`;
+
       this.textoEstadoEquipoAleatorio.dataset.estado = "magico";
+
       return;
     }
 
     this.textoEstadoEquipoAleatorio.textContent =
-      "Tirada utilizada. El conjunto alternativo no obtuvo un objeto mágico.";
+      "Tirada utilizada. El conjunto alternativo " +
+      "no obtuvo un objeto mágico.";
+
     this.textoEstadoEquipoAleatorio.dataset.estado =
       seleccion.origen === "aleatorio" ? "seleccionado" : "utilizado";
   }
 
   actualizarBotonComenzar() {
     const nombreValido = this.inputNombre.value.trim() !== "";
+
     const puntosDistribuidos = this.calcularPuntosRestantes() === 0;
+
     const equipoSeleccionado = this.seleccionesEquipo.has(
       this.idProfesionSeleccionada,
     );
@@ -691,11 +677,13 @@ export class MenuCreacionPersonaje {
 
     if (nombre === "") {
       this.mostrarMensaje("Debés ingresar un nombre.");
+
       return;
     }
 
     if (this.calcularPuntosRestantes() !== 0) {
       this.mostrarMensaje("Debés distribuir todos los puntos.");
+
       return;
     }
 
@@ -706,6 +694,7 @@ export class MenuCreacionPersonaje {
 
     if (!seleccion) {
       this.mostrarMensaje("Debés seleccionar un conjunto inicial.");
+
       return;
     }
 
@@ -717,11 +706,15 @@ export class MenuCreacionPersonaje {
 
     const datosPersonaje = {
       nombre,
+
       idProfesion: this.idProfesionSeleccionada,
+
       clasePersonaje: profesion.nombre,
+
       atributos: {
         ...this.atributos,
       },
+
       equipoInicial: this.copiarProfundo(seleccion),
     };
 

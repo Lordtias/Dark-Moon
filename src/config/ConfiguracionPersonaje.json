@@ -31,10 +31,17 @@
       }
     ]
   },
+  "equipoInicial": {
+    "probabilidadObjetoMagico": 12,
+    "nivelObjetoMagico": 1,
+    "cantidadMaximaObjetosMagicos": 1
+  },
   "profesionInicial": "guerrero",
   "profesiones": {
     "guerrero": {
       "nombre": "Guerrero",
+      "descripcion": "Combatiente resistente que puede alternar entre arma y escudo o armas de dos manos.",
+      "estiloJuego": "Protección, bloqueo y daño físico directo.",
       "recursoVisual": "assets/imagenes/jugador/guerrero.png",
       "pesosAtributos": {
         "fuerza": 5,
@@ -72,34 +79,102 @@
         "objetosIniciales": [
           {
             "id": "pocion_curacion",
-            "cantidad": 2
-          },
-          "daga_hierro",
-          "hacha_mano",
-          "mandoble_hierro",
-          "lanza",
-          "arco_corto",
-          "quiver_cuero",
-          {
-            "id": "flecha_madera",
-            "cantidad": 15
+            "cantidad": 1
           }
         ]
       },
       "equipamiento": {
         "objetosIniciales": [
-          "capucha_cuero",
           "jubon_acolchado",
-          "guantes_cuero",
           "pantalones_cuero",
-          "botas_cuero",
           "espada_larga",
           "escudo_madera"
+        ]
+      },
+      "equipoInicial": {
+        "conjuntoRecomendado": "guerrero_espada_escudo",
+        "conjuntos": [
+          {
+            "id": "guerrero_espada_escudo",
+            "nombre": "Espada y escudo",
+            "descripcion": "Configuración equilibrada con buena defensa, bloqueo y daño estable.",
+            "recomendado": true,
+            "inventario": [
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "jubon_acolchado",
+              "pantalones_cuero",
+              "espada_larga",
+              "escudo_madera"
+            ]
+          },
+          {
+            "id": "guerrero_hacha_escudo",
+            "nombre": "Hacha y escudo",
+            "descripcion": "Golpes más fuertes y menos precisos, manteniendo la misma protección total.",
+            "inventario": [
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_cuero",
+              "jubon_acolchado",
+              "botas_cuero",
+              "hacha_mano",
+              "escudo_madera"
+            ]
+          },
+          {
+            "id": "guerrero_lanza",
+            "nombre": "Lancero protegido",
+            "descripcion": "Utiliza alcance dos y compensa la ausencia de escudo con un conjunto medio completo.",
+            "inventario": [
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_cuero",
+              "jubon_acolchado",
+              "guantes_cuero",
+              "pantalones_cuero",
+              "botas_cuero",
+              "lanza"
+            ]
+          },
+          {
+            "id": "guerrero_mandoble",
+            "nombre": "Mandoble ofensivo",
+            "descripcion": "Sacrifica bloqueo para comenzar con el mayor daño físico de las armas Tier I.",
+            "inventario": [
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_cuero",
+              "jubon_acolchado",
+              "guantes_cuero",
+              "pantalones_cuero",
+              "botas_cuero",
+              "mandoble_hierro"
+            ]
+          }
         ]
       }
     },
     "rogue": {
       "nombre": "Rogue",
+      "descripcion": "Combatiente ágil que combina dagas rápidas con ataques precisos a distancia.",
+      "estiloJuego": "Velocidad, evasión, críticos y cambio de arma.",
       "recursoVisual": "assets/imagenes/jugador/rogue.png",
       "pesosAtributos": {
         "fuerza": 1,
@@ -131,10 +206,96 @@
           "rayo": 0,
           "veneno": 0
         }
+      },
+      "contenedor": {
+        "capacidad": 12,
+        "objetosIniciales": [
+          "arco_corto",
+          "quiver_cuero",
+          {
+            "id": "pocion_curacion",
+            "cantidad": 1
+          }
+        ]
+      },
+      "equipamiento": {
+        "objetosIniciales": [
+          "capucha_cuero",
+          "jubon_acolchado",
+          "pantalones_cuero",
+          "daga_hierro"
+        ]
+      },
+      "equipoInicial": {
+        "conjuntoRecomendado": "rogue_daga_arco",
+        "conjuntos": [
+          {
+            "id": "rogue_daga_arco",
+            "nombre": "Daga y arco",
+            "descripcion": "Comienza con daga equipada y conserva el arco con carcaj como alternativa a distancia.",
+            "recomendado": true,
+            "inventario": [
+              "arco_corto",
+              "quiver_cuero",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_cuero",
+              "jubon_acolchado",
+              "pantalones_cuero",
+              "daga_hierro"
+            ]
+          },
+          {
+            "id": "rogue_arco_preparado",
+            "nombre": "Arquero preparado",
+            "descripcion": "Comienza atacando a distancia con el arco y el carcaj ya equipados.",
+            "inventario": [
+              "daga_hierro",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "jubon_acolchado",
+              "guantes_cuero",
+              "pantalones_cuero",
+              "arco_corto",
+              "quiver_cuero"
+            ]
+          },
+          {
+            "id": "rogue_doble_daga",
+            "nombre": "Doble daga",
+            "descripcion": "Aumenta la presión cuerpo a cuerpo con dos dagas y conserva el arco en el inventario.",
+            "inventario": [
+              "arco_corto",
+              "quiver_cuero",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_cuero",
+              "jubon_acolchado",
+              "guantes_cuero",
+              "botas_cuero",
+              "daga_hierro",
+              "daga_hierro"
+            ]
+          }
+        ]
       }
     },
     "mago": {
       "nombre": "Mago",
+      "descripcion": "Aventurero orientado a Inteligencia que utiliza bastones o varitas mientras se desarrolla el sistema de magia.",
+      "estiloJuego": "Alcance, Maná y futura especialización en hechizos.",
       "recursoVisual": "assets/imagenes/jugador/mago.png",
       "pesosAtributos": {
         "fuerza": 1,
@@ -166,6 +327,85 @@
           "rayo": 0,
           "veneno": 0
         }
+      },
+      "contenedor": {
+        "capacidad": 12,
+        "objetosIniciales": [
+          "varita_aprendiz",
+          {
+            "id": "pocion_curacion",
+            "cantidad": 1
+          }
+        ]
+      },
+      "equipamiento": {
+        "objetosIniciales": [
+          "capucha_tela",
+          "tunica_aprendiz",
+          "pantalones_tela",
+          "baston_aprendiz"
+        ]
+      },
+      "equipoInicial": {
+        "conjuntoRecomendado": "mago_baston",
+        "conjuntos": [
+          {
+            "id": "mago_baston",
+            "nombre": "Bastón de aprendiz",
+            "descripcion": "Configuración recomendada de dos manos con daño estable basado en Inteligencia.",
+            "recomendado": true,
+            "inventario": [
+              "varita_aprendiz",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_tela",
+              "tunica_aprendiz",
+              "pantalones_tela",
+              "baston_aprendiz"
+            ]
+          },
+          {
+            "id": "mago_varita_escudo",
+            "nombre": "Varita y escudo",
+            "descripcion": "Reduce el daño ofensivo a cambio de alcance, bloqueo y una defensa inicial superior.",
+            "inventario": [
+              "baston_aprendiz",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "capucha_tela",
+              "tunica_aprendiz",
+              "pantalones_tela",
+              "varita_aprendiz",
+              "escudo_madera"
+            ]
+          },
+          {
+            "id": "mago_baston_viajero",
+            "nombre": "Bastón de viajero",
+            "descripcion": "Mantiene el bastón y redistribuye las piezas ligeras conservando la misma armadura total.",
+            "inventario": [
+              "varita_aprendiz",
+              {
+                "id": "pocion_curacion",
+                "cantidad": 1
+              }
+            ],
+            "equipamiento": [
+              "tunica_aprendiz",
+              "guantes_tela",
+              "botas_tela",
+              "baston_aprendiz"
+            ]
+          }
+        ]
       }
     }
   }

@@ -15,9 +15,7 @@ import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 
 // Controladores principales de la aplicación.
 import { ControladorPantallas } from "./ControladorPantallas.js";
-
 import { ControladorPartida } from "./ControladorPartida.js";
-
 import { ControladorDerrota } from "../controles/ControladorDerrota.js";
 
 // Aplicacion funciona como coordinador general.
@@ -49,7 +47,6 @@ export class Aplicacion {
     // Rarezas y afijos ya participan
     // de la creación de los drops.
     this.configuracionGeneracionObjetos = null;
-
     this.configuracionMapas = null;
 
     // La ciudad fija se carga separada de las
@@ -84,20 +81,13 @@ export class Aplicacion {
   crearControladores() {
     this.controladorPantallas = new ControladorPantallas({
       pantallaMenuPrincipal: document.getElementById("mainMenu"),
-
       contenedorBotonesMenuPrincipal:
         document.getElementById("mainMenuButtons"),
-
       panelConfiguracionMenu: document.getElementById("settingsPlaceholder"),
-
       pantallaCreacion: document.getElementById("characterCreation"),
-
       contenedorJuego: document.getElementById("gameContainer"),
-
       botonNuevoJuego: document.getElementById("newGameButton"),
-
       botonConfiguracion: document.getElementById("settingsButton"),
-
       botonVolverMenuPrincipal: document.getElementById("backToMainMenuButton"),
     });
 
@@ -133,42 +123,33 @@ export class Aplicacion {
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
-
     this.configuracionEnemigos = configuracionEnemigos;
-
     this.configuracionObjetos = configuracionObjetos;
-
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
-
     this.configuracionMapas = configuracionMapas;
-
     this.configuracionCiudad = configuracionCiudad;
-
     this.configuracionComercio = configuracionComercio;
   }
 
   // Construye la pantalla de creación
-  // utilizando la configuración cargada.
+  // utilizando todas las configuraciones que necesita
+  // la vista previa del equipo inicial.
   crearMenuCreacionPersonaje() {
     this.menuCreacionPersonaje = new MenuCreacionPersonaje({
       configuracion: this.configuracionPersonaje,
+      configuracionObjetos: this.configuracionObjetos,
+      configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
 
       // Cuando el jugador confirma sus datos,
       // delegamos la creación de la partida.
       alConfirmar: (datosPersonaje) => {
         this.controladorPartida.iniciar({
           datosPersonaje,
-
           configuracionPersonaje: this.configuracionPersonaje,
-
           configuracionEnemigos: this.configuracionEnemigos,
-
           configuracionObjetos: this.configuracionObjetos,
-
           configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
-
           configuracionMapas: this.configuracionMapas,
-
           configuracionCiudad: this.configuracionCiudad,
 
           // La partida necesita estas reglas para

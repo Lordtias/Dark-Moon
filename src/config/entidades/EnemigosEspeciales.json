@@ -161,5 +161,427 @@
         }
       }
     ]
+  },
+  "zombi": {
+    "nombre": "Zombi",
+    "genero": "masculino",
+    "simbolo": "Z",
+    "recursoVisual": "assets/imagenes/enemigos/zombi.png",
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 5,
+      "margenPersecucion": 4,
+      "estrategiaSinRecursos": "ataqueNatural"
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 30,
+      "atributos": {
+        "fuerza": 13,
+        "destreza": 4,
+        "constitucion": 8,
+        "inteligencia": 2,
+        "sabiduria": 4,
+        "carisma": 2
+      },
+      "factoresTemporales": {
+        "factorTiempo": 100,
+        "factorMovimiento": 130,
+        "factorAtaque": 100,
+        "factorAccion": 100,
+        "factorConsumo": 100
+      },
+      "estadisticasBase": {
+        "vida": 10,
+        "mana": 0,
+        "vidaPorNivel": 5,
+        "manaPorNivel": 0,
+        "precision": 6,
+        "evasion": 0,
+        "armadura": 0,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 3,
+        "multiplicadorCritico": 1.5,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 3,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 10,
+          "rayo": 0,
+          "veneno": 75
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 4,
+        "danioFisicoMaximo": 7,
+        "atributoAtaque": "fuerza",
+        "precision": 2,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 3,
+        "multiplicadorCritico": 1.5,
+        "costoAtaque": 120
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 6,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": [],
+      "objetosIniciales": []
+    },
+    "tablaBotin": [
+      {
+        "idObjeto": "carne_putrefacta",
+        "probabilidad": 75,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
+    "hitos": [
+      {
+        "nivel": 5,
+        "cambios": {
+          "ataqueNatural": {
+            "danioFisicoMinimo": 5,
+            "danioFisicoMaximo": 8
+          }
+        }
+      }
+    ]
+  },
+  "caballero_oseo": {
+    "nombre": "Caballero Óseo",
+    "genero": "masculino",
+    "simbolo": "C",
+    "recursoVisual": "assets/imagenes/enemigos/caballero_oseo.png",
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 7,
+      "margenPersecucion": 5,
+      "estrategiaSinRecursos": "ataqueNatural"
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 50,
+      "atributos": {
+        "fuerza": 14,
+        "destreza": 9,
+        "constitucion": 10,
+        "inteligencia": 5,
+        "sabiduria": 8,
+        "carisma": 6
+      },
+      "factoresTemporales": {
+        "factorTiempo": 100,
+        "factorMovimiento": 95,
+        "factorAtaque": 100,
+        "factorAccion": 100,
+        "factorConsumo": 100
+      },
+      "estadisticasBase": {
+        "vida": 12,
+        "mana": 0,
+        "vidaPorNivel": 6,
+        "manaPorNivel": 0,
+        "precision": 12,
+        "evasion": 5,
+        "armadura": 6,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 6,
+        "multiplicadorCritico": 1.6,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 8,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": -10,
+          "frio": 15,
+          "rayo": 0,
+          "veneno": 75
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 2,
+        "danioFisicoMaximo": 4,
+        "atributoAtaque": "fuerza",
+        "precision": 2,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "costoAtaque": 100
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 8,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 4
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      },
+      "estadisticasBase": {
+        "armadura": {
+          "aumento": 1,
+          "cadaNiveles": 4
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "objetosIniciales": [
+        "hacha_mano",
+        "escudo_hierro",
+        "casco_hierro",
+        "coraza_hierro"
+      ]
+    },
+    "tablaBotin": [
+      {
+        "idObjeto": "hueso_negro",
+        "probabilidad": 100,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "hueso_esqueleto",
+        "probabilidad": 60,
+        "cantidadMinima": 2,
+        "cantidadMaxima": 4
+      },
+      {
+        "idObjeto": "hacha_mano",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "escudo_hierro",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "casco_hierro",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
+    "hitos": []
+  },
+  "comandante": {
+    "nombre": "Comandante",
+    "genero": "masculino",
+    "simbolo": "M",
+    "recursoVisual": "assets/imagenes/enemigos/comandante.png",
+    "nivelesPermitidos": {
+      "minimo": 6,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 8,
+      "margenPersecucion": 5,
+      "estrategiaSinRecursos": "ataqueNatural"
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 55,
+      "atributos": {
+        "fuerza": 13,
+        "destreza": 10,
+        "constitucion": 9,
+        "inteligencia": 7,
+        "sabiduria": 9,
+        "carisma": 10
+      },
+      "factoresTemporales": {
+        "factorTiempo": 100,
+        "factorMovimiento": 95,
+        "factorAtaque": 95,
+        "factorAccion": 100,
+        "factorConsumo": 100
+      },
+      "estadisticasBase": {
+        "vida": 10,
+        "mana": 0,
+        "vidaPorNivel": 5,
+        "manaPorNivel": 0,
+        "precision": 12,
+        "evasion": 6,
+        "armadura": 5,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 7,
+        "multiplicadorCritico": 1.6,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 9,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 0
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 2,
+        "danioFisicoMaximo": 4,
+        "atributoAtaque": "fuerza",
+        "precision": 2,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 5,
+        "multiplicadorCritico": 1.5,
+        "costoAtaque": 100
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 9,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        }
+      },
+      "estadisticasBase": {
+        "armadura": {
+          "aumento": 1,
+          "cadaNiveles": 4
+        }
+      },
+      "ia": {
+        "percepcion": {
+          "aumento": 1,
+          "cadaNiveles": 5
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "objetosIniciales": [
+        "espada_acero",
+        "escudo_hierro",
+        "casco_hierro",
+        "coraza_hierro"
+      ]
+    },
+    "tablaBotin": [
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 20,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "espada_acero",
+        "probabilidad": 6,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "escudo_hierro",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "casco_hierro",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "coraza_hierro",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "lanza_reforzada",
+        "probabilidad": 3,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
+    "hitos": [
+      {
+        "nivel": 8,
+        "cambios": {
+          "estadisticasBase": {
+            "precision": 14,
+            "armadura": 7
+          }
+        }
+      }
+    ]
   }
 }

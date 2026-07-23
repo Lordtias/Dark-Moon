@@ -1,4 +1,5 @@
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
+
 import {
   CONFIGURACION_CURACION,
   TIPOS_SERVICIO_CURACION,
@@ -63,8 +64,9 @@ export function calcularEstadoCuracion({
 //
 // La operación vuelve a calcular el precio al confirmar,
 // valida el saldo y recién entonces descuenta el oro.
-// Si una recuperación inesperadamente falla, restaura
-// los recursos y devuelve las monedas gastadas.
+//
+// Si una recuperación falla o queda incompleta, restaura
+// Vida, Maná y oro al estado previo a la transacción.
 export function curarJugador({
   jugador,
   tipoServicio,
@@ -107,9 +109,12 @@ export function curarJugador({
     });
   }
 
+  // Se conserva una fotografía completa de los recursos
+  // y del estado económico antes de iniciar la operación.
   const estadoAnterior = {
     vidaActual: jugador.vidaActual,
     manaActual: jugador.manaActual,
+    oro: jugador.oro,
   };
 
   const resultadoPago = jugador.gastarOro(servicio.precio);
@@ -142,15 +147,34 @@ export function curarJugador({
       manaRecuperado = jugador.recuperarMana(estado.mana.faltante);
     }
 
-    if (vidaRecuperada <= 0 && manaRecuperado <= 0) {
-      throw new Error("La curación no recuperó ningún recurso del jugador.");
+    // Cada recurso incluido y necesitado por el servicio debe
+    // recuperarse completamente.
+    //
+    // Una recuperación parcial también se considera un fallo
+    // y provoca el rollback de toda la operación.
+    validarRecuperacionCompleta({
+      jugador,
+      tipoServicio,
+      estado,
+      vidaRecuperada,
+      manaRecuperado,
+    });
+  } catch (errorCuracion) {
+    try {
+      restaurarEstadoJugador({
+        jugador,
+        estadoAnterior,
+      });
+    } catch (errorRollback) {
+      throw new Error(
+        "La curación falló y no fue posible restaurar completamente " +
+          `el estado anterior. Error original: ${obtenerMensajeError(
+            errorCuracion,
+          )}. Error de restauración: ${obtenerMensajeError(errorRollback)}.`,
+      );
     }
-  } catch (error) {
-    jugador.vidaActual = estadoAnterior.vidaActual;
-    jugador.manaActual = estadoAnterior.manaActual;
-    jugador.agregarOro(servicio.precio);
 
-    throw error;
+    throw errorCuracion;
   }
 
   return crearResultadoAccion({
@@ -214,6 +238,167 @@ function obtenerServicio(estado, tipoServicio) {
   }
 }
 
+// Verifica individualmente cada recurso solicitado.
+//
+// Un recurso que ya estaba completo antes del servicio no necesita
+// recuperarse y, por lo tanto, no se considera un fallo.
+function validarRecuperacionCompleta({
+  jugador,
+  tipoServicio,
+  estado,
+  vidaRecuperada,
+  manaRecuperado,
+}) {
+  const incluyeVida =
+    tipoServicio === TIPOS_SERVICIO_CURACION.VIDA ||
+    tipoServicio === TIPOS_SERVICIO_CURACION.AMBOS;
+
+  const incluyeMana =
+    tipoServicio === TIPOS_SERVICIO_CURACION.MANA ||
+    tipoServicio === TIPOS_SERVICIO_CURACION.AMBOS;
+
+  if (incluyeVida && estado.vida.faltante > 0) {
+    validarRecuperacionRecurso({
+      nombreRecurso: "Vida",
+      cantidadEsperada: estado.vida.faltante,
+      cantidadRecuperada: vidaRecuperada,
+      valorActual: jugador.vidaActual,
+      valorMaximo: jugador.vidaMaxima,
+    });
+  }
+
+  if (incluyeMana && estado.mana.faltante > 0) {
+    validarRecuperacionRecurso({
+      nombreRecurso: "Maná",
+      cantidadEsperada: estado.mana.faltante,
+      cantidadRecuperada: manaRecuperado,
+      valorActual: jugador.manaActual,
+      valorMaximo: jugador.manaMaximo,
+    });
+  }
+}
+
+function validarRecuperacionRecurso({
+  nombreRecurso,
+  cantidadEsperada,
+  cantidadRecuperada,
+  valorActual,
+  valorMaximo,
+}) {
+  const cantidadValida =
+    Number.isFinite(cantidadRecuperada) && cantidadRecuperada > 0;
+
+  const recursoCompleto = valorActual === valorMaximo;
+
+  if (!cantidadValida || !recursoCompleto) {
+    throw new Error(
+      `La curación de ${nombreRecurso} quedó incompleta. ` +
+        `Se esperaba recuperar ${cantidadEsperada} y se recuperaron ` +
+        `${cantidadRecuperada}.`,
+    );
+  }
+}
+
+// Restaura cada valor de forma independiente para intentar
+// recuperar la mayor cantidad posible del estado anterior.
+//
+// Al final se verifica que Vida, Maná y oro coincidan exactamente
+// con la fotografía tomada antes de cobrar el servicio.
+function restaurarEstadoJugador({ jugador, estadoAnterior }) {
+  const errores = [];
+
+  try {
+    jugador.vidaActual = estadoAnterior.vidaActual;
+  } catch (error) {
+    errores.push(`Vida: ${obtenerMensajeError(error)}`);
+  }
+
+  try {
+    jugador.manaActual = estadoAnterior.manaActual;
+  } catch (error) {
+    errores.push(`Maná: ${obtenerMensajeError(error)}`);
+  }
+
+  try {
+    restaurarOroJugador({
+      jugador,
+      oroAnterior: estadoAnterior.oro,
+    });
+  } catch (error) {
+    errores.push(`Oro: ${obtenerMensajeError(error)}`);
+  }
+
+  if (
+    jugador.vidaActual !== estadoAnterior.vidaActual ||
+    jugador.manaActual !== estadoAnterior.manaActual ||
+    jugador.oro !== estadoAnterior.oro
+  ) {
+    errores.push(
+      "Los valores restaurados no coinciden con el estado anterior.",
+    );
+  }
+
+  if (errores.length > 0) {
+    throw new Error(errores.join(" "));
+  }
+}
+
+// Devuelve el oro mediante la operación pública del jugador.
+//
+// Si esa operación falla o no deja el saldo correcto, intenta como
+// último recurso restaurar directamente el valor anterior.
+function restaurarOroJugador({ jugador, oroAnterior }) {
+  const oroFaltante = oroAnterior - jugador.oro;
+
+  if (oroFaltante < 0) {
+    throw new Error(
+      "El oro actual supera al estado anterior y no puede restaurarse " +
+        "mediante una devolución.",
+    );
+  }
+
+  if (oroFaltante > 0) {
+    try {
+      jugador.agregarOro(oroFaltante);
+    } catch (errorAgregarOro) {
+      try {
+        jugador.oro = oroAnterior;
+      } catch (errorAsignacion) {
+        throw new Error(
+          `Falló agregarOro: ${obtenerMensajeError(errorAgregarOro)}. ` +
+            `También falló la asignación directa: ${obtenerMensajeError(
+              errorAsignacion,
+            )}.`,
+        );
+      }
+    }
+  }
+
+  // agregarOro podría no lanzar una excepción pero tampoco
+  // completar correctamente la devolución.
+  if (jugador.oro !== oroAnterior) {
+    try {
+      jugador.oro = oroAnterior;
+    } catch (errorAsignacion) {
+      throw new Error(
+        `El oro quedó en ${jugador.oro} y la asignación directa falló: ` +
+          obtenerMensajeError(errorAsignacion),
+      );
+    }
+  }
+
+  if (jugador.oro !== oroAnterior) {
+    throw new Error(
+      `El oro quedó en ${jugador.oro} y debía restaurarse a ` +
+        `${oroAnterior}.`,
+    );
+  }
+}
+
+function obtenerMensajeError(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function crearMensajeRecursoCompleto(tipoServicio) {
   switch (tipoServicio) {
     case TIPOS_SERVICIO_CURACION.VIDA:
@@ -253,7 +438,7 @@ function unirRecuperaciones(recuperaciones) {
     return recuperaciones[0];
   }
 
-  return `${recuperaciones[0]} y ` + `${recuperaciones[1]}`;
+  return `${recuperaciones[0]} y ${recuperaciones[1]}`;
 }
 
 function crearTextoMonedas(cantidad) {
@@ -300,11 +485,22 @@ function validarJugador(jugador) {
   ) {
     throw new Error("Los recursos del jugador no pueden ser negativos.");
   }
+
+  // Además de evitar números negativos, el sistema rechaza estados
+  // incoherentes donde el recurso actual supera su máximo.
+  if (
+    jugador.vidaActual > jugador.vidaMaxima ||
+    jugador.manaActual > jugador.manaMaximo
+  ) {
+    throw new Error(
+      "Los recursos actuales del jugador no pueden superar " +
+        "sus valores máximos.",
+    );
+  }
 }
 
 function validarConfiguracion(configuracion) {
   validarConfiguracionRecurso(configuracion?.vida, "Vida");
-
   validarConfiguracionRecurso(configuracion?.mana, "Maná");
 }
 

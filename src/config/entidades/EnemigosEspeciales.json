@@ -1,0 +1,165 @@
+{
+  "hombre_rata_saqueador": {
+    "nombre": "Hombre rata saqueador",
+    "genero": "masculino",
+    "simbolo": "S",
+    "recursoVisual": "assets/imagenes/enemigos/hombre_rata_saqueador.png",
+    "nivelesPermitidos": {
+      "minimo": 1,
+      "maximo": 20
+    },
+    "ia": {
+      "tipoAgresividad": "activa",
+      "percepcion": 6,
+      "margenPersecucion": 4,
+      "estrategiaSinRecursos": "ataqueNatural"
+    },
+    "baseNivel1": {
+      "experienciaOtorgada": 18,
+      "atributos": {
+        "fuerza": 9,
+        "destreza": 12,
+        "constitucion": 5,
+        "inteligencia": 3,
+        "sabiduria": 6,
+        "carisma": 4
+      },
+      "factoresTemporales": {
+        "factorTiempo": 100,
+        "factorMovimiento": 90,
+        "factorAtaque": 95,
+        "factorAccion": 100,
+        "factorConsumo": 100
+      },
+      "estadisticasBase": {
+        "vida": 5,
+        "mana": 0,
+        "vidaPorNivel": 3,
+        "manaPorNivel": 0,
+        "precision": 8,
+        "evasion": 6,
+        "armadura": 2,
+        "regeneracionVida": 0,
+        "regeneracionMana": 0,
+        "probabilidadCritico": 7,
+        "multiplicadorCritico": 1.6,
+        "probabilidadBloqueo": 0,
+        "potenciaEfectos": 0,
+        "resistenciaMental": 2,
+        "potenciaAura": 0,
+        "resistencias": {
+          "fuego": 0,
+          "frio": 0,
+          "rayo": 0,
+          "veneno": 15
+        }
+      },
+      "ataqueNatural": {
+        "danioFisicoMinimo": 2,
+        "danioFisicoMaximo": 4,
+        "atributoAtaque": "destreza",
+        "precision": 5,
+        "alcance": 1,
+        "tipoAtaque": "cuerpoACuerpo",
+        "patronAtaque": "adyacente",
+        "probabilidadCritico": 7,
+        "multiplicadorCritico": 1.6,
+        "costoAtaque": 90
+      }
+    },
+    "escalado": {
+      "experienciaOtorgada": {
+        "aumento": 4,
+        "cadaNiveles": 1
+      },
+      "atributos": {
+        "fuerza": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        },
+        "destreza": {
+          "aumento": 1,
+          "cadaNiveles": 2
+        },
+        "constitucion": {
+          "aumento": 1,
+          "cadaNiveles": 3
+        }
+      },
+      "ia": {
+        "percepcion": {
+          "aumento": 1,
+          "cadaNiveles": 5
+        }
+      }
+    },
+    "contenedor": {
+      "capacidad": 0,
+      "objetosIniciales": []
+    },
+    "equipamiento": {
+      "ranuras": ["arma", "secundaria"],
+      "objetosIniciales": ["daga_hierro"]
+    },
+    "tablaBotin": [
+      {
+        "idObjeto": "cola_rata",
+        "probabilidad": 65,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 2
+      },
+      {
+        "idObjeto": "flecha_madera",
+        "probabilidad": 45,
+        "cantidadMinima": 3,
+        "cantidadMaxima": 8
+      },
+      {
+        "idObjeto": "pocion_curacion",
+        "probabilidad": 18,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "quiver_cuero",
+        "probabilidad": 6,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "daga_hierro",
+        "probabilidad": 5,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "varita_aprendiz",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "capucha_tela",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      },
+      {
+        "idObjeto": "guantes_tela",
+        "probabilidad": 4,
+        "cantidadMinima": 1,
+        "cantidadMaxima": 1
+      }
+    ],
+    "hitos": [
+      {
+        "nivel": 5,
+        "cambios": {
+          "estadisticasBase": {
+            "armadura": 3
+          }
+        }
+      }
+    ]
+  }
+}

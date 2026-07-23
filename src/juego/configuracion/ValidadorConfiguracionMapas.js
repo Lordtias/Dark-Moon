@@ -1,7 +1,3 @@
-// Tipos de generación implementados actualmente.
-//
-// Agregaremos nuevos valores cuando existan
-// generadores de cavernas, laberintos u otros diseños.
 const TIPOS_GENERACION_VALIDOS = ["habitaciones"];
 
 const VARIANTES_REQUERIDAS = ["normal", "enfermo", "gigante", "elite"];
@@ -11,8 +7,14 @@ const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 // Valida completamente la estructura general
 // de Mapas.json.
 //
-// Devuelve la misma configuración cuando es válida,
-// permitiendo utilizarla directamente después.
+// Además de las reglas de terreno y acceso,
+// comprueba la separación entre:
+//
+// - Enemigos recurrentes.
+// - Encuentros especiales opcionales.
+//
+// Un mismo enemigo no puede participar en ambas
+// listas dentro de la misma plantilla.
 export function validarConfiguracionMapas(configuracion) {
   validarObjeto(configuracion, "la configuración de mapas");
 
@@ -49,7 +51,6 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarRutaRecursoVisual({
     ruta: plantilla.recursoVisual,
-
     idPlantilla,
   });
 
@@ -70,23 +71,25 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarRangoEntero({
     rango: plantilla.niveles,
-
     descripcion: `los niveles de "${idPlantilla}"`,
-
     minimoPermitido: 1,
   });
 
   validarCoherenciaNiveles({
     idPlantilla,
-
     nivelDesbloqueo: plantilla.nivelDesbloqueo,
-
     niveles: plantilla.niveles,
   });
 
   validarGeneracion(idPlantilla, plantilla.generacion);
 
-  validarEnemigos(idPlantilla, plantilla.enemigos);
+  const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
+
+  validarEncuentroEspecial({
+    idPlantilla,
+    encuentroEspecial: plantilla.encuentroEspecial,
+    idsRecurrentes,
+  });
 
   validarDestructibles(idPlantilla, plantilla.destructibles);
 }
@@ -128,17 +131,13 @@ function validarDimensiones(idPlantilla, dimensiones) {
 
   validarRangoEntero({
     rango: dimensiones.ancho,
-
     descripcion: `el ancho de "${idPlantilla}"`,
-
     minimoPermitido: 8,
   });
 
   validarRangoEntero({
     rango: dimensiones.alto,
-
     descripcion: `el alto de "${idPlantilla}"`,
-
     minimoPermitido: 8,
   });
 }
@@ -171,13 +170,11 @@ function validarGeneracion(idPlantilla, generacion) {
 
   validarRangoPorcentaje(
     generacion.porcentajeNoCaminable,
-
     `el porcentaje no caminable de "${idPlantilla}"`,
   );
 
   validarPorcentaje(
     generacion.porcentajeMinimoConectado,
-
     `el porcentaje conectado de "${idPlantilla}"`,
   );
 
@@ -193,9 +190,7 @@ function validarEnemigos(idPlantilla, enemigos) {
 
   validarRangoEntero({
     rango: enemigos.cantidad,
-
     descripcion: `la cantidad de enemigos de "${idPlantilla}"`,
-
     minimoPermitido: 0,
   });
 
@@ -211,12 +206,58 @@ function validarEnemigos(idPlantilla, enemigos) {
     `la distancia entre enemigos de "${idPlantilla}"`,
   );
 
-  validarListaPonderada(
+  const idsRecurrentes = validarListaPonderada(
     enemigos.permitidos,
-    `los enemigos permitidos de "${idPlantilla}"`,
+    `los enemigos recurrentes de "${idPlantilla}"`,
   );
 
-  validarProbabilidadesVariantes(idPlantilla, enemigos.probabilidadesVariantes);
+  validarProbabilidadesVariantes(
+    idPlantilla,
+    enemigos.probabilidadesVariantes,
+    "recurrentes",
+  );
+
+  return idsRecurrentes;
+}
+
+function validarEncuentroEspecial({
+  idPlantilla,
+  encuentroEspecial,
+  idsRecurrentes,
+}) {
+  if (encuentroEspecial === undefined || encuentroEspecial === null) {
+    return;
+  }
+
+  validarObjeto(encuentroEspecial, `el encuentro especial de "${idPlantilla}"`);
+
+  validarPorcentaje(
+    encuentroEspecial.probabilidadAparicion,
+    `la probabilidad del encuentro especial de "${idPlantilla}"`,
+  );
+
+  const idsEspeciales = validarListaPonderada(
+    encuentroEspecial.permitidos,
+    `los enemigos especiales de "${idPlantilla}"`,
+    {
+      validarBotinAdicional: true,
+    },
+  );
+
+  for (const idEspecial of idsEspeciales) {
+    if (idsRecurrentes.has(idEspecial)) {
+      throw new Error(
+        `El enemigo "${idEspecial}" de "${idPlantilla}" ` +
+          "no puede ser recurrente y especial al mismo tiempo.",
+      );
+    }
+  }
+
+  validarProbabilidadesVariantes(
+    idPlantilla,
+    encuentroEspecial.probabilidadesVariantes,
+    "especiales",
+  );
 }
 
 function validarDestructibles(idPlantilla, destructibles) {
@@ -224,7 +265,6 @@ function validarDestructibles(idPlantilla, destructibles) {
 
   validarRangoPorcentaje(
     destructibles.porcentajeCasillasCaminables,
-
     `el porcentaje de destructibles de "${idPlantilla}"`,
   );
 
@@ -234,10 +274,16 @@ function validarDestructibles(idPlantilla, destructibles) {
   );
 }
 
-function validarListaPonderada(lista, descripcion) {
+function validarListaPonderada(
+  lista,
+  descripcion,
+  { validarBotinAdicional = false } = {},
+) {
   if (!Array.isArray(lista) || lista.length === 0) {
     throw new Error(`${descripcion} debe contener al menos un elemento.`);
   }
+
+  const ids = new Set();
 
   for (const elemento of lista) {
     validarObjeto(elemento, descripcion);
@@ -245,13 +291,81 @@ function validarListaPonderada(lista, descripcion) {
     validarTexto(elemento.id, `un id dentro de ${descripcion}`);
 
     validarNumeroMayorQueCero(elemento.peso, `el peso de "${elemento.id}"`);
+
+    const idNormalizado = elemento.id.trim();
+
+    if (ids.has(idNormalizado)) {
+      throw new Error(
+        `El ID "${idNormalizado}" está repetido dentro de ${descripcion}.`,
+      );
+    }
+
+    ids.add(idNormalizado);
+
+    if (validarBotinAdicional) {
+      validarTablaBotinAdicional({
+        tabla: elemento.tablaBotinAdicional ?? [],
+        descripcion: `el botín adicional de "${idNormalizado}" en ${descripcion}`,
+      });
+    }
   }
+
+  return ids;
 }
 
-function validarProbabilidadesVariantes(idPlantilla, probabilidades) {
+function validarTablaBotinAdicional({ tabla, descripcion }) {
+  if (!Array.isArray(tabla)) {
+    throw new Error(`${descripcion} debe formar una lista.`);
+  }
+
+  const ids = new Set();
+
+  tabla.forEach((entrada, indice) => {
+    validarObjeto(entrada, `${descripcion}, entrada ${indice + 1}`);
+
+    validarTexto(entrada.idObjeto, `el ID de objeto de ${descripcion}`);
+
+    validarPorcentaje(
+      entrada.probabilidad,
+      `la probabilidad de "${entrada.idObjeto}" dentro de ${descripcion}`,
+    );
+
+    const cantidadMinima = entrada.cantidadMinima ?? 1;
+
+    const cantidadMaxima = entrada.cantidadMaxima ?? cantidadMinima;
+
+    validarEnteroMinimo(
+      cantidadMinima,
+      1,
+      `la cantidad mínima de "${entrada.idObjeto}" dentro de ${descripcion}`,
+    );
+
+    validarEnteroMinimo(
+      cantidadMaxima,
+      cantidadMinima,
+      `la cantidad máxima de "${entrada.idObjeto}" dentro de ${descripcion}`,
+    );
+
+    const idObjeto = entrada.idObjeto.trim();
+
+    if (ids.has(idObjeto)) {
+      throw new Error(
+        `El objeto "${idObjeto}" está repetido dentro de ${descripcion}.`,
+      );
+    }
+
+    ids.add(idObjeto);
+  });
+}
+
+function validarProbabilidadesVariantes(
+  idPlantilla,
+  probabilidades,
+  tipoPoblacion,
+) {
   validarObjeto(
     probabilidades,
-    `las probabilidades de variantes de "${idPlantilla}"`,
+    `las probabilidades de variantes ${tipoPoblacion} de "${idPlantilla}"`,
   );
 
   let total = 0;
@@ -261,7 +375,8 @@ function validarProbabilidadesVariantes(idPlantilla, probabilidades) {
 
     validarPorcentaje(
       probabilidad,
-      `la probabilidad "${variante}" de "${idPlantilla}"`,
+      `la probabilidad "${variante}" de los enemigos ${tipoPoblacion} ` +
+        `de "${idPlantilla}"`,
     );
 
     total += probabilidad;
@@ -269,7 +384,7 @@ function validarProbabilidadesVariantes(idPlantilla, probabilidades) {
 
   if (total !== 100) {
     throw new Error(
-      `Las probabilidades de variantes de "${idPlantilla}" ` +
+      `Las probabilidades de variantes ${tipoPoblacion} de "${idPlantilla}" ` +
         `deben sumar 100. Actualmente suman ${total}.`,
     );
   }

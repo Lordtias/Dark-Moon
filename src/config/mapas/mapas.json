@@ -2,7 +2,7 @@
   "plantillas": {
     "alcantarilla": {
       "nombre": "Alcantarilla",
-      "descripcion": "Túneles húmedos y estrechos infestados de alimañas. Es el destino más directo para una primera expedición.",
+      "descripcion": "Túneles húmedos y estrechos infestados de alimañas. En ocasiones, un hombre rata saqueador se aventura entre los conductos en busca de objetos abandonados.",
       "bioma": "alcantarilla",
       "recursoVisual": "assets/imagenes/mapas/alcantarilla.png",
       "nivelDesbloqueo": 1,
@@ -59,6 +59,21 @@
           "elite": 1
         }
       },
+      "encuentroEspecial": {
+        "probabilidadAparicion": 10,
+        "permitidos": [
+          {
+            "id": "hombre_rata_saqueador",
+            "peso": 100
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 75,
+          "enfermo": 10,
+          "gigante": 10,
+          "elite": 5
+        }
+      },
       "destructibles": {
         "porcentajeCasillasCaminables": {
           "minimo": 3,
@@ -74,7 +89,7 @@
     },
     "cementerio": {
       "nombre": "Cementerio",
-      "descripcion": "Un camposanto abandonado donde guardias y arqueros esqueleto patrullan entre criptas. Los zombis aparecen con menor frecuencia.",
+      "descripcion": "Un camposanto abandonado donde guardias y arqueros esqueleto patrullan entre criptas. Un zombi puede emerger como encuentro poco frecuente.",
       "bioma": "cementerio",
       "recursoVisual": "assets/imagenes/mapas/cementerio.png",
       "nivelDesbloqueo": 2,
@@ -117,21 +132,52 @@
         "permitidos": [
           {
             "id": "esqueleto_guardia",
-            "peso": 50
+            "peso": 55
           },
           {
             "id": "esqueleto_arquero",
-            "peso": 35
-          },
-          {
-            "id": "zombi",
-            "peso": 15
+            "peso": 45
           }
         ],
         "probabilidadesVariantes": {
           "normal": 82,
           "enfermo": 5,
           "gigante": 8,
+          "elite": 5
+        }
+      },
+      "encuentroEspecial": {
+        "probabilidadAparicion": 12,
+        "permitidos": [
+          {
+            "id": "zombi",
+            "peso": 100,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "capucha_tela",
+                "probabilidad": 4,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "tunica_aprendiz",
+                "probabilidad": 3,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "varita_aprendiz",
+                "probabilidad": 2,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 70,
+          "enfermo": 15,
+          "gigante": 10,
           "elite": 5
         }
       },
@@ -150,7 +196,7 @@
     },
     "casa_guerrero": {
       "nombre": "Casa del Guerrero",
-      "descripcion": "Una antigua residencia militar convertida en campo de entrenamiento para guerreros no muertos. Sus salones estrechos favorecen formaciones defensivas y ataques a distancia.",
+      "descripcion": "Una antigua residencia militar convertida en campo de entrenamiento para guerreros no muertos. En ocasiones, un Caballero Óseo protege sus salones.",
       "bioma": "casa_guerrero",
       "recursoVisual": "assets/imagenes/mapas/casa_guerrero.png",
       "nivelDesbloqueo": 4,
@@ -193,15 +239,11 @@
         "permitidos": [
           {
             "id": "esqueleto_guardia",
-            "peso": 55
+            "peso": 60
           },
           {
             "id": "esqueleto_arquero",
-            "peso": 35
-          },
-          {
-            "id": "caballero_oseo",
-            "peso": 10
+            "peso": 40
           }
         ],
         "probabilidadesVariantes": {
@@ -209,6 +251,35 @@
           "enfermo": 4,
           "gigante": 7,
           "elite": 5
+        }
+      },
+      "encuentroEspecial": {
+        "probabilidadAparicion": 12,
+        "permitidos": [
+          {
+            "id": "caballero_oseo",
+            "peso": 100,
+            "tablaBotinAdicional": [
+              {
+                "idObjeto": "coraza_hierro",
+                "probabilidad": 2,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "espada_acero",
+                "probabilidad": 1,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ]
+          }
+        ],
+        "probabilidadesVariantes": {
+          "normal": 78,
+          "enfermo": 2,
+          "gigante": 10,
+          "elite": 10
         }
       },
       "destructibles": {

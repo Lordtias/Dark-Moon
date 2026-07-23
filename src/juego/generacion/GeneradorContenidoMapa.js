@@ -2,6 +2,8 @@ import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
 
 import { crearDestructible } from "../fabricas/FabricaDestructibles.js";
 
+import { resolverEncuentroEspecial } from "./GeneradorEncuentroEspecial.js";
+
 const DIRECCIONES_CARDINALES = [
   {
     x: 1,
@@ -27,9 +29,10 @@ const DIRECCIONES_CARDINALES = [
 // La misma semilla controla:
 //
 // - El nivel del mapa.
-// - La cantidad de enemigos.
-// - Los tipos de enemigos.
-// - Las variantes.
+// - La cantidad de enemigos recurrentes.
+// - Los tipos y variantes recurrentes.
+// - La aparición del encuentro especial.
+// - La plantilla y variante del encuentro especial.
 // - Las posiciones.
 // - Los destructibles.
 export function generarContenidoMapa({
@@ -49,11 +52,8 @@ export function generarContenidoMapa({
     configuracionObjetos,
   });
 
-  // Por ahora cada mapa posee un único nivel.
-  //
-  // Todos sus enemigos se crean con ese nivel.
-  // Más adelante podremos agregar diferencias
-  // individuales alrededor del nivel del mapa.
+  // Todos los enemigos de la expedición se crean
+  // utilizando el mismo nivel del mapa.
   const nivelMapa = aleatorio.entero(
     plantilla.niveles.minimo,
     plantilla.niveles.maximo,
@@ -65,7 +65,7 @@ export function generarContenidoMapa({
     .mezclar(terreno.casillasCaminables)
     .filter((posicion) => !sonMismaPosicion(posicion, posicionJugador));
 
-  const resultadoEnemigos = generarEnemigos({
+  const resultadoRecurrentes = generarEnemigosRecurrentes({
     plantilla,
     nivelMapa,
     posicionJugador,
@@ -74,6 +74,38 @@ export function generarContenidoMapa({
     configuracionEnemigos,
     configuracionObjetos,
   });
+
+  const resultadoEspecial = generarEncuentroEspecialEnMapa({
+    plantilla,
+    nivelMapa,
+    posicionJugador,
+    posicionesDisponibles,
+    posicionesEnemigos: resultadoRecurrentes.posicionesEnemigos,
+    aleatorio,
+    configuracionEnemigos,
+    configuracionObjetos,
+    numeroDetalleInicial: resultadoRecurrentes.enemigos.length + 1,
+  });
+
+  const enemigos = [
+    ...resultadoRecurrentes.enemigos,
+    ...resultadoEspecial.enemigos,
+  ];
+
+  const detalleEnemigos = [
+    ...resultadoRecurrentes.detalle,
+    ...resultadoEspecial.detalle,
+  ];
+
+  const enemigosPorTipo = combinarConteos(
+    resultadoRecurrentes.enemigosPorTipo,
+    resultadoEspecial.enemigosPorTipo,
+  );
+
+  const variantes = combinarConteos(
+    resultadoRecurrentes.variantes,
+    resultadoEspecial.variantes,
+  );
 
   const resultadoDestructibles = generarDestructibles({
     plantilla,
@@ -85,49 +117,34 @@ export function generarContenidoMapa({
 
   return {
     nivelMapa,
-
-    enemigos: resultadoEnemigos.enemigos,
-
+    enemigos,
     destructibles: resultadoDestructibles.destructibles,
-
-    objetivos: [
-      ...resultadoEnemigos.enemigos,
-
-      ...resultadoDestructibles.destructibles,
-    ],
-
+    objetivos: [...enemigos, ...resultadoDestructibles.destructibles],
     resumen: {
       nivelMapa,
-
-      cantidadEnemigos: resultadoEnemigos.enemigos.length,
-
-      // Cantidad que finalmente pudo colocarse
-      // sin afectar la conectividad del mapa.
+      cantidadEnemigos: enemigos.length,
+      cantidadEnemigosRecurrentes: resultadoRecurrentes.enemigos.length,
+      cantidadEnemigosEspeciales: resultadoEspecial.enemigos.length,
+      encuentroEspecial: resultadoEspecial.resumen,
       cantidadDestructibles: resultadoDestructibles.destructibles.length,
-
-      // Cantidad inicialmente solicitada por
-      // el porcentaje configurado.
       cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
-
-      // Diferencia entre el objetivo y la
-      // cantidad realmente colocada.
       cantidadDestructiblesNoColocados:
         resultadoDestructibles.cantidadNoColocada,
-
       porcentajeDestructibles: resultadoDestructibles.porcentajeSeleccionado,
-
-      enemigosPorTipo: resultadoEnemigos.enemigosPorTipo,
-
-      variantes: resultadoEnemigos.variantes,
-
-      detalleEnemigos: resultadoEnemigos.detalle,
-
+      enemigosPorTipo,
+      variantes,
+      detalleEnemigos,
       detalleDestructibles: resultadoDestructibles.detalle,
     },
   };
 }
 
-function generarEnemigos({
+// Genera exclusivamente la población habitual
+// declarada dentro de plantilla.enemigos.
+//
+// Los enemigos poco frecuentes no deben aparecer
+// dentro de esta lista ponderada.
+function generarEnemigosRecurrentes({
   plantilla,
   nivelMapa,
   posicionJugador,
@@ -140,35 +157,29 @@ function generarEnemigos({
 
   const cantidad = aleatorio.entero(
     configuracion.cantidad.minimo,
-
     configuracion.cantidad.maximo,
   );
 
   const posicionesEnemigos = [];
   const enemigos = [];
   const detalle = [];
-
   const enemigosPorTipo = {};
   const variantes = {};
 
   for (let indice = 0; indice < cantidad; indice++) {
-    const indicePosicion = posicionesDisponibles.findIndex((posicion) =>
-      posicionValidaParaEnemigo({
-        posicion,
-        posicionJugador,
-        posicionesEnemigos,
-
-        distanciaSeguraJugador: configuracion.distanciaSeguraJugador,
-
-        distanciaMinimaEntreEnemigos:
-          configuracion.distanciaMinimaEntreEnemigos,
-      }),
-    );
+    const indicePosicion = buscarIndicePosicionEnemigo({
+      posicionesDisponibles,
+      posicionJugador,
+      posicionesEnemigos,
+      distanciaSeguraJugador: configuracion.distanciaSeguraJugador,
+      distanciaMinimaEntreEnemigos: configuracion.distanciaMinimaEntreEnemigos,
+    });
 
     if (indicePosicion === -1) {
       throw new Error(
         `El mapa "${plantilla.nombre}" no tiene espacio ` +
-          `para colocar ${cantidad} enemigos respetando las distancias.`,
+          `para colocar ${cantidad} enemigos recurrentes ` +
+          "respetando las distancias.",
       );
     }
 
@@ -176,28 +187,21 @@ function generarEnemigos({
 
     const enemigoPermitido = seleccionarPonderado(
       configuracion.permitidos,
-
       aleatorio,
     );
 
     const idVariante = seleccionarVariante(
       configuracion.probabilidadesVariantes,
-
       aleatorio,
     );
 
     const enemigo = crearEnemigo({
       configuracionEnemigos,
       configuracionObjetos,
-
       idPlantilla: enemigoPermitido.id,
-
       nivel: nivelMapa,
-
       idVariante,
-
       x: posicion.x,
-
       y: posicion.y,
     });
 
@@ -213,27 +217,166 @@ function generarEnemigos({
 
     detalle.push({
       numero: indice + 1,
-
       nombre: enemigo.nombre,
-
       tipo: enemigoPermitido.id,
-
       variante: idVariante ?? "normal",
-
       nivel: nivelMapa,
-
       x: posicion.x,
-
       y: posicion.y,
+      esEncuentroEspecial: false,
     });
   }
 
   return {
     enemigos,
+    posicionesEnemigos,
     detalle,
     enemigosPorTipo,
     variantes,
   };
+}
+
+// Resuelve y coloca como máximo un enemigo especial.
+//
+// Un encuentro opcional nunca cancela la generación
+// completa del mapa si la distribución no deja una
+// posición válida. En ese caso se conserva el mapa y
+// se registra el motivo dentro del resumen.
+function generarEncuentroEspecialEnMapa({
+  plantilla,
+  nivelMapa,
+  posicionJugador,
+  posicionesDisponibles,
+  posicionesEnemigos,
+  aleatorio,
+  configuracionEnemigos,
+  configuracionObjetos,
+  numeroDetalleInicial,
+}) {
+  const resolucion = resolverEncuentroEspecial({
+    configuracion: plantilla.encuentroEspecial ?? null,
+    aleatorio,
+  });
+
+  const resumenBase = {
+    configurado: resolucion.configurado,
+    probabilidadAparicion: resolucion.probabilidadAparicion,
+    tirada: resolucion.tirada,
+    tiradaExitosa: resolucion.aparece,
+    colocado: false,
+    omitidoPorEspacio: false,
+    idEnemigo: resolucion.idEnemigo,
+    nombre: null,
+    variante: resolucion.variante,
+    nivel: nivelMapa,
+    x: null,
+    y: null,
+  };
+
+  if (!resolucion.aparece) {
+    return crearResultadoEncuentroVacio(resumenBase);
+  }
+
+  const configuracionPosicion = plantilla.enemigos;
+
+  const indicePosicion = buscarIndicePosicionEnemigo({
+    posicionesDisponibles,
+    posicionJugador,
+    posicionesEnemigos,
+    distanciaSeguraJugador: configuracionPosicion.distanciaSeguraJugador,
+    distanciaMinimaEntreEnemigos:
+      configuracionPosicion.distanciaMinimaEntreEnemigos,
+  });
+
+  if (indicePosicion === -1) {
+    console.warn(
+      `[Mapa] El encuentro especial "${resolucion.idEnemigo}" ` +
+        `fue seleccionado para "${plantilla.nombre}", ` +
+        "pero no pudo colocarse respetando las distancias.",
+    );
+
+    return crearResultadoEncuentroVacio({
+      ...resumenBase,
+      omitidoPorEspacio: true,
+    });
+  }
+
+  const [posicion] = posicionesDisponibles.splice(indicePosicion, 1);
+
+  const enemigo = crearEnemigo({
+    configuracionEnemigos,
+    configuracionObjetos,
+    idPlantilla: resolucion.idEnemigo,
+    nivel: nivelMapa,
+    idVariante: resolucion.idVariante,
+    x: posicion.x,
+    y: posicion.y,
+  });
+
+  agregarBotinAdicional({
+    enemigo,
+    tablaBotinAdicional: resolucion.tablaBotinAdicional,
+  });
+
+  posicionesEnemigos.push({
+    ...posicion,
+  });
+
+  return {
+    enemigos: [enemigo],
+    detalle: [
+      {
+        numero: numeroDetalleInicial,
+        nombre: enemigo.nombre,
+        tipo: resolucion.idEnemigo,
+        variante: resolucion.variante,
+        nivel: nivelMapa,
+        x: posicion.x,
+        y: posicion.y,
+        esEncuentroEspecial: true,
+        probabilidadEncuentro: resolucion.probabilidadAparicion,
+        tiradaEncuentro: resolucion.tirada,
+        cantidadEntradasBotinAdicional: resolucion.tablaBotinAdicional.length,
+      },
+    ],
+    enemigosPorTipo: {
+      [resolucion.idEnemigo]: 1,
+    },
+    variantes: {
+      [resolucion.variante]: 1,
+    },
+    resumen: {
+      ...resumenBase,
+      colocado: true,
+      nombre: enemigo.nombre,
+      x: posicion.x,
+      y: posicion.y,
+    },
+  };
+}
+
+function crearResultadoEncuentroVacio(resumen) {
+  return {
+    enemigos: [],
+    detalle: [],
+    enemigosPorTipo: {},
+    variantes: {},
+    resumen,
+  };
+}
+
+function agregarBotinAdicional({ enemigo, tablaBotinAdicional }) {
+  if (!Array.isArray(tablaBotinAdicional)) {
+    throw new Error(
+      "El botín adicional del encuentro especial debe ser una lista.",
+    );
+  }
+
+  enemigo.tablaBotin.push(
+    ...tablaBotinAdicional.map((entrada) => ({
+      ...entrada,
+    })),
+  );
 }
 
 function generarDestructibles({
@@ -247,7 +390,6 @@ function generarDestructibles({
 
   const porcentajeSeleccionado = aleatorio.entero(
     configuracion.porcentajeCasillasCaminables.minimo,
-
     configuracion.porcentajeCasillasCaminables.maximo,
   );
 
@@ -255,8 +397,6 @@ function generarDestructibles({
     terreno.casillasCaminables.length * (porcentajeSeleccionado / 100),
   );
 
-  // Si el porcentaje es mayor que cero,
-  // intentamos colocar al menos un destructible.
   const cantidadObjetivo =
     porcentajeSeleccionado > 0 ? Math.max(1, cantidadCalculada) : 0;
 
@@ -285,12 +425,8 @@ function generarDestructibles({
 
     const clave = crearClave(posicion);
 
-    // Probamos temporalmente la posición.
     posicionesBloqueadas.add(clave);
 
-    // Un destructible funciona como un obstáculo
-    // permanente. Solo se conserva si el resto
-    // del suelo continúa conectado.
     const mantieneConectividad = comprobarConectividad({
       clavesCaminables,
       posicionesBloqueadas,
@@ -305,15 +441,12 @@ function generarDestructibles({
 
     const destructiblePermitido = seleccionarPonderado(
       configuracion.permitidos,
-
       aleatorio,
     );
 
     const destructible = crearDestructible({
       id: destructiblePermitido.id,
-
       x: posicion.x,
-
       y: posicion.y,
     });
 
@@ -321,29 +454,15 @@ function generarDestructibles({
 
     detalle.push({
       numero: destructibles.length,
-
       tipo: destructiblePermitido.id,
-
       nombre: destructible.nombre,
-
       x: posicion.x,
-
       y: posicion.y,
     });
   }
 
-  // Calculamos cuántos destructibles no pudieron
-  // colocarse sin bloquear caminos importantes.
   const cantidadNoColocada = cantidadObjetivo - destructibles.length;
 
-  // Los destructibles son contenido secundario.
-  //
-  // La generación del mapa no debe cancelarse
-  // solamente porque una distribución concreta
-  // no permita colocar todos los barriles.
-  //
-  // Conservamos siempre la conectividad y usamos
-  // la cantidad configurada como un objetivo máximo.
   if (cantidadNoColocada > 0) {
     console.warn(
       `[Mapa] "${plantilla.nombre}" colocó ` +
@@ -356,12 +475,27 @@ function generarDestructibles({
     destructibles,
     detalle,
     porcentajeSeleccionado,
-
-    // Estos datos quedan disponibles para
-    // depuración y para el resumen de generación.
     cantidadObjetivo,
     cantidadNoColocada,
   };
+}
+
+function buscarIndicePosicionEnemigo({
+  posicionesDisponibles,
+  posicionJugador,
+  posicionesEnemigos,
+  distanciaSeguraJugador,
+  distanciaMinimaEntreEnemigos,
+}) {
+  return posicionesDisponibles.findIndex((posicion) =>
+    posicionValidaParaEnemigo({
+      posicion,
+      posicionJugador,
+      posicionesEnemigos,
+      distanciaSeguraJugador,
+      distanciaMinimaEntreEnemigos,
+    }),
+  );
 }
 
 function posicionValidaParaEnemigo({
@@ -387,12 +521,6 @@ function posicionValidaParaEnemigo({
   );
 }
 
-// Comprueba que todas las casillas de suelo
-// continúen accesibles después de colocar
-// destructibles.
-//
-// Los enemigos no se consideran bloqueos
-// permanentes porque pueden moverse.
 function comprobarConectividad({
   clavesCaminables,
   posicionesBloqueadas,
@@ -425,7 +553,6 @@ function comprobarConectividad({
     for (const direccion of DIRECCIONES_CARDINALES) {
       const siguiente = {
         x: actual.x + direccion.x,
-
         y: actual.y + direccion.y,
       };
 
@@ -450,25 +577,18 @@ function comprobarConectividad({
   return visitadas.size === cantidadDisponible;
 }
 
-// Selecciona un elemento mediante pesos.
-//
-// Los pesos no necesitan sumar 100.
 function seleccionarPonderado(elementos, aleatorio) {
   if (!Array.isArray(elementos) || elementos.length === 0) {
     throw new Error("No se puede realizar una selección ponderada vacía.");
   }
 
-  const pesoTotal = elementos.reduce(
-    (total, elemento) => {
-      if (!Number.isFinite(elemento.peso) || elemento.peso <= 0) {
-        throw new Error(`El peso de "${elemento.id}" debe ser mayor que 0.`);
-      }
+  const pesoTotal = elementos.reduce((total, elemento) => {
+    if (!Number.isFinite(elemento.peso) || elemento.peso <= 0) {
+      throw new Error(`El peso de "${elemento.id}" debe ser mayor que 0.`);
+    }
 
-      return total + elemento.peso;
-    },
-
-    0,
-  );
+    return total + elemento.peso;
+  }, 0);
 
   const valorSeleccionado = aleatorio.siguiente() * pesoTotal;
 
@@ -485,9 +605,6 @@ function seleccionarPonderado(elementos, aleatorio) {
   return elementos[elementos.length - 1];
 }
 
-// Las probabilidades de variantes sí suman 100,
-// pero se procesan como pesos para mantener
-// una única lógica de selección.
 function seleccionarVariante(probabilidades, aleatorio) {
   const opciones = Object.entries(probabilidades)
     .filter(([, probabilidad]) => probabilidad > 0)
@@ -501,6 +618,18 @@ function seleccionarVariante(probabilidades, aleatorio) {
   return seleccion.id === "normal" ? null : seleccion.id;
 }
 
+function combinarConteos(conteoA, conteoB) {
+  const resultado = {
+    ...conteoA,
+  };
+
+  for (const [clave, cantidad] of Object.entries(conteoB)) {
+    resultado[clave] = (resultado[clave] ?? 0) + cantidad;
+  }
+
+  return resultado;
+}
+
 function incrementarConteo(conteo, clave) {
   conteo[clave] = (conteo[clave] ?? 0) + 1;
 }
@@ -510,7 +639,6 @@ function incrementarConteo(conteo, clave) {
 function calcularDistanciaCuadricula(origen, destino) {
   return Math.max(
     Math.abs(destino.x - origen.x),
-
     Math.abs(destino.y - origen.y),
   );
 }

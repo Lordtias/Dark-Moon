@@ -7,21 +7,16 @@ export const CONFIGURACION_COMBATE = {
     // Cada punto por encima o debajo de 10 modifica
     // el daño físico en un 3%.
     danioPorPuntoRespectoDiez: 0.03,
-
     // Destreza continúa aumentando tanto precisión
     // como evasión, pero con una progresión más moderada.
     precisionPorDestreza: 2,
     evasionPorDestreza: 2,
-
     // La Constitución sigue siendo la fuente principal
     // de Vida, sin generar reservas excesivas en nivel 1.
     vidaPorConstitucion: 2,
-    manaPorInteligencia: 4,
     regeneracionVidaPorConstitucion: 0.1,
-    regeneracionManaPorSabiduria: 0.1,
     resistenciaElementalPorSabiduria: 0.5,
     resistenciaVenenoPorConstitucion: 0.2,
-    potenciaEfectosPorSabiduria: 2,
     resistenciaMentalPorSabiduria: 2,
     potenciaAuraPorCarisma: 2,
   },
@@ -37,14 +32,12 @@ export const CONFIGURACION_COMBATE = {
     // los golpes pequeños, evitando daños redondeados a cero.
     factorDanio: 20,
   },
-
   // Combatir con dos armas produce más daño,
   // pero obliga a renunciar al escudo y consume
   // tiempo adicional.
   dosArmas: {
     multiplicadorManoPrincipal: 1,
     multiplicadorManoSecundaria: 0.5,
-
     // El ataque utiliza el coste completo del arma
     // más lenta y agrega el 30% del arma más rápida.
     recargoTemporalSecundaria: 0.3,

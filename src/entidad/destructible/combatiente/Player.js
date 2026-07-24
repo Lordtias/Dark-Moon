@@ -1,14 +1,16 @@
 import { Combatiente } from "./Combatiente.js";
-
 import {
   calcularExperienciaNecesaria,
   calcularPuntosAtributoGanados,
 } from "../../../juego/progresion/SistemaProgresion.js";
-
 import {
   interactuarConObjetoInventario,
   desequiparObjetoAInventario,
 } from "../../../juego/inventario/SistemaInventarioEquipamiento.js";
+import {
+  capturarEstadoRecursos,
+  restaurarRecursosTrasRecalculo,
+} from "../../../juego/magia/CalculadorAtributosMagicos.js";
 
 const ATRIBUTOS_VALIDOS = [
   "fuerza",
@@ -19,15 +21,13 @@ const ATRIBUTOS_VALIDOS = [
   "carisma",
 ];
 
-// Player conserva únicamente responsabilidades
-// propias del jugador:
+// Player conserva únicamente responsabilidades propias del jugador:
 //
 // - Progresión y atributos.
 // - Inventario y equipamiento personal.
 // - Recursos persistentes, como el oro.
 //
-// La interacción de objetos se delega a
-// SistemaInventarioEquipamiento.
+// La interacción de objetos se delega a SistemaInventarioEquipamiento.
 export class Player extends Combatiente {
   constructor({
     nombre,
@@ -37,36 +37,19 @@ export class Player extends Combatiente {
     atributos,
     estadisticasBase,
     ataqueNatural = null,
-
-    // Factores que controlan la velocidad
-    // global y específica del jugador.
-    //
-    // Mientras no se configuren explícitamente,
-    // Combatiente utiliza 100 en todos.
+    // Factores que controlan la velocidad global y específica del jugador.
+    // Mientras no se configuren explícitamente, Combatiente utiliza 100.
     factoresTemporales = {},
-
     clasePersonaje = "Aventurero",
-
-    // Ruta opcional de la imagen utilizada
-    // para representar al jugador.
-    //
-    // La profesión define actualmente esta ruta.
+    // Ruta opcional de la imagen utilizada para representar al jugador.
     recursoVisual = null,
-
     experiencia = 0,
     puntosAtributoDisponibles = 0,
-
-    // El oro pertenece al jugador y no ocupa
-    // una casilla dentro del inventario.
-    //
-    // Como Player se conserva entre mapas,
-    // este valor también persiste entre ciudad
-    // y mazmorras.
+    // El oro pertenece al jugador y no ocupa una casilla del inventario.
+    // Como Player se conserva entre mapas, también persiste en la sesión.
     oro = 100,
-
     capacidadInventario = 12,
     objetosInventarioIniciales = [],
-
     ranurasEquipamiento = [
       "cabeza",
       "torso",
@@ -79,7 +62,6 @@ export class Player extends Combatiente {
       "anillo_derecho",
       "anillo_izquierdo",
     ],
-
     equipamientoInicial = [],
   } = {}) {
     super({
@@ -92,18 +74,13 @@ export class Player extends Combatiente {
       ataqueNatural,
       factoresTemporales,
       simbolo: "@",
-
       capacidadContenedor: capacidadInventario,
-
       objetosIniciales: objetosInventarioIniciales,
-
       ranurasEquipamiento,
       equipamientoInicial,
     });
 
-    // La imagen es opcional.
-    //
-    // Si no está configurada, el renderizador
+    // La imagen es opcional. Si no está configurada, el renderizador
     // continúa mostrando el símbolo "@".
     if (
       recursoVisual !== null &&
@@ -114,10 +91,8 @@ export class Player extends Combatiente {
       );
     }
 
-    // Player solamente conserva la ruta.
-    //
-    // No carga la imagen ni conoce Canvas,
-    // HTML o una futura librería 2D.
+    // Player solamente conserva la ruta; no carga la imagen ni conoce
+    // Canvas, HTML o una futura librería 2D.
     this.recursoVisual = recursoVisual?.trim() ?? null;
 
     if (
@@ -137,19 +112,13 @@ export class Player extends Combatiente {
     });
 
     this.clasePersonaje = clasePersonaje;
-
     this.inventario = this.contenedorObjetos;
-
-    // Utilizamos una propiedad interna para que
-    // el oro solo pueda modificarse mediante
-    // las operaciones validadas de esta clase.
+    // Utilizamos una propiedad interna para que el oro solo pueda
+    // modificarse mediante las operaciones validadas de esta clase.
     this._oro = oro;
-
     this._experiencia = 0;
     this.experienciaTotal = 0;
-
     this.puntosAtributoDisponibles = puntosAtributoDisponibles;
-
     this.ultimoResultadoProgresion = null;
 
     if (experiencia > 0) {
@@ -170,26 +139,16 @@ export class Player extends Combatiente {
   }
 
   get porcentajeExperiencia() {
-    return Math.min(
-      100,
-
-      (this._experiencia / this.experienciaNecesaria) * 100,
-    );
+    return Math.min(100, (this._experiencia / this.experienciaNecesaria) * 100);
   }
 
   // Agrega monedas al jugador.
-  //
-  // Este método será utilizado después por
-  // la venta de objetos, recompensas y botines.
   agregarOro(cantidad) {
     validarCantidadOro({
       cantidad,
-
       descripcion: "La cantidad de oro agregada",
     });
-
     this._oro += cantidad;
-
     return {
       exito: true,
       oroAgregado: cantidad,
@@ -197,29 +156,20 @@ export class Player extends Combatiente {
     };
   }
 
-  // Permite consultar si una compra puede pagarse
-  // sin modificar todavía el saldo del jugador.
+  // Permite consultar si una compra puede pagarse sin modificar el saldo.
   puedePagar(cantidad) {
     validarCantidadOro({
       cantidad,
-
       descripcion: "El precio consultado",
-
       permitirCero: true,
     });
-
     return this._oro >= cantidad;
   }
 
-  // Descuenta monedas únicamente cuando existe
-  // saldo suficiente.
-  //
-  // Si el jugador no puede pagar, no se modifica
-  // el oro y se devuelve un resultado fallido.
+  // Descuenta monedas únicamente cuando existe saldo suficiente.
   gastarOro(cantidad) {
     validarCantidadOro({
       cantidad,
-
       descripcion: "La cantidad de oro gastada",
     });
 
@@ -228,18 +178,15 @@ export class Player extends Combatiente {
         exito: false,
         oroGastado: 0,
         oroActual: this._oro,
-
         mensaje: "No tenés suficiente oro.",
       };
     }
 
     this._oro -= cantidad;
-
     return {
       exito: true,
       oroGastado: cantidad,
       oroActual: this._oro,
-
       mensaje: `Gastaste ${cantidad} monedas.`,
     };
   }
@@ -254,51 +201,28 @@ export class Player extends Combatiente {
       };
     }
 
-    const vidaMaximaAnterior = this.vidaMaxima;
-
-    const manaMaximoAnterior = this.manaMaximo;
-
-    const vidaActualAnterior = this.vidaActual;
-
-    const manaActualAnterior = this.manaActual;
-
+    const estadoRecursosAnterior = capturarEstadoRecursos(this);
     this._experiencia += cantidad;
     this.experienciaTotal += cantidad;
-
     let nivelesGanados = 0;
     let puntosGanados = 0;
 
     while (this._experiencia >= calcularExperienciaNecesaria(this.nivel)) {
       const experienciaRequerida = calcularExperienciaNecesaria(this.nivel);
-
       this._experiencia -= experienciaRequerida;
-
       this.nivel++;
       nivelesGanados++;
 
       const puntosNivel = calcularPuntosAtributoGanados(this.nivel);
-
       puntosGanados += puntosNivel;
-
       this.puntosAtributoDisponibles += puntosNivel;
     }
 
     if (nivelesGanados > 0) {
-      // Fuerza el recálculo de estadísticas
-      // después de cambiar el nivel.
+      // Fuerza el recálculo después de cambiar el nivel. La Vida
+      // conserva el faltante previo y el Maná conserva su proporción.
       this.estadisticasDerivadas;
-
-      this.vidaActual = Math.min(
-        this.vidaMaxima,
-
-        vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
-      );
-
-      this.manaActual = Math.min(
-        this.manaMaximo,
-
-        manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
-      );
+      restaurarRecursosTrasRecalculo(this, estadoRecursosAnterior);
     }
 
     const resultado = {
@@ -307,9 +231,7 @@ export class Player extends Combatiente {
       puntosGanados,
       nivelActual: this.nivel,
     };
-
     this.ultimoResultadoProgresion = resultado;
-
     return resultado;
   }
 
@@ -321,49 +243,27 @@ export class Player extends Combatiente {
     if (this.puntosAtributoDisponibles <= 0) {
       return {
         exito: false,
-
         mensaje: "No tenés puntos de atributo disponibles.",
       };
     }
 
-    const vidaMaximaAnterior = this.vidaMaxima;
-
-    const manaMaximoAnterior = this.manaMaximo;
-
-    const vidaActualAnterior = this.vidaActual;
-
-    const manaActualAnterior = this.manaActual;
-
+    const estadoRecursosAnterior = capturarEstadoRecursos(this);
     this.atributos[nombreAtributo]++;
     this.puntosAtributoDisponibles--;
 
-    // Fuerza el recálculo de estadísticas
-    // después de cambiar un atributo.
+    // Fuerza el recálculo después de cambiar un atributo. El Maná no se
+    // rellena ni se vacía artificialmente: conserva el porcentaje previo.
     this.estadisticasDerivadas;
-
-    this.vidaActual = Math.min(
-      this.vidaMaxima,
-
-      vidaActualAnterior + (this.vidaMaxima - vidaMaximaAnterior),
-    );
-
-    this.manaActual = Math.min(
-      this.manaMaximo,
-
-      manaActualAnterior + (this.manaMaximo - manaMaximoAnterior),
-    );
+    restaurarRecursosTrasRecalculo(this, estadoRecursosAnterior);
 
     return {
       exito: true,
-
       mensaje:
         `${nombreAtributo} aumentó a ` + `${this.atributos[nombreAtributo]}.`,
     };
   }
 
-  // Delega la acción del inventario
-  // al sistema especializado de objetos
-  // y equipamiento.
+  // Delega la acción del inventario al sistema especializado.
   interactuarConObjetoInventario(indiceInventario) {
     return interactuarConObjetoInventario(this, indiceInventario);
   }
@@ -373,12 +273,10 @@ export class Player extends Combatiente {
   }
 }
 
-// El oro se maneja siempre como monedas enteras.
-// No se aceptan valores negativos, decimales,
-// infinitos ni conversiones implícitas desde texto.
+// El oro se maneja siempre como monedas enteras. No se aceptan valores
+// negativos, decimales, infinitos ni conversiones implícitas desde texto.
 function validarCantidadOro({ cantidad, descripcion, permitirCero = false }) {
   const minimo = permitirCero ? 0 : 1;
-
   if (!Number.isSafeInteger(cantidad) || cantidad < minimo) {
     throw new Error(
       `${descripcion} debe ser un entero ` +

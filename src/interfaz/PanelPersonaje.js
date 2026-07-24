@@ -9,11 +9,11 @@ const ATRIBUTOS = [
   "carisma",
 ];
 
-// PanelPersonaje administra el comportamiento
-// y la actualización visual del panel.
+// PanelPersonaje administra el comportamiento y la actualización visual.
 //
-// La estructura HTML se encuentra en index.html,
-// dentro de plantillaPanelPersonaje.
+// La estructura HTML principal se encuentra en index.html, dentro de
+// plantillaPanelPersonaje. La sección compacta de Magia se agrega desde este
+// controlador para no duplicar una plantilla extensa por dos datos derivados.
 export class PanelPersonaje {
   constructor({ contenedor, plantilla } = {}) {
     if (!contenedor) {
@@ -25,44 +25,30 @@ export class PanelPersonaje {
     }
 
     this.contenedor = contenedor;
-
     this.plantilla = plantilla;
-
     this.playerActual = null;
-
     this.manejarClick = this.manejarClick.bind(this);
-
     this.crearContenido();
-
-    // Un único evento administra todos
-    // los botones de atributos.
+    // Un único evento administra todos los botones de atributos.
     this.contenedor.addEventListener("click", this.manejarClick);
   }
 
   // Clona la estructura definida en index.html.
   crearContenido() {
     const contenido = this.plantilla.content.cloneNode(true);
-
     this.contenedor.replaceChildren(contenido);
 
-    // La plantilla todavía contiene el cuadro
-    // llamado Turno.
-    //
-    // Lo convertimos dinámicamente en DPS para
-    // no duplicar la estructura del panel
-    // entre JavaScript e index.html.
+    // La plantilla todavía contiene el cuadro llamado Turno. Se convierte
+    // dinámicamente en DPS para mantener una única estructura declarativa.
     this.configurarCampoDps();
+    this.crearSeccionMagia();
   }
 
-  // Convierte el antiguo campo visual Turno
-  // en el nuevo campo DPS.
+  // Convierte el antiguo campo visual Turno en el nuevo campo DPS.
   configurarCampoDps() {
     const valorDps = this.obtener('[data-personaje="turno"]');
-
     valorDps.dataset.personaje = "dps";
-
     const contenedorDato = valorDps.closest(".dato-personaje");
-
     const etiqueta = contenedorDato?.querySelector("span");
 
     if (!contenedorDato || !etiqueta) {
@@ -70,82 +56,120 @@ export class PanelPersonaje {
     }
 
     etiqueta.textContent = "DPS";
-
     contenedorDato.title =
       "Daño bruto medio por segundo. " +
       "Incluye la velocidad del ataque, pero no " +
       "precisión, críticos, armadura ni bloqueo.";
   }
 
+  // Agrega solamente los dos derivados mágicos necesarios para esta etapa.
+  // El Maná máximo y su regeneración ya permanecen visibles en la plantilla.
+  crearSeccionMagia() {
+    const seccion = document.createElement("section");
+    seccion.className = "seccion-panel seccion-magia-personaje";
+    seccion.dataset.seccionPersonaje = "magia";
+
+    const titulo = document.createElement("h3");
+    titulo.textContent = "Magia";
+    seccion.append(titulo);
+
+    const resumen = document.createElement("div");
+    resumen.className = "resumen-personaje";
+    resumen.append(
+      this.crearDatoMagico({
+        etiqueta: "Daño mágico",
+        campo: "danio-magico",
+        descripcion:
+          "Multiplicador derivado de Inteligencia y Sabiduría " +
+          "que usarán las habilidades mágicas.",
+      }),
+      this.crearDatoMagico({
+        etiqueta: "Potencia de efectos",
+        campo: "potencia-efectos",
+        descripcion:
+          "Multiplicador derivado de Sabiduría e Inteligencia. " +
+          "Cada efecto define si escala valor, duración o ambos.",
+      }),
+    );
+    seccion.append(resumen);
+
+    const seccionResistencias = Array.from(
+      this.contenedor.querySelectorAll(".seccion-panel"),
+    ).find(
+      (actual) =>
+        actual.querySelector("h3")?.textContent.trim() === "Resistencias",
+    );
+
+    if (seccionResistencias) {
+      seccionResistencias.before(seccion);
+    } else {
+      this.contenedor.append(seccion);
+    }
+  }
+
+  crearDatoMagico({ etiqueta, campo, descripcion }) {
+    const dato = document.createElement("div");
+    dato.className = "dato-personaje";
+    dato.title = descripcion;
+
+    const nombre = document.createElement("span");
+    nombre.textContent = etiqueta;
+    const valor = document.createElement("strong");
+    valor.dataset.personaje = campo;
+    valor.textContent = "×1.00";
+    dato.append(nombre, valor);
+    return dato;
+  }
+
   // Obtiene un elemento interno obligatorio.
   obtener(selector) {
     const elemento = this.contenedor.querySelector(selector);
-
     if (!elemento) {
       throw new Error(`No se encontró "${selector}" ` + "en PanelPersonaje.");
     }
-
     return elemento;
   }
 
-  // Procesa la distribución inmediata
-  // de un punto de atributo.
+  // Procesa la distribución inmediata de un punto de atributo.
   manejarClick(event) {
     const boton = event.target.closest('[data-accion="sumar-atributo"]');
-
     if (!boton || !this.contenedor.contains(boton) || !this.playerActual) {
       return;
     }
 
     const nombreAtributo = boton.dataset.atributo;
-
     const resultado = this.playerActual.asignarPuntoAtributo(nombreAtributo);
-
     if (!resultado.exito) {
       return;
     }
 
-    // Un atributo puede modificar varias
-    // estadísticas derivadas y el DPS.
+    // Un atributo puede modificar varias estadísticas derivadas y el DPS.
     this.actualizar(this.playerActual);
-
     boton.blur();
   }
 
   // Actualiza todos los valores visibles.
-  //
-  // Ya no recibe el contador de turnos porque
-  // esa información dejó de mostrarse.
   actualizar(player) {
     this.playerActual = player;
-
     const estadisticas = player.estadisticasDerivadas;
-
     const resultadoDps = calcularDpsCombatiente(player);
 
     this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
-
     this.obtener('[data-personaje="clase"]').textContent =
       player.clasePersonaje;
-
     this.obtener('[data-personaje="nivel"]').textContent =
       `Nivel ${player.nivel}`;
-
     this.actualizarExperiencia(player);
-
     this.obtener('[data-personaje="puntos-atributo"]').textContent =
       player.puntosAtributoDisponibles;
-
     this.obtener('[data-personaje="danio-medio"]').textContent = this.formatear(
       estadisticas.danioFisico.promedio,
     );
-
     this.obtener('[data-personaje="dps"]').textContent = this.formatear(
       resultadoDps.dps,
     );
 
-    // El tooltip muestra cómo se obtuvo
-    // el DPS actualmente visible.
+    // El tooltip muestra cómo se obtuvo el DPS actualmente visible.
     this.obtener('[data-personaje="dps"]').closest(".dato-personaje").title =
       `Daño medio: ${this.formatear(resultadoDps.danioMedio)}. ` +
       `Costo efectivo: ${resultadoDps.costoAtaqueEfectivo}. ` +
@@ -155,13 +179,9 @@ export class PanelPersonaje {
       "No incluye precisión, crítico, armadura ni bloqueo.";
 
     this.actualizarBarra("vida", player.vidaActual, player.vidaMaxima);
-
     this.actualizarBarra("mana", player.manaActual, player.manaMaximo);
-
     this.actualizarAtributos(player);
-
     this.actualizarEstadisticas(player, estadisticas);
-
     this.actualizarBotonesAtributos(player);
   }
 
@@ -174,32 +194,26 @@ export class PanelPersonaje {
     }
   }
 
-  // Actualiza estadísticas de combate
-  // y resistencias elementales.
+  // Actualiza estadísticas de combate, magia y resistencias elementales.
   actualizarEstadisticas(player, estadisticas) {
     const valores = {
       precision: estadisticas.precision,
-
       evasion: estadisticas.evasion,
-
       armadura: estadisticas.armadura,
-
       critico: `${this.formatear(estadisticas.probabilidadCritico)}%`,
-
       bloqueo: `${this.formatear(estadisticas.probabilidadBloqueo)}%`,
-
       "regen-vida": this.formatear(estadisticas.regeneracionVida),
-
       "regen-mana": this.formatear(estadisticas.regeneracionMana),
-
       alcance: player.alcanceAtaque,
-
+      "danio-magico": this.formatearMultiplicador(
+        estadisticas.multiplicadorDanioMagico,
+      ),
+      "potencia-efectos": this.formatearMultiplicador(
+        estadisticas.multiplicadorEfectos,
+      ),
       "res-fuego": `${this.formatear(estadisticas.resistencias.fuego)}%`,
-
       "res-frio": `${this.formatear(estadisticas.resistencias.frio)}%`,
-
       "res-rayo": `${this.formatear(estadisticas.resistencias.rayo)}%`,
-
       "res-veneno": `${this.formatear(estadisticas.resistencias.veneno)}%`,
     };
 
@@ -208,25 +222,20 @@ export class PanelPersonaje {
     }
   }
 
-  // Actualiza el texto y el ancho
-  // de la barra de experiencia.
+  // Actualiza el texto y el ancho de la barra de experiencia.
   actualizarExperiencia(player) {
     this.obtener('[data-personaje="experiencia-texto"]').textContent =
       `${player.experiencia} / ` + `${player.experienciaNecesaria} PX`;
-
     this.obtener('[data-personaje="experiencia-barra"]').style.width =
       `${this.limitarPorcentaje(player.porcentajeExperiencia)}%`;
   }
 
-  // Habilita los botones solamente cuando
-  // existen puntos disponibles.
+  // Habilita los botones solamente cuando existen puntos disponibles.
   actualizarBotonesAtributos(player) {
     const botones = this.contenedor.querySelectorAll(
       '[data-accion="sumar-atributo"]',
     );
-
     const tienePuntos = player.puntosAtributoDisponibles > 0;
-
     for (const boton of botones) {
       boton.disabled = !tienePuntos;
     }
@@ -236,9 +245,7 @@ export class PanelPersonaje {
   actualizarBarra(recurso, actual, maximo) {
     this.obtener(`[data-personaje="${recurso}-texto"]`).textContent =
       `${Math.floor(actual)} / ` + `${Math.floor(maximo)}`;
-
     const porcentaje = maximo > 0 ? (actual / maximo) * 100 : 0;
-
     this.obtener(`[data-personaje="${recurso}-barra"]`).style.width =
       `${this.limitarPorcentaje(porcentaje)}%`;
   }
@@ -251,8 +258,11 @@ export class PanelPersonaje {
     return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
   }
 
-  // Elimina el evento si el panel
-  // deja de utilizarse.
+  formatearMultiplicador(valor) {
+    return `×${valor.toFixed(2)}`;
+  }
+
+  // Elimina el evento si el panel deja de utilizarse.
   destruir() {
     this.contenedor.removeEventListener("click", this.manejarClick);
   }

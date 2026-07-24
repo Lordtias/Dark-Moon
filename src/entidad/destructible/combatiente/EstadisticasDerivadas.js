@@ -4,6 +4,12 @@ import {
   TIPOS_DANIO,
   normalizarResistencia,
 } from "../../../juego/combate/ComponentesDanio.js";
+import {
+  calcularManaMaximo,
+  calcularMultiplicadorDanioMagico,
+  calcularMultiplicadorEfectos,
+  calcularRegeneracionMana,
+} from "../../../juego/magia/CalculadorAtributosMagicos.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
 
@@ -49,17 +55,17 @@ export function calcularRecursosMaximos({
       coeficientes.vidaPorConstitucion * atributos.constitucion +
       sumarPropiedad(objetosEquipados, "vidaMaxima"),
   );
-  const manaMaximo = Math.max(
-    0,
-    estadisticasBase.mana +
-      (nivel - 1) * estadisticasBase.manaPorNivel +
-      coeficientes.manaPorInteligencia * atributos.inteligencia +
-      sumarPropiedad(objetosEquipados, "manaMaximo"),
-  );
+  const manaMaximo = calcularManaMaximo({
+    manaBase: estadisticasBase.mana,
+    manaPorNivel: estadisticasBase.manaPorNivel,
+    nivel,
+    atributos,
+    bonificacionPlana: sumarPropiedad(objetosEquipados, "manaMaximo"),
+  });
 
   return {
     vidaMaxima: Math.round(vidaMaxima),
-    manaMaximo: Math.round(manaMaximo),
+    manaMaximo,
   };
 }
 
@@ -82,8 +88,7 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
   const maximoBase = propiedades.danioFisicoMaximo;
   const planoLocalMinimo = propiedades.danioFisicoLocalMinimo ?? 0;
   const planoLocalMaximo = propiedades.danioFisicoLocalMaximo ?? 0;
-  const porcentajeLocal =
-    (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
+  const porcentajeLocal = (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
   const minimoLocal = Math.max(
     0,
     Math.floor((minimoBase + planoLocalMinimo) * (1 + porcentajeLocal)),
@@ -126,7 +131,6 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
     precision,
     probabilidadCritico,
     multiplicadorCritico,
-
     // Compatibilidad hacia adelante:
     // cada golpe físico antiguo queda representado como
     // una fuente que contiene un componente tipado físico.
@@ -158,10 +162,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   );
   const danioAumentadoGlobal =
     sumarPropiedad(objetos, "danioFisicoAumentadoPorcentaje") / 100;
-  const multiplicadorAumentadoGlobal = Math.max(
-    0,
-    1 + danioAumentadoGlobal,
-  );
+  const multiplicadorAumentadoGlobal = Math.max(0, 1 + danioAumentadoGlobal);
   const multiplicadorMasGlobal = multiplicarBonosMas(
     objetos,
     "danioFisicoMasPorcentaje",
@@ -245,14 +246,23 @@ export function calcularEstadisticasDerivadas(combatiente) {
       recursos.vidaMaxima *
         (sumarPropiedad(objetos, "regeneracionVidaPorcentaje") / 100),
   );
-  const regeneracionMana = Math.max(
-    0,
-    base.regeneracionMana +
-      coeficientes.regeneracionManaPorSabiduria *
-        (atributos.sabiduria - 10) +
-      sumarPropiedad(objetos, "regeneracionMana") +
-      recursos.manaMaximo *
-        (sumarPropiedad(objetos, "regeneracionManaPorcentaje") / 100),
+  const regeneracionMana = calcularRegeneracionMana({
+    regeneracionBase: base.regeneracionMana,
+    sabiduria: atributos.sabiduria,
+    bonificacionPlana: sumarPropiedad(objetos, "regeneracionMana"),
+    manaMaximo: recursos.manaMaximo,
+    bonificacionPorcentual: sumarPropiedad(
+      objetos,
+      "regeneracionManaPorcentaje",
+    ),
+  });
+  const multiplicadorDanioMagico = calcularMultiplicadorDanioMagico(atributos);
+  const multiplicadorEfectosAtributos = calcularMultiplicadorEfectos(atributos);
+  const potenciaEfectosAdicional =
+    base.potenciaEfectos + sumarPropiedad(objetos, "potenciaEfectos");
+  const multiplicadorEfectos = Math.max(
+    0.01,
+    multiplicadorEfectosAtributos * (1 + potenciaEfectosAdicional / 100),
   );
   const resistencias = {};
 
@@ -285,7 +295,13 @@ export function calcularEstadisticasDerivadas(combatiente) {
     ...recursos,
     regeneracionVida,
     regeneracionMana,
-
+    multiplicadorDanioMagico,
+    bonificacionDanioMagicoPorcentaje: (multiplicadorDanioMagico - 1) * 100,
+    multiplicadorEfectos,
+    bonificacionEfectosPorcentaje: (multiplicadorEfectos - 1) * 100,
+    // Compatibilidad con consumidores previos: potenciaEfectos continúa
+    // expresándose como porcentaje, pero ahora deriva de INT y SAB.
+    potenciaEfectos: (multiplicadorEfectos - 1) * 100,
     // Estas estadísticas generales continúan
     // representando el arma controladora.
     //
@@ -300,10 +316,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
       base.evasion +
       coeficientes.evasionPorDestreza * atributos.destreza +
       sumarPropiedad(objetos, "evasion"),
-    armadura: Math.max(
-      0,
-      Math.round(armaduraPlana * (1 + armaduraPorcentual)),
-    ),
+    armadura: Math.max(0, Math.round(armaduraPlana * (1 + armaduraPorcentual))),
     probabilidadCritico: limitar(
       (ataqueControlador.probabilidadCritico ?? base.probabilidadCritico) +
         sumarPropiedad(objetos, "probabilidadCriticoGlobal"),
@@ -311,12 +324,10 @@ export function calcularEstadisticasDerivadas(combatiente) {
       CONFIGURACION_COMBATE.limites.criticoMaximo,
     ),
     multiplicadorCritico:
-      (ataqueControlador.multiplicadorCritico ??
-        base.multiplicadorCritico) +
+      (ataqueControlador.multiplicadorCritico ?? base.multiplicadorCritico) +
       sumarPropiedad(objetos, "multiplicadorCriticoAdicional"),
     probabilidadBloqueo: limitar(
-      base.probabilidadBloqueo +
-        sumarPropiedad(objetos, "probabilidadBloqueo"),
+      base.probabilidadBloqueo + sumarPropiedad(objetos, "probabilidadBloqueo"),
       0,
       CONFIGURACION_COMBATE.limites.bloqueoMaximo,
     ),
@@ -325,9 +336,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
       0,
       CONFIGURACION_COMBATE.limites.mitigacionBloqueoMaxima,
     ),
-    potenciaEfectos:
-      base.potenciaEfectos +
-      coeficientes.potenciaEfectosPorSabiduria * atributos.sabiduria,
     resistenciaMental:
       base.resistenciaMental +
       coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria,
@@ -335,10 +343,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
       base.potenciaAura +
       coeficientes.potenciaAuraPorCarisma * atributos.carisma,
     resistencias,
-    danioFisico: calcularDanioFisico(
-      combatiente,
-      objetos,
-      configuracionAtaque,
-    ),
+    danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque),
   };
 }

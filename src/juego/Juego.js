@@ -1,3 +1,4 @@
+import { EstadoCombatePartida } from "./combate/EstadoCombatePartida.js";
 import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
 import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
@@ -49,15 +50,19 @@ export class Juego {
     this.interactuables = interactuables;
     this.destruido = false;
 
+    // El estado pertenece al Juego y, por tanto, al mapa activo. No se guarda
+    // en EstadoPartida porque debe desaparecer al volver a ciudad o iniciar
+    // otra expedición.
+    this.estadoCombatePartida = new EstadoCombatePartida();
     this.coordinadorTiempo = new CoordinadorTiempoPartida({
       mapa: this.map,
       jugador: this.player,
       objetivos: this.objetivos,
+      estadoCombate: this.estadoCombatePartida,
     });
 
     const semillaMapa =
       this.mapaSeleccionado.generacionActual?.semilla ?? "partida";
-
     this.sistemaCombateJugador = new SistemaCombateJugador({
       mapa: this.map,
       jugador: this.player,
@@ -71,6 +76,8 @@ export class Juego {
         this.sistemaInteraccionJugador?.modoActivo === true,
       eliminarActorTemporal: (actor) =>
         this.coordinadorTiempo.eliminarActor(actor),
+      registrarParticipanteCombate: (enemigo, motivo) =>
+        this.coordinadorTiempo.registrarParticipanteCombate(enemigo, motivo),
       finalizarAccionJugador: (parametros) =>
         this.finalizarAccionJugador(parametros),
     });
@@ -119,6 +126,18 @@ export class Juego {
 
   get tiempoActual() {
     return this.coordinadorTiempo.tiempoActual;
+  }
+
+  get estaEnCombate() {
+    return this.estadoCombatePartida.estaEnCombate;
+  }
+
+  get cantidadParticipantesCombate() {
+    return this.estadoCombatePartida.cantidadParticipantes;
+  }
+
+  obtenerParticipantesCombate() {
+    return this.estadoCombatePartida.obtenerParticipantes();
   }
 
   get modoCombateActivo() {
@@ -308,6 +327,7 @@ export class Juego {
         redibujar: false,
       };
     }
+
     if (this.modoInteraccionActivo) {
       return {
         exito: false,
@@ -316,6 +336,7 @@ export class Juego {
         redibujar: false,
       };
     }
+
     return null;
   }
 
@@ -419,6 +440,7 @@ export class Juego {
     if (bloqueoTemporal) {
       return bloqueoTemporal;
     }
+
     if (this.modoInteraccionActivo) {
       return {
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
@@ -426,6 +448,7 @@ export class Juego {
         redibujar: false,
       };
     }
+
     if (this.modoCombateActivo) {
       return {
         mensaje: "Confirmá con F o cancelá con Escape.",

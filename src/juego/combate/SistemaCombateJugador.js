@@ -1,15 +1,9 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
-
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
-
 import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
-
 import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
-
 import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
-
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
-
 import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
@@ -27,8 +21,9 @@ import {
 // - Retirar enemigos derrotados de la agenda temporal.
 // - Generar botín y entregar experiencia.
 //
-// Juego continúa siendo la fachada pública utilizada
-// por los controladores y la interfaz.
+// Juego continúa siendo la fachada pública utilizada por los controladores y
+// la interfaz. El estado real de enfrentamiento se notifica por separado y no
+// depende de abrir o mover el selector.
 export class SistemaCombateJugador {
   constructor({
     mapa,
@@ -41,26 +36,23 @@ export class SistemaCombateJugador {
     obtenerObjetivoEn,
     obtenerModoInteraccionActivo,
     eliminarActorTemporal,
+    registrarParticipanteCombate,
     finalizarAccionJugador,
   } = {}) {
     if (!Array.isArray(mapa) || mapa.length === 0) {
       throw new Error("SistemaCombateJugador necesita un mapa válido.");
     }
-
     if (!jugador || typeof jugador !== "object") {
       throw new Error("SistemaCombateJugador necesita un jugador válido.");
     }
-
     if (!Array.isArray(objetivos)) {
       throw new Error("SistemaCombateJugador necesita una lista de objetivos.");
     }
-
     if (!Array.isArray(interactuables)) {
       throw new Error(
         "SistemaCombateJugador necesita una lista de interactuables.",
       );
     }
-
     if (
       configuracionObjetos === null ||
       typeof configuracionObjetos !== "object" ||
@@ -70,31 +62,31 @@ export class SistemaCombateJugador {
         "SistemaCombateJugador necesita una configuración de objetos válida.",
       );
     }
-
     if (typeof esCaminable !== "function") {
       throw new Error(
         "SistemaCombateJugador necesita consultar casillas caminables.",
       );
     }
-
     if (typeof obtenerObjetivoEn !== "function") {
       throw new Error(
         "SistemaCombateJugador necesita consultar objetivos del mapa.",
       );
     }
-
     if (typeof obtenerModoInteraccionActivo !== "function") {
       throw new Error(
         "SistemaCombateJugador necesita consultar el modo interacción.",
       );
     }
-
     if (typeof eliminarActorTemporal !== "function") {
       throw new Error(
         "SistemaCombateJugador necesita retirar actores temporales.",
       );
     }
-
+    if (typeof registrarParticipanteCombate !== "function") {
+      throw new Error(
+        "SistemaCombateJugador necesita registrar participantes de combate.",
+      );
+    }
     if (typeof finalizarAccionJugador !== "function") {
       throw new Error(
         "SistemaCombateJugador necesita finalizar acciones temporales.",
@@ -106,40 +98,31 @@ export class SistemaCombateJugador {
     this.objetivos = objetivos;
     this.interactuables = interactuables;
     this.configuracionObjetos = configuracionObjetos;
-
     this.esCaminable = esCaminable;
-
     this.obtenerObjetivoEn = obtenerObjetivoEn;
-
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
-
     this.eliminarActorTemporal = eliminarActorTemporal;
-
+    this.registrarParticipanteCombate = registrarParticipanteCombate;
     this.finalizarAccionJugador = finalizarAccionJugador;
 
-    // Los drops utilizan una secuencia propia
-    // derivada de la semilla del mapa.
+    // Los drops utilizan una secuencia propia derivada de la semilla del mapa.
     this.aleatorioBotin = crearGeneradorAleatorio(`${semillaMapa}:botin`);
-
     this.modoActivo = false;
-
     this.selector = {
       x: this.jugador.x,
       y: this.jugador.y,
     };
 
-    // La última dirección permite abrir el selector
-    // hacia el lugar al que el jugador estaba mirando.
+    // La última dirección permite abrir el selector hacia el lugar al que el
+    // jugador estaba mirando.
     this.ultimaDireccion = {
       x: 0,
       y: -1,
     };
   }
 
-  // Guarda la última dirección utilizada por el jugador.
-  //
-  // Se llama tanto al moverse como al intentar caminar
-  // contra un combatiente.
+  // Guarda la última dirección utilizada por el jugador. Se llama tanto al
+  // moverse como al intentar caminar contra un combatiente.
   registrarUltimaDireccion(movimientoX, movimientoY) {
     this.ultimaDireccion = {
       x: movimientoX,
@@ -159,20 +142,15 @@ export class SistemaCombateJugador {
         y,
       },
     );
-
     return distancia >= 1 && distancia <= this.jugador.alcanceAtaque;
   }
 
-  // Evalúa alcance, patrón de ataque
-  // y línea de visión.
+  // Evalúa alcance, patrón de ataque y línea de visión.
   evaluarCasillaAtaque(x, y) {
     return evaluarAtaqueCasilla({
       atacante: this.jugador,
-
       xObjetivo: x,
-
       yObjetivo: y,
-
       mapa: this.mapa,
     });
   }
@@ -188,14 +166,12 @@ export class SistemaCombateJugador {
   // 3. En un nuevo empate, el primero encontrado.
   obtenerEnemigoPrioritario() {
     let enemigoSeleccionado = null;
-
     let distanciaSeleccionada = Infinity;
 
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Enemigo) || !objetivo.estaVivo) {
         continue;
       }
-
       if (!this.esCasillaAtacable(objetivo.x, objetivo.y)) {
         continue;
       }
@@ -203,18 +179,14 @@ export class SistemaCombateJugador {
       const distancia = calcularDistanciaCuadricula(
         {
           x: this.jugador.x,
-
           y: this.jugador.y,
         },
         {
           x: objetivo.x,
-
           y: objetivo.y,
         },
       );
-
       const estaMasCerca = distancia < distanciaSeleccionada;
-
       const mismaDistanciaConMenosVida =
         distancia === distanciaSeleccionada &&
         (enemigoSeleccionado === null ||
@@ -222,7 +194,6 @@ export class SistemaCombateJugador {
 
       if (estaMasCerca || mismaDistanciaConMenosVida) {
         enemigoSeleccionado = objetivo;
-
         distanciaSeleccionada = distancia;
       }
     }
@@ -230,58 +201,23 @@ export class SistemaCombateJugador {
     return enemigoSeleccionado;
   }
 
-  // Busca una casilla válida comenzando
-  // por la última dirección del jugador.
+  // Busca una casilla válida comenzando por la última dirección del jugador.
   obtenerCasillaInicial() {
     const direcciones = [
       this.ultimaDireccion,
-
-      {
-        x: 0,
-        y: -1,
-      },
-
-      {
-        x: 1,
-        y: 0,
-      },
-
-      {
-        x: 0,
-        y: 1,
-      },
-
-      {
-        x: -1,
-        y: 0,
-      },
-
-      {
-        x: 1,
-        y: -1,
-      },
-
-      {
-        x: 1,
-        y: 1,
-      },
-
-      {
-        x: -1,
-        y: 1,
-      },
-
-      {
-        x: -1,
-        y: -1,
-      },
+      { x: 0, y: -1 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+      { x: -1, y: 0 },
+      { x: 1, y: -1 },
+      { x: 1, y: 1 },
+      { x: -1, y: 1 },
+      { x: -1, y: -1 },
     ];
 
     for (const direccion of direcciones) {
       const x = this.jugador.x + direccion.x;
-
       const y = this.jugador.y + direccion.y;
-
       if (this.esCaminable(x, y) && this.esCasillaAtacable(x, y)) {
         return {
           x,
@@ -295,57 +231,43 @@ export class SistemaCombateJugador {
 
   obtenerSeleccionInicial() {
     const enemigoPrioritario = this.obtenerEnemigoPrioritario();
-
     if (enemigoPrioritario) {
       return {
         x: enemigoPrioritario.x,
-
         y: enemigoPrioritario.y,
       };
     }
-
     return this.obtenerCasillaInicial();
   }
 
-  // Activa el modo combate.
-  //
-  // Cuando se recibe una posición explícita,
-  // normalmente proviene de una colisión
-  // contra un combatiente.
+  // Activa el modo combate. Cuando se recibe una posición explícita,
+  // normalmente proviene de una colisión contra un combatiente.
   entrar(selectorX = null, selectorY = null) {
     if (!this.jugador.estaVivo) {
       return crearResultadoAccion({
         exito: false,
       });
     }
-
     if (this.obtenerModoInteraccionActivo()) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
       });
     }
 
     const seleccionExplicita = selectorX !== null && selectorY !== null;
-
     const seleccion = seleccionExplicita
-      ? {
-          x: selectorX,
-          y: selectorY,
-        }
+      ? { x: selectorX, y: selectorY }
       : this.obtenerSeleccionInicial();
 
     if (seleccion === null) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje: "No hay una casilla válida para atacar.",
       });
     }
 
     const evaluacion = this.evaluarCasillaAtaque(seleccion.x, seleccion.y);
-
     if (seleccionExplicita && !evaluacion.puedeAtacar) {
       return crearResultadoAccion({
         exito: false,
@@ -359,21 +281,17 @@ export class SistemaCombateJugador {
     ) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje: "No hay una casilla válida para atacar.",
       });
     }
 
     this.modoActivo = true;
     this.selector = seleccion;
-
     const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
-
     return crearResultadoAccion({
       mensaje: objetivo
         ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
         : "Modo combate: casilla " + `${seleccion.x}, ${seleccion.y}.`,
-
       redibujar: true,
     });
   }
@@ -386,10 +304,8 @@ export class SistemaCombateJugador {
     }
 
     this.limpiarSelector();
-
     return crearResultadoAccion({
       mensaje: "Cancelaste el modo combate.",
-
       redibujar: true,
     });
   }
@@ -402,13 +318,11 @@ export class SistemaCombateJugador {
     }
 
     const nuevaX = this.selector.x + movimientoX;
-
     const nuevaY = this.selector.y + movimientoY;
 
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje: "No podés seleccionar una pared.",
       });
     }
@@ -416,9 +330,9 @@ export class SistemaCombateJugador {
     if (!this.estaCasillaDentroAlcance(nuevaX, nuevaY)) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje:
-          "Esa casilla supera el alcance " + `${this.jugador.alcanceAtaque}.`,
+          "Esa casilla supera el alcance " +
+          `${this.jugador.alcanceAtaque}.`,
       });
     }
 
@@ -426,11 +340,8 @@ export class SistemaCombateJugador {
       x: nuevaX,
       y: nuevaY,
     };
-
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
-
     const evaluacion = this.evaluarCasillaAtaque(nuevaX, nuevaY);
-
     const textoSeleccion = objetivo
       ? `Seleccionaste a ${objetivo.nombre}.`
       : "Seleccionaste la casilla " + `${nuevaX}, ${nuevaY}.`;
@@ -438,21 +349,24 @@ export class SistemaCombateJugador {
     return crearResultadoAccion({
       mensaje: evaluacion.puedeAtacar
         ? textoSeleccion
-        : `${textoSeleccion} ` + `${evaluacion.mensaje}`,
-
+        : `${textoSeleccion} ${evaluacion.mensaje}`,
       redibujar: true,
     });
   }
 
-  // Ejecuta el ataque y procesa las consecuencias
-  // inmediatas de destruir al objetivo.
+  // Ejecuta el ataque y procesa las consecuencias inmediatas de destruir al
+  // objetivo. Un Enemigo se registra antes de resolver impacto, bloqueo o
+  // daño, porque un intento hostil válido inicia combate aunque falle.
   atacarObjetivo(objetivo) {
     if (objetivo instanceof Enemigo) {
+      this.registrarParticipanteCombate(
+        objetivo,
+        "intento_hostil_jugador",
+      );
       objetivo.activarAgresividad();
     }
 
     const resultado = this.jugador.atacar(objetivo);
-
     const mensajes = [resultado.mensaje];
 
     if (!objetivo.estaDestruido) {
@@ -461,23 +375,18 @@ export class SistemaCombateJugador {
 
     if (!(objetivo instanceof Enemigo)) {
       mensajes.push(`${objetivo.nombre} fue destruido.`);
-
       return mensajes.filter(Boolean).join("\n");
     }
 
-    // El enemigo derrotado no debe conservar
-    // acciones pendientes en la agenda.
+    // El enemigo derrotado no debe conservar acciones pendientes en la agenda.
+    // El coordinador también lo retira del estado de combate.
     this.eliminarActorTemporal(objetivo);
-
     mensajes.push(`${objetivo.nombre} fue derrotado.`);
 
     const resultadoBotin = generarBotinEnSuelo({
       fuente: objetivo,
-
       configuracionObjetos: this.configuracionObjetos,
-
       aleatorio: this.aleatorioBotin,
-
       interactuables: this.interactuables,
     });
 
@@ -487,25 +396,20 @@ export class SistemaCombateJugador {
       );
     }
 
-    // La experiencia configurada en el enemigo
-    // representa su recompensa relativa.
-    //
-    // Antes de entregarla se aplica el factor global
-    // y el ajuste por diferencia de nivel.
+    // La experiencia configurada en el enemigo representa su recompensa
+    // relativa. Antes de entregarla se aplica el factor global y el ajuste por
+    // diferencia de nivel.
     const recompensaExperiencia = calcularRecompensaExperiencia({
       experienciaBase: objetivo.experienciaOtorgada,
-
       nivelJugador: this.jugador.nivel,
-
       nivelEnemigo: objetivo.nivel,
     });
-
     const progresion = this.jugador.ganarExperiencia(
       recompensaExperiencia.experienciaFinal,
     );
 
     mensajes.push(
-      `Ganaste ${progresion.experienciaGanada} ` + "puntos de experiencia.",
+      `Ganaste ${progresion.experienciaGanada} puntos de experiencia.`,
     );
 
     if (progresion.nivelesGanados === 1) {
@@ -522,15 +426,14 @@ export class SistemaCombateJugador {
       mensajes.push("Obtuviste 1 punto de atributo.");
     } else if (progresion.puntosGanados > 1) {
       mensajes.push(
-        `Obtuviste ${progresion.puntosGanados} ` + "puntos de atributo.",
+        `Obtuviste ${progresion.puntosGanados} puntos de atributo.`,
       );
     }
 
     return mensajes.filter(Boolean).join("\n");
   }
 
-  // Confirma el ataque seleccionado
-  // y consume su coste temporal.
+  // Confirma el ataque seleccionado y consume su coste temporal.
   confirmarAtaque() {
     if (!this.modoActivo) {
       return crearResultadoAccion({
@@ -539,41 +442,31 @@ export class SistemaCombateJugador {
     }
 
     const { x, y } = this.selector;
-
     const evaluacion = this.evaluarCasillaAtaque(x, y);
-
     if (!evaluacion.puedeAtacar) {
       return crearResultadoAccion({
         exito: false,
-
         mensaje: evaluacion.mensaje,
       });
     }
 
     const costoAtaque = this.jugador.costoAtaqueActual;
-
     const objetivo = this.obtenerObjetivoEn(x, y);
-
     this.limpiarSelector();
-
     const mensaje = objetivo
       ? this.atacarObjetivo(objetivo)
       : this.jugador.atacarCasillaVacia().mensaje;
 
     return this.finalizarAccionJugador({
       mensaje,
-
       tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
-
       costoBase: costoAtaque,
     });
   }
 
-  // Desactiva el modo combate y devuelve
-  // el selector a la posición del jugador.
+  // Desactiva el modo combate y devuelve el selector a la posición del jugador.
   limpiarSelector() {
     this.modoActivo = false;
-
     this.selector = {
       x: this.jugador.x,
       y: this.jugador.y,

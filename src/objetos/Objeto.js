@@ -17,6 +17,7 @@ import {
   normalizarNivelMinimoGeneracion,
   normalizarTierBase,
 } from "../juego/objetos/MetadatosObjeto.js";
+import { normalizarPropiedadesResistencias } from "../juego/combate/ComponentesDanio.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
@@ -120,9 +121,7 @@ export class Objeto {
     }
 
     this.validarObjetoPlano(propiedades, `Las propiedades de "${nombre}"`);
-
     const propiedadesBaseRecibidas = propiedadesBase ?? propiedades;
-
     this.validarObjetoPlano(
       propiedadesBaseRecibidas,
       `Las propiedades base de "${nombre}"`,
@@ -150,7 +149,6 @@ export class Objeto {
     // El dominio conserva solamente la ruta.
     // No carga imágenes ni conoce Canvas o HTML.
     this.recursoVisual = recursoVisual?.trim() ?? null;
-
     this.apilable = apilable;
     this.cantidadMaxima = cantidadMaxima;
     this.cantidad = cantidad;
@@ -164,15 +162,18 @@ export class Objeto {
     );
     this.familiaObjeto = normalizarFamiliaObjeto(familiaObjeto);
     this.categoriaArmadura = normalizarCategoriaArmadura(categoriaArmadura);
-
     this.rareza = normalizarIdRarezaObjeto(rareza);
     this.nivelObjeto = nivelObjeto;
 
     // Las propiedades base y finales se copian para que
     // ninguna instancia modifique la plantilla JSON.
-    this.propiedadesBase = copiarDatosConfiguracion(propiedadesBaseRecibidas);
-    this.propiedades = copiarDatosConfiguracion(propiedades);
-
+    // Las resistencias presentes quedan limitadas a 0–75.
+    this.propiedadesBase = normalizarPropiedadesResistencias(
+      copiarDatosConfiguracion(propiedadesBaseRecibidas),
+    );
+    this.propiedades = normalizarPropiedadesResistencias(
+      copiarDatosConfiguracion(propiedades),
+    );
     this.prefijos = this.normalizarAfijos({
       afijos: prefijos,
       tipoEsperado: TIPOS_AFIJO_OBJETO.PREFIJO,
@@ -181,7 +182,6 @@ export class Objeto {
       afijos: sufijos,
       tipoEsperado: TIPOS_AFIJO_OBJETO.SUFIJO,
     });
-
     this.contenedorObjetos = contenedorObjetos;
 
     this.validarMetadatosProgresion();
@@ -213,7 +213,11 @@ export class Objeto {
       );
     }
 
-    if (this.esArmadura && !this.esEscudo && this.categoriaArmadura === null) {
+    if (
+      this.esArmadura &&
+      !this.esEscudo &&
+      this.categoriaArmadura === null
+    ) {
       throw new Error(
         `La armadura "${this.nombre}" debe declarar ` +
           "si es ligera, media o pesada.",
@@ -222,7 +226,7 @@ export class Objeto {
   }
 
   // Ejecuta las validaciones particulares
-  // correspondientes al tipo de objeto.
+  // correspondientes al tipo del objeto.
   validarPropiedadesPorTipo() {
     if (this.esArma) {
       this.validarPropiedadesArma();
@@ -286,7 +290,6 @@ export class Objeto {
     }
 
     const patronNormalizado = normalizarPatronAtaque(patronAtaque);
-
     if (!patronNormalizado) {
       throw new Error(`El patrón de ataque de "${this.nombre}" no es válido.`);
     }
@@ -298,13 +301,15 @@ export class Objeto {
       const patronBaseNormalizado = normalizarPatronAtaque(
         this.propiedadesBase.patronAtaque,
       );
-
       if (patronBaseNormalizado) {
         this.propiedadesBase.patronAtaque = patronBaseNormalizado;
       }
     }
 
-    if (patronNormalizado === PATRONES_ATAQUE.ADYACENTE && alcance !== 1) {
+    if (
+      patronNormalizado === PATRONES_ATAQUE.ADYACENTE &&
+      alcance !== 1
+    ) {
       throw new Error(
         `"${this.nombre}" utiliza patrón adyacente ` +
           "y por lo tanto debe tener alcance 1.",
@@ -316,7 +321,8 @@ export class Objeto {
       !Number.isFinite(multiplicadorCritico)
     ) {
       throw new Error(
-        `Los valores de crítico de "${this.nombre}" ` + "no son válidos.",
+        `Los valores de crítico de "${this.nombre}" ` +
+          "no son válidos.",
       );
     }
 
@@ -357,7 +363,8 @@ export class Objeto {
   // y porcentaje de daño mitigado.
   validarPropiedadesArmadura() {
     const armadura = this.propiedades.armadura ?? 0;
-    const probabilidadBloqueo = this.propiedades.probabilidadBloqueo ?? 0;
+    const probabilidadBloqueo =
+      this.propiedades.probabilidadBloqueo ?? 0;
     const mitigacionBloqueo = this.propiedades.mitigacionBloqueo ?? 0;
 
     if (!Number.isFinite(armadura) || armadura < 0) {
@@ -427,7 +434,8 @@ export class Objeto {
 
     if (!Array.isArray(efectos) || efectos.length === 0) {
       throw new Error(
-        `El consumible "${this.nombre}" ` + "necesita al menos un efecto.",
+        `El consumible "${this.nombre}" ` +
+          "necesita al menos un efecto.",
       );
     }
 
@@ -444,7 +452,8 @@ export class Objeto {
 
       if (!tiposValidos.includes(efecto.tipo)) {
         throw new Error(
-          `El efecto "${efecto.tipo}" de ` + `"${this.nombre}" no es válido.`,
+          `El efecto "${efecto.tipo}" de ` +
+            `"${this.nombre}" no es válido.`,
         );
       }
 
@@ -463,7 +472,8 @@ export class Objeto {
   normalizarAfijos({ afijos, tipoEsperado }) {
     if (!Array.isArray(afijos)) {
       throw new Error(
-        `Los ${tipoEsperado}s de "${this.nombre}" ` + "deben ser una lista.",
+        `Los ${tipoEsperado}s de "${this.nombre}" ` +
+          "deben ser una lista.",
       );
     }
 
@@ -485,7 +495,6 @@ export class Objeto {
     this.validarTexto(afijo.nombre, `nombre del ${tipoEsperado}`);
 
     const tipoNormalizado = normalizarTipoAfijoObjeto(afijo.tipoAfijo);
-
     if (tipoNormalizado !== tipoEsperado) {
       throw new Error(
         `El afijo "${afijo.id}" fue colocado como ` +
@@ -505,7 +514,9 @@ export class Objeto {
       (!Number.isInteger(afijo.nivelObjetoMinimo) ||
         afijo.nivelObjetoMinimo < 1)
     ) {
-      throw new Error(`El nivel mínimo del afijo "${afijo.id}" no es válido.`);
+      throw new Error(
+        `El nivel mínimo del afijo "${afijo.id}" no es válido.`,
+      );
     }
 
     if (
@@ -531,7 +542,8 @@ export class Objeto {
         !Number.isFinite(valor)
       ) {
         throw new Error(
-          `El afijo "${afijo.id}" contiene ` + "un valor generado inválido.",
+          `El afijo "${afijo.id}" contiene ` +
+            "un valor generado inválido.",
         );
       }
     }
@@ -543,7 +555,8 @@ export class Objeto {
         afijo.grupoExclusion.trim() === "")
     ) {
       throw new Error(
-        `El grupo de exclusión del afijo ` + `"${afijo.id}" no es válido.`,
+        `El grupo de exclusión del afijo ` +
+          `"${afijo.id}" no es válido.`,
       );
     }
 
@@ -552,13 +565,13 @@ export class Objeto {
       typeof afijo.descripcion !== "string"
     ) {
       throw new Error(
-        `La descripción del afijo "${afijo.id}" ` + "debe ser un texto.",
+        `La descripción del afijo "${afijo.id}" ` +
+          "debe ser un texto.",
       );
     }
 
     // Copiamos todos los metadatos de la tirada.
     const normalizado = copiarDatosConfiguracion(afijo);
-
     normalizado.id = afijo.id.trim().toLowerCase();
     normalizado.nombre = afijo.nombre.trim();
     normalizado.tipoAfijo = tipoNormalizado;
@@ -566,7 +579,9 @@ export class Objeto {
       typeof afijo.grupoExclusion === "string"
         ? afijo.grupoExclusion.trim().toLowerCase()
         : null;
-    normalizado.valores = copiarDatosConfiguracion(afijo.valores);
+    normalizado.valores = normalizarPropiedadesResistencias(
+      copiarDatosConfiguracion(afijo.valores),
+    );
 
     return normalizado;
   }
@@ -688,19 +703,22 @@ export class Objeto {
 
   get esArmaduraLigera() {
     return (
-      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.LIGERA
+      this.esArmadura &&
+      this.categoriaArmadura === CATEGORIAS_ARMADURA.LIGERA
     );
   }
 
   get esArmaduraMedia() {
     return (
-      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.MEDIA
+      this.esArmadura &&
+      this.categoriaArmadura === CATEGORIAS_ARMADURA.MEDIA
     );
   }
 
   get esArmaduraPesada() {
     return (
-      this.esArmadura && this.categoriaArmadura === CATEGORIAS_ARMADURA.PESADA
+      this.esArmadura &&
+      this.categoriaArmadura === CATEGORIAS_ARMADURA.PESADA
     );
   }
 
@@ -771,7 +789,6 @@ export class Objeto {
 
   puedeEquiparseEn(nombreRanura) {
     this.validarTexto(nombreRanura, "nombre de ranura");
-
     return this.ranurasCompatibles.includes(nombreRanura.trim().toLowerCase());
   }
 }
@@ -785,11 +802,9 @@ function copiarDatosConfiguracion(valor) {
 
   if (valor !== null && typeof valor === "object") {
     const copia = {};
-
     for (const [clave, contenido] of Object.entries(valor)) {
       copia[clave] = copiarDatosConfiguracion(contenido);
     }
-
     return copia;
   }
 

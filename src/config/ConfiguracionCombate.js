@@ -16,7 +16,6 @@ export const CONFIGURACION_COMBATE = {
     // La Constitución sigue siendo la fuente principal
     // de Vida, sin generar reservas excesivas en nivel 1.
     vidaPorConstitucion: 2,
-
     manaPorInteligencia: 4,
     regeneracionVidaPorConstitucion: 0.1,
     regeneracionManaPorSabiduria: 0.1,
@@ -26,7 +25,6 @@ export const CONFIGURACION_COMBATE = {
     resistenciaMentalPorSabiduria: 2,
     potenciaAuraPorCarisma: 2,
   },
-
   impacto: {
     // El factor aumentado reduce la frecuencia de fallos
     // durante los combates iniciales.
@@ -34,7 +32,6 @@ export const CONFIGURACION_COMBATE = {
     probabilidadMinima: 5,
     probabilidadMaxima: 95,
   },
-
   armadura: {
     // Un valor mayor hace que la armadura reduzca menos
     // los golpes pequeños, evitando daños redondeados a cero.
@@ -52,12 +49,11 @@ export const CONFIGURACION_COMBATE = {
     // más lenta y agrega el 30% del arma más rápida.
     recargoTemporalSecundaria: 0.3,
   },
-
   resistencias: {
-    minima: -50,
+    // La primera versión no permite resistencias negativas.
+    minima: 0,
     maxima: 75,
   },
-
   limites: {
     bloqueoMaximo: 75,
     mitigacionBloqueoMaxima: 100,

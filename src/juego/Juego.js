@@ -1,14 +1,10 @@
 import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
-
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
-
 import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
-
 import {
   COSTOS_TEMPORALES_BASE,
   TIPOS_ACCION_TEMPORAL,
 } from "./tiempo/SistemaTiempo.js";
-
 import { CoordinadorTiempoPartida } from "./tiempo/CoordinadorTiempoPartida.js";
 
 export class Juego {
@@ -23,25 +19,20 @@ export class Juego {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
     }
-
     if (!player) {
       throw new Error("Juego necesita un jugador.");
     }
-
     if (!Array.isArray(objetivos)) {
       throw new Error("Los objetivos deben estar dentro de una lista.");
     }
-
     if (!Array.isArray(interactuables)) {
       throw new Error(
         "Las entidades interactuables deben estar dentro de una lista.",
       );
     }
-
     if (!mapaSeleccionado || typeof mapaSeleccionado !== "object") {
       throw new Error("Juego necesita una plantilla de mapa seleccionada.");
     }
-
     if (
       configuracionObjetos === null ||
       typeof configuracionObjetos !== "object" ||
@@ -51,20 +42,13 @@ export class Juego {
     }
 
     this.map = map;
-
     this.mapaSeleccionado = mapaSeleccionado;
-
     this.configuracionObjetos = configuracionObjetos;
-
     this.player = player;
     this.objetivos = objetivos;
-
-    // Botines, cofres, NPC y objetos de misión
-    // permanecen separados de los objetivos.
     this.interactuables = interactuables;
+    this.destruido = false;
 
-    // El coordinador temporal administra la agenda,
-    // la regeneración y las acciones enemigas.
     this.coordinadorTiempo = new CoordinadorTiempoPartida({
       mapa: this.map,
       jugador: this.player,
@@ -74,110 +58,69 @@ export class Juego {
     const semillaMapa =
       this.mapaSeleccionado.generacionActual?.semilla ?? "partida";
 
-    // El sistema de combate administra:
-    //
-    // - El selector de ataque.
-    // - La selección automática de enemigos.
-    // - Las validaciones de alcance.
-    // - La resolución de ataques.
-    // - La experiencia y el botín.
     this.sistemaCombateJugador = new SistemaCombateJugador({
       mapa: this.map,
       jugador: this.player,
       objetivos: this.objetivos,
       interactuables: this.interactuables,
-
       configuracionObjetos: this.configuracionObjetos,
-
       semillaMapa,
-
       esCaminable: (x, y) => this.esCaminable(x, y),
-
       obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
-
       obtenerModoInteraccionActivo: () =>
         this.sistemaInteraccionJugador?.modoActivo === true,
-
       eliminarActorTemporal: (actor) =>
         this.coordinadorTiempo.eliminarActor(actor),
-
       finalizarAccionJugador: (parametros) =>
         this.finalizarAccionJugador(parametros),
     });
 
-    // El sistema de interacción administra:
-    //
-    // - El selector de interactuables.
-    // - Las validaciones de alcance.
-    // - La transferencia de botín.
-    // - El retiro de contenedores vacíos.
     this.sistemaInteraccionJugador = new SistemaInteraccionJugador({
       jugador: this.player,
       interactuables: this.interactuables,
-
       obtenerModoCombateActivo: () => this.modoCombateActivo,
-
-      obtenerContextoInteraccion: () => ({
-        juego: this,
-      }),
-
+      obtenerContextoInteraccion: () => ({ juego: this }),
       finalizarResultadoAccionJugador: (parametros) =>
         this.finalizarResultadoAccionJugador(parametros),
     });
 
-    // El sistema de movimiento administra:
-    //
-    // - Los límites y casillas caminables.
-    // - El bloqueo de diagonales.
-    // - Las colisiones con objetivos.
-    // - El desplazamiento del jugador.
-    // - La redirección hacia selectores activos.
     this.sistemaMovimientoJugador = new SistemaMovimientoJugador({
       mapa: this.map,
       jugador: this.player,
-
       obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
-
       obtenerModoInteraccionActivo: () => this.modoInteraccionActivo,
-
       moverSelectorInteraccion: (movimientoX, movimientoY) =>
         this.moverSelectorInteraccion(movimientoX, movimientoY),
-
       obtenerModoCombateActivo: () => this.modoCombateActivo,
-
       moverSelectorCombate: (movimientoX, movimientoY) =>
         this.moverSelectorCombate(movimientoX, movimientoY),
-
       registrarUltimaDireccionCombate: (movimientoX, movimientoY) =>
         this.sistemaCombateJugador.registrarUltimaDireccion(
           movimientoX,
           movimientoY,
         ),
-
       entrarModoCombate: (selectorX, selectorY) =>
         this.entrarModoCombate(selectorX, selectorY),
-
       obtenerOpcionesInteraccion: () => this.obtenerOpcionesInteraccion(),
-
+      obtenerBloqueoMovimiento: () =>
+        this.coordinadorTiempo.obtenerBloqueoMovimientoJugador(),
       finalizarAccionJugador: (parametros) =>
         this.finalizarAccionJugador(parametros),
     });
   }
 
-  // Conservamos juego.sistemaTiempo
-  // para el panel temporal y herramientas
-  // de diagnóstico.
   get sistemaTiempo() {
     return this.coordinadorTiempo.sistemaTiempo;
+  }
+
+  get sistemaEfectosTemporales() {
+    return this.coordinadorTiempo.sistemaEfectosTemporales;
   }
 
   get tiempoActual() {
     return this.coordinadorTiempo.tiempoActual;
   }
 
-  // Getters de compatibilidad para que
-  // los controladores y el adaptador visual
-  // no conozcan los sistemas internos.
   get modoCombateActivo() {
     return this.sistemaCombateJugador.modoActivo;
   }
@@ -211,7 +154,28 @@ export class Juego {
     );
   }
 
-  // Fachada pública de las interacciones.
+  obtenerBloqueoAccionTemporal() {
+    return this.coordinadorTiempo.obtenerBloqueoAccionJugador();
+  }
+
+  aplicarEfectoTemporal(definicion) {
+    return this.coordinadorTiempo.aplicarEfectoTemporal(definicion);
+  }
+
+  obtenerEfectosTemporales(objetivo = this.player) {
+    return this.coordinadorTiempo.obtenerEfectosTemporales(objetivo);
+  }
+
+  retirarEfectosTemporales(objetivo = this.player, opciones = {}) {
+    return this.coordinadorTiempo.retirarEfectosTemporales(objetivo, opciones);
+  }
+
+  // Fachada prevista para que la curandera pueda restaurar estados en una
+  // etapa posterior sin conocer la implementación interna del motor.
+  retirarEfectosNegativos(objetivo = this.player, opciones = {}) {
+    return this.coordinadorTiempo.retirarEfectosNegativos(objetivo, opciones);
+  }
+
   obtenerInteraccionesDisponibles() {
     return this.sistemaInteraccionJugador.obtenerInteraccionesDisponibles();
   }
@@ -240,7 +204,8 @@ export class Juego {
   }
 
   confirmarInteraccionSeleccionada() {
-    return this.sistemaInteraccionJugador.confirmarSeleccion();
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return bloqueo ?? this.sistemaInteraccionJugador.confirmarSeleccion();
   }
 
   cancelarModoInteraccion() {
@@ -255,7 +220,6 @@ export class Juego {
     return this.sistemaInteraccionJugador.limpiarSelector();
   }
 
-  // Fachada pública del movimiento y del mapa.
   estaDentroMapa(x, y) {
     return this.sistemaMovimientoJugador.estaDentroMapa(x, y);
   }
@@ -275,7 +239,6 @@ export class Juego {
     return this.sistemaMovimientoJugador.mover(movimientoX, movimientoY);
   }
 
-  // Fachada pública del combate.
   estaCasillaDentroAlcance(x, y) {
     return this.sistemaCombateJugador.estaCasillaDentroAlcance(x, y);
   }
@@ -313,11 +276,13 @@ export class Juego {
   }
 
   atacarObjetivo(objetivo) {
-    return this.sistemaCombateJugador.atacarObjetivo(objetivo);
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return bloqueo ?? this.sistemaCombateJugador.atacarObjetivo(objetivo);
   }
 
   confirmarAtaque() {
-    return this.sistemaCombateJugador.confirmarAtaque();
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return bloqueo ?? this.sistemaCombateJugador.confirmarAtaque();
   }
 
   obtenerBloqueoAccionPanelObjetos() {
@@ -330,6 +295,11 @@ export class Juego {
       };
     }
 
+    const bloqueoTemporal = this.obtenerBloqueoAccionTemporal();
+    if (bloqueoTemporal) {
+      return bloqueoTemporal;
+    }
+
     if (this.modoCombateActivo) {
       return {
         exito: false,
@@ -338,7 +308,6 @@ export class Juego {
         redibujar: false,
       };
     }
-
     if (this.modoInteraccionActivo) {
       return {
         exito: false,
@@ -347,34 +316,31 @@ export class Juego {
         redibujar: false,
       };
     }
-
     return null;
   }
 
   obtenerBloqueoInteraccion() {
-    return this.sistemaInteraccionJugador.obtenerBloqueoInteraccion();
+    return (
+      this.obtenerBloqueoAccionTemporal() ??
+      this.sistemaInteraccionJugador.obtenerBloqueoInteraccion()
+    );
   }
 
   interactuarConObjetoInventario(indiceInventario) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
-
     if (bloqueo) {
       return bloqueo;
     }
 
     const objetoSeleccionado =
       this.player.inventario.obtenerObjetoEn(indiceInventario);
-
     const esConsumo = objetoSeleccionado?.esConsumible === true;
-
     const tipoAccion = esConsumo
       ? TIPOS_ACCION_TEMPORAL.CONSUMO
       : TIPOS_ACCION_TEMPORAL.ACCION;
-
     const costoBase = esConsumo
       ? objetoSeleccionado.costoConsumo
       : COSTOS_TEMPORALES_BASE.accion;
-
     const resultado =
       this.player.interactuarConObjetoInventario(indiceInventario);
 
@@ -387,13 +353,11 @@ export class Juego {
 
   desequiparObjetoAInventario(nombreRanura) {
     const bloqueo = this.obtenerBloqueoAccionPanelObjetos();
-
     if (bloqueo) {
       return bloqueo;
     }
 
     const resultado = this.player.desequiparObjetoAInventario(nombreRanura);
-
     return this.finalizarResultadoAccionJugador({
       resultado,
       tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
@@ -402,14 +366,16 @@ export class Juego {
   }
 
   recogerObjetoInteractuable(interactuable, indiceOrigen) {
-    return this.sistemaInteraccionJugador.recogerObjeto(
-      interactuable,
-      indiceOrigen,
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return (
+      bloqueo ??
+      this.sistemaInteraccionJugador.recogerObjeto(interactuable, indiceOrigen)
     );
   }
 
   recogerTodoInteractuable(interactuable) {
-    return this.sistemaInteraccionJugador.recogerTodo(interactuable);
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return bloqueo ?? this.sistemaInteraccionJugador.recogerTodo(interactuable);
   }
 
   validarInteraccionContenedor(interactuable) {
@@ -449,6 +415,10 @@ export class Juego {
       };
     }
 
+    const bloqueoTemporal = this.obtenerBloqueoAccionTemporal();
+    if (bloqueoTemporal) {
+      return bloqueoTemporal;
+    }
     if (this.modoInteraccionActivo) {
       return {
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
@@ -456,7 +426,6 @@ export class Juego {
         redibujar: false,
       };
     }
-
     if (this.modoCombateActivo) {
       return {
         mensaje: "Confirmá con F o cancelá con Escape.",
@@ -470,5 +439,14 @@ export class Juego {
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
     });
+  }
+
+  destruir({ preservarEfectosJugador = true } = {}) {
+    if (this.destruido) {
+      return;
+    }
+
+    this.coordinadorTiempo.destruir({ preservarEfectosJugador });
+    this.destruido = true;
   }
 }

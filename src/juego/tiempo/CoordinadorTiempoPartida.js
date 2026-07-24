@@ -1,85 +1,141 @@
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
+import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
 import { SistemaTiempo, TIEMPO_REFERENCIA } from "./SistemaTiempo.js";
 
-// Coordina el avance temporal completo de una partida.
-//
-// SistemaTiempo continúa siendo responsable únicamente de:
-//
-// - Mantener la agenda.
-// - Calcular costes temporales.
-// - Registrar acciones.
-// - Determinar cuál es el siguiente actor.
-//
-// Este coordinador agrega las reglas propias de una partida:
-//
-// - Registrar y retirar enemigos.
-// - Ejecutar acciones enemigas.
-// - Aplicar regeneración periódica.
-// - Avanzar hasta que el jugador pueda actuar nuevamente.
-// - Construir el resultado temporal de una acción.
-//
-// De esta manera, Juego deja de conocer los detalles internos
-// del ciclo temporal y puede limitarse a coordinar sistemas.
+function crearAcumuladoTemporal() {
+  return {
+    recuperacionJugador: {
+      vidaRecuperada: 0,
+      manaRecuperado: 0,
+    },
+    mensajes: [],
+    eventos: [],
+  };
+}
+
+function acumularResultadoTemporal(destino, origen) {
+  destino.recuperacionJugador.vidaRecuperada +=
+    origen.recuperacionJugador?.vidaRecuperada ?? 0;
+  destino.recuperacionJugador.manaRecuperado +=
+    origen.recuperacionJugador?.manaRecuperado ?? 0;
+  destino.mensajes.push(...(origen.mensajes ?? []));
+  destino.eventos.push(...(origen.eventos ?? []));
+  return destino;
+}
+
 export class CoordinadorTiempoPartida {
   constructor({ mapa, jugador, objetivos } = {}) {
     if (!Array.isArray(mapa) || mapa.length === 0) {
       throw new Error("CoordinadorTiempoPartida necesita un mapa válido.");
     }
-
     if (!jugador || typeof jugador !== "object") {
       throw new Error("CoordinadorTiempoPartida necesita un jugador válido.");
     }
-
     if (!Array.isArray(objetivos)) {
       throw new Error(
         "CoordinadorTiempoPartida necesita una lista de objetivos.",
       );
     }
 
-    // Conservamos referencias a los elementos reales de la partida.
-    //
-    // No copiamos la lista de objetivos porque Juego puede agregar,
-    // destruir o retirar enemigos durante la partida.
     this.mapa = mapa;
     this.jugador = jugador;
     this.objetivos = objetivos;
-
-    // SistemaTiempo mantiene la agenda temporal de los actores.
     this.sistemaTiempo = new SistemaTiempo();
-
-    // La regeneración ocurre cada bloque de tiempo de referencia.
+    this.sistemaEfectosTemporales = new SistemaEfectosTemporales({
+      obtenerTiempoActual: () => this.sistemaTiempo.tiempoActual,
+    });
+    this.sistemaTiempo.establecerConsultaDisponibilidadMinima((actor) =>
+      this.sistemaEfectosTemporales.obtenerFinAturdimiento(actor),
+    );
     this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
+    this.destruido = false;
 
-    // El jugador siempre debe formar parte de la agenda.
     this.sistemaTiempo.registrarActor(this.jugador);
-
-    // Registramos los enemigos iniciales.
+    this.sistemaEfectosTemporales.reanudarObjetivo(this.jugador);
     this.sincronizarEnemigosConAgenda();
-
-    // Colocamos el reloj en la primera disponibilidad real.
     this.avanzarHastaSiguienteActorConPulsos();
   }
 
-  // Expone el tiempo actual sin obligar a Juego
-  // a consultar directamente los detalles de la agenda.
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
   }
 
-  // Retira explícitamente un actor de la agenda.
-  //
-  // Se utiliza, por ejemplo, cuando un enemigo es derrotado
-  // durante un ataque del jugador.
-  eliminarActor(actor) {
-    this.sistemaTiempo.eliminarActor(actor);
+  eliminarActor(actor, { limpiarEfectos = true } = {}) {
+    if (limpiarEfectos) {
+      this.sistemaEfectosTemporales.retirarEfectosObjetivo(actor, {
+        motivo: "actor_retirado",
+      });
+    }
+    return this.sistemaTiempo.eliminarActor(actor);
   }
 
-  // Completa una acción que primero devolvió un resultado propio.
-  //
-  // Se utiliza especialmente para inventario, equipamiento,
-  // consumo de objetos y transferencia de botín.
+  aplicarEfectoTemporal(definicion) {
+    return this.sistemaEfectosTemporales.aplicar(definicion);
+  }
+
+  obtenerEfectosTemporales(objetivo = this.jugador) {
+    return this.sistemaEfectosTemporales.obtenerEfectosObjetivo(objetivo);
+  }
+
+  retirarEfectosTemporales(objetivo = this.jugador, opciones = {}) {
+    return this.sistemaEfectosTemporales.retirarEfectosObjetivo(
+      objetivo,
+      opciones,
+    );
+  }
+
+  retirarEfectosNegativos(objetivo = this.jugador, opciones = {}) {
+    return this.sistemaEfectosTemporales.retirarEfectosNegativos(
+      objetivo,
+      opciones,
+    );
+  }
+
+  obtenerBloqueoAccionJugador() {
+    if (!this.sistemaEfectosTemporales.estaAturdido(this.jugador)) {
+      return null;
+    }
+
+    return {
+      exito: false,
+      mensaje: "Estás aturdido y no podés realizar acciones.",
+      turnoConsumido: false,
+      redibujar: false,
+      eventos: [
+        {
+          tipo: "accion_rechazada_por_aturdimiento",
+          objetivo: this.jugador,
+        },
+      ],
+    };
+  }
+
+  obtenerBloqueoMovimientoJugador() {
+    const bloqueoAccion = this.obtenerBloqueoAccionJugador();
+    if (bloqueoAccion) {
+      return bloqueoAccion;
+    }
+
+    if (!this.sistemaEfectosTemporales.estaInmovilizado(this.jugador)) {
+      return null;
+    }
+
+    return {
+      exito: false,
+      mensaje: "Estás inmovilizado y no podés desplazarte.",
+      turnoConsumido: false,
+      redibujar: false,
+      eventos: [
+        {
+          tipo: "movimiento_rechazado_por_inmovilizacion",
+          objetivo: this.jugador,
+        },
+      ],
+    };
+  }
+
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     if (
       !resultado ||
@@ -91,7 +147,6 @@ export class CoordinadorTiempoPartida {
       );
     }
 
-    // Los intentos fallidos no consumen tiempo.
     if (!resultado.exito) {
       return {
         ...resultado,
@@ -106,48 +161,37 @@ export class CoordinadorTiempoPartida {
       costoBase,
     });
 
-    // Conservamos los datos específicos de la acción original
-    // y agregamos el resultado del avance temporal.
     return {
       ...resultado,
       ...resultadoTemporal,
       exito: true,
+      eventos: [
+        ...(resultado.eventos ?? []),
+        ...(resultadoTemporal.eventos ?? []),
+      ],
     };
   }
 
-  // Mantiene la agenda sincronizada con los enemigos vivos.
-  //
-  // Los objetivos no combatientes no participan
-  // del sistema temporal.
   sincronizarEnemigosConAgenda() {
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Enemigo)) {
         continue;
       }
-
-      // Un enemigo destruido no debe conservar turnos pendientes.
       if (!objetivo.estaVivo) {
-        this.sistemaTiempo.eliminarActor(objetivo);
+        this.eliminarActor(objetivo);
         continue;
       }
-
-      // Evitamos registrar dos veces al mismo enemigo.
       if (!this.sistemaTiempo.tieneActor(objetivo)) {
         this.sistemaTiempo.registrarActor(objetivo);
       }
     }
   }
 
-  // Aplica un pulso de regeneración a todos los combatientes vivos.
-  //
-  // Solo devolvemos la recuperación del jugador porque actualmente
-  // es la única que se muestra en el historial de la interfaz.
   aplicarPulsoRegeneracion() {
     const combatientes = [
       this.jugador,
       ...this.objetivos.filter((objetivo) => objetivo instanceof Combatiente),
     ];
-
     let resultadoJugador = {
       vidaRecuperada: 0,
       manaRecuperado: 0,
@@ -157,9 +201,7 @@ export class CoordinadorTiempoPartida {
       if (!combatiente.estaVivo) {
         continue;
       }
-
       const resultado = combatiente.procesarPulsoRegeneracion();
-
       if (combatiente === this.jugador) {
         resultadoJugador = resultado;
       }
@@ -168,109 +210,134 @@ export class CoordinadorTiempoPartida {
     return resultadoJugador;
   }
 
-  // Procesa todos los pulsos de regeneración que ocurran
-  // antes o exactamente en el tiempo de destino.
+  limpiarObjetivosDerrotados(objetivosDerrotados = []) {
+    for (const objetivo of objetivosDerrotados) {
+      this.sistemaTiempo.eliminarActor(objetivo);
+    }
+  }
+
+  // Procesa regeneración y eventos de efectos hasta el destino. Cuando
+  // coinciden, primero se aplica regeneración y luego ticks/vencimientos.
   procesarPulsosTemporalesHasta(tiempoDestino) {
     if (!Number.isFinite(tiempoDestino) || tiempoDestino < 0) {
       throw new Error("El tiempo de destino debe ser un número válido.");
     }
 
-    const recuperacionTotal = {
-      vidaRecuperada: 0,
-      manaRecuperado: 0,
-    };
+    const acumulado = crearAcumuladoTemporal();
 
-    while (this.siguientePulsoTemporal <= tiempoDestino) {
-      // El reloj avanza primero hasta el instante del pulso.
-      this.sistemaTiempo.avanzarTiempoHasta(this.siguientePulsoTemporal);
+    while (this.sistemaTiempo.tiempoActual < tiempoDestino) {
+      const siguienteEfecto =
+        this.sistemaEfectosTemporales.obtenerSiguienteInstante();
+      const instantes = [tiempoDestino];
 
-      const recuperacion = this.aplicarPulsoRegeneracion();
+      if (this.siguientePulsoTemporal <= tiempoDestino) {
+        instantes.push(this.siguientePulsoTemporal);
+      }
+      if (siguienteEfecto !== null && siguienteEfecto <= tiempoDestino) {
+        instantes.push(siguienteEfecto);
+      }
 
-      recuperacionTotal.vidaRecuperada += recuperacion.vidaRecuperada;
+      const siguienteInstante = Math.min(...instantes);
+      this.sistemaTiempo.avanzarTiempoHasta(siguienteInstante);
 
-      recuperacionTotal.manaRecuperado += recuperacion.manaRecuperado;
+      if (this.siguientePulsoTemporal === siguienteInstante) {
+        const recuperacion = this.aplicarPulsoRegeneracion();
+        acumulado.recuperacionJugador.vidaRecuperada +=
+          recuperacion.vidaRecuperada;
+        acumulado.recuperacionJugador.manaRecuperado +=
+          recuperacion.manaRecuperado;
+        this.siguientePulsoTemporal += TIEMPO_REFERENCIA;
+      }
 
-      this.siguientePulsoTemporal += TIEMPO_REFERENCIA;
+      if (
+        this.sistemaEfectosTemporales.obtenerSiguienteInstante() ===
+        siguienteInstante
+      ) {
+        const resultadoEfectos =
+          this.sistemaEfectosTemporales.procesarEventosEn(siguienteInstante);
+        acumulado.mensajes.push(...resultadoEfectos.mensajes);
+        acumulado.eventos.push(...resultadoEfectos.eventos);
+        this.limpiarObjetivosDerrotados(resultadoEfectos.objetivosDerrotados);
+      }
     }
 
-    return recuperacionTotal;
+    // Si el destino coincide con el reloj actual, todavía puede haber eventos
+    // recién programados para ese mismo instante.
+    if (
+      this.sistemaEfectosTemporales.obtenerSiguienteInstante() === tiempoDestino
+    ) {
+      const resultadoEfectos =
+        this.sistemaEfectosTemporales.procesarEventosEn(tiempoDestino);
+      acumulado.mensajes.push(...resultadoEfectos.mensajes);
+      acumulado.eventos.push(...resultadoEfectos.eventos);
+      this.limpiarObjetivosDerrotados(resultadoEfectos.objetivosDerrotados);
+    }
+
+    return acumulado;
   }
 
-  // Avanza hasta el siguiente actor disponible,
-  // procesando previamente los pulsos de regeneración.
   avanzarHastaSiguienteActorConPulsos() {
-    const tiempoSiguienteActor =
-      this.sistemaTiempo.obtenerTiempoSiguienteActor();
+    const acumulado = crearAcumuladoTemporal();
 
-    if (tiempoSiguienteActor === null) {
+    while (true) {
+      const tiempoSiguienteActor =
+        this.sistemaTiempo.obtenerTiempoSiguienteActor();
+      if (tiempoSiguienteActor === null) {
+        return { actor: null, ...acumulado };
+      }
+
+      const resultadoHastaActor =
+        this.procesarPulsosTemporalesHasta(tiempoSiguienteActor);
+      acumularResultadoTemporal(acumulado, resultadoHastaActor);
+
+      const tiempoRecalculado =
+        this.sistemaTiempo.obtenerTiempoSiguienteActor();
+      if (tiempoRecalculado === null) {
+        return { actor: null, ...acumulado };
+      }
+
+      if (tiempoRecalculado > this.sistemaTiempo.tiempoActual) {
+        continue;
+      }
+
       return {
-        actor: null,
-        recuperacionJugador: {
-          vidaRecuperada: 0,
-          manaRecuperado: 0,
-        },
+        actor: this.sistemaTiempo.avanzarHastaSiguienteActor(),
+        ...acumulado,
       };
     }
-
-    const recuperacionJugador =
-      this.procesarPulsosTemporalesHasta(tiempoSiguienteActor);
-
-    const actor = this.sistemaTiempo.avanzarHastaSiguienteActor();
-
-    return {
-      actor,
-      recuperacionJugador,
-    };
   }
 
-  // Ejecuta acciones enemigas hasta que el jugador
-  // vuelve a ser el siguiente actor disponible.
   procesarHastaTurnoJugador() {
-    const mensajes = [];
-
-    const recuperacionTotal = {
-      vidaRecuperada: 0,
-      manaRecuperado: 0,
-    };
+    const acumulado = crearAcumuladoTemporal();
 
     while (this.jugador.estaVivo) {
-      // Los enemigos pueden haber muerto o haberse incorporado
-      // desde la última acción.
       this.sincronizarEnemigosConAgenda();
-
-      const siguienteActor = this.sistemaTiempo.obtenerSiguienteActor();
-
-      if (!siguienteActor) {
+      if (!this.sistemaTiempo.obtenerSiguienteActor()) {
         break;
       }
 
       const avance = this.avanzarHastaSiguienteActorConPulsos();
+      acumularResultadoTemporal(acumulado, avance);
 
-      recuperacionTotal.vidaRecuperada +=
-        avance.recuperacionJugador.vidaRecuperada;
+      if (!avance.actor) {
+        break;
+      }
 
-      recuperacionTotal.manaRecuperado +=
-        avance.recuperacionJugador.manaRecuperado;
-
-      // El ciclo termina cuando el jugador vuelve
-      // a estar disponible.
       if (avance.actor === this.jugador) {
         break;
       }
 
       const enemigo = avance.actor;
-
       const resultadoEnemigo = procesarAccionEnemigo({
         enemigo,
         jugador: this.jugador,
         mapa: this.mapa,
         objetivos: this.objetivos,
+        estaInmovilizado: (objetivo) =>
+          this.sistemaEfectosTemporales.estaInmovilizado(objetivo),
       });
+      acumulado.mensajes.push(...resultadoEnemigo.mensajes);
 
-      mensajes.push(...resultadoEnemigo.mensajes);
-
-      // Una acción enemiga válida genera una nueva
-      // disponibilidad dentro de la agenda.
       if (enemigo.estaVivo) {
         this.sistemaTiempo.registrarAccion({
           actor: enemigo,
@@ -278,50 +345,45 @@ export class CoordinadorTiempoPartida {
           costoBase: resultadoEnemigo.costoBase,
         });
       } else {
-        this.sistemaTiempo.eliminarActor(enemigo);
+        this.eliminarActor(enemigo);
       }
 
-      // Si el jugador fue derrotado no se ejecutan
-      // acciones enemigas adicionales.
       if (!this.jugador.estaVivo) {
+        this.eliminarActor(this.jugador);
         break;
       }
     }
 
     return {
-      mensajes,
-      mensaje: mensajes.filter(Boolean).join("\n"),
-      recuperacionJugador: recuperacionTotal,
+      mensajes: acumulado.mensajes,
+      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      recuperacionJugador: acumulado.recuperacionJugador,
+      eventos: acumulado.eventos,
     };
   }
 
-  // Construye el texto utilizado para informar
-  // la regeneración del jugador.
   crearMensajeRegeneracion(regeneracion) {
     const recursosRecuperados = [];
-
     if (regeneracion.vidaRecuperada > 0) {
       recursosRecuperados.push(`${regeneracion.vidaRecuperada} de Vida`);
     }
-
     if (regeneracion.manaRecuperado > 0) {
       recursosRecuperados.push(`${regeneracion.manaRecuperado} de Maná`);
     }
-
     if (recursosRecuperados.length === 0) {
       return null;
     }
-
-    return "Recuperaste " + `${recursosRecuperados.join(" y ")}.`;
+    return `Recuperaste ${recursosRecuperados.join(" y ")}.`;
   }
 
-  // Registra una acción del jugador y ejecuta todo lo ocurrido
-  // hasta que el jugador pueda actuar nuevamente.
   finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
+    const bloqueo = this.obtenerBloqueoAccionJugador();
+    if (bloqueo) {
+      return bloqueo;
+    }
+
     this.sincronizarEnemigosConAgenda();
-
     const actorActual = this.sistemaTiempo.obtenerSiguienteActor();
-
     if (actorActual !== this.jugador) {
       throw new Error("El jugador intentó actuar fuera de su turno temporal.");
     }
@@ -333,13 +395,10 @@ export class CoordinadorTiempoPartida {
     });
 
     const resultadoTemporal = this.procesarHastaTurnoJugador();
-
     const mensajes = [mensaje, ...resultadoTemporal.mensajes];
-
     const mensajeRegeneracion = this.crearMensajeRegeneracion(
       resultadoTemporal.recuperacionJugador,
     );
-
     if (mensajeRegeneracion) {
       mensajes.push(mensajeRegeneracion);
     }
@@ -348,12 +407,20 @@ export class CoordinadorTiempoPartida {
       mensaje: mensajes.filter(Boolean).join("\n"),
       turnoConsumido: true,
       redibujar: true,
-
-      // La propiedad ya existe en ResultadoAccion.
-      //
-      // Todavía queda vacía, pero posteriormente este coordinador
-      // podrá agregar eventos de movimiento, ataques y regeneración.
-      eventos: [],
+      eventos: resultadoTemporal.eventos,
     };
+  }
+
+  destruir({ preservarEfectosJugador = true } = {}) {
+    if (this.destruido) {
+      return;
+    }
+
+    this.sistemaEfectosTemporales.destruir({
+      preservarObjetivos:
+        preservarEfectosJugador && this.jugador.estaVivo ? [this.jugador] : [],
+    });
+    this.sistemaTiempo.registros.clear();
+    this.destruido = true;
   }
 }

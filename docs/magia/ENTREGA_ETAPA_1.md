@@ -74,7 +74,7 @@ La prueba de humo completa dentro del juego queda documentada en `VALIDACION_CON
 - [x] La Armadura no reduce componentes elementales.
 - [x] Los resultados exponen total y desglose de forma aditiva.
 - [x] No se activaron habilidades, efectos, afijos ni contenido de etapas posteriores.
-- [ ] Prueba manual completa dentro de la partida sobre el checkout local del usuario.
+- [x] Prueba manual completa dentro de la partida sobre el checkout local del usuario.
 
 ## Riesgos pendientes
 

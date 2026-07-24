@@ -2,32 +2,20 @@ import {
   crearJugadorInicial,
   TILE_SIZE,
 } from "../juego/configuracion/ConfiguracionInicial.js";
-
 import { Juego } from "../juego/Juego.js";
-
 import { EstadoPartida } from "../Partida/EstadoPartida.js";
-
 import { GestorMapasPartida } from "../Partida/GestorMapasPartida.js";
-
 import { GestorMercaderesPartida } from "../Partida/GestorMercaderesPartida.js";
-
 import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
 } from "../Partida/TransicionesMapa.js";
-
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
-
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
-
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
-
 import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
-
 import { ControladorComercio } from "../controles/ControladorComercio.js";
-
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
-
 import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
 
 // Coordina la sesión completa y conecta
@@ -114,7 +102,6 @@ export class ControladorPartida {
 
     this.gestorMapasPartida = new GestorMapasPartida({
       estadoPartida: this.estadoPartida,
-
       configuracionEnemigos,
       configuracionObjetos,
       configuracionGeneracionObjetos,
@@ -123,9 +110,7 @@ export class ControladorPartida {
     });
 
     this.configuracionObjetos = configuracionObjetos;
-
     this.configuracionRarezas = configuracionGeneracionObjetos.rarezas;
-
     this.configuracionComercio = configuracionComercio;
 
     configurarContextoPresentacionObjetos({
@@ -137,7 +122,6 @@ export class ControladorPartida {
     });
 
     this.renderizador = this.interfazPartida.renderizador;
-
     this.partidaIniciada = true;
 
     this.controladorPantallas.mostrarPartida();
@@ -145,25 +129,19 @@ export class ControladorPartida {
     if (parametrosPrueba.activo) {
       this.iniciarNuevaExpedicion({
         semillaMapa: parametrosPrueba.semillaMapa,
-
         idMapaForzado: parametrosPrueba.idMapaForzado,
-
         nivelMapaForzado: parametrosPrueba.nivelMapaForzado,
-
         botinPrueba: parametrosPrueba.botinPrueba,
-
         portalPrueba: parametrosPrueba.portalPrueba,
 
         // Los parámetros de URL forman parte del modo
         // de desarrollo y pueden abrir mapas bloqueados.
         ignorarNivelDesbloqueo: true,
-
         parametrosPrueba,
       });
     } else {
       this.iniciarCiudad({
         puntoEntrada: "inicioPartida",
-
         esInicioPartida: true,
       });
     }
@@ -173,7 +151,6 @@ export class ControladorPartida {
 
   iniciarCiudad({
     puntoEntrada = "inicioPartida",
-
     esInicioPartida = false,
   } = {}) {
     if (!this.partidaIniciada || !this.gestorMapasPartida) {
@@ -233,9 +210,7 @@ export class ControladorPartida {
     // stock generado con el nivel de esta expedición.
     this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
       semillaMapa: generacion.semilla,
-
       nivelMapa: generacion.nivelMapa,
-
       numeroExpedicion: this.estadoPartida.expedicionesRealizadas,
     });
 
@@ -247,7 +222,6 @@ export class ControladorPartida {
           botinPrueba ||
           portalPrueba ||
           semillaMapa !== null,
-
         idMapaForzado,
         nivelMapaForzado,
         botinPrueba,
@@ -284,7 +258,6 @@ export class ControladorPartida {
 
     return this.iniciarNuevaExpedicion({
       idMapaForzado: seleccion.idMazmorra,
-
       nivelMapaForzado: seleccion.nivelMapa,
     });
   }
@@ -350,6 +323,13 @@ export class ControladorPartida {
 
     this.desactivarControles();
 
+    // La transición no consume tiempo. El jugador conserva sus efectos con
+    // duración y próximo tick relativos; las entidades del mapa anterior se
+    // limpian junto con su agenda temporal.
+    this.juego?.destruir({
+      preservarEfectosJugador: true,
+    });
+
     const {
       renderizador,
       panelInventario,
@@ -366,15 +346,12 @@ export class ControladorPartida {
 
     renderizador.configurarDimensionesMapa({
       columnas: cantidadColumnas,
-
       filas: cantidadFilas,
     });
 
     const juego = new Juego({
       ...configuracionMapa,
-
       player: this.estadoPartida.jugador,
-
       configuracionObjetos: this.configuracionObjetos,
     });
 
@@ -427,9 +404,7 @@ export class ControladorPartida {
     });
 
     this.juego = juego;
-
     this.renderizador = renderizador;
-
     this.controladorTeclado = controladorTeclado;
 
     this.controladorEquipamiento = controladorEquipamiento;
@@ -439,9 +414,7 @@ export class ControladorPartida {
     this.controladorInteracciones = controladorInteracciones;
 
     this.controladorTeclado.activar();
-
     this.controladorEquipamiento.activar();
-
     this.controladorInteracciones.activar();
 
     this.renderizador.dibujarJuego(this.juego);

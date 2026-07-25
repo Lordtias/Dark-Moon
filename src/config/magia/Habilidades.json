@@ -1,77 +1,174 @@
 {
-  "version": 1,
+  "version": 2,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
       "maestria": "fuego",
       "requisitoNivelMaestria": 0,
-      "gradoMaximo": 4
+      "gradoMaximo": 4,
+      "icono": null
     },
     "explosion_ignea": {
       "nombre": "Explosión ígnea",
       "maestria": "fuego",
       "requisitoNivelMaestria": 3,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "incinerar": {
       "nombre": "Incinerar",
       "maestria": "fuego",
       "requisitoNivelMaestria": 6,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "esquirla_hielo": {
       "nombre": "Esquirla de hielo",
       "maestria": "frio",
       "requisitoNivelMaestria": 0,
-      "gradoMaximo": 4
+      "gradoMaximo": 4,
+      "icono": null
     },
     "nova_escarcha": {
       "nombre": "Nova de escarcha",
       "maestria": "frio",
       "requisitoNivelMaestria": 3,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "prision_glacial": {
       "nombre": "Prisión glacial",
       "maestria": "frio",
       "requisitoNivelMaestria": 6,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "chispa": {
       "nombre": "Chispa",
       "maestria": "rayo",
       "requisitoNivelMaestria": 0,
-      "gradoMaximo": 4
+      "gradoMaximo": 4,
+      "icono": null
     },
     "cadena_rayos": {
       "nombre": "Cadena de rayos",
       "maestria": "rayo",
       "requisitoNivelMaestria": 3,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "descarga_fulminante": {
       "nombre": "Descarga fulminante",
       "maestria": "rayo",
       "requisitoNivelMaestria": 6,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "aguijon_toxico": {
       "nombre": "Aguijón tóxico",
       "maestria": "veneno",
       "requisitoNivelMaestria": 0,
-      "gradoMaximo": 4
+      "gradoMaximo": 4,
+      "icono": "assets/habilidades/aguijon-toxico.png",
+      "descripcion": "Dispara un aguijón de veneno que causa daño inmediato y deja una toxina temporal.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 3,
+            "costoTemporalBase": 90,
+            "alcance": 4,
+            "danio": [
+              { "tipo": "veneno", "valorBase": 4 }
+            ],
+            "efectos": [
+              {
+                "id": "toxina_aguijon",
+                "tipo": "danio_periodico",
+                "tipoDanio": "veneno",
+                "potenciaBase": 2,
+                "duracion": 300,
+                "intervalo": 100,
+                "reglaAcumulacion": "renovar"
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 4,
+            "costoTemporalBase": 90,
+            "alcance": 4,
+            "danio": [
+              { "tipo": "veneno", "valorBase": 6 }
+            ],
+            "efectos": [
+              {
+                "id": "toxina_aguijon",
+                "tipo": "danio_periodico",
+                "tipoDanio": "veneno",
+                "potenciaBase": 2,
+                "duracion": 400,
+                "intervalo": 100,
+                "reglaAcumulacion": "renovar"
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 5,
+            "costoTemporalBase": 85,
+            "alcance": 5,
+            "danio": [
+              { "tipo": "veneno", "valorBase": 8 }
+            ],
+            "efectos": [
+              {
+                "id": "toxina_aguijon",
+                "tipo": "danio_periodico",
+                "tipoDanio": "veneno",
+                "potenciaBase": 3,
+                "duracion": 400,
+                "intervalo": 100,
+                "reglaAcumulacion": "renovar"
+              }
+            ]
+          },
+          "4": {
+            "costoMana": 6,
+            "costoTemporalBase": 80,
+            "alcance": 5,
+            "danio": [
+              { "tipo": "veneno", "valorBase": 11 }
+            ],
+            "efectos": [
+              {
+                "id": "toxina_aguijon",
+                "tipo": "danio_periodico",
+                "tipoDanio": "veneno",
+                "potenciaBase": 4,
+                "duracion": 400,
+                "intervalo": 100,
+                "reglaAcumulacion": "renovar"
+              }
+            ]
+          }
+        }
+      }
     },
     "nube_toxica": {
       "nombre": "Nube tóxica",
       "maestria": "veneno",
       "requisitoNivelMaestria": 3,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     },
     "plaga_corrosiva": {
       "nombre": "Plaga corrosiva",
       "maestria": "veneno",
       "requisitoNivelMaestria": 6,
-      "gradoMaximo": 3
+      "gradoMaximo": 3,
+      "icono": null
     }
   }
 }

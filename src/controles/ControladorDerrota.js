@@ -1,18 +1,12 @@
 import { EVENTO_JUGADOR_DERROTADO } from "./ProcesadorResultadoAccion.js";
-
 import { ModalDerrota } from "../interfaz/ModalDerrota.js";
+import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
 
 // Coordina el cierre de una partida derrotada.
-//
-// Vive al nivel de Aplicacion porque la derrota
-// no pertenece a un mapa concreto y debe funcionar
-// aunque Juego sea reemplazado entre expediciones.
 export class ControladorDerrota {
   constructor() {
     this.modalDerrota = new ModalDerrota();
-
     this.derrotaProcesada = false;
-
     this.manejarJugadorDerrotado = this.manejarJugadorDerrotado.bind(this);
 
     document.addEventListener(
@@ -33,15 +27,9 @@ export class ControladorDerrota {
     }
 
     this.derrotaProcesada = true;
-
-    // Cerramos cualquier ventana que pudiera estar abierta,
-    // por ejemplo el detalle de una poción consumida antes
-    // de que los enemigos terminaran su fase.
     this.cerrarOtrosDialogos();
-
     this.modalDerrota.abrir({
       jugador,
-
       alVolverMenu: () => this.volverAlMenuPrincipal(),
     });
   }
@@ -57,11 +45,21 @@ export class ControladorDerrota {
   }
 
   volverAlMenuPrincipal() {
-    // Recargar la aplicación reinicia completamente
-    // la sesión derrotada y permite comenzar otra partida
-    // sin conservar controladores, modales o estados muertos.
-    const ubicacionActual = globalThis.location;
+    // La muerte cierra el ciclo roguelike. Ningún inventario, oro o
+    // progreso durable del personaje derrotado debe reaparecer.
+    try {
+      eliminarGuardadoJugador();
+    } catch (error) {
+      // La limpieza durable es obligatoria cuando el almacenamiento está
+      // disponible, pero una política del navegador no debe bloquear el
+      // regreso al menú principal.
+      console.warn(
+        "No se pudo limpiar el guardado del personaje derrotado:",
+        error,
+      );
+    }
 
+    const ubicacionActual = globalThis.location;
     if (
       !ubicacionActual?.href ||
       typeof ubicacionActual.assign !== "function"
@@ -70,12 +68,8 @@ export class ControladorDerrota {
     }
 
     const urlMenu = new URL(ubicacionActual.href);
-
-    // Los parámetros de prueba podrían iniciar directamente
-    // una mazmorra. Los retiramos al volver al menú.
     urlMenu.search = "";
     urlMenu.hash = "";
-
     ubicacionActual.assign(urlMenu.href);
   }
 
@@ -84,7 +78,6 @@ export class ControladorDerrota {
       EVENTO_JUGADOR_DERROTADO,
       this.manejarJugadorDerrotado,
     );
-
     this.modalDerrota.destruir();
   }
 }

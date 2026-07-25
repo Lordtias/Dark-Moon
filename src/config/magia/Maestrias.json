@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "reglas": {
+    "puntosUniversalesIniciales": 1,
+    "puntosUniversalesPorNivelGeneral": 1,
+    "factorExperienciaPorMana": 1,
+    "nivelMaximoMaestria": 10,
+    "experienciaPorNivel": [20, 30, 45, 65, 90, 120, 155, 195, 240, 290]
+  },
+  "maestrias": {
+    "fuego": {
+      "nombre": "Fuego",
+      "categoria": "magia",
+      "profesionesPermitidas": ["guerrero", "rogue", "mago"]
+    },
+    "frio": {
+      "nombre": "Frío",
+      "categoria": "magia",
+      "profesionesPermitidas": ["guerrero", "rogue", "mago"]
+    },
+    "rayo": {
+      "nombre": "Rayo",
+      "categoria": "magia",
+      "profesionesPermitidas": ["guerrero", "rogue", "mago"]
+    },
+    "veneno": {
+      "nombre": "Veneno",
+      "categoria": "magia",
+      "profesionesPermitidas": ["guerrero", "rogue", "mago"]
+    }
+  }
+}

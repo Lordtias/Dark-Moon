@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "habilidades": {
+    "ascua": {
+      "nombre": "Ascua",
+      "maestria": "fuego",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 4
+    },
+    "explosion_ignea": {
+      "nombre": "Explosión ígnea",
+      "maestria": "fuego",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3
+    },
+    "incinerar": {
+      "nombre": "Incinerar",
+      "maestria": "fuego",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3
+    },
+    "esquirla_hielo": {
+      "nombre": "Esquirla de hielo",
+      "maestria": "frio",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 4
+    },
+    "nova_escarcha": {
+      "nombre": "Nova de escarcha",
+      "maestria": "frio",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3
+    },
+    "prision_glacial": {
+      "nombre": "Prisión glacial",
+      "maestria": "frio",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3
+    },
+    "chispa": {
+      "nombre": "Chispa",
+      "maestria": "rayo",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 4
+    },
+    "cadena_rayos": {
+      "nombre": "Cadena de rayos",
+      "maestria": "rayo",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3
+    },
+    "descarga_fulminante": {
+      "nombre": "Descarga fulminante",
+      "maestria": "rayo",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3
+    },
+    "aguijon_toxico": {
+      "nombre": "Aguijón tóxico",
+      "maestria": "veneno",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 4
+    },
+    "nube_toxica": {
+      "nombre": "Nube tóxica",
+      "maestria": "veneno",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3
+    },
+    "plaga_corrosiva": {
+      "nombre": "Plaga corrosiva",
+      "maestria": "veneno",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3
+    }
+  }
+}

@@ -9,6 +9,8 @@ import {
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
 } from "../juego/configuracion/CargadorConfiguracion.js";
+import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
+import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
 
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
@@ -19,65 +21,34 @@ import { ControladorPartida } from "./ControladorPartida.js";
 import { ControladorDerrota } from "../controles/ControladorDerrota.js";
 
 // Aplicacion funciona como coordinador general.
-//
-// Sus responsabilidades son:
-//
-// - Crear los controladores principales.
-// - Cargar las configuraciones.
-// - Construir el menú de creación.
-// - Solicitar el inicio de una partida.
-// - Mantener disponible el cierre global por derrota.
 export class Aplicacion {
   constructor() {
-    // Los controladores se crearán cuando
-    // se inicie formalmente la aplicación.
     this.controladorPantallas = null;
     this.controladorPartida = null;
     this.controladorDerrota = null;
-
-    // Conservamos la referencia al menú para
-    // futuras acciones como reiniciarlo o destruirlo.
     this.menuCreacionPersonaje = null;
 
-    // Configuraciones cargadas desde JSON.
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
     this.configuracionObjetos = null;
-
-    // Rarezas y afijos ya participan
-    // de la creación de los drops.
     this.configuracionGeneracionObjetos = null;
     this.configuracionMapas = null;
-
-    // La ciudad fija se carga separada de las
-    // plantillas de mazmorras procedurales.
     this.configuracionCiudad = null;
-
-    // Las reglas de precios y stock se validan
-    // al iniciar la aplicación.
     this.configuracionComercio = null;
+    this.configuracionProgresoMagico = null;
   }
 
-  // Punto principal de inicio de Dark Moon.
   async iniciar() {
     try {
       this.crearControladores();
-
-      // Conectamos los botones del menú principal.
       this.controladorPantallas.configurarEventos();
-
-      // Esperamos la carga de los archivos JSON.
       await this.cargarConfiguraciones();
-
-      // Construimos la pantalla de creación.
       this.crearMenuCreacionPersonaje();
     } catch (error) {
       this.mostrarErrorInicio(error);
     }
   }
 
-  // Crea los componentes que coordinan
-  // las pantallas, la partida y su finalización.
   crearControladores() {
     this.controladorPantallas = new ControladorPantallas({
       pantallaMenuPrincipal: document.getElementById("mainMenu"),
@@ -95,14 +66,11 @@ export class Aplicacion {
       controladorPantallas: this.controladorPantallas,
     });
 
-    // La derrota se observa a nivel de aplicación.
-    // Así funciona con cualquier Juego activo sin
-    // acoplarla al mapa, combate o controlador concreto.
     this.controladorDerrota = new ControladorDerrota();
   }
 
-  // Carga en paralelo todas las configuraciones
-  // necesarias para construir una partida.
+  // La configuración de maestrías se carga junto con el resto. Así, Player
+  // siempre se construye después de validar los cuatro catálogos mágicos.
   async cargarConfiguraciones() {
     const [
       configuracionPersonaje,
@@ -112,6 +80,7 @@ export class Aplicacion {
       configuracionMapas,
       configuracionCiudad,
       configuracionComercio,
+      configuracionProgresoMagico,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
@@ -120,6 +89,7 @@ export class Aplicacion {
       cargarConfiguracionMapas(),
       cargarConfiguracionCiudad(),
       cargarConfiguracionComercio(),
+      cargarYConfigurarProgresoMagico(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -129,20 +99,23 @@ export class Aplicacion {
     this.configuracionMapas = configuracionMapas;
     this.configuracionCiudad = configuracionCiudad;
     this.configuracionComercio = configuracionComercio;
+    this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
 
-  // Construye la pantalla de creación
-  // utilizando todas las configuraciones que necesita
-  // la vista previa del equipo inicial.
   crearMenuCreacionPersonaje() {
     this.menuCreacionPersonaje = new MenuCreacionPersonaje({
       configuracion: this.configuracionPersonaje,
       configuracionObjetos: this.configuracionObjetos,
       configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
-
-      // Cuando el jugador confirma sus datos,
-      // delegamos la creación de la partida.
       alConfirmar: (datosPersonaje) => {
+        // Confirmar una creación representa una nueva partida. El
+        // guardado roguelike anterior no debe heredarse al personaje.
+        try {
+          eliminarGuardadoJugador();
+        } catch (error) {
+          console.warn("No se pudo limpiar el guardado anterior:", error);
+        }
+
         this.controladorPartida.iniciar({
           datosPersonaje,
           configuracionPersonaje: this.configuracionPersonaje,
@@ -151,24 +124,16 @@ export class Aplicacion {
           configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
           configuracionMapas: this.configuracionMapas,
           configuracionCiudad: this.configuracionCiudad,
-
-          // La partida necesita estas reglas para
-          // crear y renovar el stock persistente.
           configuracionComercio: this.configuracionComercio,
         });
       },
     });
   }
 
-  // Registra el error técnico y muestra
-  // un mensaje comprensible dentro de la página.
   mostrarErrorInicio(error) {
     console.error("No se pudo iniciar la aplicación:", error);
 
     const mensaje = document.getElementById("creationMessage");
-
-    // Evitamos generar un segundo error
-    // si el elemento tampoco existe.
     if (mensaje) {
       mensaje.textContent = "No se pudo cargar la configuración del juego.";
     }

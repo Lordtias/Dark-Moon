@@ -12,12 +12,12 @@ import {
 import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
 import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
+import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
-
 // Controladores principales de la aplicación.
 import { ControladorPantallas } from "./ControladorPantallas.js";
-import { ControladorPartida } from "./ControladorPartida.js";
+import { ControladorPartidaEtapa7 as ControladorPartida } from "./ControladorPartidaEtapa7.js";
 import { ControladorDerrota } from "../controles/ControladorDerrota.js";
 // Aplicacion funciona como coordinador general.
 export class Aplicacion {
@@ -60,7 +60,6 @@ export class Aplicacion {
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
     });
-
     this.controladorDerrota = new ControladorDerrota();
   }
   // La configuración de maestrías se carga junto con el resto. Así, Player
@@ -101,11 +100,17 @@ export class Aplicacion {
       configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
       alConfirmar: (datosPersonaje) => {
         // Confirmar una creación representa una nueva partida. El
-        // guardado roguelike anterior no debe heredarse al personaje.
+        // guardado roguelike anterior y la configuración de accesos rápidos
+        // no deben heredarse al nuevo personaje.
         try {
           eliminarGuardadoJugador();
         } catch (error) {
           console.warn("No se pudo limpiar el guardado anterior:", error);
+        }
+        try {
+          eliminarConfiguracionBarraHabilidades();
+        } catch (error) {
+          console.warn("No se pudo limpiar la barra anterior:", error);
         }
         this.controladorPartida.iniciar({
           datosPersonaje,
@@ -122,7 +127,6 @@ export class Aplicacion {
   }
   mostrarErrorInicio(error) {
     console.error("No se pudo iniciar la aplicación:", error);
-
     const mensaje = document.getElementById("creationMessage");
     if (mensaje) {
       mensaje.textContent = "No se pudo cargar la configuración del juego.";

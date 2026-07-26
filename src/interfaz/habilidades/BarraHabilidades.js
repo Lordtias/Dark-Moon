@@ -1,19 +1,16 @@
-const ID_ESTILOS = "dark-moon-estilos-habilidades-etapa5";
-
-// Adaptador visual tolerante a la barra existente. Si la plantilla todavía no
-// expone un contenedor reconocible, crea una barra técnica de respaldo.
+// Representa exclusivamente accesos rápidos. El contenido de cada habilidad,
+// sus grados y su validez se consultan siempre al sistema y al progreso real.
 export class BarraHabilidades {
   constructor({ sistemaHabilidades }) {
+    if (!sistemaHabilidades) {
+      throw new Error("BarraHabilidades necesita el sistema de habilidades.");
+    }
     this.sistema = sistemaHabilidades;
-    this.contenedor = obtenerOCrearContenedor();
-    this.ranuras = obtenerOCrearRanuras(this.contenedor);
-    this.instalarEstilos();
+    this.contenedor = obtenerContenedor();
+    this.ranuras = obtenerRanuras(this.contenedor);
+    this.manejadoresClick = [];
     this.instalarEventos();
     this.desuscribir = this.sistema.suscribirCambio(() => this.renderizar());
-    this.intervalo = window.setInterval(() => {
-      this.sistema.procesarEfectosPendientes();
-      this.renderizar();
-    }, 250);
     this.renderizar();
   }
 
@@ -23,11 +20,15 @@ export class BarraHabilidades {
 
     estado.forEach((ranura, indice) => {
       const elemento = this.ranuras[indice];
-      if (!elemento) {
-        return;
-      }
-
       elemento.dataset.ranuraHabilidad = String(indice);
+      elemento.setAttribute("role", "button");
+      elemento.setAttribute("tabindex", "0");
+      elemento.setAttribute(
+        "aria-label",
+        ranura.idHabilidad
+          ? `${ranura.nombre}, grado ${ranura.grado}, ranura ${ranura.tecla}`
+          : `Ranura ${ranura.tecla} vacía`,
+      );
       elemento.classList.toggle("habilidad-seleccionada", ranura.seleccionada);
       elemento.classList.toggle("habilidad-vacia", !ranura.idHabilidad);
       elemento.classList.toggle(
@@ -38,158 +39,120 @@ export class BarraHabilidades {
         "habilidad-sin-mana",
         Boolean(ranura.idHabilidad) && !ranura.manaSuficiente,
       );
-
       elemento.replaceChildren();
-      const tecla = document.createElement("span");
-      tecla.className = "habilidad-tecla";
-      tecla.textContent = ranura.tecla;
+
+      const tecla = crearElemento("span", "habilidad-tecla", ranura.tecla);
       elemento.append(tecla);
 
-      if (ranura.icono) {
-        const imagen = document.createElement("img");
-        imagen.className = "habilidad-icono";
-        imagen.src = ranura.icono;
-        imagen.alt = ranura.nombre;
-        imagen.draggable = false;
-        elemento.append(imagen);
-      } else if (ranura.idHabilidad) {
-        const inicial = document.createElement("span");
-        inicial.className = "habilidad-inicial";
-        inicial.textContent = ranura.nombre.slice(0, 1).toUpperCase();
-        elemento.append(inicial);
+      if (ranura.idHabilidad) {
+        elemento.append(crearIconoConFallback(ranura));
       }
-
       if (ranura.grado > 0) {
-        const grado = document.createElement("span");
-        grado.className = "habilidad-grado";
-        grado.textContent = `G${ranura.grado}`;
-        elemento.append(grado);
+        elemento.append(
+          crearElemento("span", "habilidad-grado", `G${ranura.grado}`),
+        );
       }
-
       if (ranura.costoMana !== null) {
-        const mana = document.createElement("span");
-        mana.className = "habilidad-mana";
-        mana.textContent = String(ranura.costoMana);
-        elemento.append(mana);
+        elemento.append(
+          crearElemento("span", "habilidad-mana", String(ranura.costoMana)),
+        );
       }
-
       elemento.title = crearTitulo(ranura);
     });
-
     actualizarSelectorMapa(seleccion);
   }
 
   destruir() {
     this.desuscribir?.();
-    window.clearInterval(this.intervalo);
-    for (const ranura of this.ranuras) {
-      ranura.replaceWith(ranura.cloneNode(true));
-    }
+    this.manejadoresClick.forEach(({ elemento, tipo, manejador }) => {
+      elemento.removeEventListener(tipo, manejador);
+    });
+    this.manejadoresClick = [];
     limpiarSelectorMapa();
   }
 
   instalarEventos() {
     for (const [indice, ranura] of this.ranuras.entries()) {
-      ranura.addEventListener("click", (evento) => {
+      const seleccionar = (evento) => {
+        if (evento.type === "keydown" && evento.key !== "Enter" && evento.key !== " ") {
+          return;
+        }
         evento.preventDefault();
         this.sistema.seleccionarPorRanura(indice);
-        this.renderizar();
-      });
+      };
+      ranura.addEventListener("click", seleccionar);
+      ranura.addEventListener("keydown", seleccionar);
+      this.manejadoresClick.push(
+        { elemento: ranura, tipo: "click", manejador: seleccionar },
+        { elemento: ranura, tipo: "keydown", manejador: seleccionar },
+      );
     }
-  }
-
-  instalarEstilos() {
-    if (document.getElementById(ID_ESTILOS)) {
-      return;
-    }
-    const estilos = document.createElement("style");
-    estilos.id = ID_ESTILOS;
-    estilos.textContent = `
-      .barra-habilidades-etapa5 { display:flex; gap:4px; position:fixed; left:50%; bottom:12px; transform:translateX(-50%); z-index:50; }
-      [data-ranura-habilidad] { position:relative; width:44px; height:44px; box-sizing:border-box; border:1px solid #66583f; background:#16130f; overflow:hidden; cursor:pointer; user-select:none; }
-      [data-ranura-habilidad].habilidad-seleccionada { outline:2px solid #d9c35a; box-shadow:0 0 8px #d9c35a; }
-      [data-ranura-habilidad].habilidad-bloqueada { filter:grayscale(1); opacity:.45; }
-      [data-ranura-habilidad].habilidad-sin-mana { box-shadow:inset 0 0 0 2px #335db4; }
-      .habilidad-icono { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; image-rendering:crisp-edges; }
-      .habilidad-inicial { display:grid; place-items:center; width:100%; height:100%; font:bold 20px serif; color:#7fcf5b; }
-      .habilidad-tecla,.habilidad-grado,.habilidad-mana { position:absolute; z-index:2; padding:0 2px; background:rgba(0,0,0,.72); color:#eee; font:10px monospace; line-height:13px; }
-      .habilidad-tecla { left:1px; top:1px; }
-      .habilidad-grado { right:1px; top:1px; }
-      .habilidad-mana { right:1px; bottom:1px; color:#7db7ff; }
-      .selector-habilidad-etapa5 { outline:2px solid #73d63d !important; box-shadow:inset 0 0 0 1px #152c0f !important; }
-      .selector-habilidad-invalido-etapa5 { outline-color:#c94a4a !important; }
-    `;
-    document.head.append(estilos);
   }
 }
 
-function obtenerOCrearContenedor() {
-  const selectores = [
-    "#barra-habilidades",
-    ".barra-habilidades",
-    "[data-barra-habilidades]",
-  ];
-  for (const selector of selectores) {
-    const elemento = document.querySelector(selector);
-    if (elemento) {
-      return elemento;
-    }
+function obtenerContenedor() {
+  const contenedor = document.querySelector(
+    "#barra-habilidades, .barra-habilidades, [data-barra-habilidades]",
+  );
+  if (!contenedor) {
+    throw new Error("No se encontró la barra de habilidades de la partida.");
   }
-
-  const contenedor = document.createElement("div");
-  contenedor.id = "barra-habilidades-etapa5";
-  contenedor.className = "barra-habilidades-etapa5";
-  contenedor.dataset.barraHabilidades = "etapa5";
-  document.body.append(contenedor);
+  contenedor.id ||= "barra-habilidades";
+  contenedor.dataset.barraHabilidades = "etapa7";
   return contenedor;
 }
 
-function obtenerOCrearRanuras(contenedor) {
-  const candidatas = Array.from(
+function obtenerRanuras(contenedor) {
+  const ranuras = Array.from(
     contenedor.querySelectorAll(
       "[data-ranura-habilidad], .ranura-habilidad, .slot-habilidad, .habilidad-slot",
     ),
-  );
+  ).slice(0, 10);
+  if (ranuras.length !== 10) {
+    throw new Error("La barra declarada debe contener exactamente diez ranuras.");
+  }
+  return ranuras;
+}
 
-  if (candidatas.length >= 10) {
-    return candidatas.slice(0, 10);
+function crearIconoConFallback(ranura) {
+  const contenedor = crearElemento("span", "habilidad-recurso-visual");
+  const mostrarFallback = () => {
+    contenedor.replaceChildren(
+      crearElemento(
+        "span",
+        `habilidad-inicial habilidad-inicial--${ranura.idHabilidad}`,
+        ranura.nombre.slice(0, 1).toUpperCase(),
+      ),
+    );
+  };
+  if (!ranura.icono) {
+    mostrarFallback();
+    return contenedor;
   }
 
-  if (candidatas.length === 0) {
-    for (let indice = 0; indice < 10; indice += 1) {
-      const ranura = document.createElement("button");
-      ranura.type = "button";
-      ranura.className = "ranura-habilidad";
-      ranura.dataset.ranuraHabilidad = String(indice);
-      contenedor.append(ranura);
-      candidatas.push(ranura);
-    }
-  } else {
-    while (candidatas.length < 10) {
-      const ranura = document.createElement("button");
-      ranura.type = "button";
-      ranura.className = "ranura-habilidad";
-      ranura.dataset.ranuraHabilidad = String(candidatas.length);
-      contenedor.append(ranura);
-      candidatas.push(ranura);
-    }
-  }
-
-  contenedor.classList.add("barra-habilidades-etapa5");
-  return candidatas.slice(0, 10);
+  const imagen = document.createElement("img");
+  imagen.className = "habilidad-icono";
+  imagen.src = ranura.icono;
+  imagen.alt = "";
+  imagen.draggable = false;
+  imagen.addEventListener("error", mostrarFallback, { once: true });
+  contenedor.append(imagen);
+  return contenedor;
 }
 
 function crearTitulo(ranura) {
   if (!ranura.idHabilidad) {
     return `Ranura ${ranura.tecla}: vacía`;
   }
-  const partes = [
+  return [
     `${ranura.nombre} — grado ${ranura.grado}`,
     ranura.descripcion,
     ranura.costoMana !== null ? `Maná: ${ranura.costoMana}` : "",
-    ranura.configurada ? "Lista para usar" : "Contenido pendiente",
-  ];
-  return partes.filter(Boolean).join("\n");
+    ranura.configurada ? "Lista para usar" : "Ejecución en construcción",
+    ranura.manaSuficiente ? "" : "Maná insuficiente",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function actualizarSelectorMapa(seleccion) {
@@ -197,19 +160,17 @@ function actualizarSelectorMapa(seleccion) {
   if (!seleccion) {
     return;
   }
-
   const selectores = [
     `[data-x="${seleccion.x}"][data-y="${seleccion.y}"]`,
     `[data-columna="${seleccion.x}"][data-fila="${seleccion.y}"]`,
     `[data-pos-x="${seleccion.x}"][data-pos-y="${seleccion.y}"]`,
   ];
-
   for (const selector of selectores) {
     const casilla = document.querySelector(selector);
     if (casilla) {
-      casilla.classList.add("selector-habilidad-etapa5");
+      casilla.classList.add("selector-habilidad-etapa7");
       if (!seleccion.objetivoValido || !seleccion.geometria?.puedeEjecutar) {
-        casilla.classList.add("selector-habilidad-invalido-etapa5");
+        casilla.classList.add("selector-habilidad-invalido-etapa7");
       }
       return;
     }
@@ -219,12 +180,23 @@ function actualizarSelectorMapa(seleccion) {
 function limpiarSelectorMapa() {
   document
     .querySelectorAll(
-      ".selector-habilidad-etapa5, .selector-habilidad-invalido-etapa5",
+      ".selector-habilidad-etapa7, .selector-habilidad-invalido-etapa7",
     )
     .forEach((elemento) => {
       elemento.classList.remove(
-        "selector-habilidad-etapa5",
-        "selector-habilidad-invalido-etapa5",
+        "selector-habilidad-etapa7",
+        "selector-habilidad-invalido-etapa7",
       );
     });
+}
+
+function crearElemento(etiqueta, clase = "", texto = "") {
+  const elemento = document.createElement(etiqueta);
+  if (clase) {
+    elemento.className = clase;
+  }
+  if (texto !== "") {
+    elemento.textContent = texto;
+  }
+  return elemento;
 }

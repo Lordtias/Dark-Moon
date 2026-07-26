@@ -3,8 +3,8 @@ import { seleccionarEntradaPonderada } from "./GeneradorRarezaObjeto.js";
 const ESTADO_ACTIVO = "activo";
 const OPERACION_SUMAR = "sumar";
 
-// Comprueba si una rareza puede cumplir sus límites de afijos
-// para una plantilla, nivel y catálogo concretos.
+// Comprueba si una rareza puede cumplir sus límites de afijos para una
+// plantilla, nivel y catálogo concretos.
 export function puedeGenerarRarezaParaPlantilla({
   plantilla,
   idRareza,
@@ -37,8 +37,8 @@ export function puedeGenerarRarezaParaPlantilla({
   return capacidad.maximoTotal >= configuracionRareza.afijosMinimos;
 }
 
-// Genera cuántos afijos habrá, qué familias resultan,
-// qué grados son elegidos y sus valores exactos.
+// Genera cuántos afijos habrá, cuáles son compatibles, qué grados resultan
+// elegidos y sus valores exactos.
 export function generarAfijosObjeto({
   plantilla,
   idRareza,
@@ -69,7 +69,6 @@ export function generarAfijosObjeto({
     catalogoPrefijos,
     catalogoSufijos,
   });
-
   const minimo = configuracionRareza.afijosMinimos;
   const maximo = capacidad.maximoTotal;
 
@@ -80,13 +79,6 @@ export function generarAfijosObjeto({
     );
   }
 
-  // La cantidad final se selecciona mediante
-  // la distribución configurada dentro de la rareza.
-  //
-  // Para Mágico, la configuración inicial utiliza:
-  //
-  // - Un afijo: peso 60.
-  // - Dos afijos: peso 40.
   const cantidadObjetivo = seleccionarCantidadAfijos({
     idRareza,
     configuracionRareza,
@@ -111,7 +103,6 @@ export function generarAfijosObjeto({
             gruposSeleccionados,
           })
         : [];
-
     const sufijosDisponibles =
       sufijos.length < configuracionRareza.sufijosMaximos
         ? obtenerAfijosCompatibles({
@@ -123,7 +114,6 @@ export function generarAfijosObjeto({
             gruposSeleccionados,
           })
         : [];
-
     const opciones = [...prefijosDisponibles, ...sufijosDisponibles];
 
     if (opciones.length === 0) {
@@ -133,23 +123,14 @@ export function generarAfijosObjeto({
       );
     }
 
-    // Cada familia declara su peso dentro del propio catálogo.
-    //
-    // La selección se realiza sobre el conjunto completo de
-    // prefijos y sufijos que todavía tienen espacio disponible.
     const seleccion = seleccionarEntradaPonderada({
       entradas: opciones,
-
       obtenerPeso: (opcion) => opcion.configuracion.pesoBase,
-
       aleatorio,
-
       descripcion: `un afijo para la rareza "${idRareza}"`,
     });
-
     const generado = generarInstanciaAfijo({
       afijoSeleccionado: seleccion,
-
       nivelObjeto,
       aleatorio,
     });
@@ -192,17 +173,14 @@ function seleccionarCantidadAfijos({
 
   return seleccionarEntradaPonderada({
     entradas: opciones,
-
     obtenerPeso: (entrada) => entrada.peso,
-
     aleatorio,
-
     descripcion: `una cantidad de afijos para la rareza "${idRareza}"`,
   }).cantidad;
 }
 
-// Aplica sobre una copia de las propiedades base los valores
-// exactos almacenados por cada afijo generado.
+// Aplica sobre una copia de las propiedades base los valores exactos
+// almacenados por cada afijo generado.
 export function componerPropiedadesObjeto({
   propiedadesBase,
   prefijos = [],
@@ -215,7 +193,6 @@ export function componerPropiedadesObjeto({
   }
 
   const propiedadesFinales = copiarDatos(propiedadesBase);
-
   for (const afijo of [...prefijos, ...sufijos]) {
     aplicarAfijoAPropiedades({ propiedadesFinales, afijo });
   }
@@ -243,7 +220,6 @@ function calcularCapacidadAfijos({
     idRareza,
     nivelObjeto,
   });
-
   const capacidadPrefijos = Math.min(
     configuracionRareza.prefijosMaximos,
     contarGruposSeleccionables(prefijos),
@@ -307,11 +283,13 @@ function esAfijoCompatible({
   if (grupo && gruposSeleccionados.has(grupo)) return false;
   if (!afijo.rarezasPermitidas.includes(idRareza)) return false;
   if (!afijo.aplicaA.tipos.includes(plantilla.tipo)) return false;
+  if (!esCompatibleConFamilia({ aplicaA: afijo.aplicaA, plantilla })) {
+    return false;
+  }
 
   const ranurasObjeto = plantilla.ranurasCompatibles ?? [];
   const incluidas = afijo.aplicaA.ranurasIncluidas;
   const excluidas = afijo.aplicaA.ranurasExcluidas;
-
   const cumpleIncluidas =
     incluidas.length === 0 ||
     incluidas.some((ranura) => ranurasObjeto.includes(ranura));
@@ -326,20 +304,34 @@ function esAfijoCompatible({
   );
 }
 
+// Los filtros por familia son opcionales y forman parte del mismo contrato
+// general de prefijos y sufijos. Los afijos existentes que no los declaran
+// conservan exactamente su comportamiento anterior.
+function esCompatibleConFamilia({ aplicaA, plantilla }) {
+  const familia = plantilla.familiaObjeto ?? null;
+  const incluidas = aplicaA.familiasIncluidas ?? [];
+  const excluidas = aplicaA.familiasExcluidas ?? [];
+
+  if (!Array.isArray(incluidas) || !Array.isArray(excluidas)) {
+    throw new Error("Los filtros por familia del afijo no son válidos.");
+  }
+  if (incluidas.length > 0 && !incluidas.includes(familia)) return false;
+  return !excluidas.includes(familia);
+}
+
 function generarInstanciaAfijo({ afijoSeleccionado, nivelObjeto, aleatorio }) {
   const { id, configuracion } = afijoSeleccionado;
   const gradosElegibles = configuracion.grados.filter(
     (grado) => grado.nivelObjetoMinimo <= nivelObjeto && grado.peso > 0,
   );
-
   const grado = seleccionarEntradaPonderada({
     entradas: gradosElegibles,
     obtenerPeso: (entrada) => entrada.peso,
     aleatorio,
     descripcion: `un grado del afijo "${id}"`,
   });
-
   const valores = {};
+
   for (const [propiedad, rango] of Object.entries(grado.valores)) {
     valores[propiedad] = generarValorRango({
       rango,
@@ -364,7 +356,6 @@ function generarInstanciaAfijo({ afijoSeleccionado, nivelObjeto, aleatorio }) {
 
 function generarValorRango({ rango, aleatorio, idAfijo, propiedad }) {
   validarObjetoPlano(rango, `El rango "${propiedad}" del afijo "${idAfijo}"`);
-
   const minimo = rango.minimo;
   const maximo = rango.maximo;
   const decimales = rango.decimales ?? 0;
@@ -386,7 +377,6 @@ function generarValorRango({ rango, aleatorio, idAfijo, propiedad }) {
     Math.round(minimo * factor),
     Math.round(maximo * factor),
   );
-
   return resultado / factor;
 }
 
@@ -400,14 +390,12 @@ function aplicarAfijoAPropiedades({ propiedadesFinales, afijo }) {
 
   for (const efecto of afijo.efectos) {
     const valor = afijo.valores[efecto.propiedad];
-
     if (!Number.isFinite(valor)) {
       throw new Error(
         `El afijo "${afijo.id}" no generó un valor para ` +
           `"${efecto.propiedad}".`,
       );
     }
-
     if (efecto.operacion !== OPERACION_SUMAR) {
       throw new Error(
         `La operación "${efecto.operacion}" del afijo ` +
@@ -419,7 +407,6 @@ function aplicarAfijoAPropiedades({ propiedadesFinales, afijo }) {
     if (!Number.isFinite(actual)) {
       throw new Error(`La propiedad "${efecto.propiedad}" no es numérica.`);
     }
-
     propiedadesFinales[efecto.propiedad] = actual + valor;
   }
 }
@@ -478,7 +465,6 @@ function validarObjetoPlano(valor, descripcion) {
 
 function copiarDatos(valor) {
   if (Array.isArray(valor)) return valor.map(copiarDatos);
-
   if (valor !== null && typeof valor === "object") {
     return Object.fromEntries(
       Object.entries(valor).map(([clave, contenido]) => [
@@ -487,6 +473,5 @@ function copiarDatos(valor) {
       ]),
     );
   }
-
   return valor;
 }

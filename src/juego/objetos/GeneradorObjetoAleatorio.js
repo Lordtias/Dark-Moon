@@ -8,7 +8,7 @@ import {
   componerPropiedadesObjeto,
   generarAfijosObjeto,
   puedeGenerarRarezaParaPlantilla,
-} from "./SistemaAfijosCatalizadores.js";
+} from "./SistemaAfijos.js";
 
 import { validarPlantillaDisponible } from "./ReglasProgresionObjetos.js";
 
@@ -160,6 +160,8 @@ export function obtenerRarezasPermitidasParaPlantilla({
 
   return permitidas;
 }
+
+
 function puedeRecibirAfijosAleatorios(plantilla) {
   const ranuras = plantilla.ranurasCompatibles ?? [];
 

@@ -4,7 +4,7 @@ import {
   leerSnapshotJugador,
   eliminarGuardadoJugador,
   crearJugadorDesdeGuardado,
-} from "../../Partida/PersistenciaJugadorCatalizadores.js";
+} from "../../Partida/PersistenciaJugador.js";
 // Fachada pequeña para pruebas manuales desde la consola del navegador.
 //
 // No evita validaciones ni modifica campos internos: todas las operaciones

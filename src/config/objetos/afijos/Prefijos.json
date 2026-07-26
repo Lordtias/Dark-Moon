@@ -7,10 +7,15 @@
     "descripcion": "Aumenta solamente el daño físico mínimo del arma para volver sus golpes más consistentes.",
     "pesoBase": 1000,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "danio_fisico_local_plano",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -69,10 +74,15 @@
     "descripcion": "Aumenta porcentualmente el daño físico local del arma.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "danio_fisico_local_porcentaje",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -127,10 +137,15 @@
     "descripcion": "Agrega Armadura a la pieza.",
     "pesoBase": 1000,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "armadura_plana",
     "aplicaA": {
-      "tipos": ["armadura"],
+      "tipos": [
+        "armadura"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -185,10 +200,16 @@
     "descripcion": "Aumenta la Vida máxima.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "vida_maxima_plana",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -245,10 +266,16 @@
     "descripcion": "Aumentaría el Maná máximo.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "mana_maximo_plano",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -304,11 +331,19 @@
     "motivoEstado": "Falta decidir si la velocidad reduce el coste propio del arma o modifica el factor de ataque, especialmente al usar dos armas.",
     "descripcion": "Aumentaría la velocidad de ataque local del arma.",
     "pesoBase": 0,
-    "requiere": ["velocidad_ataque_local", "integracion_doble_arma"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "velocidad_ataque_local",
+      "integracion_doble_arma"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "velocidad_ataque_local",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -318,12 +353,12 @@
         "operacion": "aumentarVelocidad"
       }
     ],
+    "grados": [],
     "notasDiseno": [
       "No debe modificar directamente costoAtaque desde el catálogo.",
       "Debe definirse cómo participa en el coste combinado de doble arma."
     ],
-    "propuestaBalance": "Primer rango sugerido: velocidadAtaqueLocalPorcentaje: 5–8.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: velocidadAtaqueLocalPorcentaje: 5–8."
   },
   "sanguinario": {
     "nombre": "Sanguinario",
@@ -333,10 +368,16 @@
     "descripcion": "Agregaría daño físico a todos los ataques.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "danio_fisico_global_plano",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -350,9 +391,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoGlobalMinimo: 1–1; danioFisicoGlobalMaximo: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFisicoGlobalMinimo: 1–1; danioFisicoGlobalMaximo: 1–2."
   },
   "del_conquistador": {
     "nombre": "Del conquistador",
@@ -362,10 +403,17 @@
     "descripcion": "Aumentaría porcentualmente todo el daño físico.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "danio_fisico_global_aumentado",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -375,9 +423,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoAumentadoPorcentaje: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFisicoAumentadoPorcentaje: 5–10."
   },
   "despiadado": {
     "nombre": "Despiadado",
@@ -387,10 +435,16 @@
     "descripcion": "Otorgaría más daño físico multiplicativo.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["raro"],
+    "rarezasPermitidas": [
+      "raro"
+    ],
     "grupoExclusion": "danio_fisico_global_mas",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -400,9 +454,9 @@
         "operacion": "multiplicarMas"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoMasPorcentaje: 3–6.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFisicoMasPorcentaje: 3–6."
   },
   "fortificado": {
     "nombre": "Fortificado",
@@ -411,11 +465,18 @@
     "motivoEstado": "El cálculo actual es global. Falta separar armadura porcentual local de la pieza y armadura porcentual global del personaje.",
     "descripcion": "Aumentaría porcentualmente la armadura base de la pieza.",
     "pesoBase": 0,
-    "requiere": ["armadura_local"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "armadura_local"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "armadura_local_porcentaje",
     "aplicaA": {
-      "tipos": ["armadura"],
+      "tipos": [
+        "armadura"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -425,9 +486,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: armaduraLocalPorcentaje: 10–20.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: armaduraLocalPorcentaje: 10–20."
   },
   "ardiente": {
     "nombre": "Ardiente",
@@ -436,11 +497,18 @@
     "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
     "descripcion": "Agregaría daño elemental de tipo ardiente al arma.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "ardiente_local_plano",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -454,9 +522,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFuegoLocalMinimo: 1–1; danioFuegoLocalMaximo: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFuegoLocalMinimo: 1–1; danioFuegoLocalMaximo: 1–2."
   },
   "glacial": {
     "nombre": "Glacial",
@@ -465,11 +533,18 @@
     "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
     "descripcion": "Agregaría daño elemental de tipo glacial al arma.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "glacial_local_plano",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -483,9 +558,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFrioLocalMinimo: 1–1; danioFrioLocalMaximo: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFrioLocalMinimo: 1–1; danioFrioLocalMaximo: 1–2."
   },
   "electrificado": {
     "nombre": "Electrificado",
@@ -494,11 +569,18 @@
     "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
     "descripcion": "Agregaría daño elemental de tipo electrificado al arma.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "electrificado_local_plano",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -512,9 +594,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioRayoLocalMinimo: 1–1; danioRayoLocalMaximo: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioRayoLocalMinimo: 1–1; danioRayoLocalMaximo: 1–2."
   },
   "venenoso": {
     "nombre": "Venenoso",
@@ -523,11 +605,18 @@
     "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
     "descripcion": "Agregaría daño elemental de tipo venenoso al arma.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "venenoso_local_plano",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -541,9 +630,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioVenenoLocalMinimo: 1–1; danioVenenoLocalMaximo: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioVenenoLocalMinimo: 1–1; danioVenenoLocalMaximo: 1–2."
   },
   "igneo": {
     "nombre": "Ígneo",
@@ -552,11 +641,20 @@
     "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "igneo_aumentado",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -566,9 +664,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFuegoAumentadoPorcentaje: 8–15.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFuegoAumentadoPorcentaje: 8–15."
   },
   "invernal": {
     "nombre": "Invernal",
@@ -577,11 +675,20 @@
     "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "invernal_aumentado",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -591,9 +698,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFrioAumentadoPorcentaje: 8–15.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioFrioAumentadoPorcentaje: 8–15."
   },
   "tempestuoso": {
     "nombre": "Tempestuoso",
@@ -602,11 +709,20 @@
     "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "tempestuoso_aumentado",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -616,9 +732,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioRayoAumentadoPorcentaje: 8–15.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioRayoAumentadoPorcentaje: 8–15."
   },
   "toxico": {
     "nombre": "Tóxico",
@@ -627,11 +743,20 @@
     "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": ["danio_elemental"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "danio_elemental"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "toxico_aumentado",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -641,9 +766,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioVenenoAumentadoPorcentaje: 8–15.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioVenenoAumentadoPorcentaje: 8–15."
   },
   "abrasador": {
     "nombre": "Abrasador",
@@ -652,11 +777,18 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de quemar.",
     "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "estados_alterados"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "abrasador",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -666,9 +798,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadQuemar: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: probabilidadQuemar: 5–10."
   },
   "congelante": {
     "nombre": "Congelante",
@@ -677,11 +809,18 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de congelar.",
     "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "estados_alterados"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "congelante",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -691,9 +830,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadCongelar: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: probabilidadCongelar: 5–10."
   },
   "aturdidor": {
     "nombre": "Aturdidor",
@@ -702,11 +841,18 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de aturdir.",
     "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "estados_alterados"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "aturdidor",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -716,9 +862,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadAturdir: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: probabilidadAturdir: 5–10."
   },
   "ponzonoso": {
     "nombre": "Ponzoñoso",
@@ -727,11 +873,18 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de envenenar.",
     "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "estados_alterados"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "ponzonoso",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -741,8 +894,80 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadEnvenenar: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: probabilidadEnvenenar: 5–10."
+  },
+  "enfocado": {
+    "nombre": "Enfocado",
+    "tipoAfijo": "prefijo",
+    "estado": "activo",
+    "motivoEstado": "La Potencia de Habilidad ya forma parte del modelo de catalizadores y puede componerse como un porcentaje aditivo.",
+    "descripcion": "Aumenta la Potencia de Habilidad del catalizador.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "potencia_habilidad_porcentaje",
+    "aplicaA": {
+      "tipos": [
+        "arma"
+      ],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [
+        "baston",
+        "varita"
+      ],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "potenciaHabilidad",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 4,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "Solo puede generarse en bastones y varitas.",
+      "Su valor se suma a la Potencia de Habilidad base del catalizador.",
+      "No modifica el ataque básico de la propia arma."
+    ]
   }
 }

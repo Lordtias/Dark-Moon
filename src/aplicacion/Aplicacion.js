@@ -8,9 +8,10 @@ import {
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
-} from "../juego/configuracion/CargadorConfiguracionCatalizadores.js";
+} from "../juego/configuracion/CargadorConfiguracion.js";
 import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
-import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugadorCatalizadores.js";
+import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
+import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 
@@ -86,7 +87,7 @@ export class Aplicacion {
     ]);
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
-    this.configuracionObjetos = configuracionObjetos;
+    this.configuracionObjetos = validarCatalogoCatalizadores(configuracionObjetos);
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
     this.configuracionMapas = configuracionMapas;
     this.configuracionCiudad = configuracionCiudad;

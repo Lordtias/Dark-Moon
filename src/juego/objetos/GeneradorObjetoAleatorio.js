@@ -8,12 +8,11 @@ import {
   componerPropiedadesObjeto,
   generarAfijosObjeto,
   puedeGenerarRarezaParaPlantilla,
-} from "./SistemaAfijos.js";
+} from "./SistemaAfijosCatalizadores.js";
 
 import { validarPlantillaDisponible } from "./ReglasProgresionObjetos.js";
 
 const TIPOS_EQUIPABLES_CON_AFIJOS = new Set(["arma", "armadura", "quiver"]);
-
 // Crea una instancia completa usando:
 //
 // - La plantilla base.
@@ -39,7 +38,6 @@ export function crearObjetoGenerado({
   rarezaForzada = null,
 } = {}) {
   validarObjetoPlano(configuracionObjetos, "La configuración de objetos");
-
   validarConfiguracionGeneracion(configuracionGeneracionObjetos);
 
   validarIdObjeto(idObjeto);
@@ -54,7 +52,6 @@ export function crearObjetoGenerado({
   if (!plantilla) {
     throw new Error(`No existe el objeto "${idNormalizado}".`);
   }
-
   // Esta validación representa la barrera común
   // para botín, comercio y futuras recompensas.
   validarPlantillaDisponible({
@@ -68,7 +65,6 @@ export function crearObjetoGenerado({
   // continúan siendo comunes.
   if (!puedeRecibirAfijosAleatorios(plantilla)) {
     validarRarezaForzadaNoEquipable(rarezaForzada);
-
     return crearObjeto({
       configuracionObjetos,
       idObjeto: idNormalizado,
@@ -87,7 +83,6 @@ export function crearObjetoGenerado({
     prefijos,
     sufijos,
   });
-
   const rarezaSeleccionada = seleccionarRarezaObjeto({
     configuracionRarezas: rarezas,
     nivelObjeto,
@@ -109,7 +104,6 @@ export function crearObjetoGenerado({
     catalogoSufijos: sufijos,
     aleatorio,
   });
-
   const propiedadesFinales = componerPropiedadesObjeto({
     propiedadesBase: plantilla.propiedades ?? {},
     prefijos: afijos.prefijos,
@@ -127,7 +121,6 @@ export function crearObjetoGenerado({
     propiedadesFinales,
   });
 }
-
 // Excluye una rareza cuando no puede alcanzar
 // la cantidad mínima de afijos compatible con
 // la plantilla y el nivel actuales.
@@ -147,7 +140,6 @@ export function obtenerRarezasPermitidasParaPlantilla({
     ) {
       continue;
     }
-
     if (
       puedeGenerarRarezaParaPlantilla({
         plantilla,
@@ -168,7 +160,6 @@ export function obtenerRarezasPermitidasParaPlantilla({
 
   return permitidas;
 }
-
 function puedeRecibirAfijosAleatorios(plantilla) {
   const ranuras = plantilla.ranurasCompatibles ?? [];
 
@@ -183,7 +174,6 @@ function validarRarezaForzadaNoEquipable(rarezaForzada) {
   if (rarezaForzada === null) {
     return;
   }
-
   if (
     typeof rarezaForzada !== "string" ||
     rarezaForzada.trim().toLowerCase() !== RAREZAS_OBJETO.COMUN
@@ -196,7 +186,6 @@ function validarRarezaForzadaNoEquipable(rarezaForzada) {
 
 function validarConfiguracionGeneracion(configuracion) {
   validarObjetoPlano(configuracion, "La configuración de generación");
-
   for (const catalogo of ["reglas", "rarezas", "prefijos", "sufijos"]) {
     validarObjetoPlano(configuracion[catalogo], `El catálogo de ${catalogo}`);
   }
@@ -207,7 +196,6 @@ function validarIdObjeto(idObjeto) {
     throw new Error("Se necesita el identificador del objeto a generar.");
   }
 }
-
 function validarNivelObjeto(nivelObjeto) {
   if (!Number.isInteger(nivelObjeto) || nivelObjeto < 1) {
     throw new Error(
@@ -223,7 +211,6 @@ function validarNivelProgreso(nivelProgreso) {
     );
   }
 }
-
 function validarAleatorio(aleatorio) {
   if (
     !aleatorio ||
@@ -236,7 +223,6 @@ function validarAleatorio(aleatorio) {
     );
   }
 }
-
 function validarObjetoPlano(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`${descripcion} debe formar un objeto válido.`);

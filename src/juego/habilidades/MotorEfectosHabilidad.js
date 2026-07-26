@@ -1,8 +1,7 @@
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
+import { obtenerEfectosFallback } from "./EstadoSesionHabilidades.js";
 import {
-  obtenerEfectosFallback,
-} from "./EstadoSesionHabilidades.js";
-import {
+  obtenerContextoCatalizadorHabilidad,
   obtenerMultiplicadorEfectos,
   resolverDanioHabilidad,
 } from "./MotorDanioHabilidad.js";
@@ -19,7 +18,6 @@ export function aplicarEfectosHabilidad({
   idEjecucion,
 } = {}) {
   const resultados = [];
-
   for (const efecto of efectosConfigurados) {
     const definicion = crearDefinicionEfecto({
       efecto,
@@ -35,7 +33,6 @@ export function aplicarEfectosHabilidad({
       definicion,
       idEjecucion,
     });
-
     if (resultadoMotor.aplicado) {
       resultados.push({
         id: efecto.id,
@@ -62,7 +59,6 @@ export function procesarEfectosFallback({ juego, jugador }) {
   const efectos = obtenerEfectosFallback(jugador);
   const tiempoActual = leerTiempoActual(juego);
   const eventos = [];
-
   for (const efecto of [...efectos]) {
     while (
       efecto.pulsosRestantes > 0 &&
@@ -79,9 +75,10 @@ export function procesarEfectosFallback({ juego, jugador }) {
           },
         ],
         idEjecucion: efecto.idEjecucion,
+        // La potencia quedó fijada en la instantánea al aplicar el efecto.
         aplicarEscaladoMagico: false,
+        aplicarCatalizador: false,
       });
-
       efecto.pulsosRestantes -= 1;
       efecto.proximoPulso += efecto.definicion.intervalo;
       eventos.push({
@@ -93,9 +90,11 @@ export function procesarEfectosFallback({ juego, jugador }) {
       });
     }
   }
-
   for (let indice = efectos.length - 1; indice >= 0; indice -= 1) {
-    if (efectos[indice].pulsosRestantes <= 0 || estaDerrotado(efectos[indice].objetivo)) {
+    if (
+      efectos[indice].pulsosRestantes <= 0 ||
+      estaDerrotado(efectos[indice].objetivo)
+    ) {
       efectos.splice(indice, 1);
     }
   }
@@ -104,7 +103,10 @@ export function procesarEfectosFallback({ juego, jugador }) {
 }
 
 function crearDefinicionEfecto({ efecto, lanzador, objetivo, idEjecucion }) {
-  const multiplicador = obtenerMultiplicadorEfectos(lanzador);
+  const multiplicadorAtributos = obtenerMultiplicadorEfectos(lanzador);
+  const contextoCatalizador = obtenerContextoCatalizadorHabilidad(lanzador);
+  const multiplicador =
+    multiplicadorAtributos * contextoCatalizador.multiplicadorHabilidad;
   const potencia = Math.max(1, Math.round(efecto.potenciaBase * multiplicador));
   const instantanea = crearInstantaneaMagica({
     lanzador,
@@ -112,7 +114,6 @@ function crearDefinicionEfecto({ efecto, lanzador, objetivo, idEjecucion }) {
     efecto,
     potencia,
   });
-
   return {
     id: efecto.id,
     idEfecto: efecto.id,
@@ -121,6 +122,10 @@ function crearDefinicionEfecto({ efecto, lanzador, objetivo, idEjecucion }) {
     tipoDanio: efecto.tipoDanio,
     potencia,
     potenciaBase: efecto.potenciaBase,
+    multiplicadorEfectos: multiplicador,
+    multiplicadorAtributosMagicos: multiplicadorAtributos,
+    multiplicadorCatalizador: contextoCatalizador.multiplicadorHabilidad,
+    potenciaHabilidad: contextoCatalizador.potenciaHabilidad,
     duracion: efecto.duracion,
     intervalo: efecto.intervalo,
     reglaAcumulacion: efecto.reglaAcumulacion,
@@ -144,7 +149,6 @@ function crearInstantaneaMagica({ lanzador, objetivo, efecto, potencia }) {
     () => funcion(lanzador, efecto),
     () => funcion({ combatiente: lanzador, definicion: efecto }),
   ];
-
   for (const intento of intentos) {
     try {
       const resultado = intento();
@@ -174,7 +178,6 @@ function intentarAplicarEnMotorExistente({
 
   const nombres = ["aplicarEfectoTemporal", "aplicarEfecto"];
   let ultimoError = null;
-
   for (const receptor of receptores) {
     for (const nombre of nombres) {
       if (typeof receptor[nombre] !== "function") {
@@ -196,15 +199,19 @@ function intentarAplicarEnMotorExistente({
       }
     }
   }
-
   return { aplicado: false, error: ultimoError };
 }
 
-function registrarFallback({ juego, lanzador, objetivo, definicion, idEjecucion }) {
+function registrarFallback({
+  juego,
+  lanzador,
+  objetivo,
+  definicion,
+  idEjecucion,
+}) {
   const efectos = obtenerEfectosFallback(lanzador);
   const tiempoActual = leerTiempoActual(juego);
   const pulsos = Math.floor(definicion.duracion / definicion.intervalo);
-
   if (definicion.reglaAcumulacion !== "independiente") {
     const existente = efectos.find(
       (efecto) =>
@@ -218,7 +225,6 @@ function registrarFallback({ juego, lanzador, objetivo, definicion, idEjecucion 
       return;
     }
   }
-
   efectos.push({
     juego,
     lanzador,

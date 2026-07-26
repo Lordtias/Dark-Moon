@@ -8,10 +8,9 @@ import {
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
-} from "../juego/configuracion/CargadorConfiguracion.js";
+} from "../juego/configuracion/CargadorConfiguracionCatalizadores.js";
 import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
-import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
-
+import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugadorCatalizadores.js";
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 
@@ -19,7 +18,6 @@ import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 import { ControladorPantallas } from "./ControladorPantallas.js";
 import { ControladorPartida } from "./ControladorPartida.js";
 import { ControladorDerrota } from "../controles/ControladorDerrota.js";
-
 // Aplicacion funciona como coordinador general.
 export class Aplicacion {
   constructor() {
@@ -27,7 +25,6 @@ export class Aplicacion {
     this.controladorPartida = null;
     this.controladorDerrota = null;
     this.menuCreacionPersonaje = null;
-
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
     this.configuracionObjetos = null;
@@ -37,7 +34,6 @@ export class Aplicacion {
     this.configuracionComercio = null;
     this.configuracionProgresoMagico = null;
   }
-
   async iniciar() {
     try {
       this.crearControladores();
@@ -48,7 +44,6 @@ export class Aplicacion {
       this.mostrarErrorInicio(error);
     }
   }
-
   crearControladores() {
     this.controladorPantallas = new ControladorPantallas({
       pantallaMenuPrincipal: document.getElementById("mainMenu"),
@@ -61,14 +56,12 @@ export class Aplicacion {
       botonConfiguracion: document.getElementById("settingsButton"),
       botonVolverMenuPrincipal: document.getElementById("backToMainMenuButton"),
     });
-
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
     });
 
     this.controladorDerrota = new ControladorDerrota();
   }
-
   // La configuración de maestrías se carga junto con el resto. Así, Player
   // siempre se construye después de validar los cuatro catálogos mágicos.
   async cargarConfiguraciones() {
@@ -91,7 +84,6 @@ export class Aplicacion {
       cargarConfiguracionComercio(),
       cargarYConfigurarProgresoMagico(),
     ]);
-
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
     this.configuracionObjetos = configuracionObjetos;
@@ -101,7 +93,6 @@ export class Aplicacion {
     this.configuracionComercio = configuracionComercio;
     this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
-
   crearMenuCreacionPersonaje() {
     this.menuCreacionPersonaje = new MenuCreacionPersonaje({
       configuracion: this.configuracionPersonaje,
@@ -115,7 +106,6 @@ export class Aplicacion {
         } catch (error) {
           console.warn("No se pudo limpiar el guardado anterior:", error);
         }
-
         this.controladorPartida.iniciar({
           datosPersonaje,
           configuracionPersonaje: this.configuracionPersonaje,
@@ -129,7 +119,6 @@ export class Aplicacion {
       },
     });
   }
-
   mostrarErrorInicio(error) {
     console.error("No se pudo iniciar la aplicación:", error);
 

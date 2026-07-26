@@ -1,5 +1,13 @@
+import { obtenerConfiguracionAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import * as ComponentesDanio from "../combate/ComponentesDanio.js";
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
+import { crearContextoCatalizador } from "../magia/SistemaCatalizadores.js";
+
+const CONTEXTO_CATALIZADOR_NEUTRO = Object.freeze({
+  potenciaHabilidad: 0,
+  multiplicadorHabilidad: 1,
+  tieneCatalizador: false,
+});
 
 // Adapta la configuración común de habilidades al motor elemental existente.
 // Los alias de propiedades permiten conservar compatibilidad entre las etapas
@@ -10,21 +18,27 @@ export function resolverDanioHabilidad({
   componentesConfigurados,
   idEjecucion,
   aplicarEscaladoMagico = true,
+  aplicarCatalizador = true,
 } = {}) {
   if (!lanzador || !objetivo) {
     throw new Error("El daño de habilidad necesita lanzador y objetivo.");
   }
 
-  const multiplicador = aplicarEscaladoMagico
+  const multiplicadorAtributos = aplicarEscaladoMagico
     ? obtenerMultiplicadorDanioMagico(lanzador)
     : 1;
+  const contextoCatalizador = aplicarCatalizador
+    ? obtenerContextoCatalizadorHabilidad(lanzador)
+    : CONTEXTO_CATALIZADOR_NEUTRO;
+  const multiplicador =
+    multiplicadorAtributos * contextoCatalizador.multiplicadorHabilidad;
+
   const componentes = componentesConfigurados.map((componente) => {
     const valorEscalado = escalarDanioMagico(
       componente.valorBase,
       multiplicador,
       lanzador,
     );
-
     return {
       tipo: componente.tipo,
       tipoDanio: componente.tipo,
@@ -36,7 +50,6 @@ export function resolverDanioHabilidad({
       daño: valorEscalado,
     };
   });
-
   const vidaAntes = leerVidaActual(objetivo);
   const resolucion = invocarMotorElemental({
     lanzador,
@@ -52,7 +65,6 @@ export function resolverDanioHabilidad({
 
   const danioFinal = extraerDanioFinal(resolucion, componentes);
   let aplicacion = null;
-
   if (!motorAplicoDanio && danioFinal > 0) {
     aplicacion = aplicarDanioFinal(objetivo, danioFinal, {
       tipoDanio: componentes[0]?.tipo ?? "veneno",
@@ -63,6 +75,9 @@ export function resolverDanioHabilidad({
 
   return {
     multiplicadorDanioMagico: multiplicador,
+    multiplicadorAtributosMagicos: multiplicadorAtributos,
+    multiplicadorCatalizador: contextoCatalizador.multiplicadorHabilidad,
+    potenciaHabilidad: contextoCatalizador.potenciaHabilidad,
     componentes,
     resolucion,
     danioFinal,
@@ -71,19 +86,41 @@ export function resolverDanioHabilidad({
   };
 }
 
+export function obtenerContextoCatalizadorHabilidad(lanzador) {
+  // Mantiene compatibles las pruebas y consumidores de ETAPA 5 que construyen
+  // lanzadores mínimos sin equipamiento real.
+  if (!lanzador?.equipamiento) {
+    return CONTEXTO_CATALIZADOR_NEUTRO;
+  }
+
+  const configuracion = obtenerConfiguracionAtaque(lanzador, {
+    // Una habilidad no deja de aprovechar el catalizador equipado por haber
+    // activado temporalmente el ataque natural de respaldo.
+    ignorarAtaqueNaturalForzado: true,
+  });
+  return crearContextoCatalizador({
+    fuentes: configuracion.fuentesDanio,
+  });
+}
+
 export function obtenerMultiplicadorDanioMagico(lanzador) {
   const funcion = AtributosMagicos.calcularMultiplicadorDanioMagico;
   if (typeof funcion !== "function") {
     return 1;
   }
 
-  const inteligencia = leerAtributo(lanzador, "inteligencia");
-  return primerNumeroPositivo([
-    () => funcion(lanzador),
-    () => funcion({ combatiente: lanzador }),
-    () => funcion({ jugador: lanzador }),
-    () => funcion(inteligencia),
-  ], 1);
+  const atributos = leerAtributosMagicos(lanzador);
+  return primerNumeroPositivo(
+    [
+      // Firma real vigente desde ETAPA 3.
+      () => funcion(atributos),
+      // Adaptadores conservados para implementaciones compatibles anteriores.
+      () => funcion(lanzador),
+      () => funcion({ combatiente: lanzador }),
+      () => funcion({ jugador: lanzador }),
+    ],
+    1,
+  );
 }
 
 export function obtenerMultiplicadorEfectos(lanzador) {
@@ -92,24 +129,32 @@ export function obtenerMultiplicadorEfectos(lanzador) {
     return 1;
   }
 
-  const sabiduria = leerAtributo(lanzador, "sabiduria");
-  return primerNumeroPositivo([
-    () => funcion(lanzador),
-    () => funcion({ combatiente: lanzador }),
-    () => funcion({ jugador: lanzador }),
-    () => funcion(sabiduria),
-  ], 1);
+  const atributos = leerAtributosMagicos(lanzador);
+  return primerNumeroPositivo(
+    [
+      // Firma real vigente desde ETAPA 3.
+      () => funcion(atributos),
+      // Adaptadores conservados para implementaciones compatibles anteriores.
+      () => funcion(lanzador),
+      () => funcion({ combatiente: lanzador }),
+      () => funcion({ jugador: lanzador }),
+    ],
+    1,
+  );
 }
 
 function escalarDanioMagico(valorBase, multiplicador, lanzador) {
   const funcion = AtributosMagicos.escalarDanioMagico;
   if (typeof funcion === "function") {
-    const resultado = primerNumeroNoNegativo([
-      () => funcion(valorBase, multiplicador),
-      () => funcion({ danioBase: valorBase, multiplicador }),
-      () => funcion({ valorBase, lanzador }),
-      () => funcion(valorBase, lanzador),
-    ], null);
+    const resultado = primerNumeroNoNegativo(
+      [
+        () => funcion(valorBase, multiplicador),
+        () => funcion({ danioBase: valorBase, multiplicador }),
+        () => funcion({ valorBase, lanzador }),
+        () => funcion(valorBase, lanzador),
+      ],
+      null,
+    );
     if (resultado !== null) {
       return Math.round(resultado);
     }
@@ -117,42 +162,58 @@ function escalarDanioMagico(valorBase, multiplicador, lanzador) {
   return Math.max(0, Math.round(valorBase * multiplicador));
 }
 
-function invocarMotorElemental({ lanzador, objetivo, componentes, idEjecucion }) {
+function invocarMotorElemental({
+  lanzador,
+  objetivo,
+  componentes,
+  idEjecucion,
+}) {
   const funcion = ComponentesDanio.resolverPaqueteDanio;
   if (typeof funcion !== "function") {
     return {
       motorDisponible: false,
-      danioFinal: componentes.reduce((total, componente) => total + componente.valor, 0),
+      danioFinal: componentes.reduce(
+        (total, componente) => total + componente.valor,
+        0,
+      ),
       componentes,
     };
   }
-
   const intentos = [
     () => funcion({ atacante: lanzador, objetivo, componentes, idEjecucion }),
-    () => funcion({ fuente: lanzador, objetivo, componentesDanio: componentes, idEjecucion }),
+    () =>
+      funcion({
+        fuente: lanzador,
+        objetivo,
+        componentesDanio: componentes,
+        idEjecucion,
+      }),
     () => funcion({ objetivo, componentes }),
     () => funcion(componentes, objetivo),
   ];
-
   let ultimoError = null;
   for (const intento of intentos) {
     try {
       const resultado = intento();
-      return resultado ?? {
-        motorDisponible: true,
-        danioFinal: componentes.reduce(
-          (total, componente) => total + componente.valor,
-          0,
-        ),
-        componentes,
-      };
+      return (
+        resultado ?? {
+          motorDisponible: true,
+          danioFinal: componentes.reduce(
+            (total, componente) => total + componente.valor,
+            0,
+          ),
+          componentes,
+        }
+      );
     } catch (error) {
       ultimoError = error;
     }
   }
 
   throw new Error(
-    `No fue posible invocar resolverPaqueteDanio: ${ultimoError?.message ?? "contrato desconocido"}.`,
+    `No fue posible invocar resolverPaqueteDanio: ${
+      ultimoError?.message ?? "contrato desconocido"
+    }.`,
   );
 }
 
@@ -170,13 +231,11 @@ function extraerDanioFinal(resolucion, componentes) {
     resolucion?.total,
     resolucion?.resultado?.danioFinal,
   ];
-
   for (const candidato of candidatos) {
     if (Number.isFinite(candidato)) {
       return Math.max(0, Math.round(candidato));
     }
   }
-
   const detalles = resolucion?.componentes ?? resolucion?.desglose;
   if (Array.isArray(detalles)) {
     return Math.max(
@@ -195,21 +254,29 @@ function extraerDanioFinal(resolucion, componentes) {
       ),
     );
   }
-
   return Math.max(
     0,
-    Math.round(componentes.reduce((total, componente) => total + componente.valor, 0)),
+    Math.round(
+      componentes.reduce((total, componente) => total + componente.valor, 0),
+    ),
   );
 }
 
 function aplicarDanioFinal(objetivo, danioFinal, contexto) {
-  const metodos = ["recibirDanio", "recibirDaño", "aplicarDanio", "aplicarDaño"];
+  const metodos = [
+    "recibirDanio",
+    "recibirDaño",
+    "aplicarDanio",
+    "aplicarDaño",
+  ];
   for (const nombre of metodos) {
     if (typeof objetivo[nombre] === "function") {
       return objetivo[nombre](danioFinal, contexto);
     }
   }
-  throw new Error("El objetivo no expone un método compatible para recibir daño.");
+  throw new Error(
+    "El objetivo no expone un método compatible para recibir daño.",
+  );
 }
 
 function leerVidaActual(objetivo) {
@@ -230,6 +297,13 @@ function estaDerrotado(objetivo) {
   }
   const vida = leerVidaActual(objetivo);
   return Number.isFinite(vida) ? vida <= 0 : false;
+}
+
+function leerAtributosMagicos(combatiente) {
+  return {
+    inteligencia: leerAtributo(combatiente, "inteligencia"),
+    sabiduria: leerAtributo(combatiente, "sabiduria"),
+  };
 }
 
 function leerAtributo(combatiente, idAtributo) {

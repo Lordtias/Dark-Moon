@@ -47,7 +47,6 @@ export class ControladorEntradaHabilidades {
       this.sistema.seleccionarPorRanura(indiceRanura);
       return;
     }
-
     if (!this.sistema.modoHabilidad) {
       return;
     }
@@ -63,6 +62,19 @@ export class ControladorEntradaHabilidades {
       detener(evento);
       const resultado = this.sistema.confirmar();
       registrarResultado(resultado);
+      return;
+    }
+
+    // Evita superponer el selector de una habilidad con el selector del ataque
+    // natural de respaldo. El jugador conserva ambas alternativas, pero debe
+    // cancelar primero la selección vigente con Escape.
+    if (evento.code === "KeyG" || evento.key === "g" || evento.key === "G") {
+      detener(evento);
+      registrarResultado({
+        exito: false,
+        mensaje:
+          "Cancelá primero la habilidad con Escape para usar el ataque de respaldo.",
+      });
       return;
     }
 
@@ -83,7 +95,6 @@ export class ControladorEntradaHabilidades {
     if (!casilla) {
       return;
     }
-
     const x = Number(
       casilla.dataset.x ?? casilla.dataset.columna ?? casilla.dataset.posX,
     );
@@ -103,7 +114,6 @@ function obtenerIndiceRanura(evento) {
   if (evento.altKey || evento.ctrlKey || evento.metaKey) {
     return null;
   }
-
   const codigo = evento.code;
   if (/^Digit[1-9]$/.test(codigo)) {
     return Number(codigo.slice(-1)) - 1;
@@ -131,6 +141,6 @@ function registrarResultado(resultado) {
 function esElementoEditable(elemento) {
   return Boolean(
     elemento?.isContentEditable ||
-      elemento?.closest?.("input, textarea, select, [contenteditable=\"true\"]"),
+    elemento?.closest?.('input, textarea, select, [contenteditable="true"]'),
   );
 }

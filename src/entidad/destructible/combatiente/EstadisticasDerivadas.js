@@ -3,6 +3,7 @@ import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
   normalizarResistencia,
+  normalizarTipoDanio,
 } from "../../../juego/combate/ComponentesDanio.js";
 import {
   calcularManaMaximo,
@@ -10,6 +11,7 @@ import {
   calcularMultiplicadorEfectos,
   calcularRegeneracionMana,
 } from "../../../juego/magia/CalculadorAtributosMagicos.js";
+import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
 
@@ -27,10 +29,7 @@ function sumarPropiedad(objetos, propiedad) {
 function multiplicarBonosMas(objetos, propiedad) {
   return objetos.reduce((multiplicador, objeto) => {
     const valor = objeto?.propiedades?.[propiedad] ?? 0;
-    if (!Number.isFinite(valor)) {
-      return multiplicador;
-    }
-
+    if (!Number.isFinite(valor)) return multiplicador;
     return multiplicador * (1 + valor / 100);
   }, 1);
 }
@@ -39,8 +38,7 @@ function obtenerObjetosEquipados(combatiente) {
   return combatiente.equipamiento?.obtenerObjetosEquipados() ?? [];
 }
 
-// Calcula Vida y Maná sin necesitar
-// una instancia completa de Combatiente.
+// Calcula Vida y Maná sin necesitar una instancia completa de Combatiente.
 export function calcularRecursosMaximos({
   nivel,
   atributos,
@@ -62,46 +60,106 @@ export function calcularRecursosMaximos({
     atributos,
     bonificacionPlana: sumarPropiedad(objetosEquipados, "manaMaximo"),
   });
-
   return {
     vidaMaxima: Math.round(vidaMaxima),
     manaMaximo,
   };
 }
 
-// Crea las estadísticas específicas
-// de un golpe individual.
-//
-// Cada mano utiliza:
-//
-// - Su propio daño.
-// - Su propio atributo.
-// - Su propia precisión.
-// - Su propio crítico.
-// - Su propio multiplicador dual.
+function crearDescriptorDanioFisico({
+  minimoLocal,
+  maximoLocal,
+  multiplicadorAtributo,
+}) {
+  return {
+    tipo: TIPOS_DANIO.FISICO,
+    minimoLocal,
+    maximoLocal,
+    multiplicadorAtributo,
+    aplicaDanioPlanoGlobal: true,
+    aplicaMultiplicadorGlobal: true,
+    aplicaCritico: true,
+  };
+}
+
+function crearDescriptorDescargaVarita({ propiedades, atributos }) {
+  const tipo = normalizarTipoDanio(propiedades.elementoAtaqueBasico);
+  if (tipo === TIPOS_DANIO.FISICO) {
+    throw new Error("El ataque básico de una varita debe ser elemental.");
+  }
+
+  const minimoLocal = propiedades.danioElementalMinimo;
+  const maximoLocal = propiedades.danioElementalMaximo;
+  if (
+    !Number.isFinite(minimoLocal) ||
+    minimoLocal < 0 ||
+    !Number.isFinite(maximoLocal) ||
+    maximoLocal < minimoLocal
+  ) {
+    throw new Error("El rango elemental de la varita no es válido.");
+  }
+
+  return {
+    tipo,
+    minimoLocal,
+    maximoLocal,
+    // El ataque básico mágico utiliza la estadística mágica vigente. La
+    // Potencia de Habilidad queda reservada exclusivamente para habilidades.
+    multiplicadorAtributo: calcularMultiplicadorDanioMagico(atributos),
+    aplicaDanioPlanoGlobal: false,
+    aplicaMultiplicadorGlobal: false,
+    aplicaCritico: true,
+  };
+}
+
+// Crea las estadísticas específicas de una fuente individual. Cada mano
+// conserva su precisión, crítico y multiplicador dual del motor existente.
 function calcularComponenteDanio(combatiente, fuente, objetos) {
   const propiedades = fuente.propiedades;
   const base = combatiente.estadisticasBase;
   const atributos = combatiente.atributos;
   const coeficientes = CONFIGURACION_COMBATE.atributos;
-  const minimoBase = propiedades.danioFisicoMinimo;
-  const maximoBase = propiedades.danioFisicoMaximo;
-  const planoLocalMinimo = propiedades.danioFisicoLocalMinimo ?? 0;
-  const planoLocalMaximo = propiedades.danioFisicoLocalMaximo ?? 0;
-  const porcentajeLocal = (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
-  const minimoLocal = Math.max(
-    0,
-    Math.floor((minimoBase + planoLocalMinimo) * (1 + porcentajeLocal)),
-  );
-  const maximoLocal = Math.max(
-    minimoLocal,
-    Math.ceil((maximoBase + planoLocalMaximo) * (1 + porcentajeLocal)),
-  );
+  const fuenteEsVarita = esVarita(fuente.objeto);
+
+  let minimoLocal;
+  let maximoLocal;
+  let multiplicadorAtributo;
+  let bonoAtributo;
+  let descriptorDanio;
+
   const atributoOfensivo = propiedades.atributoAtaque;
   const valorAtributo = atributos[atributoOfensivo] ?? 10;
-  const bonoAtributo =
-    coeficientes.danioPorPuntoRespectoDiez * (valorAtributo - 10);
-  const multiplicadorAtributo = Math.max(0, 1 + bonoAtributo);
+
+  if (fuenteEsVarita) {
+    descriptorDanio = crearDescriptorDescargaVarita({ propiedades, atributos });
+    minimoLocal = descriptorDanio.minimoLocal;
+    maximoLocal = descriptorDanio.maximoLocal;
+    multiplicadorAtributo = descriptorDanio.multiplicadorAtributo;
+    bonoAtributo = multiplicadorAtributo - 1;
+  } else {
+    const minimoBase = propiedades.danioFisicoMinimo;
+    const maximoBase = propiedades.danioFisicoMaximo;
+    const planoLocalMinimo = propiedades.danioFisicoLocalMinimo ?? 0;
+    const planoLocalMaximo = propiedades.danioFisicoLocalMaximo ?? 0;
+    const porcentajeLocal = (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
+    minimoLocal = Math.max(
+      0,
+      Math.floor((minimoBase + planoLocalMinimo) * (1 + porcentajeLocal)),
+    );
+    maximoLocal = Math.max(
+      minimoLocal,
+      Math.ceil((maximoBase + planoLocalMaximo) * (1 + porcentajeLocal)),
+    );
+    bonoAtributo =
+      coeficientes.danioPorPuntoRespectoDiez * (valorAtributo - 10);
+    multiplicadorAtributo = Math.max(0, 1 + bonoAtributo);
+    descriptorDanio = crearDescriptorDanioFisico({
+      minimoLocal,
+      maximoLocal,
+      multiplicadorAtributo,
+    });
+  }
+
   const precision =
     base.precision +
     coeficientes.precisionPorDestreza * atributos.destreza +
@@ -131,23 +189,13 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
     precision,
     probabilidadCritico,
     multiplicadorCritico,
-    // Compatibilidad hacia adelante:
-    // cada golpe físico antiguo queda representado como
-    // una fuente que contiene un componente tipado físico.
-    componentesDanio: [
-      {
-        tipo: TIPOS_DANIO.FISICO,
-        minimoLocal,
-        maximoLocal,
-        multiplicadorAtributo,
-        aplicaDanioPlanoGlobal: true,
-        aplicaMultiplicadorGlobal: true,
-        aplicaCritico: true,
-      },
-    ],
+    esAtaqueMagicoBasico: fuenteEsVarita,
+    componentesDanio: [descriptorDanio],
   };
 }
 
+// El nombre se conserva por compatibilidad con los consumidores existentes,
+// aunque sus fuentes pueden ser físicas o elementales.
 function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   const componentesBase = configuracionAtaque.fuentesDanio.map((fuente) =>
     calcularComponenteDanio(combatiente, fuente, objetos),
@@ -170,27 +218,30 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   const multiplicadorGlobal =
     multiplicadorAumentadoGlobal * multiplicadorMasGlobal;
 
-  // Cada componente recibe una porción del daño
-  // global según el multiplicador de su mano.
-  //
-  // Con 60% + 40%, el daño plano global total
-  // no se duplica por usar dos armas.
   const componentes = componentesBase.map((componente) => {
+    const descriptor = componente.componentesDanio[0];
+    const aplicaPlanoFisico = descriptor.aplicaDanioPlanoGlobal === true;
+    const aplicaMultiplicadorFisico =
+      descriptor.aplicaMultiplicadorGlobal === true;
+    const planoMinimo = aplicaPlanoFisico ? danioPlanoGlobalMinimo : 0;
+    const planoMaximo = aplicaPlanoFisico ? danioPlanoGlobalMaximo : 0;
+    const multiplicadorFinal = aplicaMultiplicadorFisico
+      ? multiplicadorGlobal
+      : 1;
     const minimo = Math.max(
       0,
       (componente.minimoLocal * componente.multiplicadorAtributo +
-        danioPlanoGlobalMinimo) *
+        planoMinimo) *
         componente.multiplicadorGolpe *
-        multiplicadorGlobal,
+        multiplicadorFinal,
     );
     const maximo = Math.max(
       minimo,
       (componente.maximoLocal * componente.multiplicadorAtributo +
-        danioPlanoGlobalMaximo) *
+        planoMaximo) *
         componente.multiplicadorGolpe *
-        multiplicadorGlobal,
+        multiplicadorFinal,
     );
-
     return {
       ...componente,
       minimo,
@@ -198,6 +249,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
       promedio: (minimo + maximo) / 2,
     };
   });
+
   const minimoFinal = componentes.reduce(
     (total, componente) => total + componente.minimo,
     0,
@@ -265,7 +317,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
     multiplicadorEfectosAtributos * (1 + potenciaEfectosAdicional / 100),
   );
   const resistencias = {};
-
   for (const resistencia of RESISTENCIAS) {
     const nombrePropiedad =
       `resistencia${resistencia[0].toUpperCase()}` + resistencia.slice(1);
@@ -280,7 +331,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
         coeficientes.resistenciaVenenoPorConstitucion *
         (atributos.constitucion - 10);
     }
-
     resistencias[resistencia] = normalizarResistencia(
       valor,
       `La resistencia derivada a ${resistencia}`,
@@ -290,7 +340,6 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const armaduraPlana = base.armadura + sumarPropiedad(objetos, "armadura");
   const armaduraPorcentual =
     sumarPropiedad(objetos, "armaduraAumentadaPorcentaje") / 100;
-
   return {
     ...recursos,
     regeneracionVida,
@@ -299,14 +348,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     bonificacionDanioMagicoPorcentaje: (multiplicadorDanioMagico - 1) * 100,
     multiplicadorEfectos,
     bonificacionEfectosPorcentaje: (multiplicadorEfectos - 1) * 100,
-    // Compatibilidad con consumidores previos: potenciaEfectos continúa
-    // expresándose como porcentaje, pero ahora deriva de INT y SAB.
     potenciaEfectos: (multiplicadorEfectos - 1) * 100,
-    // Estas estadísticas generales continúan
-    // representando el arma controladora.
-    //
-    // El combate dual utiliza además los valores
-    // específicos guardados en cada componente.
     precision:
       base.precision +
       coeficientes.precisionPorDestreza * atributos.destreza +

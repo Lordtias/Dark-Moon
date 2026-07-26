@@ -1,44 +1,40 @@
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
+import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 
 // Analiza el equipo actual y determina:
 //
 // - Qué arma controla el ataque.
 // - Cuántos golpes se realizan.
 // - Qué fuente corresponde a cada mano.
-// - Si el ataque requiere munición.
+// - Si el ataque requiere munición o Maná.
 // - Si se usa el ataque natural como respaldo.
 // - Cuánto tiempo base consume el ataque.
-export function obtenerConfiguracionAtaque(combatiente) {
-  // Algunos enemigos pueden cambiar temporalmente
-  // a su ataque natural cuando su arma principal
-  // no tiene los recursos necesarios.
-  //
-  // El equipamiento no se modifica ni se desequipa.
-  if (combatiente.ataqueNaturalForzado === true) {
+export function obtenerConfiguracionAtaque(
+  combatiente,
+  { ignorarAtaqueNaturalForzado = false } = {},
+) {
+  // El ataque natural puede forzarse temporalmente como respaldo sin alterar
+  // ni desequipar el armamento actual.
+  if (
+    !ignorarAtaqueNaturalForzado &&
+    combatiente.ataqueNaturalForzado === true
+  ) {
     return crearConfiguracionAtaqueNatural(combatiente);
   }
 
   const armaPrincipal = obtenerArmaEnRanura(combatiente, "arma");
-
   const objetoSecundario = obtenerObjetoEnRanura(combatiente, "secundaria");
-
   const armaSecundaria = objetoSecundario?.esArma ? objetoSecundario : null;
-
   const quiver = objetoSecundario?.esQuiver ? objetoSecundario : null;
 
   if (armaPrincipal) {
     const propiedades = armaPrincipal.propiedades;
-
     const esAtaqueDual = esCombinacionDosArmas({
       armaPrincipal,
       armaSecundaria,
     });
-
     const fuentesDanio = esAtaqueDual
-      ? crearFuentesAtaqueDual({
-          armaPrincipal,
-          armaSecundaria,
-        })
+      ? crearFuentesAtaqueDual({ armaPrincipal, armaSecundaria })
       : [
           crearFuenteDesdeArma(armaPrincipal, {
             mano: "principal",
@@ -49,91 +45,61 @@ export function obtenerConfiguracionAtaque(combatiente) {
     const configuracion = {
       origen: "armaPrincipal",
       armaControladora: armaPrincipal,
-
       armaPrincipal,
       armaSecundaria,
       quiver,
-
       esAtaqueDual,
       cantidadGolpes: fuentesDanio.length,
-
       fuentesDanio,
 
-      // El arma principal continúa controlando:
-      //
-      // - Alcance.
-      // - Patrón.
-      // - Tipo de ataque.
+      // El arma principal continúa controlando alcance, patrón y tipo.
       propiedadesControladoras: propiedades,
-
       requiereQuiver: armaPrincipal.requiereQuiver,
-
       tipoMunicion: propiedades.tipoMunicion ?? null,
     };
 
-    return agregarCostoBaseAtaque(configuracion);
+    return completarConfiguracionAtaque(configuracion);
   }
 
-  // Un arma cuerpo a cuerpo ubicada solamente
-  // en secundaria puede utilizarse cuando no
-  // existe un arma principal.
+  // Un arma ubicada solamente en secundaria puede utilizarse cuando no existe
+  // arma principal. Al ser la única fuente activa, utiliza toda su potencia.
   if (armaSecundaria) {
     const fuentesDanio = [
       crearFuenteDesdeArma(armaSecundaria, {
         mano: "secundaria",
-
-        // Al ser la única arma activa,
-        // utiliza toda su potencia.
         multiplicadorGolpe: 1,
       }),
     ];
-
     const configuracion = {
       origen: "armaSecundaria",
       armaControladora: armaSecundaria,
-
       armaPrincipal: null,
       armaSecundaria,
       quiver: null,
-
       esAtaqueDual: false,
       cantidadGolpes: 1,
       fuentesDanio,
-
       propiedadesControladoras: armaSecundaria.propiedades,
-
       requiereQuiver: armaSecundaria.requiereQuiver,
-
       tipoMunicion: armaSecundaria.propiedades.tipoMunicion ?? null,
     };
 
-    return agregarCostoBaseAtaque(configuracion);
+    return completarConfiguracionAtaque(configuracion);
   }
 
   return crearConfiguracionAtaqueNatural(combatiente);
 }
 
-// Agrega a una configuración ya construida
-// el coste temporal base del ataque.
-function agregarCostoBaseAtaque(configuracion) {
+function completarConfiguracionAtaque(configuracion) {
   return {
     ...configuracion,
-
     costoAtaqueBase: calcularCostoBaseAtaque(configuracion),
+    costoManaAtaqueBasico: calcularCostoManaAtaqueBasico(configuracion),
   };
 }
 
-// Calcula el coste base de un ataque.
-//
-// Este coste todavía no contiene:
-//
-// - factorTiempo;
-// - factorAtaque;
-// - estados;
-// - bonificaciones de habilidades.
-//
-// Es únicamente el coste definido por el arma
-// o por el ataque natural.
+// Conserva la única fórmula temporal general ya existente para cualquier
+// combinación dual válida, incluidas dos varitas.
 export function calcularCostoBaseAtaque(configuracion) {
   if (!configuracion || typeof configuracion !== "object") {
     throw new Error("Se necesita una configuración de ataque válida.");
@@ -142,96 +108,71 @@ export function calcularCostoBaseAtaque(configuracion) {
   if (!configuracion.esAtaqueDual) {
     return validarCostoAtaque(
       configuracion.propiedadesControladoras?.costoAtaque,
-
       configuracion.armaControladora?.nombre ?? "Ataque natural",
     );
   }
 
   const costoPrincipal = validarCostoAtaque(
     configuracion.armaPrincipal?.propiedades?.costoAtaque,
-
     configuracion.armaPrincipal?.nombre ?? "Arma principal",
   );
-
   const costoSecundaria = validarCostoAtaque(
     configuracion.armaSecundaria?.propiedades?.costoAtaque,
-
     configuracion.armaSecundaria?.nombre ?? "Arma secundaria",
   );
-
   const costoMayor = Math.max(costoPrincipal, costoSecundaria);
-
   const costoMenor = Math.min(costoPrincipal, costoSecundaria);
-
   const recargo = CONFIGURACION_COMBATE.dosArmas.recargoTemporalSecundaria;
 
   if (!Number.isFinite(recargo) || recargo < 0) {
     throw new Error("El recargo temporal de dos armas no es válido.");
   }
 
-  return Math.max(
-    1,
-
-    Math.round(costoMayor + costoMenor * recargo),
-  );
+  return Math.max(1, Math.round(costoMayor + costoMenor * recargo));
 }
 
-// Valida un coste antes de utilizarlo
-// en los cálculos temporales.
 function validarCostoAtaque(costoAtaque, nombreFuente) {
   if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
     throw new Error(
-      `El costo de ataque de "${nombreFuente}" ` +
-        "debe ser un entero mayor que 0.",
+      `El costo de ataque de "${nombreFuente}" debe ser un entero mayor que 0.`,
     );
   }
-
   return costoAtaque;
 }
 
-// Comprueba que ambas armas sean válidas
-// para realizar un ataque dual.
-//
-// Por ahora solamente admitimos:
-//
-// - Dos armas.
-// - Cuerpo a cuerpo.
-// - De una mano.
+// Admite las dos combinaciones homogéneas previstas por el sistema:
+// dos armas cuerpo a cuerpo de una mano o dos varitas de una mano.
+// No convierte una combinación física/mágica en un ataque dual híbrido.
 function esCombinacionDosArmas({ armaPrincipal, armaSecundaria }) {
-  if (!armaPrincipal || !armaSecundaria) {
-    return false;
-  }
+  if (!armaPrincipal || !armaSecundaria) return false;
 
-  return (
-    armaPrincipal.propiedades.tipoAtaque === "cuerpoACuerpo" &&
+  const ambasDeUnaMano =
     armaPrincipal.propiedades.manos === 1 &&
-    armaSecundaria.propiedades.tipoAtaque === "cuerpoACuerpo" &&
-    armaSecundaria.propiedades.manos === 1
-  );
+    armaSecundaria.propiedades.manos === 1;
+  if (!ambasDeUnaMano) return false;
+
+  const ambasCuerpoACuerpo =
+    armaPrincipal.propiedades.tipoAtaque === "cuerpoACuerpo" &&
+    armaSecundaria.propiedades.tipoAtaque === "cuerpoACuerpo";
+  const ambasVaritas = esVarita(armaPrincipal) && esVarita(armaSecundaria);
+
+  return ambasCuerpoACuerpo || ambasVaritas;
 }
 
-// Crea las dos fuentes independientes
-// utilizadas durante un ataque dual.
 function crearFuentesAtaqueDual({ armaPrincipal, armaSecundaria }) {
   const configuracion = CONFIGURACION_COMBATE.dosArmas;
-
   return [
     crearFuenteDesdeArma(armaPrincipal, {
       mano: "principal",
-
       multiplicadorGolpe: configuracion.multiplicadorManoPrincipal,
     }),
-
     crearFuenteDesdeArma(armaSecundaria, {
       mano: "secundaria",
-
       multiplicadorGolpe: configuracion.multiplicadorManoSecundaria,
     }),
   ];
 }
 
-// Crea una configuración completa basada
-// únicamente en el ataque natural.
 function crearConfiguracionAtaqueNatural(combatiente) {
   const fuentesDanio = [
     {
@@ -242,37 +183,72 @@ function crearConfiguracionAtaqueNatural(combatiente) {
       propiedades: combatiente.ataqueNatural,
     },
   ];
-
   const configuracion = {
     origen: "ataqueNatural",
     armaControladora: null,
     armaPrincipal: null,
     armaSecundaria: null,
     quiver: null,
-
     esAtaqueDual: false,
     cantidadGolpes: 1,
     fuentesDanio,
-
     propiedadesControladoras: combatiente.ataqueNatural,
-
     requiereQuiver: false,
     tipoMunicion: null,
   };
 
-  return agregarCostoBaseAtaque(configuracion);
+  return completarConfiguracionAtaque(configuracion);
 }
 
-// Comprueba que el ataque actual tenga
-// todos los recursos necesarios.
+export function calcularCostoManaAtaqueBasico(configuracion) {
+  if (!configuracion || !Array.isArray(configuracion.fuentesDanio)) {
+    throw new Error("No se puede calcular el coste de Maná del ataque.");
+  }
+
+  return configuracion.fuentesDanio.reduce((total, fuente) => {
+    if (!esVarita(fuente?.objeto)) return total;
+
+    const costo = fuente.propiedades?.costoManaAtaqueBasico;
+    if (!Number.isInteger(costo) || costo <= 0) {
+      throw new Error(
+        `El costo de Maná de "${fuente.nombre}" debe ser un entero mayor que 0.`,
+      );
+    }
+    return total + costo;
+  }, 0);
+}
+
+// Comprueba conjuntamente munición y Maná antes de que el ataque pueda alterar
+// hostilidad, Vida, selector o agenda temporal.
 export function verificarRequisitosAtaque(combatiente) {
   const configuracion = obtenerConfiguracionAtaque(combatiente);
+  const costoMana = configuracion.costoManaAtaqueBasico ?? 0;
+  const manaActual = Number.isFinite(combatiente.manaActual)
+    ? combatiente.manaActual
+    : 0;
+
+  if (costoMana > manaActual) {
+    return {
+      disponible: false,
+      configuracion,
+      cantidadMunicion: configuracion.requiereQuiver ? 0 : null,
+      costoMana,
+      manaActual,
+      mensaje:
+        `No tenés Maná suficiente para atacar con ` +
+        `${configuracion.armaControladora?.nombre ?? "la varita"}. ` +
+        `Necesitás ${costoMana} y tenés ${manaActual}. ` +
+        "Podés usar G para el ataque de respaldo, esperar o cambiar de arma.",
+    };
+  }
 
   if (!configuracion.requiereQuiver) {
     return {
       disponible: true,
       configuracion,
       cantidadMunicion: null,
+      costoMana,
+      manaActual,
       mensaje: null,
     };
   }
@@ -282,7 +258,8 @@ export function verificarRequisitosAtaque(combatiente) {
       disponible: false,
       configuracion,
       cantidadMunicion: 0,
-
+      costoMana,
+      manaActual,
       mensaje:
         `${configuracion.armaControladora.nombre} ` +
         "necesita un quiver equipado en secundaria.",
@@ -296,24 +273,23 @@ export function verificarRequisitosAtaque(combatiente) {
       disponible: false,
       configuracion,
       cantidadMunicion: 0,
-
+      costoMana,
+      manaActual,
       mensaje:
-        `${configuracion.quiver.nombre} no admite ` +
-        "la munición requerida por " +
+        `${configuracion.quiver.nombre} no admite la munición requerida por ` +
         `${configuracion.armaControladora.nombre}.`,
     };
   }
 
   const cantidadMunicion = contarMunicionCompatible(configuracion);
-
   if (cantidadMunicion <= 0) {
     return {
       disponible: false,
       configuracion,
       cantidadMunicion: 0,
-
-      mensaje:
-        `${configuracion.quiver.nombre} ` + "no tiene munición compatible.",
+      costoMana,
+      manaActual,
+      mensaje: `${configuracion.quiver.nombre} no tiene munición compatible.`,
     };
   }
 
@@ -321,71 +297,92 @@ export function verificarRequisitosAtaque(combatiente) {
     disponible: true,
     configuracion,
     cantidadMunicion,
+    costoMana,
+    manaActual,
     mensaje: null,
   };
 }
 
-// Consume una unidad al realizar un disparo.
-//
-// La munición se gasta aunque el ataque:
-//
-// - Falle.
-// - Sea bloqueado.
-// - Apunte a una casilla vacía.
+// Consume todos los recursos de una acción ya validada. Se mantiene el nombre
+// histórico para no duplicar ni alterar la tubería común de SistemaCombate.
 export function consumirMunicionAtaque(combatiente) {
+  return consumirRecursosAtaque(combatiente);
+}
+
+export function consumirRecursosAtaque(combatiente) {
   const requisitos = verificarRequisitosAtaque(combatiente);
+  const resultadoBase = {
+    consumida: false,
+    restante: requisitos.cantidadMunicion,
+    manaConsumido: 0,
+    manaRestante: combatiente.manaActual,
+    requisitos,
+  };
 
-  if (!requisitos.disponible || !requisitos.configuracion.requiereQuiver) {
-    return {
-      consumida: false,
+  if (!requisitos.disponible) return resultadoBase;
 
-      restante: requisitos.cantidadMunicion,
+  const { configuracion, costoMana } = requisitos;
+  const manaAnterior = combatiente.manaActual;
 
-      requisitos,
-    };
+  if (costoMana > 0) {
+    if (typeof combatiente.gastarMana !== "function") {
+      throw new Error(`${combatiente.nombre} no puede consumir Maná.`);
+    }
+    const gastado = combatiente.gastarMana(costoMana);
+    const diferencia = manaAnterior - combatiente.manaActual;
+    if (!gastado || diferencia !== costoMana) {
+      combatiente.manaActual = manaAnterior;
+      throw new Error(
+        "No fue posible descontar el Maná del ataque de forma atómica.",
+      );
+    }
   }
 
-  const { configuracion } = requisitos;
+  let municionConsumida = false;
+  if (configuracion.requiereQuiver) {
+    municionConsumida =
+      configuracion.quiver.contenedorObjetos.consumirCantidadObjeto(
+        (objeto) =>
+          objeto.esMunicion &&
+          objeto.propiedades.tipoMunicion === configuracion.tipoMunicion,
+        1,
+      );
 
-  const consumida =
-    configuracion.quiver.contenedorObjetos.consumirCantidadObjeto(
-      (objeto) =>
-        objeto.esMunicion &&
-        objeto.propiedades.tipoMunicion === configuracion.tipoMunicion,
-
-      1,
-    );
+    if (!municionConsumida) {
+      // La operación completa se revierte si un recurso previamente validado
+      // cambia antes de consumirse.
+      combatiente.manaActual = manaAnterior;
+      throw new Error("No fue posible consumir los recursos del ataque.");
+    }
+  }
 
   return {
-    consumida,
-
-    restante: contarMunicionCompatible(configuracion),
-
+    consumida: municionConsumida,
+    restante: configuracion.requiereQuiver
+      ? contarMunicionCompatible(configuracion)
+      : null,
+    manaConsumido: costoMana,
+    manaRestante: combatiente.manaActual,
     requisitos,
   };
 }
 
 function obtenerArmaEnRanura(combatiente, nombreRanura) {
   const objeto = obtenerObjetoEnRanura(combatiente, nombreRanura);
-
   return objeto?.esArma ? objeto : null;
 }
 
 function obtenerObjetoEnRanura(combatiente, nombreRanura) {
-  if (!combatiente.equipamiento?.tieneRanura(nombreRanura)) {
-    return null;
-  }
-
+  if (!combatiente.equipamiento?.tieneRanura(nombreRanura)) return null;
   return combatiente.equipamiento.obtenerObjetoEnRanura(nombreRanura);
 }
 
 function crearFuenteDesdeArma(arma, { mano, multiplicadorGolpe }) {
   if (!Number.isFinite(multiplicadorGolpe) || multiplicadorGolpe < 0) {
     throw new Error(
-      `El multiplicador de golpe de ${arma.nombre} ` + "no es válido.",
+      `El multiplicador de golpe de ${arma.nombre} no es válido.`,
     );
   }
-
   return {
     nombre: arma.nombre,
     objeto: arma,
@@ -399,7 +396,6 @@ function contarMunicionCompatible(configuracion) {
   if (!configuracion.quiver?.contenedorObjetos || !configuracion.tipoMunicion) {
     return 0;
   }
-
   return configuracion.quiver.contenedorObjetos
     .obtenerObjetos()
     .filter(

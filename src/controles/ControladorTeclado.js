@@ -1,111 +1,31 @@
 import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 
 const MOVIMIENTOS_POR_TECLA = {
-  ArrowUp: {
-    x: 0,
-    y: -1,
-  },
-
-  KeyW: {
-    x: 0,
-    y: -1,
-  },
-
-  ArrowDown: {
-    x: 0,
-    y: 1,
-  },
-
-  KeyS: {
-    x: 0,
-    y: 1,
-  },
-
-  ArrowLeft: {
-    x: -1,
-    y: 0,
-  },
-
-  KeyA: {
-    x: -1,
-    y: 0,
-  },
-
-  ArrowRight: {
-    x: 1,
-    y: 0,
-  },
-
-  KeyD: {
-    x: 1,
-    y: 0,
-  },
-
-  KeyQ: {
-    x: -1,
-    y: -1,
-  },
-
-  KeyE: {
-    x: 1,
-    y: -1,
-  },
-
-  KeyZ: {
-    x: -1,
-    y: 1,
-  },
-
-  KeyC: {
-    x: 1,
-    y: 1,
-  },
-
-  Numpad7: {
-    x: -1,
-    y: -1,
-  },
-
-  Numpad8: {
-    x: 0,
-    y: -1,
-  },
-
-  Numpad9: {
-    x: 1,
-    y: -1,
-  },
-
-  Numpad4: {
-    x: -1,
-    y: 0,
-  },
-
-  Numpad6: {
-    x: 1,
-    y: 0,
-  },
-
-  Numpad1: {
-    x: -1,
-    y: 1,
-  },
-
-  Numpad2: {
-    x: 0,
-    y: 1,
-  },
-
-  Numpad3: {
-    x: 1,
-    y: 1,
-  },
+  ArrowUp: { x: 0, y: -1 },
+  KeyW: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+  KeyS: { x: 0, y: 1 },
+  ArrowLeft: { x: -1, y: 0 },
+  KeyA: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  KeyD: { x: 1, y: 0 },
+  KeyQ: { x: -1, y: -1 },
+  KeyE: { x: 1, y: -1 },
+  KeyZ: { x: -1, y: 1 },
+  KeyC: { x: 1, y: 1 },
+  Numpad7: { x: -1, y: -1 },
+  Numpad8: { x: 0, y: -1 },
+  Numpad9: { x: 1, y: -1 },
+  Numpad4: { x: -1, y: 0 },
+  Numpad6: { x: 1, y: 0 },
+  Numpad1: { x: -1, y: 1 },
+  Numpad2: { x: 0, y: 1 },
+  Numpad3: { x: 1, y: 1 },
 };
 
 const TECLAS_ESPERA = new Set(["Space", "Numpad5"]);
-
 const TECLA_COMBATE = "KeyF";
-
+const TECLA_RESPALDO = "KeyG";
 const TECLA_CANCELAR = "Escape";
 
 export class ControladorTeclado {
@@ -118,72 +38,91 @@ export class ControladorTeclado {
     ) {
       throw new Error("ControladorTeclado necesita una partida válida.");
     }
-
     if (!renderizador || typeof renderizador.dibujarJuego !== "function") {
       throw new Error("ControladorTeclado necesita un renderizador válido.");
     }
 
     this.juego = juego;
-
     this.renderizador = renderizador;
-
     this.manejarTecla = this.manejarTecla.bind(this);
-
     this.estaActivo = false;
   }
 
   activar() {
-    if (this.estaActivo) {
-      return;
-    }
-
+    if (this.estaActivo) return;
     document.addEventListener("keydown", this.manejarTecla);
-
     this.estaActivo = true;
   }
 
   desactivar() {
-    if (!this.estaActivo) {
-      return;
+    if (!this.estaActivo) return;
+    document.removeEventListener("keydown", this.manejarTecla);
+    this.estaActivo = false;
+  }
+
+  activarAtaqueRespaldo() {
+    const jugador = this.juego.player;
+    if (!jugador?.estaVivo) {
+      return {
+        exito: false,
+        mensaje: "No podés atacar estando derrotado.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+    if (this.juego.modoInteraccionActivo) {
+      return {
+        exito: false,
+        mensaje: "Cancelá la interacción antes de usar el ataque de respaldo.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
     }
 
-    document.removeEventListener("keydown", this.manejarTecla);
+    if (this.juego.modoCombateActivo) {
+      this.juego.cancelarModoCombate();
+    }
 
-    this.estaActivo = false;
+    jugador.ataqueNaturalForzado = true;
+    const resultado = this.juego.entrarModoCombate();
+    if (resultado?.exito === false) {
+      jugador.ataqueNaturalForzado = false;
+      return resultado;
+    }
+
+    return {
+      ...resultado,
+      mensaje:
+        "Ataque de respaldo activo. Seleccioná una casilla adyacente y " +
+        "confirmá con F; Escape cancela.",
+    };
   }
 
   manejarTecla(event) {
     const movimiento = MOVIMIENTOS_POR_TECLA[event.code];
-
     const esEspera = TECLAS_ESPERA.has(event.code);
-
     const esCombate = event.code === TECLA_COMBATE;
-
+    const esRespaldo = event.code === TECLA_RESPALDO;
     const esCancelar = event.code === TECLA_CANCELAR;
 
-    if (!movimiento && !esEspera && !esCombate && !esCancelar) {
+    if (!movimiento && !esEspera && !esCombate && !esRespaldo && !esCancelar) {
       return;
     }
 
-    // Evitamos que mantener F o Escape presionados
-    // ejecute varias confirmaciones o cancelaciones.
-    if (event.repeat && (esCombate || esCancelar)) {
-      return;
-    }
+    // Evita múltiples confirmaciones, cancelaciones o activaciones de respaldo
+    // al mantener una tecla presionada.
+    if (event.repeat && (esCombate || esRespaldo || esCancelar)) return;
 
     event.preventDefault();
 
     let resultado;
-
     if (esCombate) {
-      // Juego impide entrar en combate cuando
-      // está activo el selector de interacción.
       resultado = this.juego.modoCombateActivo
         ? this.juego.confirmarAtaque()
         : this.juego.entrarModoCombate();
+    } else if (esRespaldo) {
+      resultado = this.activarAtaqueRespaldo();
     } else if (esCancelar) {
-      // Escape cancela primero el modo
-      // de interacción y luego el de combate.
       resultado = this.juego.modoInteraccionActivo
         ? this.juego.cancelarModoInteraccion()
         : this.juego.cancelarModoCombate();
@@ -202,10 +141,6 @@ export class ControladorTeclado {
       resultado = this.juego.esperarTurno();
     }
 
-    // Todos los resultados pasan por un único procesador.
-    //
-    // Esto evita que cada controlador tenga reglas diferentes
-    // para mostrar mensajes, redibujar o procesar eventos.
     aplicarResultadoAccion({
       resultado,
       juego: this.juego,

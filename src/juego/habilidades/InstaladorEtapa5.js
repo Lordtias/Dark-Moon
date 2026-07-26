@@ -13,13 +13,14 @@ export function programarInstalacionEtapa5(configuracionEjecucion) {
     configuracionEjecucionActiva = configuracionEjecucion;
   }
   if (!configuracionEjecucionActiva) {
-    throw new Error("Falta la configuración de ejecución para instalar ETAPA 5.");
+    throw new Error(
+      "Falta la configuración de ejecución para instalar ETAPA 5.",
+    );
   }
   if (instalacionProgramada) {
     return;
   }
   instalacionProgramada = true;
-
   window.setTimeout(async () => {
     try {
       const moduloJuego = await import("../Juego.js");
@@ -28,11 +29,14 @@ export function programarInstalacionEtapa5(configuracionEjecucion) {
         instrumentarPrototipoJuego(Juego.prototype);
       }
     } catch (error) {
-      console.error("[Dark Moon · ETAPA 5] No se pudo instrumentar Juego.", error);
+      console.error(
+        "[Dark Moon · ETAPA 5] No se pudo instrumentar Juego.",
+        error,
+      );
     }
-
     try {
-      const moduloControlador = await import("../../controles/ControladorPartida.js");
+      const moduloControlador =
+        await import("../../controles/ControladorPartida.js");
       const ControladorPartida =
         moduloControlador.ControladorPartida ?? moduloControlador.default;
       if (ControladorPartida?.prototype) {
@@ -48,6 +52,7 @@ export function programarInstalacionEtapa5(configuracionEjecucion) {
 }
 
 export function registrarJuegoParaHabilidades(juego) {
+  normalizarFachadaJuego(juego);
   if (!pareceJuego(juego)) {
     return null;
   }
@@ -60,7 +65,6 @@ export function registrarJuegoParaHabilidades(juego) {
   if (!configuracionEjecucionActiva) {
     return null;
   }
-
   const integracion = new IntegracionHabilidadesEtapa5({
     juego,
     esJuegoActivo: () => juegoActivo === juego,
@@ -69,6 +73,28 @@ export function registrarJuegoParaHabilidades(juego) {
   integraciones.set(juego, integracion);
   protegerDestruccion(juego, integracion);
   return integracion;
+}
+
+function normalizarFachadaJuego(juego) {
+  if (!juego || typeof juego !== "object") return juego;
+
+  definirAliasLectura(juego, "jugador", "player");
+  definirAliasLectura(juego, "mapa", "map");
+  definirAliasLectura(juego, "modoCombate", "modoCombateActivo");
+  definirAliasLectura(juego, "modoInteraccion", "modoInteraccionActivo");
+  return juego;
+}
+
+function definirAliasLectura(objeto, alias, propiedadReal) {
+  if (alias in objeto || !(propiedadReal in objeto)) return;
+
+  Object.defineProperty(objeto, alias, {
+    configurable: true,
+    enumerable: false,
+    get() {
+      return this[propiedadReal];
+    },
+  });
 }
 
 function instrumentarPrototipoJuego(prototipo) {
@@ -90,8 +116,12 @@ function instrumentarPrototipoJuego(prototipo) {
       registrarJuegoParaHabilidades(this);
     });
   }
-
-  for (const nombre of ["modoCombate", "modoInteraccion", "tiempoActual", "estaEnCombate"]) {
+  for (const nombre of [
+    "modoCombate",
+    "modoInteraccion",
+    "tiempoActual",
+    "estaEnCombate",
+  ]) {
     envolverGetter(prototipo, nombre);
   }
 }
@@ -101,23 +131,32 @@ function instrumentarPrototipoControlador(prototipo) {
     if (nombre === "constructor") {
       continue;
     }
-    envolverMetodo(prototipo, nombre, function descubrirDespues(resultado) {
-      const registrar = () => descubrirJuegos(this).forEach(registrarJuegoParaHabilidades);
-      if (resultado && typeof resultado.then === "function") {
-        resultado.finally(registrar);
-      } else {
-        queueMicrotask(registrar);
-      }
-    }, true);
+    envolverMetodo(
+      prototipo,
+      nombre,
+      function descubrirDespues(resultado) {
+        const registrar = () =>
+          descubrirJuegos(this).forEach(registrarJuegoParaHabilidades);
+        if (resultado && typeof resultado.then === "function") {
+          resultado.finally(registrar);
+        } else {
+          queueMicrotask(registrar);
+        }
+      },
+      true,
+    );
   }
 }
 
 function envolverMetodo(prototipo, nombre, accion, ejecutarDespues = false) {
   const descriptor = Object.getOwnPropertyDescriptor(prototipo, nombre);
-  if (!descriptor || typeof descriptor.value !== "function" || descriptor.value.__etapa5) {
+  if (
+    !descriptor ||
+    typeof descriptor.value !== "function" ||
+    descriptor.value.__etapa5
+  ) {
     return;
   }
-
   const original = descriptor.value;
   const envuelto = function metodoInstrumentado(...argumentos) {
     if (!ejecutarDespues) {
@@ -153,14 +192,21 @@ function descubrirJuegos(raiz) {
   const visitados = new WeakSet();
 
   function visitar(valor, profundidad) {
-    if (!valor || typeof valor !== "object" || visitados.has(valor) || profundidad > 3) {
+    if (
+      !valor ||
+      typeof valor !== "object" ||
+      visitados.has(valor) ||
+      profundidad > 3
+    ) {
       return;
     }
     visitados.add(valor);
+    normalizarFachadaJuego(valor);
     if (pareceJuego(valor)) {
       encontrados.add(valor);
       return;
     }
+
     let propiedades = [];
     try {
       propiedades = Object.values(valor);
@@ -177,12 +223,15 @@ function descubrirJuegos(raiz) {
 }
 
 function pareceJuego(valor) {
+  const jugador = valor?.jugador ?? valor?.player;
+  const mapa = valor?.mapa ?? valor?.map;
   return Boolean(
-    valor?.jugador &&
-      valor?.mapa &&
-      (typeof valor.finalizarResultadoAccionJugador === "function" ||
-        typeof valor.finalizarAccionJugador === "function") &&
-      (typeof valor.obtenerObjetivoEn === "function" || Array.isArray(valor.objetivos)),
+    jugador &&
+    mapa &&
+    (typeof valor.finalizarResultadoAccionJugador === "function" ||
+      typeof valor.finalizarAccionJugador === "function") &&
+    (typeof valor.obtenerObjetivoEn === "function" ||
+      Array.isArray(valor.objetivos)),
   );
 }
 

@@ -4,8 +4,7 @@ import {
   leerSnapshotJugador,
   eliminarGuardadoJugador,
   crearJugadorDesdeGuardado,
-} from "../../Partida/PersistenciaJugador.js";
-
+} from "../../Partida/PersistenciaJugadorCatalizadores.js";
 // Fachada pequeña para pruebas manuales desde la consola del navegador.
 //
 // No evita validaciones ni modifica campos internos: todas las operaciones
@@ -16,7 +15,6 @@ export function crearDepuradorEtapa4({ obtenerAplicacion } = {}) {
       "El depurador necesita una función para obtener la aplicación.",
     );
   }
-
   const obtenerJugador = () => {
     const aplicacion = obtenerAplicacion();
     const jugador =
@@ -32,7 +30,6 @@ export function crearDepuradorEtapa4({ obtenerAplicacion } = {}) {
 
     return jugador;
   };
-
   return Object.freeze({
     obtenerJugador,
     obtenerResumenProgresoMagico() {

@@ -1,0 +1,66 @@
+{
+  "enfocado": {
+    "nombre": "Enfocado",
+    "tipoAfijo": "prefijo",
+    "estado": "activo",
+    "motivoEstado": "La Potencia de Habilidad ya forma parte del modelo de catalizadores y puede componerse como un porcentaje aditivo.",
+    "descripcion": "Aumenta la Potencia de Habilidad del catalizador.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "potencia_habilidad_porcentaje",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": ["baston", "varita"],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "potenciaHabilidad",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 4,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": {
+          "potenciaHabilidad": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "Solo puede generarse en bastones y varitas.",
+      "Su valor se suma a la Potencia de Habilidad base del catalizador.",
+      "No modifica el ataque básico de la propia arma."
+    ]
+  }
+}

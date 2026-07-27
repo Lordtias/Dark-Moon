@@ -212,14 +212,16 @@
         "potenciaAura": 0,
         "resistencias": {
           "fuego": 0,
-          "frio": 10,
+          "frio": 15,
           "rayo": 0,
-          "veneno": 75
+          "veneno": 50
         }
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 4,
         "danioFisicoMaximo": 7,
+        "danioVenenoLocalMinimo": 1,
+        "danioVenenoLocalMaximo": 3,
         "atributoAtaque": "fuerza",
         "precision": 2,
         "alcance": 1,
@@ -227,7 +229,9 @@
         "patronAtaque": "adyacente",
         "probabilidadCritico": 3,
         "multiplicadorCritico": 1.5,
-        "costoAtaque": 120
+        "costoAtaque": 120,
+        "danioFrioLocalMinimo": 1,
+        "danioFrioLocalMaximo": 1
       }
     },
     "escalado": {
@@ -329,8 +333,8 @@
         "resistenciaMental": 8,
         "potenciaAura": 0,
         "resistencias": {
-          "fuego": -10,
-          "frio": 15,
+          "fuego": 0,
+          "frio": 30,
           "rayo": 0,
           "veneno": 75
         }
@@ -472,7 +476,7 @@
         "resistencias": {
           "fuego": 0,
           "frio": 0,
-          "rayo": 0,
+          "rayo": 25,
           "veneno": 0
         }
       },
@@ -633,7 +637,7 @@
         "resistenciaMental": 12,
         "potenciaAura": 0,
         "resistencias": {
-          "fuego": 10,
+          "fuego": 35,
           "frio": 10,
           "rayo": 5,
           "veneno": 15

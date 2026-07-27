@@ -2,6 +2,7 @@ import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
 import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
+  crearDescriptoresDanioElementalLocal,
   normalizarResistencia,
   normalizarTipoDanio,
 } from "../../../juego/combate/ComponentesDanio.js";
@@ -38,7 +39,6 @@ function obtenerObjetosEquipados(combatiente) {
   return combatiente.equipamiento?.obtenerObjetosEquipados() ?? [];
 }
 
-// Calcula Vida y Maná sin necesitar una instancia completa de Combatiente.
 export function calcularRecursosMaximos({
   nivel,
   atributos,
@@ -60,6 +60,7 @@ export function calcularRecursosMaximos({
     atributos,
     bonificacionPlana: sumarPropiedad(objetosEquipados, "manaMaximo"),
   });
+
   return {
     vidaMaxima: Math.round(vidaMaxima),
     manaMaximo,
@@ -103,13 +104,19 @@ function crearDescriptorDescargaVarita({ propiedades, atributos }) {
     tipo,
     minimoLocal,
     maximoLocal,
-    // El ataque básico mágico utiliza la estadística mágica vigente. La
+    // El ataque básico mágico utiliza la estadística mágica vigente.
     // Potencia de Habilidad queda reservada exclusivamente para habilidades.
     multiplicadorAtributo: calcularMultiplicadorDanioMagico(atributos),
     aplicaDanioPlanoGlobal: false,
     aplicaMultiplicadorGlobal: false,
     aplicaCritico: true,
   };
+}
+
+function obtenerDescriptoresElementalesFuente(fuente) {
+  return crearDescriptoresDanioElementalLocal(fuente.propiedades, {
+    origen: `la fuente de ataque "${fuente.nombre}"`,
+  });
 }
 
 // Crea las estadísticas específicas de una fuente individual. Cada mano
@@ -125,16 +132,19 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
   let maximoLocal;
   let multiplicadorAtributo;
   let bonoAtributo;
-  let descriptorDanio;
+  let descriptorPrincipal;
 
   const atributoOfensivo = propiedades.atributoAtaque;
   const valorAtributo = atributos[atributoOfensivo] ?? 10;
 
   if (fuenteEsVarita) {
-    descriptorDanio = crearDescriptorDescargaVarita({ propiedades, atributos });
-    minimoLocal = descriptorDanio.minimoLocal;
-    maximoLocal = descriptorDanio.maximoLocal;
-    multiplicadorAtributo = descriptorDanio.multiplicadorAtributo;
+    descriptorPrincipal = crearDescriptorDescargaVarita({
+      propiedades,
+      atributos,
+    });
+    minimoLocal = descriptorPrincipal.minimoLocal;
+    maximoLocal = descriptorPrincipal.maximoLocal;
+    multiplicadorAtributo = descriptorPrincipal.multiplicadorAtributo;
     bonoAtributo = multiplicadorAtributo - 1;
   } else {
     const minimoBase = propiedades.danioFisicoMinimo;
@@ -142,6 +152,7 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
     const planoLocalMinimo = propiedades.danioFisicoLocalMinimo ?? 0;
     const planoLocalMaximo = propiedades.danioFisicoLocalMaximo ?? 0;
     const porcentajeLocal = (propiedades.danioFisicoLocalPorcentaje ?? 0) / 100;
+
     minimoLocal = Math.max(
       0,
       Math.floor((minimoBase + planoLocalMinimo) * (1 + porcentajeLocal)),
@@ -153,7 +164,7 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
     bonoAtributo =
       coeficientes.danioPorPuntoRespectoDiez * (valorAtributo - 10);
     multiplicadorAtributo = Math.max(0, 1 + bonoAtributo);
-    descriptorDanio = crearDescriptorDanioFisico({
+    descriptorPrincipal = crearDescriptorDanioFisico({
       minimoLocal,
       maximoLocal,
       multiplicadorAtributo,
@@ -190,12 +201,50 @@ function calcularComponenteDanio(combatiente, fuente, objetos) {
     probabilidadCritico,
     multiplicadorCritico,
     esAtaqueMagicoBasico: fuenteEsVarita,
-    componentesDanio: [descriptorDanio],
+    componentesDanio: [
+      descriptorPrincipal,
+      ...obtenerDescriptoresElementalesFuente(fuente),
+    ],
+  };
+}
+
+function calcularRangoDescriptor({
+  descriptor,
+  multiplicadorGolpe,
+  danioPlanoGlobalMinimo,
+  danioPlanoGlobalMaximo,
+  multiplicadorGlobal,
+}) {
+  const planoMinimo =
+    descriptor.aplicaDanioPlanoGlobal === true ? danioPlanoGlobalMinimo : 0;
+  const planoMaximo =
+    descriptor.aplicaDanioPlanoGlobal === true ? danioPlanoGlobalMaximo : 0;
+  const multiplicadorFinal =
+    descriptor.aplicaMultiplicadorGlobal === true ? multiplicadorGlobal : 1;
+
+  const minimo = Math.max(
+    0,
+    (descriptor.minimoLocal * descriptor.multiplicadorAtributo + planoMinimo) *
+      multiplicadorGolpe *
+      multiplicadorFinal,
+  );
+  const maximo = Math.max(
+    minimo,
+    (descriptor.maximoLocal * descriptor.multiplicadorAtributo + planoMaximo) *
+      multiplicadorGolpe *
+      multiplicadorFinal,
+  );
+
+  return {
+    tipo: descriptor.tipo,
+    minimo,
+    maximo,
+    promedio: (minimo + maximo) / 2,
   };
 }
 
 // El nombre se conserva por compatibilidad con los consumidores existentes,
-// aunque sus fuentes pueden ser físicas o elementales.
+// aunque sus fuentes pueden contener componentes físicos y elementales.
 function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   const componentesBase = configuracionAtaque.fuentesDanio.map((fuente) =>
     calcularComponenteDanio(combatiente, fuente, objetos),
@@ -219,31 +268,27 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
     multiplicadorAumentadoGlobal * multiplicadorMasGlobal;
 
   const componentes = componentesBase.map((componente) => {
-    const descriptor = componente.componentesDanio[0];
-    const aplicaPlanoFisico = descriptor.aplicaDanioPlanoGlobal === true;
-    const aplicaMultiplicadorFisico =
-      descriptor.aplicaMultiplicadorGlobal === true;
-    const planoMinimo = aplicaPlanoFisico ? danioPlanoGlobalMinimo : 0;
-    const planoMaximo = aplicaPlanoFisico ? danioPlanoGlobalMaximo : 0;
-    const multiplicadorFinal = aplicaMultiplicadorFisico
-      ? multiplicadorGlobal
-      : 1;
-    const minimo = Math.max(
+    const rangosComponentes = componente.componentesDanio.map((descriptor) =>
+      calcularRangoDescriptor({
+        descriptor,
+        multiplicadorGolpe: componente.multiplicadorGolpe,
+        danioPlanoGlobalMinimo,
+        danioPlanoGlobalMaximo,
+        multiplicadorGlobal,
+      }),
+    );
+    const minimo = rangosComponentes.reduce(
+      (total, rango) => total + rango.minimo,
       0,
-      (componente.minimoLocal * componente.multiplicadorAtributo +
-        planoMinimo) *
-        componente.multiplicadorGolpe *
-        multiplicadorFinal,
     );
-    const maximo = Math.max(
-      minimo,
-      (componente.maximoLocal * componente.multiplicadorAtributo +
-        planoMaximo) *
-        componente.multiplicadorGolpe *
-        multiplicadorFinal,
+    const maximo = rangosComponentes.reduce(
+      (total, rango) => total + rango.maximo,
+      0,
     );
+
     return {
       ...componente,
+      rangosComponentes,
       minimo,
       maximo,
       promedio: (minimo + maximo) / 2,
@@ -316,6 +361,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     0.01,
     multiplicadorEfectosAtributos * (1 + potenciaEfectosAdicional / 100),
   );
+
   const resistencias = {};
   for (const resistencia of RESISTENCIAS) {
     const nombrePropiedad =
@@ -331,6 +377,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
         coeficientes.resistenciaVenenoPorConstitucion *
         (atributos.constitucion - 10);
     }
+
     resistencias[resistencia] = normalizarResistencia(
       valor,
       `La resistencia derivada a ${resistencia}`,
@@ -340,6 +387,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const armaduraPlana = base.armadura + sumarPropiedad(objetos, "armadura");
   const armaduraPorcentual =
     sumarPropiedad(objetos, "armaduraAumentadaPorcentaje") / 100;
+
   return {
     ...recursos,
     regeneracionVida,

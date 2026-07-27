@@ -7,15 +7,10 @@
     "descripcion": "Aumenta solamente el daño físico mínimo del arma para volver sus golpes más consistentes.",
     "pesoBase": 1000,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_plano",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -74,15 +69,10 @@
     "descripcion": "Aumenta porcentualmente el daño físico local del arma.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_porcentaje",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -137,15 +127,10 @@
     "descripcion": "Agrega Armadura a la pieza.",
     "pesoBase": 1000,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "armadura_plana",
     "aplicaA": {
-      "tipos": [
-        "armadura"
-      ],
+      "tipos": ["armadura"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -200,16 +185,10 @@
     "descripcion": "Aumenta la Vida máxima.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "vida_maxima_plana",
     "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -266,16 +245,10 @@
     "descripcion": "Aumentaría el Maná máximo.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "mana_maximo_plano",
     "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -331,19 +304,11 @@
     "motivoEstado": "Falta decidir si la velocidad reduce el coste propio del arma o modifica el factor de ataque, especialmente al usar dos armas.",
     "descripcion": "Aumentaría la velocidad de ataque local del arma.",
     "pesoBase": 0,
-    "requiere": [
-      "velocidad_ataque_local",
-      "integracion_doble_arma"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["velocidad_ataque_local", "integracion_doble_arma"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "velocidad_ataque_local",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -368,16 +333,10 @@
     "descripcion": "Agregaría daño físico a todos los ataques.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_global_plano",
     "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -403,17 +362,10 @@
     "descripcion": "Aumentaría porcentualmente todo el daño físico.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_global_aumentado",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -435,16 +387,10 @@
     "descripcion": "Otorgaría más daño físico multiplicativo.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": [
-      "raro"
-    ],
+    "rarezasPermitidas": ["raro"],
     "grupoExclusion": "danio_fisico_global_mas",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -465,18 +411,11 @@
     "motivoEstado": "El cálculo actual es global. Falta separar armadura porcentual local de la pieza y armadura porcentual global del personaje.",
     "descripcion": "Aumentaría porcentualmente la armadura base de la pieza.",
     "pesoBase": 0,
-    "requiere": [
-      "armadura_local"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["armadura_local"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "armadura_local_porcentaje",
     "aplicaA": {
-      "tipos": [
-        "armadura"
-      ],
+      "tipos": ["armadura"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -493,22 +432,15 @@
   "ardiente": {
     "nombre": "Ardiente",
     "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
-    "descripcion": "Agregaría daño elemental de tipo ardiente al arma.",
-    "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "estado": "activo",
+    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
+    "descripcion": "Agrega daño de fuego local al ataque básico del arma.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "ardiente_local_plano",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -522,29 +454,71 @@
         "operacion": "sumar"
       }
     ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFuegoLocalMinimo: 1–1; danioFuegoLocalMaximo: 1–2."
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "danioFuegoLocalMinimo": {
+            "minimo": 1,
+            "maximo": 1
+          },
+          "danioFuegoLocalMaximo": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 4,
+        "peso": 700,
+        "valores": {
+          "danioFuegoLocalMinimo": {
+            "minimo": 2,
+            "maximo": 3
+          },
+          "danioFuegoLocalMaximo": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 7,
+        "peso": 400,
+        "valores": {
+          "danioFuegoLocalMinimo": {
+            "minimo": 4,
+            "maximo": 5
+          },
+          "danioFuegoLocalMaximo": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "El componente de fuego pertenece solamente al arma que contiene el afijo.",
+      "No aumenta habilidades ni Potencia de Habilidad.",
+      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
+    ]
   },
   "glacial": {
     "nombre": "Glacial",
     "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
-    "descripcion": "Agregaría daño elemental de tipo glacial al arma.",
-    "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "estado": "activo",
+    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
+    "descripcion": "Agrega daño de frío local al ataque básico del arma.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "glacial_local_plano",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -558,29 +532,71 @@
         "operacion": "sumar"
       }
     ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFrioLocalMinimo: 1–1; danioFrioLocalMaximo: 1–2."
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "danioFrioLocalMinimo": {
+            "minimo": 1,
+            "maximo": 1
+          },
+          "danioFrioLocalMaximo": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 4,
+        "peso": 700,
+        "valores": {
+          "danioFrioLocalMinimo": {
+            "minimo": 2,
+            "maximo": 3
+          },
+          "danioFrioLocalMaximo": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 7,
+        "peso": 400,
+        "valores": {
+          "danioFrioLocalMinimo": {
+            "minimo": 4,
+            "maximo": 5
+          },
+          "danioFrioLocalMaximo": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "El componente de frío pertenece solamente al arma que contiene el afijo.",
+      "No aumenta habilidades ni Potencia de Habilidad.",
+      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
+    ]
   },
   "electrificado": {
     "nombre": "Electrificado",
     "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
-    "descripcion": "Agregaría daño elemental de tipo electrificado al arma.",
-    "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "estado": "activo",
+    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
+    "descripcion": "Agrega daño de rayo local al ataque básico del arma.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "electrificado_local_plano",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -594,29 +610,71 @@
         "operacion": "sumar"
       }
     ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioRayoLocalMinimo: 1–1; danioRayoLocalMaximo: 1–2."
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "danioRayoLocalMinimo": {
+            "minimo": 1,
+            "maximo": 1
+          },
+          "danioRayoLocalMaximo": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 4,
+        "peso": 700,
+        "valores": {
+          "danioRayoLocalMinimo": {
+            "minimo": 2,
+            "maximo": 3
+          },
+          "danioRayoLocalMaximo": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 7,
+        "peso": 400,
+        "valores": {
+          "danioRayoLocalMinimo": {
+            "minimo": 4,
+            "maximo": 5
+          },
+          "danioRayoLocalMaximo": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "El componente de rayo pertenece solamente al arma que contiene el afijo.",
+      "No aumenta habilidades ni Potencia de Habilidad.",
+      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
+    ]
   },
   "venenoso": {
     "nombre": "Venenoso",
     "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "El combate todavía no genera ni aplica daño elemental separado por tipo.",
-    "descripcion": "Agregaría daño elemental de tipo venenoso al arma.",
-    "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "estado": "activo",
+    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
+    "descripcion": "Agrega daño de veneno local al ataque básico del arma.",
+    "pesoBase": 650,
+    "requiere": [],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "venenoso_local_plano",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -630,31 +688,71 @@
         "operacion": "sumar"
       }
     ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioVenenoLocalMinimo: 1–1; danioVenenoLocalMaximo: 1–2."
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "danioVenenoLocalMinimo": {
+            "minimo": 1,
+            "maximo": 1
+          },
+          "danioVenenoLocalMaximo": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 4,
+        "peso": 700,
+        "valores": {
+          "danioVenenoLocalMinimo": {
+            "minimo": 2,
+            "maximo": 3
+          },
+          "danioVenenoLocalMaximo": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 7,
+        "peso": 400,
+        "valores": {
+          "danioVenenoLocalMinimo": {
+            "minimo": 4,
+            "maximo": 5
+          },
+          "danioVenenoLocalMaximo": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "El componente de veneno pertenece solamente al arma que contiene el afijo.",
+      "No aumenta habilidades ni Potencia de Habilidad.",
+      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
+    ]
   },
   "igneo": {
     "nombre": "Ígneo",
     "tipoAfijo": "prefijo",
     "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
+    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["danio_elemental_global"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "igneo_aumentado",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -672,23 +770,14 @@
     "nombre": "Invernal",
     "tipoAfijo": "prefijo",
     "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
+    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["danio_elemental_global"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "invernal_aumentado",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -706,23 +795,14 @@
     "nombre": "Tempestuoso",
     "tipoAfijo": "prefijo",
     "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
+    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["danio_elemental_global"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "tempestuoso_aumentado",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -740,23 +820,14 @@
     "nombre": "Tóxico",
     "tipoAfijo": "prefijo",
     "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental real antes de aumentar porcentualmente ese tipo de daño.",
+    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
     "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
     "pesoBase": 0,
-    "requiere": [
-      "danio_elemental"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["danio_elemental_global"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "toxico_aumentado",
     "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
+      "tipos": ["arma", "armadura", "quiver"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -777,18 +848,11 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de quemar.",
     "pesoBase": 0,
-    "requiere": [
-      "estados_alterados"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["estados_alterados"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "abrasador",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -809,18 +873,11 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de congelar.",
     "pesoBase": 0,
-    "requiere": [
-      "estados_alterados"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["estados_alterados"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "congelante",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -841,18 +898,11 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de aturdir.",
     "pesoBase": 0,
-    "requiere": [
-      "estados_alterados"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["estados_alterados"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "aturdidor",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -873,18 +923,11 @@
     "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
     "descripcion": "Otorgaría una probabilidad de envenenar.",
     "pesoBase": 0,
-    "requiere": [
-      "estados_alterados"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "requiere": ["estados_alterados"],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "ponzonoso",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -906,21 +949,13 @@
     "descripcion": "Aumenta la Potencia de Habilidad del catalizador.",
     "pesoBase": 650,
     "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_habilidad_porcentaje",
     "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
+      "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
-      "familiasIncluidas": [
-        "baston",
-        "varita"
-      ],
+      "familiasIncluidas": ["baston", "varita"],
       "familiasExcluidas": []
     },
     "efectos": [

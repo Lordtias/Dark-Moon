@@ -18,9 +18,12 @@ import {
   FACTORES_TEMPORALES_PREDETERMINADOS,
   TIEMPO_REFERENCIA,
 } from "../../../juego/tiempo/SistemaTiempo.js";
-import { normalizarResistencias } from "../../../juego/combate/ComponentesDanio.js";
-const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
+import {
+  copiarRangosDanioElementalLocal,
+  normalizarResistencias,
+} from "../../../juego/combate/ComponentesDanio.js";
 
+const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 const ATRIBUTOS_REQUERIDOS = [
   "fuerza",
   "destreza",
@@ -29,7 +32,6 @@ const ATRIBUTOS_REQUERIDOS = [
   "sabiduria",
   "carisma",
 ];
-
 const NOMBRES_FACTORES_TEMPORALES = [
   "factorTiempo",
   "factorMovimiento",
@@ -37,11 +39,11 @@ const NOMBRES_FACTORES_TEMPORALES = [
   "factorAccion",
   "factorConsumo",
 ];
+
 function validarAtributos(nombre, atributos) {
   if (!atributos || typeof atributos !== "object" || Array.isArray(atributos)) {
     throw new Error(`${nombre} debe tener atributos válidos.`);
   }
-
   for (const atributo of ATRIBUTOS_REQUERIDOS) {
     if (!Number.isInteger(atributos[atributo]) || atributos[atributo] <= 0) {
       throw new Error(
@@ -52,6 +54,7 @@ function validarAtributos(nombre, atributos) {
     }
   }
 }
+
 function normalizarEstadisticasBase(nombre, configuracion) {
   if (
     !configuracion ||
@@ -76,9 +79,6 @@ function normalizarEstadisticasBase(nombre, configuracion) {
     potenciaEfectos: configuracion.potenciaEfectos ?? 0,
     resistenciaMental: configuracion.resistenciaMental ?? 0,
     potenciaAura: configuracion.potenciaAura ?? 0,
-    // Las resistencias se validan y limitan al construir
-    // el combatiente. El cálculo derivado vuelve a aplicar
-    // el límite después de atributos y equipo.
     resistencias: normalizarResistencias({
       fuego: configuracion.resistencias?.fuego ?? 0,
       frio: configuracion.resistencias?.frio ?? 0,
@@ -110,9 +110,9 @@ function normalizarEstadisticasBase(nombre, configuracion) {
       );
     }
   }
-
   return valores;
 }
+
 function normalizarAtaqueNatural(nombre, configuracion = null) {
   const valores =
     configuracion &&
@@ -124,9 +124,13 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
   const patronSolicitado =
     valores.patronAtaque ?? obtenerPatronAtaquePredeterminado(tipoAtaque);
   const patronNormalizado = normalizarPatronAtaque(patronSolicitado);
+  const rangosElementales = copiarRangosDanioElementalLocal(valores, {
+    origen: `el ataque natural de ${nombre}`,
+  });
   const ataque = {
     danioFisicoMinimo: valores.danioFisicoMinimo ?? 1,
     danioFisicoMaximo: valores.danioFisicoMaximo ?? 2,
+    ...rangosElementales,
     atributoAtaque: valores.atributoAtaque ?? "fuerza",
     precision: valores.precision ?? 0,
     alcance: valores.alcance ?? 1,
@@ -134,8 +138,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     patronAtaque: patronNormalizado,
     probabilidadCritico: valores.probabilidadCritico ?? 5,
     multiplicadorCritico: valores.multiplicadorCritico ?? 1.5,
-    // Los ataques naturales utilizan un coste normal de 100
-    // salvo que su plantilla indique otro valor.
     costoAtaque: valores.costoAtaque ?? TIEMPO_REFERENCIA,
   };
   if (
@@ -156,7 +158,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       `El ataque natural de ${nombre} ` + "necesita un atributo de ataque.",
     );
   }
-
   ataque.atributoAtaque = ataque.atributoAtaque.trim().toLowerCase();
 
   if (!Number.isFinite(ataque.precision)) {
@@ -169,13 +170,11 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       "El alcance del ataque natural de " + `${nombre} no es válido.`,
     );
   }
-
   if (!TIPOS_ATAQUE_VALIDOS.includes(ataque.tipoAtaque)) {
     throw new Error(
       "El tipo de ataque natural de " + `${nombre} no es válido.`,
     );
   }
-
   if (!ataque.patronAtaque) {
     throw new Error(
       "El patrón del ataque natural de " + `${nombre} no es válido.`,
@@ -190,7 +189,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
         "patrón adyacente y debe tener alcance 1.",
     );
   }
-
   if (
     !Number.isFinite(ataque.probabilidadCritico) ||
     !Number.isFinite(ataque.multiplicadorCritico)
@@ -246,9 +244,9 @@ function normalizarFactoresTemporales(nombre, configuracion = {}) {
       );
     }
   }
-
   return factores;
 }
+
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -333,6 +331,7 @@ export class Combatiente extends Destructible {
     this.acumuladorRegeneracionVida = 0;
     this.acumuladorRegeneracionMana = 0;
   }
+
   get estadisticasDerivadas() {
     const estadisticas = calcularEstadisticasDerivadas(this);
     this.vidaMaxima = estadisticas.vidaMaxima;
@@ -358,6 +357,7 @@ export class Combatiente extends Destructible {
     return this.configuracionAtaqueActual.propiedadesControladoras
       .atributoAtaque;
   }
+
   get costoAtaqueActual() {
     const costoAtaque = this.configuracionAtaqueActual.costoAtaqueBase;
     if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
@@ -367,6 +367,7 @@ export class Combatiente extends Destructible {
     }
     return costoAtaque;
   }
+
   get alcanceAtaque() {
     const alcance =
       this.configuracionAtaqueActual.propiedadesControladoras.alcance;
@@ -375,6 +376,7 @@ export class Combatiente extends Destructible {
     }
     return alcance;
   }
+
   get tipoAtaqueActual() {
     const tipo =
       this.configuracionAtaqueActual.propiedadesControladoras.tipoAtaque;
@@ -383,6 +385,7 @@ export class Combatiente extends Destructible {
     }
     return tipo;
   }
+
   get patronAtaqueActual() {
     const patronAtaque =
       this.configuracionAtaqueActual.propiedadesControladoras.patronAtaque;
@@ -396,11 +399,11 @@ export class Combatiente extends Destructible {
   get estaVivo() {
     return !this.estaDestruido;
   }
+
   recuperarVida(cantidad) {
     if (!Number.isFinite(cantidad)) {
       throw new Error("La recuperación de Vida debe ser numérica.");
     }
-
     const anterior = this.vidaActual;
     this.vidaActual = Math.min(
       this.vidaMaxima,
@@ -425,18 +428,13 @@ export class Combatiente extends Destructible {
     if (!Number.isFinite(cantidad) || cantidad < 0) {
       throw new Error("El costo de Maná no es válido.");
     }
-
     if (this.manaActual < cantidad) {
       return false;
     }
-
     this.manaActual -= cantidad;
     return true;
   }
-  // Procesa únicamente la regeneración natural de Vida.
-  //
-  // La separación respecto de Maná permite que el estado explícito de
-  // combate bloquee Vida sin afectar el otro recurso.
+
   procesarRegeneracionVida(estadisticas = this.estadisticasDerivadas) {
     if (!this.estaVivo || this.vidaActual >= this.vidaMaxima) {
       this.acumuladorRegeneracionVida = 0;
@@ -447,15 +445,11 @@ export class Combatiente extends Destructible {
     if (vidaEntera <= 0) {
       return 0;
     }
-
     const vidaRecuperada = this.recuperarVida(vidaEntera);
     this.acumuladorRegeneracionVida -= vidaEntera;
     return vidaRecuperada;
   }
-  // Procesa únicamente la regeneración natural de Maná.
-  //
-  // La acumulación fraccionaria permite que valores como 0,8 o 1,2 por
-  // pulso tengan una cadencia gradual y reproducible.
+
   procesarRegeneracionMana(estadisticas = this.estadisticasDerivadas) {
     if (!this.estaVivo || this.manaActual >= this.manaMaximo) {
       this.acumuladorRegeneracionMana = 0;
@@ -466,22 +460,14 @@ export class Combatiente extends Destructible {
     if (manaEntero <= 0) {
       return 0;
     }
-
     const manaRecuperado = this.recuperarMana(manaEntero);
     this.acumuladorRegeneracionMana -= manaEntero;
     return manaRecuperado;
   }
-  // Procesa un pulso periódico de regeneración.
-  //
-  // Este método se ejecuta cada 100 unidades temporales y no depende de
-  // las acciones realizadas por el jugador. Ambas políticas siguen activas;
-  // el estado de combate decide si corresponde omitir Vida.
+
   procesarPulsoRegeneracion() {
     if (!this.estaVivo) {
-      return {
-        vidaRecuperada: 0,
-        manaRecuperado: 0,
-      };
+      return { vidaRecuperada: 0, manaRecuperado: 0 };
     }
     const estadisticas = this.estadisticasDerivadas;
     return {

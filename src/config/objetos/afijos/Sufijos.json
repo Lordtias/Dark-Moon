@@ -359,17 +359,19 @@
   "de_ascuas": {
     "nombre": "De ascuas",
     "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La resistencia al fuego ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de fuego.",
-    "descripcion": "Aumentaría la resistencia al fuego.",
-    "pesoBase": 800,
+    "estado": "activo",
+    "motivoEstado": "La resistencia al fuego ya se compone como estadística general y el motor elemental puede comprobarla con paquetes deterministas.",
+    "descripcion": "Aumenta la resistencia al fuego del personaje.",
+    "pesoBase": 700,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_fuego",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
     },
     "efectos": [
       {
@@ -417,17 +419,19 @@
   "de_escarcha": {
     "nombre": "De escarcha",
     "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La resistencia al frío ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de frío.",
-    "descripcion": "Aumentaría la resistencia al frío.",
-    "pesoBase": 800,
+    "estado": "activo",
+    "motivoEstado": "La resistencia al frío ya se compone como estadística general y existen fuentes elementales para comprobarla.",
+    "descripcion": "Aumenta la resistencia al frío del personaje.",
+    "pesoBase": 700,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "resistencia_frío",
+    "grupoExclusion": "resistencia_frio",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
     },
     "efectos": [
       {
@@ -475,17 +479,19 @@
   "de_tormenta": {
     "nombre": "De tormenta",
     "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La resistencia al rayo ya funciona, pero el contenido actual todavía no posee fuentes relevantes de daño de rayo.",
-    "descripcion": "Aumentaría la resistencia al rayo.",
-    "pesoBase": 800,
+    "estado": "activo",
+    "motivoEstado": "La resistencia al rayo ya se compone como estadística general y el motor elemental puede comprobarla con paquetes deterministas.",
+    "descripcion": "Aumenta la resistencia al rayo del personaje.",
+    "pesoBase": 700,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_rayo",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
     },
     "efectos": [
       {
@@ -533,17 +539,19 @@
   "del_antidoto": {
     "nombre": "Del antídoto",
     "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La resistencia al veneno ya funciona, pero el contenido actual todavía no posee ataques de veneno relevantes.",
-    "descripcion": "Aumentaría la resistencia al veneno.",
-    "pesoBase": 800,
+    "estado": "activo",
+    "motivoEstado": "La resistencia al veneno ya se compone como estadística general y existen fuentes elementales para comprobarla.",
+    "descripcion": "Aumenta la resistencia al veneno del personaje.",
+    "pesoBase": 700,
     "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "resistencia_veneno",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": ["armadura", "quiver"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
     },
     "efectos": [
       {
@@ -725,9 +733,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadCriticoGlobal: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: probabilidadCriticoGlobal: 1–2."
   },
   "de_carniceria": {
     "nombre": "De carnicería",
@@ -750,9 +758,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: multiplicadorCriticoAdicional: 0.05–0.1.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: multiplicadorCriticoAdicional: 0.05–0.1."
   },
   "de_renovacion": {
     "nombre": "De renovación",
@@ -775,9 +783,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: regeneracionVidaPorcentaje: 0.2–0.5.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: regeneracionVidaPorcentaje: 0.2–0.5."
   },
   "de_meditacion": {
     "nombre": "De meditación",
@@ -800,9 +808,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: regeneracionManaPorcentaje: 0.2–0.5.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: regeneracionManaPorcentaje: 0.2–0.5."
   },
   "del_oso": {
     "nombre": "Del oso",
@@ -825,9 +833,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: fuerza: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: fuerza: 1–2."
   },
   "del_lince": {
     "nombre": "Del lince",
@@ -850,9 +858,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: destreza: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: destreza: 1–2."
   },
   "del_roble": {
     "nombre": "Del roble",
@@ -875,9 +883,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: constitucion: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: constitucion: 1–2."
   },
   "del_sabio": {
     "nombre": "Del sabio",
@@ -900,9 +908,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: inteligencia: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: inteligencia: 1–2."
   },
   "del_buho": {
     "nombre": "Del búho",
@@ -925,16 +933,16 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: sabiduria: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: sabiduria: 1–2."
   },
   "del_soberano": {
     "nombre": "Del soberano",
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría la Carisma.",
+    "descripcion": "Aumentaría Carisma.",
     "pesoBase": 0,
     "requiere": ["atributos_por_equipamiento"],
     "rarezasPermitidas": ["magico", "raro"],
@@ -950,9 +958,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: carisma: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: carisma: 1–2."
   },
   "de_celeridad": {
     "nombre": "De celeridad",
@@ -975,9 +983,9 @@
         "operacion": "aumentarVelocidad"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: velocidadMovimientoPorcentaje: 5–8.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: velocidadMovimientoPorcentaje: 5–8."
   },
   "del_vampiro": {
     "nombre": "Del vampiro",
@@ -1000,9 +1008,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: roboVidaPorcentaje: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: roboVidaPorcentaje: 1–2."
   },
   "del_devorador": {
     "nombre": "Del devorador",
@@ -1025,9 +1033,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: roboManaPorcentaje: 1–2.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: roboManaPorcentaje: 1–2."
   },
   "de_fortuna": {
     "nombre": "De fortuna",
@@ -1050,9 +1058,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: rarezaObjetosEncontradosPorcentaje: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: rarezaObjetosEncontradosPorcentaje: 5–10."
   },
   "de_abundancia": {
     "nombre": "De abundancia",
@@ -1075,15 +1083,15 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: cantidadObjetosEncontradosPorcentaje: 5–10.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: cantidadObjetosEncontradosPorcentaje: 5–10."
   },
   "del_taumaturgo": {
     "nombre": "Del taumaturgo",
     "tipoAfijo": "sufijo",
     "estado": "pendiente_motor",
-    "motivoEstado": "Todavía no existe un sistema de hechizos ni una estadística de daño de hechizos.",
+    "motivoEstado": "La Potencia de Habilidad ya existe, pero este modificador histórico de hechizos todavía no tiene contrato canónico propio.",
     "descripcion": "Aumentaría el daño de los hechizos.",
     "pesoBase": 0,
     "requiere": ["hechizos"],
@@ -1100,9 +1108,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioHechizosAumentadoPorcentaje: 8–15.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: danioHechizosAumentadoPorcentaje: 8–15."
   },
   "de_canalizacion": {
     "nombre": "De canalización",
@@ -1125,9 +1133,9 @@
         "operacion": "aumentarVelocidad"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: velocidadLanzamientoPorcentaje: 5–8.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: velocidadLanzamientoPorcentaje: 5–8."
   },
   "de_concentracion": {
     "nombre": "De concentración",
@@ -1150,9 +1158,9 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: precisionHechizos: 2–5.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: precisionHechizos: 2–5."
   },
   "del_archimago": {
     "nombre": "Del archimago",
@@ -1179,8 +1187,8 @@
         "operacion": "sumar"
       }
     ],
+    "grados": [],
     "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: potenciaHechizos: 1–2; manaMaximo: 10–20.",
-    "grados": []
+    "propuestaBalance": "Primer rango sugerido: potenciaHechizos: 1–2; manaMaximo: 10–20."
   }
 }

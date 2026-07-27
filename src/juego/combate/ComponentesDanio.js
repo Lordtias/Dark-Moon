@@ -2,8 +2,7 @@ import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
 // Tipos de daño admitidos por la tubería común.
 //
-// No se incorpora daño verdadero, arcano o genérico
-// durante esta etapa.
+// No se incorpora daño verdadero, arcano o genérico.
 export const TIPOS_DANIO = Object.freeze({
   FISICO: "fisico",
   FUEGO: "fuego",
@@ -12,10 +11,7 @@ export const TIPOS_DANIO = Object.freeze({
   VENENO: "veneno",
 });
 
-export const TIPOS_DANIO_VALIDOS = Object.freeze(
-  Object.values(TIPOS_DANIO),
-);
-
+export const TIPOS_DANIO_VALIDOS = Object.freeze(Object.values(TIPOS_DANIO));
 export const TIPOS_DANIO_ELEMENTAL = Object.freeze([
   TIPOS_DANIO.FUEGO,
   TIPOS_DANIO.FRIO,
@@ -38,6 +34,35 @@ const ETIQUETA_TIPO_DANIO = Object.freeze({
   [TIPOS_DANIO.VENENO]: "veneno",
 });
 
+// Describe el contrato canónico para el daño elemental local de una fuente.
+// Sirve por igual para armas, afijos y ataques naturales.
+export const RANGOS_DANIO_ELEMENTAL_LOCAL = Object.freeze([
+  Object.freeze({
+    tipo: TIPOS_DANIO.FUEGO,
+    nombre: "fuego",
+    propiedadMinimo: "danioFuegoLocalMinimo",
+    propiedadMaximo: "danioFuegoLocalMaximo",
+  }),
+  Object.freeze({
+    tipo: TIPOS_DANIO.FRIO,
+    nombre: "frío",
+    propiedadMinimo: "danioFrioLocalMinimo",
+    propiedadMaximo: "danioFrioLocalMaximo",
+  }),
+  Object.freeze({
+    tipo: TIPOS_DANIO.RAYO,
+    nombre: "rayo",
+    propiedadMinimo: "danioRayoLocalMinimo",
+    propiedadMaximo: "danioRayoLocalMaximo",
+  }),
+  Object.freeze({
+    tipo: TIPOS_DANIO.VENENO,
+    nombre: "veneno",
+    propiedadMinimo: "danioVenenoLocalMinimo",
+    propiedadMaximo: "danioVenenoLocalMaximo",
+  }),
+]);
+
 function limitar(valor, minimo, maximo) {
   return Math.max(minimo, Math.min(maximo, valor));
 }
@@ -54,6 +79,76 @@ function validarObjetoPlano(valor, descripcion) {
   }
 }
 
+function obtenerRangoElementalLocal(propiedades, configuracion, origen) {
+  const minimo = propiedades[configuracion.propiedadMinimo] ?? 0;
+  const maximo = propiedades[configuracion.propiedadMaximo] ?? 0;
+
+  if (
+    !Number.isFinite(minimo) ||
+    !Number.isFinite(maximo) ||
+    minimo < 0 ||
+    maximo < minimo
+  ) {
+    throw new Error(
+      `El rango de daño de ${configuracion.nombre} de ${origen} no es válido.`,
+    );
+  }
+
+  return { minimo, maximo };
+}
+
+export function crearDescriptoresDanioElementalLocal(
+  propiedades,
+  { origen = "la fuente de ataque" } = {},
+) {
+  validarObjetoPlano(propiedades, origen);
+
+  return RANGOS_DANIO_ELEMENTAL_LOCAL.flatMap((configuracion) => {
+    const rango = obtenerRangoElementalLocal(
+      propiedades,
+      configuracion,
+      origen,
+    );
+    if (rango.minimo === 0 && rango.maximo === 0) {
+      return [];
+    }
+
+    return [
+      {
+        tipo: configuracion.tipo,
+        minimoLocal: rango.minimo,
+        maximoLocal: rango.maximo,
+        // El afijo o ataque natural ya representa un rango terminado.
+        // No se vuelve a escalar con atributos ni con Potencia de Habilidad.
+        multiplicadorAtributo: 1,
+        aplicaDanioPlanoGlobal: false,
+        aplicaMultiplicadorGlobal: false,
+        aplicaCritico: true,
+      },
+    ];
+  });
+}
+
+export function copiarRangosDanioElementalLocal(
+  propiedades,
+  { origen = "la fuente de ataque" } = {},
+) {
+  validarObjetoPlano(propiedades, origen);
+  const copia = {};
+
+  for (const configuracion of RANGOS_DANIO_ELEMENTAL_LOCAL) {
+    const rango = obtenerRangoElementalLocal(
+      propiedades,
+      configuracion,
+      origen,
+    );
+    copia[configuracion.propiedadMinimo] = rango.minimo;
+    copia[configuracion.propiedadMaximo] = rango.maximo;
+  }
+
+  return copia;
+}
+
 export function esTipoDanioValido(tipo) {
   return TIPOS_DANIO_VALIDOS.includes(tipo);
 }
@@ -62,7 +157,6 @@ export function normalizarTipoDanio(tipo) {
   if (typeof tipo !== "string" || tipo.trim() === "") {
     throw new Error("El tipo de daño es obligatorio.");
   }
-
   const normalizado = tipo.trim().toLowerCase();
   if (!esTipoDanioValido(normalizado)) {
     throw new Error(`El tipo de daño "${tipo}" no es válido.`);
@@ -76,10 +170,11 @@ export function obtenerEtiquetaTipoDanio(tipo) {
 }
 
 // Las resistencias se normalizan al contrato inicial 0–75.
-//
-// El límite se aplica tanto al valor base como al resultado
-// acumulado de atributos y equipo.
-export function normalizarResistencia(valor = 0, descripcion = "La resistencia") {
+// El límite se aplica tanto al valor base como al resultado acumulado.
+export function normalizarResistencia(
+  valor = 0,
+  descripcion = "La resistencia",
+) {
   validarNumeroFinito(valor, descripcion);
   return limitar(
     valor,
@@ -90,7 +185,6 @@ export function normalizarResistencia(valor = 0, descripcion = "La resistencia")
 
 export function normalizarResistencias(resistencias = {}) {
   validarObjetoPlano(resistencias, "Las resistencias");
-
   return {
     fuego: normalizarResistencia(
       resistencias.fuego ?? 0,
@@ -112,18 +206,11 @@ export function normalizarResistencias(resistencias = {}) {
 }
 
 // Normaliza solamente las propiedades de resistencia presentes.
-//
-// El resto de las propiedades del objeto se conserva sin cambios.
 export function normalizarPropiedadesResistencias(propiedades = {}) {
   validarObjetoPlano(propiedades, "Las propiedades");
 
-  const normalizadas = {
-    ...propiedades,
-  };
-
-  for (const [tipo, nombrePropiedad] of Object.entries(
-    PROPIEDAD_RESISTENCIA_POR_TIPO,
-  )) {
+  const normalizadas = { ...propiedades };
+  for (const nombrePropiedad of Object.values(PROPIEDAD_RESISTENCIA_POR_TIPO)) {
     if (!Object.prototype.hasOwnProperty.call(normalizadas, nombrePropiedad)) {
       continue;
     }
@@ -164,21 +251,12 @@ export function crearDesgloseDanioVacio() {
   return Object.fromEntries(
     TIPOS_DANIO_VALIDOS.map((tipo) => [
       tipo,
-      {
-        tipo,
-        danioBruto: 0,
-        danioMitigado: 0,
-        danioFinal: 0,
-      },
+      { tipo, danioBruto: 0, danioMitigado: 0, danioFinal: 0 },
     ]),
   );
 }
 
 // Resuelve un componente sin aplicar Vida al objetivo.
-//
-// El bloqueo y la Armadura se usan únicamente para daño físico.
-// Las resistencias se usan únicamente para su elemento.
-// El redondeo se realiza una sola vez al final del componente.
 export function resolverComponenteDanio({
   tipo,
   danioBruto,
@@ -189,21 +267,15 @@ export function resolverComponenteDanio({
   const tipoNormalizado = normalizarTipoDanio(tipo);
   validarNumeroFinito(danioBruto, "El daño bruto");
   validarNumeroFinito(armadura, "La Armadura");
-
   if (danioBruto < 0) {
     throw new Error("El daño bruto no puede ser negativo.");
   }
 
   const bruto = danioBruto;
   const esFisico = tipoNormalizado === TIPOS_DANIO.FISICO;
-
   const bloqueoActivo = esFisico && bloqueo?.activo === true;
   const mitigacionBloqueoRecibida = bloqueo?.mitigacion ?? 0;
-  validarNumeroFinito(
-    mitigacionBloqueoRecibida,
-    "La mitigación de bloqueo",
-  );
-
+  validarNumeroFinito(mitigacionBloqueoRecibida, "La mitigación de bloqueo");
   const mitigacionBloqueo = bloqueoActivo
     ? limitar(
         mitigacionBloqueoRecibida,
@@ -213,10 +285,7 @@ export function resolverComponenteDanio({
     : 0;
   const proporcionBloqueo = mitigacionBloqueo / 100;
   const danioMitigadoBloqueo = bruto * proporcionBloqueo;
-  const danioDespuesBloqueo = Math.max(
-    0,
-    bruto - danioMitigadoBloqueo,
-  );
+  const danioDespuesBloqueo = Math.max(0, bruto - danioMitigadoBloqueo);
 
   let armaduraAplicada = 0;
   let reduccionArmadura = 0;
@@ -241,7 +310,6 @@ export function resolverComponenteDanio({
   }
 
   const danioFinal = Math.max(0, Math.floor(danioAntesRedondeo));
-
   return {
     tipo: tipoNormalizado,
     etiqueta: obtenerEtiquetaTipoDanio(tipoNormalizado),
@@ -261,9 +329,6 @@ export function resolverComponenteDanio({
 }
 
 // Resuelve un paquete completo y devuelve total y desglose.
-//
-// Esta función es determinista y puede probarse directamente
-// desde la consola del navegador.
 export function resolverPaqueteDanio({
   componentes,
   armadura = 0,
@@ -275,11 +340,7 @@ export function resolverPaqueteDanio({
   }
 
   const componentesResueltos = componentes.map((componente, indice) => {
-    validarObjetoPlano(
-      componente,
-      `El componente de daño ${indice + 1}`,
-    );
-
+    validarObjetoPlano(componente, `El componente de daño ${indice + 1}`);
     return resolverComponenteDanio({
       tipo: componente.tipo,
       danioBruto: componente.danioBruto,
@@ -310,9 +371,7 @@ export function resolverPaqueteDanio({
       (total, componente) => total + componente.danioMitigado,
       0,
     ),
-    bloqueado: componentesResueltos.some(
-      (componente) => componente.bloqueado,
-    ),
+    bloqueado: componentesResueltos.some((componente) => componente.bloqueado),
     componentes: componentesResueltos,
     desgloseDanio,
   };

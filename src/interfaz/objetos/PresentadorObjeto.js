@@ -3,8 +3,8 @@ import {
   TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
 } from "../../juego/tiempo/SistemaTiempo.js";
-
 import { obtenerPresentacionRarezaObjeto } from "./ContextoPresentacionObjetos.js";
+import { RANGOS_DANIO_ELEMENTAL_LOCAL } from "../../juego/combate/ComponentesDanio.js";
 
 const ETIQUETAS_TIPO = Object.freeze({
   arma: "Arma",
@@ -14,7 +14,6 @@ const ETIQUETAS_TIPO = Object.freeze({
   consumible: "Consumible",
   material: "Material",
 });
-
 const ETIQUETAS_ATRIBUTO = Object.freeze({
   fuerza: "Fuerza",
   destreza: "Destreza",
@@ -23,29 +22,46 @@ const ETIQUETAS_ATRIBUTO = Object.freeze({
   sabiduria: "Sabiduría",
   carisma: "Carisma",
 });
-
 const ETIQUETAS_TIPO_ATAQUE = Object.freeze({
   cuerpoACuerpo: "Cuerpo a cuerpo",
   distancia: "Distancia",
 });
-
 const ETIQUETAS_PATRON_ATAQUE = Object.freeze({
   adyacente: "Adyacente",
   lineal: "Lineal",
   libre: "Libre",
 });
-
 const ETIQUETAS_ELEMENTO = Object.freeze({
   fuego: "Fuego",
   frio: "Frío",
   rayo: "Rayo",
   veneno: "Veneno",
 });
-
 const ETIQUETAS_EFECTO = Object.freeze({
   recuperarVida: "Recupera Vida",
   recuperarMana: "Recupera Maná",
 });
+
+const RANGOS_ELEMENTALES_LOCALES = RANGOS_DANIO_ELEMENTAL_LOCAL;
+
+const RESISTENCIAS_VISIBLES = Object.freeze([
+  Object.freeze({
+    propiedad: "resistenciaFuego",
+    etiqueta: "Resistencia al fuego",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaFrio",
+    etiqueta: "Resistencia al frío",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaRayo",
+    etiqueta: "Resistencia al rayo",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaVeneno",
+    etiqueta: "Resistencia al veneno",
+  }),
+]);
 
 const PRESENTACION_VALORES_AFIJO = Object.freeze({
   danioFisicoLocalPorcentaje: {
@@ -100,7 +116,6 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
   validarObjeto(objeto);
 
   const esMaterial = objeto.tipo === "material";
-
   return {
     nombre: objeto.nombre,
     subtitulo: crearSubtitulo(objeto),
@@ -128,7 +143,6 @@ function crearSubtitulo(objeto) {
     const manos = objeto.propiedades.manos;
     return `${tipo} · ${manos} ${manos === 1 ? "mano" : "manos"}`;
   }
-
   if (objeto.esArmadura) {
     const ranuras = objeto.ranurasCompatibles
       .map(formatearIdentificador)
@@ -193,7 +207,6 @@ function crearTextoMagnitudComercial({
   if (tieneContenedor) {
     return `${formateador(valorUnitario)} propio · ${formateador(valorTotal)} total`;
   }
-
   if (objeto.apilable === true && cantidad > 1) {
     return `${formateador(valorUnitario)} c/u · ${formateador(valorTotal)} total`;
   }
@@ -203,7 +216,6 @@ function crearTextoMagnitudComercial({
 
 function crearPresentacionAfijos(objeto) {
   const afijos = Array.isArray(objeto.afijos) ? objeto.afijos : [];
-
   return afijos.map((afijo) => ({
     id: afijo.id,
     tipo: afijo.tipoAfijo,
@@ -219,16 +231,25 @@ function crearTextosEfectosAfijo(afijo) {
   const valores = afijo.valores ?? {};
   const textos = [];
   const propiedadesProcesadas = new Set();
-  const minimoLocal = valores.danioFisicoLocalMinimo;
-  const maximoLocal = valores.danioFisicoLocalMaximo;
 
-  if (Number.isFinite(minimoLocal) && Number.isFinite(maximoLocal)) {
-    textos.push(
-      `Agrega ${formatearNumeroFlexible(minimoLocal)}` +
-        `–${formatearNumeroFlexible(maximoLocal)} de daño físico local`,
-    );
-    propiedadesProcesadas.add("danioFisicoLocalMinimo");
-    propiedadesProcesadas.add("danioFisicoLocalMaximo");
+  agregarTextoRangoAfijo({
+    valores,
+    textos,
+    propiedadesProcesadas,
+    propiedadMinimo: "danioFisicoLocalMinimo",
+    propiedadMaximo: "danioFisicoLocalMaximo",
+    descripcion: "daño físico local",
+  });
+
+  for (const rango of RANGOS_ELEMENTALES_LOCALES) {
+    agregarTextoRangoAfijo({
+      valores,
+      textos,
+      propiedadesProcesadas,
+      propiedadMinimo: rango.propiedadMinimo,
+      propiedadMaximo: rango.propiedadMaximo,
+      descripcion: `daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local al ataque básico`,
+    });
   }
 
   for (const [propiedad, valor] of Object.entries(valores)) {
@@ -261,6 +282,29 @@ function crearTextosEfectosAfijo(afijo) {
   }
 
   return textos;
+}
+
+function agregarTextoRangoAfijo({
+  valores,
+  textos,
+  propiedadesProcesadas,
+  propiedadMinimo,
+  propiedadMaximo,
+  descripcion,
+}) {
+  const minimo = valores[propiedadMinimo];
+  const maximo = valores[propiedadMaximo];
+
+  if (!Number.isFinite(minimo) || !Number.isFinite(maximo)) {
+    return;
+  }
+
+  textos.push(
+    `Agrega ${formatearNumeroFlexible(minimo)}` +
+      `–${formatearNumeroFlexible(maximo)} de ${descripcion}`,
+  );
+  propiedadesProcesadas.add(propiedadMinimo);
+  propiedadesProcesadas.add(propiedadMaximo);
 }
 
 function crearEstadisticasObjeto({ objeto, combatiente }) {
@@ -313,6 +357,8 @@ function crearEstadisticasArma({ objeto, combatiente }) {
     );
   }
 
+  estadisticas.push(...crearEstadisticasDanioElementalLocal(propiedades));
+
   estadisticas.push(
     crearEstadistica(
       "Atributo",
@@ -357,7 +403,6 @@ function crearEstadisticasArma({ objeto, combatiente }) {
       ),
     );
   }
-
   if (esVarita && Number.isFinite(propiedades.costoManaAtaqueBasico)) {
     estadisticas.push(
       crearEstadistica(
@@ -366,12 +411,33 @@ function crearEstadisticasArma({ objeto, combatiente }) {
       ),
     );
   }
-
   if (propiedades.requiereQuiver) {
     estadisticas.push(
       crearEstadistica(
         "Munición",
         formatearIdentificador(propiedades.tipoMunicion),
+      ),
+    );
+  }
+
+  return estadisticas;
+}
+
+function crearEstadisticasDanioElementalLocal(propiedades) {
+  const estadisticas = [];
+
+  for (const rango of RANGOS_ELEMENTALES_LOCALES) {
+    const minimo = propiedades[rango.propiedadMinimo];
+    const maximo = propiedades[rango.propiedadMaximo];
+    if (!Number.isFinite(minimo) || !Number.isFinite(maximo)) {
+      continue;
+    }
+
+    estadisticas.push(
+      crearEstadistica(
+        `Daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local`,
+        `${formatearNumeroFlexible(minimo)} – ` +
+          `${formatearNumeroFlexible(maximo)} (ataque básico)`,
       ),
     );
   }
@@ -393,6 +459,7 @@ function calcularRangoDanioFisicoLocal(propiedades) {
     minimo,
     Math.ceil((maximoBase + planoMaximo) * (1 + porcentaje)),
   );
+
   return { minimo, maximo };
 }
 
@@ -413,7 +480,6 @@ function crearEstadisticasArmadura(objeto) {
       ),
     );
   }
-
   if (
     Number.isFinite(propiedades.mitigacionBloqueo) &&
     propiedades.mitigacionBloqueo > 0
@@ -426,6 +492,7 @@ function crearEstadisticasArmadura(objeto) {
     );
   }
 
+  estadisticas.push(...crearEstadisticasResistencias(propiedades));
   return estadisticas;
 }
 
@@ -440,8 +507,7 @@ function crearEstadisticasQuiver(objeto) {
         : 1),
     0,
   );
-
-  return [
+  const estadisticas = [
     crearEstadistica(
       "Tipo de munición",
       formatearIdentificador(objeto.propiedades.tipoMunicion),
@@ -449,6 +515,22 @@ function crearEstadisticasQuiver(objeto) {
     crearEstadistica("Capacidad", `${contenedor?.capacidad ?? 0} pila`),
     crearEstadistica("Contenido", `${cantidadMunicion} unidades`),
   ];
+
+  estadisticas.push(...crearEstadisticasResistencias(objeto.propiedades));
+  return estadisticas;
+}
+
+function crearEstadisticasResistencias(propiedades) {
+  return RESISTENCIAS_VISIBLES.flatMap(({ propiedad, etiqueta }) => {
+    const valor = propiedades[propiedad];
+    if (!Number.isFinite(valor) || valor === 0) {
+      return [];
+    }
+
+    return [
+      crearEstadistica(etiqueta, `${formatearNumeroConSignoFlexible(valor)} %`),
+    ];
+  });
 }
 
 function crearEstadisticasMunicion(objeto) {

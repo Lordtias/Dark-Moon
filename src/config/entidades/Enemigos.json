@@ -178,12 +178,14 @@
           "fuego": 0,
           "frio": 0,
           "rayo": 0,
-          "veneno": 25
+          "veneno": 35
         }
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 1,
         "danioFisicoMaximo": 3,
+        "danioVenenoLocalMinimo": 1,
+        "danioVenenoLocalMaximo": 2,
         "atributoAtaque": "fuerza",
         "precision": 4,
         "alcance": 1,
@@ -292,8 +294,8 @@
         "resistenciaMental": 5,
         "potenciaAura": 0,
         "resistencias": {
-          "fuego": -10,
-          "frio": 10,
+          "fuego": 0,
+          "frio": 20,
           "rayo": 0,
           "veneno": 75
         }
@@ -412,8 +414,8 @@
         "resistenciaMental": 5,
         "potenciaAura": 0,
         "resistencias": {
-          "fuego": -10,
-          "frio": 10,
+          "fuego": 0,
+          "frio": 20,
           "rayo": 0,
           "veneno": 75
         }

@@ -64,15 +64,10 @@ export class Renderizador {
     }
 
     this.renderizadorMapa = renderizadorMapa;
-
     this.panelPersonaje = panelPersonaje;
-
     this.panelInventario = panelInventario;
-
     this.panelEquipamiento = panelEquipamiento;
-
     this.panelOrdenTemporal = panelOrdenTemporal;
-
     this.combatLogText = combatLogText;
 
     // Se utiliza para interpretar correctamente
@@ -82,6 +77,10 @@ export class Renderizador {
     // La primera llamada reemplazará el mensaje
     // explicativo incluido en index.html.
     this.registroInicializado = false;
+
+    // La selección de habilidades es una capa visual del renderizador y no
+    // modifica la instancia de Juego ni el contrato del backend Canvas.
+    this.estadoVisualHabilidad = crearEstadoVisualHabilidad();
   }
 
   // Permite que el controlador configure
@@ -94,6 +93,13 @@ export class Renderizador {
     });
   }
 
+  // Actualiza la capa visual de selección mágica. La integración del mapa
+  // activo es la única responsable de establecerla y limpiarla.
+  actualizarEstadoVisualHabilidad(estado = null) {
+    this.estadoVisualHabilidad = crearEstadoVisualHabilidad(estado);
+    return this.estadoVisualHabilidad;
+  }
+
   // Actualiza toda la representación
   // visible de la partida.
   dibujarJuego(juego) {
@@ -101,7 +107,9 @@ export class Renderizador {
 
     // Convertimos Juego en una escena plana
     // antes de entregarla al backend gráfico.
-    const escena = crearEscenaJuego(juego);
+    const escena = crearEscenaJuego(juego, {
+      habilidad: this.estadoVisualHabilidad,
+    });
 
     this.renderizadorMapa.dibujar(escena);
 
@@ -113,22 +121,16 @@ export class Renderizador {
     // porque el oro no forma parte del contenedor
     // ni ocupa una casilla de inventario.
     this.panelInventario.actualizar(juego.player.inventario, juego.player);
-
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
-
     this.panelOrdenTemporal.actualizar(juego);
   }
 
   // Agrega mensajes al historial
   // sin borrar eventos anteriores.
   mostrarMensaje(mensaje) {
-    const mensajes = normalizarMensajesJuego(
-      mensaje,
-
-      {
-        nombreJugador: this.nombreJugador,
-      },
-    );
+    const mensajes = normalizarMensajesJuego(mensaje, {
+      nombreJugador: this.nombreJugador,
+    });
 
     if (mensajes.length === 0) {
       return;
@@ -136,7 +138,6 @@ export class Renderizador {
 
     if (!this.registroInicializado) {
       this.combatLogText.replaceChildren();
-
       this.registroInicializado = true;
     }
 
@@ -144,21 +145,16 @@ export class Renderizador {
 
     for (const evento of mensajes) {
       const elemento = document.createElement("p");
-
       elemento.classList.add(
         "mensaje-registro",
         `mensaje-registro--${evento.tipo}`,
       );
-
       elemento.dataset.tipo = evento.tipo;
-
       elemento.textContent = evento.texto;
-
       fragmento.appendChild(elemento);
     }
 
     this.combatLogText.appendChild(fragmento);
-
     this.limitarHistorialMensajes();
 
     // Mantiene visible automáticamente
@@ -173,4 +169,21 @@ export class Renderizador {
       this.combatLogText.firstElementChild?.remove();
     }
   }
+}
+
+function crearEstadoVisualHabilidad(estado = null) {
+  const selector = estado?.selector;
+
+  return Object.freeze({
+    activo: estado?.activo === true,
+    selector:
+      selector && Number.isInteger(selector.x) && Number.isInteger(selector.y)
+        ? Object.freeze({
+            x: selector.x,
+            y: selector.y,
+            objetivoValido: selector.objetivoValido === true,
+            puedeEjecutar: selector.geometria?.puedeEjecutar === true,
+          })
+        : null,
+  });
 }

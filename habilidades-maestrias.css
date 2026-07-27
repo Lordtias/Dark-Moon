@@ -1,9 +1,11 @@
 /* =========================================================
-   ETAPA 7 — BARRA DE HABILIDADES
+   BARRA DE HABILIDADES
 ========================================================= */
-.barra-habilidades[data-barra-habilidades="etapa7"] {
+.barra-habilidades[data-barra-habilidades="activa"] {
   grid-template-columns: repeat(10, 48px) 18px max-content;
+  grid-template-rows: 48px;
   align-items: center;
+  justify-content: safe center;
 }
 
 .barra-habilidades__separador {
@@ -108,15 +110,6 @@
   right: 2px;
   bottom: 2px;
   color: #7db7ff;
-}
-
-.selector-habilidad-etapa7 {
-  outline: 2px solid #73d63d !important;
-  box-shadow: inset 0 0 0 1px #152c0f !important;
-}
-
-.selector-habilidad-invalido-etapa7 {
-  outline-color: #d04d56 !important;
 }
 
 /* =========================================================

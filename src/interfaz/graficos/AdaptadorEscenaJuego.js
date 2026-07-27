@@ -14,27 +14,23 @@ import {
 // - Apariencia del bioma.
 // - Rango y selector de combate.
 // - Selector de interacción.
+// - Selector de habilidad.
 // - Entidades visibles.
 //
-// El selector de interacción reutiliza el dibujo
+// Los selectores reutilizan el mismo contrato visual
 // de esquinas que ya posee Canvas.
-//
-// Esto no reutiliza el estado del combate:
-// solamente aprovecha el mismo contrato visual.
-export function crearEscenaJuego(juego) {
+export function crearEscenaJuego(juego, { habilidad = null } = {}) {
   validarJuego(juego);
 
   const combateActivo = juego.modoCombateActivo === true;
-
   const interaccionActiva = juego.modoInteraccionActivo === true;
+  const habilidadActiva = habilidad?.activo === true;
 
-  // RenderizadorCanvas2D actualmente recibe
-  // el selector dentro del bloque "combate".
-  //
-  // Mientras el modo de interacción está activo,
-  // entregamos el selector en ese mismo espacio,
-  // pero sin casillas atacables.
-  const selectorMapaActivo = combateActivo || interaccionActiva;
+  // RenderizadorCanvas2D recibe los selectores dentro del bloque "combate".
+  // El adaptador reutiliza ese contrato visual sin mezclar las reglas de los
+  // tres modos de interacción.
+  const selectorMapaActivo =
+    combateActivo || interaccionActiva || habilidadActiva;
 
   return {
     mapa: {
@@ -50,14 +46,14 @@ export function crearEscenaJuego(juego) {
 
     combate: {
       activo: selectorMapaActivo,
-
       casillasAtacables: combateActivo ? obtenerCasillasAtacables(juego) : [],
-
       selector: combateActivo
         ? crearSelectorCombateVisual(juego)
         : interaccionActiva
           ? crearSelectorInteraccionVisual(juego)
-          : null,
+          : habilidadActiva
+            ? crearSelectorHabilidadVisual(habilidad)
+            : null,
     },
 
     // Los interactuables se dibujan primero.
@@ -65,11 +61,7 @@ export function crearEscenaJuego(juego) {
     // visible cuando comparte una casilla con botín.
     entidades: [
       ...juego.interactuables.map((interactuable) =>
-        crearEntidadVisual(
-          interactuable,
-
-          TIPOS_ENTIDAD_VISUAL.INTERACTUABLE,
-        ),
+        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE),
       ),
 
       ...juego.objetivos
@@ -77,7 +69,6 @@ export function crearEscenaJuego(juego) {
         .map((objetivo) =>
           crearEntidadVisual(
             objetivo,
-
             objetivo instanceof Enemigo
               ? TIPOS_ENTIDAD_VISUAL.ENEMIGO
               : TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE,
@@ -145,9 +136,7 @@ function crearSelectorCombateVisual(juego) {
 
   return {
     x: selector.x,
-
     y: selector.y,
-
     esValido: juego.esCasillaAtacable(selector.x, selector.y),
   };
 }
@@ -166,10 +155,26 @@ function crearSelectorInteraccionVisual(juego) {
 
   return {
     x: selector.x,
-
     y: selector.y,
-
     esValido: true,
+  };
+}
+
+// Convierte la selección de una habilidad en el contrato visual común.
+// La casilla se marca como válida únicamente cuando contiene un objetivo y
+// también cumple alcance, patrón y línea de visión.
+function crearSelectorHabilidadVisual(habilidad) {
+  const selector = habilidad?.selector;
+
+  if (!selector) {
+    return null;
+  }
+
+  return {
+    x: selector.x,
+    y: selector.y,
+    esValido:
+      selector.objetivoValido === true && selector.puedeEjecutar === true,
   };
 }
 
@@ -188,18 +193,13 @@ function crearEntidadVisual(entidad, tipo) {
 
   return {
     tipo,
-
     nombre: entidad.nombre,
-
     x: entidad.x,
-
     y: entidad.y,
-
     simbolo:
       tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR && !estaViva
         ? "X"
         : entidad.simbolo,
-
     estaViva,
 
     // El backend gráfico recibe un estado textual
@@ -216,7 +216,6 @@ function crearEntidadVisual(entidad, tipo) {
 
     vidaActual,
     vidaMaxima,
-
     mostrarBarraVida:
       tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
       vidaActual !== null &&

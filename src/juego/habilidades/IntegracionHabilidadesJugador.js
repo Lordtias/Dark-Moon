@@ -15,6 +15,7 @@ import { SistemaHabilidadesJugador } from "./SistemaHabilidadesJugador.js";
 export class IntegracionHabilidadesJugador {
   constructor({
     juego,
+    renderizador,
     configuracionEjecucion,
     configuracionProgreso,
     configuracionObjetos,
@@ -25,38 +26,60 @@ export class IntegracionHabilidadesJugador {
         "La integración de habilidades necesita un Juego y su verificación de actividad.",
       );
     }
+
+    if (
+      !renderizador ||
+      typeof renderizador.dibujarJuego !== "function" ||
+      typeof renderizador.mostrarMensaje !== "function" ||
+      typeof renderizador.actualizarEstadoVisualHabilidad !== "function"
+    ) {
+      throw new Error(
+        "La integración de habilidades necesita el renderizador activo de la partida.",
+      );
+    }
+
     normalizarFachadaJuego(juego);
+
     this.juego = juego;
     this.jugador = juego.jugador;
+    this.renderizador = renderizador;
     this.configuracionEjecucion = configuracionEjecucion;
     this.configuracionProgreso = configuracionProgreso;
-    this.configuracionObjetos = configuracionObjetos ?? juego.configuracionObjetos;
+    this.configuracionObjetos =
+      configuracionObjetos ?? juego.configuracionObjetos;
     this.esJuegoActivo = esJuegoActivo;
     this.destruida = false;
+
     this.sistema = new SistemaHabilidadesJugador({
       juego,
       configuracionEjecucion,
     });
+
     this.restaurarBarraGuardada();
+
     this.barra = new BarraHabilidades({ sistemaHabilidades: this.sistema });
     this.panel = new PanelHabilidadesMaestrias({
       sistemaHabilidades: this.sistema,
       jugador: this.jugador,
       configuracionProgreso,
       configuracionEjecucion,
-      familiasArmas: obtenerFamiliasArmas(
-        this.configuracionObjetos,
-      ),
+      familiasArmas: obtenerFamiliasArmas(this.configuracionObjetos),
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
     });
+
     this.entrada = new ControladorEntradaHabilidades({
       sistemaHabilidades: this.sistema,
       esJuegoActivo: () =>
         !this.destruida && this.esJuegoActivo() && !this.panel.estaAbierto(),
+      alProcesarResultado: (resultado) => this.procesarResultado(resultado),
     });
+
     this.desuscribirSistema = this.sistema.suscribirCambio(() => {
+      this.actualizarSeleccionVisual();
       this.panel.renderizar();
+      this.redibujarPartida();
     });
+
     this.desuscribirProgreso = suscribirCambiosProgresoMagico(
       this.jugador,
       () => {
@@ -104,20 +127,49 @@ export class IntegracionHabilidadesJugador {
     }
   }
 
+  actualizarSeleccionVisual() {
+    return this.renderizador.actualizarEstadoVisualHabilidad({
+      activo: this.sistema.modoHabilidad === true,
+      selector: this.sistema.obtenerSeleccionDetallada(),
+    });
+  }
+
+  procesarResultado(resultado) {
+    if (!resultado?.mensaje || this.destruida || !this.esJuegoActivo()) {
+      return resultado;
+    }
+
+    this.renderizador.mostrarMensaje(resultado.mensaje);
+    return resultado;
+  }
+
+  redibujarPartida() {
+    if (this.destruida || !this.esJuegoActivo()) {
+      return false;
+    }
+
+    this.renderizador.dibujarJuego(this.juego);
+    return true;
+  }
+
   destruir() {
     if (this.destruida) return false;
     this.destruida = true;
+
     try {
       this.guardarBarra();
     } catch (error) {
       console.warn("No se pudo conservar la barra al cambiar de mapa:", error);
     }
+
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
     this.entrada?.destruir();
     this.barra?.destruir();
     this.panel?.destruir();
     this.sistema?.destruir();
+    this.renderizador.actualizarEstadoVisualHabilidad(null);
+
     return true;
   }
 }
@@ -128,18 +180,22 @@ function normalizarFachadaJuego(juego) {
       "La integración de habilidades recibió una instancia de Juego inválida.",
     );
   }
+
   definirAliasLectura(juego, "jugador", "player");
   definirAliasLectura(juego, "mapa", "map");
   definirAliasLectura(juego, "modoCombate", "modoCombateActivo");
   definirAliasLectura(juego, "modoInteraccion", "modoInteraccionActivo");
+
   if (!juego.jugador || !juego.mapa) {
     throw new Error("Juego no expone jugador y mapa para las habilidades.");
   }
+
   return juego;
 }
 
 function definirAliasLectura(objeto, alias, propiedadReal) {
   if (alias in objeto || !(propiedadReal in objeto)) return;
+
   Object.defineProperty(objeto, alias, {
     configurable: true,
     enumerable: false,
@@ -153,6 +209,7 @@ function obtenerFamiliasArmas(configuracionObjetos) {
   if (!configuracionObjetos || typeof configuracionObjetos !== "object") {
     return ["daga", "espada", "mandoble", "lanza", "arco", "varita", "baston"];
   }
+
   const familias = new Set();
   for (const objeto of Object.values(configuracionObjetos)) {
     if (
@@ -162,6 +219,7 @@ function obtenerFamiliasArmas(configuracionObjetos) {
       familias.add(objeto.familiaObjeto);
     }
   }
+
   return familias.size > 0
     ? [...familias]
     : ["daga", "espada", "mandoble", "lanza", "arco", "varita", "baston"];

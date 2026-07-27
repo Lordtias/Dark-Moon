@@ -40,7 +40,6 @@ export class ControladorEntradaHabilidades {
     if (!this.esJuegoActivo() || esElementoEditable(evento.target)) {
       return;
     }
-
     const indiceRanura = obtenerIndiceRanura(evento);
     if (indiceRanura !== null) {
       detener(evento);
@@ -57,14 +56,12 @@ export class ControladorEntradaHabilidades {
       this.sistema.moverSelector(movimiento[0], movimiento[1]);
       return;
     }
-
     if (evento.code === "KeyF" || evento.key === "f" || evento.key === "F") {
       detener(evento);
       const resultado = this.sistema.confirmar();
       registrarResultado(resultado);
       return;
     }
-
     // Evita superponer el selector de una habilidad con el selector del ataque
     // natural de respaldo. El jugador conserva ambas alternativas, pero debe
     // cancelar primero la selección vigente con Escape.
@@ -77,7 +74,6 @@ export class ControladorEntradaHabilidades {
       });
       return;
     }
-
     if (evento.key === "Escape") {
       detener(evento);
       this.sistema.cancelar();
@@ -88,7 +84,6 @@ export class ControladorEntradaHabilidades {
     if (!this.esJuegoActivo() || !this.sistema.modoHabilidad) {
       return;
     }
-
     const casilla = evento.target.closest(
       "[data-x][data-y], [data-columna][data-fila], [data-pos-x][data-pos-y]",
     );
@@ -104,7 +99,6 @@ export class ControladorEntradaHabilidades {
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
       return;
     }
-
     detener(evento);
     this.sistema.fijarSelector(x, y);
   }
@@ -135,7 +129,7 @@ function registrarResultado(resultado) {
     return;
   }
   const metodo = resultado.exito ? "info" : "warn";
-  console[metodo]("[Dark Moon · ETAPA 5]", resultado.mensaje, resultado);
+  console[metodo]("[Dark Moon · Habilidades]", resultado.mensaje, resultado);
 }
 
 function esElementoEditable(elemento) {

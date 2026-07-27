@@ -17,7 +17,7 @@ import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/Pers
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 // Controladores principales de la aplicación.
 import { ControladorPantallas } from "./ControladorPantallas.js";
-import { ControladorPartidaEtapa7 as ControladorPartida } from "./ControladorPartidaEtapa7.js";
+import { ControladorPartida } from "./ControladorPartida.js";
 import { ControladorDerrota } from "../controles/ControladorDerrota.js";
 // Aplicacion funciona como coordinador general.
 export class Aplicacion {
@@ -86,7 +86,8 @@ export class Aplicacion {
     ]);
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
-    this.configuracionObjetos = validarCatalogoCatalizadores(configuracionObjetos);
+    this.configuracionObjetos =
+      validarCatalogoCatalizadores(configuracionObjetos);
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
     this.configuracionMapas = configuracionMapas;
     this.configuracionCiudad = configuracionCiudad;

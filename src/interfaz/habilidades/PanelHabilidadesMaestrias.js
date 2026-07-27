@@ -9,18 +9,21 @@ const DESCRIPCIONES = Object.freeze({
   ascua: "Proyectil ígneo básico destinado al corte vertical de Fuego.",
   explosion_ignea: "Explosión intermedia de Fuego para una etapa posterior.",
   incinerar: "Técnica avanzada de Fuego todavía pendiente de implementación.",
-  esquirla_hielo: "Proyectil básico de Frío previsto para el siguiente corte vertical.",
+  esquirla_hielo:
+    "Proyectil básico de Frío previsto para el siguiente corte vertical.",
   nova_escarcha: "Expansión intermedia de Frío todavía en construcción.",
-  prision_glacial: "Control avanzado de Frío reservado para una etapa posterior.",
+  prision_glacial:
+    "Control avanzado de Frío reservado para una etapa posterior.",
   chispa: "Descarga básica de Rayo prevista para el siguiente corte vertical.",
   cadena_rayos: "Habilidad intermedia de Rayo todavía en construcción.",
-  descarga_fulminante: "Habilidad avanzada de Rayo reservada para una etapa posterior.",
+  descarga_fulminante:
+    "Habilidad avanzada de Rayo reservada para una etapa posterior.",
   aguijon_toxico:
     "Dispara un aguijón de veneno que causa daño inmediato y deja una toxina temporal.",
   nube_toxica: "Habilidad intermedia de Veneno todavía en construcción.",
-  plaga_corrosiva: "Habilidad avanzada de Veneno reservada para una etapa posterior.",
+  plaga_corrosiva:
+    "Habilidad avanzada de Veneno reservada para una etapa posterior.",
 });
-
 export class PanelHabilidadesMaestrias {
   constructor({
     sistemaHabilidades,
@@ -31,7 +34,9 @@ export class PanelHabilidadesMaestrias {
     alGuardarCambios = null,
   } = {}) {
     if (!sistemaHabilidades || !jugador || !configuracionProgreso) {
-      throw new Error("Faltan dependencias para construir el panel de habilidades.");
+      throw new Error(
+        "Faltan dependencias para construir el panel de habilidades.",
+      );
     }
     this.sistema = sistemaHabilidades;
     this.jugador = jugador;
@@ -43,7 +48,6 @@ export class PanelHabilidadesMaestrias {
     this.maestriaActiva = "fuego";
     this.idHabilidadSeleccionada = null;
     this.manejadores = [];
-
     asegurarHojaEstilos();
     this.botonAbrir = this.crearBotonAbrir();
     this.dialogo = this.crearDialogo();
@@ -69,13 +73,11 @@ export class PanelHabilidadesMaestrias {
       this.dialogo.close();
     }
   }
-
   renderizar() {
     const resumen = obtenerResumenProgreso(this.jugador);
     this.renderizarCabecera(resumen);
     this.renderizarNavegacion();
     this.contenido.replaceChildren();
-
     if (this.categoriaActiva === "magicas") {
       this.renderizarMagicas(resumen);
     } else if (this.categoriaActiva === "basicas") {
@@ -94,7 +96,6 @@ export class PanelHabilidadesMaestrias {
       );
     }
   }
-
   mostrarMensaje(texto, tipo = "informacion") {
     this.mensaje.textContent = texto;
     this.mensaje.dataset.tipo = tipo;
@@ -109,7 +110,6 @@ export class PanelHabilidadesMaestrias {
     this.botonAbrir?.remove();
     this.dialogo?.remove();
   }
-
   crearBotonAbrir() {
     const barra = document.querySelector(
       "#barra-habilidades, .barra-habilidades, [data-barra-habilidades]",
@@ -135,13 +135,11 @@ export class PanelHabilidadesMaestrias {
     this.separadorBarra = separador;
     return boton;
   }
-
   crearDialogo() {
     document.getElementById("modalHabilidadesMaestrias")?.remove();
     const dialogo = crearElemento("dialog", "modal-habilidades-maestrias");
     dialogo.id = "modalHabilidadesMaestrias";
     dialogo.setAttribute("aria-labelledby", "tituloHabilidadesMaestrias");
-
     const marco = crearElemento("div", "panel-habilidades");
     const cabecera = crearElemento("header", "panel-habilidades__cabecera");
     const tituloBloque = crearElemento("div");
@@ -157,13 +155,11 @@ export class PanelHabilidadesMaestrias {
     );
     titulo.id = "tituloHabilidadesMaestrias";
     tituloBloque.append(sobreTitulo, titulo);
-
     this.resumenPuntos = crearElemento("div", "panel-habilidades__puntos");
     const cerrar = crearElemento("button", "panel-habilidades__cerrar", "×");
     cerrar.type = "button";
     cerrar.setAttribute("aria-label", "Cerrar habilidades");
     cabecera.append(tituloBloque, this.resumenPuntos, cerrar);
-
     const cuerpo = crearElemento("div", "panel-habilidades__cuerpo");
     this.navegacion = crearElemento("nav", "panel-habilidades__navegacion");
     this.navegacion.setAttribute("aria-label", "Categorías de maestrías");
@@ -172,14 +168,12 @@ export class PanelHabilidadesMaestrias {
 
     this.mensaje = crearElemento("p", "panel-habilidades__mensaje");
     this.mensaje.setAttribute("aria-live", "polite");
-
     this.capaAccion = crearElemento("div", "panel-habilidades__capa-accion");
     this.capaAccion.hidden = true;
 
     marco.append(cabecera, cuerpo, this.mensaje, this.capaAccion);
     dialogo.append(marco);
     document.body.append(dialogo);
-
     this.escuchar(cerrar, "click", () => this.cerrar());
     this.escuchar(dialogo, "cancel", (evento) => {
       evento.preventDefault();
@@ -192,25 +186,28 @@ export class PanelHabilidadesMaestrias {
     });
     return dialogo;
   }
-
   instalarEventosGlobales() {
     this.escuchar(this.botonAbrir, "click", () => this.abrir());
-    this.escuchar(window, "keydown", (evento) => {
-      if (!this.estaAbierto()) {
-        return;
-      }
-      if (evento.key === "Escape") {
-        evento.preventDefault();
-        evento.stopImmediatePropagation();
-        if (!this.capaAccion.hidden) {
-          this.cerrarCapaAccion();
-        } else {
-          this.cerrar();
+    this.escuchar(
+      window,
+      "keydown",
+      (evento) => {
+        if (!this.estaAbierto()) {
+          return;
         }
-      }
-    }, true);
+        if (evento.key === "Escape") {
+          evento.preventDefault();
+          evento.stopImmediatePropagation();
+          if (!this.capaAccion.hidden) {
+            this.cerrarCapaAccion();
+          } else {
+            this.cerrar();
+          }
+        }
+      },
+      true,
+    );
   }
-
   renderizarCabecera(resumen) {
     this.resumenPuntos.replaceChildren(
       crearContador("Universales", resumen.puntosUniversales, "universal"),
@@ -224,7 +221,6 @@ export class PanelHabilidadesMaestrias {
       ),
     );
   }
-
   renderizarNavegacion() {
     this.navegacion.replaceChildren();
     for (const categoria of CATEGORIAS) {
@@ -246,7 +242,6 @@ export class PanelHabilidadesMaestrias {
       this.navegacion.append(boton);
     }
   }
-
   renderizarMagicas(resumen) {
     const selector = crearElemento("div", "maestrias-magicas__selector");
     for (const idMaestria of ORDEN_MAESTRIAS) {
@@ -279,7 +274,6 @@ export class PanelHabilidadesMaestrias {
       });
       selector.append(boton);
     }
-
     const idMaestria = this.maestriaActiva;
     const definicion = this.configuracionProgreso.maestrias[idMaestria];
     const estado = resumen.maestrias[idMaestria];
@@ -288,7 +282,6 @@ export class PanelHabilidadesMaestrias {
       `maestria-detalle maestria-detalle--${idMaestria}`,
     );
     seccion.dataset.temaMaestria = idMaestria;
-
     const cabecera = crearElemento("header", "maestria-detalle__cabecera");
     const identidad = crearElemento("div");
     identidad.append(
@@ -301,7 +294,6 @@ export class PanelHabilidadesMaestrias {
       "especifico",
     );
     cabecera.append(identidad, puntos);
-
     const progreso = crearProgresoMaestria({
       estado,
       nivelMaximo: this.configuracionProgreso.reglas.nivelMaximoMaestria,
@@ -315,13 +307,13 @@ export class PanelHabilidadesMaestrias {
           a.nombre.localeCompare(b.nombre),
       );
     habilidades.forEach((habilidad) => {
-      tarjetas.append(this.crearTarjetaHabilidad({ habilidad, estado, resumen }));
+      tarjetas.append(
+        this.crearTarjetaHabilidad({ habilidad, estado, resumen }),
+      );
     });
-
     seccion.append(cabecera, progreso, tarjetas);
     this.contenido.append(selector, seccion);
   }
-
   crearTarjetaHabilidad({ habilidad, estado, resumen }) {
     const ejecucion = this.configuracionEjecucion.habilidades[habilidad.id];
     const grado = habilidad.grado;
@@ -337,7 +329,6 @@ export class PanelHabilidadesMaestrias {
       .findIndex((ranura) => ranura.idHabilidad === habilidad.id);
     const asignada = indiceAsignado >= 0;
     const seleccionada = this.idHabilidadSeleccionada === habilidad.id;
-
     const tarjeta = crearElemento("article", "tarjeta-habilidad");
     tarjeta.dataset.idHabilidad = habilidad.id;
     tarjeta.classList.toggle("tarjeta-habilidad--bloqueada", bloqueada);
@@ -354,7 +345,6 @@ export class PanelHabilidadesMaestrias {
       this.idHabilidadSeleccionada = habilidad.id;
       this.renderizar();
     });
-
     const cabecera = crearElemento("div", "tarjeta-habilidad__cabecera");
     const icono = crearIconoHabilidad(ejecucion, habilidad);
     const identidad = crearElemento("div", "tarjeta-habilidad__identidad");
@@ -367,7 +357,6 @@ export class PanelHabilidadesMaestrias {
       ),
     );
     cabecera.append(icono, identidad);
-
     const insignias = crearElemento("div", "tarjeta-habilidad__estados");
     crearEstadosVisuales({
       contenedor: insignias,
@@ -380,11 +369,12 @@ export class PanelHabilidadesMaestrias {
       seleccionada,
       indiceAsignado,
     });
-
     const descripcion = crearElemento(
       "p",
       "tarjeta-habilidad__descripcion",
-      ejecucion?.descripcion ?? DESCRIPCIONES[habilidad.id] ?? "Sin descripción.",
+      ejecucion?.descripcion ??
+        DESCRIPCIONES[habilidad.id] ??
+        "Sin descripción.",
     );
     const requisito = crearElemento(
       "p",
@@ -395,7 +385,6 @@ export class PanelHabilidadesMaestrias {
     );
     const detalle = crearDetalleEjecucion({ ejecucion, grado });
     const acciones = crearElemento("div", "tarjeta-habilidad__acciones");
-
     const botonMejora = crearElemento(
       "button",
       "tarjeta-habilidad__accion tarjeta-habilidad__accion--principal",
@@ -408,12 +397,13 @@ export class PanelHabilidadesMaestrias {
       this.abrirConfirmacionMejora({ habilidad, estado, resumen });
     });
     acciones.append(botonMejora);
-
     if (aprendida && ejecucion?.ejecucion) {
       const botonBarra = crearElemento(
         "button",
         "tarjeta-habilidad__accion",
-        asignada ? `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}` : "Asignar a barra",
+        asignada
+          ? `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`
+          : "Asignar a barra",
       );
       botonBarra.type = "button";
       botonBarra.addEventListener("click", (evento) => {
@@ -426,7 +416,6 @@ export class PanelHabilidadesMaestrias {
       });
       acciones.append(botonBarra);
     }
-
     if (!ejecucion?.ejecucion) {
       acciones.append(
         crearElemento(
@@ -437,11 +426,24 @@ export class PanelHabilidadesMaestrias {
       );
     }
 
-    tarjeta.append(cabecera, insignias, descripcion, requisito, detalle, acciones);
-    tarjeta.title = crearTooltipTexto({ habilidad, ejecucion, grado, estado, asignada, indiceAsignado });
+    tarjeta.append(
+      cabecera,
+      insignias,
+      descripcion,
+      requisito,
+      detalle,
+      acciones,
+    );
+    tarjeta.title = crearTooltipTexto({
+      habilidad,
+      ejecucion,
+      grado,
+      estado,
+      asignada,
+      indiceAsignado,
+    });
     return tarjeta;
   }
-
   abrirConfirmacionMejora({ habilidad, estado, resumen }) {
     const tieneUniversal = resumen.puntosUniversales > 0;
     const tieneEspecifico = estado.puntosEspecificos > 0;
@@ -454,10 +456,12 @@ export class PanelHabilidadesMaestrias {
         `${habilidad.nombre}: grado ${habilidad.grado} → ${gradoNuevo}.`,
       ),
     );
-
     let obtenerOrigen;
     if (tieneUniversal && tieneEspecifico) {
-      const opciones = crearElemento("fieldset", "confirmacion-habilidad__opciones");
+      const opciones = crearElemento(
+        "fieldset",
+        "confirmacion-habilidad__opciones",
+      );
       opciones.append(crearElemento("legend", "", "Elegí qué punto consumir"));
       opciones.append(
         crearOpcionPunto({
@@ -488,11 +492,12 @@ export class PanelHabilidadesMaestrias {
       );
       obtenerOrigen = () => origen;
     }
-
     this.abrirCapaAccion({
-      titulo: habilidad.grado > 0 ? "Confirmar mejora" : "Confirmar aprendizaje",
+      titulo:
+        habilidad.grado > 0 ? "Confirmar mejora" : "Confirmar aprendizaje",
       cuerpo,
-      textoConfirmar: habilidad.grado > 0 ? "Mejorar un grado" : "Aprender habilidad",
+      textoConfirmar:
+        habilidad.grado > 0 ? "Mejorar un grado" : "Aprender habilidad",
       alConfirmar: () => {
         const origenPunto = obtenerOrigen();
         if (!origenPunto) {
@@ -518,7 +523,6 @@ export class PanelHabilidadesMaestrias {
       },
     });
   }
-
   abrirSelectorRanura(habilidad) {
     const cuerpo = crearElemento("div", "selector-ranuras-habilidad");
     const estadoBarra = this.sistema.obtenerEstadoBarra();
@@ -531,11 +535,7 @@ export class PanelHabilidadesMaestrias {
       boton.type = "button";
       boton.append(
         crearElemento("strong", "", tecla),
-        crearElemento(
-          "span",
-          "",
-          ranura.idHabilidad ? ranura.nombre : "Vacía",
-        ),
+        crearElemento("span", "", ranura.idHabilidad ? ranura.nombre : "Vacía"),
       );
       boton.addEventListener("click", () => {
         if (ranura.idHabilidad) {
@@ -553,7 +553,6 @@ export class PanelHabilidadesMaestrias {
       mostrarConfirmar: false,
     });
   }
-
   abrirConfirmacionReemplazo({ habilidad, ranura, indice }) {
     const cuerpo = crearElemento("div", "confirmacion-habilidad__cuerpo");
     cuerpo.append(
@@ -578,7 +577,6 @@ export class PanelHabilidadesMaestrias {
       },
     });
   }
-
   abrirConfirmacionQuitar({ habilidad, indiceAsignado }) {
     const cuerpo = crearElemento("div", "confirmacion-habilidad__cuerpo");
     cuerpo.append(
@@ -600,13 +598,15 @@ export class PanelHabilidadesMaestrias {
       alConfirmar: () => {
         this.sistema.desasignarHabilidad(indiceAsignado);
         this.guardarCambios("barra");
-        this.mostrarMensaje(`${habilidad.nombre} fue quitada de la barra.`, "exito");
+        this.mostrarMensaje(
+          `${habilidad.nombre} fue quitada de la barra.`,
+          "exito",
+        );
         this.renderizar();
         return true;
       },
     });
   }
-
   asignarHabilidad(habilidad, indice) {
     this.sistema.asignarHabilidad(indice, habilidad.id);
     this.guardarCambios("barra");
@@ -616,7 +616,6 @@ export class PanelHabilidadesMaestrias {
     );
     this.renderizar();
   }
-
   abrirCapaAccion({
     titulo,
     cuerpo,
@@ -627,20 +626,25 @@ export class PanelHabilidadesMaestrias {
     this.capaAccion.replaceChildren();
     this.capaAccion.hidden = false;
     const tarjeta = crearElemento("section", "confirmacion-habilidad");
-    const cabecera = crearElemento("header", "confirmacion-habilidad__cabecera");
+    const cabecera = crearElemento(
+      "header",
+      "confirmacion-habilidad__cabecera",
+    );
     cabecera.append(crearElemento("h3", "", titulo));
-    const cerrar = crearElemento("button", "confirmacion-habilidad__cerrar", "×");
+    const cerrar = crearElemento(
+      "button",
+      "confirmacion-habilidad__cerrar",
+      "×",
+    );
     cerrar.type = "button";
     cerrar.setAttribute("aria-label", "Cancelar acción");
     cerrar.addEventListener("click", () => this.cerrarCapaAccion());
     cabecera.append(cerrar);
-
     const acciones = crearElemento("div", "confirmacion-habilidad__acciones");
     const cancelar = crearElemento("button", "", "Cancelar");
     cancelar.type = "button";
     cancelar.addEventListener("click", () => this.cerrarCapaAccion());
     acciones.append(cancelar);
-
     if (mostrarConfirmar) {
       const confirmar = crearElemento(
         "button",
@@ -666,36 +670,37 @@ export class PanelHabilidadesMaestrias {
     tarjeta.append(cabecera, cuerpo, acciones);
     this.capaAccion.append(tarjeta);
   }
-
   cerrarCapaAccion() {
     this.capaAccion.hidden = true;
     this.capaAccion.replaceChildren();
   }
-
   renderizarBasicas() {
     const seccion = crearElemento("section", "seccion-en-construccion");
     seccion.append(
       crearElemento("p", "seccion-en-construccion__etiqueta", "Básicas"),
       crearElemento("h3", "", "Habilidades generales"),
-      crearElemento(
-        "p",
-        "",
-        "Todavía no hay habilidades básicas disponibles.",
-      ),
+      crearElemento("p", "", "Todavía no hay habilidades básicas disponibles."),
       crearElemento(
         "p",
         "seccion-en-construccion__detalle",
         "Esta sección queda preparada como recordatorio visual para futuras acciones como Descansar, Investigar y otras dinámicas generales.",
       ),
-      crearElemento("strong", "seccion-en-construccion__estado", "Sección vacía"),
+      crearElemento(
+        "strong",
+        "seccion-en-construccion__estado",
+        "Sección vacía",
+      ),
     );
     this.contenido.append(seccion);
   }
-
   renderizarConstruccion(titulo, familias, descripcion) {
     const seccion = crearElemento("section", "seccion-en-construccion");
     seccion.append(
-      crearElemento("p", "seccion-en-construccion__etiqueta", "Extensión futura"),
+      crearElemento(
+        "p",
+        "seccion-en-construccion__etiqueta",
+        "Extensión futura",
+      ),
       crearElemento("h3", "", titulo),
       crearElemento("p", "", descripcion),
     );
@@ -711,7 +716,6 @@ export class PanelHabilidadesMaestrias {
     seccion.append(lista);
     this.contenido.append(seccion);
   }
-
   guardarCambios(tipo) {
     if (typeof this.alGuardarCambios === "function") {
       this.alGuardarCambios({ tipo });
@@ -723,14 +727,14 @@ export class PanelHabilidadesMaestrias {
     this.manejadores.push({ elemento, tipo, manejador, opciones });
   }
 }
-
 function crearProgresoMaestria({ estado, nivelMaximo }) {
   const bloque = crearElemento("div", "progreso-maestria");
   const maximo = estado.nivel >= nivelMaximo;
   const necesaria = estado.experienciaNecesaria ?? 0;
-  const porcentaje = maximo || necesaria <= 0
-    ? 100
-    : Math.min(100, Math.round((estado.experiencia / necesaria) * 100));
+  const porcentaje =
+    maximo || necesaria <= 0
+      ? 100
+      : Math.min(100, Math.round((estado.experiencia / necesaria) * 100));
   const cabecera = crearElemento("div", "progreso-maestria__cabecera");
   cabecera.append(
     crearElemento("strong", "", `Nivel ${estado.nivel} / ${nivelMaximo}`),
@@ -755,7 +759,6 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
   );
   return bloque;
 }
-
 function crearDetalleEjecucion({ ejecucion, grado }) {
   const lista = crearElemento("dl", "detalle-ejecucion-habilidad");
   if (!ejecucion?.ejecucion) {
@@ -767,7 +770,11 @@ function crearDetalleEjecucion({ ejecucion, grado }) {
   agregarDato(lista, "Maná", definicionGrado?.costoMana ?? "—");
   agregarDato(lista, "Tiempo", definicionGrado?.costoTemporalBase ?? "—");
   agregarDato(lista, "Alcance", definicionGrado?.alcance ?? "—");
-  agregarDato(lista, "Patrón", formatearNombre(ejecucion.ejecucion.patronAtaque));
+  agregarDato(
+    lista,
+    "Patrón",
+    formatearNombre(ejecucion.ejecucion.patronAtaque),
+  );
   agregarDato(
     lista,
     "Línea de visión",
@@ -775,7 +782,6 @@ function crearDetalleEjecucion({ ejecucion, grado }) {
   );
   return lista;
 }
-
 function crearEstadosVisuales({
   contenedor,
   bloqueada,
@@ -788,7 +794,8 @@ function crearEstadosVisuales({
   indiceAsignado,
 }) {
   if (bloqueada) agregarInsignia(contenedor, "Bloqueada", "bloqueada");
-  if (!bloqueada && !aprendida) agregarInsignia(contenedor, "Disponible", "disponible");
+  if (!bloqueada && !aprendida)
+    agregarInsignia(contenedor, "Disponible", "disponible");
   if (aprendida) agregarInsignia(contenedor, "Aprendida", "aprendida");
   if (mejorable) agregarInsignia(contenedor, "Mejorable", "mejorable");
   if (maximo) agregarInsignia(contenedor, "Grado máximo", "maximo");
@@ -804,7 +811,6 @@ function crearEstadosVisuales({
   }
   if (seleccionada) agregarInsignia(contenedor, "Seleccionada", "seleccionada");
 }
-
 function crearIconoHabilidad(ejecucion, habilidad) {
   const marco = crearElemento("span", "tarjeta-habilidad__icono");
   const ruta = ejecucion?.icono ?? null;
@@ -825,8 +831,14 @@ function crearIconoHabilidad(ejecucion, habilidad) {
   marco.append(imagen);
   return marco;
 }
-
-function crearTooltipTexto({ habilidad, ejecucion, grado, estado, asignada, indiceAsignado }) {
+function crearTooltipTexto({
+  habilidad,
+  ejecucion,
+  grado,
+  estado,
+  asignada,
+  indiceAsignado,
+}) {
   const lineas = [
     `${habilidad.nombre} — grado ${grado}/${habilidad.gradoMaximo}`,
     `Maestría: ${formatearNombre(habilidad.maestria)} (nivel ${estado.nivel})`,
@@ -851,16 +863,17 @@ function crearTooltipTexto({ habilidad, ejecucion, grado, estado, asignada, indi
   }
   return lineas.filter(Boolean).join("\n");
 }
-
 function crearContador(etiqueta, valor, tipo) {
-  const contador = crearElemento("div", `contador-puntos contador-puntos--${tipo}`);
+  const contador = crearElemento(
+    "div",
+    `contador-puntos contador-puntos--${tipo}`,
+  );
   contador.append(
     crearElemento("span", "", etiqueta),
     crearElemento("strong", "", String(valor)),
   );
   return contador;
 }
-
 function crearOpcionPunto({ valor, texto, marcado }) {
   const etiqueta = crearElemento("label", "opcion-punto-habilidad");
   const input = document.createElement("input");
@@ -871,7 +884,6 @@ function crearOpcionPunto({ valor, texto, marcado }) {
   etiqueta.append(input, crearElemento("span", "", texto));
   return etiqueta;
 }
-
 function agregarDato(lista, termino, valor) {
   lista.append(
     crearElemento("dt", "", termino),
@@ -887,7 +899,6 @@ function agregarInsignia(contenedor, texto, estado) {
   );
   contenedor.append(insignia);
 }
-
 function mejorarHabilidadJugador(jugador, datos) {
   if (typeof jugador.mejorarHabilidad === "function") {
     return jugador.mejorarHabilidad(datos);
@@ -898,7 +909,6 @@ function mejorarHabilidadJugador(jugador, datos) {
   }
   throw new Error("El jugador no expone la mejora de habilidades.");
 }
-
 function obtenerResumenProgreso(jugador) {
   if (typeof jugador.obtenerResumenProgresoMagico === "function") {
     return jugador.obtenerResumenProgresoMagico();
@@ -909,7 +919,6 @@ function obtenerResumenProgreso(jugador) {
   }
   throw new Error("El jugador no expone su resumen de progreso mágico.");
 }
-
 function traducirMotivo(motivo) {
   const mensajes = {
     NIVEL_MAESTRIA_INSUFICIENTE: "La maestría todavía no cumple el requisito.",
@@ -920,18 +929,16 @@ function traducirMotivo(motivo) {
   };
   return mensajes[motivo] ?? `No se pudo completar la operación (${motivo}).`;
 }
-
 function asegurarHojaEstilos() {
-  if (document.getElementById("estilosHabilidadesMaestriasEtapa7")) {
+  if (document.getElementById("estilosHabilidadesMaestrias")) {
     return;
   }
   const enlace = document.createElement("link");
-  enlace.id = "estilosHabilidadesMaestriasEtapa7";
+  enlace.id = "estilosHabilidadesMaestrias";
   enlace.rel = "stylesheet";
   enlace.href = "./habilidades-maestrias.css";
   document.head.append(enlace);
 }
-
 function crearElemento(etiqueta, clase = "", texto = "") {
   const elemento = document.createElement(etiqueta);
   if (clase) elemento.className = clase;

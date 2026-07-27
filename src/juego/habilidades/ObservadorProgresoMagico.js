@@ -1,4 +1,4 @@
-const CLAVE_OBSERVADOR = Symbol.for("darkMoon.etapa7.observadorProgresoMagico");
+const CLAVE_OBSERVADOR = Symbol.for("darkMoon.magia.observadorProgresoMagico");
 const METODOS_MUTACION = [
   "agregarPuntosUniversales",
   "registrarEjecucionEfectiva",
@@ -6,7 +6,6 @@ const METODOS_MUTACION = [
   "mejorarHabilidad",
   "restaurarEstado",
 ];
-
 // Decora la instancia existente sin copiar datos. Las notificaciones sirven
 // solo para repintar; ProgresoMagicoJugador continúa siendo la fuente única.
 export function suscribirCambiosProgresoMagico(jugador, oyente) {
@@ -18,7 +17,6 @@ export function suscribirCambiosProgresoMagico(jugador, oyente) {
   observador.oyentes.add(oyente);
   return () => observador.oyentes.delete(oyente);
 }
-
 function instalarObservador(progreso) {
   if (progreso[CLAVE_OBSERVADOR]) {
     return progreso[CLAVE_OBSERVADOR];
@@ -32,7 +30,6 @@ function instalarObservador(progreso) {
     enumerable: false,
     configurable: false,
   });
-
   for (const nombreMetodo of METODOS_MUTACION) {
     const original = progreso[nombreMetodo];
     if (typeof original !== "function") {
@@ -49,7 +46,6 @@ function instalarObservador(progreso) {
   }
   return observador;
 }
-
 function programarNotificacion(observador, detalle) {
   observador.ultimoDetalle = detalle;
   if (observador.notificacionPendiente) {
@@ -63,7 +59,6 @@ function programarNotificacion(observador, detalle) {
     }
   });
 }
-
 function obtenerProgreso(jugador) {
   const progreso = jugador?.progresoMagico ?? jugador?.progresoMagicoJugador;
   if (!progreso || typeof progreso.obtenerResumen !== "function") {

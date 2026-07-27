@@ -2,27 +2,17 @@ import { guardarJugadorDurable } from "../../Partida/PersistenciaJugador.js";
 import { BarraHabilidades } from "../../interfaz/habilidades/BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "../../interfaz/habilidades/PanelHabilidadesMaestrias.js";
 import { ControladorEntradaHabilidades } from "./ControladorEntradaHabilidades.js";
-import {
-  crearDepuradorEtapa5,
-  publicarDepuradorEtapa5,
-} from "./DepuradorEtapa5.js";
-import {
-  crearDepuradorEtapa6,
-  publicarDepuradorEtapa6,
-} from "./DepuradorEtapa6.js";
-import {
-  crearDepuradorEtapa7,
-  publicarDepuradorEtapa7,
-} from "./DepuradorEtapa7.js";
 import { suscribirCambiosProgresoMagico } from "./ObservadorProgresoMagico.js";
 import {
   guardarConfiguracionBarraHabilidades,
   leerConfiguracionBarraHabilidades,
   eliminarConfiguracionBarraHabilidades,
 } from "./PersistenciaBarraHabilidades.js";
-import { SistemaHabilidadesJugadorEtapa7 } from "./SistemaHabilidadesJugadorEtapa7.js";
+import { SistemaHabilidadesJugador } from "./SistemaHabilidadesJugador.js";
 
-export class IntegracionHabilidadesEtapa7 {
+// Coordina los componentes permanentes de habilidades durante la vida de un
+// mapa activo. No contiene reglas de progreso, combate ni persistencia propia.
+export class IntegracionHabilidadesJugador {
   constructor({
     juego,
     configuracionEjecucion,
@@ -31,17 +21,22 @@ export class IntegracionHabilidadesEtapa7 {
     esJuegoActivo,
   } = {}) {
     if (!juego || typeof esJuegoActivo !== "function") {
-      throw new Error("ETAPA 7 necesita un Juego y su verificación de actividad.");
+      throw new Error(
+        "La integración de habilidades necesita un Juego y su verificación de actividad.",
+      );
     }
     normalizarFachadaJuego(juego);
     this.juego = juego;
     this.jugador = juego.jugador;
+    this.configuracionEjecucion = configuracionEjecucion;
+    this.configuracionProgreso = configuracionProgreso;
     this.esJuegoActivo = esJuegoActivo;
-    this.sistema = new SistemaHabilidadesJugadorEtapa7({
+    this.destruida = false;
+
+    this.sistema = new SistemaHabilidadesJugador({
       juego,
       configuracionEjecucion,
     });
-
     this.restaurarBarraGuardada();
     this.barra = new BarraHabilidades({ sistemaHabilidades: this.sistema });
     this.panel = new PanelHabilidadesMaestrias({
@@ -56,9 +51,9 @@ export class IntegracionHabilidadesEtapa7 {
     });
     this.entrada = new ControladorEntradaHabilidades({
       sistemaHabilidades: this.sistema,
-      esJuegoActivo: () => this.esJuegoActivo() && !this.panel.estaAbierto(),
+      esJuegoActivo: () =>
+        !this.destruida && this.esJuegoActivo() && !this.panel.estaAbierto(),
     });
-
     this.desuscribirSistema = this.sistema.suscribirCambio(() => {
       this.panel.renderizar();
     });
@@ -69,31 +64,13 @@ export class IntegracionHabilidadesEtapa7 {
         this.guardarJugador();
       },
     );
-
     // El procesamiento de efectos temporales se conserva separado del
-    // repintado. La interfaz ya no consulta todo el estado cada 250 ms.
+    // repintado. La interfaz no consulta todo el estado cada 250 ms.
     this.intervaloEfectos = window.setInterval(() => {
-      if (this.esJuegoActivo()) {
+      if (!this.destruida && this.esJuegoActivo()) {
         this.sistema.procesarEfectosPendientes();
       }
     }, 250);
-
-    const depuradorEtapa5 = crearDepuradorEtapa5({
-      juego,
-      sistemaHabilidades: this.sistema,
-    });
-    publicarDepuradorEtapa5(depuradorEtapa5);
-    const depuradorEtapa6 = crearDepuradorEtapa6({ juego });
-    publicarDepuradorEtapa6(depuradorEtapa6);
-    const depuradorEtapa7 = crearDepuradorEtapa7({
-      juego,
-      sistemaHabilidades: this.sistema,
-      panel: this.panel,
-      configuracionProgreso,
-      configuracionEjecucion,
-      guardarBarra: () => this.guardarBarra(),
-    });
-    publicarDepuradorEtapa7(depuradorEtapa7);
   }
 
   restaurarBarraGuardada() {
@@ -137,23 +114,31 @@ export class IntegracionHabilidadesEtapa7 {
   }
 
   destruir() {
+    if (this.destruida) {
+      return false;
+    }
+    this.destruida = true;
     try {
       this.guardarBarra();
     } catch (error) {
       console.warn("No se pudo conservar la barra al cambiar de mapa:", error);
     }
     window.clearInterval(this.intervaloEfectos);
+    this.intervaloEfectos = null;
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
     this.entrada?.destruir();
     this.barra?.destruir();
     this.panel?.destruir();
+    return true;
   }
 }
 
 function normalizarFachadaJuego(juego) {
   if (!juego || typeof juego !== "object") {
-    throw new Error("ETAPA 7 recibió una instancia de Juego inválida.");
+    throw new Error(
+      "La integración de habilidades recibió una instancia de Juego inválida.",
+    );
   }
   definirAliasLectura(juego, "jugador", "player");
   definirAliasLectura(juego, "mapa", "map");

@@ -17,7 +17,6 @@ export class BarraHabilidades {
   renderizar() {
     const estado = this.sistema.obtenerEstadoBarra();
     const seleccion = this.sistema.obtenerSeleccionDetallada();
-
     estado.forEach((ranura, indice) => {
       const elemento = this.ranuras[indice];
       elemento.dataset.ranuraHabilidad = String(indice);
@@ -33,17 +32,16 @@ export class BarraHabilidades {
       elemento.classList.toggle("habilidad-vacia", !ranura.idHabilidad);
       elemento.classList.toggle(
         "habilidad-bloqueada",
-        Boolean(ranura.idHabilidad) && (!ranura.configurada || ranura.grado <= 0),
+        Boolean(ranura.idHabilidad) &&
+          (!ranura.configurada || ranura.grado <= 0),
       );
       elemento.classList.toggle(
         "habilidad-sin-mana",
         Boolean(ranura.idHabilidad) && !ranura.manaSuficiente,
       );
       elemento.replaceChildren();
-
       const tecla = crearElemento("span", "habilidad-tecla", ranura.tecla);
       elemento.append(tecla);
-
       if (ranura.idHabilidad) {
         elemento.append(crearIconoConFallback(ranura));
       }
@@ -74,7 +72,11 @@ export class BarraHabilidades {
   instalarEventos() {
     for (const [indice, ranura] of this.ranuras.entries()) {
       const seleccionar = (evento) => {
-        if (evento.type === "keydown" && evento.key !== "Enter" && evento.key !== " ") {
+        if (
+          evento.type === "keydown" &&
+          evento.key !== "Enter" &&
+          evento.key !== " "
+        ) {
           return;
         }
         evento.preventDefault();
@@ -98,7 +100,7 @@ function obtenerContenedor() {
     throw new Error("No se encontró la barra de habilidades de la partida.");
   }
   contenedor.id ||= "barra-habilidades";
-  contenedor.dataset.barraHabilidades = "etapa7";
+  contenedor.dataset.barraHabilidades = "activa";
   return contenedor;
 }
 
@@ -109,7 +111,9 @@ function obtenerRanuras(contenedor) {
     ),
   ).slice(0, 10);
   if (ranuras.length !== 10) {
-    throw new Error("La barra declarada debe contener exactamente diez ranuras.");
+    throw new Error(
+      "La barra declarada debe contener exactamente diez ranuras.",
+    );
   }
   return ranuras;
 }
@@ -129,7 +133,6 @@ function crearIconoConFallback(ranura) {
     mostrarFallback();
     return contenedor;
   }
-
   const imagen = document.createElement("img");
   imagen.className = "habilidad-icono";
   imagen.src = ranura.icono;
@@ -168,9 +171,9 @@ function actualizarSelectorMapa(seleccion) {
   for (const selector of selectores) {
     const casilla = document.querySelector(selector);
     if (casilla) {
-      casilla.classList.add("selector-habilidad-etapa7");
+      casilla.classList.add("selector-habilidad");
       if (!seleccion.objetivoValido || !seleccion.geometria?.puedeEjecutar) {
-        casilla.classList.add("selector-habilidad-invalido-etapa7");
+        casilla.classList.add("selector-habilidad-invalido");
       }
       return;
     }
@@ -179,13 +182,11 @@ function actualizarSelectorMapa(seleccion) {
 
 function limpiarSelectorMapa() {
   document
-    .querySelectorAll(
-      ".selector-habilidad-etapa7, .selector-habilidad-invalido-etapa7",
-    )
+    .querySelectorAll(".selector-habilidad, .selector-habilidad-invalido")
     .forEach((elemento) => {
       elemento.classList.remove(
-        "selector-habilidad-etapa7",
-        "selector-habilidad-invalido-etapa7",
+        "selector-habilidad",
+        "selector-habilidad-invalido",
       );
     });
 }

@@ -17,6 +17,11 @@ import { ControladorInteracciones } from "../controles/ControladorInteracciones.
 import { ControladorComercio } from "../controles/ControladorComercio.js";
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
+import { IntegracionHabilidadesJugador } from "../juego/habilidades/IntegracionHabilidadesJugador.js";
+import {
+  obtenerConfiguracionEjecucionHabilidades,
+  obtenerConfiguracionProgresoMagico,
+} from "../juego/maestrias/ContextoProgresoMagico.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -36,7 +41,6 @@ export class ControladorPartida {
         "ControladorPartida necesita un controlador de pantallas.",
       );
     }
-
     this.controladorPantallas = controladorPantallas;
 
     // Estado persistente.
@@ -54,7 +58,7 @@ export class ControladorPartida {
     this.controladorEquipamiento = null;
     this.controladorInteracciones = null;
     this.controladorComercio = null;
-
+    this.integracionHabilidades = null;
     // Configuraciones persistentes requeridas
     // por los controladores de cada mapa.
     this.configuracionObjetos = null;
@@ -85,7 +89,6 @@ export class ControladorPartida {
       configuracionPersonaje,
       configuracionObjetos,
     });
-
     this.estadoPartida = new EstadoPartida({
       jugador,
     });
@@ -99,7 +102,6 @@ export class ControladorPartida {
     this.gestorMercaderesPartida.inicializarStocks({
       nivelReferencia: jugador.nivel,
     });
-
     this.gestorMapasPartida = new GestorMapasPartida({
       estadoPartida: this.estadoPartida,
       configuracionEnemigos,
@@ -112,7 +114,6 @@ export class ControladorPartida {
     this.configuracionObjetos = configuracionObjetos;
     this.configuracionRarezas = configuracionGeneracionObjetos.rarezas;
     this.configuracionComercio = configuracionComercio;
-
     configurarContextoPresentacionObjetos({
       configuracionRarezas: this.configuracionRarezas,
     });
@@ -125,7 +126,6 @@ export class ControladorPartida {
     this.partidaIniciada = true;
 
     this.controladorPantallas.mostrarPartida();
-
     if (parametrosPrueba.activo) {
       this.iniciarNuevaExpedicion({
         semillaMapa: parametrosPrueba.semillaMapa,
@@ -133,7 +133,6 @@ export class ControladorPartida {
         nivelMapaForzado: parametrosPrueba.nivelMapaForzado,
         botinPrueba: parametrosPrueba.botinPrueba,
         portalPrueba: parametrosPrueba.portalPrueba,
-
         // Los parámetros de URL forman parte del modo
         // de desarrollo y pueden abrir mapas bloqueados.
         ignorarNivelDesbloqueo: true,
@@ -192,7 +191,6 @@ export class ControladorPartida {
         "No se puede iniciar una expedición sin una partida activa.",
       );
     }
-
     const configuracionMapa = this.gestorMapasPartida.crearMazmorra({
       semillaMapa,
       idMapaForzado,
@@ -205,7 +203,6 @@ export class ControladorPartida {
     this.activarMapa(configuracionMapa);
 
     const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
-
     // La siguiente visita a la ciudad encontrará
     // stock generado con el nivel de esta expedición.
     this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
@@ -213,7 +210,6 @@ export class ControladorPartida {
       nivelMapa: generacion.nivelMapa,
       numeroExpedicion: this.estadoPartida.expedicionesRealizadas,
     });
-
     this.mostrarResumenMazmorra({
       parametrosPrueba: parametrosPrueba ?? {
         activo:
@@ -251,7 +247,6 @@ export class ControladorPartida {
     ) {
       throw new Error("La expedición necesita una mazmorra seleccionada.");
     }
-
     if (!Number.isInteger(seleccion.nivelMapa) || seleccion.nivelMapa < 1) {
       throw new Error("La expedición necesita un nivel válido.");
     }
@@ -264,7 +259,6 @@ export class ControladorPartida {
 
   procesarSolicitudTransicionMapa(solicitud) {
     const solicitudNormalizada = normalizarSolicitudTransicionMapa(solicitud);
-
     switch (solicitudNormalizada.tipo) {
       case TIPOS_TRANSICION_MAPA.NUEVA_EXPEDICION:
         return this.iniciarNuevaExpedicion({
@@ -275,7 +269,6 @@ export class ControladorPartida {
           nivelMapaForzado: solicitudNormalizada.datos.nivelMapaForzado ?? null,
 
           botinPrueba: solicitudNormalizada.datos.botinPrueba === true,
-
           portalPrueba: solicitudNormalizada.datos.portalPrueba === true,
 
           ignorarNivelDesbloqueo:
@@ -287,7 +280,6 @@ export class ControladorPartida {
           puntoEntrada:
             solicitudNormalizada.datos.puntoEntrada ?? "regresoDungeon",
         });
-
       case TIPOS_TRANSICION_MAPA.ACTIVAR_MAPA_FIJO:
         return this.procesarActivacionMapaFijo(solicitudNormalizada.datos);
 
@@ -306,7 +298,6 @@ export class ControladorPartida {
         puntoEntrada: datos.puntoEntrada ?? "inicioPartida",
       });
     }
-
     this.renderizador.mostrarMensaje(
       `El mapa fijo "${idMapa}" todavía no está disponible.`,
     );
@@ -321,8 +312,11 @@ export class ControladorPartida {
       throw new Error("No se puede activar un mapa sin una interfaz creada.");
     }
 
+    // La integración pertenece al mapa activo. Debe destruirse antes que el
+    // Juego anterior para retirar listeners, observadores e intervalos.
+    this.integracionHabilidades?.destruir();
+    this.integracionHabilidades = null;
     this.desactivarControles();
-
     // La transición no consume tiempo. El jugador conserva sus efectos con
     // duración y próximo tick relativos; las entidades del mapa anterior se
     // limpian junto con su agenda temporal.
@@ -339,7 +333,6 @@ export class ControladorPartida {
       modalSeleccionMazmorra,
       modalComercio,
     } = this.interfazPartida;
-
     const cantidadFilas = configuracionMapa.map.length;
 
     const cantidadColumnas = configuracionMapa.map[0].length;
@@ -359,7 +352,6 @@ export class ControladorPartida {
       juego,
       renderizador,
     });
-
     const controladorEquipamiento = new ControladorEquipamiento({
       juego,
       renderizador,
@@ -378,7 +370,6 @@ export class ControladorPartida {
       configuracionObjetos: this.configuracionObjetos,
 
       configuracionRarezas: this.configuracionRarezas,
-
       configuracionComercio: this.configuracionComercio,
     });
 
@@ -390,7 +381,6 @@ export class ControladorPartida {
 
       obtenerMazmorrasDisponibles: () =>
         this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
-
       // ControladorInteracciones reenvía
       // el resultado completo del modal.
       alSeleccionarMazmorra: (seleccion) =>
@@ -406,7 +396,6 @@ export class ControladorPartida {
     this.juego = juego;
     this.renderizador = renderizador;
     this.controladorTeclado = controladorTeclado;
-
     this.controladorEquipamiento = controladorEquipamiento;
 
     this.controladorComercio = controladorComercio;
@@ -418,11 +407,20 @@ export class ControladorPartida {
     this.controladorInteracciones.activar();
 
     this.renderizador.dibujarJuego(this.juego);
+
+    const juegoActivo = this.juego;
+    this.integracionHabilidades = new IntegracionHabilidadesJugador({
+      juego: juegoActivo,
+      configuracionEjecucion: obtenerConfiguracionEjecucionHabilidades(),
+      configuracionProgreso: obtenerConfiguracionProgresoMagico(),
+      configuracionObjetos: this.configuracionObjetos,
+      esJuegoActivo: () =>
+        this.partidaIniciada === true && this.juego === juegoActivo,
+    });
   }
 
   mostrarResumenCiudad({ esInicioPartida } = {}) {
     const mapaSeleccionado = this.juego.mapaSeleccionado;
-
     const mensajePrincipal = esInicioPartida
       ? `Comenzaste tu aventura en ${mapaSeleccionado.nombre}.`
       : `Regresaste a ${mapaSeleccionado.nombre}.`;
@@ -436,7 +434,6 @@ export class ControladorPartida {
     console.groupCollapsed(`[Ciudad] ${mapaSeleccionado.nombre}`);
 
     console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
-
     console.log("Configuración del mapa:", mapaSeleccionado.generacionActual);
 
     console.log("Interactuables de la ciudad:", this.juego.interactuables);
@@ -453,7 +450,6 @@ export class ControladorPartida {
     const mapaSeleccionado = this.juego.mapaSeleccionado;
 
     const generacion = mapaSeleccionado.generacionActual;
-
     const tiposEnemigos = formatearConteo(generacion.enemigosPorTipo);
 
     const variantes = formatearConteo(generacion.variantes);
@@ -465,11 +461,9 @@ export class ControladorPartida {
     const mensajeBotinPrueba = parametrosPrueba?.botinPrueba
       ? " Botín de prueba activo: acercate y presioná R para revisarlo."
       : "";
-
     const mensajePortalPrueba = parametrosPrueba?.portalPrueba
       ? " Portal de prueba activo: acercate y presioná R para generar otra mazmorra."
       : "";
-
     this.renderizador.mostrarMensaje(
       `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
         `Bioma: ${mapaSeleccionado.bioma}. ` +
@@ -487,7 +481,6 @@ export class ControladorPartida {
         mensajeBotinPrueba +
         mensajePortalPrueba,
     );
-
     console.groupCollapsed(
       `[Mapa] ${mapaSeleccionado.nombre} | ` +
         `nivel ${generacion.nivelMapa} | ` +
@@ -501,7 +494,6 @@ export class ControladorPartida {
     console.log("Resumen de generación:", generacion);
 
     console.log("Interactuables iniciales:", this.juego.interactuables);
-
     console.log(
       "Stock renovado de mercaderes:",
       this.gestorMercaderesPartida.obtenerResumen(),
@@ -522,7 +514,6 @@ export class ControladorPartida {
     this.controladorTeclado?.desactivar();
 
     this.controladorEquipamiento?.desactivar();
-
     this.controladorInteracciones?.desactivar();
   }
 }
@@ -542,7 +533,6 @@ function formatearConteo(conteo) {
 function formatearId(id) {
   return id.replaceAll("_", " ");
 }
-
 function validarConfiguracionMapa(configuracionMapa) {
   if (
     !configuracionMapa ||

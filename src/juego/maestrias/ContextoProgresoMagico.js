@@ -10,9 +10,8 @@ let configuracionEjecucionActiva = null;
 // Carga una sola vez los catálogos compartidos. La configuración de progreso
 // y la configuración jugable se validan por separado para que
 // ProgresoMagicoJugador siga siendo la única fuente de grados, puntos y XP.
-//
-// ETAPA 7 elimina la instalación dinámica de ETAPA 5: ControladorPartidaEtapa7
-// conecta explícitamente el sistema cuando existe un Juego activo.
+// La integración con el Juego activo se realiza explícitamente desde
+// ControladorPartida, sin instaladores dinámicos ni modificaciones de prototipo.
 export async function cargarYConfigurarProgresoMagico() {
   const [respuestaMaestrias, respuestaHabilidades] = await Promise.all([
     fetch(RUTA_MAESTRIAS),
@@ -28,7 +27,6 @@ export async function cargarYConfigurarProgresoMagico() {
       `No se pudo cargar Habilidades.json (${respuestaHabilidades.status}).`,
     );
   }
-
   const [configuracionMaestrias, configuracionHabilidades] = await Promise.all([
     respuestaMaestrias.json(),
     respuestaHabilidades.json(),
@@ -40,7 +38,6 @@ export async function cargarYConfigurarProgresoMagico() {
   configuracionEjecucionActiva = validarConfiguracionEjecucionHabilidades(
     configuracionHabilidades,
   );
-
   return configuracionActiva;
 }
 export function obtenerConfiguracionProgresoMagico() {
@@ -51,7 +48,6 @@ export function obtenerConfiguracionProgresoMagico() {
   }
   return configuracionActiva;
 }
-
 export function obtenerConfiguracionEjecucionHabilidades() {
   if (!configuracionEjecucionActiva) {
     throw new Error(

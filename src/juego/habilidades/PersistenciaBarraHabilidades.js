@@ -1,7 +1,6 @@
 export const CLAVE_BARRA_HABILIDADES = "dark-moon:barra-habilidades:v1";
 export const VERSION_BARRA_HABILIDADES = 1;
 export const CANTIDAD_RANURAS_BARRA = 10;
-
 // La barra guarda únicamente accesos rápidos. Los grados, requisitos y puntos
 // continúan perteneciendo exclusivamente a ProgresoMagicoJugador.
 export function guardarConfiguracionBarraHabilidades({
@@ -18,7 +17,6 @@ export function guardarConfiguracionBarraHabilidades({
   almacenamiento.setItem(CLAVE_BARRA_HABILIDADES, JSON.stringify(snapshot));
   return { exito: true, clave: CLAVE_BARRA_HABILIDADES, snapshot };
 }
-
 export function leerConfiguracionBarraHabilidades({
   almacenamiento = globalThis.localStorage,
 } = {}) {
@@ -27,12 +25,13 @@ export function leerConfiguracionBarraHabilidades({
   if (contenido === null) {
     return null;
   }
-
   let snapshot;
   try {
     snapshot = JSON.parse(contenido);
   } catch (error) {
-    throw new Error(`La barra guardada no contiene JSON válido. ${error.message}`);
+    throw new Error(
+      `La barra guardada no contiene JSON válido. ${error.message}`,
+    );
   }
   validarSnapshot(snapshot);
   return {
@@ -41,20 +40,22 @@ export function leerConfiguracionBarraHabilidades({
     ranuras: [...snapshot.ranuras],
   };
 }
-
 export function validarBarraContraJugador({
   ranuras,
   habilidades,
   obtenerGrado,
 } = {}) {
   const normalizadas = normalizarEstructuraBasica(ranuras);
-  if (!habilidades || typeof habilidades !== "object" || Array.isArray(habilidades)) {
+  if (
+    !habilidades ||
+    typeof habilidades !== "object" ||
+    Array.isArray(habilidades)
+  ) {
     throw new Error("Falta el catálogo de habilidades para validar la barra.");
   }
   if (typeof obtenerGrado !== "function") {
     throw new Error("Falta la función para consultar grados aprendidos.");
   }
-
   const idsUsados = new Set();
   return normalizadas.map((idHabilidad, indice) => {
     if (idHabilidad === null) {
@@ -77,13 +78,14 @@ export function validarBarraContraJugador({
       );
     }
     if (idsUsados.has(idHabilidad)) {
-      throw new Error(`La habilidad "${idHabilidad}" está repetida en la barra.`);
+      throw new Error(
+        `La habilidad "${idHabilidad}" está repetida en la barra.`,
+      );
     }
     idsUsados.add(idHabilidad);
     return idHabilidad;
   });
 }
-
 export function eliminarConfiguracionBarraHabilidades({
   almacenamiento = globalThis.localStorage,
 } = {}) {
@@ -99,19 +101,17 @@ export function eliminarConfiguracionBarraHabilidades({
     clave: CLAVE_BARRA_HABILIDADES,
   };
 }
-
 function validarSnapshot(snapshot) {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
     throw new Error("El guardado de la barra no es un objeto válido.");
   }
   if (snapshot.version !== VERSION_BARRA_HABILIDADES) {
     throw new Error(
-      `La versión ${snapshot.version} de la barra no es compatible con ETAPA 7.`,
+      `La versión ${snapshot.version} de la barra no es compatible con la configuración actual.`,
     );
   }
   normalizarEstructuraBasica(snapshot.ranuras);
 }
-
 function normalizarEstructuraBasica(ranuras) {
   if (!Array.isArray(ranuras) || ranuras.length !== CANTIDAD_RANURAS_BARRA) {
     throw new Error("La barra debe contener exactamente diez ranuras.");
@@ -126,7 +126,6 @@ function normalizarEstructuraBasica(ranuras) {
     return valor.trim().toLowerCase();
   });
 }
-
 function validarAlmacenamiento(almacenamiento) {
   if (
     !almacenamiento ||

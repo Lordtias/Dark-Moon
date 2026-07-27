@@ -46,7 +46,9 @@
 
 [data-ranura-habilidad].habilidad-seleccionada {
   border-color: #f0d86f;
-  box-shadow: 0 0 0 2px #8a782c, 0 0 13px rgba(240, 216, 111, 0.65);
+  box-shadow:
+    0 0 0 2px #8a782c,
+    0 0 13px rgba(240, 216, 111, 0.65);
 }
 
 [data-ranura-habilidad].habilidad-bloqueada {
@@ -94,9 +96,19 @@
   pointer-events: none;
 }
 
-.habilidad-tecla { left: 2px; top: 2px; }
-.habilidad-grado { right: 2px; top: 2px; }
-.habilidad-mana { right: 2px; bottom: 2px; color: #7db7ff; }
+.habilidad-tecla {
+  left: 2px;
+  top: 2px;
+}
+.habilidad-grado {
+  right: 2px;
+  top: 2px;
+}
+.habilidad-mana {
+  right: 2px;
+  bottom: 2px;
+  color: #7db7ff;
+}
 
 .selector-habilidad-etapa7 {
   outline: 2px solid #73d63d !important;
@@ -134,7 +146,11 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100%;
   background:
-    radial-gradient(circle at 80% -10%, rgba(86, 102, 202, 0.24), transparent 35%),
+    radial-gradient(
+      circle at 80% -10%,
+      rgba(86, 102, 202, 0.24),
+      transparent 35%
+    ),
     linear-gradient(145deg, #111527, #080b15 72%);
 }
 
@@ -188,8 +204,12 @@
   font-size: 18px;
 }
 
-.contador-puntos--universal { border-color: #b89a43; }
-.contador-puntos--especifico { border-color: #5666ca; }
+.contador-puntos--universal {
+  border-color: #b89a43;
+}
+.contador-puntos--especifico {
+  border-color: #5666ca;
+}
 
 .panel-habilidades__cerrar,
 .confirmacion-habilidad__cerrar {
@@ -257,8 +277,12 @@
   font-size: 13px;
 }
 
-.panel-habilidades__mensaje[data-tipo="exito"] { color: #72c98a; }
-.panel-habilidades__mensaje[data-tipo="error"] { color: #e06c75; }
+.panel-habilidades__mensaje[data-tipo="exito"] {
+  color: #72c98a;
+}
+.panel-habilidades__mensaje[data-tipo="error"] {
+  color: #e06c75;
+}
 
 /* =========================================================
    MAESTRÍAS MÁGICAS
@@ -283,8 +307,13 @@
   cursor: pointer;
 }
 
-.maestria-selector--activa { transform: translateY(-1px); }
-.maestria-selector__nivel { color: #8991b5; font-size: 11px; }
+.maestria-selector--activa {
+  transform: translateY(-1px);
+}
+.maestria-selector__nivel {
+  color: #8991b5;
+  font-size: 11px;
+}
 
 .maestria-selector--fuego.maestria-selector--activa {
   border-color: #e25c3d;
@@ -309,12 +338,28 @@
   padding: 15px;
   border: 1px solid var(--tema);
   border-radius: 7px;
-  background: linear-gradient(140deg, var(--tema-suave), rgba(8, 11, 22, 0.75) 42%);
+  background: linear-gradient(
+    140deg,
+    var(--tema-suave),
+    rgba(8, 11, 22, 0.75) 42%
+  );
 }
-.maestria-detalle--fuego { --tema: #e25c3d; --tema-suave: rgba(226, 92, 61, 0.14); }
-.maestria-detalle--frio { --tema: #59bde5; --tema-suave: rgba(89, 189, 229, 0.14); }
-.maestria-detalle--rayo { --tema: #a568f2; --tema-suave: rgba(165, 104, 242, 0.14); }
-.maestria-detalle--veneno { --tema: #73d63d; --tema-suave: rgba(115, 214, 61, 0.13); }
+.maestria-detalle--fuego {
+  --tema: #e25c3d;
+  --tema-suave: rgba(226, 92, 61, 0.14);
+}
+.maestria-detalle--frio {
+  --tema: #59bde5;
+  --tema-suave: rgba(89, 189, 229, 0.14);
+}
+.maestria-detalle--rayo {
+  --tema: #a568f2;
+  --tema-suave: rgba(165, 104, 242, 0.14);
+}
+.maestria-detalle--veneno {
+  --tema: #73d63d;
+  --tema-suave: rgba(115, 214, 61, 0.13);
+}
 
 .maestria-detalle__cabecera {
   display: flex;
@@ -323,7 +368,9 @@
   gap: 16px;
 }
 
-.progreso-maestria { margin: 14px 0; }
+.progreso-maestria {
+  margin: 14px 0;
+}
 .progreso-maestria__cabecera {
   display: flex;
   margin-bottom: 5px;
@@ -340,10 +387,16 @@
 }
 .progreso-maestria__relleno {
   height: 100%;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--tema) 65%, #fff), var(--tema));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--tema) 65%, #fff),
+    var(--tema)
+  );
   transition: width 180ms ease;
 }
-.progreso-maestria small { color: #8991b5; }
+.progreso-maestria small {
+  color: #8991b5;
+}
 
 .lista-habilidades-maestria {
   display: grid;
@@ -362,13 +415,28 @@
   gap: 9px;
   background: rgba(8, 11, 22, 0.9);
   cursor: pointer;
-  transition: border-color 120ms ease, transform 120ms ease, opacity 120ms ease;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease,
+    opacity 120ms ease;
 }
-.tarjeta-habilidad:hover { transform: translateY(-1px); border-color: #7586ff; }
-.tarjeta-habilidad--bloqueada { filter: grayscale(0.8); opacity: 0.58; }
-.tarjeta-habilidad--aprendida { border-color: color-mix(in srgb, var(--tema) 65%, #3e497f); }
-.tarjeta-habilidad--mejorable { box-shadow: inset 0 0 0 1px rgba(217, 195, 90, 0.25); }
-.tarjeta-habilidad--maximo { box-shadow: inset 0 0 0 1px rgba(114, 201, 138, 0.25); }
+.tarjeta-habilidad:hover {
+  transform: translateY(-1px);
+  border-color: #7586ff;
+}
+.tarjeta-habilidad--bloqueada {
+  filter: grayscale(0.8);
+  opacity: 0.58;
+}
+.tarjeta-habilidad--aprendida {
+  border-color: color-mix(in srgb, var(--tema) 65%, #3e497f);
+}
+.tarjeta-habilidad--mejorable {
+  box-shadow: inset 0 0 0 1px rgba(217, 195, 90, 0.25);
+}
+.tarjeta-habilidad--maximo {
+  box-shadow: inset 0 0 0 1px rgba(114, 201, 138, 0.25);
+}
 .tarjeta-habilidad--asignada::after {
   content: "";
   position: absolute;
@@ -404,17 +472,37 @@
   object-fit: contain;
   image-rendering: pixelated;
 }
-.tarjeta-habilidad__inicial { color: var(--tema); font-size: 22px; font-weight: 800; }
+.tarjeta-habilidad__inicial {
+  color: var(--tema);
+  font-size: 22px;
+  font-weight: 800;
+}
 .tarjeta-habilidad__nombre,
 .tarjeta-habilidad__grado,
 .tarjeta-habilidad__descripcion,
-.tarjeta-habilidad__requisito { margin: 0; }
-.tarjeta-habilidad__nombre { color: #fff; font-size: 15px; }
+.tarjeta-habilidad__requisito {
+  margin: 0;
+}
+.tarjeta-habilidad__nombre {
+  color: #fff;
+  font-size: 15px;
+}
 .tarjeta-habilidad__grado,
-.tarjeta-habilidad__requisito { color: #8991b5; font-size: 11px; }
-.tarjeta-habilidad__descripcion { color: #c7cbea; font-size: 12px; line-height: 1.45; }
+.tarjeta-habilidad__requisito {
+  color: #8991b5;
+  font-size: 11px;
+}
+.tarjeta-habilidad__descripcion {
+  color: #c7cbea;
+  font-size: 12px;
+  line-height: 1.45;
+}
 
-.tarjeta-habilidad__estados { display: flex; flex-wrap: wrap; gap: 4px; }
+.tarjeta-habilidad__estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 .estado-habilidad {
   padding: 2px 5px;
   border: 1px solid #3e497f;
@@ -424,14 +512,38 @@
   font-size: 9px;
   text-transform: uppercase;
 }
-.estado-habilidad--bloqueada { border-color: #6a5360; color: #bd8d9c; }
-.estado-habilidad--disponible { border-color: #8f7b3f; color: #e1c76a; }
-.estado-habilidad--aprendida { border-color: #4b8d61; color: #72c98a; }
-.estado-habilidad--mejorable { border-color: #a88b38; color: #f0d86f; }
-.estado-habilidad--maximo { border-color: #72c98a; color: #9ae5ae; }
-.estado-habilidad--sin-puntos { border-color: #8b5260; color: #e08a9b; }
-.estado-habilidad--asignada { border-color: #7586ff; color: #aeb8ff; }
-.estado-habilidad--seleccionada { border-color: #f0d86f; color: #fff3a8; }
+.estado-habilidad--bloqueada {
+  border-color: #6a5360;
+  color: #bd8d9c;
+}
+.estado-habilidad--disponible {
+  border-color: #8f7b3f;
+  color: #e1c76a;
+}
+.estado-habilidad--aprendida {
+  border-color: #4b8d61;
+  color: #72c98a;
+}
+.estado-habilidad--mejorable {
+  border-color: #a88b38;
+  color: #f0d86f;
+}
+.estado-habilidad--maximo {
+  border-color: #72c98a;
+  color: #9ae5ae;
+}
+.estado-habilidad--sin-puntos {
+  border-color: #8b5260;
+  color: #e08a9b;
+}
+.estado-habilidad--asignada {
+  border-color: #7586ff;
+  color: #aeb8ff;
+}
+.estado-habilidad--seleccionada {
+  border-color: #f0d86f;
+  color: #fff3a8;
+}
 
 .detalle-ejecucion-habilidad {
   display: grid;
@@ -443,8 +555,14 @@
   background: rgba(23, 27, 46, 0.75);
   font-size: 10px;
 }
-.detalle-ejecucion-habilidad dt { color: #8991b5; }
-.detalle-ejecucion-habilidad dd { margin: 0; color: #d8dcff; text-align: right; }
+.detalle-ejecucion-habilidad dt {
+  color: #8991b5;
+}
+.detalle-ejecucion-habilidad dd {
+  margin: 0;
+  color: #d8dcff;
+  text-align: right;
+}
 
 .tarjeta-habilidad__acciones {
   display: flex;
@@ -471,7 +589,10 @@
   cursor: not-allowed;
   opacity: 0.42;
 }
-.tarjeta-habilidad__pendiente { color: #8991b5; font-size: 10px; }
+.tarjeta-habilidad__pendiente {
+  color: #8991b5;
+  font-size: 10px;
+}
 
 /* =========================================================
    SECCIONES FUTURAS
@@ -482,8 +603,13 @@
   border-radius: 7px;
   background: rgba(13, 16, 32, 0.82);
 }
-.seccion-en-construccion p { color: #aeb8ff; line-height: 1.5; }
-.seccion-en-construccion__detalle { max-width: 720px; }
+.seccion-en-construccion p {
+  color: #aeb8ff;
+  line-height: 1.5;
+}
+.seccion-en-construccion__detalle {
+  max-width: 720px;
+}
 .seccion-en-construccion__estado {
   display: inline-block;
   padding: 5px 8px;
@@ -506,7 +632,10 @@
   gap: 4px;
   background: #080b16;
 }
-.familia-en-construccion span { color: #8991b5; font-size: 11px; }
+.familia-en-construccion span {
+  color: #8991b5;
+  font-size: 11px;
+}
 
 /* =========================================================
    CONFIRMACIONES Y SELECTOR DE RANURA
@@ -520,7 +649,9 @@
   padding: 18px;
   background: rgba(2, 3, 8, 0.82);
 }
-.panel-habilidades__capa-accion[hidden] { display: none; }
+.panel-habilidades__capa-accion[hidden] {
+  display: none;
+}
 .confirmacion-habilidad {
   width: min(520px, 90%);
   max-height: 82%;
@@ -537,12 +668,26 @@
   justify-content: space-between;
   gap: 12px;
 }
-.confirmacion-habilidad__cabecera h3 { margin: 0; color: #fff; }
-.confirmacion-habilidad__resumen { color: #fff; }
+.confirmacion-habilidad__cabecera h3 {
+  margin: 0;
+  color: #fff;
+}
+.confirmacion-habilidad__resumen {
+  color: #fff;
+}
 .confirmacion-habilidad__aviso,
-.confirmacion-habilidad__origen { color: #aeb8ff; }
-.confirmacion-habilidad__opciones { border: 1px solid #3e497f; color: #d8dcff; }
-.opcion-punto-habilidad { display: flex; gap: 8px; padding: 7px 0; }
+.confirmacion-habilidad__origen {
+  color: #aeb8ff;
+}
+.confirmacion-habilidad__opciones {
+  border: 1px solid #3e497f;
+  color: #d8dcff;
+}
+.opcion-punto-habilidad {
+  display: flex;
+  gap: 8px;
+  padding: 7px 0;
+}
 .confirmacion-habilidad__acciones {
   display: flex;
   justify-content: flex-end;
@@ -572,21 +717,38 @@
 }
 
 @media (max-width: 900px) {
-  .panel-habilidades__cuerpo { grid-template-columns: 135px minmax(0, 1fr); }
-  .lista-habilidades-maestria { grid-template-columns: 1fr; }
-  .maestrias-magicas__selector { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .panel-habilidades__cuerpo {
+    grid-template-columns: 135px minmax(0, 1fr);
+  }
+  .lista-habilidades-maestria {
+    grid-template-columns: 1fr;
+  }
+  .maestrias-magicas__selector {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
-  .modal-habilidades-maestrias { width: 98vw; height: 94vh; }
-  .panel-habilidades__cabecera { grid-template-columns: 1fr auto; }
-  .panel-habilidades__puntos { grid-column: 1 / -1; }
-  .panel-habilidades__cuerpo { grid-template-columns: 1fr; }
+  .modal-habilidades-maestrias {
+    width: 98vw;
+    height: 94vh;
+  }
+  .panel-habilidades__cabecera {
+    grid-template-columns: 1fr auto;
+  }
+  .panel-habilidades__puntos {
+    grid-column: 1 / -1;
+  }
+  .panel-habilidades__cuerpo {
+    grid-template-columns: 1fr;
+  }
   .panel-habilidades__navegacion {
     border-right: 0;
     border-bottom: 1px solid #3e497f;
     flex-direction: row;
     overflow-x: auto;
   }
-  .panel-habilidades__categoria { white-space: nowrap; }
+  .panel-habilidades__categoria {
+    white-space: nowrap;
+  }
 }

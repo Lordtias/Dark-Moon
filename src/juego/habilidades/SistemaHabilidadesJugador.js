@@ -2,7 +2,6 @@ import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import {
   asignarHabilidadARanura,
-  asignarPrimeraRanuraLibre,
   generarIdEjecucionHabilidad,
   obtenerAsignacionesHabilidades,
   obtenerUltimaEjecucion,
@@ -13,6 +12,7 @@ import {
   aplicarEfectosHabilidad,
   procesarEfectosFallback,
 } from "./MotorEfectosHabilidad.js";
+import { validarBarraContraJugador } from "./PersistenciaBarraHabilidades.js";
 
 const MOTIVOS = Object.freeze({
   OK: "OK",
@@ -39,13 +39,11 @@ export class SistemaHabilidadesJugador {
     if (!configuracionEjecucion?.habilidades) {
       throw new Error("Falta la configuración de ejecución de habilidades.");
     }
-
     this.juego = juego;
     this.jugador = juego.jugador;
     this.configuracion = configuracionEjecucion;
     this.seleccion = null;
     this.oyentesCambio = new Set();
-    this.sincronizarAsignacionesAprendidas();
   }
 
   get modoHabilidad() {
@@ -53,13 +51,10 @@ export class SistemaHabilidadesJugador {
   }
 
   get selectorHabilidad() {
-    return this.seleccion
-      ? { x: this.seleccion.x, y: this.seleccion.y }
-      : null;
+    return this.seleccion ? { x: this.seleccion.x, y: this.seleccion.y } : null;
   }
 
   obtenerEstadoBarra() {
-    this.sincronizarAsignacionesAprendidas();
     const asignaciones = obtenerAsignacionesHabilidades(this.jugador);
 
     return asignaciones.map((idHabilidad, indice) => {
@@ -69,7 +64,6 @@ export class SistemaHabilidadesJugador {
       const grado = habilidad ? this.obtenerGrado(idHabilidad) : 0;
       const gradoConfig = habilidad?.ejecucion?.grados?.[grado] ?? null;
       const manaActual = leerManaActual(this.jugador);
-
       return {
         indice,
         tecla: indice === 9 ? "0" : String(indice + 1),
@@ -88,6 +82,55 @@ export class SistemaHabilidadesJugador {
     });
   }
 
+  obtenerAsignaciones() {
+    return obtenerAsignacionesHabilidades(this.jugador);
+  }
+
+  restaurarBarra(ranuras) {
+    const validadas = validarBarraContraJugador({
+      ranuras,
+      habilidades: this.configuracion.habilidades,
+      obtenerGrado: (idHabilidad) => this.obtenerGrado(idHabilidad),
+    });
+    for (let indice = 0; indice < 10; indice += 1) {
+      asignarHabilidadARanura(this.jugador, indice, null);
+    }
+    validadas.forEach((idHabilidad, indice) => {
+      if (idHabilidad !== null) {
+        asignarHabilidadARanura(this.jugador, indice, idHabilidad);
+      }
+    });
+    this.emitirCambio();
+    return this.obtenerEstadoBarra();
+  }
+
+  vaciarBarra() {
+    if (this.modoHabilidad) {
+      this.cancelar();
+    }
+    for (let indice = 0; indice < 10; indice += 1) {
+      asignarHabilidadARanura(this.jugador, indice, null);
+    }
+    this.emitirCambio();
+    return this.obtenerEstadoBarra();
+  }
+
+  desasignarHabilidad(indiceRanura) {
+    if (
+      !Number.isInteger(indiceRanura) ||
+      indiceRanura < 0 ||
+      indiceRanura > 9
+    ) {
+      throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
+    }
+    if (this.seleccion?.indiceRanura === indiceRanura) {
+      this.seleccion = null;
+    }
+    asignarHabilidadARanura(this.jugador, indiceRanura, null);
+    this.emitirCambio();
+    return this.obtenerEstadoBarra();
+  }
+
   asignarHabilidad(indiceRanura, idHabilidad) {
     const habilidad = this.configuracion.habilidades[idHabilidad];
     if (!habilidad) {
@@ -97,7 +140,9 @@ export class SistemaHabilidadesJugador {
       throw new Error(`La habilidad "${idHabilidad}" todavía no es jugable.`);
     }
     if (this.obtenerGrado(idHabilidad) <= 0) {
-      throw new Error(`La habilidad "${idHabilidad}" todavía no fue aprendida.`);
+      throw new Error(
+        `La habilidad "${idHabilidad}" todavía no fue aprendida.`,
+      );
     }
     asignarHabilidadARanura(this.jugador, indiceRanura, idHabilidad);
     this.emitirCambio();
@@ -114,7 +159,6 @@ export class SistemaHabilidadesJugador {
     if (!estadoRanura?.idHabilidad) {
       return crearRechazo(MOTIVOS.RANURA_VACIA, "La ranura está vacía.");
     }
-
     const habilidad = this.configuracion.habilidades[estadoRanura.idHabilidad];
     if (!habilidad) {
       return crearRechazo(
@@ -128,7 +172,6 @@ export class SistemaHabilidadesJugador {
         "La habilidad todavía no posee ejecución jugable.",
       );
     }
-
     const grado = this.obtenerGrado(habilidad.id);
     if (grado <= 0) {
       return crearRechazo(
@@ -147,7 +190,6 @@ export class SistemaHabilidadesJugador {
       y: puntoInicial.y,
     };
     this.emitirCambio();
-
     return {
       exito: true,
       motivo: MOTIVOS.OK,
@@ -160,12 +202,21 @@ export class SistemaHabilidadesJugador {
 
   moverSelector(dx, dy) {
     if (!this.seleccion) {
-      return crearRechazo(MOTIVOS.CANCELADA, "No hay una habilidad seleccionada.");
+      return crearRechazo(
+        MOTIVOS.CANCELADA,
+        "No hay una habilidad seleccionada.",
+      );
     }
-    if (!Number.isInteger(dx) || !Number.isInteger(dy) || (dx === 0 && dy === 0)) {
-      return crearRechazo(MOTIVOS.OBJETIVO_INVALIDO, "El desplazamiento es inválido.");
+    if (
+      !Number.isInteger(dx) ||
+      !Number.isInteger(dy) ||
+      (dx === 0 && dy === 0)
+    ) {
+      return crearRechazo(
+        MOTIVOS.OBJETIVO_INVALIDO,
+        "El desplazamiento es inválido.",
+      );
     }
-
     const limites = obtenerLimitesMapa(this.juego.mapa);
     this.seleccion.x = limitar(this.seleccion.x + dx, 0, limites.ancho - 1);
     this.seleccion.y = limitar(this.seleccion.y + dy, 0, limites.alto - 1);
@@ -183,12 +234,14 @@ export class SistemaHabilidadesJugador {
 
   fijarSelector(x, y) {
     if (!this.seleccion) {
-      return crearRechazo(MOTIVOS.CANCELADA, "No hay una habilidad seleccionada.");
+      return crearRechazo(
+        MOTIVOS.CANCELADA,
+        "No hay una habilidad seleccionada.",
+      );
     }
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
       return crearRechazo(MOTIVOS.OBJETIVO_INVALIDO, "La casilla es inválida.");
     }
-
     const limites = obtenerLimitesMapa(this.juego.mapa);
     this.seleccion.x = limitar(x, 0, limites.ancho - 1);
     this.seleccion.y = limitar(y, 0, limites.alto - 1);
@@ -202,20 +255,24 @@ export class SistemaHabilidadesJugador {
     this.emitirCambio();
     return crearRechazo(
       MOTIVOS.CANCELADA,
-      habiaSeleccion ? "Selección de habilidad cancelada." : "No había una habilidad seleccionada.",
+      habiaSeleccion
+        ? "Selección de habilidad cancelada."
+        : "No había una habilidad seleccionada.",
     );
   }
 
   confirmar() {
     if (!this.seleccion) {
-      return crearRechazo(MOTIVOS.CANCELADA, "No hay una habilidad seleccionada.");
+      return crearRechazo(
+        MOTIVOS.CANCELADA,
+        "No hay una habilidad seleccionada.",
+      );
     }
 
     const plan = this.prepararPlanEjecucion();
     if (!plan.exito) {
       return plan;
     }
-
     const manaAntes = leerManaActual(this.jugador);
     const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
 
@@ -223,7 +280,6 @@ export class SistemaHabilidadesJugador {
       consumirMana(this.jugador, plan.costoMana);
       const manaDespues = leerManaActual(this.jugador);
       const manaConsumido = Math.max(0, manaAntes - manaDespues);
-
       if (manaConsumido !== plan.costoMana) {
         restaurarMana(this.jugador, manaAntes);
         return crearRechazo(
@@ -235,7 +291,6 @@ export class SistemaHabilidadesJugador {
       if (plan.habilidad.ejecucion.hostil) {
         registrarHostilidad(this.juego, plan.objetivo);
       }
-
       const danio = resolverDanioHabilidad({
         lanzador: this.jugador,
         objetivo: plan.objetivo,
@@ -249,7 +304,6 @@ export class SistemaHabilidadesJugador {
         efectosConfigurados: plan.gradoConfig.efectos,
         idEjecucion,
       });
-
       const resultadoBase = {
         exito: true,
         motivo: MOTIVOS.OK,
@@ -267,7 +321,6 @@ export class SistemaHabilidadesJugador {
         danio,
         efectos,
       };
-
       const resultadoTemporal = finalizarTiempo(this.juego, {
         resultado: resultadoBase,
         costoTemporalBase: plan.costoTemporal,
@@ -279,7 +332,6 @@ export class SistemaHabilidadesJugador {
         manaConsumido,
         ejecucionEfectiva: true,
       });
-
       const resultado = {
         ...(resultadoTemporal ?? resultadoBase),
         experienciaMaestria,
@@ -316,7 +368,8 @@ export class SistemaHabilidadesJugador {
     if (!this.seleccion) {
       return null;
     }
-    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
     const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
     const objetivo = obtenerObjetivoEn(
       this.juego,
@@ -331,7 +384,6 @@ export class SistemaHabilidadesJugador {
       habilidad,
       gradoConfig,
     });
-
     return {
       ...this.seleccion,
       nombre: habilidad.nombre,
@@ -355,29 +407,29 @@ export class SistemaHabilidadesJugador {
     return () => this.oyentesCambio.delete(oyente);
   }
 
-  sincronizarAsignacionesAprendidas() {
-    for (const habilidad of Object.values(this.configuracion.habilidades)) {
-      if (habilidad.ejecucion && this.obtenerGrado(habilidad.id) > 0) {
-        asignarPrimeraRanuraLibre(this.jugador, habilidad.id);
-      }
-    }
-  }
-
   obtenerGrado(idHabilidad) {
     if (typeof this.jugador.obtenerGradoHabilidad === "function") {
       return this.jugador.obtenerGradoHabilidad(idHabilidad);
     }
-    if (typeof this.jugador.progresoMagico?.obtenerGradoHabilidad === "function") {
+    if (
+      typeof this.jugador.progresoMagico?.obtenerGradoHabilidad === "function"
+    ) {
       return this.jugador.progresoMagico.obtenerGradoHabilidad(idHabilidad);
     }
-    if (typeof this.jugador.progresoMagicoJugador?.obtenerGradoHabilidad === "function") {
-      return this.jugador.progresoMagicoJugador.obtenerGradoHabilidad(idHabilidad);
+    if (
+      typeof this.jugador.progresoMagicoJugador?.obtenerGradoHabilidad ===
+      "function"
+    ) {
+      return this.jugador.progresoMagicoJugador.obtenerGradoHabilidad(
+        idHabilidad,
+      );
     }
     return 0;
   }
 
   prepararPlanEjecucion() {
-    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
     if (!habilidad?.ejecucion) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_CONFIGURADA,
@@ -392,7 +444,6 @@ export class SistemaHabilidadesJugador {
         "La habilidad ya no está aprendida.",
       );
     }
-
     const gradoConfig = habilidad.ejecucion.grados[grado];
     const objetivo = obtenerObjetivoEn(
       this.juego,
@@ -405,7 +456,6 @@ export class SistemaHabilidadesJugador {
         "La casilla no contiene un enemigo válido.",
       );
     }
-
     const geometria = evaluarGeometria({
       juego: this.juego,
       jugador: this.jugador,
@@ -426,7 +476,6 @@ export class SistemaHabilidadesJugador {
     ) {
       return crearRechazo(MOTIVOS.LINEA_VISION_BLOQUEADA, geometria.mensaje);
     }
-
     const manaActual = leerManaActual(this.jugador);
     if (manaActual < gradoConfig.costoMana) {
       return crearRechazo(
@@ -439,7 +488,6 @@ export class SistemaHabilidadesJugador {
     if (bloqueo) {
       return crearRechazo(MOTIVOS.BLOQUEO_TEMPORAL, bloqueo);
     }
-
     return {
       exito: true,
       habilidad,
@@ -459,9 +507,7 @@ export class SistemaHabilidadesJugador {
       );
     }
     const bloqueo = obtenerBloqueoTemporal(this.juego);
-    return bloqueo
-      ? crearRechazo(MOTIVOS.BLOQUEO_TEMPORAL, bloqueo)
-      : null;
+    return bloqueo ? crearRechazo(MOTIVOS.BLOQUEO_TEMPORAL, bloqueo) : null;
   }
 
   obtenerPuntoInicial(habilidad, grado) {
@@ -476,7 +522,6 @@ export class SistemaHabilidadesJugador {
       }))
       .filter(({ distancia }) => distancia <= gradoConfig.alcance)
       .sort((a, b) => a.distancia - b.distancia);
-
     if (objetivos.length > 0) {
       return { x: objetivos[0].objetivo.x, y: objetivos[0].objetivo.y };
     }
@@ -509,7 +554,6 @@ function evaluarGeometria({ juego, jugador, x, y, habilidad, gradoConfig }) {
     alcance: gradoConfig.alcance,
     patronAtaque: habilidad.ejecucion.patronAtaque,
   });
-
   try {
     const resultado = evaluarAtaqueCasilla({
       atacante: atacanteAdaptado,
@@ -524,7 +568,8 @@ function evaluarGeometria({ juego, jugador, x, y, habilidad, gradoConfig }) {
         resultado.lineaVisionDespejada ?? resultado.puedeAtacar,
       ),
       puedeEjecutar: Boolean(resultado.puedeAtacar),
-      mensaje: resultado.mensaje ?? "La casilla no es válida para la habilidad.",
+      mensaje:
+        resultado.mensaje ?? "La casilla no es válida para la habilidad.",
       detalle: resultado,
     };
   } catch (error) {
@@ -575,7 +620,8 @@ function crearAdaptadorGeometrico({ jugador, alcance, patronAtaque }) {
 }
 
 function crearAdaptadorEquipamiento(equipamiento, alcance, patronAtaque) {
-  const base = equipamiento && typeof equipamiento === "object" ? equipamiento : {};
+  const base =
+    equipamiento && typeof equipamiento === "object" ? equipamiento : {};
   return new Proxy(base, {
     get(objetivo, propiedad, receptor) {
       const sobrescrituras = {
@@ -622,11 +668,17 @@ function registrarExperienciaMaestria(jugador, evento) {
   if (typeof progreso?.registrarEjecucionEfectiva === "function") {
     return progreso.registrarEjecucionEfectiva(evento);
   }
-  throw new Error("El jugador no expone el registro de experiencia de maestría.");
+  throw new Error(
+    "El jugador no expone el registro de experiencia de maestría.",
+  );
 }
 
 function registrarHostilidad(juego, objetivo) {
-  const receptores = [juego, juego.estadoCombatePartida, juego.coordinadorTiempo];
+  const receptores = [
+    juego,
+    juego.estadoCombatePartida,
+    juego.coordinadorTiempo,
+  ];
   const nombres = [
     "registrarParticipanteCombate",
     "registrarParticipante",
@@ -653,7 +705,9 @@ function obtenerBloqueoTemporal(juego) {
     if (typeof juego?.[nombre] === "function") {
       const resultado = juego[nombre]();
       if (resultado?.bloqueado) {
-        return resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar.";
+        return (
+          resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar."
+        );
       }
       if (typeof resultado === "string" && resultado) {
         return resultado;

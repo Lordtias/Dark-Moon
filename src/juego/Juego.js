@@ -411,20 +411,49 @@ export class Juego {
     );
   }
 
+  incorporarDerrotasPendientes(resultado) {
+    if (!resultado || typeof resultado !== "object") {
+      return resultado;
+    }
+
+    const derrotas = this.sistemaCombateJugador.resolverDerrotasPendientes();
+    if (!derrotas.mensaje) {
+      return resultado;
+    }
+
+    return {
+      ...resultado,
+      mensaje: [resultado.mensaje, derrotas.mensaje]
+        .filter(Boolean)
+        .join("\n"),
+      redibujar: true,
+    };
+  }
+
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
-    return this.coordinadorTiempo.finalizarResultadoAccionJugador({
-      resultado,
-      tipoAccion,
-      costoBase,
-    });
+    const resultadoConDerrotasInmediatas =
+      this.incorporarDerrotasPendientes(resultado);
+    const resultadoTemporal =
+      this.coordinadorTiempo.finalizarResultadoAccionJugador({
+        resultado: resultadoConDerrotasInmediatas,
+        tipoAccion,
+        costoBase,
+      });
+
+    return this.incorporarDerrotasPendientes(resultadoTemporal);
   }
 
   finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
-    return this.coordinadorTiempo.finalizarAccionJugador({
+    const resultadoConDerrotasInmediatas = this.incorporarDerrotasPendientes({
       mensaje,
+    });
+    const resultadoTemporal = this.coordinadorTiempo.finalizarAccionJugador({
+      mensaje: resultadoConDerrotasInmediatas.mensaje,
       tipoAccion,
       costoBase,
     });
+
+    return this.incorporarDerrotasPendientes(resultadoTemporal);
   }
 
   esperarTurno() {

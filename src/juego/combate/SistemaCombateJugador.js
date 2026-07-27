@@ -1,10 +1,8 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
-import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
-import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
-import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
+import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
 import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
@@ -83,15 +81,19 @@ export class SistemaCombateJugador {
     this.mapa = mapa;
     this.jugador = jugador;
     this.objetivos = objetivos;
-    this.interactuables = interactuables;
-    this.configuracionObjetos = configuracionObjetos;
     this.esCaminable = esCaminable;
     this.obtenerObjetivoEn = obtenerObjetivoEn;
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
-    this.eliminarActorTemporal = eliminarActorTemporal;
     this.registrarParticipanteCombate = registrarParticipanteCombate;
     this.finalizarAccionJugador = finalizarAccionJugador;
-    this.aleatorioBotin = crearGeneradorAleatorio(`${semillaMapa}:botin`);
+    this.resolutorDerrotasJugador = new ResolutorDerrotasJugador({
+      jugador,
+      objetivos,
+      interactuables,
+      configuracionObjetos,
+      semillaMapa,
+      eliminarActorTemporal,
+    });
     this.modoActivo = false;
     this.selector = { x: this.jugador.x, y: this.jugador.y };
     this.ultimaDireccion = { x: 0, y: -1 };
@@ -139,6 +141,7 @@ export class SistemaCombateJugador {
         distancia === distanciaSeleccionada &&
         (enemigoSeleccionado === null ||
           objetivo.vidaActual < enemigoSeleccionado.vidaActual);
+
       if (estaMasCerca || mismaDistanciaConMenosVida) {
         enemigoSeleccionado = objetivo;
         distanciaSeleccionada = distancia;
@@ -160,6 +163,7 @@ export class SistemaCombateJugador {
       { x: -1, y: 1 },
       { x: -1, y: -1 },
     ];
+
     for (const direccion of direcciones) {
       const x = this.jugador.x + direccion.x;
       const y = this.jugador.y + direccion.y;
@@ -167,6 +171,7 @@ export class SistemaCombateJugador {
         return { x, y };
       }
     }
+
     return null;
   }
 
@@ -188,6 +193,7 @@ export class SistemaCombateJugador {
         mensaje: "Confirmá la interacción con R o cancelá con Escape.",
       });
     }
+
     const seleccionExplicita = selectorX !== null && selectorY !== null;
     const seleccion = seleccionExplicita
       ? { x: selectorX, y: selectorY }
@@ -199,6 +205,7 @@ export class SistemaCombateJugador {
         mensaje: "No hay una casilla válida para atacar.",
       });
     }
+
     const evaluacion = this.evaluarCasillaAtaque(seleccion.x, seleccion.y);
     if (seleccionExplicita && !evaluacion.puedeAtacar) {
       return crearResultadoAccion({
@@ -232,6 +239,7 @@ export class SistemaCombateJugador {
     if (!this.modoActivo && !respaldoActivo) {
       return crearResultadoAccion({ exito: false });
     }
+
     this.jugador.ataqueNaturalForzado = false;
     this.limpiarSelector();
     return crearResultadoAccion({
@@ -266,12 +274,17 @@ export class SistemaCombateJugador {
     const textoSeleccion = objetivo
       ? `Seleccionaste a ${objetivo.nombre}.`
       : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`;
+
     return crearResultadoAccion({
       mensaje: evaluacion.puedeAtacar
         ? textoSeleccion
         : `${textoSeleccion} ${evaluacion.mensaje}`,
       redibujar: true,
     });
+  }
+
+  resolverDerrotasPendientes() {
+    return this.resolutorDerrotasJugador.resolverPendientes();
   }
 
   // El registro de hostilidad ocurre solamente después de que el motor haya
@@ -285,8 +298,8 @@ export class SistemaCombateJugador {
       this.registrarParticipanteCombate(objetivo, "intento_hostil_jugador");
       objetivo.activarAgresividad();
     }
-    const mensajes = [resultado.mensaje];
 
+    const mensajes = [resultado.mensaje];
     if (!objetivo.estaDestruido) return mensajes.filter(Boolean).join("\n");
 
     if (!(objetivo instanceof Enemigo)) {
@@ -294,49 +307,8 @@ export class SistemaCombateJugador {
       return mensajes.filter(Boolean).join("\n");
     }
 
-    this.eliminarActorTemporal(objetivo);
-    mensajes.push(`${objetivo.nombre} fue derrotado.`);
-
-    const resultadoBotin = generarBotinEnSuelo({
-      fuente: objetivo,
-      configuracionObjetos: this.configuracionObjetos,
-      aleatorio: this.aleatorioBotin,
-      interactuables: this.interactuables,
-    });
-    if (resultadoBotin.cantidadUnidades > 0) {
-      mensajes.push(
-        `${objetivo.nombre} dejó botín: ${resultadoBotin.resumenTexto}.`,
-      );
-    }
-
-    const recompensaExperiencia = calcularRecompensaExperiencia({
-      experienciaBase: objetivo.experienciaOtorgada,
-      nivelJugador: this.jugador.nivel,
-      nivelEnemigo: objetivo.nivel,
-    });
-    const progresion = this.jugador.ganarExperiencia(
-      recompensaExperiencia.experienciaFinal,
-    );
-    mensajes.push(
-      `Ganaste ${progresion.experienciaGanada} puntos de experiencia.`,
-    );
-
-    if (progresion.nivelesGanados === 1) {
-      mensajes.push(`Subiste al nivel ${progresion.nivelActual}.`);
-    } else if (progresion.nivelesGanados > 1) {
-      mensajes.push(
-        `Subiste ${progresion.nivelesGanados} niveles y alcanzaste el nivel ` +
-          `${progresion.nivelActual}.`,
-      );
-    }
-    if (progresion.puntosGanados === 1) {
-      mensajes.push("Obtuviste 1 punto de atributo.");
-    } else if (progresion.puntosGanados > 1) {
-      mensajes.push(
-        `Obtuviste ${progresion.puntosGanados} puntos de atributo.`,
-      );
-    }
-
+    const derrota = this.resolutorDerrotasJugador.resolverObjetivo(objetivo);
+    mensajes.push(derrota.mensaje);
     return mensajes.filter(Boolean).join("\n");
   }
 

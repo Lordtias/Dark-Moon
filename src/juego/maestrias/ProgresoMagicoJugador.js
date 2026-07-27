@@ -4,19 +4,17 @@ export const ORIGENES_PUNTO_HABILIDAD = Object.freeze({
 });
 
 const VERSION_ESTADO_PROGRESO = 1;
-
 // Fuente única de verdad de la progresión mágica del personaje.
 //
 // Conserva únicamente datos de progresión. No calcula daño, no consume Maná,
-// no altera la agenda temporal y no conoce la interfaz. La ETAPA 5 podrá
-// notificar una ejecución efectiva usando el Maná realmente consumido.
+// no altera la agenda temporal y no conoce la interfaz. Una ejecución efectiva
+// puede notificarse usando el Maná realmente consumido.
 export class ProgresoMagicoJugador {
   constructor({ configuracion, idProfesion, estadoInicial = null } = {}) {
     validarConfiguracion(configuracion);
     this.configuracion = configuracion;
     this.idProfesion = normalizarId(idProfesion, "La profesión");
     this.idsEjecucionesRecompensadas = new Set();
-
     this.puntosUniversales = configuracion.reglas.puntosUniversalesIniciales;
     this.maestrias = crearEstadoInicialMaestrias({
       configuracion,
@@ -30,7 +28,6 @@ export class ProgresoMagicoJugador {
       this.restaurarEstado(estadoInicial);
     }
   }
-
   obtenerResumen() {
     const maestrias = {};
     for (const [idMaestria, estado] of Object.entries(this.maestrias)) {
@@ -39,7 +36,6 @@ export class ProgresoMagicoJugador {
         experienciaNecesaria: this.obtenerExperienciaNecesaria(idMaestria),
       };
     }
-
     const habilidades = {};
     for (const [idHabilidad, definicion] of Object.entries(
       this.configuracion.habilidades,
@@ -53,7 +49,6 @@ export class ProgresoMagicoJugador {
         gradoMaximo: definicion.gradoMaximo,
       };
     }
-
     return copiarDatos({
       puntosUniversales: this.puntosUniversales,
       maestrias,
@@ -69,7 +64,6 @@ export class ProgresoMagicoJugador {
     const idNormalizado = this.validarHabilidad(idHabilidad);
     return this.gradosHabilidades[idNormalizado];
   }
-
   obtenerExperienciaNecesaria(idMaestria) {
     const idNormalizado = this.validarMaestria(idMaestria);
     const estado = this.maestrias[idNormalizado];
@@ -82,7 +76,6 @@ export class ProgresoMagicoJugador {
 
     return experienciaPorNivel[estado.nivel];
   }
-
   agregarPuntosUniversales(cantidad) {
     validarEnteroPositivo(cantidad, "La cantidad de puntos universales");
     this.puntosUniversales += cantidad;
@@ -93,7 +86,6 @@ export class ProgresoMagicoJugador {
       puntosUniversales: this.puntosUniversales,
     };
   }
-
   // Registra una recompensa una sola vez por ejecución efectiva.
   //
   // La experiencia no consulta daño, crítico, resistencia, objetivos ni
@@ -106,7 +98,6 @@ export class ProgresoMagicoJugador {
   } = {}) {
     const idNormalizado = normalizarId(idEjecucion, "El ID de ejecución");
     const idMaestriaNormalizado = this.validarMaestria(idMaestria);
-
     if (ejecucionEfectiva !== true) {
       return resultadoSinExperiencia({
         motivo: "EJECUCION_NO_EFECTIVA",
@@ -122,7 +113,6 @@ export class ProgresoMagicoJugador {
         idMaestria: idMaestriaNormalizado,
       });
     }
-
     if (this.idsEjecucionesRecompensadas.has(idNormalizado)) {
       return resultadoSinExperiencia({
         motivo: "EJECUCION_YA_RECOMPENSADA",
@@ -142,7 +132,6 @@ export class ProgresoMagicoJugador {
       experienciaGanada,
       "La experiencia calculada por Maná",
     );
-
     // La operación es sincrónica: primero se aplica la experiencia y solo
     // después se registra el ID. Si una validación falla, no queda estado
     // parcial dentro del conjunto de deduplicación.
@@ -151,7 +140,6 @@ export class ProgresoMagicoJugador {
       cantidad: experienciaGanada,
     });
     this.idsEjecucionesRecompensadas.add(idNormalizado);
-
     return {
       ...resultado,
       exito: true,
@@ -165,7 +153,6 @@ export class ProgresoMagicoJugador {
   agregarExperienciaMaestria({ idMaestria, cantidad } = {}) {
     const idNormalizado = this.validarMaestria(idMaestria);
     validarEnteroPositivo(cantidad, "La experiencia de maestría");
-
     const estado = this.maestrias[idNormalizado];
     const nivelMaximo = this.configuracion.reglas.nivelMaximoMaestria;
 
@@ -182,7 +169,6 @@ export class ProgresoMagicoJugador {
         nivelMaximoAlcanzado: true,
       };
     }
-
     estado.experiencia += cantidad;
     estado.experienciaTotal += cantidad;
 
@@ -196,7 +182,6 @@ export class ProgresoMagicoJugador {
       if (estado.experiencia < experienciaNecesaria) {
         break;
       }
-
       estado.experiencia -= experienciaNecesaria;
       estado.nivel++;
       estado.puntosEspecificos++;
@@ -210,7 +195,6 @@ export class ProgresoMagicoJugador {
       // queda cerrada para no simular un nivel inexistente.
       estado.experiencia = 0;
     }
-
     return {
       exito: true,
       idMaestria: idNormalizado,
@@ -223,13 +207,11 @@ export class ProgresoMagicoJugador {
       nivelMaximoAlcanzado: estado.nivel >= nivelMaximo,
     };
   }
-
   mejorarHabilidad({ idHabilidad, origenPunto, idMaestriaPunto = null } = {}) {
     const idNormalizado = this.validarHabilidad(idHabilidad);
     const definicion = this.configuracion.habilidades[idNormalizado];
     const maestria = this.maestrias[definicion.maestria];
     const gradoActual = this.gradosHabilidades[idNormalizado];
-
     if (maestria.nivel < definicion.requisitoNivelMaestria) {
       return resultadoMejoraFallida({
         motivo: "NIVEL_MAESTRIA_INSUFICIENTE",
@@ -247,7 +229,6 @@ export class ProgresoMagicoJugador {
     }
 
     const origenNormalizado = normalizarId(origenPunto, "El origen del punto");
-
     if (origenNormalizado === ORIGENES_PUNTO_HABILIDAD.UNIVERSAL) {
       if (this.puntosUniversales <= 0) {
         return resultadoMejoraFallida({
@@ -263,7 +244,6 @@ export class ProgresoMagicoJugador {
         idMaestriaPunto,
         "La maestría de origen del punto",
       );
-
       if (idMaestriaOrigen !== definicion.maestria) {
         return resultadoMejoraFallida({
           motivo: "PUNTO_DE_OTRA_MAESTRIA",
@@ -279,7 +259,6 @@ export class ProgresoMagicoJugador {
           gradoActual,
         });
       }
-
       maestria.puntosEspecificos--;
     } else {
       throw new Error(`El origen de punto "${origenNormalizado}" no existe.`);
@@ -288,7 +267,6 @@ export class ProgresoMagicoJugador {
     // La validación completa se realizó antes de descontar. Desde aquí la
     // operación es atómica: un punto equivale exactamente a un grado.
     this.gradosHabilidades[idNormalizado]++;
-
     return {
       exito: true,
       motivo: null,
@@ -300,7 +278,6 @@ export class ProgresoMagicoJugador {
       puntosEspecificos: this.maestrias[definicion.maestria].puntosEspecificos,
     };
   }
-
   exportarEstado() {
     return copiarDatos({
       version: VERSION_ESTADO_PROGRESO,
@@ -309,7 +286,6 @@ export class ProgresoMagicoJugador {
       gradosHabilidades: this.gradosHabilidades,
     });
   }
-
   // Valida una copia completa antes de reemplazar el estado activo.
   // Un dato corrupto no puede consumir puntos ni alterar grados parcialmente.
   restaurarEstado(estado) {
@@ -318,7 +294,6 @@ export class ProgresoMagicoJugador {
     this.maestrias = normalizado.maestrias;
     this.gradosHabilidades = normalizado.gradosHabilidades;
     this.idsEjecucionesRecompensadas.clear();
-
     return {
       exito: true,
       estado: this.exportarEstado(),
@@ -333,14 +308,12 @@ export class ProgresoMagicoJugador {
         `La versión ${estado.version} del progreso mágico no es compatible.`,
       );
     }
-
     validarEnteroNoNegativo(
       estado.puntosUniversales,
       "Los puntos universales guardados",
     );
     validarObjetoPlano(estado.maestrias, "las maestrías guardadas");
     validarObjetoPlano(estado.gradosHabilidades, "los grados guardados");
-
     const maestrias = {};
     for (const idMaestria of Object.keys(this.maestrias)) {
       const guardada = estado.maestrias[idMaestria];
@@ -361,13 +334,11 @@ export class ProgresoMagicoJugador {
         guardada.puntosEspecificos,
         `Los puntos específicos de ${idMaestria}`,
       );
-
       if (guardada.nivel > this.configuracion.reglas.nivelMaximoMaestria) {
         throw new Error(
           `El nivel guardado de "${idMaestria}" supera el máximo.`,
         );
       }
-
       if (
         guardada.nivel < this.configuracion.reglas.nivelMaximoMaestria &&
         guardada.experiencia >=
@@ -377,7 +348,6 @@ export class ProgresoMagicoJugador {
           `La experiencia guardada de "${idMaestria}" debería haber producido otro nivel.`,
         );
       }
-
       if (
         guardada.nivel === this.configuracion.reglas.nivelMaximoMaestria &&
         guardada.experiencia !== 0
@@ -394,7 +364,6 @@ export class ProgresoMagicoJugador {
         puntosEspecificos: guardada.puntosEspecificos,
       };
     }
-
     const gradosHabilidades = {};
     for (const [idHabilidad, definicion] of Object.entries(
       this.configuracion.habilidades,
@@ -407,7 +376,6 @@ export class ProgresoMagicoJugador {
           `El grado guardado de "${idHabilidad}" supera su máximo.`,
         );
       }
-
       if (
         grado > 0 &&
         maestrias[definicion.maestria].nivel < definicion.requisitoNivelMaestria
@@ -426,7 +394,6 @@ export class ProgresoMagicoJugador {
       gradosHabilidades,
     };
   }
-
   validarMaestria(idMaestria) {
     const normalizado = normalizarId(idMaestria, "La maestría");
     if (!this.maestrias[normalizado]) {
@@ -442,7 +409,6 @@ export class ProgresoMagicoJugador {
     if (!habilidad) {
       throw new Error(`La habilidad "${normalizado}" no existe.`);
     }
-
     if (!this.maestrias[habilidad.maestria]) {
       throw new Error(
         `La profesión "${this.idProfesion}" no puede aprender "${normalizado}".`,
@@ -462,7 +428,6 @@ function crearEstadoInicialMaestrias({ configuracion, idProfesion }) {
     if (!definicion.profesionesPermitidas.includes(idProfesion)) {
       continue;
     }
-
     resultado[idMaestria] = {
       nivel: 0,
       experiencia: 0,
@@ -487,7 +452,6 @@ function crearEstadoInicialHabilidades(habilidades) {
   }
   return resultado;
 }
-
 function resultadoSinExperiencia({ motivo, idEjecucion, idMaestria }) {
   return {
     exito: false,
@@ -509,7 +473,6 @@ function resultadoMejoraFallida({ motivo, idHabilidad, gradoActual }) {
     gradoActual,
   };
 }
-
 function validarConfiguracion(configuracion) {
   if (
     configuracion === null ||
@@ -524,7 +487,6 @@ function validarConfiguracion(configuracion) {
     );
   }
 }
-
 function validarObjetoPlano(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`Se necesita ${descripcion} válido.`);
@@ -536,7 +498,6 @@ function validarEnteroPositivo(valor, descripcion) {
     throw new Error(`${descripcion} debe ser un entero mayor que 0.`);
   }
 }
-
 function validarEnteroNoNegativo(valor, descripcion) {
   if (!Number.isSafeInteger(valor) || valor < 0) {
     throw new Error(`${descripcion} debe ser un entero igual o mayor que 0.`);
@@ -549,7 +510,6 @@ function normalizarId(valor, descripcion) {
   }
   return valor.trim().toLowerCase();
 }
-
 function copiarDatos(valor) {
   if (Array.isArray(valor)) {
     return valor.map(copiarDatos);

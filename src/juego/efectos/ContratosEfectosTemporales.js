@@ -1,18 +1,13 @@
-import {
-  normalizarTipoDanio,
-} from "../combate/ComponentesDanio.js";
-import {
-  CONFIGURACION_EFECTOS_TEMPORALES,
-} from "../../config/ConfiguracionEfectosTemporales.js";
+import { normalizarTipoDanio } from "../combate/ComponentesDanio.js";
+import { CONFIGURACION_EFECTOS_TEMPORALES } from "../../config/ConfiguracionEfectosTemporales.js";
 
-// Tipos mínimos exigidos por la ETAPA 2.
+// Tipos canónicos soportados por el sistema temporal común.
 export const TIPOS_EFECTO_TEMPORAL = Object.freeze({
   DANIO_PERIODICO: "danio_periodico",
   MODIFICADOR_FACTOR: "modificador_factor",
   INMOVILIZACION: "inmovilizacion",
   ATURDIMIENTO: "aturdimiento",
 });
-
 export const TIPOS_EFECTO_TEMPORAL_VALIDOS = Object.freeze(
   Object.values(TIPOS_EFECTO_TEMPORAL),
 );
@@ -25,7 +20,6 @@ export const POLITICAS_ACUMULACION_EFECTO = Object.freeze({
   ACUMULAR_CANTIDAD: "acumular_cantidad",
   RECHAZAR_DUPLICADO: "rechazar_duplicado",
 });
-
 export const POLITICAS_ACUMULACION_VALIDAS = Object.freeze(
   Object.values(POLITICAS_ACUMULACION_EFECTO),
 );
@@ -43,7 +37,6 @@ function validarObjeto(valor, descripcion) {
     throw new Error(`${descripcion} debe ser un objeto válido.`);
   }
 }
-
 function validarNumeroPositivo(valor, descripcion) {
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error(`${descripcion} debe ser un número mayor que 0.`);
@@ -57,21 +50,21 @@ function normalizarTexto(valor, descripcion, valorPredeterminado = null) {
   }
   return texto.trim();
 }
-
 function normalizarEtiquetas(etiquetas = []) {
   if (!Array.isArray(etiquetas)) {
-    throw new Error("Las etiquetas del efecto deben estar dentro de una lista.");
+    throw new Error(
+      "Las etiquetas del efecto deben estar dentro de una lista.",
+    );
   }
 
-  return Object.freeze(
-    [...new Set(
+  return Object.freeze([
+    ...new Set(
       etiquetas.map((etiqueta) =>
         normalizarTexto(etiqueta, "Cada etiqueta").toLowerCase(),
       ),
-    )],
-  );
+    ),
+  ]);
 }
-
 function crearDescriptorFuente(fuente) {
   if (fuente === null || fuente === undefined) {
     return Object.freeze({
@@ -92,7 +85,6 @@ function crearDescriptorFuente(fuente) {
   validarObjeto(fuente, "La fuente del efecto");
 
   const nombreConstructor = fuente.constructor?.name;
-
   return Object.freeze({
     id: fuente.id ?? fuente.idEntidad ?? null,
     nombre: fuente.nombre ?? fuente.id ?? "Fuente desconocida",
@@ -108,7 +100,6 @@ function normalizarComponentesDanio(componentesDanio) {
   if (!Array.isArray(componentesDanio) || componentesDanio.length === 0) {
     return null;
   }
-
   return Object.freeze(
     componentesDanio.map((componente, indice) => {
       validarObjeto(
@@ -127,7 +118,6 @@ function normalizarComponentesDanio(componentesDanio) {
     }),
   );
 }
-
 function normalizarValorModificador(valor) {
   validarObjeto(valor, "El valor del modificador temporal");
 
@@ -144,7 +134,6 @@ function normalizarValorModificador(valor) {
       multiplicador,
       `El multiplicador de "${nombreFactor}"`,
     );
-
     modificadores[nombreFactor] = multiplicador;
   }
 
@@ -164,7 +153,6 @@ function normalizarValorSegunTipo({
   switch (tipo) {
     case TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO: {
       const componentes = normalizarComponentesDanio(componentesDanio);
-
       if (componentes) {
         return {
           valor: Number.isFinite(valor) && valor > 0 ? valor : 1,
@@ -181,7 +169,6 @@ function normalizarValorSegunTipo({
         componentesDanio: null,
       };
     }
-
     case TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR:
       return {
         valor: normalizarValorModificador(valor),
@@ -196,7 +183,6 @@ function normalizarValorSegunTipo({
         tipoDanio: null,
         componentesDanio: null,
       };
-
     default:
       throw new Error(`El tipo de efecto temporal "${tipo}" no es válido.`);
   }
@@ -209,7 +195,6 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
   if (!definicion.objetivo || typeof definicion.objetivo !== "object") {
     throw new Error("El efecto temporal necesita un objetivo válido.");
   }
-
   const tipo = normalizarTexto(
     definicion.tipo,
     "El tipo de efecto temporal",
@@ -226,7 +211,6 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     "La política de acumulación",
     POLITICAS_ACUMULACION_EFECTO.RENOVAR_DURACION,
   ).toLowerCase();
-
   if (!POLITICAS_ACUMULACION_VALIDAS.includes(politicaAcumulacion)) {
     throw new Error(
       `La política de acumulación "${politicaAcumulacion}" no es válida.`,
@@ -235,16 +219,13 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
 
   const maximoRecibido =
     definicion.maximo ??
-    CONFIGURACION_EFECTOS_TEMPORALES.limites
-      .maximoAcumulacionesPredeterminado;
+    CONFIGURACION_EFECTOS_TEMPORALES.limites.maximoAcumulacionesPredeterminado;
   validarNumeroPositivo(maximoRecibido, "El máximo de acumulación");
   if (maximoRecibido < 1) {
     throw new Error("El máximo de acumulación debe ser igual o mayor que 1.");
   }
-
   const maximo =
-    politicaAcumulacion ===
-    POLITICAS_ACUMULACION_EFECTO.ACUMULAR_CANTIDAD
+    politicaAcumulacion === POLITICAS_ACUMULACION_EFECTO.ACUMULAR_CANTIDAD
       ? Math.max(1, Math.floor(maximoRecibido))
       : maximoRecibido;
 
@@ -255,7 +236,6 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
 
   if (tipo === TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO) {
     validarNumeroPositivo(intervalo, "El intervalo del daño periódico");
-
     if (intervalo > definicion.duracion) {
       throw new Error(
         "El intervalo del daño periódico no puede superar su duración.",
@@ -271,10 +251,8 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     tipoDanio: definicion.tipoDanio,
     componentesDanio: definicion.componentesDanio,
   });
-
   const idDefinicion =
-    definicion.idDefinicion === null ||
-    definicion.idDefinicion === undefined
+    definicion.idDefinicion === null || definicion.idDefinicion === undefined
       ? null
       : normalizarTexto(definicion.idDefinicion, "El ID de definición");
 
@@ -283,7 +261,6 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     "El grupo de acumulación",
     idDefinicion ?? tipo,
   ).toLowerCase();
-
   return Object.freeze({
     idDefinicion,
     grupoAcumulacion,

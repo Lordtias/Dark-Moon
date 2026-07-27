@@ -1,308 +1,325 @@
-import { obtenerConfiguracionAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
-import * as ComponentesDanio from "../combate/ComponentesDanio.js";
+import { resolverPaqueteDanio } from "../combate/ComponentesDanio.js";
+import { calcularProbabilidadImpacto } from "../combate/SistemaCombate.js";
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
-import { crearContextoCatalizador } from "../magia/SistemaCatalizadores.js";
+import { crearContextoPotenciaHabilidad } from "../magia/SistemaCatalizadores.js";
 
-const CONTEXTO_CATALIZADOR_NEUTRO = Object.freeze({
-  potenciaHabilidad: 0,
-  multiplicadorHabilidad: 1,
-  tieneCatalizador: false,
-});
+const TIRADAS_DETERMINISTAS = {
+  impacto: [],
+  critico: [],
+};
 
-// Adapta la configuración común de habilidades al motor elemental existente.
-// Los alias de propiedades permiten conservar compatibilidad entre las etapas
-// sin duplicar la resolución de resistencias.
+export function configurarTiradasDeterministasHabilidad({
+  impacto = [],
+  critico = [],
+} = {}) {
+  TIRADAS_DETERMINISTAS.impacto = normalizarSecuenciaTiradas(
+    impacto,
+    "impacto",
+  );
+  TIRADAS_DETERMINISTAS.critico = normalizarSecuenciaTiradas(
+    critico,
+    "crítico",
+  );
+  return obtenerEstadoTiradasDeterministasHabilidad();
+}
+
+export function restaurarTiradasAleatoriasHabilidad() {
+  TIRADAS_DETERMINISTAS.impacto = [];
+  TIRADAS_DETERMINISTAS.critico = [];
+  return obtenerEstadoTiradasDeterministasHabilidad();
+}
+
+export function obtenerEstadoTiradasDeterministasHabilidad() {
+  return Object.freeze({
+    impacto: [...TIRADAS_DETERMINISTAS.impacto],
+    critico: [...TIRADAS_DETERMINISTAS.critico],
+    activa:
+      TIRADAS_DETERMINISTAS.impacto.length > 0 ||
+      TIRADAS_DETERMINISTAS.critico.length > 0,
+  });
+}
+
 export function resolverDanioHabilidad({
   lanzador,
   objetivo,
-  componentesConfigurados,
+  componentesConfigurados = [],
   idEjecucion,
+  contextoPotencia = null,
   aplicarEscaladoMagico = true,
-  aplicarCatalizador = true,
+  aplicarPotenciaHabilidad = true,
+  resolverImpacto = true,
+  resolverCritico = true,
 } = {}) {
-  if (!lanzador || !objetivo) {
-    throw new Error("El daño de habilidad necesita lanzador y objetivo.");
-  }
+  validarEntradaDanio({ lanzador, objetivo, componentesConfigurados });
+
+  const estadisticasLanzador = obtenerEstadisticas(lanzador);
+  const estadisticasObjetivo = obtenerEstadisticas(objetivo);
+  const probabilidadImpacto = resolverImpacto
+    ? obtenerProbabilidadImpacto(lanzador, objetivo)
+    : 100;
+  const tiradaImpacto = obtenerTirada("impacto");
+  const impacto = !resolverImpacto || tiradaImpacto <= probabilidadImpacto;
 
   const multiplicadorAtributos = aplicarEscaladoMagico
     ? obtenerMultiplicadorDanioMagico(lanzador)
     : 1;
-  const contextoCatalizador = aplicarCatalizador
-    ? obtenerContextoCatalizadorHabilidad(lanzador)
-    : CONTEXTO_CATALIZADOR_NEUTRO;
-  const multiplicador =
-    multiplicadorAtributos * contextoCatalizador.multiplicadorHabilidad;
+  const contextoPotenciaCalculado = aplicarPotenciaHabilidad
+    ? contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador)
+    : crearContextoPotenciaNeutro();
+  const multiplicadorBase =
+    multiplicadorAtributos * contextoPotenciaCalculado.multiplicadorHabilidad;
 
-  const componentes = componentesConfigurados.map((componente) => {
-    const valorEscalado = escalarDanioMagico(
-      componente.valorBase,
-      multiplicador,
-      lanzador,
-    );
-    return {
-      tipo: componente.tipo,
-      tipoDanio: componente.tipo,
-      categoria: componente.tipo,
-      valorBase: componente.valorBase,
-      valor: valorEscalado,
-      cantidad: valorEscalado,
-      danio: valorEscalado,
-      daño: valorEscalado,
-    };
-  });
-  const vidaAntes = leerVidaActual(objetivo);
-  const resolucion = invocarMotorElemental({
-    lanzador,
-    objetivo,
-    componentes,
-    idEjecucion,
-  });
-  const vidaDespuesDeResolver = leerVidaActual(objetivo);
-  const motorAplicoDanio =
-    Number.isFinite(vidaAntes) &&
-    Number.isFinite(vidaDespuesDeResolver) &&
-    vidaDespuesDeResolver < vidaAntes;
-
-  const danioFinal = extraerDanioFinal(resolucion, componentes);
-  let aplicacion = null;
-  if (!motorAplicoDanio && danioFinal > 0) {
-    aplicacion = aplicarDanioFinal(objetivo, danioFinal, {
-      tipoDanio: componentes[0]?.tipo ?? "veneno",
+  if (!impacto) {
+    return crearResultadoFallo({
       idEjecucion,
-      fuente: lanzador,
+      probabilidadImpacto,
+      tiradaImpacto,
+      multiplicadorAtributos,
+      contextoPotencia: contextoPotenciaCalculado,
     });
   }
 
+  const probabilidadCritico = resolverCritico
+    ? limitar(estadisticasLanzador?.probabilidadCritico ?? 0, 0, 100)
+    : 0;
+  const multiplicadorCritico = Math.max(
+    1,
+    estadisticasLanzador?.multiplicadorCritico ?? 1,
+  );
+  const tiradaCritico = obtenerTirada("critico");
+  const critico = resolverCritico && tiradaCritico <= probabilidadCritico;
+  const multiplicadorFinal =
+    multiplicadorBase * (critico ? multiplicadorCritico : 1);
+
+  const componentes = componentesConfigurados.map((componente) => ({
+    tipo: componente.tipo,
+    valorBase: componente.valorBase,
+    danioBruto: escalarDanioMagico(
+      componente.valorBase,
+      multiplicadorFinal,
+    ),
+  }));
+  const resistencias = estadisticasObjetivo?.resistencias ?? {};
+  const resolucion = resolverPaqueteDanio({
+    componentes: componentes.map(({ tipo, danioBruto }) => ({
+      tipo,
+      danioBruto,
+    })),
+    armadura: 0,
+    resistencias,
+    bloqueo: { activo: false, mitigacion: 0 },
+  });
+  const danioAplicado = aplicarDanioFinal(
+    objetivo,
+    resolucion.danioCalculado,
+    {
+      idEjecucion,
+      fuente: lanzador,
+      tipoAccion: "habilidad",
+    },
+  );
+
   return {
-    multiplicadorDanioMagico: multiplicador,
+    idEjecucion,
+    impacto: true,
+    critico,
+    probabilidadImpacto,
+    tiradaImpacto,
+    probabilidadCritico,
+    tiradaCritico,
+    multiplicadorCritico,
+    multiplicadorDanioMagico: multiplicadorFinal,
     multiplicadorAtributosMagicos: multiplicadorAtributos,
-    multiplicadorCatalizador: contextoCatalizador.multiplicadorHabilidad,
-    potenciaHabilidad: contextoCatalizador.potenciaHabilidad,
+    multiplicadorPotenciaHabilidad: contextoPotenciaCalculado.multiplicadorHabilidad,
+    potenciaHabilidad: contextoPotenciaCalculado.potenciaHabilidad,
+    cantidadObjetosAportandoPotencia:
+      contextoPotenciaCalculado.cantidadObjetosAportando ?? 0,
     componentes,
+    componentesDanio: resolucion.componentes,
+    desgloseDanio: resolucion.desgloseDanio,
+    resistencias,
     resolucion,
-    danioFinal,
-    aplicacion,
+    danioBruto: resolucion.danioBruto,
+    danioCalculado: resolucion.danioCalculado,
+    danioFinal: Number.isFinite(danioAplicado)
+      ? danioAplicado
+      : resolucion.danioCalculado,
+    danio: Number.isFinite(danioAplicado)
+      ? danioAplicado
+      : resolucion.danioCalculado,
     objetivoDerrotado: estaDerrotado(objetivo),
   };
 }
 
-export function obtenerContextoCatalizadorHabilidad(lanzador) {
-  // Mantiene compatibles las pruebas y consumidores de ETAPA 5 que construyen
-  // lanzadores mínimos sin equipamiento real.
-  if (!lanzador?.equipamiento) {
-    return CONTEXTO_CATALIZADOR_NEUTRO;
+export function obtenerContextoPotenciaHabilidad(lanzador) {
+  if (!lanzador || typeof lanzador !== "object") {
+    return crearContextoPotenciaNeutro();
   }
+  return crearContextoPotenciaHabilidad({ combatiente: lanzador });
+}
 
-  const configuracion = obtenerConfiguracionAtaque(lanzador, {
-    // Una habilidad no deja de aprovechar el catalizador equipado por haber
-    // activado temporalmente el ataque natural de respaldo.
-    ignorarAtaqueNaturalForzado: true,
-  });
-  return crearContextoCatalizador({
-    fuentes: configuracion.fuentesDanio,
+export function obtenerContextoCatalizadorHabilidad(lanzador) {
+  const contexto = obtenerContextoPotenciaHabilidad(lanzador);
+  return Object.freeze({
+    ...contexto,
+    tieneCatalizador: false,
   });
 }
 
 export function obtenerMultiplicadorDanioMagico(lanzador) {
+  const derivado = obtenerEstadisticas(lanzador)?.multiplicadorDanioMagico;
+  if (Number.isFinite(derivado) && derivado > 0) return derivado;
+
   const funcion = AtributosMagicos.calcularMultiplicadorDanioMagico;
-  if (typeof funcion !== "function") {
+  if (typeof funcion !== "function") return 1;
+  try {
+    return funcion(leerAtributosMagicos(lanzador));
+  } catch {
     return 1;
   }
-
-  const atributos = leerAtributosMagicos(lanzador);
-  return primerNumeroPositivo(
-    [
-      // Firma real vigente desde ETAPA 3.
-      () => funcion(atributos),
-      // Adaptadores conservados para implementaciones compatibles anteriores.
-      () => funcion(lanzador),
-      () => funcion({ combatiente: lanzador }),
-      () => funcion({ jugador: lanzador }),
-    ],
-    1,
-  );
 }
 
 export function obtenerMultiplicadorEfectos(lanzador) {
+  const derivado = obtenerEstadisticas(lanzador)?.multiplicadorEfectos;
+  if (Number.isFinite(derivado) && derivado > 0) return derivado;
+
   const funcion = AtributosMagicos.calcularMultiplicadorEfectos;
-  if (typeof funcion !== "function") {
+  if (typeof funcion !== "function") return 1;
+  try {
+    return funcion(leerAtributosMagicos(lanzador));
+  } catch {
     return 1;
   }
-
-  const atributos = leerAtributosMagicos(lanzador);
-  return primerNumeroPositivo(
-    [
-      // Firma real vigente desde ETAPA 3.
-      () => funcion(atributos),
-      // Adaptadores conservados para implementaciones compatibles anteriores.
-      () => funcion(lanzador),
-      () => funcion({ combatiente: lanzador }),
-      () => funcion({ jugador: lanzador }),
-    ],
-    1,
-  );
 }
 
-function escalarDanioMagico(valorBase, multiplicador, lanzador) {
+function validarEntradaDanio({ lanzador, objetivo, componentesConfigurados }) {
+  if (!lanzador || !objetivo) {
+    throw new Error("El daño de habilidad necesita lanzador y objetivo.");
+  }
+  if (!Array.isArray(componentesConfigurados)) {
+    throw new Error("Los componentes de daño de la habilidad deben ser una lista.");
+  }
+  if (componentesConfigurados.length === 0) {
+    throw new Error("La habilidad necesita al menos un componente de daño.");
+  }
+  componentesConfigurados.forEach((componente, indice) => {
+    if (!componente || typeof componente !== "object") {
+      throw new Error(`El componente de daño ${indice + 1} no es válido.`);
+    }
+    if (typeof componente.tipo !== "string" || componente.tipo.trim() === "") {
+      throw new Error(`El componente de daño ${indice + 1} necesita tipo.`);
+    }
+    if (!Number.isFinite(componente.valorBase) || componente.valorBase < 0) {
+      throw new Error(
+        `El valor base del componente de daño ${indice + 1} no es válido.`,
+      );
+    }
+  });
+  if (!encontrarMetodoDanio(objetivo)) {
+    throw new Error(
+      "El objetivo no expone un método compatible para recibir daño.",
+    );
+  }
+}
+
+function obtenerProbabilidadImpacto(lanzador, objetivo) {
+  try {
+    const probabilidad = calcularProbabilidadImpacto(lanzador, objetivo);
+    return limitar(Number.isFinite(probabilidad) ? probabilidad : 100, 0, 100);
+  } catch {
+    return 100;
+  }
+}
+
+function crearResultadoFallo({
+  idEjecucion,
+  probabilidadImpacto,
+  tiradaImpacto,
+  multiplicadorAtributos,
+  contextoPotencia,
+}) {
+  return {
+    idEjecucion,
+    impacto: false,
+    critico: false,
+    probabilidadImpacto,
+    tiradaImpacto,
+    probabilidadCritico: 0,
+    tiradaCritico: null,
+    multiplicadorCritico: 1,
+    multiplicadorDanioMagico:
+      multiplicadorAtributos * contextoPotencia.multiplicadorHabilidad,
+    multiplicadorAtributosMagicos: multiplicadorAtributos,
+    multiplicadorPotenciaHabilidad: contextoPotencia.multiplicadorHabilidad,
+    potenciaHabilidad: contextoPotencia.potenciaHabilidad,
+    cantidadObjetosAportandoPotencia:
+      contextoPotencia.cantidadObjetosAportando ?? 0,
+    componentes: [],
+    componentesDanio: [],
+    desgloseDanio: {},
+    resistencias: {},
+    resolucion: null,
+    danioBruto: 0,
+    danioCalculado: 0,
+    danioFinal: 0,
+    danio: 0,
+    objetivoDerrotado: false,
+  };
+}
+
+function crearContextoPotenciaNeutro() {
+  return Object.freeze({
+    potenciaHabilidad: 0,
+    multiplicadorHabilidad: 1,
+    cantidadObjetosAportando: 0,
+  });
+}
+
+function escalarDanioMagico(valorBase, multiplicador) {
   const funcion = AtributosMagicos.escalarDanioMagico;
   if (typeof funcion === "function") {
-    const resultado = primerNumeroNoNegativo(
-      [
-        () => funcion(valorBase, multiplicador),
-        () => funcion({ danioBase: valorBase, multiplicador }),
-        () => funcion({ valorBase, lanzador }),
-        () => funcion(valorBase, lanzador),
-      ],
-      null,
-    );
-    if (resultado !== null) {
-      return Math.round(resultado);
+    try {
+      const resultado = funcion(valorBase, multiplicador);
+      if (Number.isFinite(resultado) && resultado >= 0) {
+        return Math.max(0, Math.round(resultado));
+      }
+    } catch {
+      // Se usa el cálculo directo con el mismo multiplicador.
     }
   }
   return Math.max(0, Math.round(valorBase * multiplicador));
 }
 
-function invocarMotorElemental({
-  lanzador,
-  objetivo,
-  componentes,
-  idEjecucion,
-}) {
-  const funcion = ComponentesDanio.resolverPaqueteDanio;
-  if (typeof funcion !== "function") {
-    return {
-      motorDisponible: false,
-      danioFinal: componentes.reduce(
-        (total, componente) => total + componente.valor,
-        0,
-      ),
-      componentes,
-    };
-  }
-  const intentos = [
-    () => funcion({ atacante: lanzador, objetivo, componentes, idEjecucion }),
-    () =>
-      funcion({
-        fuente: lanzador,
-        objetivo,
-        componentesDanio: componentes,
-        idEjecucion,
-      }),
-    () => funcion({ objetivo, componentes }),
-    () => funcion(componentes, objetivo),
-  ];
-  let ultimoError = null;
-  for (const intento of intentos) {
-    try {
-      const resultado = intento();
-      return (
-        resultado ?? {
-          motorDisponible: true,
-          danioFinal: componentes.reduce(
-            (total, componente) => total + componente.valor,
-            0,
-          ),
-          componentes,
-        }
-      );
-    } catch (error) {
-      ultimoError = error;
-    }
-  }
-
-  throw new Error(
-    `No fue posible invocar resolverPaqueteDanio: ${
-      ultimoError?.message ?? "contrato desconocido"
-    }.`,
-  );
-}
-
-function extraerDanioFinal(resolucion, componentes) {
-  if (Number.isFinite(resolucion)) {
-    return Math.max(0, Math.round(resolucion));
-  }
-
-  const candidatos = [
-    resolucion?.danioFinal,
-    resolucion?.dañoFinal,
-    resolucion?.totalFinal,
-    resolucion?.totalDanioFinal,
-    resolucion?.totalDañoFinal,
-    resolucion?.total,
-    resolucion?.resultado?.danioFinal,
-  ];
-  for (const candidato of candidatos) {
-    if (Number.isFinite(candidato)) {
-      return Math.max(0, Math.round(candidato));
-    }
-  }
-  const detalles = resolucion?.componentes ?? resolucion?.desglose;
-  if (Array.isArray(detalles)) {
-    return Math.max(
-      0,
-      Math.round(
-        detalles.reduce(
-          (total, componente) =>
-            total +
-            (componente.danioFinal ??
-              componente.dañoFinal ??
-              componente.valorFinal ??
-              componente.valor ??
-              0),
-          0,
-        ),
-      ),
+function aplicarDanioFinal(objetivo, danioFinal, contexto) {
+  const metodo = encontrarMetodoDanio(objetivo);
+  if (!metodo) {
+    throw new Error(
+      "El objetivo no expone un método compatible para recibir daño.",
     );
   }
-  return Math.max(
-    0,
-    Math.round(
-      componentes.reduce((total, componente) => total + componente.valor, 0),
-    ),
-  );
+  return metodo.call(objetivo, Math.max(0, danioFinal), contexto);
 }
 
-function aplicarDanioFinal(objetivo, danioFinal, contexto) {
-  const metodos = [
-    "recibirDanio",
-    "recibirDaño",
-    "aplicarDanio",
-    "aplicarDaño",
-  ];
-  for (const nombre of metodos) {
-    if (typeof objetivo[nombre] === "function") {
-      return objetivo[nombre](danioFinal, contexto);
-    }
+function encontrarMetodoDanio(objetivo) {
+  const nombres = ["recibirDanio", "recibirDaño", "aplicarDanio", "aplicarDaño"];
+  for (const nombre of nombres) {
+    if (typeof objetivo?.[nombre] === "function") return objetivo[nombre];
   }
-  throw new Error(
-    "El objetivo no expone un método compatible para recibir daño.",
-  );
+  return null;
 }
 
-function leerVidaActual(objetivo) {
-  const candidatos = [
-    objetivo?.vidaActual,
-    objetivo?.vida,
-    objetivo?.recursos?.vidaActual,
-  ];
-  return candidatos.find(Number.isFinite) ?? null;
-}
-
-function estaDerrotado(objetivo) {
-  if (typeof objetivo?.estaDerrotado === "function") {
-    return Boolean(objetivo.estaDerrotado());
+function obtenerEstadisticas(combatiente) {
+  try {
+    return combatiente?.estadisticasDerivadas ?? null;
+  } catch {
+    return null;
   }
-  if (typeof objetivo?.estaMuerto === "function") {
-    return Boolean(objetivo.estaMuerto());
-  }
-  const vida = leerVidaActual(objetivo);
-  return Number.isFinite(vida) ? vida <= 0 : false;
 }
 
 function leerAtributosMagicos(combatiente) {
   return {
-    inteligencia: leerAtributo(combatiente, "inteligencia"),
-    sabiduria: leerAtributo(combatiente, "sabiduria"),
+    inteligencia: Math.max(1, leerAtributo(combatiente, "inteligencia")),
+    sabiduria: Math.max(1, leerAtributo(combatiente, "sabiduria")),
   };
 }
 
@@ -312,46 +329,55 @@ function leerAtributo(combatiente, idAtributo) {
     if (typeof combatiente?.[nombre] === "function") {
       try {
         const valor = combatiente[nombre](idAtributo);
-        if (Number.isFinite(valor)) {
-          return valor;
-        }
+        if (Number.isFinite(valor)) return valor;
       } catch {
-        // Se prueban las propiedades directas de atributos.
+        // Se prueban las propiedades directas.
       }
     }
   }
-  return (
+  const valor =
     combatiente?.[idAtributo] ??
     combatiente?.atributos?.[idAtributo] ??
     combatiente?.atributosBase?.[idAtributo] ??
-    0
-  );
+    10;
+  return Number.isFinite(valor) ? valor : 10;
 }
 
-function primerNumeroPositivo(intentos, fallback) {
-  for (const intento of intentos) {
-    try {
-      const resultado = intento();
-      if (Number.isFinite(resultado) && resultado > 0) {
-        return resultado;
-      }
-    } catch {
-      // Se prueba el siguiente contrato compatible.
-    }
+function obtenerTirada(tipo) {
+  const secuencia = TIRADAS_DETERMINISTAS[tipo];
+  if (Array.isArray(secuencia) && secuencia.length > 0) {
+    return secuencia.shift();
   }
-  return fallback;
+  return Math.floor(Math.random() * 100) + 1;
 }
 
-function primerNumeroNoNegativo(intentos, fallback) {
-  for (const intento of intentos) {
-    try {
-      const resultado = intento();
-      if (Number.isFinite(resultado) && resultado >= 0) {
-        return resultado;
-      }
-    } catch {
-      // Se prueba el siguiente contrato compatible.
+function normalizarSecuenciaTiradas(valor, descripcion) {
+  const secuencia = Array.isArray(valor)
+    ? valor
+    : Number.isFinite(valor)
+      ? [valor]
+      : [];
+  return secuencia.map((tirada, indice) => {
+    if (!Number.isInteger(tirada) || tirada < 1 || tirada > 100) {
+      throw new Error(
+        `La tirada de ${descripcion} ${indice + 1} debe ser un entero entre 1 y 100.`,
+      );
     }
+    return tirada;
+  });
+}
+
+function estaDerrotado(objetivo) {
+  if (typeof objetivo?.estaDerrotado === "function") {
+    return Boolean(objetivo.estaDerrotado());
   }
-  return fallback;
+  if (typeof objetivo?.estaMuerto === "function") {
+    return Boolean(objetivo.estaMuerto());
+  }
+  const vida = objetivo?.vidaActual ?? objetivo?.vida;
+  return Number.isFinite(vida) ? vida <= 0 : false;
+}
+
+function limitar(valor, minimo, maximo) {
+  return Math.max(minimo, Math.min(maximo, valor));
 }

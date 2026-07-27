@@ -19,7 +19,6 @@ import {
   TIEMPO_REFERENCIA,
 } from "../../../juego/tiempo/SistemaTiempo.js";
 import { normalizarResistencias } from "../../../juego/combate/ComponentesDanio.js";
-
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 
 const ATRIBUTOS_REQUERIDOS = [
@@ -38,7 +37,6 @@ const NOMBRES_FACTORES_TEMPORALES = [
   "factorAccion",
   "factorConsumo",
 ];
-
 function validarAtributos(nombre, atributos) {
   if (!atributos || typeof atributos !== "object" || Array.isArray(atributos)) {
     throw new Error(`${nombre} debe tener atributos válidos.`);
@@ -54,7 +52,6 @@ function validarAtributos(nombre, atributos) {
     }
   }
 }
-
 function normalizarEstadisticasBase(nombre, configuracion) {
   if (
     !configuracion ||
@@ -63,7 +60,6 @@ function normalizarEstadisticasBase(nombre, configuracion) {
   ) {
     throw new Error(`${nombre} debe tener estadísticas base válidas.`);
   }
-
   const valores = {
     vida: configuracion.vida,
     mana: configuracion.mana,
@@ -90,7 +86,6 @@ function normalizarEstadisticasBase(nombre, configuracion) {
       veneno: configuracion.resistencias?.veneno ?? 0,
     }),
   };
-
   const camposNumericos = [
     "vida",
     "mana",
@@ -108,7 +103,6 @@ function normalizarEstadisticasBase(nombre, configuracion) {
     "resistenciaMental",
     "potenciaAura",
   ];
-
   for (const campo of camposNumericos) {
     if (!Number.isFinite(valores[campo])) {
       throw new Error(
@@ -119,7 +113,6 @@ function normalizarEstadisticasBase(nombre, configuracion) {
 
   return valores;
 }
-
 function normalizarAtaqueNatural(nombre, configuracion = null) {
   const valores =
     configuracion &&
@@ -145,7 +138,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
     // salvo que su plantilla indique otro valor.
     costoAtaque: valores.costoAtaque ?? TIEMPO_REFERENCIA,
   };
-
   if (
     !Number.isFinite(ataque.danioFisicoMinimo) ||
     !Number.isFinite(ataque.danioFisicoMaximo) ||
@@ -156,7 +148,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       `El ataque natural de ${nombre} ` + "tiene un rango inválido.",
     );
   }
-
   if (
     typeof ataque.atributoAtaque !== "string" ||
     ataque.atributoAtaque.trim() === ""
@@ -173,7 +164,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       "La precisión del ataque natural de " + `${nombre} no es válida.`,
     );
   }
-
   if (!Number.isInteger(ataque.alcance) || ataque.alcance < 1) {
     throw new Error(
       "El alcance del ataque natural de " + `${nombre} no es válido.`,
@@ -191,7 +181,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
       "El patrón del ataque natural de " + `${nombre} no es válido.`,
     );
   }
-
   if (
     ataque.patronAtaque === PATRONES_ATAQUE.ADYACENTE &&
     ataque.alcance !== 1
@@ -211,7 +200,6 @@ function normalizarAtaqueNatural(nombre, configuracion = null) {
         `natural de ${nombre} no son válidos.`,
     );
   }
-
   if (!Number.isInteger(ataque.costoAtaque) || ataque.costoAtaque <= 0) {
     throw new Error(
       "El costo del ataque natural de " +
@@ -232,7 +220,6 @@ function normalizarFactoresTemporales(nombre, configuracion = {}) {
       `${nombre} debe tener una ` + "configuración temporal válida.",
     );
   }
-
   const factores = {
     factorTiempo:
       configuracion.factorTiempo ??
@@ -250,7 +237,6 @@ function normalizarFactoresTemporales(nombre, configuracion = {}) {
       configuracion.factorConsumo ??
       FACTORES_TEMPORALES_PREDETERMINADOS.factorConsumo,
   };
-
   for (const nombreFactor of NOMBRES_FACTORES_TEMPORALES) {
     const valor = factores[nombreFactor];
     if (!Number.isFinite(valor) || valor <= 0) {
@@ -263,7 +249,6 @@ function normalizarFactoresTemporales(nombre, configuracion = {}) {
 
   return factores;
 }
-
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -286,7 +271,6 @@ export class Combatiente extends Destructible {
         `${nombre} debe tener un nivel entero ` + "igual o mayor que 1.",
       );
     }
-
     validarAtributos(nombre, atributos);
     const atributosNormalizados = { ...atributos };
     const baseNormalizada = normalizarEstadisticasBase(
@@ -298,7 +282,6 @@ export class Combatiente extends Destructible {
       nombre,
       factoresTemporales,
     );
-
     if (
       !Object.prototype.hasOwnProperty.call(
         atributosNormalizados,
@@ -311,7 +294,6 @@ export class Combatiente extends Destructible {
           "usado por su ataque natural.",
       );
     }
-
     const equipamiento = new Equipamiento({
       ranurasDisponibles: ranurasEquipamiento,
       objetosIniciales: equipamientoInicial,
@@ -325,7 +307,6 @@ export class Combatiente extends Destructible {
       estadisticasBase: baseNormalizada,
       objetosEquipados,
     });
-
     super({
       nombre,
       x,
@@ -337,7 +318,6 @@ export class Combatiente extends Destructible {
       objetosIniciales,
       tablaBotin,
     });
-
     this.nivel = nivel;
     this.atributos = atributosNormalizados;
     this.estadisticasBase = baseNormalizada;
@@ -353,7 +333,6 @@ export class Combatiente extends Destructible {
     this.acumuladorRegeneracionVida = 0;
     this.acumuladorRegeneracionMana = 0;
   }
-
   get estadisticasDerivadas() {
     const estadisticas = calcularEstadisticasDerivadas(this);
     this.vidaMaxima = estadisticas.vidaMaxima;
@@ -367,7 +346,6 @@ export class Combatiente extends Destructible {
     if (!this.equipamiento.tieneRanura("arma")) {
       return null;
     }
-
     const objeto = this.equipamiento.obtenerObjetoEnRanura("arma");
     return objeto?.tipo === "arma" ? objeto : null;
   }
@@ -380,7 +358,6 @@ export class Combatiente extends Destructible {
     return this.configuracionAtaqueActual.propiedadesControladoras
       .atributoAtaque;
   }
-
   get costoAtaqueActual() {
     const costoAtaque = this.configuracionAtaqueActual.costoAtaqueBase;
     if (!Number.isInteger(costoAtaque) || costoAtaque <= 0) {
@@ -390,7 +367,6 @@ export class Combatiente extends Destructible {
     }
     return costoAtaque;
   }
-
   get alcanceAtaque() {
     const alcance =
       this.configuracionAtaqueActual.propiedadesControladoras.alcance;
@@ -399,7 +375,6 @@ export class Combatiente extends Destructible {
     }
     return alcance;
   }
-
   get tipoAtaqueActual() {
     const tipo =
       this.configuracionAtaqueActual.propiedadesControladoras.tipoAtaque;
@@ -408,7 +383,6 @@ export class Combatiente extends Destructible {
     }
     return tipo;
   }
-
   get patronAtaqueActual() {
     const patronAtaque =
       this.configuracionAtaqueActual.propiedadesControladoras.patronAtaque;
@@ -422,7 +396,6 @@ export class Combatiente extends Destructible {
   get estaVivo() {
     return !this.estaDestruido;
   }
-
   recuperarVida(cantidad) {
     if (!Number.isFinite(cantidad)) {
       throw new Error("La recuperación de Vida debe ser numérica.");
@@ -440,7 +413,6 @@ export class Combatiente extends Destructible {
     if (!Number.isFinite(cantidad)) {
       throw new Error("La recuperación de Maná debe ser numérica.");
     }
-
     const anterior = this.manaActual;
     this.manaActual = Math.min(
       this.manaMaximo,
@@ -461,17 +433,15 @@ export class Combatiente extends Destructible {
     this.manaActual -= cantidad;
     return true;
   }
-
   // Procesa únicamente la regeneración natural de Vida.
   //
-  // La separación respecto de Maná prepara la ETAPA 3A, donde un estado
-  // explícito de combate podrá bloquear Vida sin afectar el otro recurso.
+  // La separación respecto de Maná permite que el estado explícito de
+  // combate bloquee Vida sin afectar el otro recurso.
   procesarRegeneracionVida(estadisticas = this.estadisticasDerivadas) {
     if (!this.estaVivo || this.vidaActual >= this.vidaMaxima) {
       this.acumuladorRegeneracionVida = 0;
       return 0;
     }
-
     this.acumuladorRegeneracionVida += estadisticas.regeneracionVida;
     const vidaEntera = Math.floor(this.acumuladorRegeneracionVida);
     if (vidaEntera <= 0) {
@@ -482,7 +452,6 @@ export class Combatiente extends Destructible {
     this.acumuladorRegeneracionVida -= vidaEntera;
     return vidaRecuperada;
   }
-
   // Procesa únicamente la regeneración natural de Maná.
   //
   // La acumulación fraccionaria permite que valores como 0,8 o 1,2 por
@@ -492,7 +461,6 @@ export class Combatiente extends Destructible {
       this.acumuladorRegeneracionMana = 0;
       return 0;
     }
-
     this.acumuladorRegeneracionMana += estadisticas.regeneracionMana;
     const manaEntero = Math.floor(this.acumuladorRegeneracionMana);
     if (manaEntero <= 0) {
@@ -503,12 +471,11 @@ export class Combatiente extends Destructible {
     this.acumuladorRegeneracionMana -= manaEntero;
     return manaRecuperado;
   }
-
   // Procesa un pulso periódico de regeneración.
   //
   // Este método se ejecuta cada 100 unidades temporales y no depende de
-  // las acciones realizadas por el jugador. En la ETAPA 3 ambas políticas
-  // siguen activas; la ETAPA 3A decidirá si se omite Vida durante combate.
+  // las acciones realizadas por el jugador. Ambas políticas siguen activas;
+  // el estado de combate decide si corresponde omitir Vida.
   procesarPulsoRegeneracion() {
     if (!this.estaVivo) {
       return {
@@ -516,7 +483,6 @@ export class Combatiente extends Destructible {
         manaRecuperado: 0,
       };
     }
-
     const estadisticas = this.estadisticasDerivadas;
     return {
       vidaRecuperada: this.procesarRegeneracionVida(estadisticas),

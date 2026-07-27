@@ -1,19 +1,28 @@
+import {
+  TIPOS_DANIO_VALIDOS,
+  normalizarTipoDanio,
+} from "../combate/ComponentesDanio.js";
+import {
+  FACTORES_TEMPORALES_MODIFICABLES,
+  POLITICAS_ACUMULACION_VALIDAS,
+  TIPOS_EFECTO_TEMPORAL,
+  TIPOS_EFECTO_TEMPORAL_VALIDOS,
+} from "../efectos/ContratosEfectosTemporales.js";
+
 const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio"]);
 const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
-const TIPOS_EFECTO = Object.freeze(["danio_periodico"]);
-const REGLAS_ACUMULACION = Object.freeze(["renovar", "reemplazar", "independiente"]);
 
-// Valida únicamente los datos jugables de ETAPA 5. La progresión continúa
-// validándose y normalizándose en ValidadorConfiguracionProgresoMagico.
 export function validarConfiguracionEjecucionHabilidades(
   configuracionHabilidades,
 ) {
   validarObjeto(configuracionHabilidades, "la configuración de habilidades");
   validarEnteroPositivo(configuracionHabilidades.version, "la versión");
-  validarObjeto(configuracionHabilidades.habilidades, "el catálogo de habilidades");
+  validarObjeto(
+    configuracionHabilidades.habilidades,
+    "el catálogo de habilidades",
+  );
 
   const habilidades = {};
-
   for (const [idOriginal, definicionOriginal] of Object.entries(
     configuracionHabilidades.habilidades,
   )) {
@@ -22,7 +31,6 @@ export function validarConfiguracionEjecucionHabilidades(
 
     const gradoMaximo = definicionOriginal.gradoMaximo;
     validarEnteroPositivo(gradoMaximo, `el grado máximo de "${id}"`);
-
     const icono = normalizarIcono(definicionOriginal.icono, id);
     const descripcion = normalizarTextoOpcional(definicionOriginal.descripcion);
     const ejecucion = definicionOriginal.ejecucion
@@ -53,27 +61,23 @@ export function validarConfiguracionEjecucionHabilidades(
 
 function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
   validarObjeto(ejecucion, `la ejecución de "${idHabilidad}"`);
-
   const tipoObjetivo = normalizarId(ejecucion.tipoObjetivo);
   if (!TIPOS_OBJETIVO.includes(tipoObjetivo)) {
     throw new Error(
       `La habilidad "${idHabilidad}" usa el tipo de objetivo desconocido "${tipoObjetivo}".`,
     );
   }
-
   const patronAtaque = normalizarId(ejecucion.patronAtaque);
   if (!PATRONES_PERMITIDOS.includes(patronAtaque)) {
     throw new Error(
       `La habilidad "${idHabilidad}" usa el patrón desconocido "${patronAtaque}".`,
     );
   }
-
   if (typeof ejecucion.requiereLineaVision !== "boolean") {
     throw new Error(
       `La habilidad "${idHabilidad}" debe declarar requiereLineaVision como booleano.`,
     );
   }
-
   if (typeof ejecucion.hostil !== "boolean") {
     throw new Error(
       `La habilidad "${idHabilidad}" debe declarar hostil como booleano.`,
@@ -82,14 +86,12 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
 
   validarObjeto(ejecucion.grados, `los grados de "${idHabilidad}"`);
   const grados = {};
-
   for (let grado = 1; grado <= gradoMaximo; grado += 1) {
     const definicionGrado = ejecucion.grados[String(grado)];
     validarObjeto(
       definicionGrado,
       `la ejecución de "${idHabilidad}" en grado ${grado}`,
     );
-
     validarEnteroPositivo(
       definicionGrado.costoMana,
       `el coste de Maná de "${idHabilidad}" grado ${grado}`,
@@ -102,7 +104,6 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       definicionGrado.alcance,
       `el alcance de "${idHabilidad}" grado ${grado}`,
     );
-
     const danio = normalizarDanio(
       definicionGrado.danio,
       idHabilidad,
@@ -113,13 +114,11 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       idHabilidad,
       grado,
     );
-
     if (danio.length === 0 && efectos.length === 0) {
       throw new Error(
         `La habilidad "${idHabilidad}" grado ${grado} no posee daño ni efectos.`,
       );
     }
-
     grados[grado] = {
       costoMana: definicionGrado.costoMana,
       costoTemporalBase: definicionGrado.costoTemporalBase,
@@ -129,13 +128,11 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
     };
   }
 
-  const gradosRecibidos = Object.keys(ejecucion.grados);
-  if (gradosRecibidos.length !== gradoMaximo) {
+  if (Object.keys(ejecucion.grados).length !== gradoMaximo) {
     throw new Error(
       `La habilidad "${idHabilidad}" debe definir exactamente ${gradoMaximo} grados jugables.`,
     );
   }
-
   return {
     tipoObjetivo,
     patronAtaque,
@@ -146,15 +143,12 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
 }
 
 function normalizarDanio(componentes, idHabilidad, grado) {
-  if (componentes === undefined) {
-    return [];
-  }
+  if (componentes === undefined) return [];
   if (!Array.isArray(componentes)) {
     throw new Error(
       `El daño de "${idHabilidad}" grado ${grado} debe ser un arreglo.`,
     );
   }
-
   return componentes.map((componente, indice) => {
     validarObjeto(
       componente,
@@ -164,70 +158,112 @@ function normalizarDanio(componentes, idHabilidad, grado) {
       componente.valorBase,
       `el daño base de "${idHabilidad}" grado ${grado}`,
     );
-
-    return {
-      tipo: normalizarId(componente.tipo),
-      valorBase: componente.valorBase,
-    };
+    const tipo = normalizarTipoDanio(componente.tipo);
+    if (!TIPOS_DANIO_VALIDOS.includes(tipo)) {
+      throw new Error(
+        `El daño de "${idHabilidad}" grado ${grado} usa el tipo "${tipo}" desconocido.`,
+      );
+    }
+    return { tipo, valorBase: componente.valorBase };
   });
 }
 
 function normalizarEfectos(efectos, idHabilidad, grado) {
-  if (efectos === undefined) {
-    return [];
-  }
+  if (efectos === undefined) return [];
   if (!Array.isArray(efectos)) {
     throw new Error(
       `Los efectos de "${idHabilidad}" grado ${grado} deben ser un arreglo.`,
     );
   }
+  return efectos.map((efecto, indice) =>
+    normalizarEfecto(efecto, {
+      etiqueta: `el efecto ${indice + 1} de "${idHabilidad}" grado ${grado}`,
+    }),
+  );
+}
 
-  return efectos.map((efecto, indice) => {
-    validarObjeto(
-      efecto,
-      `el efecto ${indice + 1} de "${idHabilidad}" grado ${grado}`,
+function normalizarEfecto(efecto, { etiqueta }) {
+  validarObjeto(efecto, etiqueta);
+  const id = normalizarId(efecto.id);
+  const tipo = normalizarId(efecto.tipo);
+  if (!TIPOS_EFECTO_TEMPORAL_VALIDOS.includes(tipo)) {
+    throw new Error(`El efecto "${id}" usa el tipo desconocido "${tipo}".`);
+  }
+  validarEnteroPositivo(efecto.duracion, `la duración de "${id}"`);
+  const politicaAcumulacion = normalizarId(
+    efecto.politicaAcumulacion ?? "renovar_duracion",
+  );
+  if (!POLITICAS_ACUMULACION_VALIDAS.includes(politicaAcumulacion)) {
+    throw new Error(
+      `El efecto "${id}" usa la acumulación desconocida "${politicaAcumulacion}".`,
     );
+  }
 
-    const tipo = normalizarId(efecto.tipo);
-    if (!TIPOS_EFECTO.includes(tipo)) {
+  const comun = {
+    id,
+    tipo,
+    duracion: efecto.duracion,
+    politicaAcumulacion,
+    grupoAcumulacion: normalizarId(efecto.grupoAcumulacion ?? id),
+    maximo: efecto.maximo ?? 1,
+    incremento: efecto.incremento ?? 1,
+    etiquetas: normalizarEtiquetas(efecto.etiquetas),
+    beneficioso: efecto.beneficioso === true,
+  };
+  validarNumeroPositivo(comun.maximo, `el máximo de acumulación de "${id}"`);
+  validarNumeroPositivo(comun.incremento, `el incremento de "${id}"`);
+
+  if (tipo === TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO) {
+    validarEnteroPositivo(efecto.valorBase, `el daño periódico de "${id}"`);
+    validarEnteroPositivo(efecto.intervalo, `el intervalo de "${id}"`);
+    if (efecto.intervalo > efecto.duracion) {
       throw new Error(
-        `El efecto "${efecto.id}" usa el tipo desconocido "${tipo}".`,
+        `El intervalo de "${id}" no puede superar su duración.`,
       );
     }
-
-    const reglaAcumulacion = normalizarId(efecto.reglaAcumulacion);
-    if (!REGLAS_ACUMULACION.includes(reglaAcumulacion)) {
-      throw new Error(
-        `El efecto "${efecto.id}" usa la acumulación desconocida "${reglaAcumulacion}".`,
-      );
-    }
-
-    validarEnteroPositivo(efecto.potenciaBase, `la potencia de "${efecto.id}"`);
-    validarEnteroPositivo(efecto.duracion, `la duración de "${efecto.id}"`);
-    validarEnteroPositivo(efecto.intervalo, `el intervalo de "${efecto.id}"`);
-
-    if (efecto.duracion < efecto.intervalo) {
-      throw new Error(
-        `La duración de "${efecto.id}" no puede ser menor que su intervalo.`,
-      );
-    }
-
     return {
-      id: normalizarId(efecto.id),
-      tipo,
-      tipoDanio: normalizarId(efecto.tipoDanio),
-      potenciaBase: efecto.potenciaBase,
-      duracion: efecto.duracion,
+      ...comun,
+      tipoDanio: normalizarTipoDanio(efecto.tipoDanio),
+      valorBase: efecto.valorBase,
       intervalo: efecto.intervalo,
-      reglaAcumulacion,
     };
-  });
+  }
+
+  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR) {
+    validarObjeto(efecto.valor, `el valor de "${id}"`);
+    const valor = {};
+    for (const [factor, multiplicador] of Object.entries(efecto.valor)) {
+      if (!FACTORES_TEMPORALES_MODIFICABLES.includes(factor)) {
+        throw new Error(
+          `El efecto "${id}" intenta modificar el factor desconocido "${factor}".`,
+        );
+      }
+      validarNumeroPositivo(
+        multiplicador,
+        `el multiplicador ${factor} de "${id}"`,
+      );
+      valor[factor] = multiplicador;
+    }
+    if (Object.keys(valor).length === 0) {
+      throw new Error(`El efecto "${id}" debe modificar al menos un factor.`);
+    }
+    return { ...comun, valor, intervalo: null };
+  }
+
+  const valorBase = efecto.valorBase ?? 1;
+  validarNumeroPositivo(valorBase, `el valor de "${id}"`);
+  return { ...comun, valorBase, intervalo: null };
+}
+
+function normalizarEtiquetas(etiquetas = []) {
+  if (!Array.isArray(etiquetas)) {
+    throw new Error("Las etiquetas de efecto deben estar dentro de una lista.");
+  }
+  return [...new Set(etiquetas.map((etiqueta) => normalizarId(etiqueta)))];
 }
 
 function normalizarIcono(icono, idHabilidad) {
-  if (icono === null || icono === undefined || icono === "") {
-    return null;
-  }
+  if (icono === null || icono === undefined || icono === "") return null;
   const ruta = normalizarTexto(icono, `icono de "${idHabilidad}"`);
   if (!ruta.toLowerCase().endsWith(".png")) {
     throw new Error(`El icono de "${idHabilidad}" debe ser un archivo PNG.`);
@@ -241,53 +277,40 @@ function normalizarIcono(icono, idHabilidad) {
 }
 
 function normalizarTextoOpcional(valor) {
-  if (valor === null || valor === undefined || valor === "") {
-    return "";
-  }
+  if (valor === null || valor === undefined || valor === "") return "";
   return normalizarTexto(valor, "el texto opcional");
 }
-
 function normalizarTexto(valor, etiqueta) {
   if (typeof valor !== "string" || valor.trim() === "") {
     throw new Error(`Debe definirse ${etiqueta}.`);
   }
   return valor.trim();
 }
-
 function normalizarId(valor) {
-  return normalizarTexto(valor, "un identificador").trim().toLowerCase();
+  return normalizarTexto(valor, "un identificador").toLowerCase();
 }
-
 function validarObjeto(valor, etiqueta) {
   if (!valor || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`Debe definirse ${etiqueta} como un objeto.`);
   }
 }
-
 function validarEnteroPositivo(valor, etiqueta) {
   if (!Number.isInteger(valor) || valor <= 0) {
     throw new Error(`${etiqueta} debe ser un entero mayor que 0.`);
   }
 }
-
 function validarEnteroNoNegativo(valor, etiqueta) {
   if (!Number.isInteger(valor) || valor < 0) {
     throw new Error(`${etiqueta} debe ser un entero mayor o igual que 0.`);
   }
 }
-
 function validarNumeroPositivo(valor, etiqueta) {
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error(`${etiqueta} debe ser un número mayor que 0.`);
   }
 }
-
 function congelarProfundamente(valor) {
-  if (!valor || typeof valor !== "object" || Object.isFrozen(valor)) {
-    return valor;
-  }
-  for (const elemento of Object.values(valor)) {
-    congelarProfundamente(elemento);
-  }
+  if (!valor || typeof valor !== "object" || Object.isFrozen(valor)) return valor;
+  for (const elemento of Object.values(valor)) congelarProfundamente(elemento);
   return Object.freeze(valor);
 }

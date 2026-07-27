@@ -1,254 +1,254 @@
-import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
-import { obtenerEfectosFallback } from "./EstadoSesionHabilidades.js";
 import {
-  obtenerContextoCatalizadorHabilidad,
+  MAGNITUDES_ESCALADO_EFECTO,
+  crearInstantaneaEfectoMagico,
+} from "../magia/CalculadorAtributosMagicos.js";
+import {
+  normalizarDefinicionEfectoTemporal,
+} from "../efectos/ContratosEfectosTemporales.js";
+import {
+  obtenerContextoPotenciaHabilidad,
   obtenerMultiplicadorEfectos,
-  resolverDanioHabilidad,
 } from "./MotorDanioHabilidad.js";
 
-// Delega primero al motor temporal existente. El registro fallback sólo se usa
-// cuando una versión anterior del coordinador no expone todavía la fachada de
-// aplicación esperada; sus pulsos avanzan con el tiempo simulado, nunca con el
-// reloj real del navegador.
+export function validarDisponibilidadEfectosHabilidad({
+  juego,
+  efectosConfigurados = [],
+} = {}) {
+  if (!Array.isArray(efectosConfigurados)) {
+    throw new Error("Los efectos de la habilidad deben estar dentro de una lista.");
+  }
+  if (efectosConfigurados.length === 0) return true;
+  if (typeof juego?.coordinadorTiempo?.aplicarEfectoTemporal !== "function") {
+    throw new Error(
+      "El mapa activo no expone el sistema temporal canónico para aplicar efectos.",
+    );
+  }
+  return true;
+}
+
+// Construye y valida las definiciones antes de consumir recursos. El objetivo
+// conserva su identidad, pero todavía no se modifica el mundo ni se agenda nada.
+export function prepararEfectosHabilidad({
+  lanzador,
+  objetivo,
+  efectosConfigurados = [],
+  contextoPotencia = null,
+  idEjecucion = "prevalidacion",
+} = {}) {
+  if (!Array.isArray(efectosConfigurados)) {
+    throw new Error("Los efectos de la habilidad deben estar dentro de una lista.");
+  }
+  if (efectosConfigurados.length === 0) return [];
+  if (!lanzador || !objetivo) {
+    throw new Error("Los efectos de habilidad necesitan lanzador y objetivo.");
+  }
+
+  const multiplicadorAtributos = obtenerMultiplicadorEfectos(lanzador);
+  const potencia =
+    contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador);
+  const multiplicadorMagico =
+    multiplicadorAtributos * potencia.multiplicadorHabilidad;
+
+  return efectosConfigurados.map((efecto) => {
+    const definicionBase = crearDefinicionCanonica({
+      efecto,
+      objetivo,
+      idEjecucion,
+    });
+    const magnitudEscalable =
+      efecto.tipo === "danio_periodico"
+        ? MAGNITUDES_ESCALADO_EFECTO.VALOR
+        : MAGNITUDES_ESCALADO_EFECTO.NINGUNA;
+    const definicion = crearInstantaneaEfectoMagico({
+      definicion: definicionBase,
+      multiplicadorEfectos: multiplicadorMagico,
+      magnitudEscalable,
+    });
+    // Valida el contrato completo antes de consumir Maná. Se conserva la
+    // definición original para que la fuente real se vincule al confirmar.
+    normalizarDefinicionEfectoTemporal(definicion);
+
+    return {
+      idEfecto: efecto.id,
+      tipo: efecto.tipo,
+      multiplicadorAtributosMagicos: multiplicadorAtributos,
+      multiplicadorPotenciaHabilidad: potencia.multiplicadorHabilidad,
+      potenciaHabilidad: potencia.potenciaHabilidad,
+      definicion,
+    };
+  });
+}
+
 export function aplicarEfectosHabilidad({
   juego,
   lanzador,
   objetivo,
-  efectosConfigurados,
+  efectosConfigurados = [],
+  definicionesPreparadas = null,
+  contextoPotencia = null,
   idEjecucion,
 } = {}) {
-  const resultados = [];
-  for (const efecto of efectosConfigurados) {
-    const definicion = crearDefinicionEfecto({
-      efecto,
-      lanzador,
-      objetivo,
+  validarDisponibilidadEfectosHabilidad({ juego, efectosConfigurados });
+  if (efectosConfigurados.length === 0) return [];
+  if (!lanzador || !objetivo) {
+    throw new Error("Los efectos de habilidad necesitan lanzador y objetivo.");
+  }
+
+  const preparadas = Array.isArray(definicionesPreparadas)
+    ? definicionesPreparadas
+    : prepararEfectosHabilidad({
+        lanzador,
+        objetivo,
+        efectosConfigurados,
+        contextoPotencia,
+        idEjecucion,
+      });
+
+  if (preparadas.length !== efectosConfigurados.length) {
+    throw new Error("La preparación de efectos no coincide con la configuración.");
+  }
+
+  return preparadas.map((preparada) => {
+    const definicion = vincularEjecucion({
+      definicion: preparada.definicion,
       idEjecucion,
     });
+    const resultado = juego.coordinadorTiempo.aplicarEfectoTemporal({
+      ...definicion,
+      fuenteCombatiente: lanzador,
+    });
 
-    const resultadoMotor = intentarAplicarEnMotorExistente({
-      juego,
-      lanzador,
-      objetivo,
-      definicion,
+    return {
       idEjecucion,
-    });
-    if (resultadoMotor.aplicado) {
-      resultados.push({
-        id: efecto.id,
-        aplicado: true,
-        motor: "SistemaEfectosTemporales",
-        resultado: resultadoMotor.resultado,
-      });
-      continue;
-    }
-
-    registrarFallback({ juego, lanzador, objetivo, definicion, idEjecucion });
-    resultados.push({
-      id: efecto.id,
-      aplicado: true,
-      motor: "fallback_tiempo_simulado",
-      advertencia: resultadoMotor.error?.message ?? null,
-    });
-  }
-
-  return resultados;
-}
-
-export function procesarEfectosFallback({ juego, jugador }) {
-  const efectos = obtenerEfectosFallback(jugador);
-  const tiempoActual = leerTiempoActual(juego);
-  const eventos = [];
-  for (const efecto of [...efectos]) {
-    while (
-      efecto.pulsosRestantes > 0 &&
-      tiempoActual >= efecto.proximoPulso &&
-      !estaDerrotado(efecto.objetivo)
-    ) {
-      const resultadoDanio = resolverDanioHabilidad({
-        lanzador: efecto.lanzador,
-        objetivo: efecto.objetivo,
-        componentesConfigurados: [
-          {
-            tipo: efecto.definicion.tipoDanio,
-            valorBase: efecto.definicion.potencia,
-          },
-        ],
-        idEjecucion: efecto.idEjecucion,
-        // La potencia quedó fijada en la instantánea al aplicar el efecto.
-        aplicarEscaladoMagico: false,
-        aplicarCatalizador: false,
-      });
-      efecto.pulsosRestantes -= 1;
-      efecto.proximoPulso += efecto.definicion.intervalo;
-      eventos.push({
-        tipo: "pulso_efecto_habilidad",
-        idEjecucion: efecto.idEjecucion,
-        idEfecto: efecto.definicion.id,
-        danioFinal: resultadoDanio.danioFinal,
-        pulsosRestantes: efecto.pulsosRestantes,
-      });
-    }
-  }
-  for (let indice = efectos.length - 1; indice >= 0; indice -= 1) {
-    if (
-      efectos[indice].pulsosRestantes <= 0 ||
-      estaDerrotado(efectos[indice].objetivo)
-    ) {
-      efectos.splice(indice, 1);
-    }
-  }
-
-  return eventos;
-}
-
-function crearDefinicionEfecto({ efecto, lanzador, objetivo, idEjecucion }) {
-  const multiplicadorAtributos = obtenerMultiplicadorEfectos(lanzador);
-  const contextoCatalizador = obtenerContextoCatalizadorHabilidad(lanzador);
-  const multiplicador =
-    multiplicadorAtributos * contextoCatalizador.multiplicadorHabilidad;
-  const potencia = Math.max(1, Math.round(efecto.potenciaBase * multiplicador));
-  const instantanea = crearInstantaneaMagica({
-    lanzador,
-    objetivo,
-    efecto,
-    potencia,
+      idEfecto: preparada.idEfecto,
+      tipo: preparada.tipo,
+      multiplicadorAtributosMagicos:
+        preparada.multiplicadorAtributosMagicos,
+      multiplicadorPotenciaHabilidad:
+        preparada.multiplicadorPotenciaHabilidad,
+      potenciaHabilidad: preparada.potenciaHabilidad,
+      definicion: resumirDefinicion(definicion),
+      resultado: resumirResultado(resultado),
+    };
   });
-  return {
-    id: efecto.id,
-    idEfecto: efecto.id,
+}
+
+function crearDefinicionCanonica({ efecto, objetivo, idEjecucion }) {
+  const comun = {
+    idDefinicion: efecto.id,
+    grupoAcumulacion: efecto.grupoAcumulacion ?? efecto.id,
+    fuente: {
+      id: idEjecucion,
+      nombre: efecto.id,
+      tipo: "habilidad_jugador",
+    },
+    objetivo,
     tipo: efecto.tipo,
-    categoria: efecto.tipo,
-    tipoDanio: efecto.tipoDanio,
-    potencia,
-    potenciaBase: efecto.potenciaBase,
-    multiplicadorEfectos: multiplicador,
-    multiplicadorAtributosMagicos: multiplicadorAtributos,
-    multiplicadorCatalizador: contextoCatalizador.multiplicadorHabilidad,
-    potenciaHabilidad: contextoCatalizador.potenciaHabilidad,
     duracion: efecto.duracion,
-    intervalo: efecto.intervalo,
-    reglaAcumulacion: efecto.reglaAcumulacion,
-    hostil: true,
-    idEjecucion,
-    instantanea,
+    intervalo: efecto.intervalo ?? null,
+    politicaAcumulacion:
+      efecto.politicaAcumulacion ?? "renovar_duracion",
+    maximo: efecto.maximo ?? 1,
+    incremento: efecto.incremento ?? 1,
+    etiquetas: [
+      "habilidad",
+      `ejecucion:${idEjecucion}`,
+      ...(efecto.etiquetas ?? []),
+    ],
+    beneficioso: efecto.beneficioso === true,
+  };
+
+  if (efecto.tipo === "danio_periodico") {
+    return {
+      ...comun,
+      valor: 1,
+      tipoDanio: null,
+      componentesDanio: [
+        {
+          tipo: efecto.tipoDanio,
+          danioBruto: efecto.valorBase,
+        },
+      ],
+    };
+  }
+  if (efecto.tipo === "modificador_factor") {
+    return {
+      ...comun,
+      valor: { ...efecto.valor },
+      tipoDanio: null,
+      componentesDanio: null,
+    };
+  }
+  return {
+    ...comun,
+    valor: efecto.valorBase ?? 1,
+    tipoDanio: null,
+    componentesDanio: null,
   };
 }
 
-function crearInstantaneaMagica({ lanzador, objetivo, efecto, potencia }) {
-  const funcion = AtributosMagicos.crearInstantaneaEfectoMagico;
-  if (typeof funcion !== "function") {
-    return {
-      potencia,
-      tipoDanio: efecto.tipoDanio,
-    };
-  }
-
-  const intentos = [
-    () => funcion({ lanzador, objetivo, efecto, potencia }),
-    () => funcion(lanzador, efecto),
-    () => funcion({ combatiente: lanzador, definicion: efecto }),
-  ];
-  for (const intento of intentos) {
-    try {
-      const resultado = intento();
-      if (resultado && typeof resultado === "object") {
-        return resultado;
-      }
-    } catch {
-      // Se conserva compatibilidad con la firma real del motor activo.
-    }
-  }
-
-  return { potencia, tipoDanio: efecto.tipoDanio };
+function vincularEjecucion({ definicion, idEjecucion }) {
+  return {
+    ...definicion,
+    fuente: {
+      ...definicion.fuente,
+      id: idEjecucion,
+    },
+    etiquetas: (definicion.etiquetas ?? [])
+      .filter((etiqueta) => !String(etiqueta).startsWith("ejecucion:"))
+      .concat(`ejecucion:${idEjecucion}`),
+  };
 }
 
-function intentarAplicarEnMotorExistente({
-  juego,
-  lanzador,
-  objetivo,
-  definicion,
-  idEjecucion,
-}) {
-  const receptores = [
-    juego?.coordinadorTiempo,
-    juego?.sistemaEfectosTemporales,
-    juego?.coordinadorTiempo?.sistemaEfectosTemporales,
-  ].filter(Boolean);
-
-  const nombres = ["aplicarEfectoTemporal", "aplicarEfecto"];
-  let ultimoError = null;
-  for (const receptor of receptores) {
-    for (const nombre of nombres) {
-      if (typeof receptor[nombre] !== "function") {
-        continue;
-      }
-      try {
-        const resultado = receptor[nombre]({
-          objetivo,
-          fuente: lanzador,
-          lanzador,
-          definicion,
-          efecto: definicion,
-          idEjecucion,
-          hostil: true,
-        });
-        return { aplicado: true, resultado };
-      } catch (error) {
-        ultimoError = error;
-      }
-    }
-  }
-  return { aplicado: false, error: ultimoError };
+function resumirDefinicion(definicion) {
+  return {
+    idDefinicion: definicion.idDefinicion,
+    grupoAcumulacion: definicion.grupoAcumulacion,
+    fuente: { ...definicion.fuente },
+    tipo: definicion.tipo,
+    valor: copiarSimple(definicion.valor),
+    tipoDanio: definicion.tipoDanio,
+    componentesDanio: definicion.componentesDanio
+      ? definicion.componentesDanio.map((componente) => ({ ...componente }))
+      : null,
+    duracion: definicion.duracion,
+    intervalo: definicion.intervalo,
+    politicaAcumulacion: definicion.politicaAcumulacion,
+    maximo: definicion.maximo,
+    incremento: definicion.incremento,
+    etiquetas: [...(definicion.etiquetas ?? [])],
+    beneficioso: definicion.beneficioso,
+  };
 }
 
-function registrarFallback({
-  juego,
-  lanzador,
-  objetivo,
-  definicion,
-  idEjecucion,
-}) {
-  const efectos = obtenerEfectosFallback(lanzador);
-  const tiempoActual = leerTiempoActual(juego);
-  const pulsos = Math.floor(definicion.duracion / definicion.intervalo);
-  if (definicion.reglaAcumulacion !== "independiente") {
-    const existente = efectos.find(
-      (efecto) =>
-        efecto.definicion.id === definicion.id && efecto.objetivo === objetivo,
-    );
-    if (existente) {
-      existente.definicion = definicion;
-      existente.idEjecucion = idEjecucion;
-      existente.proximoPulso = tiempoActual + definicion.intervalo;
-      existente.pulsosRestantes = pulsos;
-      return;
-    }
-  }
-  efectos.push({
-    juego,
-    lanzador,
-    objetivo,
-    definicion,
-    idEjecucion,
-    proximoPulso: tiempoActual + definicion.intervalo,
-    pulsosRestantes: pulsos,
-  });
+function resumirResultado(resultado) {
+  const efecto = resultado?.efecto;
+  return {
+    exito: resultado?.exito === true,
+    aplicado: resultado?.aplicado === true,
+    mensaje: resultado?.mensaje ?? null,
+    efecto: efecto
+      ? {
+          id: efecto.id,
+          idDefinicion: efecto.idDefinicion,
+          grupoAcumulacion: efecto.grupoAcumulacion,
+          tipo: efecto.tipo,
+          valor: copiarSimple(efecto.valor),
+          duracion: efecto.duracion,
+          intervalo: efecto.intervalo,
+          politicaAcumulacion: efecto.politicaAcumulacion,
+          aplicadoEn: efecto.aplicadoEn,
+          venceEn: efecto.venceEn,
+          proximoTick: efecto.proximoTick,
+        }
+      : null,
+  };
 }
 
-function leerTiempoActual(juego) {
-  const candidatos = [
-    typeof juego?.tiempoActual === "number" ? juego.tiempoActual : null,
-    juego?.sistemaTiempo?.tiempoActual,
-    juego?.coordinadorTiempo?.tiempoActual,
-  ];
-  return candidatos.find(Number.isFinite) ?? 0;
-}
-
-function estaDerrotado(objetivo) {
-  if (typeof objetivo?.estaDerrotado === "function") {
-    return Boolean(objetivo.estaDerrotado());
-  }
-  const vida = objetivo?.vidaActual ?? objetivo?.vida;
-  return Number.isFinite(vida) ? vida <= 0 : false;
+function copiarSimple(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) return valor.map(copiarSimple);
+  return Object.fromEntries(
+    Object.entries(valor).map(([clave, actual]) => [clave, copiarSimple(actual)]),
+  );
 }

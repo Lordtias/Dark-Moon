@@ -16,7 +16,6 @@ function validarNumeroFinito(valor, descripcion) {
     throw new Error(`${descripcion} debe ser un número finito.`);
   }
 }
-
 function validarAtributosMagicos(atributos) {
   if (!atributos || typeof atributos !== "object" || Array.isArray(atributos)) {
     throw new Error("Los atributos mágicos deben estar dentro de un objeto.");
@@ -29,7 +28,6 @@ function validarAtributosMagicos(atributos) {
     throw new Error("Inteligencia y Sabiduría deben ser mayores que 0.");
   }
 }
-
 function calcularMultiplicador({
   atributos,
   coeficientes,
@@ -41,7 +39,6 @@ function calcularMultiplicador({
   if (minimo <= 0) {
     throw new Error("El multiplicador mínimo debe ser mayor que 0.");
   }
-
   const referencia = CONFIGURACION_MAGIA.referenciaAtributos;
   const multiplicador =
     1 +
@@ -57,7 +54,6 @@ export function calcularMultiplicadorDanioMagico(atributos) {
     coeficientes: CONFIGURACION_MAGIA.multiplicadores.danioMagico,
   });
 }
-
 export function calcularMultiplicadorEfectos(atributos) {
   return calcularMultiplicador({
     atributos,
@@ -70,7 +66,6 @@ export function calcularAporteManaMaximo(atributos) {
 
   const referencia = CONFIGURACION_MAGIA.referenciaAtributos;
   const configuracion = CONFIGURACION_MAGIA.mana;
-
   return (
     configuracion.porInteligenciaRespectoDiez *
       (atributos.inteligencia - referencia) +
@@ -88,7 +83,6 @@ export function calcularManaMaximo({
   validarNumeroFinito(manaBase, "El Maná base");
   validarNumeroFinito(manaPorNivel, "El Maná por nivel");
   validarNumeroFinito(bonificacionPlana, "La bonificación plana de Maná");
-
   if (!Number.isInteger(nivel) || nivel < 1) {
     throw new Error("El nivel debe ser un entero igual o mayor que 1.");
   }
@@ -101,7 +95,6 @@ export function calcularManaMaximo({
 
   return Math.max(CONFIGURACION_MAGIA.mana.minimo, Math.round(total));
 }
-
 export function calcularRegeneracionMana({
   regeneracionBase = 0,
   sabiduria,
@@ -117,7 +110,6 @@ export function calcularRegeneracionMana({
     bonificacionPorcentual,
     "La regeneración porcentual de Maná",
   );
-
   if (sabiduria <= 0) {
     throw new Error("La Sabiduría debe ser mayor que 0.");
   }
@@ -134,7 +126,6 @@ export function calcularRegeneracionMana({
 export function escalarDanioMagico(danioBase, multiplicador) {
   validarNumeroFinito(danioBase, "El daño mágico base");
   validarNumeroFinito(multiplicador, "El multiplicador de daño mágico");
-
   if (danioBase < 0 || multiplicador <= 0) {
     throw new Error(
       "El daño mágico no puede ser negativo y su multiplicador debe ser positivo.",
@@ -152,7 +143,6 @@ function copiarValor(valor) {
   if (Array.isArray(valor)) {
     return valor.map(copiarValor);
   }
-
   return Object.fromEntries(
     Object.entries(valor).map(([clave, actual]) => [
       clave,
@@ -163,7 +153,6 @@ function copiarValor(valor) {
 
 function copiarDefinicionEfecto(definicion) {
   const instantanea = {};
-
   for (const [clave, valor] of Object.entries(definicion)) {
     // El objetivo debe conservar su identidad. Copiarlo produciría un
     // efecto asociado a una entidad distinta y rompería el WeakMap del
@@ -172,9 +161,8 @@ function copiarDefinicionEfecto(definicion) {
       instantanea[clave] = valor;
       continue;
     }
-
-    // La ETAPA 2 exige descriptores estables de fuente. Se copia el
-    // descriptor, pero nunca se recorre una instancia completa del mapa.
+    // La fuente necesita un descriptor estable. Se copia el descriptor,
+    // pero nunca se recorre una instancia completa del mapa.
     if (clave === "fuente" && valor && typeof valor === "object") {
       instantanea[clave] = {
         id: valor.id ?? valor.idEntidad ?? null,
@@ -186,7 +174,6 @@ function copiarDefinicionEfecto(definicion) {
 
     instantanea[clave] = copiarValor(valor);
   }
-
   return instantanea;
 }
 
@@ -202,7 +189,6 @@ function escalarValorEfecto(definicion, multiplicador) {
     );
     return instantanea;
   }
-
   if (!Number.isFinite(definicion.valor)) {
     throw new Error(
       "El escalado de valor solo admite un valor numérico o componentes de daño.",
@@ -212,7 +198,6 @@ function escalarValorEfecto(definicion, multiplicador) {
   instantanea.valor = definicion.valor * multiplicador;
   return instantanea;
 }
-
 // Crea la instantánea que se entrega al motor temporal.
 //
 // Los valores escalados quedan fijados al aplicar el efecto. Los ticks futuros
@@ -229,7 +214,6 @@ export function crearInstantaneaEfectoMagico({
   ) {
     throw new Error("La definición del efecto debe ser un objeto válido.");
   }
-
   validarNumeroFinito(
     multiplicadorEfectos,
     "El multiplicador de potencia de efectos",
@@ -244,7 +228,6 @@ export function crearInstantaneaEfectoMagico({
       `La magnitud escalable "${magnitudEscalable}" no es válida.`,
     );
   }
-
   let instantanea = copiarDefinicionEfecto(definicion);
   const escalaValor = [
     MAGNITUDES_ESCALADO_EFECTO.VALOR,
@@ -258,7 +241,6 @@ export function crearInstantaneaEfectoMagico({
   if (escalaValor) {
     instantanea = escalarValorEfecto(instantanea, multiplicadorEfectos);
   }
-
   if (escalaDuracion) {
     validarNumeroFinito(instantanea.duracion, "La duración del efecto");
     instantanea.duracion = Math.max(
@@ -274,7 +256,6 @@ export function capturarEstadoRecursos(combatiente) {
   if (!combatiente || typeof combatiente !== "object") {
     throw new Error("Se necesita un combatiente para capturar sus recursos.");
   }
-
   const estado = {
     vidaActual: combatiente.vidaActual,
     vidaMaxima: combatiente.vidaMaxima,
@@ -292,7 +273,6 @@ export function capturarEstadoRecursos(combatiente) {
 function limitarRecurso(valor, maximo) {
   return Math.max(0, Math.min(maximo, Math.round(valor)));
 }
-
 export function conservarFaltanteRecurso({
   actual,
   maximoAnterior,
@@ -304,7 +284,6 @@ export function conservarFaltanteRecurso({
 
   return limitarRecurso(actual + (maximoNuevo - maximoAnterior), maximoNuevo);
 }
-
 export function conservarProporcionRecurso({
   actual,
   maximoAnterior,
@@ -321,11 +300,9 @@ export function conservarProporcionRecurso({
   if (maximoAnterior <= 0) {
     return limitarRecurso(actual, maximoNuevo);
   }
-
   const proporcion = Math.max(0, Math.min(1, actual / maximoAnterior));
   return limitarRecurso(maximoNuevo * proporcion, maximoNuevo);
 }
-
 // La Vida conserva el faltante histórico para no alterar el comportamiento
 // previo. El Maná conserva su proporción, evitando ganar o perder porcentaje
 // al subir nivel, asignar atributos o cambiar equipo.
@@ -333,7 +310,6 @@ export function restaurarRecursosTrasRecalculo(combatiente, estadoAnterior) {
   if (!combatiente || typeof combatiente !== "object") {
     throw new Error("Se necesita un combatiente para restaurar sus recursos.");
   }
-
   combatiente.vidaActual = conservarFaltanteRecurso({
     actual: estadoAnterior.vidaActual,
     maximoAnterior: estadoAnterior.vidaMaxima,
@@ -344,7 +320,6 @@ export function restaurarRecursosTrasRecalculo(combatiente, estadoAnterior) {
     maximoAnterior: estadoAnterior.manaMaximo,
     maximoNuevo: combatiente.manaMaximo,
   });
-
   return {
     vidaActual: combatiente.vidaActual,
     vidaMaxima: combatiente.vidaMaxima,

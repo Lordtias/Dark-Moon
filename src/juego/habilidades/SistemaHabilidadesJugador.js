@@ -7,10 +7,17 @@ import {
   obtenerUltimaEjecucion,
   registrarUltimaEjecucion,
 } from "./EstadoSesionHabilidades.js";
-import { resolverDanioHabilidad } from "./MotorDanioHabilidad.js";
+import {
+  configurarTiradasDeterministasHabilidad,
+  obtenerContextoPotenciaHabilidad,
+  obtenerEstadoTiradasDeterministasHabilidad,
+  resolverDanioHabilidad,
+  restaurarTiradasAleatoriasHabilidad,
+} from "./MotorDanioHabilidad.js";
 import {
   aplicarEfectosHabilidad,
-  procesarEfectosFallback,
+  prepararEfectosHabilidad,
+  validarDisponibilidadEfectosHabilidad,
 } from "./MotorEfectosHabilidad.js";
 import { validarBarraContraJugador } from "./PersistenciaBarraHabilidades.js";
 
@@ -44,6 +51,7 @@ export class SistemaHabilidadesJugador {
     this.configuracion = configuracionEjecucion;
     this.seleccion = null;
     this.oyentesCambio = new Set();
+    this.destruido = false;
   }
 
   get modoHabilidad() {
@@ -56,7 +64,6 @@ export class SistemaHabilidadesJugador {
 
   obtenerEstadoBarra() {
     const asignaciones = obtenerAsignacionesHabilidades(this.jugador);
-
     return asignaciones.map((idHabilidad, indice) => {
       const habilidad = idHabilidad
         ? this.configuracion.habilidades[idHabilidad]
@@ -105,9 +112,7 @@ export class SistemaHabilidadesJugador {
   }
 
   vaciarBarra() {
-    if (this.modoHabilidad) {
-      this.cancelar();
-    }
+    if (this.modoHabilidad) this.cancelar();
     for (let indice = 0; indice < 10; indice += 1) {
       asignarHabilidadARanura(this.jugador, indice, null);
     }
@@ -116,22 +121,15 @@ export class SistemaHabilidadesJugador {
   }
 
   desasignarHabilidad(indiceRanura) {
-    if (
-      !Number.isInteger(indiceRanura) ||
-      indiceRanura < 0 ||
-      indiceRanura > 9
-    ) {
-      throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
-    }
-    if (this.seleccion?.indiceRanura === indiceRanura) {
-      this.seleccion = null;
-    }
+    validarIndiceRanura(indiceRanura);
+    if (this.seleccion?.indiceRanura === indiceRanura) this.seleccion = null;
     asignarHabilidadARanura(this.jugador, indiceRanura, null);
     this.emitirCambio();
     return this.obtenerEstadoBarra();
   }
 
   asignarHabilidad(indiceRanura, idHabilidad) {
+    validarIndiceRanura(indiceRanura);
     const habilidad = this.configuracion.habilidades[idHabilidad];
     if (!habilidad) {
       throw new Error(`La habilidad "${idHabilidad}" no existe.`);
@@ -140,9 +138,7 @@ export class SistemaHabilidadesJugador {
       throw new Error(`La habilidad "${idHabilidad}" todavía no es jugable.`);
     }
     if (this.obtenerGrado(idHabilidad) <= 0) {
-      throw new Error(
-        `La habilidad "${idHabilidad}" todavía no fue aprendida.`,
-      );
+      throw new Error(`La habilidad "${idHabilidad}" todavía no fue aprendida.`);
     }
     asignarHabilidadARanura(this.jugador, indiceRanura, idHabilidad);
     this.emitirCambio();
@@ -150,11 +146,11 @@ export class SistemaHabilidadesJugador {
   }
 
   seleccionarPorRanura(indiceRanura) {
-    const bloqueo = this.validarBloqueosDeSeleccion();
-    if (bloqueo) {
-      return bloqueo;
+    if (this.destruido) {
+      return crearRechazo(MOTIVOS.CANCELADA, "La integración ya fue destruida.");
     }
-
+    const bloqueo = this.validarBloqueosDeSeleccion();
+    if (bloqueo) return bloqueo;
     const estadoRanura = this.obtenerEstadoBarra()[indiceRanura];
     if (!estadoRanura?.idHabilidad) {
       return crearRechazo(MOTIVOS.RANURA_VACIA, "La ranura está vacía.");
@@ -179,7 +175,6 @@ export class SistemaHabilidadesJugador {
         "La habilidad todavía no fue aprendida.",
       );
     }
-
     this.cancelarAtaqueFisico();
     const puntoInicial = this.obtenerPuntoInicial(habilidad, grado);
     this.seleccion = {
@@ -221,7 +216,6 @@ export class SistemaHabilidadesJugador {
     this.seleccion.x = limitar(this.seleccion.x + dx, 0, limites.ancho - 1);
     this.seleccion.y = limitar(this.seleccion.y + dy, 0, limites.alto - 1);
     this.emitirCambio();
-
     return {
       exito: true,
       motivo: MOTIVOS.OK,
@@ -268,14 +262,12 @@ export class SistemaHabilidadesJugador {
         "No hay una habilidad seleccionada.",
       );
     }
-
     const plan = this.prepararPlanEjecucion();
-    if (!plan.exito) {
-      return plan;
-    }
+    if (!plan.exito) return plan;
+
     const manaAntes = leerManaActual(this.jugador);
     const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
-
+    let faseIrreversible = false;
     try {
       consumirMana(this.jugador, plan.costoMana);
       const manaDespues = leerManaActual(this.jugador);
@@ -288,6 +280,7 @@ export class SistemaHabilidadesJugador {
         );
       }
 
+      faseIrreversible = true;
       if (plan.habilidad.ejecucion.hostil) {
         registrarHostilidad(this.juego, plan.objetivo);
       }
@@ -295,19 +288,28 @@ export class SistemaHabilidadesJugador {
         lanzador: this.jugador,
         objetivo: plan.objetivo,
         componentesConfigurados: plan.gradoConfig.danio,
+        contextoPotencia: plan.contextoPotencia,
         idEjecucion,
       });
-      const efectos = aplicarEfectosHabilidad({
-        juego: this.juego,
-        lanzador: this.jugador,
-        objetivo: plan.objetivo,
-        efectosConfigurados: plan.gradoConfig.efectos,
-        idEjecucion,
-      });
+      const efectos =
+        danio.impacto && !danio.objetivoDerrotado
+          ? aplicarEfectosHabilidad({
+              juego: this.juego,
+              lanzador: this.jugador,
+              objetivo: plan.objetivo,
+              efectosConfigurados: plan.gradoConfig.efectos,
+              definicionesPreparadas: plan.definicionesEfectos,
+              contextoPotencia: plan.contextoPotencia,
+              idEjecucion,
+            })
+          : [];
+      const mensaje = danio.impacto
+        ? `${plan.habilidad.nombre} impacta al objetivo.`
+        : `${plan.habilidad.nombre} falla el impacto.`;
       const resultadoBase = {
         exito: true,
         motivo: MOTIVOS.OK,
-        mensaje: `${plan.habilidad.nombre} impacta al objetivo.`,
+        mensaje,
         turnoConsumido: true,
         redibujar: true,
         idEjecucion,
@@ -318,6 +320,8 @@ export class SistemaHabilidadesJugador {
         costoTemporal: plan.costoTemporal,
         tipoAccion: "habilidad",
         ejecucionEfectiva: true,
+        impacto: danio.impacto,
+        critico: danio.critico,
         danio,
         efectos,
       };
@@ -325,7 +329,6 @@ export class SistemaHabilidadesJugador {
         resultado: resultadoBase,
         costoTemporalBase: plan.costoTemporal,
       });
-
       const experienciaMaestria = registrarExperienciaMaestria(this.jugador, {
         idEjecucion,
         idMaestria: plan.habilidad.maestria,
@@ -341,35 +344,32 @@ export class SistemaHabilidadesJugador {
       this.emitirCambio();
       return resultado;
     } catch (error) {
-      restaurarMana(this.jugador, manaAntes);
+      if (!faseIrreversible) restaurarMana(this.jugador, manaAntes);
       const resultado = crearRechazo(
         MOTIVOS.ERROR_EJECUCION,
         `La habilidad no pudo completarse: ${error.message}`,
       );
+      resultado.idEjecucion = idEjecucion;
       resultado.error = error;
+      resultado.manaConsumido = Math.max(
+        0,
+        manaAntes - leerManaActual(this.jugador),
+      );
+      resultado.faseIrreversible = faseIrreversible;
       registrarUltimaEjecucion(this.jugador, resultado);
       this.emitirCambio();
       return resultado;
     }
   }
 
+  // Compatibilidad de lectura: ya no existe un procesador alternativo.
   procesarEfectosPendientes() {
-    const eventos = procesarEfectosFallback({
-      juego: this.juego,
-      jugador: this.jugador,
-    });
-    if (eventos.length > 0) {
-      this.emitirCambio();
-    }
-    return eventos;
+    return [];
   }
 
   obtenerSeleccionDetallada() {
-    if (!this.seleccion) {
-      return null;
-    }
-    const habilidad =
-      this.configuracion.habilidades[this.seleccion.idHabilidad];
+    if (!this.seleccion) return null;
+    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
     const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
     const objetivo = obtenerObjetivoEn(
       this.juego,
@@ -397,6 +397,22 @@ export class SistemaHabilidadesJugador {
 
   obtenerUltimaEjecucion() {
     return obtenerUltimaEjecucion(this.jugador);
+  }
+
+  obtenerEnemigosVivos() {
+    return obtenerObjetivosVivos(this.juego);
+  }
+
+  configurarTiradasDeterministas(configuracion) {
+    return configurarTiradasDeterministasHabilidad(configuracion);
+  }
+
+  restaurarTiradasAleatorias() {
+    return restaurarTiradasAleatoriasHabilidad();
+  }
+
+  obtenerEstadoTiradasDeterministas() {
+    return obtenerEstadoTiradasDeterministasHabilidad();
   }
 
   suscribirCambio(oyente) {
@@ -428,15 +444,13 @@ export class SistemaHabilidadesJugador {
   }
 
   prepararPlanEjecucion() {
-    const habilidad =
-      this.configuracion.habilidades[this.seleccion.idHabilidad];
+    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
     if (!habilidad?.ejecucion) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_CONFIGURADA,
         "La habilidad no posee ejecución configurada.",
       );
     }
-
     const grado = this.obtenerGrado(habilidad.id);
     if (grado <= 0) {
       return crearRechazo(
@@ -476,27 +490,45 @@ export class SistemaHabilidadesJugador {
     ) {
       return crearRechazo(MOTIVOS.LINEA_VISION_BLOQUEADA, geometria.mensaje);
     }
-    const manaActual = leerManaActual(this.jugador);
-    if (manaActual < gradoConfig.costoMana) {
+    if (leerManaActual(this.jugador) < gradoConfig.costoMana) {
       return crearRechazo(
         MOTIVOS.MANA_INSUFICIENTE,
         `Se necesitan ${gradoConfig.costoMana} de Maná.`,
       );
     }
-
     const bloqueo = obtenerBloqueoTemporal(this.juego);
     if (bloqueo) {
       return crearRechazo(MOTIVOS.BLOQUEO_TEMPORAL, bloqueo);
     }
-    return {
-      exito: true,
-      habilidad,
-      grado,
-      gradoConfig,
-      objetivo,
-      costoMana: gradoConfig.costoMana,
-      costoTemporal: gradoConfig.costoTemporalBase,
-    };
+    try {
+      validarContratosEjecucion({
+        juego: this.juego,
+        jugador: this.jugador,
+        objetivo,
+        efectosConfigurados: gradoConfig.efectos,
+      });
+      const contextoPotencia = obtenerContextoPotenciaHabilidad(this.jugador);
+      const definicionesEfectos = prepararEfectosHabilidad({
+        lanzador: this.jugador,
+        objetivo,
+        efectosConfigurados: gradoConfig.efectos,
+        contextoPotencia,
+        idEjecucion: "prevalidacion",
+      });
+      return {
+        exito: true,
+        habilidad,
+        grado,
+        gradoConfig,
+        objetivo,
+        contextoPotencia,
+        definicionesEfectos,
+        costoMana: gradoConfig.costoMana,
+        costoTemporal: gradoConfig.costoTemporalBase,
+      };
+    } catch (error) {
+      return crearRechazo(MOTIVOS.ERROR_EJECUCION, error.message);
+    }
   }
 
   validarBloqueosDeSeleccion() {
@@ -525,7 +557,6 @@ export class SistemaHabilidadesJugador {
     if (objetivos.length > 0) {
       return { x: objetivos[0].objetivo.x, y: objetivos[0].objetivo.y };
     }
-
     const limites = obtenerLimitesMapa(this.juego.mapa);
     return {
       x: limitar(this.jugador.x + 1, 0, limites.ancho - 1),
@@ -540,13 +571,50 @@ export class SistemaHabilidadesJugador {
   }
 
   emitirCambio() {
+    if (this.destruido) return;
     for (const oyente of this.oyentesCambio) {
       oyente(this.obtenerEstadoBarra(), this.obtenerSeleccionDetallada());
     }
   }
+
+  destruir() {
+    if (this.destruido) return false;
+    this.seleccion = null;
+    this.oyentesCambio.clear();
+    restaurarTiradasAleatoriasHabilidad();
+    this.destruido = true;
+    return true;
+  }
 }
 
 export { MOTIVOS as MOTIVOS_HABILIDADES };
+
+function validarContratosEjecucion({
+  juego,
+  jugador,
+  objetivo,
+  efectosConfigurados,
+}) {
+  if (!encontrarMetodoDanio(objetivo)) {
+    throw new Error("El objetivo no puede recibir daño de habilidades.");
+  }
+  if (
+    typeof juego.finalizarResultadoAccionJugador !== "function" &&
+    typeof juego.finalizarAccionJugador !== "function"
+  ) {
+    throw new Error("Juego no expone la finalización temporal de acciones.");
+  }
+  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
+  if (
+    typeof jugador.registrarExperienciaMaestria !== "function" &&
+    typeof progreso?.registrarEjecucionEfectiva !== "function"
+  ) {
+    throw new Error(
+      "El jugador no expone el registro de experiencia de maestría.",
+    );
+  }
+  validarDisponibilidadEfectosHabilidad({ juego, efectosConfigurados });
+}
 
 function evaluarGeometria({ juego, jugador, x, y, habilidad, gradoConfig }) {
   const atacanteAdaptado = crearAdaptadorGeometrico({
@@ -596,6 +664,7 @@ function crearAdaptadorGeometrico({ jugador, alcance, patronAtaque }) {
         alcance,
         alcanceAtaque: alcance,
         patronAtaque,
+        patronAtaqueActual: patronAtaque,
         patrónAtaque: patronAtaque,
         equipamiento: equipamientoAdaptado,
         obtenerAlcanceAtaque: () => alcance,
@@ -651,11 +720,12 @@ function finalizarTiempo(juego, { resultado, costoTemporalBase }) {
     });
   }
   if (typeof juego.finalizarAccionJugador === "function") {
-    return juego.finalizarAccionJugador(
-      resultado,
-      TIPOS_ACCION_TEMPORAL.HABILIDAD ?? TIPOS_ACCION_TEMPORAL.ACCION,
-      costoTemporalBase,
-    );
+    return juego.finalizarAccionJugador({
+      mensaje: resultado.mensaje,
+      tipoAccion:
+        TIPOS_ACCION_TEMPORAL.HABILIDAD ?? TIPOS_ACCION_TEMPORAL.ACCION,
+      costoBase: costoTemporalBase,
+    });
   }
   throw new Error("Juego no expone la finalización temporal de acciones.");
 }
@@ -674,17 +744,12 @@ function registrarExperienciaMaestria(jugador, evento) {
 }
 
 function registrarHostilidad(juego, objetivo) {
-  const receptores = [
-    juego,
-    juego.estadoCombatePartida,
-    juego.coordinadorTiempo,
-  ];
+  const receptores = [juego, juego.estadoCombatePartida, juego.coordinadorTiempo];
   const nombres = [
     "registrarParticipanteCombate",
     "registrarParticipante",
     "registrarHostilidad",
   ];
-
   for (const receptor of receptores) {
     for (const nombre of nombres) {
       if (typeof receptor?.[nombre] === "function") {
@@ -696,24 +761,24 @@ function registrarHostilidad(juego, objetivo) {
 }
 
 function obtenerBloqueoTemporal(juego) {
-  const metodos = [
-    "obtenerBloqueoTemporalJugador",
-    "obtenerBloqueoAccionesJugador",
-    "obtenerBloqueoJugador",
+  const consultas = [
+    () => juego?.obtenerBloqueoAccionTemporal?.(),
+    () => juego?.coordinadorTiempo?.obtenerBloqueoAccionJugador?.(),
+    () => juego?.obtenerBloqueoTemporalJugador?.(),
+    () => juego?.obtenerBloqueoAccionesJugador?.(),
+    () => juego?.obtenerBloqueoJugador?.(),
   ];
-  for (const nombre of metodos) {
-    if (typeof juego?.[nombre] === "function") {
-      const resultado = juego[nombre]();
-      if (resultado?.bloqueado) {
-        return (
-          resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar."
-        );
-      }
-      if (typeof resultado === "string" && resultado) {
-        return resultado;
-      }
+
+  for (const consultar of consultas) {
+    const resultado = consultar();
+    if (typeof resultado === "string" && resultado) {
+      return resultado;
+    }
+    if (resultado?.bloqueado === true || resultado?.exito === false) {
+      return resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar.";
     }
   }
+
   return null;
 }
 
@@ -749,12 +814,14 @@ function leerManaActual(jugador) {
 }
 
 function consumirMana(jugador, cantidad) {
-  if (typeof jugador.consumirMana === "function") {
-    const resultado = jugador.consumirMana(cantidad);
-    if (resultado === false) {
-      throw new Error("El jugador rechazó el consumo de Maná.");
+  for (const nombre of ["consumirMana", "gastarMana"]) {
+    if (typeof jugador?.[nombre] === "function") {
+      const resultado = jugador[nombre](cantidad);
+      if (resultado === false) {
+        throw new Error("El jugador rechazó el consumo de Maná.");
+      }
+      return resultado;
     }
-    return resultado;
   }
   if ("manaActual" in jugador) {
     jugador.manaActual = leerManaActual(jugador) - cantidad;
@@ -766,22 +833,29 @@ function consumirMana(jugador, cantidad) {
 function restaurarMana(jugador, valorAnterior) {
   const actual = leerManaActual(jugador);
   const diferencia = Math.max(0, valorAnterior - actual);
-  if (diferencia === 0) {
-    return;
-  }
-  const metodos = ["recuperarMana", "restaurarMana"];
-  for (const nombre of metodos) {
+  if (diferencia === 0) return;
+  for (const nombre of ["recuperarMana", "restaurarMana"]) {
     if (typeof jugador?.[nombre] === "function") {
       jugador[nombre](diferencia);
       return;
     }
   }
-  if ("manaActual" in jugador) {
-    jugador.manaActual = valorAnterior;
-  }
+  if ("manaActual" in jugador) jugador.manaActual = valorAnterior;
 }
 
 function obtenerLimitesMapa(mapa) {
+  if (Array.isArray(mapa)) {
+    const alto = Math.max(1, mapa.length);
+    const ancho = Math.max(
+      1,
+      mapa.reduce((maximo, fila) => {
+        const longitud = typeof fila?.length === "number" ? fila.length : 0;
+        return Math.max(maximo, longitud);
+      }, 0),
+    );
+    return { ancho, alto };
+  }
+
   const ancho =
     mapa?.ancho ??
     mapa?.columnas ??
@@ -796,10 +870,7 @@ function obtenerLimitesMapa(mapa) {
     mapa?.celdas?.length ??
     mapa?.terreno?.length ??
     1;
-  return {
-    ancho: Math.max(1, ancho),
-    alto: Math.max(1, alto),
-  };
+  return { ancho: Math.max(1, ancho), alto: Math.max(1, alto) };
 }
 
 function crearRechazo(motivo, mensaje) {
@@ -812,6 +883,18 @@ function crearRechazo(motivo, mensaje) {
     ejecucionEfectiva: false,
     manaConsumido: 0,
   };
+}
+
+function encontrarMetodoDanio(objetivo) {
+  return ["recibirDanio", "recibirDaño", "aplicarDanio", "aplicarDaño"].find(
+    (nombre) => typeof objetivo?.[nombre] === "function",
+  );
+}
+
+function validarIndiceRanura(indiceRanura) {
+  if (!Number.isInteger(indiceRanura) || indiceRanura < 0 || indiceRanura > 9) {
+    throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
+  }
 }
 
 function limitar(valor, minimo, maximo) {

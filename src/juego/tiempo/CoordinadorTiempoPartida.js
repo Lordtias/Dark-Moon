@@ -3,7 +3,6 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
 import { SistemaTiempo, TIEMPO_REFERENCIA } from "./SistemaTiempo.js";
-
 function crearAcumuladoTemporal() {
   return {
     recuperacionJugador: {
@@ -14,7 +13,6 @@ function crearAcumuladoTemporal() {
     eventos: [],
   };
 }
-
 function acumularResultadoTemporal(destino, origen) {
   destino.recuperacionJugador.vidaRecuperada +=
     origen.recuperacionJugador?.vidaRecuperada ?? 0;
@@ -24,7 +22,6 @@ function acumularResultadoTemporal(destino, origen) {
   destino.eventos.push(...(origen.eventos ?? []));
   return destino;
 }
-
 export class CoordinadorTiempoPartida {
   constructor({ mapa, jugador, objetivos, estadoCombate } = {}) {
     if (!Array.isArray(mapa) || mapa.length === 0) {
@@ -49,7 +46,6 @@ export class CoordinadorTiempoPartida {
         "CoordinadorTiempoPartida necesita un estado de combate válido.",
       );
     }
-
     this.mapa = mapa;
     this.jugador = jugador;
     this.objetivos = objetivos;
@@ -58,12 +54,10 @@ export class CoordinadorTiempoPartida {
     this.sistemaEfectosTemporales = new SistemaEfectosTemporales({
       obtenerTiempoActual: () => this.sistemaTiempo.tiempoActual,
     });
-
     // El motor de efectos conserva una fuente descriptiva. Este mapa privado
     // agrega, solo durante la vida del mapa activo, la identidad de la entidad
     // que originó el efecto. No se serializa ni se transfiere entre mapas.
     this.fuentesCombatientesPorEfecto = new Map();
-
     this.sistemaTiempo.establecerConsultaDisponibilidadMinima((actor) =>
       this.sistemaEfectosTemporales.obtenerFinAturdimiento(actor),
     );
@@ -75,7 +69,6 @@ export class CoordinadorTiempoPartida {
     this.sincronizarEnemigosConAgenda();
     this.avanzarHastaSiguienteActorConPulsos();
   }
-
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
   }
@@ -91,7 +84,6 @@ export class CoordinadorTiempoPartida {
   extraerEventosCombateEn(acumulado) {
     acumulado.eventos.push(...this.estadoCombate.extraerEventosPendientes());
   }
-
   eliminarFuentesPertenecientesA(actor) {
     for (const [efectoId, fuente] of this.fuentesCombatientesPorEfecto) {
       if (fuente === actor) {
@@ -110,7 +102,6 @@ export class CoordinadorTiempoPartida {
       }
     }
   }
-
   eliminarActor(
     actor,
     { limpiarEfectos = true, motivoCombate = "actor_retirado" } = {},
@@ -121,7 +112,6 @@ export class CoordinadorTiempoPartida {
       this.retirarParticipanteCombate(actor, motivoCombate);
       this.eliminarFuentesPertenecientesA(actor);
     }
-
     if (limpiarEfectos) {
       const resultadoRetiro =
         this.sistemaEfectosTemporales.retirarEfectosObjetivo(actor, {
@@ -137,7 +127,6 @@ export class CoordinadorTiempoPartida {
     if (!definicion || typeof definicion !== "object") {
       throw new Error("La definición del efecto temporal debe ser válida.");
     }
-
     // fuenteCombatiente es contexto de la partida, no parte del contrato
     // serializable de SistemaEfectosTemporales.
     const { fuenteCombatiente = null, ...definicionEfecto } = definicion;
@@ -149,7 +138,6 @@ export class CoordinadorTiempoPartida {
         fuenteCombatiente,
       );
     }
-
     // Aplicar con éxito un efecto negativo sobre un objetivo válido ya es una
     // participación hostil real, incluso antes de su primer tick de daño.
     if (
@@ -179,7 +167,6 @@ export class CoordinadorTiempoPartida {
         );
       }
     }
-
     return resultado;
   }
 
@@ -195,7 +182,6 @@ export class CoordinadorTiempoPartida {
     this.eliminarFuentesSegunEventos(resultado.eventos);
     return resultado;
   }
-
   retirarEfectosNegativos(objetivo = this.jugador, opciones = {}) {
     const resultado = this.sistemaEfectosTemporales.retirarEfectosNegativos(
       objetivo,
@@ -209,7 +195,6 @@ export class CoordinadorTiempoPartida {
     if (!this.sistemaEfectosTemporales.estaAturdido(this.jugador)) {
       return null;
     }
-
     return {
       exito: false,
       mensaje: "Estás aturdido y no podés realizar acciones.",
@@ -223,7 +208,6 @@ export class CoordinadorTiempoPartida {
       ],
     };
   }
-
   obtenerBloqueoMovimientoJugador() {
     const bloqueoAccion = this.obtenerBloqueoAccionJugador();
     if (bloqueoAccion) {
@@ -232,7 +216,6 @@ export class CoordinadorTiempoPartida {
     if (!this.sistemaEfectosTemporales.estaInmovilizado(this.jugador)) {
       return null;
     }
-
     return {
       exito: false,
       mensaje: "Estás inmovilizado y no podés desplazarte.",
@@ -246,7 +229,6 @@ export class CoordinadorTiempoPartida {
       ],
     };
   }
-
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     if (
       !resultado ||
@@ -265,7 +247,6 @@ export class CoordinadorTiempoPartida {
         redibujar: resultado.redibujar ?? false,
       };
     }
-
     const resultadoTemporal = this.finalizarAccionJugador({
       mensaje: resultado.mensaje,
       tipoAccion,
@@ -281,7 +262,6 @@ export class CoordinadorTiempoPartida {
       ],
     };
   }
-
   sincronizarEnemigosConAgenda() {
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Enemigo)) {
@@ -297,7 +277,6 @@ export class CoordinadorTiempoPartida {
         this.sistemaTiempo.registrarActor(objetivo);
       }
     }
-
     this.estadoCombate.retirarParticipantesInvalidos(
       (participante) =>
         participante instanceof Enemigo &&
@@ -312,7 +291,6 @@ export class CoordinadorTiempoPartida {
       vidaRecuperada: 0,
       manaRecuperado: 0,
     };
-
     if (this.jugador.estaVivo) {
       const estadisticasJugador = this.jugador.estadisticasDerivadas;
       resultadoJugador = {
@@ -321,14 +299,12 @@ export class CoordinadorTiempoPartida {
         vidaRecuperada: this.estadoCombate.estaEnCombate
           ? 0
           : this.jugador.procesarRegeneracionVida(estadisticasJugador),
-        // El Maná mantiene exactamente la política de la ETAPA 3 dentro y
-        // fuera de combate.
+        // El Maná conserva la misma política dentro y fuera de combate.
         manaRecuperado:
           this.jugador.procesarRegeneracionMana(estadisticasJugador),
       };
     }
-
-    // La ETAPA 3A no modifica la regeneración de enemigos.
+    // Los enemigos conservan su política de regeneración vigente.
     for (const objetivo of this.objetivos) {
       if (!(objetivo instanceof Combatiente) || !objetivo.estaVivo) {
         continue;
@@ -338,7 +314,6 @@ export class CoordinadorTiempoPartida {
 
     return resultadoJugador;
   }
-
   limpiarObjetivosDerrotados(objetivosDerrotados = []) {
     for (const objetivo of objetivosDerrotados) {
       this.eliminarActor(objetivo, {
@@ -350,7 +325,6 @@ export class CoordinadorTiempoPartida {
       });
     }
   }
-
   procesarHostilidadDeEfectos(eventos = []) {
     for (const evento of eventos) {
       if (
@@ -364,7 +338,6 @@ export class CoordinadorTiempoPartida {
       if (evento.tipo !== "danio_periodico_aplicado" || evento.danio <= 0) {
         continue;
       }
-
       // Un enemigo vivo que recibe daño periódico del jugador participa de
       // nuevo aunque hubiese perdido la persecución entre ticks.
       if (
@@ -378,7 +351,6 @@ export class CoordinadorTiempoPartida {
         );
         continue;
       }
-
       if (evento.objetivo !== this.jugador) {
         continue;
       }
@@ -389,7 +361,6 @@ export class CoordinadorTiempoPartida {
         evento.fuente?.actor ??
         evento.fuente?.entidad ??
         null;
-
       // Un efecto residual de un enemigo muerto o perteneciente a otro mapa
       // puede conservar su daño, pero no reactiva un combate ya finalizado.
       if (
@@ -404,7 +375,6 @@ export class CoordinadorTiempoPartida {
       }
     }
   }
-
   procesarResultadoEfectos(resultadoEfectos, acumulado) {
     acumulado.mensajes.push(...resultadoEfectos.mensajes);
     acumulado.eventos.push(...resultadoEfectos.eventos);
@@ -412,14 +382,12 @@ export class CoordinadorTiempoPartida {
     this.limpiarObjetivosDerrotados(resultadoEfectos.objetivosDerrotados);
     this.extraerEventosCombateEn(acumulado);
   }
-
   // Procesa regeneración y eventos de efectos hasta el destino. Cuando
   // coinciden, primero se aplica regeneración y luego ticks/vencimientos.
   procesarPulsosTemporalesHasta(tiempoDestino) {
     if (!Number.isFinite(tiempoDestino) || tiempoDestino < 0) {
       throw new Error("El tiempo de destino debe ser un número válido.");
     }
-
     const acumulado = crearAcumuladoTemporal();
     while (this.sistemaTiempo.tiempoActual < tiempoDestino) {
       const siguienteEfecto =
@@ -432,7 +400,6 @@ export class CoordinadorTiempoPartida {
       if (siguienteEfecto !== null && siguienteEfecto <= tiempoDestino) {
         instantes.push(siguienteEfecto);
       }
-
       const siguienteInstante = Math.min(...instantes);
       this.sistemaTiempo.avanzarTiempoHasta(siguienteInstante);
 
@@ -444,7 +411,6 @@ export class CoordinadorTiempoPartida {
           recuperacion.manaRecuperado;
         this.siguientePulsoTemporal += TIEMPO_REFERENCIA;
       }
-
       if (
         this.sistemaEfectosTemporales.obtenerSiguienteInstante() ===
         siguienteInstante
@@ -454,7 +420,6 @@ export class CoordinadorTiempoPartida {
         this.procesarResultadoEfectos(resultadoEfectos, acumulado);
       }
     }
-
     // Si el destino coincide con el reloj actual, todavía puede haber eventos
     // recién programados para ese mismo instante.
     if (
@@ -467,7 +432,6 @@ export class CoordinadorTiempoPartida {
 
     return acumulado;
   }
-
   avanzarHastaSiguienteActorConPulsos() {
     const acumulado = crearAcumuladoTemporal();
     while (true) {
@@ -479,7 +443,6 @@ export class CoordinadorTiempoPartida {
           ...acumulado,
         };
       }
-
       const resultadoHastaActor =
         this.procesarPulsosTemporalesHasta(tiempoSiguienteActor);
       acumularResultadoTemporal(acumulado, resultadoHastaActor);
@@ -495,7 +458,6 @@ export class CoordinadorTiempoPartida {
       if (tiempoRecalculado > this.sistemaTiempo.tiempoActual) {
         continue;
       }
-
       return {
         actor: this.sistemaTiempo.avanzarHastaSiguienteActor(),
         ...acumulado,
@@ -513,7 +475,6 @@ export class CoordinadorTiempoPartida {
     while (this.jugador.estaVivo) {
       this.sincronizarEnemigosConAgenda();
       this.extraerEventosCombateEn(acumulado);
-
       if (!this.sistemaTiempo.obtenerSiguienteActor()) {
         break;
       }
@@ -526,7 +487,6 @@ export class CoordinadorTiempoPartida {
       if (avance.actor === this.jugador) {
         break;
       }
-
       const enemigo = avance.actor;
       const resultadoEnemigo = procesarAccionEnemigo({
         enemigo,
@@ -542,7 +502,6 @@ export class CoordinadorTiempoPartida {
       });
       acumulado.mensajes.push(...resultadoEnemigo.mensajes);
       this.extraerEventosCombateEn(acumulado);
-
       if (enemigo.estaVivo) {
         this.sistemaTiempo.registrarAccion({
           actor: enemigo,
@@ -555,7 +514,6 @@ export class CoordinadorTiempoPartida {
         });
         this.extraerEventosCombateEn(acumulado);
       }
-
       if (!this.jugador.estaVivo) {
         this.eliminarActor(this.jugador, {
           motivoCombate: "muerte_jugador",
@@ -572,7 +530,6 @@ export class CoordinadorTiempoPartida {
       eventos: acumulado.eventos,
     };
   }
-
   crearMensajeRegeneracion(regeneracion) {
     const recursosRecuperados = [];
     if (regeneracion.vidaRecuperada > 0) {
@@ -586,7 +543,6 @@ export class CoordinadorTiempoPartida {
     }
     return `Recuperaste ${recursosRecuperados.join(" y ")}.`;
   }
-
   finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
     const bloqueo = this.obtenerBloqueoAccionJugador();
     if (bloqueo) {
@@ -598,7 +554,6 @@ export class CoordinadorTiempoPartida {
     if (actorActual !== this.jugador) {
       throw new Error("El jugador intentó actuar fuera de su turno temporal.");
     }
-
     this.sistemaTiempo.registrarAccion({
       actor: this.jugador,
       tipoAccion,
@@ -613,7 +568,6 @@ export class CoordinadorTiempoPartida {
     if (mensajeRegeneracion) {
       mensajes.push(mensajeRegeneracion);
     }
-
     return {
       mensaje: mensajes.filter(Boolean).join("\n"),
       turnoConsumido: true,
@@ -626,7 +580,6 @@ export class CoordinadorTiempoPartida {
     if (this.destruido) {
       return;
     }
-
     this.estadoCombate.limpiar({ motivo: "destruccion_mapa" });
     // Al destruir el mapa no queda ningún consumidor del evento. Se descarta
     // para liberar también las referencias contenidas en la cola.

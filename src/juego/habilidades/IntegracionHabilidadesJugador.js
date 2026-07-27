@@ -30,9 +30,9 @@ export class IntegracionHabilidadesJugador {
     this.jugador = juego.jugador;
     this.configuracionEjecucion = configuracionEjecucion;
     this.configuracionProgreso = configuracionProgreso;
+    this.configuracionObjetos = configuracionObjetos ?? juego.configuracionObjetos;
     this.esJuegoActivo = esJuegoActivo;
     this.destruida = false;
-
     this.sistema = new SistemaHabilidadesJugador({
       juego,
       configuracionEjecucion,
@@ -45,7 +45,7 @@ export class IntegracionHabilidadesJugador {
       configuracionProgreso,
       configuracionEjecucion,
       familiasArmas: obtenerFamiliasArmas(
-        configuracionObjetos ?? juego.configuracionObjetos,
+        this.configuracionObjetos,
       ),
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
     });
@@ -64,13 +64,6 @@ export class IntegracionHabilidadesJugador {
         this.guardarJugador();
       },
     );
-    // El procesamiento de efectos temporales se conserva separado del
-    // repintado. La interfaz no consulta todo el estado cada 250 ms.
-    this.intervaloEfectos = window.setInterval(() => {
-      if (!this.destruida && this.esJuegoActivo()) {
-        this.sistema.procesarEfectosPendientes();
-      }
-    }, 250);
   }
 
   restaurarBarraGuardada() {
@@ -92,9 +85,7 @@ export class IntegracionHabilidadesJugador {
   }
 
   guardarCambios(tipo) {
-    if (tipo === "barra") {
-      this.guardarBarra();
-    }
+    if (tipo === "barra") this.guardarBarra();
     this.guardarJugador();
   }
 
@@ -114,22 +105,19 @@ export class IntegracionHabilidadesJugador {
   }
 
   destruir() {
-    if (this.destruida) {
-      return false;
-    }
+    if (this.destruida) return false;
     this.destruida = true;
     try {
       this.guardarBarra();
     } catch (error) {
       console.warn("No se pudo conservar la barra al cambiar de mapa:", error);
     }
-    window.clearInterval(this.intervaloEfectos);
-    this.intervaloEfectos = null;
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
     this.entrada?.destruir();
     this.barra?.destruir();
     this.panel?.destruir();
+    this.sistema?.destruir();
     return true;
   }
 }
@@ -151,9 +139,7 @@ function normalizarFachadaJuego(juego) {
 }
 
 function definirAliasLectura(objeto, alias, propiedadReal) {
-  if (alias in objeto || !(propiedadReal in objeto)) {
-    return;
-  }
+  if (alias in objeto || !(propiedadReal in objeto)) return;
   Object.defineProperty(objeto, alias, {
     configurable: true,
     enumerable: false,

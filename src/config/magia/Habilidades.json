@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -680,7 +680,7 @@
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
       "icono": null,
-      "descripcion": "Dispersa una nube instantánea sobre un área y envenena a los enemigos presentes al lanzarla.",
+      "descripcion": "Crea una nube persistente que envenena a los enemigos presentes, a quienes entren y a quienes permanezcan dentro.",
       "ejecucion": {
         "tipoObjetivo": "casilla",
         "patronAtaque": "libre",
@@ -707,7 +707,18 @@
                 "politicaAcumulacion": "renovar_duracion",
                 "grupoAcumulacion": "toxina_nube_toxica"
               }
-            ]
+            ],
+            "zonaTemporal": {
+              "duracion": 300,
+              "intervalo": 100,
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "afecta": "hostiles",
+              "politicaSuperposicion": "renovar_duracion",
+              "grupoSuperposicion": "nube_toxica",
+              "apariencia": "veneno",
+              "resolverImpacto": true,
+              "resolverCritico": false
+            }
           },
           "2": {
             "costoMana": 8,
@@ -729,7 +740,18 @@
                 "politicaAcumulacion": "renovar_duracion",
                 "grupoAcumulacion": "toxina_nube_toxica"
               }
-            ]
+            ],
+            "zonaTemporal": {
+              "duracion": 400,
+              "intervalo": 100,
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "afecta": "hostiles",
+              "politicaSuperposicion": "renovar_duracion",
+              "grupoSuperposicion": "nube_toxica",
+              "apariencia": "veneno",
+              "resolverImpacto": true,
+              "resolverCritico": false
+            }
           },
           "3": {
             "costoMana": 10,
@@ -751,7 +773,18 @@
                 "politicaAcumulacion": "renovar_duracion",
                 "grupoAcumulacion": "toxina_nube_toxica"
               }
-            ]
+            ],
+            "zonaTemporal": {
+              "duracion": 500,
+              "intervalo": 100,
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "afecta": "hostiles",
+              "politicaSuperposicion": "renovar_duracion",
+              "grupoSuperposicion": "nube_toxica",
+              "apariencia": "veneno",
+              "resolverImpacto": true,
+              "resolverCritico": false
+            }
           }
         }
       }

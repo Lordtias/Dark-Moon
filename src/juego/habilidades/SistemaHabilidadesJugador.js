@@ -316,21 +316,32 @@ export class SistemaHabilidadesJugador {
       }
 
       faseIrreversible = true;
-      const impactos = plan.objetivos.map((entrada) =>
-        this.ejecutarSobreObjetivo({
-          plan,
-          entrada,
-          idEjecucion,
-        }),
-      );
+      const resultadoZona = plan.creaZonaTemporal
+        ? this.crearZonaDesdePlan({ plan, idEjecucion })
+        : null;
+      const impactos = plan.creaZonaTemporal
+        ? (resultadoZona?.impactos ?? []).map(resumirImpactoZona)
+        : plan.objetivos.map((entrada) =>
+            this.ejecutarSobreObjetivo({
+              plan,
+              entrada,
+              idEjecucion,
+            }),
+          );
       const cantidadImpactos = impactos.filter((item) => item.impacto).length;
       const cantidadCriticos = impactos.filter((item) => item.critico).length;
-      const efectos = impactos.flatMap((item) => item.efectos);
-      const mensaje = crearMensajeEjecucion({
-        nombreHabilidad: plan.habilidad.nombre,
-        cantidadObjetivos: impactos.length,
-        cantidadImpactos,
-      });
+      const efectos = impactos.flatMap((item) => item.efectos ?? []);
+      const mensaje = plan.creaZonaTemporal
+        ? crearMensajeCreacionZona({
+            nombreHabilidad: plan.habilidad.nombre,
+            cantidadObjetivos: impactos.length,
+            mensajeZona: resultadoZona?.mensaje,
+          })
+        : crearMensajeEjecucion({
+            nombreHabilidad: plan.habilidad.nombre,
+            cantidadObjetivos: impactos.length,
+            cantidadImpactos,
+          });
       const resultadoBase = {
         exito: true,
         motivo: MOTIVOS.OK,
@@ -353,6 +364,10 @@ export class SistemaHabilidadesJugador {
         impactos,
         danio: impactos.find((item) => item.danio)?.danio ?? null,
         efectos,
+        zonaTemporal: resultadoZona?.zona ?? null,
+        zonaCreada: resultadoZona?.creada === true,
+        zonaRenovada: resultadoZona?.renovada === true,
+        eventos: resultadoZona?.eventos ?? [],
       };
       const resultadoTemporal = finalizarTiempo(this.juego, {
         resultado: resultadoBase,
@@ -389,6 +404,27 @@ export class SistemaHabilidadesJugador {
       this.emitirCambio();
       return resultado;
     }
+  }
+
+  crearZonaDesdePlan({ plan, idEjecucion }) {
+    if (typeof this.juego.crearZonaTemporal !== "function") {
+      throw new Error("El mapa activo no permite crear zonas temporales.");
+    }
+    return this.juego.crearZonaTemporal({
+      idEjecucion,
+      idHabilidad: plan.habilidad.id,
+      nombre: plan.habilidad.nombre,
+      grado: plan.grado,
+      fuente: this.jugador,
+      hostil: plan.habilidad.ejecucion.hostil,
+      casillas: plan.casillasAfectadas,
+      configuracion: plan.gradoConfig.zonaTemporal,
+      contenido: {
+        danio: plan.gradoConfig.danio,
+        efectos: plan.gradoConfig.efectos,
+      },
+      contextoPotencia: plan.contextoPotencia,
+    });
   }
 
   ejecutarSobreObjetivo({ plan, entrada, idEjecucion }) {
@@ -477,6 +513,7 @@ export class SistemaHabilidadesJugador {
       costoTemporalBase: gradoConfig.costoTemporalBase,
       alcance: gradoConfig.alcance,
       formaImpacto: copiarSimple(gradoConfig.formaImpacto),
+      zonaTemporal: copiarSimple(gradoConfig.zonaTemporal),
       objetivoValido: vistaPrevia.objetivoValido,
       geometria: vistaPrevia.geometria,
       casillasSeleccionables:
@@ -590,9 +627,10 @@ export class SistemaHabilidadesJugador {
         vistaPrevia.geometria.mensaje,
       );
     }
+    const creaZonaTemporal = Boolean(gradoConfig.zonaTemporal);
     if (
       !vistaPrevia.objetivoValido ||
-      vistaPrevia.objetivosAfectados.length === 0
+      (!creaZonaTemporal && vistaPrevia.objetivosAfectados.length === 0)
     ) {
       return crearRechazo(
         MOTIVOS.OBJETIVO_INVALIDO,
@@ -616,6 +654,14 @@ export class SistemaHabilidadesJugador {
         efectosConfigurados: gradoConfig.efectos,
       });
       const contextoPotencia = obtenerContextoPotenciaHabilidad(this.jugador);
+      if (creaZonaTemporal) {
+        validarContratoZonaTemporal({
+          juego: this.juego,
+          jugador: this.jugador,
+          gradoConfig,
+          casillasAfectadas: vistaPrevia.casillasAfectadas,
+        });
+      }
       const objetivos = vistaPrevia.objetivosAfectados.map((entrada) => {
         validarContratosEjecucion({
           juego: this.juego,
@@ -643,6 +689,8 @@ export class SistemaHabilidadesJugador {
         gradoConfig,
         objetivos,
         contextoPotencia,
+        creaZonaTemporal,
+        casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
         costoMana: gradoConfig.costoMana,
         costoTemporal: gradoConfig.costoTemporalBase,
       };
@@ -729,6 +777,58 @@ export class SistemaHabilidadesJugador {
 
 export { MOTIVOS as MOTIVOS_HABILIDADES };
 
+function validarContratoZonaTemporal({
+  juego,
+  jugador,
+  gradoConfig,
+  casillasAfectadas,
+}) {
+  if (typeof juego?.crearZonaTemporal !== "function") {
+    throw new Error(
+      "Juego no expone la creación canónica de zonas temporales.",
+    );
+  }
+  if (!Array.isArray(casillasAfectadas) || casillasAfectadas.length === 0) {
+    throw new Error("La zona temporal necesita casillas afectadas válidas.");
+  }
+  if (
+    !Array.isArray(gradoConfig.danio) ||
+    !Array.isArray(gradoConfig.efectos) ||
+    (gradoConfig.danio.length === 0 && gradoConfig.efectos.length === 0)
+  ) {
+    throw new Error("La zona temporal necesita daño, efectos o ambos.");
+  }
+  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
+  if (
+    typeof jugador.registrarExperienciaMaestria !== "function" &&
+    typeof progreso?.registrarEjecucionEfectiva !== "function"
+  ) {
+    throw new Error(
+      "El jugador no expone el registro de experiencia de maestría.",
+    );
+  }
+}
+
+function resumirImpactoZona(impacto) {
+  const objetivo = impacto.objetivo;
+  return {
+    objetivo: {
+      nombre: objetivo?.nombre ?? "Objetivo",
+      x: objetivo?.x,
+      y: objetivo?.y,
+    },
+    orden: 0,
+    multiplicadorDanio: 1,
+    impacto: impacto.impacto === true,
+    critico: impacto.critico === true,
+    objetivoDerrotado: impacto.objetivoDerrotado === true,
+    danio: impacto.danio ?? null,
+    resolucionImpacto: impacto.resolucionImpacto ?? null,
+    efectos: impacto.efectos ?? [],
+    motivoZona: impacto.motivo,
+  };
+}
+
 function validarContratosEjecucion({
   juego,
   jugador,
@@ -764,6 +864,18 @@ function escalarComponentesDanio(componentes, multiplicador = 1) {
     ...componente,
     valorBase: componente.valorBase * multiplicador,
   }));
+}
+
+function crearMensajeCreacionZona({
+  nombreHabilidad,
+  cantidadObjetivos,
+  mensajeZona,
+}) {
+  const resumen =
+    cantidadObjetivos > 0
+      ? `${nombreHabilidad} afecta inicialmente a ${cantidadObjetivos} objetivo${cantidadObjetivos === 1 ? "" : "s"}.`
+      : `${nombreHabilidad} queda activa sobre el área seleccionada.`;
+  return [resumen, mensajeZona].filter(Boolean).join("\n");
 }
 
 function crearMensajeEjecucion({

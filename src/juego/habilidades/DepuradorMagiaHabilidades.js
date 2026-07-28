@@ -21,6 +21,11 @@ import {
   leerConfiguracionBarraHabilidades,
   eliminarConfiguracionBarraHabilidades,
 } from "./PersistenciaBarraHabilidades.js";
+import {
+  crearCasillasFormaImpacto,
+  ORIENTACIONES_LINEA,
+  TIPOS_FORMA_IMPACTO,
+} from "./GeometriaHabilidades.js";
 
 const ELEMENTOS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
 const HABILIDADES_BASICAS = Object.freeze([
@@ -193,6 +198,19 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
       }),
   });
 
+  const zonas = Object.freeze({
+    obtenerActivas: () => contexto.obtenerJuego().obtenerZonasTemporales(),
+    crearLineaParaPrueba: (configuracion) =>
+      crearZonaLinealParaPrueba(contexto, configuracion),
+    notificarMovimientoParaPrueba: ({ actor, origen, destino } = {}) =>
+      contexto.obtenerJuego().notificarMovimientoActor({
+        actor: actor ?? contexto.obtenerJugador(),
+        origen,
+        destino,
+      }),
+    validarContratos: () => validarContratosZonas(contexto),
+  });
+
   const interfaz = Object.freeze({
     abrirPanel: () => contexto.obtenerIntegracion().panel.abrir(),
     cerrarPanel: () => contexto.obtenerIntegracion().panel.cerrar(),
@@ -221,6 +239,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     habilidades,
     barra,
     catalizadores,
+    zonas,
     interfaz,
     arquitectura,
     validarTodo: () => {
@@ -229,6 +248,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
         habilidades: habilidades.validarContratos(),
         barra: barra.validarPersistencia(),
         catalizadores: catalizadores.validarContratos(),
+        zonas: zonas.validarContratos(),
         interfaz: interfaz.validarContratos(),
         arquitectura: arquitectura.validarCicloActivo(),
       };
@@ -337,6 +357,7 @@ function crearInstantaneaEjecucion(contexto) {
     ultimaEjecucion: sistema.obtenerUltimaEjecucion(),
     barra: sistema.obtenerEstadoBarra(),
     tiradasDeterministas: sistema.obtenerEstadoTiradasDeterministas(),
+    zonasTemporales: juego.obtenerZonasTemporales(),
   };
 }
 
@@ -462,6 +483,24 @@ function validarContratosHabilidades(contexto) {
       grados.length,
     );
   }
+
+  const gradosNube = Object.values(
+    catalogo.nube_toxica?.ejecucion?.grados ?? {},
+  );
+  comprobar(
+    comprobaciones,
+    "Nube tóxica declara una zona temporal en sus tres grados",
+    gradosNube.length === 3 &&
+      gradosNube.every(
+        (grado) =>
+          grado?.zonaTemporal &&
+          grado.zonaTemporal.activadores?.includes("al_crear") &&
+          grado.zonaTemporal.activadores?.includes("al_entrar") &&
+          grado.zonaTemporal.activadores?.includes("por_intervalo"),
+      ),
+    gradosNube.map((grado) => grado?.zonaTemporal ?? null),
+  );
+
   comprobar(
     comprobaciones,
     "El sistema expone tiradas deterministas sin reemplazar Math.random",
@@ -477,6 +516,130 @@ function validarContratosHabilidades(contexto) {
     sistema.procesarEfectosPendientes(),
   );
   return cerrarComprobaciones(comprobaciones);
+}
+
+function validarContratosZonas(contexto) {
+  const juego = contexto.obtenerJuego();
+  const integracion = contexto.obtenerIntegracion();
+  const catalogo = integracion.configuracionEjecucion?.habilidades ?? {};
+  const gradosNube = Object.values(
+    catalogo.nube_toxica?.ejecucion?.grados ?? {},
+  );
+  const comprobaciones = [];
+
+  comprobar(
+    comprobaciones,
+    "Existe un único sistema de zonas ligado al coordinador temporal",
+    juego.sistemaZonasTemporales ===
+      juego.coordinadorTiempo?.sistemaZonasTemporales &&
+      typeof juego.crearZonaTemporal === "function" &&
+      typeof juego.obtenerZonasTemporales === "function",
+    juego.sistemaZonasTemporales?.constructor?.name ?? null,
+  );
+  comprobar(
+    comprobaciones,
+    "Nube tóxica persiste mediante configuración y no por su nombre",
+    gradosNube.length === 3 &&
+      gradosNube.every(
+        (grado) =>
+          grado?.zonaTemporal?.apariencia === "veneno" &&
+          grado.zonaTemporal.duracion > grado.zonaTemporal.intervalo &&
+          grado.danio.length === 0 &&
+          grado.efectos.length > 0,
+      ),
+    gradosNube.map((grado) => ({
+      duracion: grado?.zonaTemporal?.duracion,
+      intervalo: grado?.zonaTemporal?.intervalo,
+      apariencia: grado?.zonaTemporal?.apariencia,
+    })),
+  );
+  comprobar(
+    comprobaciones,
+    "La geometría genérica admite líneas hacia el objetivo y perpendiculares",
+    TIPOS_FORMA_IMPACTO.LINEA === "linea" &&
+      ORIENTACIONES_LINEA.HACIA_OBJETIVO === "hacia_objetivo" &&
+      ORIENTACIONES_LINEA.PERPENDICULAR === "perpendicular",
+    {
+      tipo: TIPOS_FORMA_IMPACTO.LINEA,
+      orientaciones: Object.values(ORIENTACIONES_LINEA),
+    },
+  );
+  comprobar(
+    comprobaciones,
+    "Las zonas activas exponen un estado visual plano",
+    Array.isArray(juego.obtenerZonasTemporales()),
+    juego.obtenerZonasTemporales(),
+  );
+
+  return cerrarComprobaciones(comprobaciones);
+}
+
+function crearZonaLinealParaPrueba(
+  contexto,
+  {
+    x,
+    y,
+    longitud = 3,
+    ancho = 1,
+    orientacion = ORIENTACIONES_LINEA.PERPENDICULAR,
+    duracion = 300,
+    intervalo = 100,
+    apariencia = "veneno",
+  } = {},
+) {
+  if (!Number.isInteger(x) || !Number.isInteger(y)) {
+    throw new Error(
+      "La zona lineal de prueba necesita coordenadas enteras x e y.",
+    );
+  }
+
+  const juego = contexto.obtenerJuego();
+  const jugador = contexto.obtenerJugador();
+  const integracion = contexto.obtenerIntegracion();
+  const gradoNube =
+    integracion.configuracionEjecucion?.habilidades?.nube_toxica?.ejecucion
+      ?.grados?.[1];
+  if (!gradoNube) {
+    throw new Error("No existe una configuración ejecutable de Nube tóxica.");
+  }
+
+  const casillas = crearCasillasFormaImpacto({
+    mapa: juego.map,
+    jugador,
+    centro: { x, y },
+    formaImpacto: {
+      tipo: TIPOS_FORMA_IMPACTO.LINEA,
+      longitud,
+      ancho,
+      orientacion,
+    },
+  });
+
+  const resultado = juego.crearZonaTemporal({
+    idEjecucion: `depuracion-linea-${juego.tiempoActual}-${x}-${y}`,
+    idHabilidad: "zona_lineal_prueba",
+    nombre: "Zona lineal de prueba",
+    grado: 1,
+    fuente: jugador,
+    hostil: false,
+    casillas,
+    configuracion: {
+      ...gradoNube.zonaTemporal,
+      duracion,
+      intervalo,
+      apariencia,
+      grupoSuperposicion: "zona_lineal_prueba",
+    },
+    contenido: {
+      danio: gradoNube.danio,
+      efectos: gradoNube.efectos,
+    },
+    contextoPotencia: crearContextoPotenciaHabilidad({
+      combatiente: jugador,
+    }),
+  });
+  contexto.obtenerControladorPartida().renderizador?.dibujarJuego(juego);
+  return resultado;
 }
 
 function validarPersistenciaBarra(contexto) {
@@ -598,6 +761,12 @@ function crearResumenArquitectura(contexto) {
     barraActiva: Boolean(integracion?.barra),
     panelActivo: Boolean(integracion?.panel),
     entradaActiva: Boolean(integracion?.entrada),
+    sistemaZonasActivo: Boolean(
+      controlador.juego?.sistemaZonasTemporales &&
+      !controlador.juego.sistemaZonasTemporales.destruido,
+    ),
+    cantidadZonasActivas:
+      controlador.juego?.obtenerZonasTemporales?.().length ?? 0,
     procesadorParaleloEfectos: Boolean(integracion?.intervaloEfectos),
     oyentesSistema: integracion?.sistema?.oyentesCambio?.size ?? null,
     destruida: integracion?.destruida ?? null,
@@ -619,7 +788,8 @@ function validarCicloActivo(contexto) {
     resumen.sistemaActivo &&
       resumen.barraActiva &&
       resumen.panelActivo &&
-      resumen.entradaActiva,
+      resumen.entradaActiva &&
+      resumen.sistemaZonasActivo,
     resumen,
   );
   comprobar(

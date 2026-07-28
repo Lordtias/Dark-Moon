@@ -2,6 +2,12 @@ import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
+import {
+  aplicarContenidoZonaTemporal,
+  validarContenidoZonaTemporal,
+} from "../zonas/AplicadorContenidoZonaTemporal.js";
+import { SistemaZonasTemporales } from "../zonas/SistemaZonasTemporales.js";
+import { OBJETIVOS_ZONA_TEMPORAL } from "../zonas/ContratosZonasTemporales.js";
 import { SistemaTiempo, TIEMPO_REFERENCIA } from "./SistemaTiempo.js";
 function crearAcumuladoTemporal() {
   return {
@@ -58,6 +64,23 @@ export class CoordinadorTiempoPartida {
     // agrega, solo durante la vida del mapa activo, la identidad de la entidad
     // que originó el efecto. No se serializa ni se transfiere entre mapas.
     this.fuentesCombatientesPorEfecto = new Map();
+    this.sistemaZonasTemporales = new SistemaZonasTemporales({
+      mapa: this.mapa,
+      obtenerTiempoActual: () => this.sistemaTiempo.tiempoActual,
+      obtenerActores: () => [this.jugador, ...this.objetivos],
+      esObjetivoValido: ({ zona, actor }) =>
+        this.esObjetivoValidoParaZona({ zona, actor }),
+      aplicarContenido: ({ zona, objetivo, motivo, instante }) =>
+        aplicarContenidoZonaTemporal({
+          coordinadorTiempo: this,
+          zona,
+          objetivo,
+          motivo,
+          instante,
+          registrarHostilidad: (actor, razon) =>
+            this.registrarHostilidadZona(actor, razon),
+        }),
+    });
     this.sistemaTiempo.establecerConsultaDisponibilidadMinima((actor) =>
       this.sistemaEfectosTemporales.obtenerFinAturdimiento(actor),
     );
@@ -189,6 +212,82 @@ export class CoordinadorTiempoPartida {
     );
     this.eliminarFuentesSegunEventos(resultado.eventos);
     return resultado;
+  }
+
+  crearZonaTemporal(definicion = {}) {
+    validarContenidoZonaTemporal({
+      coordinadorTiempo: this,
+      contenido: definicion.contenido,
+    });
+    const resultado = this.sistemaZonasTemporales.crear(definicion);
+    const acumulado = crearAcumuladoTemporal();
+    this.procesarResultadoZonas(resultado, acumulado);
+    return {
+      ...resultado,
+      mensajes: acumulado.mensajes,
+      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      eventos: acumulado.eventos,
+    };
+  }
+
+  notificarMovimientoActor({ actor, origen, destino } = {}) {
+    const resultado = this.sistemaZonasTemporales.procesarMovimiento({
+      actor,
+      origen,
+      destino,
+    });
+    const acumulado = crearAcumuladoTemporal();
+    this.procesarResultadoZonas(resultado, acumulado);
+    return {
+      ...resultado,
+      mensajes: acumulado.mensajes,
+      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      eventos: acumulado.eventos,
+    };
+  }
+
+  obtenerZonasTemporales() {
+    return this.sistemaZonasTemporales.obtenerZonasActivas();
+  }
+
+  esObjetivoValidoParaZona({ zona, actor }) {
+    if (!actor || !estaActorVivo(actor)) return false;
+    const afecta = zona.configuracion.afecta;
+    if (afecta === OBJETIVOS_ZONA_TEMPORAL.TODOS) return true;
+    if (afecta === OBJETIVOS_ZONA_TEMPORAL.FUENTE) {
+      return actor === zona.fuente;
+    }
+
+    const fuenteEsJugador = zona.fuente === this.jugador;
+    const actorEsJugador = actor === this.jugador;
+    const fuenteEsEnemigo = zona.fuente instanceof Enemigo;
+    const actorEsEnemigo =
+      actor instanceof Enemigo && this.objetivos.includes(actor);
+
+    if (afecta === OBJETIVOS_ZONA_TEMPORAL.HOSTILES) {
+      return (
+        (fuenteEsJugador && actorEsEnemigo) ||
+        (fuenteEsEnemigo && actorEsJugador)
+      );
+    }
+    if (afecta === OBJETIVOS_ZONA_TEMPORAL.ALIADOS) {
+      return (
+        (fuenteEsJugador && actorEsJugador) ||
+        (fuenteEsEnemigo && actorEsEnemigo)
+      );
+    }
+    return false;
+  }
+
+  registrarHostilidadZona(actor, motivo) {
+    if (
+      actor instanceof Enemigo &&
+      actor.estaVivo &&
+      this.objetivos.includes(actor)
+    ) {
+      actor.activarAgresividad?.();
+      this.registrarParticipanteCombate(actor, motivo);
+    }
   }
 
   obtenerBloqueoAccionJugador() {
@@ -382,6 +481,13 @@ export class CoordinadorTiempoPartida {
     this.limpiarObjetivosDerrotados(resultadoEfectos.objetivosDerrotados);
     this.extraerEventosCombateEn(acumulado);
   }
+
+  procesarResultadoZonas(resultadoZonas, acumulado) {
+    acumulado.mensajes.push(...(resultadoZonas.mensajes ?? []));
+    acumulado.eventos.push(...(resultadoZonas.eventos ?? []));
+    this.limpiarObjetivosDerrotados(resultadoZonas.objetivosDerrotados ?? []);
+    this.extraerEventosCombateEn(acumulado);
+  }
   // Procesa regeneración y eventos de efectos hasta el destino. Cuando
   // coinciden, primero se aplica regeneración y luego ticks/vencimientos.
   procesarPulsosTemporalesHasta(tiempoDestino) {
@@ -392,6 +498,8 @@ export class CoordinadorTiempoPartida {
     while (this.sistemaTiempo.tiempoActual < tiempoDestino) {
       const siguienteEfecto =
         this.sistemaEfectosTemporales.obtenerSiguienteInstante();
+      const siguienteZona =
+        this.sistemaZonasTemporales.obtenerSiguienteInstante();
       const instantes = [tiempoDestino];
 
       if (this.siguientePulsoTemporal <= tiempoDestino) {
@@ -399,6 +507,9 @@ export class CoordinadorTiempoPartida {
       }
       if (siguienteEfecto !== null && siguienteEfecto <= tiempoDestino) {
         instantes.push(siguienteEfecto);
+      }
+      if (siguienteZona !== null && siguienteZona <= tiempoDestino) {
+        instantes.push(siguienteZona);
       }
       const siguienteInstante = Math.min(...instantes);
       this.sistemaTiempo.avanzarTiempoHasta(siguienteInstante);
@@ -419,6 +530,14 @@ export class CoordinadorTiempoPartida {
           this.sistemaEfectosTemporales.procesarEventosEn(siguienteInstante);
         this.procesarResultadoEfectos(resultadoEfectos, acumulado);
       }
+      if (
+        this.sistemaZonasTemporales.obtenerSiguienteInstante() ===
+        siguienteInstante
+      ) {
+        const resultadoZonas =
+          this.sistemaZonasTemporales.procesarEventosEn(siguienteInstante);
+        this.procesarResultadoZonas(resultadoZonas, acumulado);
+      }
     }
     // Si el destino coincide con el reloj actual, todavía puede haber eventos
     // recién programados para ese mismo instante.
@@ -428,6 +547,13 @@ export class CoordinadorTiempoPartida {
       const resultadoEfectos =
         this.sistemaEfectosTemporales.procesarEventosEn(tiempoDestino);
       this.procesarResultadoEfectos(resultadoEfectos, acumulado);
+    }
+    if (
+      this.sistemaZonasTemporales.obtenerSiguienteInstante() === tiempoDestino
+    ) {
+      const resultadoZonas =
+        this.sistemaZonasTemporales.procesarEventosEn(tiempoDestino);
+      this.procesarResultadoZonas(resultadoZonas, acumulado);
     }
 
     return acumulado;
@@ -499,8 +625,11 @@ export class CoordinadorTiempoPartida {
           this.registrarParticipanteCombate(participante, motivo),
         retirarParticipanteCombate: (participante, motivo) =>
           this.retirarParticipanteCombate(participante, motivo),
+        notificarMovimientoActor: (movimiento) =>
+          this.notificarMovimientoActor(movimiento),
       });
       acumulado.mensajes.push(...resultadoEnemigo.mensajes);
+      acumulado.eventos.push(...(resultadoEnemigo.eventos ?? []));
       this.extraerEventosCombateEn(acumulado);
       if (enemigo.estaVivo) {
         this.sistemaTiempo.registrarAccion({
@@ -543,7 +672,12 @@ export class CoordinadorTiempoPartida {
     }
     return `Recuperaste ${recursosRecuperados.join(" y ")}.`;
   }
-  finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
+  finalizarAccionJugador({
+    mensaje,
+    tipoAccion,
+    costoBase,
+    eventos = [],
+  } = {}) {
     const bloqueo = this.obtenerBloqueoAccionJugador();
     if (bloqueo) {
       return bloqueo;
@@ -572,7 +706,7 @@ export class CoordinadorTiempoPartida {
       mensaje: mensajes.filter(Boolean).join("\n"),
       turnoConsumido: true,
       redibujar: true,
-      eventos: resultadoTemporal.eventos,
+      eventos: [...eventos, ...resultadoTemporal.eventos],
     };
   }
 
@@ -584,6 +718,7 @@ export class CoordinadorTiempoPartida {
     // Al destruir el mapa no queda ningún consumidor del evento. Se descarta
     // para liberar también las referencias contenidas en la cola.
     this.estadoCombate.extraerEventosPendientes();
+    this.sistemaZonasTemporales.destruir();
     this.sistemaEfectosTemporales.destruir({
       preservarObjetivos:
         preservarEfectosJugador && this.jugador.estaVivo ? [this.jugador] : [],
@@ -592,4 +727,11 @@ export class CoordinadorTiempoPartida {
     this.sistemaTiempo.registros.clear();
     this.destruido = true;
   }
+}
+
+function estaActorVivo(actor) {
+  if (typeof actor?.estaVivo === "boolean") return actor.estaVivo;
+  if (actor?.estaDestruido === true) return false;
+  const vida = actor?.vidaActual ?? actor?.vida;
+  return !Number.isFinite(vida) || vida > 0;
 }

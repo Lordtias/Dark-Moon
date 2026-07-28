@@ -111,6 +111,8 @@ export class Juego {
       obtenerOpcionesInteraccion: () => this.obtenerOpcionesInteraccion(),
       obtenerBloqueoMovimiento: () =>
         this.coordinadorTiempo.obtenerBloqueoMovimientoJugador(),
+      notificarMovimientoActor: (movimiento) =>
+        this.coordinadorTiempo.notificarMovimientoActor(movimiento),
       finalizarAccionJugador: (parametros) =>
         this.finalizarAccionJugador(parametros),
     });
@@ -122,6 +124,10 @@ export class Juego {
 
   get sistemaEfectosTemporales() {
     return this.coordinadorTiempo.sistemaEfectosTemporales;
+  }
+
+  get sistemaZonasTemporales() {
+    return this.coordinadorTiempo.sistemaZonasTemporales;
   }
 
   get tiempoActual() {
@@ -193,6 +199,18 @@ export class Juego {
   // etapa posterior sin conocer la implementación interna del motor.
   retirarEfectosNegativos(objetivo = this.player, opciones = {}) {
     return this.coordinadorTiempo.retirarEfectosNegativos(objetivo, opciones);
+  }
+
+  crearZonaTemporal(definicion) {
+    return this.coordinadorTiempo.crearZonaTemporal(definicion);
+  }
+
+  obtenerZonasTemporales() {
+    return this.coordinadorTiempo.obtenerZonasTemporales();
+  }
+
+  notificarMovimientoActor(movimiento) {
+    return this.coordinadorTiempo.notificarMovimientoActor(movimiento);
   }
 
   obtenerInteraccionesDisponibles() {
@@ -423,9 +441,7 @@ export class Juego {
 
     return {
       ...resultado,
-      mensaje: [resultado.mensaje, derrotas.mensaje]
-        .filter(Boolean)
-        .join("\n"),
+      mensaje: [resultado.mensaje, derrotas.mensaje].filter(Boolean).join("\n"),
       redibujar: true,
     };
   }
@@ -443,7 +459,12 @@ export class Juego {
     return this.incorporarDerrotasPendientes(resultadoTemporal);
   }
 
-  finalizarAccionJugador({ mensaje, tipoAccion, costoBase } = {}) {
+  finalizarAccionJugador({
+    mensaje,
+    tipoAccion,
+    costoBase,
+    eventos = [],
+  } = {}) {
     const resultadoConDerrotasInmediatas = this.incorporarDerrotasPendientes({
       mensaje,
     });
@@ -451,6 +472,7 @@ export class Juego {
       mensaje: resultadoConDerrotasInmediatas.mensaje,
       tipoAccion,
       costoBase,
+      eventos,
     });
 
     return this.incorporarDerrotasPendientes(resultadoTemporal);

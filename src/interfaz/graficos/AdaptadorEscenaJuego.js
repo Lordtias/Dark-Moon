@@ -44,6 +44,12 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
       },
     },
 
+    zonasTemporales: copiarZonasTemporales(
+      typeof juego.obtenerZonasTemporales === "function"
+        ? juego.obtenerZonasTemporales()
+        : [],
+    ),
+
     combate: {
       activo: selectorMapaActivo,
       modo: combateActivo
@@ -205,6 +211,21 @@ function copiarPosiciones(lista) {
 function copiarObjetivosHabilidad(lista) {
   if (!Array.isArray(lista)) return [];
   return lista.map(({ x, y, orden = 0 }) => ({ x, y, orden }));
+}
+
+function copiarZonasTemporales(lista) {
+  if (!Array.isArray(lista)) return [];
+
+  return lista.map((zona) => ({
+    id: zona.id,
+    nombre: zona.nombre,
+    apariencia: zona.apariencia ?? "generica",
+    creadaEn: zona.creadaEn,
+    venceEn: zona.venceEn,
+    proximaActivacionEn: zona.proximaActivacion,
+    tiempoRestante: zona.tiempoRestante,
+    casillas: copiarPosiciones(zona.casillas),
+  }));
 }
 
 // Convierte una entidad del dominio

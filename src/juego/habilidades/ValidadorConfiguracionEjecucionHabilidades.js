@@ -2,13 +2,17 @@ import {
   TIPOS_DANIO_VALIDOS,
   normalizarTipoDanio,
 } from "../combate/ComponentesDanio.js";
-import { TIPOS_FORMA_IMPACTO } from "./GeometriaHabilidades.js";
 import {
   FACTORES_TEMPORALES_MODIFICABLES,
   POLITICAS_ACUMULACION_VALIDAS,
   TIPOS_EFECTO_TEMPORAL,
   TIPOS_EFECTO_TEMPORAL_VALIDOS,
 } from "../efectos/ContratosEfectosTemporales.js";
+import { normalizarConfiguracionZonaTemporal } from "../zonas/ContratosZonasTemporales.js";
+import {
+  ORIENTACIONES_LINEA,
+  TIPOS_FORMA_IMPACTO,
+} from "./GeometriaHabilidades.js";
 
 const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio"]);
 const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
@@ -122,6 +126,12 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
         `La habilidad "${idHabilidad}" grado ${grado} no posee daño ni efectos.`,
       );
     }
+    const zonaTemporal = definicionGrado.zonaTemporal
+      ? normalizarConfiguracionZonaTemporal(definicionGrado.zonaTemporal, {
+          etiqueta: `la zona temporal de "${idHabilidad}" grado ${grado}`,
+        })
+      : null;
+
     grados[grado] = {
       costoMana: definicionGrado.costoMana,
       costoTemporalBase: definicionGrado.costoTemporalBase,
@@ -129,6 +139,7 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       formaImpacto,
       danio,
       efectos,
+      zonaTemporal,
     };
   }
 
@@ -201,6 +212,29 @@ function normalizarFormaImpacto({
       maximoObjetivos: definicion.maximoObjetivos,
       alcanceSalto: definicion.alcanceSalto,
       factorDanioPorSalto,
+    };
+  }
+
+  if (tipo === TIPOS_FORMA_IMPACTO.LINEA) {
+    validarEnteroPositivo(
+      definicion.longitud,
+      `la longitud de "${idHabilidad}" grado ${grado}`,
+    );
+    const ancho = definicion.ancho ?? 1;
+    validarEnteroPositivo(ancho, `el ancho de "${idHabilidad}" grado ${grado}`);
+    const orientacion = normalizarId(
+      definicion.orientacion ?? ORIENTACIONES_LINEA.HACIA_OBJETIVO,
+    );
+    if (!Object.values(ORIENTACIONES_LINEA).includes(orientacion)) {
+      throw new Error(
+        `La orientación "${orientacion}" de "${idHabilidad}" grado ${grado} no es válida.`,
+      );
+    }
+    return {
+      tipo,
+      longitud: definicion.longitud,
+      ancho,
+      orientacion,
     };
   }
 
@@ -343,35 +377,42 @@ function normalizarTextoOpcional(valor) {
   if (valor === null || valor === undefined || valor === "") return "";
   return normalizarTexto(valor, "el texto opcional");
 }
+
 function normalizarTexto(valor, etiqueta) {
   if (typeof valor !== "string" || valor.trim() === "") {
     throw new Error(`Debe definirse ${etiqueta}.`);
   }
   return valor.trim();
 }
+
 function normalizarId(valor) {
   return normalizarTexto(valor, "un identificador").toLowerCase();
 }
+
 function validarObjeto(valor, etiqueta) {
   if (!valor || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`Debe definirse ${etiqueta} como un objeto.`);
   }
 }
+
 function validarEnteroPositivo(valor, etiqueta) {
   if (!Number.isInteger(valor) || valor <= 0) {
     throw new Error(`${etiqueta} debe ser un entero mayor que 0.`);
   }
 }
+
 function validarEnteroNoNegativo(valor, etiqueta) {
   if (!Number.isInteger(valor) || valor < 0) {
     throw new Error(`${etiqueta} debe ser un entero mayor o igual que 0.`);
   }
 }
+
 function validarNumeroPositivo(valor, etiqueta) {
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error(`${etiqueta} debe ser un número mayor que 0.`);
   }
 }
+
 function congelarProfundamente(valor) {
   if (!valor || typeof valor !== "object" || Object.isFrozen(valor))
     return valor;

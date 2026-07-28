@@ -18,6 +18,7 @@ export class SistemaMovimientoJugador {
     entrarModoCombate,
     obtenerOpcionesInteraccion,
     obtenerBloqueoMovimiento = () => null,
+    notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
     finalizarAccionJugador,
   } = {}) {
     if (!Array.isArray(mapa) || mapa.length === 0) {
@@ -52,6 +53,10 @@ export class SistemaMovimientoJugador {
       "consultar bloqueos temporales del movimiento",
     );
     this.validarFuncion(
+      notificarMovimientoActor,
+      "notificar movimientos a las zonas temporales",
+    );
+    this.validarFuncion(
       finalizarAccionJugador,
       "finalizar acciones temporales",
     );
@@ -67,6 +72,7 @@ export class SistemaMovimientoJugador {
     this.entrarModoCombate = entrarModoCombate;
     this.obtenerOpcionesInteraccion = obtenerOpcionesInteraccion;
     this.obtenerBloqueoMovimiento = obtenerBloqueoMovimiento;
+    this.notificarMovimientoActor = notificarMovimientoActor;
     this.finalizarAccionJugador = finalizarAccionJugador;
   }
 
@@ -148,10 +154,16 @@ export class SistemaMovimientoJugador {
       });
     }
 
+    const origen = { x: this.jugador.x, y: this.jugador.y };
     this.jugador.x = nuevaX;
     this.jugador.y = nuevaY;
     this.registrarUltimaDireccionCombate(movimientoX, movimientoY);
 
+    const resultadoZona = this.notificarMovimientoActor({
+      actor: this.jugador,
+      origen,
+      destino: { x: nuevaX, y: nuevaY },
+    });
     const opcionesInteraccion = this.obtenerOpcionesInteraccion();
     let mensajeInteraccion = "";
     if (opcionesInteraccion.length === 1) {
@@ -163,9 +175,15 @@ export class SistemaMovimientoJugador {
     }
 
     return this.finalizarAccionJugador({
-      mensaje: "Te moviste por la mazmorra." + mensajeInteraccion,
+      mensaje: [
+        "Te moviste por la mazmorra." + mensajeInteraccion,
+        ...(resultadoZona?.mensajes ?? []),
+      ]
+        .filter(Boolean)
+        .join("\n"),
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
+      eventos: resultadoZona?.eventos ?? [],
     });
   }
 }

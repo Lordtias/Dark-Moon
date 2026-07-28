@@ -111,6 +111,7 @@ function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
 }
 
 function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
+  const origen = { x: enemigo.x, y: enemigo.y };
   const siguientePaso = buscarSiguientePaso({
     mapa,
     origen: { x: enemigo.x, y: enemigo.y },
@@ -121,6 +122,8 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   if (!siguientePaso) {
     return {
       seMovio: false,
+      origen,
+      destino: origen,
     };
   }
 
@@ -128,16 +131,24 @@ function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
   enemigo.y = siguientePaso.y;
   return {
     seMovio: true,
+    origen,
+    destino: { x: siguientePaso.x, y: siguientePaso.y },
   };
 }
 
-function crearResultadoAccion({ tipoAccion, costoBase, mensajes = [] }) {
+function crearResultadoAccion({
+  tipoAccion,
+  costoBase,
+  mensajes = [],
+  eventos = [],
+}) {
   const mensajesLimpios = mensajes.filter(Boolean);
   return {
     tipoAccion,
     costoBase,
     mensajes: mensajesLimpios,
     mensaje: mensajesLimpios.join("\n"),
+    eventos: Array.isArray(eventos) ? eventos : [],
   };
 }
 
@@ -151,6 +162,7 @@ export function procesarAccionEnemigo({
   estaInmovilizado = () => false,
   registrarParticipanteCombate = () => {},
   retirarParticipanteCombate = () => {},
+  notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
 } = {}) {
   if (!(enemigo instanceof Enemigo)) {
     throw new Error("Se necesita un enemigo válido para procesar su acción.");
@@ -166,6 +178,9 @@ export function procesarAccionEnemigo({
   }
   if (typeof retirarParticipanteCombate !== "function") {
     throw new Error("La retirada de combate debe ser una función.");
+  }
+  if (typeof notificarMovimientoActor !== "function") {
+    throw new Error("La notificación de movimiento debe ser una función.");
   }
 
   const mensajes = [];
@@ -252,10 +267,17 @@ export function procesarAccionEnemigo({
 
   if (resultadoMovimiento.seMovio) {
     mensajes.push(`${enemigo.nombre} avanza hacia vos.`);
+    const resultadoZona = notificarMovimientoActor({
+      actor: enemigo,
+      origen: resultadoMovimiento.origen,
+      destino: resultadoMovimiento.destino,
+    });
+    mensajes.push(...(resultadoZona?.mensajes ?? []));
     return crearResultadoAccion({
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
       mensajes,
+      eventos: resultadoZona?.eventos ?? [],
     });
   }
 

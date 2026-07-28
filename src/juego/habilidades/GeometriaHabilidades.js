@@ -4,6 +4,12 @@ export const TIPOS_FORMA_IMPACTO = Object.freeze({
   INDIVIDUAL: "individual",
   RADIO: "radio",
   CADENA: "cadena",
+  LINEA: "linea",
+});
+
+export const ORIENTACIONES_LINEA = Object.freeze({
+  HACIA_OBJETIVO: "hacia_objetivo",
+  PERPENDICULAR: "perpendicular",
 });
 
 // Calcula la vista previa completa de una habilidad sin modificar el mundo.
@@ -42,19 +48,22 @@ export function crearVistaPreviaHabilidad({
     centro.x,
     centro.y,
   );
-  const formaImpacto = gradoConfig.formaImpacto;
   const resolucionImpacto = resolverFormaImpacto({
     mapa,
+    jugador,
     centro,
     objetivos: objetivosVivos,
     objetivoPrimario,
-    formaImpacto,
+    formaImpacto: gradoConfig.formaImpacto,
   });
-  const objetivoValido = validarObjetivoSeleccion({
-    tipoObjetivo: habilidad.ejecucion.tipoObjetivo,
-    objetivoPrimario,
-    objetivosAfectados: resolucionImpacto.objetivosAfectados,
-  });
+  const creaZonaTemporal = Boolean(gradoConfig.zonaTemporal);
+  const objetivoValido = creaZonaTemporal
+    ? resolucionImpacto.casillasAfectadas.length > 0
+    : validarObjetivoSeleccion({
+        tipoObjetivo: habilidad.ejecucion.tipoObjetivo,
+        objetivoPrimario,
+        objetivosAfectados: resolucionImpacto.objetivosAfectados,
+      });
   const puedeEjecutar = geometria.puedeEjecutar && objetivoValido;
 
   return {
@@ -73,7 +82,9 @@ export function crearVistaPreviaHabilidad({
     mensaje: puedeEjecutar
       ? null
       : geometria.puedeEjecutar
-        ? "No hay enemigos válidos dentro de la forma de impacto."
+        ? creaZonaTemporal
+          ? "La forma seleccionada no contiene casillas de suelo válidas."
+          : "No hay enemigos válidos dentro de la forma de impacto."
         : geometria.mensaje,
   };
 }
@@ -191,8 +202,47 @@ export function evaluarSeleccionHabilidad({
   }
 }
 
+// Expone únicamente el cálculo de casillas para depuración y futuras
+// habilidades. No aplica daño, efectos ni zonas.
+export function crearCasillasFormaImpacto({
+  mapa,
+  jugador,
+  centro,
+  formaImpacto,
+} = {}) {
+  if (!Array.isArray(mapa) || mapa.length === 0) {
+    throw new Error("La forma de impacto necesita un mapa válido.");
+  }
+  if (
+    !jugador ||
+    !Number.isInteger(jugador.x) ||
+    !Number.isInteger(jugador.y)
+  ) {
+    throw new Error("La forma de impacto necesita un lanzador posicionado.");
+  }
+  if (!Number.isInteger(centro?.x) || !Number.isInteger(centro?.y)) {
+    throw new Error("La forma de impacto necesita un centro válido.");
+  }
+  if (!formaImpacto || typeof formaImpacto !== "object") {
+    throw new Error("La forma de impacto necesita configuración.");
+  }
+
+  switch (formaImpacto.tipo) {
+    case TIPOS_FORMA_IMPACTO.RADIO:
+      return crearCasillasRadio({ mapa, centro, radio: formaImpacto.radio });
+    case TIPOS_FORMA_IMPACTO.LINEA:
+      return crearCasillasLinea({ mapa, jugador, centro, formaImpacto });
+    case TIPOS_FORMA_IMPACTO.INDIVIDUAL:
+    default:
+      return esCasillaSuelo(mapa, centro.x, centro.y)
+        ? [{ x: centro.x, y: centro.y }]
+        : [];
+  }
+}
+
 function resolverFormaImpacto({
   mapa,
+  jugador,
   centro,
   objetivos,
   objetivoPrimario,
@@ -200,7 +250,28 @@ function resolverFormaImpacto({
 }) {
   switch (formaImpacto.tipo) {
     case TIPOS_FORMA_IMPACTO.RADIO:
-      return resolverRadio({ mapa, centro, objetivos, formaImpacto });
+      return resolverPorCasillas({
+        centro,
+        objetivos,
+        casillasAfectadas: crearCasillasFormaImpacto({
+          mapa,
+          jugador,
+          centro,
+          formaImpacto,
+        }),
+      });
+    case TIPOS_FORMA_IMPACTO.LINEA:
+      return resolverPorCasillas({
+        centro,
+        objetivos,
+        casillasAfectadas: crearCasillasFormaImpacto({
+          mapa,
+          jugador,
+          centro,
+          formaImpacto,
+        }),
+        crearRecorrido: true,
+      });
     case TIPOS_FORMA_IMPACTO.CADENA:
       return resolverCadena({
         objetivoPrimario,
@@ -227,29 +298,13 @@ function resolverIndividual({ mapa, centro, objetivoPrimario }) {
   };
 }
 
-function resolverRadio({ mapa, centro, objetivos, formaImpacto }) {
-  const casillasAfectadas = [];
-  const clavesAfectadas = new Set();
-
-  for (
-    let y = centro.y - formaImpacto.radio;
-    y <= centro.y + formaImpacto.radio;
-    y += 1
-  ) {
-    for (
-      let x = centro.x - formaImpacto.radio;
-      x <= centro.x + formaImpacto.radio;
-      x += 1
-    ) {
-      if (!esCasillaSuelo(mapa, x, y)) continue;
-      if (distanciaCuadricula(centro, { x, y }) > formaImpacto.radio) continue;
-      const casilla = { x, y };
-      casillasAfectadas.push(casilla);
-      clavesAfectadas.add(crearClaveCasilla(casilla));
-    }
-  }
-
-  casillasAfectadas.sort(compararCasillas);
+function resolverPorCasillas({
+  centro,
+  objetivos,
+  casillasAfectadas,
+  crearRecorrido = false,
+}) {
+  const clavesAfectadas = new Set(casillasAfectadas.map(crearClaveCasilla));
   const objetivosAfectados = objetivos
     .filter((objetivo) => clavesAfectadas.has(crearClaveCasilla(objetivo)))
     .sort((a, b) => {
@@ -262,8 +317,69 @@ function resolverRadio({ mapa, centro, objetivos, formaImpacto }) {
   return {
     casillasAfectadas,
     objetivosAfectados,
-    recorrido: [],
+    recorrido: crearRecorrido
+      ? casillasAfectadas.map((casilla, orden) => ({ ...casilla, orden }))
+      : [],
   };
+}
+
+function crearCasillasRadio({ mapa, centro, radio }) {
+  const casillas = [];
+  for (let y = centro.y - radio; y <= centro.y + radio; y += 1) {
+    for (let x = centro.x - radio; x <= centro.x + radio; x += 1) {
+      if (!esCasillaSuelo(mapa, x, y)) continue;
+      if (distanciaCuadricula(centro, { x, y }) > radio) continue;
+      casillas.push({ x, y });
+    }
+  }
+  return casillas.sort(compararCasillas);
+}
+
+function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
+  const direccion = normalizarDireccion({
+    x: centro.x - jugador.x,
+    y: centro.y - jugador.y,
+  });
+  const perpendicular = { x: -direccion.y, y: direccion.x };
+  const orientacion =
+    formaImpacto.orientacion ?? ORIENTACIONES_LINEA.HACIA_OBJETIVO;
+  const longitud = formaImpacto.longitud;
+  const ancho = formaImpacto.ancho ?? 1;
+  const casillas = new Map();
+
+  if (orientacion === ORIENTACIONES_LINEA.PERPENDICULAR) {
+    const offsetsLongitud = crearOffsetsCentrados(longitud);
+    const offsetsAncho = crearOffsetsCentrados(ancho);
+    for (const avance of offsetsLongitud) {
+      for (const grosor of offsetsAncho) {
+        agregarCasillaSiSuelo(casillas, mapa, {
+          x: centro.x + perpendicular.x * avance + direccion.x * grosor,
+          y: centro.y + perpendicular.y * avance + direccion.y * grosor,
+        });
+      }
+    }
+  } else {
+    const offsetsAncho = crearOffsetsCentrados(ancho);
+    for (let avance = 1; avance <= longitud; avance += 1) {
+      const eje = {
+        x: jugador.x + direccion.x * avance,
+        y: jugador.y + direccion.y * avance,
+      };
+      if (!esCasillaSuelo(mapa, eje.x, eje.y)) break;
+      for (const grosor of offsetsAncho) {
+        agregarCasillaSiSuelo(casillas, mapa, {
+          x: eje.x + perpendicular.x * grosor,
+          y: eje.y + perpendicular.y * grosor,
+        });
+      }
+    }
+  }
+
+  return [...casillas.values()].sort((a, b) => {
+    const da = distanciaCuadricula(jugador, a);
+    const db = distanciaCuadricula(jugador, b);
+    return da - db || compararCasillas(a, b);
+  });
 }
 
 function resolverCadena({ objetivoPrimario, objetivos, formaImpacto }) {
@@ -399,6 +515,22 @@ function crearAdaptadorEquipamiento(equipamiento, alcance, patronAtaque) {
       return Reflect.get(objetivo, propiedad, receptor);
     },
   });
+}
+
+function crearOffsetsCentrados(cantidad) {
+  const inicio = -Math.floor((cantidad - 1) / 2);
+  return Array.from({ length: cantidad }, (_, indice) => inicio + indice);
+}
+
+function normalizarDireccion({ x, y }) {
+  const dx = Math.sign(x);
+  const dy = Math.sign(y);
+  return dx === 0 && dy === 0 ? { x: 1, y: 0 } : { x: dx, y: dy };
+}
+
+function agregarCasillaSiSuelo(destino, mapa, casilla) {
+  if (!esCasillaSuelo(mapa, casilla.x, casilla.y)) return;
+  destino.set(crearClaveCasilla(casilla), casilla);
 }
 
 function distanciaCuadricula(origen, destino) {

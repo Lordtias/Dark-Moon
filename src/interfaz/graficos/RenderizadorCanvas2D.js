@@ -261,6 +261,8 @@ export class RenderizadorCanvas2D {
 
     this.dibujarMapa(escena.mapa);
 
+    this.dibujarZonasTemporales(escena.zonasTemporales);
+
     if (escena.combate.activo) {
       this.dibujarRangoCombate(
         escena.combate.casillasAtacables,
@@ -737,6 +739,60 @@ export class RenderizadorCanvas2D {
     );
 
     this.context.restore();
+  }
+
+  // Dibuja las zonas persistentes después del terreno y antes de las
+  // entidades. La representación depende de una apariencia genérica y no del
+  // nombre de la habilidad que originó la zona.
+  dibujarZonasTemporales(zonas) {
+    for (const zona of zonas ?? []) {
+      this.dibujarZonaTemporal(zona);
+    }
+  }
+
+  dibujarZonaTemporal(zona) {
+    const estilo = obtenerEstiloZonaTemporal(zona?.apariencia);
+
+    for (const casilla of zona?.casillas ?? []) {
+      const pixelX = casilla.x * this.tileSize;
+      const pixelY = casilla.y * this.tileSize;
+      const hash = obtenerHashCasilla(casilla.x, casilla.y);
+      const margen = Math.max(2, Math.floor(this.tileSize * 0.08));
+
+      this.context.save();
+      this.context.fillStyle = estilo.relleno;
+      this.context.fillRect(
+        pixelX + margen,
+        pixelY + margen,
+        this.tileSize - margen * 2,
+        this.tileSize - margen * 2,
+      );
+
+      this.context.strokeStyle = estilo.borde;
+      this.context.lineWidth = 1;
+      this.context.strokeRect(
+        pixelX + margen + 0.5,
+        pixelY + margen + 0.5,
+        this.tileSize - margen * 2 - 1,
+        this.tileSize - margen * 2 - 1,
+      );
+
+      // Marcas deterministas para que la zona siga siendo reconocible sin
+      // animaciones ni recursos gráficos específicos.
+      const cantidad = 2 + (hash % 3);
+      this.context.fillStyle = estilo.detalle;
+      for (let indice = 0; indice < cantidad; indice++) {
+        const espacio = Math.max(1, this.tileSize - margen * 2 - 4);
+        const detalleX =
+          pixelX + margen + 2 + ((hash >>> (indice * 5)) % espacio);
+        const detalleY =
+          pixelY + margen + 2 + ((hash >>> (indice * 7 + 2)) % espacio);
+        const tamano = indice % 2 === 0 ? 2 : 1;
+        this.context.fillRect(detalleX, detalleY, tamano, tamano);
+      }
+
+      this.context.restore();
+    }
   }
 
   // Resalta las casillas válidas de ataque
@@ -1330,9 +1386,45 @@ function validarEscena(escena) {
     throw new Error("La escena necesita información de combate.");
   }
 
+  if (!Array.isArray(escena.zonasTemporales)) {
+    throw new Error("La escena necesita una lista de zonas temporales.");
+  }
+
   if (!Array.isArray(escena.entidades)) {
     throw new Error("La escena necesita una lista de entidades.");
   }
+}
+
+function obtenerEstiloZonaTemporal(apariencia) {
+  const estilos = {
+    veneno: {
+      relleno: "rgba(78, 155, 66, 0.30)",
+      borde: "rgba(155, 235, 115, 0.74)",
+      detalle: "rgba(205, 255, 160, 0.58)",
+    },
+    fuego: {
+      relleno: "rgba(215, 80, 34, 0.30)",
+      borde: "rgba(255, 170, 75, 0.78)",
+      detalle: "rgba(255, 225, 130, 0.62)",
+    },
+    frio: {
+      relleno: "rgba(80, 160, 215, 0.27)",
+      borde: "rgba(155, 225, 255, 0.76)",
+      detalle: "rgba(225, 250, 255, 0.62)",
+    },
+    electrico: {
+      relleno: "rgba(105, 105, 225, 0.26)",
+      borde: "rgba(185, 195, 255, 0.78)",
+      detalle: "rgba(240, 245, 255, 0.64)",
+    },
+    generica: {
+      relleno: "rgba(150, 95, 190, 0.24)",
+      borde: "rgba(225, 175, 255, 0.70)",
+      detalle: "rgba(245, 225, 255, 0.56)",
+    },
+  };
+
+  return estilos[apariencia] ?? estilos.generica;
 }
 
 // Convierte un valor CSS expresado en píxeles

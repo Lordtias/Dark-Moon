@@ -12,10 +12,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,
@@ -39,16 +36,13 @@
     "nivelMinimoGeneracion": 5,
     "familiaObjeto": "daga",
     "descripcion": "Una daga de acero equilibrada para ataques muy rápidos y críticos frecuentes.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/daga_acero.png",
     "valorBase": 95,
     "pesoUnitario": 0.8,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 4,
       "danioFisicoMaximo": 6,
@@ -78,10 +72,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 5,
       "danioFisicoMaximo": 8,
@@ -105,16 +96,13 @@
     "nivelMinimoGeneracion": 5,
     "familiaObjeto": "espada",
     "descripcion": "Una espada de acero confiable, más dañina y precisa que su equivalente de hierro.",
-    "recursoVisual": "assets/imagenes/objetos/espada_larga.png",
+    "recursoVisual": "assets/imagenes/objetos/espada_acero.png",
     "valorBase": 180,
     "pesoUnitario": 1.6,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 6,
       "danioFisicoMaximo": 10,
@@ -144,10 +132,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 6,
       "danioFisicoMaximo": 10,
@@ -171,16 +156,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "hacha",
     "descripcion": "Un hacha de acero de una mano que prioriza golpes pesados por encima de la precisión.",
-    "recursoVisual": "assets/imagenes/objetos/hacha_mano.png",
+    "recursoVisual": "assets/imagenes/objetos/hacha_batalla.png",
     "valorBase": 210,
     "pesoUnitario": 1.9,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 8,
       "danioFisicoMaximo": 12,
@@ -210,9 +192,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 9,
       "danioFisicoMaximo": 14,
@@ -242,9 +222,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 11,
       "danioFisicoMaximo": 17,
@@ -274,9 +252,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 6,
       "danioFisicoMaximo": 9,
@@ -300,15 +276,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "lanza",
     "descripcion": "Una lanza reforzada que mejora el daño y conserva el control de los pasillos a alcance dos.",
-    "recursoVisual": "assets/imagenes/objetos/lanza.png",
+    "recursoVisual": "assets/imagenes/objetos/lanza_reforzada.png",
     "valorBase": 220,
     "pesoUnitario": 2.6,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 7,
       "danioFisicoMaximo": 11,
@@ -338,9 +312,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 4,
       "danioFisicoMaximo": 7,
@@ -365,15 +337,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "arco",
     "descripcion": "Un arco recurvo de mayor potencia, precisión y alcance que continúa necesitando un quiver.",
-    "recursoVisual": "assets/imagenes/objetos/arco_corto.png",
+    "recursoVisual": "assets/imagenes/objetos/arco_recurvo.png",
     "valorBase": 240,
     "pesoUnitario": 1.2,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 5,
       "danioFisicoMaximo": 9,
@@ -404,9 +374,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 4,
       "danioFisicoMaximo": 7,
@@ -438,9 +406,7 @@
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma"
-    ],
+    "ranurasCompatibles": ["arma"],
     "propiedades": {
       "danioFisicoMinimo": 6,
       "danioFisicoMaximo": 9,
@@ -459,23 +425,20 @@
       "potenciaHabilidad": 25
     }
   },
-  "varita_aprendiz": {
+  "varita_fuego_aprendiz": {
     "nombre": "Varita de fuego de aprendiz",
     "tipo": "arma",
     "tierBase": 1,
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Fuego. Canaliza habilidades y prepara una descarga mágica sin munición.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_aprendiz.png",
     "valorBase": 55,
     "pesoUnitario": 0.4,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 2,
       "danioFisicoMaximo": 4,
@@ -505,16 +468,13 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Frío. Canaliza habilidades y prepara una descarga mágica sin munición.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_aprendiz.png",
     "valorBase": 55,
     "pesoUnitario": 0.4,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 2,
       "danioFisicoMaximo": 4,
@@ -544,16 +504,13 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Rayo. Canaliza habilidades y prepara una descarga mágica sin munición.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_aprendiz.png",
     "valorBase": 55,
     "pesoUnitario": 0.4,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 2,
       "danioFisicoMaximo": 4,
@@ -583,16 +540,13 @@
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Veneno. Canaliza habilidades y prepara una descarga mágica sin munición.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_aprendiz.png",
     "valorBase": 55,
     "pesoUnitario": 0.4,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 2,
       "danioFisicoMaximo": 4,
@@ -615,23 +569,20 @@
       "costoManaAtaqueBasico": 1
     }
   },
-  "varita_canalizada": {
+  "varita_fuego_canalizada": {
     "nombre": "Varita de fuego canalizada",
     "tipo": "arma",
     "tierBase": 2,
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Fuego y preparada para canalizar habilidades de mayor potencia.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_canalizada.png",
     "valorBase": 165,
     "pesoUnitario": 0.5,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,
@@ -661,16 +612,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Frío y preparada para canalizar habilidades de mayor potencia.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_canalizada.png",
     "valorBase": 165,
     "pesoUnitario": 0.5,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,
@@ -700,16 +648,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Rayo y preparada para canalizar habilidades de mayor potencia.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_canalizada.png",
     "valorBase": 165,
     "pesoUnitario": 0.5,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,
@@ -739,16 +684,13 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "varita",
     "descripcion": "Una varita de una mano afinada con Veneno y preparada para canalizar habilidades de mayor potencia.",
-    "recursoVisual": "assets/imagenes/objetos/daga_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/varita_canalizada.png",
     "valorBase": 165,
     "pesoUnitario": 0.5,
     "vendible": true,
     "apilable": false,
     "cantidadMaxima": 1,
-    "ranurasCompatibles": [
-      "arma",
-      "secundaria"
-    ],
+    "ranurasCompatibles": ["arma", "secundaria"],
     "propiedades": {
       "danioFisicoMinimo": 3,
       "danioFisicoMaximo": 5,

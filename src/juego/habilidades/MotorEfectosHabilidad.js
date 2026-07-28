@@ -2,12 +2,11 @@ import {
   MAGNITUDES_ESCALADO_EFECTO,
   crearInstantaneaEfectoMagico,
 } from "../magia/CalculadorAtributosMagicos.js";
-import {
-  normalizarDefinicionEfectoTemporal,
-} from "../efectos/ContratosEfectosTemporales.js";
+import { normalizarDefinicionEfectoTemporal } from "../efectos/ContratosEfectosTemporales.js";
 import {
   obtenerContextoPotenciaHabilidad,
   obtenerMultiplicadorEfectos,
+  obtenerTiradaAplicacionEfectoHabilidad,
 } from "./MotorDanioHabilidad.js";
 
 export function validarDisponibilidadEfectosHabilidad({
@@ -64,12 +63,13 @@ export function prepararEfectosHabilidad({
       multiplicadorEfectos: multiplicadorMagico,
       magnitudEscalable,
     });
-    // Valida el contrato completo antes de consumir Maná. Se conserva la
-    // definición original para que la fuente real se vincule al confirmar.
+    // La tirada se agrega únicamente al confirmar. La prevalidación no debe
+    // consumir secuencias deterministas ni modificar el mundo.
     normalizarDefinicionEfectoTemporal(definicion);
 
     return {
-      idEfecto: efecto.id,
+      idEfecto: efecto.efectoId,
+      nombreEfecto: efecto.nombreEfecto,
       tipo: efecto.tipo,
       multiplicadorAtributosMagicos: multiplicadorAtributos,
       multiplicadorPotenciaHabilidad: potencia.multiplicadorHabilidad,
@@ -116,11 +116,13 @@ export function aplicarEfectosHabilidad({
     const resultado = juego.coordinadorTiempo.aplicarEfectoTemporal({
       ...definicion,
       fuenteCombatiente: lanzador,
+      obtenerTiradaAplicacion: obtenerTiradaAplicacionEfectoHabilidad,
     });
 
     return {
       idEjecucion,
       idEfecto: preparada.idEfecto,
+      nombreEfecto: preparada.nombreEfecto,
       tipo: preparada.tipo,
       multiplicadorAtributosMagicos:
         preparada.multiplicadorAtributosMagicos,
@@ -135,21 +137,31 @@ export function aplicarEfectosHabilidad({
 
 function crearDefinicionCanonica({ efecto, objetivo, idEjecucion }) {
   const comun = {
-    idDefinicion: efecto.id,
-    grupoAcumulacion: efecto.grupoAcumulacion ?? efecto.id,
+    idDefinicion: efecto.efectoId,
+    efectoId: efecto.efectoId,
+    nombreEfecto: efecto.nombreEfecto,
+    perfilAplicacion: efecto.perfilAplicacion,
+    grupoAcumulacion: efecto.grupoAcumulacion,
     fuente: {
       id: idEjecucion,
-      nombre: efecto.id,
+      nombre: efecto.nombreEfecto,
       tipo: "habilidad_jugador",
     },
     objetivo,
     tipo: efecto.tipo,
     duracion: efecto.duracion,
     intervalo: efecto.intervalo ?? null,
-    politicaAcumulacion:
-      efecto.politicaAcumulacion ?? "renovar_duracion",
-    maximo: efecto.maximo ?? 1,
-    incremento: efecto.incremento ?? 1,
+    politicaAcumulacion: efecto.politicaAcumulacion,
+    politicaPotencia: efecto.politicaPotencia,
+    maximo: efecto.maximo,
+    incremento: efecto.incremento,
+    intensidadInicial: efecto.intensidadInicial ?? 1,
+    probabilidadBase: efecto.probabilidadBase,
+    tiradaAplicacion: null,
+    resistenciaId: efecto.resistenciaId,
+    modoResistencia: efecto.modoResistencia,
+    inmunidadId: efecto.inmunidadId,
+    eliminarAlAdquirirInmunidad: efecto.eliminarAlAdquirirInmunidad,
     etiquetas: [
       "habilidad",
       `ejecucion:${idEjecucion}`,
@@ -203,6 +215,9 @@ function vincularEjecucion({ definicion, idEjecucion }) {
 function resumirDefinicion(definicion) {
   return {
     idDefinicion: definicion.idDefinicion,
+    efectoId: definicion.efectoId,
+    nombreEfecto: definicion.nombreEfecto,
+    perfilAplicacion: definicion.perfilAplicacion,
     grupoAcumulacion: definicion.grupoAcumulacion,
     fuente: { ...definicion.fuente },
     tipo: definicion.tipo,
@@ -214,8 +229,15 @@ function resumirDefinicion(definicion) {
     duracion: definicion.duracion,
     intervalo: definicion.intervalo,
     politicaAcumulacion: definicion.politicaAcumulacion,
+    politicaPotencia: definicion.politicaPotencia,
     maximo: definicion.maximo,
     incremento: definicion.incremento,
+    intensidadInicial: definicion.intensidadInicial,
+    probabilidadBase: definicion.probabilidadBase,
+    tiradaAplicacion: definicion.tiradaAplicacion,
+    resistenciaId: definicion.resistenciaId,
+    modoResistencia: definicion.modoResistencia,
+    inmunidadId: definicion.inmunidadId,
     etiquetas: [...(definicion.etiquetas ?? [])],
     beneficioso: definicion.beneficioso,
   };
@@ -226,17 +248,28 @@ function resumirResultado(resultado) {
   return {
     exito: resultado?.exito === true,
     aplicado: resultado?.aplicado === true,
+    estadoAplicacion: resultado?.estadoAplicacion ?? null,
+    motivo: resultado?.motivo ?? null,
     mensaje: resultado?.mensaje ?? null,
+    probabilidadBase: resultado?.probabilidadBase ?? null,
+    resistencia: resultado?.resistencia ?? null,
+    probabilidadFinal: resultado?.probabilidadFinal ?? null,
+    tiradaAplicacion: resultado?.tiradaAplicacion ?? null,
     efecto: efecto
       ? {
           id: efecto.id,
           idDefinicion: efecto.idDefinicion,
+          efectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
           grupoAcumulacion: efecto.grupoAcumulacion,
           tipo: efecto.tipo,
           valor: copiarSimple(efecto.valor),
           duracion: efecto.duracion,
           intervalo: efecto.intervalo,
           politicaAcumulacion: efecto.politicaAcumulacion,
+          politicaPotencia: efecto.politicaPotencia,
+          intensidad: efecto.intensidad,
+          cantidad: efecto.cantidad,
           aplicadoEn: efecto.aplicadoEn,
           venceEn: efecto.venceEn,
           proximoTick: efecto.proximoTick,

@@ -152,8 +152,15 @@ export class CoordinadorTiempoPartida {
     }
     // fuenteCombatiente es contexto de la partida, no parte del contrato
     // serializable de SistemaEfectosTemporales.
-    const { fuenteCombatiente = null, ...definicionEfecto } = definicion;
-    const resultado = this.sistemaEfectosTemporales.aplicar(definicionEfecto);
+    const {
+      fuenteCombatiente = null,
+      obtenerTiradaAplicacion = null,
+      ...definicionEfecto
+    } = definicion;
+    const resultado = this.sistemaEfectosTemporales.aplicar(
+      definicionEfecto,
+      { obtenerTiradaAplicacion },
+    );
 
     if (resultado.exito && resultado.efecto?.id && fuenteCombatiente) {
       this.fuentesCombatientesPorEfecto.set(
@@ -210,6 +217,13 @@ export class CoordinadorTiempoPartida {
       objetivo,
       opciones,
     );
+    this.eliminarFuentesSegunEventos(resultado.eventos);
+    return resultado;
+  }
+
+  sincronizarInmunidadesEfectos(objetivo = this.jugador) {
+    const resultado =
+      this.sistemaEfectosTemporales.sincronizarInmunidades(objetivo);
     this.eliminarFuentesSegunEventos(resultado.eventos);
     return resultado;
   }

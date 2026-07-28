@@ -6,11 +6,13 @@ import { crearContextoPotenciaHabilidad } from "../magia/SistemaCatalizadores.js
 const TIRADAS_DETERMINISTAS = {
   impacto: [],
   critico: [],
+  efecto: [],
 };
 
 export function configurarTiradasDeterministasHabilidad({
   impacto = [],
   critico = [],
+  efecto = [],
 } = {}) {
   TIRADAS_DETERMINISTAS.impacto = normalizarSecuenciaTiradas(
     impacto,
@@ -20,12 +22,17 @@ export function configurarTiradasDeterministasHabilidad({
     critico,
     "crítico",
   );
+  TIRADAS_DETERMINISTAS.efecto = normalizarSecuenciaTiradas(
+    efecto,
+    "efecto",
+  );
   return obtenerEstadoTiradasDeterministasHabilidad();
 }
 
 export function restaurarTiradasAleatoriasHabilidad() {
   TIRADAS_DETERMINISTAS.impacto = [];
   TIRADAS_DETERMINISTAS.critico = [];
+  TIRADAS_DETERMINISTAS.efecto = [];
   return obtenerEstadoTiradasDeterministasHabilidad();
 }
 
@@ -33,10 +40,16 @@ export function obtenerEstadoTiradasDeterministasHabilidad() {
   return Object.freeze({
     impacto: [...TIRADAS_DETERMINISTAS.impacto],
     critico: [...TIRADAS_DETERMINISTAS.critico],
+    efecto: [...TIRADAS_DETERMINISTAS.efecto],
     activa:
       TIRADAS_DETERMINISTAS.impacto.length > 0 ||
-      TIRADAS_DETERMINISTAS.critico.length > 0,
+      TIRADAS_DETERMINISTAS.critico.length > 0 ||
+      TIRADAS_DETERMINISTAS.efecto.length > 0,
   });
+}
+
+export function obtenerTiradaAplicacionEfectoHabilidad() {
+  return obtenerTirada("efecto");
 }
 
 export function resolverImpactoHabilidad({

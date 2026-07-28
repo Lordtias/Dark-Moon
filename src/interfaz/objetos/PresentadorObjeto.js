@@ -61,6 +61,22 @@ const RESISTENCIAS_VISIBLES = Object.freeze([
     propiedad: "resistenciaVeneno",
     etiqueta: "Resistencia al veneno",
   }),
+  Object.freeze({
+    propiedad: "resistenciaCongelamiento",
+    etiqueta: "Resistencia al Congelamiento",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaAturdimiento",
+    etiqueta: "Resistencia al Aturdimiento",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaEnvenenamiento",
+    etiqueta: "Resistencia al Envenenamiento",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaQuemadura",
+    etiqueta: "Resistencia a la Quemadura",
+  }),
 ]);
 
 const PRESENTACION_VALORES_AFIJO = Object.freeze({
@@ -98,6 +114,22 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
   },
   resistenciaVeneno: {
     etiqueta: "resistencia al veneno",
+    porcentaje: true,
+  },
+  resistenciaCongelamiento: {
+    etiqueta: "resistencia al Congelamiento",
+    porcentaje: true,
+  },
+  resistenciaAturdimiento: {
+    etiqueta: "resistencia al Aturdimiento",
+    porcentaje: true,
+  },
+  resistenciaEnvenenamiento: {
+    etiqueta: "resistencia al Envenenamiento",
+    porcentaje: true,
+  },
+  resistenciaQuemadura: {
+    etiqueta: "resistencia a la Quemadura",
     porcentaje: true,
   },
   probabilidadBloqueo: {

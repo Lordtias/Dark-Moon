@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -134,7 +134,100 @@
       "maestria": "fuego",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null
+      "icono": null,
+      "descripcion": "Proyecta una línea de fuego que atraviesa enemigos, causa daño inmediato y puede aplicar Quemadura.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 9,
+            "costoTemporalBase": 110,
+            "alcance": 5,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 5,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "fuego",
+                "valorBase": 12
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "quemadura",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
+                "tipoDanio": "fuego",
+                "valorBase": 2,
+                "intervalo": 100
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 12,
+            "costoTemporalBase": 108,
+            "alcance": 6,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 6,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "fuego",
+                "valorBase": 16
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "quemadura",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
+                "tipoDanio": "fuego",
+                "valorBase": 3,
+                "intervalo": 100
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 15,
+            "costoTemporalBase": 105,
+            "alcance": 7,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 7,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "fuego",
+                "valorBase": 21
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "quemadura",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
+                "tipoDanio": "fuego",
+                "valorBase": 4,
+                "intervalo": 100
+              }
+            ]
+          }
+        }
+      }
     },
     "esquirla_hielo": {
       "nombre": "Esquirla de hielo",
@@ -161,14 +254,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_esquirla_hielo",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 150,
                 "valor": {
                   "factorMovimiento": 1.15
-                },
-                "duracion": 150,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_esquirla_hielo"
+                }
               }
             ]
           },
@@ -184,14 +276,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_esquirla_hielo",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 200,
                 "valor": {
                   "factorMovimiento": 1.2
-                },
-                "duracion": 200,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_esquirla_hielo"
+                }
               }
             ]
           },
@@ -207,14 +298,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_esquirla_hielo",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 250,
                 "valor": {
                   "factorMovimiento": 1.25
-                },
-                "duracion": 250,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_esquirla_hielo"
+                }
               }
             ]
           },
@@ -230,14 +320,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_esquirla_hielo",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
                 "valor": {
                   "factorMovimiento": 1.3
-                },
-                "duracion": 300,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_esquirla_hielo"
+                }
               }
             ]
           }
@@ -273,14 +362,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_nova_escarcha",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 200,
                 "valor": {
                   "factorMovimiento": 1.2
-                },
-                "duracion": 200,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_nova_escarcha"
+                }
               }
             ]
           },
@@ -300,14 +388,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_nova_escarcha",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 250,
                 "valor": {
                   "factorMovimiento": 1.25
-                },
-                "duracion": 250,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_nova_escarcha"
+                }
               }
             ]
           },
@@ -327,14 +414,13 @@
             ],
             "efectos": [
               {
-                "id": "ralentizacion_nova_escarcha",
-                "tipo": "modificador_factor",
+                "efectoId": "ralentizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
                 "valor": {
                   "factorMovimiento": 1.3
-                },
-                "duracion": 300,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "ralentizacion_nova_escarcha"
+                }
               }
             ]
           }
@@ -346,7 +432,73 @@
       "maestria": "frio",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null
+      "icono": null,
+      "descripcion": "Encierra a un enemigo en hielo, causa daño de Frío y puede aplicarle Congelamiento sin renovar el control mientras siga activo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 8,
+            "costoTemporalBase": 115,
+            "alcance": 5,
+            "danio": [
+              {
+                "tipo": "frio",
+                "valorBase": 9
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "congelamiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 100,
+                "duracion": 80
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 10,
+            "costoTemporalBase": 112,
+            "alcance": 6,
+            "danio": [
+              {
+                "tipo": "frio",
+                "valorBase": 12
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "congelamiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 100,
+                "duracion": 90
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 13,
+            "costoTemporalBase": 110,
+            "alcance": 6,
+            "danio": [
+              {
+                "tipo": "frio",
+                "valorBase": 16
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "congelamiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 100,
+                "duracion": 100
+              }
+            ]
+          }
+        }
+      }
     },
     "chispa": {
       "nombre": "Chispa",
@@ -373,14 +525,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_chispa",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 100,
                 "valor": {
                   "factorTiempo": 1.08
-                },
-                "duracion": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_chispa"
+                }
               }
             ]
           },
@@ -396,14 +547,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_chispa",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 150,
                 "valor": {
                   "factorTiempo": 1.12
-                },
-                "duracion": 150,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_chispa"
+                }
               }
             ]
           },
@@ -419,14 +569,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_chispa",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 200,
                 "valor": {
                   "factorTiempo": 1.16
-                },
-                "duracion": 200,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_chispa"
+                }
               }
             ]
           },
@@ -442,14 +591,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_chispa",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 250,
                 "valor": {
                   "factorTiempo": 1.2
-                },
-                "duracion": 250,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_chispa"
+                }
               }
             ]
           }
@@ -487,14 +635,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_cadena_rayos",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 150,
                 "valor": {
                   "factorTiempo": 1.1
-                },
-                "duracion": 150,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_cadena_rayos"
+                }
               }
             ]
           },
@@ -516,14 +663,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_cadena_rayos",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 200,
                 "valor": {
                   "factorTiempo": 1.14
-                },
-                "duracion": 200,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_cadena_rayos"
+                }
               }
             ]
           },
@@ -545,14 +691,13 @@
             ],
             "efectos": [
               {
-                "id": "electrizacion_cadena_rayos",
-                "tipo": "modificador_factor",
+                "efectoId": "electrizacion",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 250,
                 "valor": {
                   "factorTiempo": 1.18
-                },
-                "duracion": 250,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "electrizacion_cadena_rayos"
+                }
               }
             ]
           }
@@ -564,7 +709,91 @@
       "maestria": "rayo",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null
+      "icono": null,
+      "descripcion": "Lanza una descarga lineal que atraviesa enemigos, causa daño de Rayo y puede aplicar Aturdimiento de manera independiente a cada objetivo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 10,
+            "costoTemporalBase": 115,
+            "alcance": 5,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 5,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "rayo",
+                "valorBase": 16
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "aturdimiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 20,
+                "duracion": 70
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 13,
+            "costoTemporalBase": 112,
+            "alcance": 6,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 6,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "rayo",
+                "valorBase": 21
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "aturdimiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 30,
+                "duracion": 80
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 16,
+            "costoTemporalBase": 110,
+            "alcance": 7,
+            "formaImpacto": {
+              "tipo": "linea",
+              "longitud": 7,
+              "ancho": 1,
+              "orientacion": "hacia_objetivo"
+            },
+            "danio": [
+              {
+                "tipo": "rayo",
+                "valorBase": 27
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "aturdimiento",
+                "perfilAplicacion": "ignorar_mientras_activo",
+                "probabilidadBase": 40,
+                "duracion": 90
+              }
+            ]
+          }
+        }
+      }
     },
     "aguijon_toxico": {
       "nombre": "Aguijón tóxico",
@@ -591,14 +820,13 @@
             ],
             "efectos": [
               {
-                "id": "toxina_aguijon",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
                 "tipoDanio": "veneno",
                 "valorBase": 2,
-                "duracion": 300,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_aguijon"
+                "intervalo": 100
               }
             ]
           },
@@ -614,14 +842,13 @@
             ],
             "efectos": [
               {
-                "id": "toxina_aguijon",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
                 "tipoDanio": "veneno",
                 "valorBase": 2,
-                "duracion": 400,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_aguijon"
+                "intervalo": 100
               }
             ]
           },
@@ -637,14 +864,13 @@
             ],
             "efectos": [
               {
-                "id": "toxina_aguijon",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
                 "tipoDanio": "veneno",
                 "valorBase": 3,
-                "duracion": 400,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_aguijon"
+                "intervalo": 100
               }
             ]
           },
@@ -660,14 +886,13 @@
             ],
             "efectos": [
               {
-                "id": "toxina_aguijon",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
                 "tipoDanio": "veneno",
                 "valorBase": 4,
-                "duracion": 400,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_aguijon"
+                "intervalo": 100
               }
             ]
           }
@@ -698,20 +923,23 @@
             "danio": [],
             "efectos": [
               {
-                "id": "toxina_nube_toxica",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 300,
                 "tipoDanio": "veneno",
                 "valorBase": 2,
-                "duracion": 300,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_nube_toxica"
+                "intervalo": 100
               }
             ],
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -731,20 +959,23 @@
             "danio": [],
             "efectos": [
               {
-                "id": "toxina_nube_toxica",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
                 "tipoDanio": "veneno",
                 "valorBase": 3,
-                "duracion": 400,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_nube_toxica"
+                "intervalo": 100
               }
             ],
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -764,20 +995,23 @@
             "danio": [],
             "efectos": [
               {
-                "id": "toxina_nube_toxica",
-                "tipo": "danio_periodico",
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "refrescar_mayor_potencia",
+                "probabilidadBase": 100,
+                "duracion": 400,
                 "tipoDanio": "veneno",
                 "valorBase": 4,
-                "duracion": 400,
-                "intervalo": 100,
-                "politicaAcumulacion": "renovar_duracion",
-                "grupoAcumulacion": "toxina_nube_toxica"
+                "intervalo": 100
               }
             ],
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -794,7 +1028,88 @@
       "maestria": "veneno",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null
+      "icono": null,
+      "descripcion": "Infecta a un enemigo con Envenenamiento y permite intensificar una única instancia hasta el máximo de cada grado.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 9,
+            "costoTemporalBase": 105,
+            "alcance": 5,
+            "danio": [
+              {
+                "tipo": "veneno",
+                "valorBase": 7
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "intensificar",
+                "probabilidadBase": 100,
+                "duracion": 300,
+                "tipoDanio": "veneno",
+                "valorBase": 2,
+                "intervalo": 100,
+                "maximo": 2,
+                "incremento": 1
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 12,
+            "costoTemporalBase": 102,
+            "alcance": 6,
+            "danio": [
+              {
+                "tipo": "veneno",
+                "valorBase": 9
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "intensificar",
+                "probabilidadBase": 100,
+                "duracion": 400,
+                "tipoDanio": "veneno",
+                "valorBase": 3,
+                "intervalo": 100,
+                "maximo": 3,
+                "incremento": 1
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 15,
+            "costoTemporalBase": 100,
+            "alcance": 6,
+            "danio": [
+              {
+                "tipo": "veneno",
+                "valorBase": 12
+              }
+            ],
+            "efectos": [
+              {
+                "efectoId": "envenenamiento",
+                "perfilAplicacion": "intensificar",
+                "probabilidadBase": 100,
+                "duracion": 400,
+                "tipoDanio": "veneno",
+                "valorBase": 4,
+                "intervalo": 100,
+                "maximo": 3,
+                "incremento": 1
+              }
+            ]
+          }
+        }
+      }
     }
   }
 }

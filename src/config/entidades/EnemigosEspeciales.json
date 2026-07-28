@@ -52,7 +52,14 @@
           "frio": 0,
           "rayo": 0,
           "veneno": 15
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 0,
+          "aturdimiento": 0,
+          "envenenamiento": 20,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 2,
@@ -98,8 +105,13 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria"],
-      "objetosIniciales": ["daga_hierro"]
+      "ranuras": [
+        "arma",
+        "secundaria"
+      ],
+      "objetosIniciales": [
+        "daga_hierro"
+      ]
     },
     "tablaBotin": [
       {
@@ -215,7 +227,14 @@
           "frio": 15,
           "rayo": 0,
           "veneno": 50
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 15,
+          "aturdimiento": 25,
+          "envenenamiento": 60,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 4,
@@ -337,7 +356,14 @@
           "frio": 30,
           "rayo": 0,
           "veneno": 75
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 30,
+          "aturdimiento": 40,
+          "envenenamiento": 75,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 2,
@@ -383,7 +409,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "hacha_mano",
         "escudo_hierro",
@@ -478,7 +509,14 @@
           "frio": 0,
           "rayo": 25,
           "veneno": 0
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 0,
+          "aturdimiento": 25,
+          "envenenamiento": 0,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 2,
@@ -530,7 +568,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",
@@ -641,7 +684,14 @@
           "frio": 10,
           "rayo": 5,
           "veneno": 15
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 25,
+          "aturdimiento": 50,
+          "envenenamiento": 20,
+          "quemadura": 20
+        },
+        "inmunidadesEfectos": []
       },
       "ataqueNatural": {
         "danioFisicoMinimo": 4,
@@ -697,7 +747,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",

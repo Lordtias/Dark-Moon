@@ -147,7 +147,7 @@ export class SistemaTiempo {
     );
 
     if (disponibilidadMinima === null || disponibilidadMinima === undefined) {
-      return registro.proximoTurno;
+      return Math.max(registro.proximoTurno, this.tiempoActual);
     }
     if (!Number.isFinite(disponibilidadMinima) || disponibilidadMinima < 0) {
       throw new Error(
@@ -155,7 +155,14 @@ export class SistemaTiempo {
       );
     }
 
-    return Math.max(registro.proximoTurno, disponibilidadMinima);
+    // Un bloqueo temporal puede vencer después de que el turno base del actor
+    // haya quedado en el pasado. El turno efectivo nunca puede retroceder el
+    // reloj global: al vencer el bloqueo, el actor queda disponible ahora.
+    return Math.max(
+      registro.proximoTurno,
+      disponibilidadMinima,
+      this.tiempoActual,
+    );
   }
 
   registrarActor(actor, proximoTurno = this.tiempoActual) {

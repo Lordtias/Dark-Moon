@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "efectos": {
+    "ralentizacion": {
+      "nombre": "Ralentización",
+      "tipo": "modificador_factor",
+      "grupoAcumulacion": "ralentizacion",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "ralentizacion"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "perfilesAplicacion": {
+        "refrescar_mayor_potencia": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "electrizacion": {
+      "nombre": "Electrización",
+      "tipo": "modificador_factor",
+      "grupoAcumulacion": "electrizacion",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "electrizacion"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "perfilesAplicacion": {
+        "refrescar_mayor_potencia": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "congelamiento": {
+      "nombre": "Congelamiento",
+      "tipo": "inmovilizacion",
+      "grupoAcumulacion": "congelamiento",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "congelamiento"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": "congelamiento",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": "congelamiento",
+      "eliminarAlAdquirirInmunidad": true,
+      "perfilesAplicacion": {
+        "ignorar_mientras_activo": {
+          "politicaAcumulacion": "rechazar_duplicado",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aturdimiento": {
+      "nombre": "Aturdimiento",
+      "tipo": "aturdimiento",
+      "grupoAcumulacion": "aturdimiento",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "aturdimiento"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": "aturdimiento",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": "aturdimiento",
+      "eliminarAlAdquirirInmunidad": true,
+      "perfilesAplicacion": {
+        "ignorar_mientras_activo": {
+          "politicaAcumulacion": "rechazar_duplicado",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "envenenamiento": {
+      "nombre": "Envenenamiento",
+      "tipo": "danio_periodico",
+      "grupoAcumulacion": "envenenamiento",
+      "etiquetas": [
+        "perjudicial",
+        "periodico",
+        "elemental",
+        "envenenamiento"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": "envenenamiento",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": "envenenamiento",
+      "eliminarAlAdquirirInmunidad": true,
+      "perfilesAplicacion": {
+        "refrescar_mayor_potencia": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        },
+        "intensificar": {
+          "politicaAcumulacion": "acumular_intensidad",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 3,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "quemadura": {
+      "nombre": "Quemadura",
+      "tipo": "danio_periodico",
+      "grupoAcumulacion": "quemadura",
+      "etiquetas": [
+        "perjudicial",
+        "periodico",
+        "elemental",
+        "quemadura"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": "quemadura",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": "quemadura",
+      "eliminarAlAdquirirInmunidad": true,
+      "perfilesAplicacion": {
+        "refrescar_mayor_potencia": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    }
+  }
+}

@@ -24,6 +24,24 @@ export const POLITICAS_ACUMULACION_VALIDAS = Object.freeze(
   Object.values(POLITICAS_ACUMULACION_EFECTO),
 );
 
+export const MODOS_RESISTENCIA_EFECTO = Object.freeze({
+  NINGUNA: "ninguna",
+  REDUCIR_PROBABILIDAD_APLICACION: "reducir_probabilidad_aplicacion",
+  REDUCIR_DURACION: "reducir_duracion",
+  REDUCIR_DANIO: "reducir_danio",
+});
+export const MODOS_RESISTENCIA_EFECTO_VALIDOS = Object.freeze(
+  Object.values(MODOS_RESISTENCIA_EFECTO),
+);
+
+export const POLITICAS_POTENCIA_EFECTO = Object.freeze({
+  REEMPLAZAR: "reemplazar",
+  CONSERVAR_MAYOR: "conservar_mayor",
+});
+export const POLITICAS_POTENCIA_EFECTO_VALIDAS = Object.freeze(
+  Object.values(POLITICAS_POTENCIA_EFECTO),
+);
+
 export const FACTORES_TEMPORALES_MODIFICABLES = Object.freeze([
   "factorTiempo",
   "factorMovimiento",
@@ -42,6 +60,11 @@ function validarNumeroPositivo(valor, descripcion) {
     throw new Error(`${descripcion} debe ser un número mayor que 0.`);
   }
 }
+function validarPorcentaje(valor, descripcion) {
+  if (!Number.isFinite(valor) || valor < 0 || valor > 100) {
+    throw new Error(`${descripcion} debe estar entre 0 y 100.`);
+  }
+}
 
 function normalizarTexto(valor, descripcion, valorPredeterminado = null) {
   const texto = valor ?? valorPredeterminado;
@@ -50,11 +73,13 @@ function normalizarTexto(valor, descripcion, valorPredeterminado = null) {
   }
   return texto.trim();
 }
+function normalizarTextoOpcional(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  return normalizarTexto(valor, "El identificador opcional").toLowerCase();
+}
 function normalizarEtiquetas(etiquetas = []) {
   if (!Array.isArray(etiquetas)) {
-    throw new Error(
-      "Las etiquetas del efecto deben estar dentro de una lista.",
-    );
+    throw new Error("Las etiquetas del efecto deben estar dentro de una lista.");
   }
 
   return Object.freeze([
@@ -217,6 +242,17 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     );
   }
 
+  const politicaPotencia = normalizarTexto(
+    definicion.politicaPotencia,
+    "La política de potencia",
+    POLITICAS_POTENCIA_EFECTO.REEMPLAZAR,
+  ).toLowerCase();
+  if (!POLITICAS_POTENCIA_EFECTO_VALIDAS.includes(politicaPotencia)) {
+    throw new Error(
+      `La política de potencia "${politicaPotencia}" no es válida.`,
+    );
+  }
+
   const maximoRecibido =
     definicion.maximo ??
     CONFIGURACION_EFECTOS_TEMPORALES.limites.maximoAcumulacionesPredeterminado;
@@ -231,6 +267,11 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
 
   const incremento = definicion.incremento ?? 1;
   validarNumeroPositivo(incremento, "El incremento de acumulación");
+  const intensidadInicial = definicion.intensidadInicial ?? 1;
+  validarNumeroPositivo(intensidadInicial, "La intensidad inicial");
+  if (intensidadInicial > maximo) {
+    throw new Error("La intensidad inicial no puede superar el máximo.");
+  }
 
   let intervalo = definicion.intervalo ?? null;
 
@@ -255,14 +296,58 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     definicion.idDefinicion === null || definicion.idDefinicion === undefined
       ? null
       : normalizarTexto(definicion.idDefinicion, "El ID de definición");
+  const efectoId = normalizarTextoOpcional(
+    definicion.efectoId ?? idDefinicion,
+  );
 
   const grupoAcumulacion = normalizarTexto(
     definicion.grupoAcumulacion,
     "El grupo de acumulación",
-    idDefinicion ?? tipo,
+    efectoId ?? idDefinicion ?? tipo,
   ).toLowerCase();
+
+  const probabilidadBase = definicion.probabilidadBase ?? 100;
+  validarPorcentaje(probabilidadBase, "La probabilidad base del efecto");
+  const tiradaAplicacion = definicion.tiradaAplicacion ?? null;
+  if (tiradaAplicacion !== null) {
+    if (
+      !Number.isInteger(tiradaAplicacion) ||
+      tiradaAplicacion < 1 ||
+      tiradaAplicacion > 100
+    ) {
+      throw new Error("La tirada de aplicación debe ser un entero de 1 a 100.");
+    }
+  }
+
+  const modoResistencia = normalizarTexto(
+    definicion.modoResistencia,
+    "El modo de resistencia",
+    MODOS_RESISTENCIA_EFECTO.NINGUNA,
+  ).toLowerCase();
+  if (!MODOS_RESISTENCIA_EFECTO_VALIDOS.includes(modoResistencia)) {
+    throw new Error(`El modo de resistencia "${modoResistencia}" no es válido.`);
+  }
+  const resistenciaId = normalizarTextoOpcional(definicion.resistenciaId);
+  if (
+    modoResistencia ===
+      MODOS_RESISTENCIA_EFECTO.REDUCIR_PROBABILIDAD_APLICACION &&
+    resistenciaId === null
+  ) {
+    throw new Error(
+      "Un efecto que reduce su probabilidad necesita una resistencia asociada.",
+    );
+  }
+
   return Object.freeze({
     idDefinicion,
+    efectoId,
+    nombreEfecto:
+      definicion.nombreEfecto === null ||
+      definicion.nombreEfecto === undefined ||
+      definicion.nombreEfecto === ""
+        ? efectoId ?? grupoAcumulacion
+        : normalizarTexto(definicion.nombreEfecto, "El nombre del efecto"),
+    perfilAplicacion: normalizarTextoOpcional(definicion.perfilAplicacion),
     grupoAcumulacion,
     fuente: crearDescriptorFuente(definicion.fuente),
     objetivo: definicion.objetivo,
@@ -273,8 +358,17 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     duracion: definicion.duracion,
     intervalo,
     politicaAcumulacion,
+    politicaPotencia,
     maximo,
     incremento,
+    intensidadInicial,
+    probabilidadBase,
+    tiradaAplicacion,
+    resistenciaId,
+    modoResistencia,
+    inmunidadId: normalizarTextoOpcional(definicion.inmunidadId),
+    eliminarAlAdquirirInmunidad:
+      definicion.eliminarAlAdquirirInmunidad === true,
     etiquetas: normalizarEtiquetas(definicion.etiquetas),
     beneficioso: definicion.beneficioso === true,
   });

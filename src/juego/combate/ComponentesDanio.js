@@ -1,3 +1,4 @@
+import { normalizarPropiedadesResistenciasEfectos } from "../efectos/ResistenciasEfectos.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
 // Tipos de daño admitidos por la tubería común.
@@ -221,7 +222,7 @@ export function normalizarPropiedadesResistencias(propiedades = {}) {
     );
   }
 
-  return normalizadas;
+  return normalizarPropiedadesResistenciasEfectos(normalizadas);
 }
 
 export function obtenerResistenciaPorTipo(resistencias, tipo) {

@@ -22,6 +22,10 @@ import {
   copiarRangosDanioElementalLocal,
   normalizarResistencias,
 } from "../../../juego/combate/ComponentesDanio.js";
+import {
+  normalizarInmunidadesEfectos,
+  normalizarResistenciasEfectos,
+} from "../../../juego/efectos/ResistenciasEfectos.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 const ATRIBUTOS_REQUERIDOS = [
@@ -85,6 +89,12 @@ function normalizarEstadisticasBase(nombre, configuracion) {
       rayo: configuracion.resistencias?.rayo ?? 0,
       veneno: configuracion.resistencias?.veneno ?? 0,
     }),
+    resistenciasEfectos: normalizarResistenciasEfectos(
+      configuracion.resistenciasEfectos ?? {},
+    ),
+    inmunidadesEfectos: normalizarInmunidadesEfectos(
+      configuracion.inmunidadesEfectos ?? [],
+    ),
   };
   const camposNumericos = [
     "vida",

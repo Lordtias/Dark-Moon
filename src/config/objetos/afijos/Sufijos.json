@@ -7,10 +7,15 @@
     "descripcion": "Aumenta la precisión del arma.",
     "pesoBase": 1000,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "precision_local",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -55,7 +60,9 @@
         }
       }
     ],
-    "notasDiseno": ["La bonificación pertenece al arma que contiene el sufijo."]
+    "notasDiseno": [
+      "La bonificación pertenece al arma que contiene el sufijo."
+    ]
   },
   "del_verdugo": {
     "nombre": "Del verdugo",
@@ -65,10 +72,15 @@
     "descripcion": "Aumenta la probabilidad de crítico del arma.",
     "pesoBase": 550,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "critico_local_probabilidad",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -123,10 +135,15 @@
     "descripcion": "Aumenta el multiplicador de los golpes críticos.",
     "pesoBase": 350,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "critico_local_multiplicador",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -184,10 +201,16 @@
     "descripcion": "Aumenta la Evasión.",
     "pesoBase": 900,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "evasion_plana",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -242,10 +265,16 @@
     "descripcion": "Aumenta la regeneración plana de Vida.",
     "pesoBase": 650,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "regeneracion_vida_plana",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -303,10 +332,16 @@
     "descripcion": "Aumentaría la regeneración plana de Maná.",
     "pesoBase": 650,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "regeneracion_mana_plana",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -364,10 +399,16 @@
     "descripcion": "Aumenta la resistencia al fuego del personaje.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "resistencia_fuego",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
       "familiasIncluidas": [],
@@ -424,10 +465,16 @@
     "descripcion": "Aumenta la resistencia al frío del personaje.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "resistencia_frio",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
       "familiasIncluidas": [],
@@ -484,10 +531,16 @@
     "descripcion": "Aumenta la resistencia al rayo del personaje.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "resistencia_rayo",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
       "familiasIncluidas": [],
@@ -544,10 +597,16 @@
     "descripcion": "Aumenta la resistencia al veneno del personaje.",
     "pesoBase": 700,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "resistencia_veneno",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
       "familiasIncluidas": [],
@@ -604,11 +663,18 @@
     "descripcion": "Aumenta la probabilidad de bloqueo de un escudo.",
     "pesoBase": 500,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "bloqueo_probabilidad",
     "aplicaA": {
-      "tipos": ["armadura"],
-      "ranurasIncluidas": ["secundaria"],
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "secundaria"
+      ],
       "ranurasExcluidas": []
     },
     "efectos": [
@@ -662,11 +728,18 @@
     "descripcion": "Aumenta el porcentaje de daño mitigado al bloquear.",
     "pesoBase": 400,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "bloqueo_mitigacion",
     "aplicaA": {
-      "tipos": ["armadura"],
-      "ranurasIncluidas": ["secundaria"],
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "secundaria"
+      ],
       "ranurasExcluidas": []
     },
     "efectos": [
@@ -720,10 +793,16 @@
     "descripcion": "Aumentaría la probabilidad de crítico de todos los ataques.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "critico_global_probabilidad",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -745,10 +824,16 @@
     "descripcion": "Aumentaría el multiplicador crítico de todos los ataques.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "critico_global_multiplicador",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -770,10 +855,16 @@
     "descripcion": "Regeneraría un porcentaje de la Vida máxima.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "regeneracion_vida_porcentaje",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -795,10 +886,16 @@
     "descripcion": "Regeneraría un porcentaje del Maná máximo.",
     "pesoBase": 0,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "regeneracion_mana_porcentaje",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -819,11 +916,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Fuerza.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_fuerza",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -844,11 +950,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Destreza.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_destreza",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -869,11 +984,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Constitución.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_constitucion",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -894,11 +1018,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Inteligencia.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_inteligencia",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -919,11 +1052,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Sabiduría.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_sabiduria",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -944,11 +1086,20 @@
     "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
     "descripcion": "Aumentaría Carisma.",
     "pesoBase": 0,
-    "requiere": ["atributos_por_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "atributos_por_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "atributo_carisma",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -969,12 +1120,21 @@
     "motivoEstado": "El movimiento utiliza factores temporales. Falta definir una propiedad de equipamiento y su composición con factorMovimiento.",
     "descripcion": "Aumentaría la velocidad de movimiento.",
     "pesoBase": 0,
-    "requiere": ["velocidad_movimiento_equipamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "velocidad_movimiento_equipamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "velocidad_movimiento",
     "aplicaA": {
-      "tipos": ["armadura"],
-      "ranurasIncluidas": ["pies"],
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "pies"
+      ],
       "ranurasExcluidas": []
     },
     "efectos": [
@@ -994,11 +1154,18 @@
     "motivoEstado": "Falta una mecánica que convierta parte del daño realmente aplicado en curación y defina su interacción con doble arma y daño elemental.",
     "descripcion": "Recuperaría Vida según el daño causado.",
     "pesoBase": 0,
-    "requiere": ["robo_recursos"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "robo_recursos"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "robo_vida",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1019,11 +1186,18 @@
     "motivoEstado": "Falta una mecánica de robo de Maná y suficientes habilidades con coste de Maná para balancearla.",
     "descripcion": "Recuperaría Maná según el daño causado.",
     "pesoBase": 0,
-    "requiere": ["robo_recursos"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "robo_recursos"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "robo_mana",
     "aplicaA": {
-      "tipos": ["arma"],
+      "tipos": [
+        "arma"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1044,11 +1218,19 @@
     "motivoEstado": "Falta decidir si modifica la rareza, los grados de afijo o la calidad de las bases encontradas.",
     "descripcion": "Aumentaría la calidad de los objetos encontrados.",
     "pesoBase": 0,
-    "requiere": ["calidad_botin"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "calidad_botin"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "rareza_encontrada",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1069,11 +1251,19 @@
     "motivoEstado": "Falta una economía estable y una regla clara para aumentar cantidades sin duplicar indiscriminadamente todos los drops.",
     "descripcion": "Aumentaría la cantidad de objetos encontrados.",
     "pesoBase": 0,
-    "requiere": ["cantidad_botin"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "cantidad_botin"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "cantidad_encontrada",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1094,11 +1284,20 @@
     "motivoEstado": "La Potencia de Habilidad ya existe, pero este modificador histórico de hechizos todavía no tiene contrato canónico propio.",
     "descripcion": "Aumentaría el daño de los hechizos.",
     "pesoBase": 0,
-    "requiere": ["hechizos"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "hechizos"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "danio_hechizos",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1119,11 +1318,21 @@
     "motivoEstado": "Todavía no existe velocidad de lanzamiento ni costes temporales específicos para hechizos.",
     "descripcion": "Aumentaría la velocidad de lanzamiento.",
     "pesoBase": 0,
-    "requiere": ["hechizos", "velocidad_lanzamiento"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "hechizos",
+      "velocidad_lanzamiento"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "velocidad_lanzamiento",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1144,11 +1353,21 @@
     "motivoEstado": "Todavía no existe una tirada de precisión separada para hechizos.",
     "descripcion": "Aumentaría la precisión de los hechizos.",
     "pesoBase": 0,
-    "requiere": ["hechizos", "precision_hechizos"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "hechizos",
+      "precision_hechizos"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "precision_hechizos",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1169,11 +1388,21 @@
     "motivoEstado": "Falta definir potencia de hechizos y su relación con el Maná máximo.",
     "descripcion": "Aumentaría el Maná y la potencia de los hechizos.",
     "pesoBase": 0,
-    "requiere": ["hechizos", "potencia_hechizos"],
-    "rarezasPermitidas": ["magico", "raro"],
+    "requiere": [
+      "hechizos",
+      "potencia_hechizos"
+    ],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "archimago",
     "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
+      "tipos": [
+        "arma",
+        "armadura",
+        "quiver"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -1190,5 +1419,289 @@
     "grados": [],
     "notasDiseno": [],
     "propuestaBalance": "Primer rango sugerido: potenciaHechizos: 1–2; manaMaximo: 10–20."
+  },
+  "del_deshielo": {
+    "nombre": "Del deshielo",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
+    "descripcion": "Aumenta la resistencia al Congelamiento.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_congelamiento",
+    "aplicaA": {
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaCongelamiento",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
+    ]
+  },
+  "de_firmeza": {
+    "nombre": "De firmeza",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
+    "descripcion": "Aumenta la resistencia al Aturdimiento.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_aturdimiento",
+    "aplicaA": {
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaAturdimiento",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
+    ]
+  },
+  "de_purificacion": {
+    "nombre": "De purificación",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
+    "descripcion": "Aumenta la resistencia al Envenenamiento.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_envenenamiento",
+    "aplicaA": {
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaEnvenenamiento",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
+    ]
+  },
+  "de_ceniza": {
+    "nombre": "De ceniza",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
+    "descripcion": "Aumenta la resistencia a la Quemadura.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_quemadura",
+    "aplicaA": {
+      "tipos": [
+        "armadura"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaQuemadura",
+        "operacion": "sumar"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
+    ]
   }
 }

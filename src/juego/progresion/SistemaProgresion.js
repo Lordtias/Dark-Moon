@@ -7,7 +7,7 @@ export const NIVEL_MAXIMO_PLANIFICADO = 10;
 
 // Configuración central de la curva de progresión general.
 //
-// La ETAPA 4 congela exactamente un punto de atributo por nivel.
+// La progresión concede exactamente un punto de atributo por nivel.
 // Los puntos universales se administran dentro de ProgresoMagicoJugador.
 export const CONFIGURACION_PROGRESION = Object.freeze({
   experienciaBase: 20,

@@ -26,6 +26,11 @@ import {
   ORIENTACIONES_LINEA,
   TIPOS_FORMA_IMPACTO,
 } from "./GeometriaHabilidades.js";
+import {
+  IDS_RESISTENCIA_EFECTO,
+  normalizarInmunidadesEfectos,
+  normalizarResistenciaEfecto,
+} from "../efectos/ResistenciasEfectos.js";
 
 const ELEMENTOS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
 const HABILIDADES_BASICAS = Object.freeze([
@@ -40,9 +45,16 @@ const HABILIDADES_INTERMEDIAS = Object.freeze([
   "cadena_rayos",
   "nube_toxica",
 ]);
+const HABILIDADES_AVANZADAS = Object.freeze([
+  "incinerar",
+  "prision_glacial",
+  "descarga_fulminante",
+  "plaga_corrosiva",
+]);
 const HABILIDADES_JUGABLES = Object.freeze([
   ...HABILIDADES_BASICAS,
   ...HABILIDADES_INTERMEDIAS,
+  ...HABILIDADES_AVANZADAS,
 ]);
 
 // Fachada única para validar el sistema mágico activo desde el navegador.
@@ -112,6 +124,10 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
       contexto.obtenerSistema().obtenerUltimaEjecucion(),
     obtenerEnemigosVivos: () =>
       contexto.obtenerSistema().obtenerEnemigosVivos(),
+    prepararEnemigosEnLineaParaPrueba: (configuracion) =>
+      prepararEnemigosEnLineaParaPrueba(contexto, configuracion),
+    establecerVidaObjetivoParaPrueba: ({ objetivo, valor } = {}) =>
+      establecerVidaObjetivoParaPrueba({ objetivo, valor }),
     obtenerInstantaneaEjecucion: () => crearInstantaneaEjecucion(contexto),
     obtenerEfectosActivos: (objetivo = contexto.obtenerJugador()) =>
       obtenerEfectosActivos(contexto.obtenerJuego(), objetivo),
@@ -126,6 +142,51 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     procesarEfectosPendientes: () =>
       contexto.obtenerSistema().procesarEfectosPendientes(),
     validarContratos: () => validarContratosHabilidades(contexto),
+  });
+
+  const efectos = Object.freeze({
+    obtenerCatalogo: () =>
+      contexto.obtenerIntegracion().configuracionEjecucion?.efectos ?? {},
+    obtenerActivos: (objetivo = contexto.obtenerJugador()) =>
+      obtenerEfectosActivos(contexto.obtenerJuego(), objetivo),
+    obtenerDefensas: (objetivo = contexto.obtenerJugador()) =>
+      obtenerDefensasEfectos(objetivo),
+    establecerResistenciaParaPrueba: ({
+      objetivo = contexto.obtenerJugador(),
+      id,
+      valor,
+    } = {}) => {
+      const resultado = establecerResistenciaEfectoParaPrueba({
+        objetivo,
+        id,
+        valor,
+      });
+      contexto.obtenerIntegracion().panel?.renderizar?.();
+      return resultado;
+    },
+    establecerInmunidadesParaPrueba: ({
+      objetivo = contexto.obtenerJugador(),
+      inmunidades = [],
+    } = {}) => {
+      const defensas = establecerInmunidadesEfectosParaPrueba({
+        objetivo,
+        inmunidades,
+      });
+      const retiro =
+        contexto
+          .obtenerJuego()
+          .coordinadorTiempo?.sincronizarInmunidadesEfectos?.(objetivo) ??
+        { cantidad: 0, eventos: [] };
+      contexto.obtenerIntegracion().panel?.renderizar?.();
+      return { ...defensas, retiro };
+    },
+    retirarActivos: (objetivo = contexto.obtenerJugador()) =>
+      contexto
+        .obtenerJuego()
+        .coordinadorTiempo?.retirarEfectosTemporales?.(objetivo, {
+          motivo: "depuracion",
+        }) ?? { cantidad: 0, eventos: [] },
+    validarContratos: () => validarContratosEfectos(contexto),
   });
 
   const barra = Object.freeze({
@@ -223,6 +284,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
         panelAbierto: integracion.panel.estaAbierto(),
         habilidadesBasicas: [...HABILIDADES_BASICAS],
         habilidadesIntermedias: [...HABILIDADES_INTERMEDIAS],
+        habilidadesAvanzadas: [...HABILIDADES_AVANZADAS],
       };
     },
     validarContratos: () => validarContratosInterfaz(contexto),
@@ -237,6 +299,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     progreso,
     persistencia,
     habilidades,
+    efectos,
     barra,
     catalizadores,
     zonas,
@@ -246,6 +309,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
       const resultados = {
         progreso: progreso.validarContratos(),
         habilidades: habilidades.validarContratos(),
+        efectos: efectos.validarContratos(),
         barra: barra.validarPersistencia(),
         catalizadores: catalizadores.validarContratos(),
         zonas: zonas.validarContratos(),
@@ -410,6 +474,21 @@ function validarContratosProgreso(contexto) {
       definicion?.gradoMaximo,
     );
   }
+  for (const id of HABILIDADES_AVANZADAS) {
+    const definicion = configuracion?.habilidades?.[id];
+    comprobar(
+      comprobaciones,
+      `${id} se desbloquea en nivel de maestría 6`,
+      definicion?.requisitoNivelMaestria === 6,
+      definicion?.requisitoNivelMaestria,
+    );
+    comprobar(
+      comprobaciones,
+      `${id} admite exactamente tres grados`,
+      definicion?.gradoMaximo === 3,
+      definicion?.gradoMaximo,
+    );
+  }
   return cerrarComprobaciones(comprobaciones);
 }
 
@@ -484,6 +563,40 @@ function validarContratosHabilidades(contexto) {
     );
   }
 
+  const contratosAvanzados = {
+    incinerar: { objetivo: "enemigo", forma: "linea" },
+    prision_glacial: { objetivo: "enemigo", forma: "individual" },
+    descarga_fulminante: { objetivo: "enemigo", forma: "linea" },
+    plaga_corrosiva: { objetivo: "enemigo", forma: "individual" },
+  };
+  for (const id of HABILIDADES_AVANZADAS) {
+    const habilidad = catalogo[id];
+    const contrato = contratosAvanzados[id];
+    const grados = Object.values(habilidad?.ejecucion?.grados ?? {});
+    comprobar(
+      comprobaciones,
+      `${id} tiene ejecución jugable`,
+      Boolean(habilidad?.ejecucion),
+      habilidad?.ejecucion ?? null,
+    );
+    comprobar(
+      comprobaciones,
+      `${id} usa objetivo y forma de impacto configurables`,
+      habilidad?.ejecucion?.tipoObjetivo === contrato.objetivo &&
+        grados.every((grado) => grado?.formaImpacto?.tipo === contrato.forma),
+      {
+        objetivo: habilidad?.ejecucion?.tipoObjetivo,
+        formas: grados.map((grado) => grado?.formaImpacto?.tipo ?? null),
+      },
+    );
+    comprobar(
+      comprobaciones,
+      `${id} declara tres grados ejecutables`,
+      grados.length === 3,
+      grados.length,
+    );
+  }
+
   const gradosNube = Object.values(
     catalogo.nube_toxica?.ejecucion?.grados ?? {},
   );
@@ -505,7 +618,8 @@ function validarContratosHabilidades(contexto) {
     comprobaciones,
     "El sistema expone tiradas deterministas sin reemplazar Math.random",
     typeof sistema.configurarTiradasDeterministas === "function" &&
-      typeof sistema.restaurarTiradasAleatorias === "function",
+      typeof sistema.restaurarTiradasAleatorias === "function" &&
+      Array.isArray(sistema.obtenerEstadoTiradasDeterministas()?.efecto),
     sistema.obtenerEstadoTiradasDeterministas(),
   );
   comprobar(
@@ -515,6 +629,69 @@ function validarContratosHabilidades(contexto) {
       sistema.procesarEfectosPendientes().length === 0,
     sistema.procesarEfectosPendientes(),
   );
+  return cerrarComprobaciones(comprobaciones);
+}
+
+function validarContratosEfectos(contexto) {
+  const integracion = contexto.obtenerIntegracion();
+  const catalogo = integracion.configuracionEjecucion?.efectos ?? {};
+  const comprobaciones = [];
+
+  comprobar(
+    comprobaciones,
+    "El catálogo canónico contiene los cuatro efectos resistibles",
+    IDS_RESISTENCIA_EFECTO.every((id) => Boolean(catalogo[id])),
+    Object.keys(catalogo),
+  );
+
+  for (const id of IDS_RESISTENCIA_EFECTO) {
+    const efecto = catalogo[id];
+    comprobar(
+      comprobaciones,
+      `${id} reduce la probabilidad mediante su resistencia homónima`,
+      efecto?.resistencia?.id === id &&
+        efecto?.resistencia?.modo === "reducir_probabilidad_aplicacion",
+      efecto?.resistencia ?? null,
+    );
+    comprobar(
+      comprobaciones,
+      `${id} usa una inmunidad explícita y elimina el estado al adquirirla`,
+      efecto?.inmunidadId === id &&
+        efecto?.eliminarAlAdquirirInmunidad === true,
+      {
+        inmunidadId: efecto?.inmunidadId ?? null,
+        eliminarAlAdquirirInmunidad:
+          efecto?.eliminarAlAdquirirInmunidad ?? null,
+      },
+    );
+  }
+
+  const envenenamiento = catalogo.envenenamiento;
+  comprobar(
+    comprobaciones,
+    "Envenenamiento centraliza refresco e intensificación",
+    Boolean(
+      envenenamiento?.perfilesAplicacion?.refrescar_mayor_potencia &&
+        envenenamiento?.perfilesAplicacion?.intensificar,
+    ),
+    Object.keys(envenenamiento?.perfilesAplicacion ?? {}),
+  );
+
+  comprobar(
+    comprobaciones,
+    "Congelamiento y Aturdimiento rechazan la renovación mientras están activos",
+    ["congelamiento", "aturdimiento"].every(
+      (id) =>
+        catalogo[id]?.perfilesAplicacion?.ignorar_mientras_activo
+          ?.politicaAcumulacion === "rechazar_duplicado",
+    ),
+    {
+      congelamiento:
+        catalogo.congelamiento?.perfilesAplicacion ?? null,
+      aturdimiento: catalogo.aturdimiento?.perfilesAplicacion ?? null,
+    },
+  );
+
   return cerrarComprobaciones(comprobaciones);
 }
 
@@ -851,6 +1028,151 @@ function obtenerEfectosActivos(juego, objetivo) {
     return juego.coordinadorTiempo.obtenerEfectosTemporales(objetivo);
   }
   return [];
+}
+
+function prepararEnemigosEnLineaParaPrueba(
+  contexto,
+  { cantidad = 3, distanciaInicial = 1, separacion = 1 } = {},
+) {
+  if (!Number.isInteger(cantidad) || cantidad < 1) {
+    throw new Error("La cantidad de enemigos debe ser un entero mayor que 0.");
+  }
+  if (!Number.isInteger(distanciaInicial) || distanciaInicial < 1) {
+    throw new Error("La distancia inicial debe ser un entero mayor que 0.");
+  }
+  if (!Number.isInteger(separacion) || separacion < 1) {
+    throw new Error("La separación debe ser un entero mayor que 0.");
+  }
+
+  const juego = contexto.obtenerJuego();
+  const jugador = contexto.obtenerJugador();
+  const enemigos = contexto.obtenerSistema().obtenerEnemigosVivos();
+  if (enemigos.length < cantidad) {
+    throw new Error(
+      `La partida necesita al menos ${cantidad} enemigos vivos para la prueba.`,
+    );
+  }
+
+  const direcciones = [
+    { dx: 1, dy: 0, nombre: "este" },
+    { dx: -1, dy: 0, nombre: "oeste" },
+    { dx: 0, dy: 1, nombre: "sur" },
+    { dx: 0, dy: -1, nombre: "norte" },
+    { dx: 1, dy: 1, nombre: "sureste" },
+    { dx: -1, dy: 1, nombre: "suroeste" },
+    { dx: 1, dy: -1, nombre: "noreste" },
+    { dx: -1, dy: -1, nombre: "noroeste" },
+  ];
+
+  const direccion = direcciones.find(({ dx, dy }) =>
+    Array.from({ length: cantidad }, (_, indice) => {
+      const distancia = distanciaInicial + indice * separacion;
+      return {
+        x: jugador.x + dx * distancia,
+        y: jugador.y + dy * distancia,
+      };
+    }).every(({ x, y }) =>
+      y >= 0 &&
+      y < juego.map.length &&
+      x >= 0 &&
+      x < juego.map[y].length &&
+      juego.map[y][x] !== "#",
+    ),
+  );
+
+  if (!direccion) {
+    throw new Error(
+      "No existe una línea de suelo suficiente alrededor del jugador.",
+    );
+  }
+
+  const posiciones = [];
+  for (let indice = 0; indice < cantidad; indice += 1) {
+    const enemigo = enemigos[indice];
+    const distancia = distanciaInicial + indice * separacion;
+    enemigo.x = jugador.x + direccion.dx * distancia;
+    enemigo.y = jugador.y + direccion.dy * distancia;
+    posiciones.push({
+      indice,
+      nombre: enemigo.nombre,
+      x: enemigo.x,
+      y: enemigo.y,
+      distancia,
+    });
+  }
+
+  contexto.obtenerControladorPartida().renderizador?.dibujarJuego(juego);
+  return {
+    direccion: direccion.nombre,
+    jugador: { x: jugador.x, y: jugador.y },
+    posiciones,
+  };
+}
+
+function establecerVidaObjetivoParaPrueba({ objetivo, valor } = {}) {
+  if (!objetivo || typeof objetivo !== "object") {
+    throw new Error("Debe indicarse un objetivo válido.");
+  }
+  if (!Number.isFinite(valor) || valor < 1) {
+    throw new Error("La Vida de prueba debe ser un número mayor o igual que 1.");
+  }
+  const maximoActual = objetivo.estadisticasDerivadas?.vidaMaxima ??
+    objetivo.vidaMaxima ?? 0;
+  if (maximoActual < valor && Number.isFinite(objetivo.estadisticasBase?.vida)) {
+    objetivo.estadisticasBase.vida += valor - maximoActual;
+  }
+  const maximoFinal = objetivo.estadisticasDerivadas?.vidaMaxima ??
+    objetivo.vidaMaxima ?? valor;
+  objetivo.vidaActual = Math.min(valor, maximoFinal);
+  return {
+    nombre: objetivo.nombre ?? "Objetivo",
+    vidaActual: objetivo.vidaActual,
+    vidaMaxima: maximoFinal,
+  };
+}
+
+function obtenerDefensasEfectos(objetivo) {
+  const estadisticas = objetivo?.estadisticasDerivadas ??
+    objetivo?.estadisticasBase ?? {};
+  return {
+    resistencias: Object.fromEntries(
+      IDS_RESISTENCIA_EFECTO.map((id) => [
+        id,
+        estadisticas.resistenciasEfectos?.[id] ?? 0,
+      ]),
+    ),
+    inmunidades: [...(estadisticas.inmunidadesEfectos ?? [])],
+  };
+}
+
+function establecerResistenciaEfectoParaPrueba({ objetivo, id, valor } = {}) {
+  if (!objetivo?.estadisticasBase) {
+    throw new Error("El objetivo no expone estadísticas base modificables.");
+  }
+  if (!IDS_RESISTENCIA_EFECTO.includes(id)) {
+    throw new Error(`La resistencia a efectos "${id}" no existe.`);
+  }
+  const normalizada = normalizarResistenciaEfecto(
+    valor,
+    `La resistencia de prueba a ${id}`,
+  );
+  objetivo.estadisticasBase.resistenciasEfectos = {
+    ...(objetivo.estadisticasBase.resistenciasEfectos ?? {}),
+    [id]: normalizada,
+  };
+  return obtenerDefensasEfectos(objetivo);
+}
+
+function establecerInmunidadesEfectosParaPrueba({
+  objetivo,
+  inmunidades = [],
+} = {}) {
+  if (!objetivo?.estadisticasBase) {
+    throw new Error("El objetivo no expone estadísticas base modificables.");
+  }
+  objetivo.estadisticasBase.inmunidadesEfectos =
+    normalizarInmunidadesEfectos(inmunidades);
+  return obtenerDefensasEfectos(objetivo);
 }
 
 function actualizarInterfazYPersistenciaBarra(integracion) {

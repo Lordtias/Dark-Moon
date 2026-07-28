@@ -9,7 +9,9 @@ import {
 } from "../tiempo/AgendaEventosTemporales.js";
 import {
   FACTORES_TEMPORALES_MODIFICABLES,
+  MODOS_RESISTENCIA_EFECTO,
   POLITICAS_ACUMULACION_EFECTO,
+  POLITICAS_POTENCIA_EFECTO,
   TIPOS_EFECTO_TEMPORAL,
   normalizarDefinicionEfectoTemporal,
 } from "./ContratosEfectosTemporales.js";
@@ -72,14 +74,92 @@ function crearClaveEfecto(definicion) {
 }
 
 function obtenerEscalaAcumulacion(efecto) {
-  switch (efecto.politicaAcumulacion) {
-    case POLITICAS_ACUMULACION_EFECTO.ACUMULAR_INTENSIDAD:
-      return efecto.intensidad;
-    case POLITICAS_ACUMULACION_EFECTO.ACUMULAR_CANTIDAD:
-      return efecto.cantidad;
-    default:
-      return 1;
+  if (efecto.escalaPorIntensidad) return efecto.intensidad;
+  if (efecto.escalaPorCantidad) return efecto.cantidad;
+  return 1;
+}
+
+function limitar(valor, minimo, maximo) {
+  return Math.max(minimo, Math.min(maximo, valor));
+}
+
+function obtenerEstadisticasObjetivo(objetivo) {
+  return objetivo?.estadisticasDerivadas ?? objetivo?.estadisticasBase ?? {};
+}
+
+function obtenerResistenciaEfecto(objetivo, resistenciaId) {
+  if (!resistenciaId) return 0;
+  const estadisticas = obtenerEstadisticasObjetivo(objetivo);
+  const valor = estadisticas.resistenciasEfectos?.[resistenciaId] ?? 0;
+  return limitar(Number.isFinite(valor) ? valor : 0, 0, 75);
+}
+
+function obtenerInmunidadesEfectos(objetivo) {
+  const estadisticas = obtenerEstadisticasObjetivo(objetivo);
+  const inmunidades = estadisticas.inmunidadesEfectos ?? [];
+  return new Set(
+    Array.isArray(inmunidades)
+      ? inmunidades.map((id) => String(id).trim().toLowerCase())
+      : [],
+  );
+}
+
+function esInmuneAlEfecto(objetivo, inmunidadId) {
+  return Boolean(inmunidadId) &&
+    obtenerInmunidadesEfectos(objetivo).has(inmunidadId);
+}
+
+function calcularProbabilidadFinal(definicion, resistencia) {
+  if (
+    definicion.modoResistencia ===
+    MODOS_RESISTENCIA_EFECTO.REDUCIR_PROBABILIDAD_APLICACION
+  ) {
+    return limitar(
+      definicion.probabilidadBase * (1 - resistencia / 100),
+      0,
+      100,
+    );
   }
+  return limitar(definicion.probabilidadBase, 0, 100);
+}
+
+function obtenerTiradaAplicacion(definicion, proveedor) {
+  if (definicion.tiradaAplicacion !== null) {
+    return definicion.tiradaAplicacion;
+  }
+  if (typeof proveedor === "function") {
+    return proveedor();
+  }
+  return Math.floor(Math.random() * 100) + 1;
+}
+
+function obtenerMagnitudPotencia({ tipo, valor, componentesDanio }) {
+  if (tipo === TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO) {
+    if (Array.isArray(componentesDanio)) {
+      return componentesDanio.reduce(
+        (total, componente) => total + (componente.danioBruto ?? 0),
+        0,
+      );
+    }
+    return Number.isFinite(valor) ? valor : 0;
+  }
+  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR) {
+    return Object.values(valor ?? {}).reduce(
+      (total, multiplicador) => total + Math.abs(multiplicador - 1),
+      0,
+    );
+  }
+  return Number.isFinite(valor) ? valor : 0;
+}
+
+function debeReemplazarPotencia(efecto, definicion) {
+  if (
+    definicion.politicaPotencia !==
+    POLITICAS_POTENCIA_EFECTO.CONSERVAR_MAYOR
+  ) {
+    return true;
+  }
+  return obtenerMagnitudPotencia(definicion) > obtenerMagnitudPotencia(efecto);
 }
 
 function limitarMultiplicador(valor) {
@@ -98,6 +178,9 @@ function crearResumenEfecto(efecto) {
   return {
     id: efecto.id,
     idDefinicion: efecto.idDefinicion,
+    efectoId: efecto.efectoId,
+    nombreEfecto: efecto.nombreEfecto,
+    perfilAplicacion: efecto.perfilAplicacion,
     grupoAcumulacion: efecto.grupoAcumulacion,
     fuente: { ...efecto.fuente },
     objetivo: efecto.objetivo,
@@ -106,6 +189,7 @@ function crearResumenEfecto(efecto) {
     duracion: efecto.duracion,
     intervalo: efecto.intervalo,
     politicaAcumulacion: efecto.politicaAcumulacion,
+    politicaPotencia: efecto.politicaPotencia,
     maximo: efecto.maximo,
     intensidad: efecto.intensidad,
     cantidad: efecto.cantidad,
@@ -114,6 +198,10 @@ function crearResumenEfecto(efecto) {
     proximoTick: efecto.proximoTick,
     etiquetas: [...efecto.etiquetas],
     beneficioso: efecto.beneficioso,
+    resistenciaId: efecto.resistenciaId,
+    modoResistencia: efecto.modoResistencia,
+    inmunidadId: efecto.inmunidadId,
+    eliminarAlAdquirirInmunidad: efecto.eliminarAlAdquirirInmunidad,
     suspendido: efecto.suspendido,
   };
 }
@@ -147,6 +235,7 @@ export class SistemaEfectosTemporales {
   }
 
   obtenerEfectosObjetivo(objetivo) {
+    this.retirarEfectosAhoraInmunes(objetivo);
     const estado = obtenerEstadoObjetivo(objetivo, false);
     if (!estado) {
       return [];
@@ -184,7 +273,7 @@ export class SistemaEfectosTemporales {
     return vencimientos.length > 0 ? Math.max(...vencimientos) : null;
   }
 
-  aplicar(definicionRecibida) {
+  aplicar(definicionRecibida, { obtenerTiradaAplicacion: proveedorTirada = null } = {}) {
     this.validarDisponible();
 
     const definicion = normalizarDefinicionEfectoTemporal(
@@ -196,12 +285,74 @@ export class SistemaEfectosTemporales {
       return {
         exito: false,
         aplicado: false,
+        estadoAplicacion: "rechazado_por_politica",
+        motivo: "objetivo_derrotado",
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} está derrotado.`,
         eventos: [
           {
             tipo: "efecto_rechazado",
             motivo: "objetivo_derrotado",
             definicion,
+          },
+        ],
+      };
+    }
+
+    this.retirarEfectosAhoraInmunes(definicion.objetivo);
+
+    if (esInmuneAlEfecto(definicion.objetivo, definicion.inmunidadId)) {
+      return {
+        exito: false,
+        aplicado: false,
+        estadoAplicacion: "inmune",
+        motivo: "inmunidad",
+        probabilidadBase: definicion.probabilidadBase,
+        resistencia: null,
+        probabilidadFinal: 0,
+        tiradaAplicacion: null,
+        mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} es inmune a ${definicion.nombreEfecto}.`,
+        eventos: [
+          {
+            tipo: "efecto_inmune",
+            motivo: "inmunidad",
+            definicion,
+          },
+        ],
+      };
+    }
+
+    const resistencia = obtenerResistenciaEfecto(
+      definicion.objetivo,
+      definicion.resistenciaId,
+    );
+    const probabilidadFinal = calcularProbabilidadFinal(
+      definicion,
+      resistencia,
+    );
+    const tiradaAplicacion = obtenerTiradaAplicacion(
+      definicion,
+      proveedorTirada,
+    );
+
+    if (tiradaAplicacion > probabilidadFinal) {
+      return {
+        exito: false,
+        aplicado: false,
+        estadoAplicacion: "resistido",
+        motivo: "resistencia",
+        probabilidadBase: definicion.probabilidadBase,
+        resistencia,
+        probabilidadFinal,
+        tiradaAplicacion,
+        mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} resistió ${definicion.nombreEfecto}.`,
+        eventos: [
+          {
+            tipo: "efecto_resistido",
+            motivo: "resistencia",
+            definicion,
+            resistencia,
+            probabilidadFinal,
+            tiradaAplicacion,
           },
         ],
       };
@@ -214,13 +365,20 @@ export class SistemaEfectosTemporales {
     this.objetivosAdministrados.add(definicion.objetivo);
 
     if (existente) {
-      return this.reaplicarEfecto(existente, definicion, tiempoActual);
+      return this.reaplicarEfecto(existente, definicion, tiempoActual, {
+        resistencia,
+        probabilidadFinal,
+        tiradaAplicacion,
+      });
     }
 
     const efecto = {
       id: `efecto-${siguienteIdInstancia++}`,
       clave,
       idDefinicion: definicion.idDefinicion,
+      efectoId: definicion.efectoId,
+      nombreEfecto: definicion.nombreEfecto,
+      perfilAplicacion: definicion.perfilAplicacion,
       grupoAcumulacion: definicion.grupoAcumulacion,
       fuente: { ...definicion.fuente },
       objetivo: definicion.objetivo,
@@ -233,12 +391,23 @@ export class SistemaEfectosTemporales {
       duracion: definicion.duracion,
       intervalo: definicion.intervalo,
       politicaAcumulacion: definicion.politicaAcumulacion,
+      politicaPotencia: definicion.politicaPotencia,
       maximo: definicion.maximo,
       incremento: definicion.incremento,
       etiquetas: [...definicion.etiquetas],
       beneficioso: definicion.beneficioso,
-      intensidad: 1,
+      resistenciaId: definicion.resistenciaId,
+      modoResistencia: definicion.modoResistencia,
+      inmunidadId: definicion.inmunidadId,
+      eliminarAlAdquirirInmunidad: definicion.eliminarAlAdquirirInmunidad,
+      intensidad: definicion.intensidadInicial,
       cantidad: 1,
+      escalaPorIntensidad:
+        definicion.politicaAcumulacion ===
+        POLITICAS_ACUMULACION_EFECTO.ACUMULAR_INTENSIDAD,
+      escalaPorCantidad:
+        definicion.politicaAcumulacion ===
+        POLITICAS_ACUMULACION_EFECTO.ACUMULAR_CANTIDAD,
       aplicadoEn: tiempoActual,
       venceEn: tiempoActual + definicion.duracion,
       proximoTick:
@@ -254,26 +423,39 @@ export class SistemaEfectosTemporales {
     this.programarEfecto(efecto);
     this.recalcularFactoresObjetivo(efecto.objetivo);
 
-    const evento = this.crearEventoDominio("efecto_aplicado", efecto);
+    const evento = this.crearEventoDominio("efecto_aplicado", efecto, {
+      resistencia,
+      probabilidadFinal,
+      tiradaAplicacion,
+    });
 
     return {
       exito: true,
       aplicado: true,
+      estadoAplicacion: "aplicado",
+      motivo: null,
+      probabilidadBase: definicion.probabilidadBase,
+      resistencia,
+      probabilidadFinal,
+      tiradaAplicacion,
       efecto: crearResumenEfecto(efecto),
-      mensaje: `${obtenerNombreObjetivo(efecto.objetivo)} recibió el efecto ${efecto.grupoAcumulacion}.`,
+      mensaje: `${obtenerNombreObjetivo(efecto.objetivo)} recibió ${efecto.nombreEfecto}.`,
       eventos: [evento],
     };
   }
 
-  reaplicarEfecto(efecto, definicion, tiempoActual) {
+  reaplicarEfecto(efecto, definicion, tiempoActual, resolucion) {
     if (
       efecto.tipo !== definicion.tipo ||
-      efecto.politicaAcumulacion !== definicion.politicaAcumulacion ||
+      efecto.efectoId !== definicion.efectoId ||
       efecto.intervalo !== definicion.intervalo
     ) {
       return {
         exito: false,
         aplicado: false,
+        estadoAplicacion: "rechazado_por_politica",
+        motivo: "grupo_incompatible",
+        ...resolucion,
         efecto: crearResumenEfecto(efecto),
         mensaje: "El grupo de acumulación ya pertenece a un efecto incompatible.",
         eventos: [
@@ -285,14 +467,18 @@ export class SistemaEfectosTemporales {
     }
 
     if (
-      efecto.politicaAcumulacion ===
+      definicion.politicaAcumulacion ===
       POLITICAS_ACUMULACION_EFECTO.RECHAZAR_DUPLICADO
     ) {
       return {
         exito: false,
         aplicado: false,
+        estadoAplicacion: "rechazado_por_politica",
+        motivo: "duplicado",
+        probabilidadBase: definicion.probabilidadBase,
+        ...resolucion,
         efecto: crearResumenEfecto(efecto),
-        mensaje: "El efecto duplicado fue rechazado.",
+        mensaje: `${efecto.nombreEfecto} ya está activo y no renovó su duración.`,
         eventos: [
           this.crearEventoDominio("efecto_rechazado", efecto, {
             motivo: "duplicado",
@@ -303,11 +489,18 @@ export class SistemaEfectosTemporales {
 
     let tipoEvento = "efecto_renovado";
     let alcanzoMaximo = false;
+    efecto.maximo = Math.max(
+      efecto.maximo,
+      definicion.maximo,
+      efecto.intensidad,
+      efecto.cantidad,
+    );
 
     if (
-      efecto.politicaAcumulacion ===
+      definicion.politicaAcumulacion ===
       POLITICAS_ACUMULACION_EFECTO.ACUMULAR_INTENSIDAD
     ) {
+      efecto.escalaPorIntensidad = true;
       const nuevaIntensidad = Math.min(
         efecto.maximo,
         efecto.intensidad + definicion.incremento,
@@ -316,11 +509,12 @@ export class SistemaEfectosTemporales {
       efecto.intensidad = nuevaIntensidad;
       tipoEvento = "efecto_intensificado";
     } else if (
-      efecto.politicaAcumulacion ===
+      definicion.politicaAcumulacion ===
       POLITICAS_ACUMULACION_EFECTO.ACUMULAR_CANTIDAD
     ) {
+      efecto.escalaPorCantidad = true;
       const nuevaCantidad = Math.min(
-        efecto.maximo,
+        Math.floor(efecto.maximo),
         efecto.cantidad + Math.max(1, Math.floor(definicion.incremento)),
       );
       alcanzoMaximo = nuevaCantidad === efecto.cantidad;
@@ -328,21 +522,28 @@ export class SistemaEfectosTemporales {
       tipoEvento = "efecto_acumulado";
     }
 
-    // La aplicación más reciente aporta su descriptor y potencia base. La
-    // acumulación permanece en la misma instancia y conserva su cadencia.
-    efecto.idDefinicion = definicion.idDefinicion;
-    efecto.fuente = { ...definicion.fuente };
-    efecto.valor = copiarValor(definicion.valor);
-    efecto.tipoDanio = definicion.tipoDanio;
-    efecto.componentesDanio = definicion.componentesDanio
-      ? definicion.componentesDanio.map((componente) => ({ ...componente }))
-      : null;
-    efecto.maximo = definicion.maximo;
+    if (debeReemplazarPotencia(efecto, definicion)) {
+      efecto.idDefinicion = definicion.idDefinicion;
+      efecto.fuente = { ...definicion.fuente };
+      efecto.valor = copiarValor(definicion.valor);
+      efecto.tipoDanio = definicion.tipoDanio;
+      efecto.componentesDanio = definicion.componentesDanio
+        ? definicion.componentesDanio.map((componente) => ({ ...componente }))
+        : null;
+    }
+
+    efecto.nombreEfecto = definicion.nombreEfecto;
+    efecto.perfilAplicacion = definicion.perfilAplicacion;
+    efecto.politicaAcumulacion = definicion.politicaAcumulacion;
+    efecto.politicaPotencia = definicion.politicaPotencia;
     efecto.incremento = definicion.incremento;
-    efecto.etiquetas = [...definicion.etiquetas];
+    efecto.etiquetas = [...new Set([...efecto.etiquetas, ...definicion.etiquetas])];
     efecto.beneficioso = definicion.beneficioso;
-    efecto.intensidad = Math.min(efecto.intensidad, efecto.maximo);
-    efecto.cantidad = Math.min(efecto.cantidad, Math.floor(efecto.maximo));
+    efecto.resistenciaId = definicion.resistenciaId;
+    efecto.modoResistencia = definicion.modoResistencia;
+    efecto.inmunidadId = definicion.inmunidadId;
+    efecto.eliminarAlAdquirirInmunidad =
+      definicion.eliminarAlAdquirirInmunidad;
 
     // Toda reaplicación aceptada renueva la duración. El próximo tick ya
     // programado conserva su cadencia y no se reinicia.
@@ -353,8 +554,6 @@ export class SistemaEfectosTemporales {
     this.agenda.cancelar(this.obtenerIdEventoVencimiento(efecto));
     this.programarVencimiento(efecto);
 
-    // Un tick que quedó fuera de la duración anterior puede volver a quedar
-    // dentro de la nueva duración. Se programa sin alterar su cadencia.
     if (
       efecto.proximoTick !== null &&
       efecto.proximoTick >= tiempoActual &&
@@ -369,16 +568,48 @@ export class SistemaEfectosTemporales {
     return {
       exito: true,
       aplicado: true,
+      estadoAplicacion: "aplicado",
+      motivo: null,
+      probabilidadBase: definicion.probabilidadBase,
+      ...resolucion,
       efecto: crearResumenEfecto(efecto),
       mensaje: alcanzoMaximo
-        ? "El efecto renovó su duración y ya estaba en su máximo."
-        : "El efecto se acumuló y renovó su duración.",
+        ? `${efecto.nombreEfecto} renovó su duración y ya estaba en su máximo.`
+        : `${efecto.nombreEfecto} se aplicó nuevamente.`,
       eventos: [
         this.crearEventoDominio(tipoEvento, efecto, {
           alcanzoMaximo,
         }),
       ],
     };
+  }
+
+  retirarEfectosAhoraInmunes(objetivo) {
+    const estado = obtenerEstadoObjetivo(objetivo, false);
+    if (!estado) return { cantidad: 0, eventos: [] };
+
+    const eventos = [];
+    for (const efecto of [...estado.efectos.values()]) {
+      if (
+        efecto.eliminarAlAdquirirInmunidad &&
+        esInmuneAlEfecto(objetivo, efecto.inmunidadId)
+      ) {
+        const evento = this.retirarEfecto(efecto, {
+          motivo: "inmunidad_adquirida",
+        });
+        if (evento) eventos.push(evento);
+      }
+    }
+    return { cantidad: eventos.length, eventos };
+  }
+
+  // Punto de integración explícito para futuras habilidades, consumibles u
+  // objetos que concedan inmunidad durante una partida. La fuente que cambie
+  // las inmunidades debe invocar esta operación para retirar el estado ahora,
+  // sin esperar al siguiente tick ni a una consulta de interfaz.
+  sincronizarInmunidades(objetivo) {
+    this.validarDisponible();
+    return this.retirarEfectosAhoraInmunes(objetivo);
   }
 
   programarEfecto(efecto) {
@@ -431,6 +662,9 @@ export class SistemaEfectosTemporales {
 
   procesarEventosEn(instante) {
     this.validarDisponible();
+    for (const objetivo of [...this.objetivosAdministrados]) {
+      this.retirarEfectosAhoraInmunes(objetivo);
+    }
 
     const eventosAgenda = this.agenda.extraerEventosEn(instante);
     const resultado = {
@@ -771,6 +1005,8 @@ export class SistemaEfectosTemporales {
       tipo,
       efectoId: efecto.id,
       idDefinicion: efecto.idDefinicion,
+      catalogoEfectoId: efecto.efectoId,
+      nombreEfecto: efecto.nombreEfecto,
       grupoAcumulacion: efecto.grupoAcumulacion,
       tipoEfecto: efecto.tipo,
       fuente: { ...efecto.fuente },

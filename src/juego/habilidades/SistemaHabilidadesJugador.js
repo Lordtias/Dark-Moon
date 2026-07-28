@@ -869,16 +869,24 @@ function crearMensajeEjecucion({
   nombreHabilidad,
   cantidadObjetivos,
   cantidadImpactos,
+  efectos = [],
 }) {
-  if (cantidadObjetivos === 1) {
-    return cantidadImpactos === 1
-      ? `${nombreHabilidad} impacta al objetivo.`
-      : `${nombreHabilidad} falla el impacto.`;
-  }
-  return (
-    `${nombreHabilidad} alcanza ${cantidadObjetivos} objetivos: ` +
-    `${cantidadImpactos} impactos y ${cantidadObjetivos - cantidadImpactos} fallos.`
-  );
+  const resumen =
+    cantidadObjetivos === 1
+      ? cantidadImpactos === 1
+        ? `${nombreHabilidad} impacta al objetivo.`
+        : `${nombreHabilidad} falla el impacto.`
+      :
+        `${nombreHabilidad} alcanza ${cantidadObjetivos} objetivos: ` +
+        `${cantidadImpactos} impactos y ${cantidadObjetivos - cantidadImpactos} fallos.`;
+  const mensajesEfectos = [
+    ...new Set(
+      efectos
+        .map((efecto) => efecto?.resultado?.mensaje)
+        .filter((mensaje) => typeof mensaje === "string" && mensaje !== ""),
+    ),
+  ];
+  return [resumen, ...mensajesEfectos].join("\n");
 }
 
 function finalizarTiempo(juego, { resultado, costoTemporalBase }) {

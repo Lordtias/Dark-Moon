@@ -3,11 +3,9 @@ import {
   normalizarTipoDanio,
 } from "../combate/ComponentesDanio.js";
 import {
-  FACTORES_TEMPORALES_MODIFICABLES,
-  POLITICAS_ACUMULACION_VALIDAS,
-  TIPOS_EFECTO_TEMPORAL,
-  TIPOS_EFECTO_TEMPORAL_VALIDOS,
-} from "../efectos/ContratosEfectosTemporales.js";
+  normalizarCatalogoEfectos,
+  resolverReferenciaEfecto,
+} from "../efectos/CatalogoEfectos.js";
 import { normalizarConfiguracionZonaTemporal } from "../zonas/ContratosZonasTemporales.js";
 import {
   ORIENTACIONES_LINEA,
@@ -19,8 +17,10 @@ const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
 
 export function validarConfiguracionEjecucionHabilidades(
   configuracionHabilidades,
+  configuracionEfectos,
 ) {
   validarObjeto(configuracionHabilidades, "la configuración de habilidades");
+  const catalogoEfectos = normalizarCatalogoEfectos(configuracionEfectos);
   validarEnteroPositivo(configuracionHabilidades.version, "la versión");
   validarObjeto(
     configuracionHabilidades.habilidades,
@@ -43,6 +43,7 @@ export function validarConfiguracionEjecucionHabilidades(
           idHabilidad: id,
           gradoMaximo,
           ejecucion: definicionOriginal.ejecucion,
+          catalogoEfectos,
         })
       : null;
 
@@ -60,11 +61,18 @@ export function validarConfiguracionEjecucionHabilidades(
 
   return congelarProfundamente({
     version: configuracionHabilidades.version,
+    versionEfectos: catalogoEfectos.version,
     habilidades,
+    efectos: catalogoEfectos.efectos,
   });
 }
 
-function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
+function normalizarEjecucion({
+  idHabilidad,
+  gradoMaximo,
+  ejecucion,
+  catalogoEfectos,
+}) {
   validarObjeto(ejecucion, `la ejecución de "${idHabilidad}"`);
   const tipoObjetivo = normalizarId(ejecucion.tipoObjetivo);
   if (!TIPOS_OBJETIVO.includes(tipoObjetivo)) {
@@ -120,6 +128,7 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       definicionGrado.efectos,
       idHabilidad,
       grado,
+      catalogoEfectos,
     );
     if (danio.length === 0 && efectos.length === 0) {
       throw new Error(
@@ -267,7 +276,12 @@ function normalizarDanio(componentes, idHabilidad, grado) {
   });
 }
 
-function normalizarEfectos(efectos, idHabilidad, grado) {
+function normalizarEfectos(
+  efectos,
+  idHabilidad,
+  grado,
+  catalogoEfectos,
+) {
   if (efectos === undefined) return [];
   if (!Array.isArray(efectos)) {
     throw new Error(
@@ -275,88 +289,12 @@ function normalizarEfectos(efectos, idHabilidad, grado) {
     );
   }
   return efectos.map((efecto, indice) =>
-    normalizarEfecto(efecto, {
+    resolverReferenciaEfecto({
+      catalogo: catalogoEfectos,
+      referencia: efecto,
       etiqueta: `el efecto ${indice + 1} de "${idHabilidad}" grado ${grado}`,
     }),
   );
-}
-
-function normalizarEfecto(efecto, { etiqueta }) {
-  validarObjeto(efecto, etiqueta);
-  const id = normalizarId(efecto.id);
-  const tipo = normalizarId(efecto.tipo);
-  if (!TIPOS_EFECTO_TEMPORAL_VALIDOS.includes(tipo)) {
-    throw new Error(`El efecto "${id}" usa el tipo desconocido "${tipo}".`);
-  }
-  validarEnteroPositivo(efecto.duracion, `la duración de "${id}"`);
-  const politicaAcumulacion = normalizarId(
-    efecto.politicaAcumulacion ?? "renovar_duracion",
-  );
-  if (!POLITICAS_ACUMULACION_VALIDAS.includes(politicaAcumulacion)) {
-    throw new Error(
-      `El efecto "${id}" usa la acumulación desconocida "${politicaAcumulacion}".`,
-    );
-  }
-
-  const comun = {
-    id,
-    tipo,
-    duracion: efecto.duracion,
-    politicaAcumulacion,
-    grupoAcumulacion: normalizarId(efecto.grupoAcumulacion ?? id),
-    maximo: efecto.maximo ?? 1,
-    incremento: efecto.incremento ?? 1,
-    etiquetas: normalizarEtiquetas(efecto.etiquetas),
-    beneficioso: efecto.beneficioso === true,
-  };
-  validarNumeroPositivo(comun.maximo, `el máximo de acumulación de "${id}"`);
-  validarNumeroPositivo(comun.incremento, `el incremento de "${id}"`);
-
-  if (tipo === TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO) {
-    validarEnteroPositivo(efecto.valorBase, `el daño periódico de "${id}"`);
-    validarEnteroPositivo(efecto.intervalo, `el intervalo de "${id}"`);
-    if (efecto.intervalo > efecto.duracion) {
-      throw new Error(`El intervalo de "${id}" no puede superar su duración.`);
-    }
-    return {
-      ...comun,
-      tipoDanio: normalizarTipoDanio(efecto.tipoDanio),
-      valorBase: efecto.valorBase,
-      intervalo: efecto.intervalo,
-    };
-  }
-
-  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR) {
-    validarObjeto(efecto.valor, `el valor de "${id}"`);
-    const valor = {};
-    for (const [factor, multiplicador] of Object.entries(efecto.valor)) {
-      if (!FACTORES_TEMPORALES_MODIFICABLES.includes(factor)) {
-        throw new Error(
-          `El efecto "${id}" intenta modificar el factor desconocido "${factor}".`,
-        );
-      }
-      validarNumeroPositivo(
-        multiplicador,
-        `el multiplicador ${factor} de "${id}"`,
-      );
-      valor[factor] = multiplicador;
-    }
-    if (Object.keys(valor).length === 0) {
-      throw new Error(`El efecto "${id}" debe modificar al menos un factor.`);
-    }
-    return { ...comun, valor, intervalo: null };
-  }
-
-  const valorBase = efecto.valorBase ?? 1;
-  validarNumeroPositivo(valorBase, `el valor de "${id}"`);
-  return { ...comun, valorBase, intervalo: null };
-}
-
-function normalizarEtiquetas(etiquetas = []) {
-  if (!Array.isArray(etiquetas)) {
-    throw new Error("Las etiquetas de efecto deben estar dentro de una lista.");
-  }
-  return [...new Set(etiquetas.map((etiqueta) => normalizarId(etiqueta)))];
 }
 
 function normalizarIcono(icono, idHabilidad) {

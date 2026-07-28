@@ -194,7 +194,7 @@ export class PanelPersonaje {
     }
   }
 
-  // Actualiza estadísticas de combate, magia y resistencias elementales.
+  // Actualiza estadísticas de combate, magia y resistencias.
   actualizarEstadisticas(player, estadisticas) {
     const valores = {
       precision: estadisticas.precision,
@@ -215,6 +215,18 @@ export class PanelPersonaje {
       "res-frio": `${this.formatear(estadisticas.resistencias.frio)}%`,
       "res-rayo": `${this.formatear(estadisticas.resistencias.rayo)}%`,
       "res-veneno": `${this.formatear(estadisticas.resistencias.veneno)}%`,
+      "res-congelamiento": `${this.formatear(
+        estadisticas.resistenciasEfectos.congelamiento,
+      )}%`,
+      "res-aturdimiento": `${this.formatear(
+        estadisticas.resistenciasEfectos.aturdimiento,
+      )}%`,
+      "res-envenenamiento": `${this.formatear(
+        estadisticas.resistenciasEfectos.envenenamiento,
+      )}%`,
+      "res-quemadura": `${this.formatear(
+        estadisticas.resistenciasEfectos.quemadura,
+      )}%`,
     };
 
     for (const [campo, valor] of Object.entries(valores)) {

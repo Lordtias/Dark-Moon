@@ -12,6 +12,11 @@ import {
   calcularMultiplicadorEfectos,
   calcularRegeneracionMana,
 } from "../../../juego/magia/CalculadorAtributosMagicos.js";
+import {
+  IDS_RESISTENCIA_EFECTO,
+  PROPIEDAD_RESISTENCIA_EFECTO,
+  normalizarResistenciaEfecto,
+} from "../../../juego/efectos/ResistenciasEfectos.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
@@ -384,6 +389,18 @@ export function calcularEstadisticasDerivadas(combatiente) {
     );
   }
 
+  const resistenciasEfectos = {};
+  for (const idResistencia of IDS_RESISTENCIA_EFECTO) {
+    resistenciasEfectos[idResistencia] = normalizarResistenciaEfecto(
+      (base.resistenciasEfectos?.[idResistencia] ?? 0) +
+        sumarPropiedad(
+          objetos,
+          PROPIEDAD_RESISTENCIA_EFECTO[idResistencia],
+        ),
+      `La resistencia derivada a ${idResistencia}`,
+    );
+  }
+
   const armaduraPlana = base.armadura + sumarPropiedad(objetos, "armadura");
   const armaduraPorcentual =
     sumarPropiedad(objetos, "armaduraAumentadaPorcentaje") / 100;
@@ -433,6 +450,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
       base.potenciaAura +
       coeficientes.potenciaAuraPorCarisma * atributos.carisma,
     resistencias,
+    resistenciasEfectos,
+    inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
     danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque),
   };
 }

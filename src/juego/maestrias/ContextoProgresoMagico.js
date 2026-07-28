@@ -4,6 +4,7 @@ import { ProgresoMagicoJugador } from "./ProgresoMagicoJugador.js";
 
 const RUTA_MAESTRIAS = "./src/config/magia/Maestrias.json";
 const RUTA_HABILIDADES = "./src/config/magia/Habilidades.json";
+const RUTA_EFECTOS = "./src/config/magia/Efectos.json";
 let configuracionActiva = null;
 let configuracionEjecucionActiva = null;
 
@@ -13,10 +14,12 @@ let configuracionEjecucionActiva = null;
 // La integración con el Juego activo se realiza explícitamente desde
 // ControladorPartida, sin instaladores dinámicos ni modificaciones de prototipo.
 export async function cargarYConfigurarProgresoMagico() {
-  const [respuestaMaestrias, respuestaHabilidades] = await Promise.all([
-    fetch(RUTA_MAESTRIAS),
-    fetch(RUTA_HABILIDADES),
-  ]);
+  const [respuestaMaestrias, respuestaHabilidades, respuestaEfectos] =
+    await Promise.all([
+      fetch(RUTA_MAESTRIAS),
+      fetch(RUTA_HABILIDADES),
+      fetch(RUTA_EFECTOS),
+    ]);
   if (!respuestaMaestrias.ok) {
     throw new Error(
       `No se pudo cargar Maestrias.json (${respuestaMaestrias.status}).`,
@@ -27,9 +30,19 @@ export async function cargarYConfigurarProgresoMagico() {
       `No se pudo cargar Habilidades.json (${respuestaHabilidades.status}).`,
     );
   }
-  const [configuracionMaestrias, configuracionHabilidades] = await Promise.all([
+  if (!respuestaEfectos.ok) {
+    throw new Error(
+      `No se pudo cargar Efectos.json (${respuestaEfectos.status}).`,
+    );
+  }
+  const [
+    configuracionMaestrias,
+    configuracionHabilidades,
+    configuracionEfectos,
+  ] = await Promise.all([
     respuestaMaestrias.json(),
     respuestaHabilidades.json(),
+    respuestaEfectos.json(),
   ]);
   configuracionActiva = validarConfiguracionProgresoMagico({
     configuracionMaestrias,
@@ -37,6 +50,7 @@ export async function cargarYConfigurarProgresoMagico() {
   });
   configuracionEjecucionActiva = validarConfiguracionEjecucionHabilidades(
     configuracionHabilidades,
+    configuracionEfectos,
   );
   return configuracionActiva;
 }

@@ -22,7 +22,7 @@
 
 ###############################################################################
 
-Recursos visuales utilizados en la Etapa 6 de Dark Moon
+Recursos visuales utilizados en Dark Moon
 
 Enemigos:
 - Basados en Kenney Roguelike Characters.

@@ -72,7 +72,14 @@
           "frio": 0,
           "rayo": 0,
           "veneno": 0
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 0,
+          "aturdimiento": 0,
+          "envenenamiento": 0,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "contenedor": {
         "capacidad": 12,
@@ -205,7 +212,14 @@
           "frio": 0,
           "rayo": 0,
           "veneno": 0
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 0,
+          "aturdimiento": 0,
+          "envenenamiento": 0,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "contenedor": {
         "capacidad": 12,
@@ -326,7 +340,14 @@
           "frio": 0,
           "rayo": 0,
           "veneno": 0
-        }
+        },
+        "resistenciasEfectos": {
+          "congelamiento": 0,
+          "aturdimiento": 0,
+          "envenenamiento": 0,
+          "quemadura": 0
+        },
+        "inmunidadesEfectos": []
       },
       "contenedor": {
         "capacidad": 12,

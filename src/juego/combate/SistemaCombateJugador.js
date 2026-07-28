@@ -7,6 +7,9 @@ import {
   calcularDistanciaCuadricula,
   evaluarAtaqueCasilla,
 } from "./SistemaAlcanceAtaque.js";
+import {
+  seleccionarObjetivoPrioritario,
+} from "./SelectorObjetivoPrioritario.js";
 
 // Administra el combate iniciado por el jugador.
 export class SistemaCombateJugador {
@@ -125,30 +128,14 @@ export class SistemaCombateJugador {
   }
 
   obtenerEnemigoPrioritario() {
-    let enemigoSeleccionado = null;
-    let distanciaSeleccionada = Infinity;
-
-    for (const objetivo of this.objetivos) {
-      if (!(objetivo instanceof Enemigo) || !objetivo.estaVivo) continue;
-      if (!this.esCasillaAtacable(objetivo.x, objetivo.y)) continue;
-
-      const distancia = calcularDistanciaCuadricula(
-        { x: this.jugador.x, y: this.jugador.y },
-        { x: objetivo.x, y: objetivo.y },
-      );
-      const estaMasCerca = distancia < distanciaSeleccionada;
-      const mismaDistanciaConMenosVida =
-        distancia === distanciaSeleccionada &&
-        (enemigoSeleccionado === null ||
-          objetivo.vidaActual < enemigoSeleccionado.vidaActual);
-
-      if (estaMasCerca || mismaDistanciaConMenosVida) {
-        enemigoSeleccionado = objetivo;
-        distanciaSeleccionada = distancia;
-      }
-    }
-
-    return enemigoSeleccionado;
+    return seleccionarObjetivoPrioritario({
+      origen: this.jugador,
+      objetivos: this.objetivos,
+      esObjetivoValido: (objetivo) =>
+        objetivo instanceof Enemigo &&
+        objetivo.estaVivo &&
+        this.esCasillaAtacable(objetivo.x, objetivo.y),
+    });
   }
 
   obtenerCasillaInicial() {

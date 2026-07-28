@@ -683,4 +683,32 @@ feat(habilidades): incorporar zonas temporales persistentes
 - agregar geometría de línea hacia el objetivo y perpendicular
 - preparar lógica reutilizable para futuros muros sin agregar habilidades
 - conservar experiencia general y botín únicos mediante el resolutor canónico
+- unificar la autoselección de ataques básicos y habilidades
 ```
+
+## 21. Ajuste posterior: autoselección unificada
+
+Antes de cerrar la entrega se unificó la prioridad automática de objetivos entre el ataque básico y las habilidades.
+
+La regla canónica es:
+
+1. elegir únicamente enemigos vivos y válidos para el alcance o patrón actual;
+2. elegir al enemigo más cercano;
+3. si dos enemigos están a la misma distancia, elegir al que tenga menos Vida actual;
+4. si distancia y Vida también empatan, conservar el primero según el orden estable de objetivos del mapa.
+
+La regla reside en:
+
+```text
+src/juego/combate/SelectorObjetivoPrioritario.js
+```
+
+`SistemaCombateJugador` y `SistemaHabilidadesJugador` consumen esa misma función. Las habilidades conservan sus propias casillas seleccionables y su fallback de casilla cuando no existe ningún enemigo válido. Las habilidades de objetivo propio continúan centradas en el jugador.
+
+Se validaron en navegador los siguientes casos deterministas:
+
+- misma distancia y distinta Vida;
+- distinta distancia y distinta Vida;
+- destructible más cercano que debe ignorarse en la autoselección enemiga;
+- empate completo conservando el orden estable;
+- habilidad de objetivo propio sin modificaciones.

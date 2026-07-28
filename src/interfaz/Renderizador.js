@@ -173,17 +173,63 @@ export class Renderizador {
 
 function crearEstadoVisualHabilidad(estado = null) {
   const selector = estado?.selector;
+  const selectorValido =
+    selector && Number.isInteger(selector.x) && Number.isInteger(selector.y)
+      ? Object.freeze({
+          x: selector.x,
+          y: selector.y,
+          objetivoValido: selector.objetivoValido === true,
+          puedeEjecutar: selector.geometria?.puedeEjecutar === true,
+        })
+      : null;
 
   return Object.freeze({
     activo: estado?.activo === true,
-    selector:
-      selector && Number.isInteger(selector.x) && Number.isInteger(selector.y)
-        ? Object.freeze({
-            x: selector.x,
-            y: selector.y,
-            objetivoValido: selector.objetivoValido === true,
-            puedeEjecutar: selector.geometria?.puedeEjecutar === true,
-          })
-        : null,
+    selector: selectorValido,
+    casillasSeleccionables: congelarListaPosiciones(
+      selector?.casillasSeleccionables,
+    ),
+    casillasAfectadas: congelarListaPosiciones(selector?.casillasAfectadas),
+    objetivosAfectados: congelarListaObjetivos(selector?.objetivosAfectados),
+    recorrido: congelarListaRecorrido(selector?.recorrido),
   });
+}
+
+function congelarListaPosiciones(lista) {
+  if (!Array.isArray(lista)) return Object.freeze([]);
+  return Object.freeze(
+    lista
+      .filter((item) => Number.isInteger(item?.x) && Number.isInteger(item?.y))
+      .map((item) => Object.freeze({ x: item.x, y: item.y })),
+  );
+}
+
+function congelarListaObjetivos(lista) {
+  if (!Array.isArray(lista)) return Object.freeze([]);
+  return Object.freeze(
+    lista
+      .filter((item) => Number.isInteger(item?.x) && Number.isInteger(item?.y))
+      .map((item) =>
+        Object.freeze({
+          x: item.x,
+          y: item.y,
+          orden: Number.isInteger(item.orden) ? item.orden : 0,
+        }),
+      ),
+  );
+}
+
+function congelarListaRecorrido(lista) {
+  if (!Array.isArray(lista)) return Object.freeze([]);
+  return Object.freeze(
+    lista
+      .filter((item) => Number.isInteger(item?.x) && Number.isInteger(item?.y))
+      .map((item) =>
+        Object.freeze({
+          x: item.x,
+          y: item.y,
+          orden: Number.isInteger(item.orden) ? item.orden : 0,
+        }),
+      ),
+  );
 }

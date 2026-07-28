@@ -1,4 +1,3 @@
-import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import {
   asignarHabilidadARanura,
@@ -8,10 +7,15 @@ import {
   registrarUltimaEjecucion,
 } from "./EstadoSesionHabilidades.js";
 import {
+  crearVistaPreviaHabilidad,
+  obtenerCasillasSeleccionablesHabilidad,
+} from "./GeometriaHabilidades.js";
+import {
   configurarTiradasDeterministasHabilidad,
   obtenerContextoPotenciaHabilidad,
   obtenerEstadoTiradasDeterministasHabilidad,
   resolverDanioHabilidad,
+  resolverImpactoHabilidad,
   restaurarTiradasAleatoriasHabilidad,
 } from "./MotorDanioHabilidad.js";
 import {
@@ -138,7 +142,9 @@ export class SistemaHabilidadesJugador {
       throw new Error(`La habilidad "${idHabilidad}" todavía no es jugable.`);
     }
     if (this.obtenerGrado(idHabilidad) <= 0) {
-      throw new Error(`La habilidad "${idHabilidad}" todavía no fue aprendida.`);
+      throw new Error(
+        `La habilidad "${idHabilidad}" todavía no fue aprendida.`,
+      );
     }
     asignarHabilidadARanura(this.jugador, indiceRanura, idHabilidad);
     this.emitirCambio();
@@ -147,7 +153,10 @@ export class SistemaHabilidadesJugador {
 
   seleccionarPorRanura(indiceRanura) {
     if (this.destruido) {
-      return crearRechazo(MOTIVOS.CANCELADA, "La integración ya fue destruida.");
+      return crearRechazo(
+        MOTIVOS.CANCELADA,
+        "La integración ya fue destruida.",
+      );
     }
     const bloqueo = this.validarBloqueosDeSeleccion();
     if (bloqueo) return bloqueo;
@@ -212,6 +221,23 @@ export class SistemaHabilidadesJugador {
         "El desplazamiento es inválido.",
       );
     }
+
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
+    if (habilidad.ejecucion.tipoObjetivo === "propio") {
+      this.seleccion.x = this.jugador.x;
+      this.seleccion.y = this.jugador.y;
+      this.emitirCambio();
+      return {
+        exito: true,
+        motivo: MOTIVOS.OK,
+        mensaje: "La habilidad permanece centrada en el jugador.",
+        turnoConsumido: false,
+        redibujar: true,
+        seleccion: this.obtenerSeleccionDetallada(),
+      };
+    }
+
     const limites = obtenerLimitesMapa(this.juego.mapa);
     this.seleccion.x = limitar(this.seleccion.x + dx, 0, limites.ancho - 1);
     this.seleccion.y = limitar(this.seleccion.y + dy, 0, limites.alto - 1);
@@ -236,9 +262,17 @@ export class SistemaHabilidadesJugador {
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
       return crearRechazo(MOTIVOS.OBJETIVO_INVALIDO, "La casilla es inválida.");
     }
-    const limites = obtenerLimitesMapa(this.juego.mapa);
-    this.seleccion.x = limitar(x, 0, limites.ancho - 1);
-    this.seleccion.y = limitar(y, 0, limites.alto - 1);
+
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
+    if (habilidad.ejecucion.tipoObjetivo === "propio") {
+      this.seleccion.x = this.jugador.x;
+      this.seleccion.y = this.jugador.y;
+    } else {
+      const limites = obtenerLimitesMapa(this.juego.mapa);
+      this.seleccion.x = limitar(x, 0, limites.ancho - 1);
+      this.seleccion.y = limitar(y, 0, limites.alto - 1);
+    }
     this.emitirCambio();
     return this.obtenerSeleccionDetallada();
   }
@@ -268,6 +302,7 @@ export class SistemaHabilidadesJugador {
     const manaAntes = leerManaActual(this.jugador);
     const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
     let faseIrreversible = false;
+
     try {
       consumirMana(this.jugador, plan.costoMana);
       const manaDespues = leerManaActual(this.jugador);
@@ -281,31 +316,21 @@ export class SistemaHabilidadesJugador {
       }
 
       faseIrreversible = true;
-      if (plan.habilidad.ejecucion.hostil) {
-        registrarHostilidad(this.juego, plan.objetivo);
-      }
-      const danio = resolverDanioHabilidad({
-        lanzador: this.jugador,
-        objetivo: plan.objetivo,
-        componentesConfigurados: plan.gradoConfig.danio,
-        contextoPotencia: plan.contextoPotencia,
-        idEjecucion,
+      const impactos = plan.objetivos.map((entrada) =>
+        this.ejecutarSobreObjetivo({
+          plan,
+          entrada,
+          idEjecucion,
+        }),
+      );
+      const cantidadImpactos = impactos.filter((item) => item.impacto).length;
+      const cantidadCriticos = impactos.filter((item) => item.critico).length;
+      const efectos = impactos.flatMap((item) => item.efectos);
+      const mensaje = crearMensajeEjecucion({
+        nombreHabilidad: plan.habilidad.nombre,
+        cantidadObjetivos: impactos.length,
+        cantidadImpactos,
       });
-      const efectos =
-        danio.impacto && !danio.objetivoDerrotado
-          ? aplicarEfectosHabilidad({
-              juego: this.juego,
-              lanzador: this.jugador,
-              objetivo: plan.objetivo,
-              efectosConfigurados: plan.gradoConfig.efectos,
-              definicionesPreparadas: plan.definicionesEfectos,
-              contextoPotencia: plan.contextoPotencia,
-              idEjecucion,
-            })
-          : [];
-      const mensaje = danio.impacto
-        ? `${plan.habilidad.nombre} impacta al objetivo.`
-        : `${plan.habilidad.nombre} falla el impacto.`;
       const resultadoBase = {
         exito: true,
         motivo: MOTIVOS.OK,
@@ -320,9 +345,13 @@ export class SistemaHabilidadesJugador {
         costoTemporal: plan.costoTemporal,
         tipoAccion: "habilidad",
         ejecucionEfectiva: true,
-        impacto: danio.impacto,
-        critico: danio.critico,
-        danio,
+        impacto: cantidadImpactos > 0,
+        critico: cantidadCriticos > 0,
+        cantidadObjetivos: impactos.length,
+        cantidadImpactos,
+        cantidadCriticos,
+        impactos,
+        danio: impactos.find((item) => item.danio)?.danio ?? null,
         efectos,
       };
       const resultadoTemporal = finalizarTiempo(this.juego, {
@@ -362,6 +391,62 @@ export class SistemaHabilidadesJugador {
     }
   }
 
+  ejecutarSobreObjetivo({ plan, entrada, idEjecucion }) {
+    const objetivo = entrada.objetivo;
+    if (plan.habilidad.ejecucion.hostil) {
+      registrarHostilidad(this.juego, objetivo);
+    }
+
+    const componentesDanio = escalarComponentesDanio(
+      plan.gradoConfig.danio,
+      entrada.multiplicadorDanio,
+    );
+    const danio =
+      componentesDanio.length > 0
+        ? resolverDanioHabilidad({
+            lanzador: this.jugador,
+            objetivo,
+            componentesConfigurados: componentesDanio,
+            contextoPotencia: plan.contextoPotencia,
+            idEjecucion,
+          })
+        : resolverImpactoHabilidad({
+            lanzador: this.jugador,
+            objetivo,
+            idEjecucion,
+            resolverImpacto: true,
+            resolverCritico: false,
+          });
+    const efectos =
+      danio.impacto && !danio.objetivoDerrotado
+        ? aplicarEfectosHabilidad({
+            juego: this.juego,
+            lanzador: this.jugador,
+            objetivo,
+            efectosConfigurados: plan.gradoConfig.efectos,
+            definicionesPreparadas: entrada.definicionesEfectos,
+            contextoPotencia: plan.contextoPotencia,
+            idEjecucion,
+          })
+        : [];
+
+    return {
+      objetivo: {
+        nombre: objetivo.nombre ?? "Objetivo",
+        x: objetivo.x,
+        y: objetivo.y,
+      },
+      orden: entrada.orden,
+      multiplicadorDanio: entrada.multiplicadorDanio,
+      impacto: danio.impacto,
+      critico: danio.critico,
+      objetivoDerrotado: danio.objetivoDerrotado,
+      danio: componentesDanio.length > 0 ? danio : null,
+      resolucionImpacto: componentesDanio.length === 0 ? danio : null,
+      efectos,
+    };
+  }
+
   // Compatibilidad de lectura: ya no existe un procesador alternativo.
   procesarEfectosPendientes() {
     return [];
@@ -369,29 +454,43 @@ export class SistemaHabilidadesJugador {
 
   obtenerSeleccionDetallada() {
     if (!this.seleccion) return null;
-    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
     const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
-    const objetivo = obtenerObjetivoEn(
-      this.juego,
-      this.seleccion.x,
-      this.seleccion.y,
-    );
-    const geometria = evaluarGeometria({
-      juego: this.juego,
+    const vistaPrevia = crearVistaPreviaHabilidad({
+      mapa: this.juego.mapa,
       jugador: this.jugador,
-      x: this.seleccion.x,
-      y: this.seleccion.y,
+      objetivos: obtenerObjetivosVivos(this.juego),
       habilidad,
       gradoConfig,
+      x: this.seleccion.x,
+      y: this.seleccion.y,
     });
+
     return {
       ...this.seleccion,
+      x: vistaPrevia.centro.x,
+      y: vistaPrevia.centro.y,
       nombre: habilidad.nombre,
+      tipoObjetivo: habilidad.ejecucion.tipoObjetivo,
       costoMana: gradoConfig.costoMana,
       costoTemporalBase: gradoConfig.costoTemporalBase,
       alcance: gradoConfig.alcance,
-      objetivoValido: Boolean(objetivo),
-      geometria,
+      formaImpacto: copiarSimple(gradoConfig.formaImpacto),
+      objetivoValido: vistaPrevia.objetivoValido,
+      geometria: vistaPrevia.geometria,
+      casillasSeleccionables:
+        vistaPrevia.casillasSeleccionables.map(copiarCasilla),
+      casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
+      objetivosAfectados: vistaPrevia.objetivosAfectados.map((entrada) => ({
+        nombre: entrada.objetivo.nombre ?? "Objetivo",
+        x: entrada.x,
+        y: entrada.y,
+        orden: entrada.orden,
+        multiplicadorDanio: entrada.multiplicadorDanio,
+      })),
+      recorrido: vistaPrevia.recorrido.map((paso) => ({ ...paso })),
+      mensajeValidacion: vistaPrevia.mensaje,
     };
   }
 
@@ -444,7 +543,8 @@ export class SistemaHabilidadesJugador {
   }
 
   prepararPlanEjecucion() {
-    const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
+    const habilidad =
+      this.configuracion.habilidades[this.seleccion.idHabilidad];
     if (!habilidad?.ejecucion) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_CONFIGURADA,
@@ -459,36 +559,45 @@ export class SistemaHabilidadesJugador {
       );
     }
     const gradoConfig = habilidad.ejecucion.grados[grado];
-    const objetivo = obtenerObjetivoEn(
-      this.juego,
-      this.seleccion.x,
-      this.seleccion.y,
-    );
-    if (!objetivo || estaDerrotado(objetivo)) {
-      return crearRechazo(
-        MOTIVOS.OBJETIVO_INVALIDO,
-        "La casilla no contiene un enemigo válido.",
-      );
-    }
-    const geometria = evaluarGeometria({
-      juego: this.juego,
+    const vistaPrevia = crearVistaPreviaHabilidad({
+      mapa: this.juego.mapa,
       jugador: this.jugador,
-      x: this.seleccion.x,
-      y: this.seleccion.y,
+      objetivos: obtenerObjetivosVivos(this.juego),
       habilidad,
       gradoConfig,
+      x: this.seleccion.x,
+      y: this.seleccion.y,
     });
-    if (!geometria.dentroAlcance) {
-      return crearRechazo(MOTIVOS.FUERA_DE_ALCANCE, geometria.mensaje);
+
+    if (!vistaPrevia.geometria.dentroAlcance) {
+      return crearRechazo(
+        MOTIVOS.FUERA_DE_ALCANCE,
+        vistaPrevia.geometria.mensaje,
+      );
     }
-    if (!geometria.patronValido) {
-      return crearRechazo(MOTIVOS.PATRON_INVALIDO, geometria.mensaje);
+    if (!vistaPrevia.geometria.patronValido) {
+      return crearRechazo(
+        MOTIVOS.PATRON_INVALIDO,
+        vistaPrevia.geometria.mensaje,
+      );
     }
     if (
       habilidad.ejecucion.requiereLineaVision &&
-      !geometria.lineaVisionDespejada
+      !vistaPrevia.geometria.lineaVisionDespejada
     ) {
-      return crearRechazo(MOTIVOS.LINEA_VISION_BLOQUEADA, geometria.mensaje);
+      return crearRechazo(
+        MOTIVOS.LINEA_VISION_BLOQUEADA,
+        vistaPrevia.geometria.mensaje,
+      );
+    }
+    if (
+      !vistaPrevia.objetivoValido ||
+      vistaPrevia.objetivosAfectados.length === 0
+    ) {
+      return crearRechazo(
+        MOTIVOS.OBJETIVO_INVALIDO,
+        vistaPrevia.mensaje ?? "No hay objetivos válidos para la habilidad.",
+      );
     }
     if (leerManaActual(this.jugador) < gradoConfig.costoMana) {
       return crearRechazo(
@@ -500,29 +609,40 @@ export class SistemaHabilidadesJugador {
     if (bloqueo) {
       return crearRechazo(MOTIVOS.BLOQUEO_TEMPORAL, bloqueo);
     }
+
     try {
-      validarContratosEjecucion({
+      validarDisponibilidadEfectosHabilidad({
         juego: this.juego,
-        jugador: this.jugador,
-        objetivo,
         efectosConfigurados: gradoConfig.efectos,
       });
       const contextoPotencia = obtenerContextoPotenciaHabilidad(this.jugador);
-      const definicionesEfectos = prepararEfectosHabilidad({
-        lanzador: this.jugador,
-        objetivo,
-        efectosConfigurados: gradoConfig.efectos,
-        contextoPotencia,
-        idEjecucion: "prevalidacion",
+      const objetivos = vistaPrevia.objetivosAfectados.map((entrada) => {
+        validarContratosEjecucion({
+          juego: this.juego,
+          jugador: this.jugador,
+          objetivo: entrada.objetivo,
+          componentesDanio: gradoConfig.danio,
+          efectosConfigurados: gradoConfig.efectos,
+        });
+        return {
+          ...entrada,
+          definicionesEfectos: prepararEfectosHabilidad({
+            lanzador: this.jugador,
+            objetivo: entrada.objetivo,
+            efectosConfigurados: gradoConfig.efectos,
+            contextoPotencia,
+            idEjecucion: "prevalidacion",
+          }),
+        };
       });
+
       return {
         exito: true,
         habilidad,
         grado,
         gradoConfig,
-        objetivo,
+        objetivos,
         contextoPotencia,
-        definicionesEfectos,
         costoMana: gradoConfig.costoMana,
         costoTemporal: gradoConfig.costoTemporalBase,
       };
@@ -543,20 +663,40 @@ export class SistemaHabilidadesJugador {
   }
 
   obtenerPuntoInicial(habilidad, grado) {
-    const gradoConfig = habilidad.ejecucion.grados[grado];
-    const objetivos = obtenerObjetivosVivos(this.juego)
-      .map((objetivo) => ({
-        objetivo,
-        distancia: Math.max(
-          Math.abs(objetivo.x - this.jugador.x),
-          Math.abs(objetivo.y - this.jugador.y),
-        ),
-      }))
-      .filter(({ distancia }) => distancia <= gradoConfig.alcance)
-      .sort((a, b) => a.distancia - b.distancia);
-    if (objetivos.length > 0) {
-      return { x: objetivos[0].objetivo.x, y: objetivos[0].objetivo.y };
+    if (habilidad.ejecucion.tipoObjetivo === "propio") {
+      return { x: this.jugador.x, y: this.jugador.y };
     }
+
+    const gradoConfig = habilidad.ejecucion.grados[grado];
+    const casillasSeleccionables = obtenerCasillasSeleccionablesHabilidad({
+      mapa: this.juego.mapa,
+      jugador: this.jugador,
+      habilidad,
+      gradoConfig,
+    });
+    const clavesSeleccionables = new Set(
+      casillasSeleccionables.map(({ x, y }) => `${x}:${y}`),
+    );
+    const objetivos = obtenerObjetivosVivos(this.juego)
+      .filter((objetivo) =>
+        clavesSeleccionables.has(`${objetivo.x}:${objetivo.y}`),
+      )
+      .sort((a, b) => {
+        const distanciaA = distanciaCuadricula(this.jugador, a);
+        const distanciaB = distanciaCuadricula(this.jugador, b);
+        return distanciaA - distanciaB || a.y - b.y || a.x - b.x;
+      });
+    if (objetivos.length > 0) {
+      return { x: objetivos[0].x, y: objetivos[0].y };
+    }
+
+    const cercana = casillasSeleccionables.sort((a, b) => {
+      const distanciaA = distanciaCuadricula(this.jugador, a);
+      const distanciaB = distanciaCuadricula(this.jugador, b);
+      return distanciaA - distanciaB || a.y - b.y || a.x - b.x;
+    })[0];
+    if (cercana) return { ...cercana };
+
     const limites = obtenerLimitesMapa(this.juego.mapa);
     return {
       x: limitar(this.jugador.x + 1, 0, limites.ancho - 1),
@@ -593,9 +733,13 @@ function validarContratosEjecucion({
   juego,
   jugador,
   objetivo,
+  componentesDanio,
   efectosConfigurados,
 }) {
-  if (!encontrarMetodoDanio(objetivo)) {
+  const necesitaRecibirDanio =
+    componentesDanio.length > 0 ||
+    efectosConfigurados.some((efecto) => efecto.tipo === "danio_periodico");
+  if (necesitaRecibirDanio && !encontrarMetodoDanio(objetivo)) {
     throw new Error("El objetivo no puede recibir daño de habilidades.");
   }
   if (
@@ -613,101 +757,29 @@ function validarContratosEjecucion({
       "El jugador no expone el registro de experiencia de maestría.",
     );
   }
-  validarDisponibilidadEfectosHabilidad({ juego, efectosConfigurados });
 }
 
-function evaluarGeometria({ juego, jugador, x, y, habilidad, gradoConfig }) {
-  const atacanteAdaptado = crearAdaptadorGeometrico({
-    jugador,
-    alcance: gradoConfig.alcance,
-    patronAtaque: habilidad.ejecucion.patronAtaque,
-  });
-  try {
-    const resultado = evaluarAtaqueCasilla({
-      atacante: atacanteAdaptado,
-      xObjetivo: x,
-      yObjetivo: y,
-      mapa: juego.mapa,
-    });
-    return {
-      dentroAlcance: Boolean(resultado.dentroAlcance ?? resultado.puedeAtacar),
-      patronValido: Boolean(resultado.patronValido ?? resultado.puedeAtacar),
-      lineaVisionDespejada: Boolean(
-        resultado.lineaVisionDespejada ?? resultado.puedeAtacar,
-      ),
-      puedeEjecutar: Boolean(resultado.puedeAtacar),
-      mensaje:
-        resultado.mensaje ?? "La casilla no es válida para la habilidad.",
-      detalle: resultado,
-    };
-  } catch (error) {
-    return {
-      dentroAlcance: false,
-      patronValido: false,
-      lineaVisionDespejada: false,
-      puedeEjecutar: false,
-      mensaje: error.message,
-      detalle: null,
-    };
+function escalarComponentesDanio(componentes, multiplicador = 1) {
+  return componentes.map((componente) => ({
+    ...componente,
+    valorBase: componente.valorBase * multiplicador,
+  }));
+}
+
+function crearMensajeEjecucion({
+  nombreHabilidad,
+  cantidadObjetivos,
+  cantidadImpactos,
+}) {
+  if (cantidadObjetivos === 1) {
+    return cantidadImpactos === 1
+      ? `${nombreHabilidad} impacta al objetivo.`
+      : `${nombreHabilidad} falla el impacto.`;
   }
-}
-
-function crearAdaptadorGeometrico({ jugador, alcance, patronAtaque }) {
-  return new Proxy(jugador, {
-    get(objetivo, propiedad, receptor) {
-      const equipamientoAdaptado = crearAdaptadorEquipamiento(
-        objetivo.equipamiento,
-        alcance,
-        patronAtaque,
-      );
-      const sobrescrituras = {
-        alcance,
-        alcanceAtaque: alcance,
-        patronAtaque,
-        patronAtaqueActual: patronAtaque,
-        patrónAtaque: patronAtaque,
-        equipamiento: equipamientoAdaptado,
-        obtenerAlcanceAtaque: () => alcance,
-        obtenerPatronAtaque: () => patronAtaque,
-        obtenerConfiguracionAtaqueActual: () => ({
-          alcance,
-          patronAtaque,
-          patrónAtaque: patronAtaque,
-        }),
-        obtenerDatosAtaqueActual: () => ({
-          alcance,
-          patronAtaque,
-          patrónAtaque: patronAtaque,
-        }),
-      };
-      if (Object.prototype.hasOwnProperty.call(sobrescrituras, propiedad)) {
-        return sobrescrituras[propiedad];
-      }
-      return Reflect.get(objetivo, propiedad, receptor);
-    },
-  });
-}
-
-function crearAdaptadorEquipamiento(equipamiento, alcance, patronAtaque) {
-  const base =
-    equipamiento && typeof equipamiento === "object" ? equipamiento : {};
-  return new Proxy(base, {
-    get(objetivo, propiedad, receptor) {
-      const sobrescrituras = {
-        alcance,
-        alcanceAtaque: alcance,
-        patronAtaque,
-        obtenerAlcanceAtaque: () => alcance,
-        obtenerPatronAtaque: () => patronAtaque,
-        obtenerArmaActiva: () => ({ alcance, patronAtaque }),
-        obtenerArmaPrincipal: () => ({ alcance, patronAtaque }),
-      };
-      if (Object.prototype.hasOwnProperty.call(sobrescrituras, propiedad)) {
-        return sobrescrituras[propiedad];
-      }
-      return Reflect.get(objetivo, propiedad, receptor);
-    },
-  });
+  return (
+    `${nombreHabilidad} alcanza ${cantidadObjetivos} objetivos: ` +
+    `${cantidadImpactos} impactos y ${cantidadObjetivos - cantidadImpactos} fallos.`
+  );
 }
 
 function finalizarTiempo(juego, { resultado, costoTemporalBase }) {
@@ -744,7 +816,11 @@ function registrarExperienciaMaestria(jugador, evento) {
 }
 
 function registrarHostilidad(juego, objetivo) {
-  const receptores = [juego, juego.estadoCombatePartida, juego.coordinadorTiempo];
+  const receptores = [
+    juego,
+    juego.estadoCombatePartida,
+    juego.coordinadorTiempo,
+  ];
   const nombres = [
     "registrarParticipanteCombate",
     "registrarParticipante",
@@ -775,20 +851,13 @@ function obtenerBloqueoTemporal(juego) {
       return resultado;
     }
     if (resultado?.bloqueado === true || resultado?.exito === false) {
-      return resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar.";
+      return (
+        resultado.mensaje ?? resultado.motivo ?? "El jugador no puede actuar."
+      );
     }
   }
 
   return null;
-}
-
-function obtenerObjetivoEn(juego, x, y) {
-  if (typeof juego.obtenerObjetivoEn === "function") {
-    return juego.obtenerObjetivoEn(x, y);
-  }
-  return obtenerObjetivosVivos(juego).find(
-    (objetivo) => objetivo.x === x && objetivo.y === y,
-  );
 }
 
 function obtenerObjetivosVivos(juego) {
@@ -801,7 +870,9 @@ function estaDerrotado(objetivo) {
     return Boolean(objetivo.estaDerrotado());
   }
   const vida = objetivo?.vidaActual ?? objetivo?.vida;
-  return Number.isFinite(vida) ? vida <= 0 : false;
+  return (
+    objetivo?.estaDestruido === true || (Number.isFinite(vida) && vida <= 0)
+  );
 }
 
 function leerManaActual(jugador) {
@@ -895,6 +966,28 @@ function validarIndiceRanura(indiceRanura) {
   if (!Number.isInteger(indiceRanura) || indiceRanura < 0 || indiceRanura > 9) {
     throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
   }
+}
+
+function distanciaCuadricula(origen, destino) {
+  return Math.max(
+    Math.abs(destino.x - origen.x),
+    Math.abs(destino.y - origen.y),
+  );
+}
+
+function copiarCasilla({ x, y }) {
+  return { x, y };
+}
+
+function copiarSimple(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) return valor.map(copiarSimple);
+  return Object.fromEntries(
+    Object.entries(valor).map(([clave, actual]) => [
+      clave,
+      copiarSimple(actual),
+    ]),
+  );
 }
 
 function limitar(valor, minimo, maximo) {

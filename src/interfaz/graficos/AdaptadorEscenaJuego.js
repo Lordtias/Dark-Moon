@@ -46,7 +46,27 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
 
     combate: {
       activo: selectorMapaActivo,
-      casillasAtacables: combateActivo ? obtenerCasillasAtacables(juego) : [],
+      modo: combateActivo
+        ? "combate"
+        : interaccionActiva
+          ? "interaccion"
+          : habilidadActiva
+            ? "habilidad"
+            : null,
+      casillasAtacables: combateActivo
+        ? obtenerCasillasAtacables(juego)
+        : habilidadActiva
+          ? copiarPosiciones(habilidad.casillasSeleccionables)
+          : [],
+      casillasAfectadas: habilidadActiva
+        ? copiarPosiciones(habilidad.casillasAfectadas)
+        : [],
+      objetivosAfectados: habilidadActiva
+        ? copiarObjetivosHabilidad(habilidad.objetivosAfectados)
+        : [],
+      recorrido: habilidadActiva
+        ? copiarObjetivosHabilidad(habilidad.recorrido)
+        : [],
       selector: combateActivo
         ? crearSelectorCombateVisual(juego)
         : interaccionActiva
@@ -173,9 +193,18 @@ function crearSelectorHabilidadVisual(habilidad) {
   return {
     x: selector.x,
     y: selector.y,
-    esValido:
-      selector.objetivoValido === true && selector.puedeEjecutar === true,
+    esValido: selector.puedeEjecutar === true,
   };
+}
+
+function copiarPosiciones(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.map(({ x, y }) => ({ x, y }));
+}
+
+function copiarObjetivosHabilidad(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.map(({ x, y, orden = 0 }) => ({ x, y, orden }));
 }
 
 // Convierte una entidad del dominio

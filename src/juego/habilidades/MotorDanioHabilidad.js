@@ -39,6 +39,43 @@ export function obtenerEstadoTiradasDeterministasHabilidad() {
   });
 }
 
+export function resolverImpactoHabilidad({
+  lanzador,
+  objetivo,
+  idEjecucion,
+  resolverImpacto = true,
+  resolverCritico = false,
+} = {}) {
+  if (!lanzador || !objetivo) {
+    throw new Error("La resolución de impacto necesita lanzador y objetivo.");
+  }
+
+  const estadisticasLanzador = obtenerEstadisticas(lanzador);
+  const probabilidadImpacto = resolverImpacto
+    ? obtenerProbabilidadImpacto(lanzador, objetivo)
+    : 100;
+  const tiradaImpacto = obtenerTirada("impacto");
+  const impacto = !resolverImpacto || tiradaImpacto <= probabilidadImpacto;
+  const probabilidadCritico = resolverCritico
+    ? limitar(estadisticasLanzador?.probabilidadCritico ?? 0, 0, 100)
+    : 0;
+  const tiradaCritico =
+    impacto && resolverCritico ? obtenerTirada("critico") : null;
+  const critico =
+    impacto && resolverCritico && tiradaCritico <= probabilidadCritico;
+
+  return {
+    idEjecucion,
+    impacto,
+    critico,
+    probabilidadImpacto,
+    tiradaImpacto,
+    probabilidadCritico,
+    tiradaCritico,
+    objetivoDerrotado: estaDerrotado(objetivo),
+  };
+}
+
 export function resolverDanioHabilidad({
   lanzador,
   objetivo,
@@ -64,7 +101,7 @@ export function resolverDanioHabilidad({
     ? obtenerMultiplicadorDanioMagico(lanzador)
     : 1;
   const contextoPotenciaCalculado = aplicarPotenciaHabilidad
-    ? contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador)
+    ? (contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador))
     : crearContextoPotenciaNeutro();
   const multiplicadorBase =
     multiplicadorAtributos * contextoPotenciaCalculado.multiplicadorHabilidad;
@@ -94,10 +131,7 @@ export function resolverDanioHabilidad({
   const componentes = componentesConfigurados.map((componente) => ({
     tipo: componente.tipo,
     valorBase: componente.valorBase,
-    danioBruto: escalarDanioMagico(
-      componente.valorBase,
-      multiplicadorFinal,
-    ),
+    danioBruto: escalarDanioMagico(componente.valorBase, multiplicadorFinal),
   }));
   const resistencias = estadisticasObjetivo?.resistencias ?? {};
   const resolucion = resolverPaqueteDanio({
@@ -109,15 +143,11 @@ export function resolverDanioHabilidad({
     resistencias,
     bloqueo: { activo: false, mitigacion: 0 },
   });
-  const danioAplicado = aplicarDanioFinal(
-    objetivo,
-    resolucion.danioCalculado,
-    {
-      idEjecucion,
-      fuente: lanzador,
-      tipoAccion: "habilidad",
-    },
-  );
+  const danioAplicado = aplicarDanioFinal(objetivo, resolucion.danioCalculado, {
+    idEjecucion,
+    fuente: lanzador,
+    tipoAccion: "habilidad",
+  });
 
   return {
     idEjecucion,
@@ -130,7 +160,8 @@ export function resolverDanioHabilidad({
     multiplicadorCritico,
     multiplicadorDanioMagico: multiplicadorFinal,
     multiplicadorAtributosMagicos: multiplicadorAtributos,
-    multiplicadorPotenciaHabilidad: contextoPotenciaCalculado.multiplicadorHabilidad,
+    multiplicadorPotenciaHabilidad:
+      contextoPotenciaCalculado.multiplicadorHabilidad,
     potenciaHabilidad: contextoPotenciaCalculado.potenciaHabilidad,
     cantidadObjetosAportandoPotencia:
       contextoPotenciaCalculado.cantidadObjetosAportando ?? 0,
@@ -197,7 +228,9 @@ function validarEntradaDanio({ lanzador, objetivo, componentesConfigurados }) {
     throw new Error("El daño de habilidad necesita lanzador y objetivo.");
   }
   if (!Array.isArray(componentesConfigurados)) {
-    throw new Error("Los componentes de daño de la habilidad deben ser una lista.");
+    throw new Error(
+      "Los componentes de daño de la habilidad deben ser una lista.",
+    );
   }
   if (componentesConfigurados.length === 0) {
     throw new Error("La habilidad necesita al menos un componente de daño.");
@@ -301,7 +334,12 @@ function aplicarDanioFinal(objetivo, danioFinal, contexto) {
 }
 
 function encontrarMetodoDanio(objetivo) {
-  const nombres = ["recibirDanio", "recibirDaño", "aplicarDanio", "aplicarDaño"];
+  const nombres = [
+    "recibirDanio",
+    "recibirDaño",
+    "aplicarDanio",
+    "aplicarDaño",
+  ];
   for (const nombre of nombres) {
     if (typeof objetivo?.[nombre] === "function") return objetivo[nombre];
   }

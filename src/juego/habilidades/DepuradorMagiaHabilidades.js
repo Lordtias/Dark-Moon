@@ -29,6 +29,16 @@ const HABILIDADES_BASICAS = Object.freeze([
   "chispa",
   "aguijon_toxico",
 ]);
+const HABILIDADES_INTERMEDIAS = Object.freeze([
+  "explosion_ignea",
+  "nova_escarcha",
+  "cadena_rayos",
+  "nube_toxica",
+]);
+const HABILIDADES_JUGABLES = Object.freeze([
+  ...HABILIDADES_BASICAS,
+  ...HABILIDADES_INTERMEDIAS,
+]);
 
 // Fachada única para validar el sistema mágico activo desde el navegador.
 // Cada operación resuelve el mapa actual y no retiene integraciones destruidas.
@@ -60,6 +70,8 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
       ),
     mejorarHabilidad: (datos) =>
       invocarProgreso(contexto.obtenerJugador(), "mejorarHabilidad", datos),
+    prepararHabilidadParaPrueba: (datos) =>
+      prepararHabilidadParaPrueba(contexto, datos),
     validarContratos: () => validarContratosProgreso(contexto),
   });
 
@@ -81,6 +93,8 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
   const habilidades = Object.freeze({
     obtenerSeleccion: () =>
       contexto.obtenerSistema().obtenerSeleccionDetallada(),
+    obtenerCatalogo: () =>
+      contexto.obtenerIntegracion().configuracionEjecucion?.habilidades ?? {},
     seleccionarPorRanura: (ranuraHumana) =>
       contexto
         .obtenerSistema()
@@ -99,9 +113,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     establecerManaActualParaPrueba: (valor) =>
       establecerMana(contexto.obtenerJugador(), valor),
     configurarTiradasDeterministas: (configuracion) =>
-      contexto
-        .obtenerSistema()
-        .configurarTiradasDeterministas(configuracion),
+      contexto.obtenerSistema().configurarTiradasDeterministas(configuracion),
     restaurarTiradasAleatorias: () =>
       contexto.obtenerSistema().restaurarTiradasAleatorias(),
     obtenerEstadoTiradasDeterministas: () =>
@@ -192,6 +204,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
         barra: integracion.sistema.obtenerEstadoBarra(),
         panelAbierto: integracion.panel.estaAbierto(),
         habilidadesBasicas: [...HABILIDADES_BASICAS],
+        habilidadesIntermedias: [...HABILIDADES_INTERMEDIAS],
       };
     },
     validarContratos: () => validarContratosInterfaz(contexto),
@@ -301,13 +314,12 @@ function crearInstantaneaEjecucion(contexto) {
           resumen?.maestrias?.[id]?.experienciaActual ??
           resumen?.maestrias?.[id]?.experiencia ??
           0,
-        experienciaTotal:
-          resumen?.maestrias?.[id]?.experienciaTotal ?? 0,
+        experienciaTotal: resumen?.maestrias?.[id]?.experienciaTotal ?? 0,
       },
     ]),
   );
   const grados = Object.fromEntries(
-    HABILIDADES_BASICAS.map((id) => [
+    HABILIDADES_JUGABLES.map((id) => [
       id,
       resumen?.habilidades?.[id]?.grado ?? obtenerGrado(jugador, id),
     ]),
@@ -362,6 +374,21 @@ function validarContratosProgreso(contexto) {
       definicion?.gradoMaximo,
     );
   }
+  for (const id of HABILIDADES_INTERMEDIAS) {
+    const definicion = configuracion?.habilidades?.[id];
+    comprobar(
+      comprobaciones,
+      `${id} se desbloquea en nivel de maestría 3`,
+      definicion?.requisitoNivelMaestria === 3,
+      definicion?.requisitoNivelMaestria,
+    );
+    comprobar(
+      comprobaciones,
+      `${id} admite exactamente tres grados`,
+      definicion?.gradoMaximo === 3,
+      definicion?.gradoMaximo,
+    );
+  }
   return cerrarComprobaciones(comprobaciones);
 }
 
@@ -400,6 +427,39 @@ function validarContratosHabilidades(contexto) {
       `${id} declara cuatro grados ejecutables`,
       Object.keys(habilidad?.ejecucion?.grados ?? {}).length === 4,
       Object.keys(habilidad?.ejecucion?.grados ?? {}),
+    );
+  }
+  const contratosIntermedios = {
+    explosion_ignea: { objetivo: "casilla", forma: "radio" },
+    nova_escarcha: { objetivo: "propio", forma: "radio" },
+    cadena_rayos: { objetivo: "enemigo", forma: "cadena" },
+    nube_toxica: { objetivo: "casilla", forma: "radio" },
+  };
+  for (const id of HABILIDADES_INTERMEDIAS) {
+    const habilidad = catalogo[id];
+    const contrato = contratosIntermedios[id];
+    const grados = Object.values(habilidad?.ejecucion?.grados ?? {});
+    comprobar(
+      comprobaciones,
+      `${id} tiene ejecución jugable`,
+      Boolean(habilidad?.ejecucion),
+      habilidad?.ejecucion ?? null,
+    );
+    comprobar(
+      comprobaciones,
+      `${id} usa objetivo y forma de impacto configurables`,
+      habilidad?.ejecucion?.tipoObjetivo === contrato.objetivo &&
+        grados.every((grado) => grado?.formaImpacto?.tipo === contrato.forma),
+      {
+        objetivo: habilidad?.ejecucion?.tipoObjetivo,
+        formas: grados.map((grado) => grado?.formaImpacto?.tipo ?? null),
+      },
+    );
+    comprobar(
+      comprobaciones,
+      `${id} declara tres grados ejecutables`,
+      grados.length === 3,
+      grados.length,
     );
   }
   comprobar(
@@ -532,7 +592,9 @@ function crearResumenArquitectura(contexto) {
     partidaIniciada: controlador.partidaIniciada === true,
     juegoActivo: Boolean(controlador.juego),
     integracionActiva: Boolean(integracion && !integracion.destruida),
-    sistemaActivo: Boolean(integracion?.sistema && !integracion.sistema.destruido),
+    sistemaActivo: Boolean(
+      integracion?.sistema && !integracion.sistema.destruido,
+    ),
     barraActiva: Boolean(integracion?.barra),
     panelActivo: Boolean(integracion?.panel),
     entradaActiva: Boolean(integracion?.entrada),
@@ -576,8 +638,7 @@ function crearResumenEquipamientoMagico(jugador) {
   return {
     potenciaHabilidad: contextoPotencia.potenciaHabilidad,
     multiplicadorHabilidad: contextoPotencia.multiplicadorHabilidad,
-    cantidadObjetosAportandoPotencia:
-      contextoPotencia.cantidadObjetosAportando,
+    cantidadObjetosAportandoPotencia: contextoPotencia.cantidadObjetosAportando,
     cantidadObjetosEquipados: objetos.length,
     objetos: objetos.map((objeto) => ({
       id: objeto.id ?? null,
@@ -614,7 +675,9 @@ function obtenerConfiguracionAtaqueSeguro(jugador) {
 }
 
 function obtenerEfectosActivos(juego, objetivo) {
-  if (typeof juego?.coordinadorTiempo?.obtenerEfectosTemporales === "function") {
+  if (
+    typeof juego?.coordinadorTiempo?.obtenerEfectosTemporales === "function"
+  ) {
     return juego.coordinadorTiempo.obtenerEfectosTemporales(objetivo);
   }
   return [];
@@ -671,6 +734,57 @@ function obtenerGrado(jugador, idHabilidad) {
     return jugador.obtenerGradoHabilidad(idHabilidad);
   }
   return obtenerProgreso(jugador).obtenerGradoHabilidad(idHabilidad);
+}
+
+function prepararHabilidadParaPrueba(
+  contexto,
+  { idHabilidad, grado = 1 } = {},
+) {
+  const integracion = contexto.obtenerIntegracion();
+  const definicion =
+    integracion.configuracionProgreso?.habilidades?.[idHabilidad];
+  if (!definicion) {
+    throw new Error(`La habilidad "${idHabilidad}" no existe.`);
+  }
+  if (!Number.isInteger(grado) || grado < 0 || grado > definicion.gradoMaximo) {
+    throw new Error(
+      `El grado de prueba debe estar entre 0 y ${definicion.gradoMaximo}.`,
+    );
+  }
+
+  const progreso = obtenerProgreso(contexto.obtenerJugador());
+  if (
+    typeof progreso.exportarEstado !== "function" ||
+    typeof progreso.restaurarEstado !== "function"
+  ) {
+    throw new Error(
+      "El progreso mágico no permite preparar una prueba aislada.",
+    );
+  }
+
+  const estado = progreso.exportarEstado();
+  const maestria = estado.maestrias?.[definicion.maestria];
+  if (!maestria) {
+    throw new Error(
+      `La profesión activa no tiene la maestría "${definicion.maestria}".`,
+    );
+  }
+  maestria.nivel = Math.max(
+    maestria.nivel,
+    grado > 0 ? definicion.requisitoNivelMaestria : 0,
+  );
+  maestria.experiencia = 0;
+  estado.gradosHabilidades[idHabilidad] = grado;
+  const resultado = progreso.restaurarEstado(estado);
+  contexto.obtenerIntegracion().panel?.renderizar?.();
+  return {
+    exito: resultado?.exito === true,
+    idHabilidad,
+    grado,
+    idMaestria: definicion.maestria,
+    nivelMaestria: maestria.nivel,
+    resumen: obtenerResumenProgreso(contexto.obtenerJugador()),
+  };
 }
 
 function establecerMana(jugador, valor) {

@@ -2,6 +2,7 @@ import {
   TIPOS_DANIO_VALIDOS,
   normalizarTipoDanio,
 } from "../combate/ComponentesDanio.js";
+import { TIPOS_FORMA_IMPACTO } from "./GeometriaHabilidades.js";
 import {
   FACTORES_TEMPORALES_MODIFICABLES,
   POLITICAS_ACUMULACION_VALIDAS,
@@ -104,11 +105,13 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       definicionGrado.alcance,
       `el alcance de "${idHabilidad}" grado ${grado}`,
     );
-    const danio = normalizarDanio(
-      definicionGrado.danio,
+    const formaImpacto = normalizarFormaImpacto({
+      formaImpacto: definicionGrado.formaImpacto,
       idHabilidad,
       grado,
-    );
+      tipoObjetivo,
+    });
+    const danio = normalizarDanio(definicionGrado.danio, idHabilidad, grado);
     const efectos = normalizarEfectos(
       definicionGrado.efectos,
       idHabilidad,
@@ -123,6 +126,7 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
       costoMana: definicionGrado.costoMana,
       costoTemporalBase: definicionGrado.costoTemporalBase,
       alcance: definicionGrado.alcance,
+      formaImpacto,
       danio,
       efectos,
     };
@@ -140,6 +144,67 @@ function normalizarEjecucion({ idHabilidad, gradoMaximo, ejecucion }) {
     hostil: ejecucion.hostil,
     grados,
   };
+}
+
+function normalizarFormaImpacto({
+  formaImpacto,
+  idHabilidad,
+  grado,
+  tipoObjetivo,
+}) {
+  const definicion = formaImpacto ?? { tipo: TIPOS_FORMA_IMPACTO.INDIVIDUAL };
+  validarObjeto(
+    definicion,
+    `la forma de impacto de "${idHabilidad}" grado ${grado}`,
+  );
+  const tipo = normalizarId(definicion.tipo);
+  if (!Object.values(TIPOS_FORMA_IMPACTO).includes(tipo)) {
+    throw new Error(
+      `La habilidad "${idHabilidad}" grado ${grado} usa la forma de impacto desconocida "${tipo}".`,
+    );
+  }
+
+  if (tipo === TIPOS_FORMA_IMPACTO.RADIO) {
+    validarEnteroPositivo(
+      definicion.radio,
+      `el radio de "${idHabilidad}" grado ${grado}`,
+    );
+    return { tipo, radio: definicion.radio };
+  }
+
+  if (tipo === TIPOS_FORMA_IMPACTO.CADENA) {
+    if (tipoObjetivo !== "enemigo") {
+      throw new Error(
+        `La habilidad "${idHabilidad}" grado ${grado} necesita objetivo enemigo para usar cadena.`,
+      );
+    }
+    validarEnteroPositivo(
+      definicion.maximoObjetivos,
+      `el máximo de objetivos de "${idHabilidad}" grado ${grado}`,
+    );
+    validarEnteroPositivo(
+      definicion.alcanceSalto,
+      `el alcance de salto de "${idHabilidad}" grado ${grado}`,
+    );
+    const factorDanioPorSalto = definicion.factorDanioPorSalto ?? 1;
+    validarNumeroPositivo(
+      factorDanioPorSalto,
+      `el factor de daño por salto de "${idHabilidad}" grado ${grado}`,
+    );
+    if (factorDanioPorSalto > 1) {
+      throw new Error(
+        `El factor de daño por salto de "${idHabilidad}" grado ${grado} no puede superar 1.`,
+      );
+    }
+    return {
+      tipo,
+      maximoObjetivos: definicion.maximoObjetivos,
+      alcanceSalto: definicion.alcanceSalto,
+      factorDanioPorSalto,
+    };
+  }
+
+  return { tipo: TIPOS_FORMA_IMPACTO.INDIVIDUAL };
 }
 
 function normalizarDanio(componentes, idHabilidad, grado) {
@@ -217,9 +282,7 @@ function normalizarEfecto(efecto, { etiqueta }) {
     validarEnteroPositivo(efecto.valorBase, `el daño periódico de "${id}"`);
     validarEnteroPositivo(efecto.intervalo, `el intervalo de "${id}"`);
     if (efecto.intervalo > efecto.duracion) {
-      throw new Error(
-        `El intervalo de "${id}" no puede superar su duración.`,
-      );
+      throw new Error(`El intervalo de "${id}" no puede superar su duración.`);
     }
     return {
       ...comun,
@@ -310,7 +373,8 @@ function validarNumeroPositivo(valor, etiqueta) {
   }
 }
 function congelarProfundamente(valor) {
-  if (!valor || typeof valor !== "object" || Object.isFrozen(valor)) return valor;
+  if (!valor || typeof valor !== "object" || Object.isFrozen(valor))
+    return valor;
   for (const elemento of Object.values(valor)) congelarProfundamente(elemento);
   return Object.freeze(valor);
 }

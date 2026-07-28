@@ -262,10 +262,22 @@ export class RenderizadorCanvas2D {
     this.dibujarMapa(escena.mapa);
 
     if (escena.combate.activo) {
-      this.dibujarRangoCombate(escena.combate.casillasAtacables);
+      this.dibujarRangoCombate(
+        escena.combate.casillasAtacables,
+        escena.combate.modo,
+      );
+    }
+
+    if (escena.combate.modo === "habilidad") {
+      this.dibujarAreaHabilidad(escena.combate.casillasAfectadas);
+      this.dibujarRecorridoHabilidad(escena.combate.recorrido);
     }
 
     this.dibujarEntidades(escena.entidades);
+
+    if (escena.combate.modo === "habilidad") {
+      this.dibujarObjetivosHabilidad(escena.combate.objetivosAfectados);
+    }
 
     if (escena.combate.activo && escena.combate.selector) {
       this.dibujarSelectorCombate(escena.combate.selector);
@@ -729,7 +741,8 @@ export class RenderizadorCanvas2D {
 
   // Resalta las casillas válidas de ataque
   // sin ocultar excesivamente el terreno.
-  dibujarRangoCombate(casillas) {
+  dibujarRangoCombate(casillas, modo = "combate") {
+    const esHabilidad = modo === "habilidad";
     for (const casilla of casillas) {
       const pixelX = casilla.x * this.tileSize;
 
@@ -737,7 +750,9 @@ export class RenderizadorCanvas2D {
 
       this.context.save();
 
-      this.context.fillStyle = "rgba(220, 55, 55, 0.13)";
+      this.context.fillStyle = esHabilidad
+        ? "rgba(85, 120, 235, 0.10)"
+        : "rgba(220, 55, 55, 0.13)";
 
       this.context.fillRect(
         pixelX + 1,
@@ -746,7 +761,9 @@ export class RenderizadorCanvas2D {
         this.tileSize - 2,
       );
 
-      this.context.strokeStyle = "rgba(255, 110, 110, 0.28)";
+      this.context.strokeStyle = esHabilidad
+        ? "rgba(125, 165, 255, 0.26)"
+        : "rgba(255, 110, 110, 0.28)";
 
       this.context.lineWidth = 1;
 
@@ -757,6 +774,100 @@ export class RenderizadorCanvas2D {
         this.tileSize - 3,
       );
 
+      this.context.restore();
+    }
+  }
+
+  // Destaca la forma que será afectada al confirmar la habilidad.
+  dibujarAreaHabilidad(casillas) {
+    for (const casilla of casillas ?? []) {
+      const pixelX = casilla.x * this.tileSize;
+      const pixelY = casilla.y * this.tileSize;
+
+      this.context.save();
+      this.context.fillStyle = "rgba(170, 80, 230, 0.18)";
+      this.context.fillRect(
+        pixelX + 2,
+        pixelY + 2,
+        this.tileSize - 4,
+        this.tileSize - 4,
+      );
+      this.context.strokeStyle = "rgba(225, 155, 255, 0.48)";
+      this.context.lineWidth = 1;
+      this.context.strokeRect(
+        pixelX + 2.5,
+        pixelY + 2.5,
+        this.tileSize - 5,
+        this.tileSize - 5,
+      );
+      this.context.restore();
+    }
+  }
+
+  // Une visualmente los saltos de una forma de impacto en cadena.
+  dibujarRecorridoHabilidad(recorrido) {
+    if (!Array.isArray(recorrido) || recorrido.length < 2) return;
+
+    const pasos = [...recorrido].sort((a, b) => a.orden - b.orden);
+    this.context.save();
+    this.context.strokeStyle = "rgba(185, 220, 255, 0.88)";
+    this.context.lineWidth = Math.max(2, Math.floor(this.tileSize * 0.08));
+    this.context.lineJoin = "round";
+    this.context.lineCap = "round";
+    this.context.beginPath();
+
+    pasos.forEach((paso, indice) => {
+      const centroX = paso.x * this.tileSize + this.tileSize / 2;
+      const centroY = paso.y * this.tileSize + this.tileSize / 2;
+      if (indice === 0) this.context.moveTo(centroX, centroY);
+      else this.context.lineTo(centroX, centroY);
+    });
+
+    this.context.stroke();
+    this.context.restore();
+  }
+
+  // Marca los objetivos que recibirán daño o efectos y su orden de cadena.
+  dibujarObjetivosHabilidad(objetivos) {
+    for (const objetivo of objetivos ?? []) {
+      const pixelX = objetivo.x * this.tileSize;
+      const pixelY = objetivo.y * this.tileSize;
+      const margen = Math.max(3, Math.floor(this.tileSize * 0.12));
+      const tamanoMarca = Math.max(10, Math.floor(this.tileSize * 0.34));
+
+      this.context.save();
+      this.context.strokeStyle = "rgba(245, 225, 255, 0.95)";
+      this.context.lineWidth = 2;
+      this.context.strokeRect(
+        pixelX + margen + 0.5,
+        pixelY + margen + 0.5,
+        this.tileSize - margen * 2 - 1,
+        this.tileSize - margen * 2 - 1,
+      );
+
+      this.context.fillStyle = "rgba(80, 35, 110, 0.94)";
+      this.context.fillRect(
+        pixelX + this.tileSize - tamanoMarca - 2,
+        pixelY + 2,
+        tamanoMarca,
+        tamanoMarca,
+      );
+      this.context.strokeStyle = "rgba(245, 225, 255, 0.95)";
+      this.context.strokeRect(
+        pixelX + this.tileSize - tamanoMarca - 1.5,
+        pixelY + 2.5,
+        tamanoMarca - 1,
+        tamanoMarca - 1,
+      );
+      this.context.fillStyle = "#ffffff";
+      this.context.font = `bold ${Math.max(8, Math.floor(tamanoMarca * 0.7))}px monospace`;
+      this.context.textAlign = "center";
+      this.context.textBaseline = "middle";
+      this.context.fillText(
+        String((objetivo.orden ?? 0) + 1),
+        pixelX + this.tileSize - tamanoMarca / 2 - 2,
+        pixelY + tamanoMarca / 2 + 2,
+      );
       this.context.restore();
     }
   }

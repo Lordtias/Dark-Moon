@@ -55,6 +55,11 @@ const elementos = Object.fromEntries(
     "balanceEfectosExtremosCuerpo",
     "balanceEfectosAfijosCuerpo",
     "balanceEfectosAcumulacionCuerpo",
+    "balanceRegresionRutaCuerpo",
+    "balanceRegresionRecompensasCuerpo",
+    "balanceRegresionFallosCuerpo",
+    "balanceRegresionCoberturaCuerpo",
+    "balanceRegresionInterfazCuerpo",
     "balanceEscenarios",
     "balanceAdvertencias",
     "balanceRecargar",
@@ -124,6 +129,7 @@ function dibujarInforme(informe) {
     resumenCombate.arquetipos.resumen.incorrectos,
     resumenCombate.pruebasFocalizadas.resumen.incorrectos,
     informe.efectos.resumen.incorrectos,
+    informe.regresion.resumen.incorrectos,
   ].some((cantidad) => cantidad > 0);
   const hayAdvertencias = [
     resumenCombate.armas.resumen.advertencias,
@@ -131,6 +137,7 @@ function dibujarInforme(informe) {
     resumenCombate.arquetipos.resumen.advertencias,
     resumenCombate.pruebasFocalizadas.resumen.advertencias,
     informe.efectos.resumen.advertencias,
+    informe.regresion.resumen.advertencias,
   ].some((cantidad) => cantidad > 0);
   elementos.balanceEstado.textContent = hayIncorrectos
     ? "El análisis terminó. Hay resultados incorrectos que requieren una decisión antes de cambiar números."
@@ -147,6 +154,7 @@ function dibujarInforme(informe) {
   dibujarTablasCombate(informe.combate);
   dibujarPruebasFocalizadas(informe.combate.pruebasFocalizadas);
   dibujarTablasEfectos(informe.efectos);
+  dibujarRegresion(informe.regresion);
   dibujarEscenarios(informe.escenariosTeoricos);
   dibujarAdvertencias(informe.advertencias);
 }
@@ -162,6 +170,8 @@ function dibujarResumen(informe) {
     ["Pruebas focalizadas", informe.combate.pruebasFocalizadas.resumen.casos],
     ["Pruebas de efectos", informe.resumen.casosEfectos],
     ["Enemigos/variantes", informe.resumen.enemigosEfectosAnalizados],
+    ["Mapas de regresión", informe.resumen.mapasRegresionGenerados],
+    ["Casos de regresión", informe.resumen.casosRegresion],
   ];
   elementos.balanceResumen.replaceChildren(
     ...datos.map(([etiqueta, valor]) => crearTarjetaResumen(etiqueta, valor)),
@@ -211,6 +221,10 @@ function tituloConclusion(id) {
     constitucion_resistencias: "Constitución y resistencias a efectos",
     enemigos_resistencias: "Resistencias de enemigos",
     afijos_resistencias: "Afijos de resistencia",
+    regresion_ruta: "Ruta real de nivel 1 a 10",
+    regresion_recompensas: "Recompensas únicas",
+    regresion_fallos: "Casos fallidos",
+    regresion_cobertura: "Cobertura final",
   }[id] ?? id;
 }
 
@@ -671,6 +685,75 @@ function dibujarTablasEfectos(efectos) {
     fila.criterio,
     crearEtiquetaEstado(fila.estado),
   ]);
+}
+
+
+function dibujarRegresion(regresion) {
+  llenar("balanceRegresionRutaCuerpo", regresion.ruta.filas, (fila) => [
+    fila.nivel,
+    `${fila.mapa} ${fila.nivelMapa}`,
+    fila.semillas,
+    formatearNumero(fila.enemigosPromedio),
+    formatearNumero(fila.vidaTotalPromedio),
+    formatearNumero(fila.experienciaNecesaria),
+    formatearNumero(fila.experienciaPromedio),
+    formatearNumero(fila.expedicionesEstimadas),
+    fila.especialesObservados,
+    fila.elitesObservados,
+    fila.jefesObservados,
+    `${formatearNumero(fila.conectividadMinima)} %`,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar(
+    "balanceRegresionRecompensasCuerpo",
+    regresion.recompensas.filas,
+    (fila) => [
+      fila.causa,
+      fila.enemigo,
+      fila.experienciaEsperada,
+      fila.experienciaGanada,
+      fila.botinPrimeraResolucion,
+      fila.segundaResolucionProcesada ? "Sí" : "No",
+      fila.retirosTemporales,
+      fila.criterio,
+      crearEtiquetaEstado(fila.estado),
+    ],
+  );
+
+  llenar("balanceRegresionFallosCuerpo", regresion.fallos.filas, (fila) => [
+    fila.caso,
+    fila.esperado,
+    fila.obtenido,
+    fila.detalle || "—",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar(
+    "balanceRegresionCoberturaCuerpo",
+    regresion.cobertura.filas,
+    (fila) => [
+      fila.comprobacion,
+      fila.esperado,
+      fila.obtenido,
+      fila.criterio,
+      crearEtiquetaEstado(fila.estado),
+    ],
+  );
+
+  llenar(
+    "balanceRegresionInterfazCuerpo",
+    regresion.interfaz.filas,
+    (fila) => [
+      fila.comprobacion,
+      fila.ejecucion,
+      fila.resultado,
+      fila.criterio,
+      crearEtiquetaEstado(fila.estado),
+    ],
+  );
 }
 
 function formatearEstrategiaConstitucion(estrategia) {

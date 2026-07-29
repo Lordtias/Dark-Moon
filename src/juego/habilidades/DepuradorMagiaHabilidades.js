@@ -390,6 +390,7 @@ function crearAccesoBalance(contexto) {
     inmunidadesEfectos: ejecutar("inmunidadesEfectos"),
     enemigosResistencias: ejecutar("enemigosResistencias"),
     afijosResistencias: ejecutar("afijosResistencias"),
+    regresion: ejecutar("regresion"),
     constitucion: ejecutar("constitucion"),
     escenariosTeoricos: ejecutar("escenariosTeoricos"),
   });

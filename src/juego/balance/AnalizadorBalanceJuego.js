@@ -4,6 +4,7 @@ import { calcularCostoBaseAtaque } from "../../entidad/destructible/combatiente/
 import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
 import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
 import { crearInformeBalanceEfectos } from "./AnalizadorBalanceEfectos.js";
+import { crearInformeBalanceRegresion } from "./AnalizadorBalanceRegresion.js";
 import { calcularBonoResistenciasEfectosPorConstitucion } from "../efectos/ResistenciasEfectos.js";
 import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
 import {
@@ -124,6 +125,17 @@ export function crearAnalizadorBalanceJuego({
     pruebasFocalizadas: () => analizador.combate().pruebasFocalizadas,
     efectos: () =>
       obtener("efectos", crearInformeBalanceEfectos),
+    regresion: () =>
+      obtener("regresion", () =>
+        crearInformeBalanceRegresion({
+          ...dependencias,
+          progresion: analizador.progresion(),
+          progresionMagica: analizador.progresionMagica(),
+          mana: analizador.mana(),
+          combate: analizador.combate(),
+          efectos: analizador.efectos(),
+        }),
+      ),
     probabilidadesEfectos: () => analizador.efectos().probabilidades,
     contratosEfectos: () => analizador.efectos().contratos,
     inmunidadesEfectos: () => analizador.efectos().inmunidades,
@@ -146,6 +158,7 @@ export function crearAnalizadorBalanceJuego({
           armas: analizador.armas(),
           combate: analizador.combate(),
           efectos: analizador.efectos(),
+          regresion: analizador.regresion(),
           constitucion: analizador.constitucion(),
           escenariosTeoricos: analizador.escenariosTeoricos(),
           dependencias,
@@ -167,6 +180,7 @@ function crearInformeLineaBase({
   armas,
   combate,
   efectos,
+  regresion,
   constitucion,
   escenariosTeoricos,
   dependencias,
@@ -209,7 +223,7 @@ function crearInformeLineaBase({
   }
 
   return {
-    versionInforme: 6,
+    versionInforme: 7,
     tipoResultado: "linea_base",
     determinista: true,
     origenes: {
@@ -249,6 +263,9 @@ function crearInformeLineaBase({
         efectos.resumen.contratosProbados +
         efectos.resumen.inmunidadesProbadas,
       enemigosEfectosAnalizados: efectos.resumen.enemigosVariantesAnalizados,
+      mapasRegresionGenerados: regresion.resumen.mapasGenerados,
+      casosRegresion: regresion.resumen.correctos +
+        regresion.resumen.advertencias + regresion.resumen.incorrectos,
     },
     progresion,
     maestrias,
@@ -260,6 +277,7 @@ function crearInformeLineaBase({
     armas,
     combate,
     efectos,
+    regresion,
     constitucion,
     escenariosTeoricos,
     conclusiones: combinarConclusiones(
@@ -273,6 +291,7 @@ function crearInformeLineaBase({
       }),
       combate.conclusiones,
       efectos.conclusiones,
+      regresion.conclusiones,
     ),
     advertencias,
   };

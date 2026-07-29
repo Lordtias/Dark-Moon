@@ -209,6 +209,37 @@
         <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Accesorios</th><th>Cada uno</th><th>Constitución</th><th>Bruta</th><th>Final</th><th>Prob. final base 100 %</th><th>Alcanza 75 %</th><th>Inmunidad práctica</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosAcumulacionCuerpo"></tbody></table></div>
       </section>
 
+      <section class="balance-seccion balance-seccion--regresion">
+        <p class="balance-sobretitulo">Regresión completa de nivel 1 a 10</p>
+        <h2>Mapas reales de la ruta recomendada</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> tres generaciones reales por cada tramo de nivel. <strong>Correcto:</strong> entre 0,8 y 2,25 expediciones; la conectividad debe conservarse y el contenido obligatorio debe aparecer.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Nivel</th><th>Mapa</th><th>Semillas</th><th>Enemigos</th><th>Vida total</th><th>XP necesaria</th><th>XP mapa</th><th>Expediciones</th><th>Especiales</th><th>Élites</th><th>Jefes</th><th>Conectividad</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRegresionRutaCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--regresion">
+        <h2>Experiencia y botín una sola vez</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> una muerte directa y una muerte periódica procesadas dos veces. <strong>Correcto:</strong> la primera entrega experiencia y resuelve el botín; la segunda no entrega nada ni retira nuevamente al enemigo.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Causa</th><th>Enemigo</th><th>XP esperada</th><th>XP ganada</th><th>Botines en suelo</th><th>Segunda procesada</th><th>Retiros</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRegresionRecompensasCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--regresion">
+        <h2>Casos fallidos y habilidad sin catalizador</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> falta de Maná, objetivo, alcance, desbloqueo, grado máximo y preparación sin catalizador. <strong>Correcto:</strong> el motor debe devolver el motivo exacto y permitir magia con Potencia 0 % cuando no hay catalizador.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Caso</th><th>Esperado</th><th>Obtenido</th><th>Detalle</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRegresionFallosCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--regresion">
+        <h2>Cobertura obligatoria</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> que la regresión incluya niveles, profesiones, armas, habilidades, grados, arquetipos, efectos y recompensas. <strong>Correcto:</strong> cada grupo debe alcanzar la cantidad esperada sin resultados incorrectos.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Comprobación</th><th>Esperado</th><th>Obtenido</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRegresionCoberturaCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--regresion">
+        <h2>Lista de comprobación desde la interfaz</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> aspectos que requieren Chromium y no pueden declararse correctos solamente con una fórmula. El informe técnico final registra el resultado de estas pruebas.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Comprobación</th><th>Ejecución</th><th>Resultado</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRegresionInterfazCuerpo"></tbody></table></div>
+      </section>
+
       <section class="balance-seccion"><h2>Escenarios teóricos no implementados</h2><div id="balanceEscenarios" class="balance-escenarios"></div></section>
       <section class="balance-seccion"><h2>Advertencias y límites</h2><ul id="balanceAdvertencias" class="balance-advertencias"></ul></section>
     </main>

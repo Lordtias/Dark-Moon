@@ -2,20 +2,19 @@
 
 ## Estado de la entrega
 
-Esta entrega contiene los bloques completados **12.1**, **12.2**, **12.3**, **12.3A**, **12.4A** y **12.4B**.
+Esta entrega contiene los bloques completados **12.1**, **12.2**, **12.3**, **12.3A**, **12.4A**, **12.4B** y **12.5A**.
 
-No se considera terminada la ETAPA 12 completa. Queda pendiente el **Bloque 12.5**, dedicado a la regresión completa de nivel 1 a 10, pruebas desde la interfaz real y documentación final. Cada bloque continúa requiriendo una propuesta previa y aprobación.
+La regresión final no encontró resultados incorrectos ni ajustes numéricos pendientes. Por ese motivo no se propone un Bloque 12.5B. ETAPA 12 queda funcionalmente completa después de aplicar y validar esta entrega.
 
 ## Base verificada
 
-- Ruta de trabajo del Bloque 12.2: `/mnt/data/etapa12_2_repo/repo`
-- Rama de origen informada: `main`
-- Commit base confirmado por el usuario: `6e0f1a524fd57a02f17fac22aac2937a080e7977`
-- Commit anterior del Bloque 12.1: incluido en esa base
-- Ajuste adicional conservado: referencias de botín a `varita_veneno_aprendiz`
+- Rama informada: `main`
+- Commit base confirmado por el usuario para el Bloque 12.5A: `a28f950c8b518efe00e1bc3b3d48b4500da94567`
+- Commit anterior: Bloque 12.4B
+- Ruta de trabajo local: `/mnt/data/etapa12_5a_work`
 - Commit o push realizado durante esta entrega: ninguno
 
-El entorno no pudo descargar el commit desde GitHub. La copia de análisis se reconstruyó desde el ZIP local, los archivos completos del Bloque 12.1 y las dos sustituciones de varita incluidas en el commit informado. Los archivos entregados deben aplicarse sobre el repositorio del usuario ubicado en el SHA indicado.
+La copia local no contiene `.git`. Por eso no se inventa un `git status`: los archivos se compararon directamente contra el ZIP completo del Bloque 12.4B.
 
 ## Objetivo cumplido en este bloque
 
@@ -1561,3 +1560,248 @@ docs/magia/ENTREGA_ETAPA_12.md
 **Conclusión:** el bono funciona como fue diseñado. El aporte inicial es de 2 % a 3 %, puede crecer hasta 10 %, se combina con afijos y nunca supera 75 %. Los enemigos no cambian.
 
 **Qué recomiendo:** conservar esta fórmula y pasar al Bloque 12.5. No hace falta modificar otras resistencias, enemigos o afijos como consecuencia de 12.4B.
+
+## Bloque 12.5A — Regresión completa de nivel 1 a 10
+
+### Base utilizada
+
+```text
+a28f950c8b518efe00e1bc3b3d48b4500da94567
+```
+
+La copia disponible no incluía la carpeta `.git`. Por eso el SHA fue tomado como base confirmada por el usuario y la comparación de archivos se realizó contra el ZIP completo del Bloque 12.4B.
+
+No se realizó commit ni push.
+
+### Qué se analizó
+
+Se ejecutó una regresión conjunta de:
+
+- los nueve tramos necesarios para avanzar del nivel 1 al 10;
+- cinco generaciones reales y reproducibles por tramo;
+- Guerrero, Rogue y Mago desde la interfaz;
+- las doce habilidades y sus 40 grados mediante los analizadores canónicos;
+- daga, espada, mandoble, lanza, arco, varita, bastón y doble varita;
+- los ocho arquetipos aprobados;
+- Congelamiento, Aturdimiento, Envenenamiento y Quemadura;
+- muertes directas y periódicas;
+- experiencia y botín únicos;
+- falta de Maná, objetivo inválido, alcance, bloqueo de maestría y grado máximo;
+- habilidades sin catalizador;
+- paneles de Vida, Maná, nivel y resistencias;
+- barra de diez habilidades;
+- entrada a todos los mapas de la ruta y regreso a la ciudad.
+
+### Por qué
+
+Los análisis aislados podían indicar que cada sistema estaba bien sin demostrar que funcionaran juntos. Esta regresión comprueba la progresión completa usando mapas, fábricas, resolutores y sistemas reales del juego.
+
+### Analizador de regresión
+
+Se agregó:
+
+```text
+src/juego/balance/AnalizadorBalanceRegresion.js
+```
+
+Este archivo no copia fórmulas de combate. Coordina:
+
+- `ConfiguracionInicial` y la generación real de mapas;
+- `FabricaEnemigos`;
+- `SistemaProgresion`;
+- `ComponentesDanio`;
+- `ResolutorDerrotasJugador`;
+- `SistemaHabilidadesJugador`;
+- `ProgresoMagicoJugador`;
+- los informes canónicos de combate y efectos.
+
+La consola del juego expone ahora:
+
+```javascript
+await darkMoonDebug.magia.balance.regresion()
+```
+
+### Ruta generada
+
+Se utilizaron cinco semillas por tramo: 45 mapas reales en total.
+
+| Nivel | Mapa | Enemigos promedio | Vida total promedio | XP promedio | Expediciones | Estado |
+|---|---|---:|---:|---:|---:|---|
+| 1 → 2 | Alcantarilla 1 | 5,00 | 28,20 | 18,20 | 1,10 | Correcto |
+| 2 → 3 | Cementerio 2 | 3,40 | 79,40 | 56,00 | 0,89 | Correcto |
+| 3 → 4 | Cementerio 3 | 4,00 | 121,60 | 73,40 | 1,20 | Correcto |
+| 4 → 5 | Casa del Guerrero 4 | 5,00 | 162,20 | 98,20 | 1,31 | Correcto |
+| 5 → 6 | Casa del Guerrero 5 | 5,40 | 212,00 | 125,20 | 1,40 | Correcto |
+| 6 → 7 | Fortaleza abandonada 6 | 6,60 | 277,00 | 176,80 | 1,27 | Correcto |
+| 7 → 8 | Fortaleza abandonada 7 | 6,20 | 315,60 | 197,40 | 1,40 | Correcto |
+| 8 → 9 | Sala de guerra 8 | 8,20 | 544,00 | 389,20 | 0,85 | Correcto |
+| 9 → 10 | Sala de guerra 9 | 7,80 | 484,00 | 327,40 | 1,19 | Correcto |
+
+Resultado:
+
+```text
+Mapas generados: 45
+Tramos correctos: 9
+Advertencias: 0
+Incorrectos: 0
+Expediciones totales estimadas: 10,61
+Conectividad mínima: 99,6 %
+```
+
+**Conclusión sencilla:** no existe un salto de experiencia que bloquee la progresión ni un tramo que entregue una subida completa sin una expedición razonable.
+
+### Recompensas únicas
+
+Se derrotó una Rata mediante daño directo y otra mediante un componente de Veneno. En ambos casos se llamó dos veces al resolutor canónico.
+
+| Causa | XP esperada | XP ganada | Botín creado | Segunda resolución | Estado |
+|---|---:|---:|---:|---|---|
+| Daño directo | 3 | 3 | 1 | No procesada | Correcto |
+| Daño periódico | 3 | 3 | 1 | No procesada | Correcto |
+
+Cada enemigo fue retirado una sola vez.
+
+**Conclusión sencilla:** ataque normal, daño directo de habilidad y daño periódico continúan entregando experiencia y botín una sola vez.
+
+### Casos fallidos
+
+| Caso | Resultado esperado | Resultado obtenido | Estado |
+|---|---|---|---|
+| Sin Maná | `MANA_INSUFICIENTE` | `MANA_INSUFICIENTE` | Correcto |
+| Objetivo inválido | `OBJETIVO_INVALIDO` | `OBJETIVO_INVALIDO` | Correcto |
+| Fuera de alcance | `FUERA_DE_ALCANCE` | `FUERA_DE_ALCANCE` | Correcto |
+| Maestría insuficiente | `NIVEL_MAESTRIA_INSUFICIENTE` | `NIVEL_MAESTRIA_INSUFICIENTE` | Correcto |
+| Grado superior al máximo | `GRADO_MAXIMO_ALCANZADO` | `GRADO_MAXIMO_ALCANZADO` | Correcto |
+| Sin catalizador | Plan permitido con Potencia 0 % | Plan permitido con Potencia 0 % | Correcto |
+
+**Conclusión sencilla:** las acciones inválidas se rechazan con el motivo correcto y las habilidades continúan siendo utilizables sin catalizador.
+
+### Cobertura obligatoria
+
+```text
+Progresión 1–10:                 9/9
+Profesiones:                     3/3
+Familias físicas obligatorias:   5/5
+Varita, bastón y doble varita:   3/3
+Habilidades:                    12/12
+Grados:                         40/40
+Arquetipos:                      8/8
+Efectos visibles:                4/4
+Recompensas únicas:              2/2
+Casos fallidos:                  6/6
+Maestrías que alcanzan nivel 6:  4/4
+```
+
+Resultado automático total:
+
+```text
+Correctos: 28
+Advertencias: 0
+Incorrectos: 0
+```
+
+### Pruebas desde la interfaz real
+
+Se cargó `index.html` en Chromium y se utilizaron los módulos de producción.
+
+Se comprobó:
+
+- creación de Guerrero, Rogue y Mago;
+- aparición inicial en `ciudad_inicial`;
+- paneles de Vida, Maná, nivel y resistencia por Constitución;
+- barra visual de diez ranuras;
+- aprendizaje y asignación de Ascua;
+- activación real de Alcantarilla 1;
+- Cementerio 2 y 3;
+- Casa del Guerrero 4 y 5;
+- Fortaleza abandonada 6 y 7;
+- Sala de guerra 8, 9 y 10;
+- actualización del panel desde nivel 1 hasta nivel 10;
+- regreso a la ciudad conservando nivel 10;
+- disponibilidad del comando de regresión desde `darkMoonDebug`.
+
+Cantidad de enemigos observada en la ejecución de interfaz:
+
+```text
+Nivel 1:   6
+Nivel 2:   5
+Nivel 3:   5
+Nivel 4:   4
+Nivel 5:   4
+Nivel 6:   8
+Nivel 7:   8
+Nivel 8:   8
+Nivel 9:   9
+Nivel 10:  7
+```
+
+Resultado del navegador:
+
+```text
+Errores de página: 0
+Errores de consola: 0
+Recursos faltantes: 0
+Mapas activados: 10
+Profesiones creadas: 3
+Ranuras de habilidad visibles: 10
+```
+
+### Página de balance
+
+`balance.html` incorpora cinco tablas nuevas:
+
+1. mapas reales de la ruta;
+2. recompensas únicas;
+3. casos fallidos;
+4. cobertura obligatoria;
+5. lista de comprobación de interfaz.
+
+Cada tabla explica:
+
+- qué analiza;
+- cómo decide si el resultado está bien o mal;
+- criterio de evaluación;
+- estado calculado.
+
+La página contiene 34 tablas. Ninguna quedó vacía y todas las filas nuevas tienen la misma cantidad de celdas que sus encabezados.
+
+### Cambios numéricos
+
+El Bloque 12.5A no modifica ningún número jugable.
+
+No se cambiaron:
+
+- daño;
+- Maná;
+- tiempos;
+- experiencia;
+- enemigos;
+- mapas;
+- resistencias;
+- afijos;
+- armas;
+- habilidades.
+
+El único ajuste de configuración fue aumentar de tres a cinco las semillas utilizadas por el analizador de regresión. Esto mejora la estabilidad de la medición y no afecta una partida.
+
+### Archivos del Bloque 12.5A
+
+```text
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/balance/ObjetivosBalance.json
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/balance/AnalizadorBalanceRegresion.js
+src/juego/habilidades/DepuradorMagiaHabilidades.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+### Conclusión final fácil
+
+**Qué se analizó:** la progresión completa del nivel 1 al 10, los mapas reales, la cobertura de armas y habilidades, los casos fallidos, las recompensas y la interfaz.
+
+**Por qué:** era necesario confirmar que los sistemas aprobados funcionaran juntos y no solamente en pruebas aisladas.
+
+**Conclusión:** la progresión es viable y reproducible. No se encontraron resultados incorrectos, recompensas duplicadas, bloqueos de nivel ni configuraciones obligatorias ausentes. Los valores actuales no necesitan otra corrección dentro de ETAPA 12.
+
+**Qué recomiendo:** aplicar esta entrega y cerrar ETAPA 12. No se necesita un Bloque 12.5B. El arco con recarga, los enfriamientos y las pociones de Maná deben permanecer como decisiones futuras de diseño, no como correcciones necesarias del balance actual.

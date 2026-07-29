@@ -613,3 +613,286 @@ La regresión jugable completa de niveles 1 a 10 continúa reservada para el Blo
 - Commit creado durante esta entrega: no.
 - Push realizado durante esta entrega: no.
 - Próximo paso propuesto: Bloque 12.3, sujeto a aprobación.
+
+---
+
+## Bloque 12.3 — Daño, tiempo, Potencia de Habilidad y arquetipos
+
+### Base verificada
+
+```text
+Commit base declarado y utilizado:
+14e985d42ac3c5ce4aa8c31dc07c8d1badbfb81c
+```
+
+Este bloque amplía el analizador. No cambia todavía daño, Maná, tiempos, armas, habilidades ni enemigos. Los resultados que requieren números nuevos se presentan primero para aprobación.
+
+### Qué se agregó
+
+El analizador ahora recorre automáticamente:
+
+- todas las armas configuradas;
+- todas las varitas y una prueba de doble empuñadura por cada varita;
+- las doce habilidades;
+- los cuarenta grados;
+- Potencia de Habilidad sin catalizador, con bastón, con doble varita y con afijos máximos;
+- resistencias elementales y a efectos de 0 %, 25 %, 50 % y 75 %;
+- ocho arquetipos físicos, mágicos e híbridos.
+
+El contenido nuevo que conserve los contratos actuales aparecerá automáticamente. Una mecánica nueva seguirá necesitando que se defina cómo medirla.
+
+### Cómo se obtienen los resultados
+
+- Los enemigos de referencia se crean con `FabricaEnemigos.crearEnemigo`.
+- Los ataques básicos usan estadísticas, impacto, crítico, armadura, resistencias y tiempo del juego.
+- El daño directo de habilidades se ejecuta con `MotorDanioHabilidad` y tiradas deterministas.
+- Los efectos se preparan con `MotorEfectosHabilidad`.
+- El daño periódico se mitiga con `ComponentesDanio` usando las definiciones canónicas preparadas.
+- La Potencia se obtiene mediante `SistemaCatalizadores`.
+- El analizador no identifica habilidades por nombre para ejecutar fórmulas especiales.
+
+### Criterios visibles en la página
+
+Todas las tablas de `balance.html` contienen ahora:
+
+- una explicación de qué se analiza;
+- la regla utilizada para interpretar el número;
+- una columna **Criterio de evaluación**;
+- una columna **Estado**.
+
+Estados posibles:
+
+| Estado | Significado |
+|---|---|
+| Correcto | Está dentro del rango definido. |
+| Advertencia | Puede ser válido, pero necesita comparación o prueba real. |
+| Incorrecto | Está claramente fuera de la banda amplia y requiere una decisión. |
+| Informativo | No existe todavía una comparación suficiente o la mecánica necesita otra prueba. |
+
+Un resultado no se marca como Correcto cuando no existe un par comparable.
+
+### Resultados medidos
+
+#### Armas
+
+Se analizaron 30 configuraciones:
+
+- 22 armas simples;
+- 8 configuraciones de doble varita, una por cada varita existente.
+
+| Estado | Cantidad |
+|---|---:|
+| Correcto | 24 |
+| Advertencia | 2 |
+| Incorrecto | 0 |
+| Informativo | 4 |
+
+Las dos advertencias son:
+
+- Varita de veneno de aprendiz;
+- doble Varita de veneno de aprendiz.
+
+No tienen estadísticas base inferiores a las demás varitas. El resultado baja porque los enemigos iniciales de referencia presentan una defensa efectiva mayor contra Veneno. Esto indica una desventaja del elemento en ese tramo, no un error demostrado del objeto.
+
+Comparaciones destacadas Tier I:
+
+| Configuración | Daño esperado/100 | Maná | Alcance |
+|---|---:|---:|---:|
+| Arco corto | 4,71 | 0 | 6 |
+| Bastón de aprendiz | 4,53 | 0 | 1 |
+| Varita de fuego | 3,33 | 1 | 4 |
+| Doble varita de fuego | 3,57 | 2 | 4 |
+
+La doble varita aumenta poco el daño sostenido frente a una sola, porque la secundaria tiene penalización y la acción tarda más. A cambio aporta más Potencia de Habilidad.
+
+**Conclusión sencilla:** las varitas no dominan mediante su ataque básico. Aunque su coste real de Maná sea pequeño, causan menos daño sostenido que muchas armas físicas. No se recomienda aumentar su coste en este momento.
+
+#### Arco y recarga
+
+El arco ya presenta daño sostenido inferior a las armas físicas de cuerpo a cuerpo, pero compensa mediante alcance y seguridad.
+
+Agregar una recarga de 100 casi duplicaría el ciclo de ataque. Para conservar su rendimiento habría que aumentar su daño aproximadamente al doble.
+
+**Conclusión sencilla:** no agregar recarga al arco por ahora. Primero debe probarse su ventaja real de alcance dentro de mapas completos.
+
+#### Habilidades
+
+Se ejecutaron 800 combinaciones deterministas:
+
+```text
+40 grados × 5 escenarios de Potencia × 4 resistencias
+```
+
+Para la tabla principal se muestran los 40 grados con el catalizador normal de su tramo.
+
+| Estado | Cantidad |
+|---|---:|
+| Correcto | 33 |
+| Advertencia | 4 |
+| Incorrecto | 0 |
+| Informativo | 3 |
+
+Advertencias:
+
+- Incinerar grado 3: rendimiento alto;
+- Prisión glacial grados 2 y 3: rendimiento numérico bajo, aunque incluye control fuerte;
+- Nube tóxica grado 1: comienzo débil frente a otras intermedias.
+
+Informativas:
+
+- Plaga corrosiva grados 1, 2 y 3.
+
+Plaga se marca como informativa porque su valor depende de reaplicaciones e intensidad. La primera aplicación no representa su rendimiento máximo. Su conclusión definitiva corresponde al Bloque 12.4.
+
+**Conclusión sencilla:** no existe una razón suficiente para modificar inmediatamente las doce habilidades. Incinerar grado 3 necesita una prueba de jefe y grupos; Prisión necesita valorar cuánto daño evita su control; Nube grado 1 necesita probarse en zonas reales; Plaga necesita medir acumulaciones.
+
+#### Tiempos de espera de habilidades
+
+Las habilidades tienen coste temporal, pero no enfriamiento separado. Agregar una espera de 100 reduciría el rendimiento teórico de las básicas entre 51 % y 60 %.
+
+**Conclusión sencilla:** no agregar enfriamientos por ahora. Sería una reducción demasiado grande y obligaría a recalibrar daños, Maná y progresión de maestría al mismo tiempo.
+
+#### Potencia de Habilidad
+
+| Escenario | Tier I | Tier II | Estado |
+|---|---:|---:|---|
+| Bastón base | 15 % | 25 % | Correcto |
+| Doble varita base | 16 % | 24 % | Correcto |
+| Bastón con afijo máximo | 30 % | 40 % | Correcto |
+| Doble varita con dos afijos máximos | 46 % | 54 % | Advertencia |
+
+La regla base de bastón y doble varita está equilibrada: solo existe un punto de diferencia en cada Tier.
+
+La advertencia aparece en doble varita con afijos máximos porque puede utilizar dos afijos y superar al bastón máximo en 16 puntos en Tier I y 14 en Tier II.
+
+**Conclusión sencilla:** no cambiar la regla de catalizadores. Debe analizarse más adelante si el afijo de Potencia necesita una regla especial de acumulación o valores menores al estar presente en dos varitas.
+
+#### Arquetipos
+
+Se compararon ocho rotaciones representativas.
+
+| Resultado | Estado |
+|---|---|
+| Guerrero físico | Correcto |
+| Rogue físico | Correcto |
+| Mago especializado | Incorrecto como señal de burst alto |
+| Guerrero mágico | Correcto |
+| Rogue mágico | Correcto |
+| Mago físico | Advertencia |
+| Híbrido con catalizador | Correcto |
+| Híbrido sin catalizador | Correcto |
+
+El Mago especializado utiliza tres Incinerar grado 3:
+
+```text
+Maná: 45
+Tiempo: 315
+Daño esperado a un objetivo: 142,17
+Daño esperado potencial a tres objetivos: 426,51
+```
+
+El resultado es muy superior en una rotación corta, pero consume alrededor del 40 % de la reserva de un Mago de nivel 10. Esto es daño explosivo, no rendimiento infinito.
+
+El Mago físico queda por debajo, lo cual es coherente con utilizar un estilo que no aprovecha sus atributos principales.
+
+**Conclusión sencilla:** los híbridos parecen viables y no dominantes. El posible problema está concentrado en el daño explosivo del Mago especializado, especialmente Incinerar grado 3. No debe reducirse hasta probar cuánto Maná queda durante mapas y jefes reales.
+
+### Conclusión final del Bloque 12.3
+
+**Qué analicé:** todas las armas, varitas, bastones, doble varita, las doce habilidades y sus grados, críticos, resistencias, Potencia de Habilidad y ocho arquetipos.
+
+**Por qué:** para saber qué elementos realmente necesitan cambios antes de tocar daño, tiempo o Maná.
+
+**Conclusión:** el ataque básico de las varitas no está sobrepotenciado; el arco no necesita una recarga; los enfriamientos reducirían demasiado las habilidades; la regla base de bastón y doble varita está bien. Las señales que necesitan pruebas adicionales son Incinerar grado 3, el valor defensivo de Prisión glacial, Nube tóxica grado 1, las acumulaciones de Plaga y la Potencia máxima de doble varita con dos afijos.
+
+**Qué recomiendo hacer:** no aplicar todavía cambios numéricos generales. Antes de modificar valores, realizar un subbloque de pruebas focalizadas sobre esas cinco señales y presentar una propuesta anterior/nueva para aprobación.
+
+### Decisiones propuestas para aprobación
+
+| Tema | Recomendación |
+|---|---|
+| Coste de Maná de varitas | Mantener en 1 por varita |
+| Doble varita | Mantener regla y penalización actuales |
+| Arco | No agregar recarga |
+| Habilidades básicas | No agregar enfriamiento |
+| Bastón frente a doble varita base | Mantener valores actuales |
+| Afijo máximo en doble varita | Medir en pruebas reales antes de ajustar |
+| Incinerar grado 3 | Probar en grupos y jefes antes de reducir |
+| Prisión glacial | Valorar control en 12.4 antes de aumentar daño |
+| Nube tóxica grado 1 | Probar área y duración real antes de aumentar daño |
+| Plaga corrosiva | Resolver con pruebas de intensidad en 12.4 |
+| Pociones de Maná | Continuar pospuestas hasta las pruebas de jefes |
+
+### Archivos del Bloque 12.3
+
+```text
+balance.css
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/balance/ObjetivosBalance.json
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/balance/AnalizadorBalanceCombate.js
+src/juego/habilidades/DepuradorMagiaHabilidades.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+### Comandos de consola
+
+Desde `balance.html`:
+
+```javascript
+balanceDarkMoon.combate()
+balanceDarkMoon.danioArmas()
+balanceDarkMoon.danioHabilidades()
+balanceDarkMoon.potenciaHabilidad()
+balanceDarkMoon.arquetipos()
+```
+
+Desde el juego:
+
+```javascript
+await darkMoonDebug.magia.balance.combate()
+await darkMoonDebug.magia.balance.danioArmas()
+await darkMoonDebug.magia.balance.danioHabilidades()
+await darkMoonDebug.magia.balance.potenciaHabilidad()
+await darkMoonDebug.magia.balance.arquetipos()
+```
+
+Ejemplos:
+
+```javascript
+console.table((await darkMoonDebug.magia.balance.danioArmas()).filas);
+console.table((await darkMoonDebug.magia.balance.danioHabilidades()).filasPrincipales);
+console.table((await darkMoonDebug.magia.balance.arquetipos()).filas);
+```
+
+### Pruebas realizadas
+
+- `balance.html` cargado con Chromium y los módulos reales interceptados desde la copia local;
+- cero errores de página;
+- cero errores de consola;
+- cero recursos faltantes;
+- todas las tablas contienen criterio y estado;
+- ninguna tabla quedó vacía;
+- 30 configuraciones de armas;
+- 12 habilidades y 40 grados principales;
+- 800 simulaciones de habilidades;
+- 48 filas de resistencias para grados máximos;
+- 10 escenarios de Potencia;
+- 8 arquetipos;
+- dos informes de combate consecutivos idénticos;
+- `darkMoonDebug.magia.balance` expone los cinco comandos nuevos;
+- carga de `index.html` sin errores de página ni consola.
+
+La prueba completa jugable desde nivel 1 hasta nivel 10 continúa reservada para el Bloque 12.5.
+
+### Estado después del Bloque 12.3
+
+- Analizador de daño y arquetipos: implementado.
+- Criterios y estados en todas las tablas: implementados.
+- Valores jugables modificados en 12.3: ninguno.
+- Recarga de arco: no implementada.
+- Enfriamientos: no implementados.
+- Poción de Maná: no implementada.
+- Cambios numéricos pendientes: requieren aprobación específica.
+- Commit o push realizado: no.

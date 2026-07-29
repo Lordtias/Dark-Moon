@@ -2,6 +2,7 @@ import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 import { calcularRecursosMaximos } from "../../entidad/destructible/combatiente/EstadisticasDerivadas.js";
 import { calcularCostoBaseAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
+import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
 import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
 import {
   calcularMultiplicadorDanioMagico,
@@ -46,6 +47,7 @@ export function crearAnalizadorBalanceJuego({
   configuracionPersonaje,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionGeneracionObjetos = null,
   configuracionMapas,
   configuracionProgresoMagico,
   configuracionEjecucionHabilidades,
@@ -55,6 +57,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionProgresoMagico,
     configuracionEjecucionHabilidades,
@@ -66,6 +69,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionProgresoMagico,
     configuracionEjecucionHabilidades,
@@ -109,6 +113,12 @@ export function crearAnalizadorBalanceJuego({
       obtener("habilidades", crearInformeHabilidades),
     armas: () =>
       obtener("armas", crearInformeArmas),
+    combate: () =>
+      obtener("combate", crearInformeBalanceCombate),
+    danioArmas: () => analizador.combate().armas,
+    danioHabilidades: () => analizador.combate().habilidades,
+    potenciaHabilidad: () => analizador.combate().potencia,
+    arquetipos: () => analizador.combate().arquetipos,
     constitucion: () =>
       obtener("constitucion", crearInformeConstitucion),
     escenariosTeoricos: () =>
@@ -124,6 +134,7 @@ export function crearAnalizadorBalanceJuego({
           sostenibilidadMana: analizador.sostenibilidadMana(),
           habilidades: analizador.habilidades(),
           armas: analizador.armas(),
+          combate: analizador.combate(),
           constitucion: analizador.constitucion(),
           escenariosTeoricos: analizador.escenariosTeoricos(),
           dependencias,
@@ -143,6 +154,7 @@ function crearInformeLineaBase({
   sostenibilidadMana,
   habilidades,
   armas,
+  combate,
   constitucion,
   escenariosTeoricos,
   dependencias,
@@ -191,7 +203,7 @@ function crearInformeLineaBase({
   }
 
   return {
-    versionInforme: 2,
+    versionInforme: 3,
     tipoResultado: "linea_base",
     determinista: true,
     origenes: {
@@ -208,6 +220,8 @@ function crearInformeLineaBase({
       habilidadesAnalizadas: habilidades.resumen.cantidadHabilidades,
       gradosAnalizados: habilidades.resumen.cantidadGrados,
       armasAnalizadas: armas.resumen.cantidadArmas,
+      simulacionesCombate: combate.habilidades.resumen.simulaciones,
+      armasCombateAnalizadas: combate.armas.resumen.cantidad,
       profesionesAnalizadas: mana.resumen.cantidadProfesiones,
       puntosUniversalesIniciales:
         dependencias.configuracionProgresoMagico.reglas
@@ -232,16 +246,20 @@ function crearInformeLineaBase({
     sostenibilidadMana,
     habilidades,
     armas,
+    combate,
     constitucion,
     escenariosTeoricos,
-    conclusiones: crearConclusionesProgresionRecursos({
-      progresion,
-      progresionMagica,
-      puntosHabilidad,
-      mana,
-      sostenibilidadMana,
-      escenariosTeoricos,
-    }),
+    conclusiones: combinarConclusiones(
+      crearConclusionesProgresionRecursos({
+        progresion,
+        progresionMagica,
+        puntosHabilidad,
+        mana,
+        sostenibilidadMana,
+        escenariosTeoricos,
+      }),
+      combate.conclusiones,
+    ),
     advertencias,
   };
 }
@@ -1904,6 +1922,9 @@ function calcularUsosRecurso(recurso, costo) {
 
 function validarEntrada(entrada) {
   for (const [nombre, valor] of Object.entries(entrada)) {
+    if (nombre === "configuracionGeneracionObjetos" && valor === null) {
+      continue;
+    }
     if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
       throw new Error(`El analizador necesita ${nombre} válido.`);
     }
@@ -1926,6 +1947,20 @@ function validarEntrada(entrada) {
   if (!entrada.objetivosBalance.escenariosTeoricos) {
     throw new Error("ObjetivosBalance.json no contiene escenarios teóricos.");
   }
+}
+
+function combinarConclusiones(progresion, combate) {
+  return {
+    resumenFacil: [
+      ...(progresion?.resumenFacil ?? []),
+      ...(combate?.resumenFacil ?? []),
+    ],
+    decisionRecomendada: {
+      progresion: progresion?.decisionRecomendada ?? null,
+      combate: combate?.decisionRecomendada ?? null,
+    },
+    sensibilidadMaestria: progresion?.sensibilidadMaestria ?? null,
+  };
 }
 
 function redondear(valor) {

@@ -12,302 +12,118 @@
         <div>
           <p class="balance-sobretitulo">Dark Moon</p>
           <h1>Analizador de balance</h1>
-          <p class="balance-introduccion">
-            Resultados reproducibles de progresión, maestrías, puntos, Vida,
-            Maná y escenarios reservados para decisiones posteriores.
-          </p>
+          <p class="balance-introduccion">Cada tabla explica qué compara, qué rango considera razonable y el estado calculado de cada resultado.</p>
         </div>
-        <button id="balanceRecargar" class="balance-boton" type="button">
-          Recalcular
-        </button>
+        <button id="balanceRecargar" class="balance-boton" type="button">Recalcular</button>
       </header>
 
-      <section class="balance-seccion" aria-labelledby="tituloEstado">
-        <h2 id="tituloEstado">Estado general</h2>
+      <section class="balance-seccion">
+        <h2>Estado general</h2>
         <p id="balanceEstado" class="balance-estado">Calculando balance…</p>
         <p id="balanceError" class="balance-error" hidden></p>
         <div id="balanceResumen" class="balance-resumen"></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloConclusiones">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloConclusiones">Conclusiones fáciles</h2>
-            <p>
-              Cada tarjeta explica qué se revisó, por qué, qué muestran las
-              pruebas y qué conviene hacer después.
-            </p>
-          </div>
-        </div>
+      <section class="balance-seccion">
+        <h2>Conclusiones fáciles</h2>
+        <p>Qué se analizó, por qué, qué concluyen las pruebas y qué conviene decidir después.</p>
         <div id="balanceConclusiones" class="balance-conclusiones"></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloRuta">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloRuta">Progresión recomendada</h2>
-            <p>Estimación exacta por enemigo y estadística por expedición.</p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Nivel</th>
-                <th>Mapa</th>
-                <th>XP necesaria</th>
-                <th>XP expedición</th>
-                <th>Enemigos</th>
-                <th>Expediciones</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="balanceRutaCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Progresión recomendada</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> expediciones necesarias para cada nivel. <strong>Correcto:</strong> entre el mínimo y máximo configurados.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Nivel</th><th>Mapa</th><th>XP necesaria</th><th>XP expedición</th><th>Enemigos</th><th>Expediciones</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRutaCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloNiveles">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloNiveles">Niveles 1 a 10</h2>
-            <p>XP, atributos y puntos universales acumulados.</p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Nivel</th>
-                <th>XP siguiente</th>
-                <th>XP acumulada</th>
-                <th>Atributos ganados</th>
-                <th>Puntos universales</th>
-              </tr>
-            </thead>
-            <tbody id="balanceNivelesCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Niveles 1 a 10</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> crecimiento acumulado. Es informativo; su equilibrio se decide junto con expediciones, combate y recursos.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Nivel</th><th>XP siguiente</th><th>XP acumulada</th><th>Atributos ganados</th><th>Puntos universales</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceNivelesCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloMaestrias">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloMaestrias">Coste en usos y Maná</h2>
-            <p>
-              Simulación determinista ejecutada con ProgresoMagicoJugador.
-            </p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Maestría</th>
-                <th>Escenario</th>
-                <th>Usos básicos</th>
-                <th>Usos intermedios</th>
-                <th>Usos totales</th>
-                <th>Maná total</th>
-              </tr>
-            </thead>
-            <tbody id="balanceMaestriasCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Coste en usos y Maná</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> esfuerzo para alcanzar maestría 6. <strong>Correcto:</strong> todas las maestrías deben necesitar una cantidad similar de Maná total.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Maestría</th><th>Escenario</th><th>Usos básicos</th><th>Usos intermedios</th><th>Usos totales</th><th>Maná total</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceMaestriasCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloRitmoMagico">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloRitmoMagico">Ritmo realista de maestrías</h2>
-            <p>
-              Compara uno, dos y tres usos mágicos por enemigo conservando los
-              puntos universales para otras decisiones del personaje.
-            </p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Maestría</th>
-                <th>Usos/enemigo</th>
-                <th>Maestría 3</th>
-                <th>Maestría 6</th>
-                <th>Árbol completo</th>
-                <th>Nivel final</th>
-                <th>Universales libres</th>
-              </tr>
-            </thead>
-            <tbody id="balanceRitmoMagicoCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Ritmo realista de maestrías</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> cuándo se desbloquean niveles 3 y 6 según la frecuencia de uso. Dos usos por enemigo es el escenario central.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Maestría</th><th>Usos/enemigo</th><th>Maestría 3</th><th>Maestría 6</th><th>Árbol completo</th><th>Nivel final</th><th>Universales libres</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceRitmoMagicoCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloPuntos">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloPuntos">Puntos de habilidad</h2>
-            <p>
-              Comprueba si los puntos específicos y universales alcanzan para
-              los grados básicos, intermedios y avanzados.
-            </p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Maestría</th>
-                <th>Específicos</th>
-                <th>Universales mínimos</th>
-                <th>Total</th>
-                <th>Objetivo</th>
-                <th>Necesarios</th>
-                <th>Resultado</th>
-              </tr>
-            </thead>
-            <tbody id="balancePuntosCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Puntos de habilidad</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> si los puntos alcanzan para los grados habilitados sin regalar progreso.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Maestría</th><th>Específicos</th><th>Universales mínimos</th><th>Total</th><th>Objetivo</th><th>Necesarios</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balancePuntosCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloMana">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloMana">Vida y Maná por profesión</h2>
-            <p>Perfiles reproducibles en niveles 1, 3, 6 y 10.</p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Profesión</th>
-                <th>Nivel</th>
-                <th>Vida</th>
-                <th>Maná</th>
-                <th>Reg. Maná</th>
-                <th>Básica barata</th>
-                <th>Avanzada cara</th>
-                <th>Doble varita</th>
-              </tr>
-            </thead>
-            <tbody id="balanceManaCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Vida y Maná por profesión</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> cantidad mínima de acciones mágicas disponibles con una reserva completa.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Profesión</th><th>Nivel</th><th>Vida</th><th>Maná</th><th>Reg. Maná</th><th>Básica barata</th><th>Avanzada cara</th><th>Doble varita</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceManaCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloPerfilesMago">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloPerfilesMago">Inteligencia o Sabiduría</h2>
-            <p>
-              Muestra el intercambio entre daño directo, potencia de efectos,
-              reserva y regeneración de Maná.
-            </p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Estrategia</th>
-                <th>Nivel</th>
-                <th>INT</th>
-                <th>SAB</th>
-                <th>Maná</th>
-                <th>Regeneración</th>
-                <th>Pulsos barra completa</th>
-                <th>Daño mágico</th>
-                <th>Efectos</th>
-              </tr>
-            </thead>
-            <tbody id="balancePerfilesMagoCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Inteligencia o Sabiduría</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> diferencias estratégicas. Es informativo porque no se busca un perfil único superior.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Estrategia</th><th>Nivel</th><th>INT</th><th>SAB</th><th>Maná</th><th>Regeneración</th><th>Pulsos barra completa</th><th>Daño mágico</th><th>Efectos</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balancePerfilesMagoCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloVaritas">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloVaritas">Sostenibilidad de varitas Tier I</h2>
-            <p>
-              Resta la regeneración ocurrida durante el propio ataque para
-              mostrar cuánto Maná se pierde realmente.
-            </p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Profesión</th>
-                <th>Nivel</th>
-                <th>Ataque</th>
-                <th>Coste nominal</th>
-                <th>Regenerado</th>
-                <th>Coste real</th>
-                <th>Ataques</th>
-                <th>Resultado</th>
-              </tr>
-            </thead>
-            <tbody id="balanceVaritasCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Sostenibilidad de varitas Tier I</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> Maná neto después de regenerar durante el ataque. Si el gasto desaparece, queda como advertencia hasta compararlo con el daño.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Profesión</th><th>Nivel</th><th>Ataque</th><th>Coste nominal</th><th>Regenerado</th><th>Coste real</th><th>Ataques</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceVaritasCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloConstitucion">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloConstitucion">Constitución y resistencias</h2>
-            <p class="balance-teorico">Escenario teórico, no implementado.</p>
-          </div>
-        </div>
-        <div class="balance-tabla-contenedor">
-          <table class="balance-tabla">
-            <thead>
-              <tr>
-                <th>Constitución</th>
-                <th>Bono</th>
-                <th>Aplicación base 100 %</th>
-                <th>Aplicación base 40 %</th>
-                <th>Aplicación base 20 %</th>
-              </tr>
-            </thead>
-            <tbody id="balanceConstitucionCuerpo"></tbody>
-          </table>
-        </div>
+      <section class="balance-seccion">
+        <h2>Constitución y resistencias</h2>
+        <p class="balance-teorico">Escenario teórico, no implementado.</p>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> si un aporte pequeño de Constitución ayuda sin reemplazar afijos ni inmunidades.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Constitución</th><th>Bono</th><th>Base 100 %</th><th>Base 40 %</th><th>Base 20 %</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceConstitucionCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloTeoricos">
-        <div class="balance-encabezado-seccion">
-          <div>
-            <h2 id="tituloTeoricos">Temas reservados para decisión</h2>
-            <p class="balance-teorico">No modifican el juego.</p>
-          </div>
-        </div>
-        <div id="balanceEscenarios" class="balance-escenarios"></div>
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Referencias de enemigos</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> enemigo mediano real de cada tramo para que armas y habilidades no se comparen contra una defensa inventada.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Nivel</th><th>Enemigos válidos</th><th>Vida</th><th>Armadura</th><th>Evasión</th><th>Resistencias</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceReferenciasCuerpo"></tbody></table></div>
       </section>
 
-      <section class="balance-seccion" aria-labelledby="tituloAdvertencias">
-        <h2 id="tituloAdvertencias">Advertencias de la línea base</h2>
-        <ul id="balanceAdvertencias" class="balance-advertencias"></ul>
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Daño esperado de armas</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> impacto, crítico, defensa enemiga, tiempo, alcance y recursos. <strong>Correcto:</strong> rendimiento dentro de la banda de su tier; no significa que todas deban causar el mismo daño.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Arma</th><th>Tier</th><th>Profesión</th><th>Objetivo</th><th>Impacto</th><th>Sin crítico</th><th>Crítico</th><th>Esperado/acción</th><th>Esperado/100</th><th>Daño/Maná</th><th>Alcance</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceArmasDanioCuerpo"></tbody></table></div>
       </section>
 
-      <aside class="balance-nota">
-        <strong>Resultados completos</strong>
-        <p>
-          El analizador queda en <code>window.balanceDarkMoon</code> y el último
-          informe en <code>window.balanceDarkMoonInforme</code>.
-        </p>
-        <p>
-          Ejemplo:
-          <code>console.table(balanceDarkMoon.progresionMagica().filas)</code>.
-        </p>
-      </aside>
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Las doce habilidades y todos sus grados</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> daño esperado, Maná, tiempo, área y control con el catalizador normal del tramo. Las habilidades se comparan con otras de la misma categoría y grado.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Habilidad</th><th>Categoría</th><th>Grado</th><th>Nivel</th><th>Potencia</th><th>Maná</th><th>Tiempo</th><th>Impacto</th><th>Sin crítico</th><th>Crítico</th><th>Total esperado</th><th>Daño/100</th><th>Daño/Maná</th><th>Hasta 3 objetivos</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceHabilidadesDanioCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Resistencias elementales en grados máximos</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> resultado con 0 %, 25 %, 50 % y 75 % de resistencia elemental y a efectos.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Habilidad</th><th>Grado</th><th>Res. elemental</th><th>Res. efecto</th><th>Directo</th><th>Periódico</th><th>Total</th><th>Aplicación efecto</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceResistenciasCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Potencia de Habilidad</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> bastón, doble varita y combinaciones máximas posibles con afijos, por tier.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Escenario</th><th>Tier</th><th>Origen</th><th>Potencia</th><th>Multiplicador</th><th>Catalizadores</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balancePotenciaCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--combate">
+        <h2>Comparación de arquetipos</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> rotaciones cortas de Guerrero, Rogue, Mago e híbridos. Se busca evitar opciones inviables o dominantes, no igualarlas.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Arquetipo</th><th>Profesión</th><th>Arma</th><th>Habilidad</th><th>Acciones</th><th>Maná</th><th>Tiempo</th><th>Daño único</th><th>Daño 3 objetivos</th><th>Daño/100</th><th>Dependencia</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceArquetiposCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion"><h2>Escenarios teóricos no implementados</h2><div id="balanceEscenarios" class="balance-escenarios"></div></section>
+      <section class="balance-seccion"><h2>Advertencias y límites</h2><ul id="balanceAdvertencias" class="balance-advertencias"></ul></section>
     </main>
-
     <script type="module" src="./src/aplicacion/BalanceAplicacion.js"></script>
   </body>
 </html>

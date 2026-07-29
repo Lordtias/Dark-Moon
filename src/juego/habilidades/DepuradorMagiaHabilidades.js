@@ -348,6 +348,8 @@ function crearAccesoBalance(contexto) {
           configuracionPersonaje: aplicacion.configuracionPersonaje,
           configuracionEnemigos: aplicacion.configuracionEnemigos,
           configuracionObjetos: aplicacion.configuracionObjetos,
+          configuracionGeneracionObjetos:
+            aplicacion.configuracionGeneracionObjetos,
           configuracionMapas: aplicacion.configuracionMapas,
           configuracionProgresoMagico:
             obtenerConfiguracionProgresoMagico(),
@@ -376,6 +378,11 @@ function crearAccesoBalance(contexto) {
     sostenibilidadMana: ejecutar("sostenibilidadMana"),
     habilidades: ejecutar("habilidades"),
     armas: ejecutar("armas"),
+    combate: ejecutar("combate"),
+    danioArmas: ejecutar("danioArmas"),
+    danioHabilidades: ejecutar("danioHabilidades"),
+    potenciaHabilidad: ejecutar("potenciaHabilidad"),
+    arquetipos: ejecutar("arquetipos"),
     constitucion: ejecutar("constitucion"),
     escenariosTeoricos: ejecutar("escenariosTeoricos"),
   });

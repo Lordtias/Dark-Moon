@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "descripcion": "Objetivos y escenarios reproducibles para medir la progresión, los puntos de habilidad y el Maná de Dark Moon entre los niveles 1 y 10.",
+  "version": 3,
+  "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Potencia de Habilidad y arquetipos de Dark Moon entre los niveles 1 y 10.",
   "nivelMaximoContenido": 10,
   "factorBaseExperienciaEsperado": 0.45,
   "rangoExpedicionesObjetivo": {
@@ -113,5 +113,123 @@
     ],
     "costoNetoIrrelevante": 0.5,
     "pulsosRecuperacionLenta": 50
+  },
+  "analisisCombate": {
+    "nivelesReferencia": [
+      1,
+      3,
+      6,
+      10
+    ],
+    "bandasRelativas": {
+      "correctoMinimo": 0.7,
+      "correctoMaximo": 1.4,
+      "advertenciaMinimo": 0.5,
+      "advertenciaMaximo": 1.7
+    },
+    "bandasRelativasHabilidades": {
+      "correctoMinimo": 0.65,
+      "correctoMaximo": 1.5,
+      "advertenciaMinimo": 0.45,
+      "advertenciaMaximo": 1.85
+    },
+    "bandasRelativasArquetipos": {
+      "correctoMinimo": 0.6,
+      "correctoMaximo": 1.55,
+      "advertenciaMinimo": 0.4,
+      "advertenciaMaximo": 1.9
+    },
+    "arquetipos": [
+      {
+        "id": "guerrero_fisico",
+        "nombre": "Guerrero físico",
+        "profesion": "guerrero",
+        "nivel": 10,
+        "familiaArma": "mandoble",
+        "usaHabilidad": false,
+        "ataquesBasicos": 3,
+        "lanzamientos": 0
+      },
+      {
+        "id": "rogue_fisico",
+        "nombre": "Rogue físico",
+        "profesion": "rogue",
+        "nivel": 10,
+        "familiaArma": "daga",
+        "usaHabilidad": false,
+        "ataquesBasicos": 3,
+        "lanzamientos": 0
+      },
+      {
+        "id": "mago_especializado",
+        "nombre": "Mago especializado",
+        "profesion": "mago",
+        "nivel": 10,
+        "familiaArma": "baston",
+        "usaHabilidad": true,
+        "categoriaHabilidad": "avanzada",
+        "conCatalizador": true,
+        "ataquesBasicos": 0,
+        "lanzamientos": 3
+      },
+      {
+        "id": "guerrero_magico",
+        "nombre": "Guerrero con habilidades mágicas",
+        "profesion": "guerrero",
+        "nivel": 10,
+        "familiaArma": "espada",
+        "usaHabilidad": true,
+        "categoriaHabilidad": "basica",
+        "conCatalizador": false,
+        "ataquesBasicos": 2,
+        "lanzamientos": 1
+      },
+      {
+        "id": "rogue_magico",
+        "nombre": "Rogue con habilidades mágicas",
+        "profesion": "rogue",
+        "nivel": 10,
+        "familiaArma": "daga",
+        "usaHabilidad": true,
+        "categoriaHabilidad": "basica",
+        "conCatalizador": false,
+        "ataquesBasicos": 2,
+        "lanzamientos": 1
+      },
+      {
+        "id": "mago_fisico",
+        "nombre": "Mago con ataques físicos",
+        "profesion": "mago",
+        "nivel": 10,
+        "familiaArma": "baston",
+        "usaHabilidad": false,
+        "ataquesBasicos": 3,
+        "lanzamientos": 0
+      },
+      {
+        "id": "hibrido_catalizador",
+        "nombre": "Híbrido con catalizador",
+        "profesion": "rogue",
+        "nivel": 10,
+        "familiaArma": "varita",
+        "usaHabilidad": true,
+        "categoriaHabilidad": "intermedia",
+        "conCatalizador": true,
+        "ataquesBasicos": 2,
+        "lanzamientos": 1
+      },
+      {
+        "id": "hibrido_sin_catalizador",
+        "nombre": "Híbrido sin catalizador",
+        "profesion": "guerrero",
+        "nivel": 10,
+        "familiaArma": "lanza",
+        "usaHabilidad": true,
+        "categoriaHabilidad": "intermedia",
+        "conCatalizador": false,
+        "ataquesBasicos": 2,
+        "lanzamientos": 1
+      }
+    ]
   }
 }

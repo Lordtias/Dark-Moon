@@ -360,3 +360,39 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.balance-criterio-tabla {
+  margin: 0.7rem 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid #9d865b;
+  background: rgba(157, 134, 91, 0.09);
+  line-height: 1.5;
+}
+
+.balance-tabla td:nth-last-child(2) {
+  min-width: 270px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.balance-etiqueta--advertencia {
+  background: rgba(214, 159, 52, 0.2);
+  color: #f1c86f;
+  border-color: rgba(214, 159, 52, 0.55);
+}
+
+.balance-etiqueta--incorrecto {
+  background: rgba(186, 68, 68, 0.22);
+  color: #f0a1a1;
+  border-color: rgba(186, 68, 68, 0.58);
+}
+
+.balance-etiqueta--informativo {
+  background: rgba(87, 124, 169, 0.2);
+  color: #b4cbea;
+  border-color: rgba(87, 124, 169, 0.55);
+}
+
+.balance-seccion--combate {
+  border-color: rgba(136, 99, 156, 0.5);
+}

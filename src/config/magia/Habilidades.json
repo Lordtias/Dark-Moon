@@ -6,7 +6,7 @@
       "maestria": "fuego",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ascua.png",
       "descripcion": "Lanza una brasa concentrada que causa daño inmediato de Fuego a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -70,7 +70,7 @@
       "maestria": "fuego",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/explosion_ignea.png",
       "descripcion": "Detona una masa de fuego sobre una casilla y causa daño a todos los enemigos dentro del radio.",
       "ejecucion": {
         "tipoObjetivo": "casilla",
@@ -134,7 +134,7 @@
       "maestria": "fuego",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/incinerar.png",
       "descripcion": "Proyecta una línea de fuego que atraviesa enemigos, causa daño inmediato y puede aplicar Quemadura.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -234,7 +234,7 @@
       "maestria": "frio",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/esquirla_hielo.png",
       "descripcion": "Dispara una esquirla que causa daño de Frío y ralentiza temporalmente el movimiento del enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -338,7 +338,7 @@
       "maestria": "frio",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/nova_escarcha.png",
       "descripcion": "Libera una onda de frío alrededor del lanzador que daña y ralentiza a los enemigos cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -432,7 +432,7 @@
       "maestria": "frio",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/prision_glacial.png",
       "descripcion": "Encierra a un enemigo en hielo, causa daño de Frío y puede aplicarle Congelamiento sin renovar el control mientras siga activo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -505,7 +505,7 @@
       "maestria": "rayo",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/chispa.png",
       "descripcion": "Descarga una chispa rápida que causa daño de Rayo y retrasa temporalmente las acciones del enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -609,7 +609,7 @@
       "maestria": "rayo",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/cadena_rayos.png",
       "descripcion": "Descarga un rayo que salta entre enemigos cercanos sin golpear dos veces al mismo objetivo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -709,7 +709,7 @@
       "maestria": "rayo",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/descarga_fulminante.png",
       "descripcion": "Lanza una descarga lineal que atraviesa enemigos, causa daño de Rayo y puede aplicar Aturdimiento de manera independiente a cada objetivo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -800,7 +800,7 @@
       "maestria": "veneno",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
-      "icono": "assets/habilidades/aguijon-toxico.png",
+      "icono": "assets/imagenes/habilidades/aguijon_toxico.png",
       "descripcion": "Dispara un aguijón de veneno que causa daño inmediato y deja una toxina temporal.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -904,7 +904,7 @@
       "maestria": "veneno",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/nube_toxica.png",
       "descripcion": "Crea una nube persistente que envenena a los enemigos presentes, a quienes entren y a quienes permanezcan dentro.",
       "ejecucion": {
         "tipoObjetivo": "casilla",
@@ -935,11 +935,7 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -971,11 +967,7 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1007,11 +999,7 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1028,7 +1016,7 @@
       "maestria": "veneno",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/plaga_corrosiva.png",
       "descripcion": "Infecta a un enemigo con Envenenamiento y permite intensificar una única instancia hasta el máximo de cada grado.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",

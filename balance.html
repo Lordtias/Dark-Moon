@@ -158,6 +158,57 @@
         <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Habilidad</th><th>Grado</th><th>Lanzamientos</th><th>Maná máximo</th><th>Gastado</th><th>Regenerado</th><th>Coste real</th><th>Restante</th><th>% restante</th><th>Tiempo</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoManaCuerpo"></tbody></table></div>
       </section>
 
+      <section class="balance-seccion balance-seccion--efectos">
+        <p class="balance-sobretitulo">Efectos, resistencias e inmunidades</p>
+        <h2>Probabilidad final de aplicación</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> cada habilidad que aplica Congelamiento, Aturdimiento, Envenenamiento o Quemadura con 0 %, 25 %, 50 % y 75 % de resistencia. <strong>Correcto:</strong> hasta 10 intentos esperados; hasta 20 es advertencia.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Habilidad</th><th>Grado</th><th>Efecto</th><th>Prob. base</th><th>Resistencia</th><th>Prob. final</th><th>Intentos</th><th>Motor</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosProbabilidadCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Reaplicaciones y acumulaciones</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> contratos reales de Congelamiento, Aturdimiento, Quemadura y los dos perfiles de Envenenamiento. <strong>Correcto:</strong> una sola instancia y la política aprobada para cada grupo.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Efecto</th><th>Contrato</th><th>Primera</th><th>Reaplicación</th><th>Motivo</th><th>Instancias</th><th>Potencia/Intensidad</th><th>Eventos</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosContratosCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Resistido, inmune e inmunidad adquirida</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> que el motor distinga resistencia e inmunidad y retire un efecto si la inmunidad se obtiene mientras está activo.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Efecto</th><th>Escenario</th><th>Resistencia</th><th>Inmunidad</th><th>Resultado</th><th>Mensaje</th><th>Activos después</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosInmunidadesCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Constitución y resistencias a efectos</h2>
+        <p class="balance-teorico">Escenario teórico, todavía no implementado en el personaje.</p>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> la fórmula acordada en profesiones y niveles 1, 3, 6 y 10. Debe aportar poco y no reemplazar un afijo medio.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Profesión</th><th>Nivel</th><th>Estrategia</th><th>CON inicial</th><th>Puntos de nivel en CON</th><th>CON final</th><th>Bono</th><th>Base 100 %</th><th>Base 40 %</th><th>Reemplaza afijo</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosConstitucionCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Enemigos y variantes</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> estadísticas y defensas reales creadas por FabricaEnemigos en el mapa donde aparecen. <strong>Correcto:</strong> no combinar varias defensas extremas que anulen configuraciones completas.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Enemigo</th><th>Variante</th><th>Mapa</th><th>Rol</th><th>Nivel</th><th>Vida</th><th>Armadura</th><th>Evasión</th><th>Tiempo</th><th>Res. elementales</th><th>Res. efectos</th><th>Inmunidades</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosEnemigosCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Enemigos con defensas altas</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> únicamente las filas con resistencia de 50 % o más o inmunidad. Sirve para localizar rápidamente posibles bloqueos.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Enemigo</th><th>Variante</th><th>Mapa</th><th>Rol</th><th>Nivel</th><th>Defensas altas</th><th>Vida</th><th>Armadura</th><th>Evasión</th><th>Tiempo</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosExtremosCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Sufijos de resistencia</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> valores, pesos y restricciones de los cuatro sufijos. <strong>Correcto:</strong> solo collar y ambos anillos, con máximo de 15 % por accesorio.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Sufijo</th><th>Propiedad</th><th>Grado</th><th>Nivel objeto</th><th>Valor</th><th>Peso base</th><th>Peso grado</th><th>Ranuras</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosAfijosCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--efectos">
+        <h2>Acumulación teórica de accesorios</h2>
+        <p class="balance-teorico">Escenario teórico: todavía no existen accesorios naturales en el contenido.</p>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> uno, dos o tres accesorios máximos, con y sin el bono máximo de Constitución. <strong>Advertencia:</strong> 60 % o más se considera inmunidad práctica.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Accesorios</th><th>Cada uno</th><th>Constitución</th><th>Bruta</th><th>Final</th><th>Prob. final base 100 %</th><th>Alcanza 75 %</th><th>Inmunidad práctica</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceEfectosAcumulacionCuerpo"></tbody></table></div>
+      </section>
+
       <section class="balance-seccion"><h2>Escenarios teóricos no implementados</h2><div id="balanceEscenarios" class="balance-escenarios"></div></section>
       <section class="balance-seccion"><h2>Advertencias y límites</h2><ul id="balanceAdvertencias" class="balance-advertencias"></ul></section>
     </main>

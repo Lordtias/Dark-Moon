@@ -47,6 +47,14 @@ const elementos = Object.fromEntries(
     "balanceFocoPlagaCuerpo",
     "balanceFocoPotenciaCuerpo",
     "balanceFocoManaCuerpo",
+    "balanceEfectosProbabilidadCuerpo",
+    "balanceEfectosContratosCuerpo",
+    "balanceEfectosInmunidadesCuerpo",
+    "balanceEfectosConstitucionCuerpo",
+    "balanceEfectosEnemigosCuerpo",
+    "balanceEfectosExtremosCuerpo",
+    "balanceEfectosAfijosCuerpo",
+    "balanceEfectosAcumulacionCuerpo",
     "balanceEscenarios",
     "balanceAdvertencias",
     "balanceRecargar",
@@ -115,12 +123,14 @@ function dibujarInforme(informe) {
     resumenCombate.potencia.resumen.escenariosAltos,
     resumenCombate.arquetipos.resumen.incorrectos,
     resumenCombate.pruebasFocalizadas.resumen.incorrectos,
+    informe.efectos.resumen.incorrectos,
   ].some((cantidad) => cantidad > 0);
   const hayAdvertencias = [
     resumenCombate.armas.resumen.advertencias,
     resumenCombate.habilidades.resumen.advertencias,
     resumenCombate.arquetipos.resumen.advertencias,
     resumenCombate.pruebasFocalizadas.resumen.advertencias,
+    informe.efectos.resumen.advertencias,
   ].some((cantidad) => cantidad > 0);
   elementos.balanceEstado.textContent = hayIncorrectos
     ? "El análisis terminó. Hay resultados incorrectos que requieren una decisión antes de cambiar números."
@@ -136,6 +146,7 @@ function dibujarInforme(informe) {
   dibujarTablasProgresion(informe);
   dibujarTablasCombate(informe.combate);
   dibujarPruebasFocalizadas(informe.combate.pruebasFocalizadas);
+  dibujarTablasEfectos(informe.efectos);
   dibujarEscenarios(informe.escenariosTeoricos);
   dibujarAdvertencias(informe.advertencias);
 }
@@ -149,6 +160,8 @@ function dibujarResumen(informe) {
     ["Simulaciones", informe.resumen.simulacionesCombate],
     ["Arquetipos", informe.combate.arquetipos.resumen.cantidad],
     ["Pruebas focalizadas", informe.combate.pruebasFocalizadas.resumen.casos],
+    ["Pruebas de efectos", informe.resumen.casosEfectos],
+    ["Enemigos/variantes", informe.resumen.enemigosEfectosAnalizados],
   ];
   elementos.balanceResumen.replaceChildren(
     ...datos.map(([etiqueta, valor]) => crearTarjetaResumen(etiqueta, valor)),
@@ -192,6 +205,12 @@ function tituloConclusion(id) {
     foco_plaga: "Plaga corrosiva",
     foco_doble_varita: "Doble varita con afijos máximos",
     foco_mana: "Maná de las rotaciones",
+    efectos_probabilidad: "Probabilidad de efectos",
+    efectos_contratos: "Reaplicaciones y acumulaciones",
+    efectos_inmunidades: "Resistencias e inmunidades",
+    constitucion_resistencias: "Constitución y resistencias a efectos",
+    enemigos_resistencias: "Resistencias de enemigos",
+    afijos_resistencias: "Afijos de resistencia",
   }[id] ?? id;
 }
 
@@ -539,6 +558,134 @@ function dibujarPruebasFocalizadas(pruebas) {
     fila.criterio,
     crearEtiquetaEstado(fila.estado),
   ]);
+}
+
+function dibujarTablasEfectos(efectos) {
+  llenar("balanceEfectosProbabilidadCuerpo", efectos.probabilidades.filas, (fila) => [
+    fila.habilidad,
+    `G${fila.grado}`,
+    fila.efecto,
+    `${formatearNumero(fila.probabilidadBase)} %`,
+    `${formatearNumero(fila.resistencia)} %`,
+    `${formatearNumero(fila.probabilidadFinal)} %`,
+    fila.intentosEsperados ?? "No aplicable",
+    fila.resultadoMotor,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosContratosCuerpo", efectos.contratos.filas, (fila) => [
+    fila.efecto,
+    fila.contrato,
+    fila.primeraAplicacion,
+    fila.reaplicacion,
+    fila.motivo,
+    fila.instancias,
+    fila.intensidadActiva ?? fila.potenciaActiva ?? "—",
+    fila.eventosPendientes,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosInmunidadesCuerpo", efectos.inmunidades.filas, (fila) => [
+    fila.efecto,
+    fila.escenario,
+    `${fila.resistencia} %`,
+    fila.inmunidad ? "Sí" : "No",
+    fila.resultado,
+    fila.mensaje,
+    fila.activosDespues,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosConstitucionCuerpo", efectos.constitucion.filas, (fila) => [
+    fila.profesion,
+    fila.nivel,
+    formatearEstrategiaConstitucion(fila.estrategia),
+    fila.constitucionInicial,
+    fila.puntosNivelEnConstitucion,
+    fila.constitucion,
+    `${fila.bonoResistencia} %`,
+    `${formatearNumero(fila.probabilidadBase100)} %`,
+    `${formatearNumero(fila.probabilidadBase40)} %`,
+    fila.reemplazaAfijos ? "Sí" : "No",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosEnemigosCuerpo", efectos.enemigos.filas, (fila) => [
+    fila.enemigo,
+    fila.variante,
+    fila.mapa,
+    fila.rol,
+    fila.nivel,
+    fila.vida,
+    fila.armadura,
+    formatearNumero(fila.evasion),
+    formatearNumero(fila.factorTiempo),
+    formatearResistencias(fila.resistencias),
+    formatearResistencias(fila.resistenciasEfectos),
+    fila.inmunidades.join(", ") || "Ninguna",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosExtremosCuerpo", efectos.enemigos.extremos, (fila) => [
+    fila.enemigo,
+    fila.variante,
+    fila.mapa,
+    fila.rol,
+    fila.nivel,
+    fila.defensasAltas.join(", ") || "Ninguna",
+    fila.vida,
+    fila.armadura,
+    formatearNumero(fila.evasion),
+    formatearNumero(fila.factorTiempo),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosAfijosCuerpo", efectos.afijos.filas, (fila) => [
+    fila.sufijo,
+    fila.propiedad,
+    fila.grado,
+    fila.nivelObjetoMinimo,
+    `${fila.minimo}–${fila.maximo} %`,
+    fila.pesoBase,
+    fila.pesoGrado,
+    fila.ranuras.join(", "),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEfectosAcumulacionCuerpo", efectos.afijos.acumulacion, (fila) => [
+    fila.cantidadAccesorios,
+    `${fila.valorPorAccesorio} %`,
+    `${fila.bonoConstitucion} %`,
+    `${fila.resistenciaBruta} %`,
+    `${fila.resistenciaFinal} %`,
+    `${fila.probabilidadFinalBase100} %`,
+    fila.alcanzaLimite ? "Sí" : "No",
+    fila.inmunidadPractica ? "Sí" : "No",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+}
+
+function formatearEstrategiaConstitucion(estrategia) {
+  const nombres = {
+    sin_inversion: "Sin inversión",
+    moderada: "Inversión moderada",
+    alta: "Inversión alta",
+  };
+  return nombres[estrategia] ?? estrategia;
+}
+
+function formatearResistencias(resistencias) {
+  return Object.entries(resistencias)
+    .map(([id, valor]) => `${capitalizar(id)} ${formatearNumero(valor)} %`)
+    .join(" · ");
 }
 
 function evaluarResistenciaFila(fila, filas) {

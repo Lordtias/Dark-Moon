@@ -3,6 +3,7 @@ import { calcularRecursosMaximos } from "../../entidad/destructible/combatiente/
 import { calcularCostoBaseAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
 import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
+import { crearInformeBalanceEfectos } from "./AnalizadorBalanceEfectos.js";
 import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
 import {
   calcularMultiplicadorDanioMagico,
@@ -120,6 +121,13 @@ export function crearAnalizadorBalanceJuego({
     potenciaHabilidad: () => analizador.combate().potencia,
     arquetipos: () => analizador.combate().arquetipos,
     pruebasFocalizadas: () => analizador.combate().pruebasFocalizadas,
+    efectos: () =>
+      obtener("efectos", crearInformeBalanceEfectos),
+    probabilidadesEfectos: () => analizador.efectos().probabilidades,
+    contratosEfectos: () => analizador.efectos().contratos,
+    inmunidadesEfectos: () => analizador.efectos().inmunidades,
+    enemigosResistencias: () => analizador.efectos().enemigos,
+    afijosResistencias: () => analizador.efectos().afijos,
     constitucion: () =>
       obtener("constitucion", crearInformeConstitucion),
     escenariosTeoricos: () =>
@@ -136,6 +144,7 @@ export function crearAnalizadorBalanceJuego({
           habilidades: analizador.habilidades(),
           armas: analizador.armas(),
           combate: analizador.combate(),
+          efectos: analizador.efectos(),
           constitucion: analizador.constitucion(),
           escenariosTeoricos: analizador.escenariosTeoricos(),
           dependencias,
@@ -156,6 +165,7 @@ function crearInformeLineaBase({
   habilidades,
   armas,
   combate,
+  efectos,
   constitucion,
   escenariosTeoricos,
   dependencias,
@@ -204,7 +214,7 @@ function crearInformeLineaBase({
   }
 
   return {
-    versionInforme: 5,
+    versionInforme: 6,
     tipoResultado: "linea_base",
     determinista: true,
     origenes: {
@@ -213,6 +223,7 @@ function crearInformeLineaBase({
       puntosHabilidad: "ProgresoMagicoJugador",
       recursos: "EstadisticasDerivadas y CalculadorAtributosMagicos",
       catalizadores: "SistemaCatalizadores y ConfiguracionAtaque",
+      efectos: "SistemaEfectosTemporales, FabricaEnemigos y catálogo de afijos",
       escenarios: "cálculos teóricos aislados",
     },
     resumen: {
@@ -239,6 +250,10 @@ function crearInformeLineaBase({
       casosVaritaCostoCasiNulo:
         sostenibilidadMana.resumen.casosVaritaCostoCasiNulo,
       pruebasFocalizadas: combate.pruebasFocalizadas.resumen.casos,
+      casosEfectos: efectos.resumen.casosProbabilidad +
+        efectos.resumen.contratosProbados +
+        efectos.resumen.inmunidadesProbadas,
+      enemigosEfectosAnalizados: efectos.resumen.enemigosVariantesAnalizados,
     },
     progresion,
     maestrias,
@@ -249,6 +264,7 @@ function crearInformeLineaBase({
     habilidades,
     armas,
     combate,
+    efectos,
     constitucion,
     escenariosTeoricos,
     conclusiones: combinarConclusiones(
@@ -261,6 +277,7 @@ function crearInformeLineaBase({
         escenariosTeoricos,
       }),
       combate.conclusiones,
+      efectos.conclusiones,
     ),
     advertencias,
   };
@@ -1951,17 +1968,11 @@ function validarEntrada(entrada) {
   }
 }
 
-function combinarConclusiones(progresion, combate) {
+function combinarConclusiones(...informes) {
   return {
-    resumenFacil: [
-      ...(progresion?.resumenFacil ?? []),
-      ...(combate?.resumenFacil ?? []),
-    ],
-    decisionRecomendada: {
-      progresion: progresion?.decisionRecomendada ?? null,
-      combate: combate?.decisionRecomendada ?? null,
-    },
-    sensibilidadMaestria: progresion?.sensibilidadMaestria ?? null,
+    resumenFacil: informes.flatMap(
+      (informe) => informe?.resumenFacil ?? [],
+    ),
   };
 }
 

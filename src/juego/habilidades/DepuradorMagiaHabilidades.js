@@ -384,6 +384,12 @@ function crearAccesoBalance(contexto) {
     potenciaHabilidad: ejecutar("potenciaHabilidad"),
     arquetipos: ejecutar("arquetipos"),
     pruebasFocalizadas: ejecutar("pruebasFocalizadas"),
+    efectos: ejecutar("efectos"),
+    probabilidadesEfectos: ejecutar("probabilidadesEfectos"),
+    contratosEfectos: ejecutar("contratosEfectos"),
+    inmunidadesEfectos: ejecutar("inmunidadesEfectos"),
+    enemigosResistencias: ejecutar("enemigosResistencias"),
+    afijosResistencias: ejecutar("afijosResistencias"),
     constitucion: ejecutar("constitucion"),
     escenariosTeoricos: ejecutar("escenariosTeoricos"),
   });

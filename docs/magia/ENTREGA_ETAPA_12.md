@@ -1111,3 +1111,276 @@ await darkMoonDebug.magia.balance.pruebasFocalizadas()
 **Conclusión:** las advertencias de Incinerar, Prisión glacial, Nube tóxica, Plaga corrosiva y doble varita se explican por sus contratos, posición, preparación o consumo de recursos. Las pruebas focalizadas no encontraron valores incorrectos.
 
 **Qué pienso hacer:** no cambiar números en 12.3A. Mantener los valores actuales y trasladar a la prueba jugable final la sensación real de Incinerar contra grupos, el aprovechamiento de Prisión glacial, la permanencia de enemigos dentro de Nube tóxica y la sostenibilidad completa contra jefes.
+
+---
+
+## Bloque 12.4A — Medición de efectos, resistencias, inmunidades, enemigos y afijos
+
+### Base utilizada
+
+```text
+Commit confirmado por el usuario:
+5ca82155ba8c15dcbbb13fa375df42866ef88a28
+```
+
+La copia completa recibida no contiene la carpeta `.git`. Por eso se verificó el commit remoto indicado como base, pero no existe un `git status` local confiable dentro del paquete. No se realizó commit ni push.
+
+### Objetivo sencillo
+
+Este bloque no cambia el juego. Su objetivo es comprobar si:
+
+- las resistencias reducen los efectos sin volverlos inútiles;
+- las reaplicaciones respetan una sola instancia;
+- las inmunidades funcionan de manera diferente a las resistencias;
+- el bono propuesto por Constitución sería pequeño;
+- los enemigos no anulan demasiadas configuraciones al mismo tiempo;
+- los futuros accesorios no alcanzan una inmunidad práctica con facilidad.
+
+### Resultado general
+
+```text
+Usos de efectos encontrados: 19
+Casos de probabilidad: 76
+Contratos de reaplicación: 5
+Casos de inmunidad: 12
+Perfiles teóricos de Constitución: 36
+Apariciones y variantes enemigas: 89
+Casos enemigos con defensas altas: 41
+Grados de sufijos analizados: 12
+Combinaciones teóricas de accesorios: 6
+
+Correctos: 166
+Advertencias: 34
+Incorrectos: 0
+```
+
+Las 34 advertencias no representan 34 errores distintos. Dos pertenecen a probabilidades extremas y las otras 32 son apariciones o variantes repetidas de tres plantillas de esqueletos resistentes al Veneno.
+
+### Probabilidad de aplicar efectos
+
+**Qué se analizó:** todos los grados que aplican Congelamiento, Aturdimiento, Envenenamiento o Quemadura, con resistencias de 0 %, 25 %, 50 % y 75 %.
+
+**Por qué:** una resistencia alta debe proteger al enemigo, pero no debería convertir todas las habilidades en una acción inútil.
+
+Resultado:
+
+```text
+Correctos: 74
+Advertencias: 2
+Incorrectos: 0
+```
+
+Las únicas advertencias aparecen con **Descarga fulminante** contra un objetivo con 75 % de Resistencia a Aturdimiento:
+
+| Grado | Probabilidad base | Probabilidad final | Intentos esperados | Estado |
+|---:|---:|---:|---:|---|
+| 1 | 20 % | 5 % | 20 | Advertencia |
+| 2 | 30 % | 7,5 % | 13,33 | Advertencia |
+| 3 | 40 % | 10 % | 10 | Correcto |
+
+**Conclusión:** la habilidad se vuelve poco fiable únicamente frente al máximo normal de resistencia. Eso es coherente con que el objetivo esté especialmente protegido. No se recomienda subir su probabilidad ni bajar resistencias por estos dos casos aislados.
+
+### Reaplicaciones, renovaciones e intensidad
+
+Se ejecutaron los contratos mediante `SistemaEfectosTemporales`.
+
+| Efecto | Resultado comprobado | Estado |
+|---|---|---|
+| Congelamiento | Rechaza duplicado; una instancia; no renueva | Correcto |
+| Aturdimiento | Rechaza duplicado; una instancia; no renueva | Correcto |
+| Quemadura | Renueva duración y conserva el tick más fuerte | Correcto |
+| Envenenamiento normal | Renueva duración y conserva el tick más fuerte | Correcto |
+| Plaga corrosiva | Intensifica hasta 3 manteniendo una instancia | Correcto |
+
+**Conclusión:** no se crean controles permanentes, ticks dobles ni temporizadores paralelos. No hace falta cambiar la arquitectura de efectos.
+
+### Inmunidades
+
+Para cada uno de los cuatro efectos se probaron:
+
+1. una resistencia alta que rechaza la aplicación;
+2. una inmunidad presente desde el comienzo;
+3. adquirir la inmunidad mientras el efecto está activo.
+
+```text
+Casos correctos: 12 de 12
+```
+
+Se confirmó que:
+
+- `resistido` e `inmune` son resultados diferentes;
+- una inmunidad explícita no crea el efecto;
+- adquirir inmunidad elimina la instancia activa;
+- el mensaje conserva el motivo correcto.
+
+**Conclusión:** mantener el contrato actual de inmunidades.
+
+### Constitución y resistencias a efectos
+
+Se midió como escenario teórico la fórmula acordada:
+
+```text
+1 % por cada 2 puntos de Constitución por encima de 8
+Máximo aportado por Constitución: 10 %
+Límite final total: 75 %
+```
+
+Los atributos iniciales se distribuyeron de forma determinista usando los pesos reales de cada profesión. Después se probaron niveles 1, 3, 6 y 10 con tres estrategias: sin inversión, inversión moderada e inversión alta.
+
+| Profesión | Constitución inicial representativa | Bono inicial | Bono máximo medido al nivel 10 |
+|---|---:|---:|---:|
+| Guerrero | 15 | 3 % | 8 % |
+| Rogue | 14 | 3 % | 7 % |
+| Mago | 12 | 2 % | 6 % |
+
+El rango total medido fue de 2 % a 8 %. Nunca alcanzó el máximo teórico de 10 % ni igualó un afijo medio de referencia.
+
+**Conclusión:** la fórmula ofrece una ayuda pequeña y visible. Favorece un poco al Guerrero, pero no vuelve inútiles los accesorios y no convierte Constitución en una inmunidad automática.
+
+**Decisión pendiente para 12.4B:** se recomienda implementar esta fórmula, pero requiere aprobación específica antes de modificar las estadísticas reales del jugador.
+
+### Enemigos y variantes
+
+El analizador creó los enemigos mediante `FabricaEnemigos` y recorrió normales, variantes, especiales y jefe en los mapas donde aparecen.
+
+```text
+Apariciones o variantes evaluadas: 89
+Correctas: 57
+Advertencias: 32
+Incorrectas: 0
+Plantillas distintas con advertencia: 3
+```
+
+Las tres plantillas son:
+
+- Esqueleto Arquero;
+- Esqueleto Guardia;
+- Caballero Óseo.
+
+Las advertencias se deben a su resistencia extrema al Veneno y al Envenenamiento. No combinan varias resistencias extremas de elementos diferentes y conservan alternativas viables mediante Fuego, Frío, Rayo o daño físico.
+
+El Señor de la Guerra mantiene sus resistencias de control dentro del rango configurado para jefes, sin excepciones por nombre.
+
+**Conclusión:** no se recomienda cambiar resistencias enemigas durante 12.4B. Las defensas altas de los esqueletos son temáticas y no anulan todas las configuraciones.
+
+### Sufijos de resistencia y accesorios teóricos
+
+Se encontraron cuatro sufijos, cada uno con tres grados:
+
+- Congelamiento;
+- Aturdimiento;
+- Envenenamiento;
+- Quemadura.
+
+Todos cumplen:
+
+- uso exclusivo en collar, anillo izquierdo y anillo derecho;
+- máximo de 15 % por accesorio en el grado superior;
+- ausencia de afijos de inmunidad.
+
+La combinación máxima teórica es:
+
+```text
+Tres accesorios de 15 %: 45 %
+Bono máximo de Constitución: 10 %
+Total teórico: 55 %
+```
+
+Esto queda por debajo de:
+
+- 60 %, umbral usado para advertir una inmunidad práctica;
+- 75 %, límite normal de resistencia.
+
+**Conclusión:** mantener los sufijos actuales. El balance definitivo de frecuencia y obtención se hará cuando existan accesorios naturales.
+
+### Cambios jugables
+
+```text
+Probabilidades: sin cambios
+Efectos: sin cambios
+Resistencias del jugador: sin cambios
+Constitución: fórmula todavía no implementada
+Enemigos: sin cambios
+Afijos: sin cambios
+Inmunidades: sin cambios
+```
+
+Solo se ampliaron el analizador, la página de balance y la documentación.
+
+### Archivos del Bloque 12.4A
+
+```text
+balance.css
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/balance/ObjetivosBalance.json
+src/juego/balance/AnalizadorBalanceEfectos.js
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/habilidades/DepuradorMagiaHabilidades.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+### Comandos de consola
+
+Desde `balance.html`:
+
+```javascript
+balanceDarkMoon.efectos()
+balanceDarkMoon.probabilidadesEfectos()
+balanceDarkMoon.contratosEfectos()
+balanceDarkMoon.inmunidadesEfectos()
+balanceDarkMoon.enemigosResistencias()
+balanceDarkMoon.afijosResistencias()
+```
+
+Desde el juego:
+
+```javascript
+await darkMoonDebug.magia.balance.efectos()
+await darkMoonDebug.magia.balance.probabilidadesEfectos()
+await darkMoonDebug.magia.balance.contratosEfectos()
+await darkMoonDebug.magia.balance.inmunidadesEfectos()
+await darkMoonDebug.magia.balance.enemigosResistencias()
+await darkMoonDebug.magia.balance.afijosResistencias()
+```
+
+Ejemplos:
+
+```javascript
+console.table(
+  (await darkMoonDebug.magia.balance.probabilidadesEfectos()).filas,
+)
+
+console.table(
+  (await darkMoonDebug.magia.balance.enemigosResistencias()).extremos,
+)
+```
+
+### Pruebas realizadas
+
+- carga de los módulos reales en Chromium;
+- ejecución real de `SistemaEfectosTemporales`;
+- creación de enemigos mediante `FabricaEnemigos`;
+- 76 casos de probabilidad;
+- 5 contratos de reaplicación;
+- 12 casos de inmunidad;
+- 36 perfiles teóricos de Constitución;
+- 89 apariciones y variantes enemigas;
+- 18 filas de sufijos y acumulación;
+- dos informes consecutivos idénticos;
+- cero errores de ejecución;
+- cero resultados incorrectos;
+- 29 tablas con criterio y estado;
+- ninguna tabla vacía.
+
+La prueba jugable completa desde nivel 1 hasta nivel 10 continúa reservada para el Bloque 12.5.
+
+### Conclusión final fácil
+
+**Qué analicé:** efectos, resistencias, inmunidades, Constitución, enemigos y futuros accesorios.
+
+**Por qué:** para comprobar que los controles y daños periódicos no sean inútiles contra resistencia alta, pero tampoco permitan bloquear permanentemente a los enemigos.
+
+**Conclusión:** los contratos de efectos e inmunidades funcionan correctamente. Las dos advertencias de probabilidad aparecen únicamente con Aturdimiento contra 75 % de resistencia. Los enemigos resistentes al Veneno conservan alternativas. Los sufijos no alcanzan inmunidad práctica. No se justifican cambios numéricos en enemigos, habilidades o afijos.
+
+**Qué pienso hacer en 12.4B:** proponer como único cambio jugable la relación pequeña entre Constitución y las cuatro resistencias a efectos. Antes de implementarla se presentará el archivo exacto, la fórmula final y cómo se mostrará en el panel para aprobación.

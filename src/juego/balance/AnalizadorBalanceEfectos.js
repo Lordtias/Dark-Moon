@@ -1,6 +1,8 @@
+import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
 import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
+import { calcularBonoResistenciasEfectosPorConstitucion } from "../efectos/ResistenciasEfectos.js";
 
 const IDS_EFECTOS_VISIBLES = Object.freeze([
   "congelamiento",
@@ -29,8 +31,8 @@ const FACTORES_TEMPORALES = Object.freeze([
 
 // Este analizador no reproduce las reglas de los efectos: construye casos
 // deterministas y los ejecuta mediante SistemaEfectosTemporales. Los cálculos
-// teóricos de Constitución y accesorios se mantienen marcados como escenarios
-// no implementados.
+// de Constitución utilizan la misma función activa del jugador. Los accesorios
+// continúan como escenario teórico porque todavía no existen de forma natural.
 export function crearInformeBalanceEfectos({
   configuracionEnemigos,
   configuracionObjetos,
@@ -84,6 +86,7 @@ export function crearInformeBalanceEfectos({
       contarEstado(probabilidades.filas, "correcto") +
       contarEstado(contratos.filas, "correcto") +
       contarEstado(inmunidades.filas, "correcto") +
+      contarEstado(constitucion.filas, "correcto") +
       contarEstado(enemigos.filas, "correcto") +
       contarEstado(afijos.filas, "correcto") +
       contarEstado(afijos.acumulacion, "correcto"),
@@ -91,6 +94,7 @@ export function crearInformeBalanceEfectos({
       contarEstado(probabilidades.filas, "advertencia") +
       contarEstado(contratos.filas, "advertencia") +
       contarEstado(inmunidades.filas, "advertencia") +
+      contarEstado(constitucion.filas, "advertencia") +
       contarEstado(enemigos.filas, "advertencia") +
       contarEstado(afijos.filas, "advertencia") +
       contarEstado(afijos.acumulacion, "advertencia"),
@@ -98,6 +102,7 @@ export function crearInformeBalanceEfectos({
       contarEstado(probabilidades.filas, "incorrecto") +
       contarEstado(contratos.filas, "incorrecto") +
       contarEstado(inmunidades.filas, "incorrecto") +
+      contarEstado(constitucion.filas, "incorrecto") +
       contarEstado(enemigos.filas, "incorrecto") +
       contarEstado(afijos.filas, "incorrecto") +
       contarEstado(afijos.acumulacion, "incorrecto"),
@@ -111,7 +116,7 @@ export function crearInformeBalanceEfectos({
       contratos: "SistemaEfectosTemporales",
       inmunidades: "SistemaEfectosTemporales",
       enemigos: "FabricaEnemigos",
-      constitucion: "escenario teórico no implementado",
+      constitucion: "EstadisticasDerivadas y fórmula activa de Constitución",
       afijos: "catálogo validado de generación de objetos",
     },
     resumen,
@@ -438,7 +443,9 @@ function analizarConstitucion({ configuracionPersonaje, objetivos }) {
             ? Math.floor(puntosGanados / 2)
             : 0;
         const constitucion = constitucionInicial + invertidos;
-        const bono = calcularBonoConstitucion(constitucion, objetivos);
+        const bono = calcularBonoResistenciasEfectosPorConstitucion(
+          constitucion,
+        );
         filas.push({
           profesion: profesion.nombre ?? capitalizar(idProfesion),
           nivel,
@@ -450,16 +457,18 @@ function analizarConstitucion({ configuracionPersonaje, objetivos }) {
           probabilidadBase40: redondear(40 * (1 - bono / 100)),
           probabilidadBase100: redondear(100 * (1 - bono / 100)),
           reemplazaAfijos: bono >= objetivos.afijoMedioReferencia,
-          estado: "informativo",
+          estado: bono < objetivos.afijoMedioReferencia
+            ? "correcto"
+            : "advertencia",
           criterio:
-            `Escenario no implementado: máximo ${objetivos.bonificacionMaximaConstitucion} % y debe quedar por debajo de un afijo medio (${objetivos.afijoMedioReferencia} %).`,
+            `Fórmula activa: máximo ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.bonificacionMaxima} % y debe quedar por debajo de un afijo medio (${objetivos.afijoMedioReferencia} %).`,
         });
       }
     }
   }
   return {
     formula:
-      `1 % cada ${objetivos.puntosConstitucionPorPorcentaje} puntos por encima de ${objetivos.constitucionReferencia}; máximo ${objetivos.bonificacionMaximaConstitucion} %.`,
+      `1 % cada ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.puntosPorPorcentaje} puntos por encima de ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.referencia}; máximo ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.bonificacionMaxima} %.`,
     filas,
     resumen: {
       cantidad: filas.length,
@@ -508,18 +517,6 @@ function crearPerfilCreacionDeterminista({
   return atributos;
 }
 
-function calcularBonoConstitucion(constitucion, objetivos) {
-  return Math.min(
-    objetivos.bonificacionMaximaConstitucion,
-    Math.max(
-      0,
-      Math.floor(
-        (constitucion - objetivos.constitucionReferencia) /
-          objetivos.puntosConstitucionPorPorcentaje,
-      ),
-    ),
-  );
-}
 
 function analizarEnemigos({
   configuracionEnemigos,
@@ -748,10 +745,14 @@ function analizarAfijos({ configuracionGeneracionObjetos, objetivos }) {
   const maximoAfijo = Math.max(...filas.map((fila) => fila.maximo));
   const acumulacion = [];
   for (const cantidadAccesorios of [1, 2, 3]) {
-    for (const constitucion of [0, objetivos.bonificacionMaximaConstitucion]) {
+    for (const constitucion of [
+      0,
+      CONFIGURACION_COMBATE.resistenciasEfectos.constitucion
+        .bonificacionMaxima,
+    ]) {
       const resistenciaBruta = cantidadAccesorios * maximoAfijo + constitucion;
       const resistenciaFinal = Math.min(
-        objetivos.limiteResistenciaFinal,
+        CONFIGURACION_COMBATE.resistencias.maxima,
         resistenciaBruta,
       );
       const estado = resistenciaFinal >= objetivos.inmunidadPracticaDesde
@@ -764,11 +765,12 @@ function analizarAfijos({ configuracionGeneracionObjetos, objetivos }) {
         resistenciaBruta,
         resistenciaFinal,
         probabilidadFinalBase100: 100 - resistenciaFinal,
-        alcanzaLimite: resistenciaFinal >= objetivos.limiteResistenciaFinal,
+        alcanzaLimite:
+          resistenciaFinal >= CONFIGURACION_COMBATE.resistencias.maxima,
         inmunidadPractica: resistenciaFinal >= objetivos.inmunidadPracticaDesde,
         estado,
         criterio:
-          `Correcto por debajo de ${objetivos.inmunidadPracticaDesde} %; el límite absoluto es ${objetivos.limiteResistenciaFinal} %.`,
+          `Correcto por debajo de ${objetivos.inmunidadPracticaDesde} %; el límite absoluto es ${CONFIGURACION_COMBATE.resistencias.maxima} %.`,
       });
     }
   }
@@ -840,12 +842,12 @@ function crearConclusiones({
       },
       {
         id: "constitucion_resistencias",
-        queSeAnalizo: "El aporte teórico de Constitución en las profesiones y niveles 1, 3, 6 y 10.",
+        queSeAnalizo: "El aporte activo de Constitución en las profesiones y niveles 1, 3, 6 y 10.",
         porQue: "Queremos que Constitución ayude un poco sin reemplazar los accesorios ni favorecer automáticamente a los atributos mágicos.",
         conclusion: `El bono medido va de ${constitucion.resumen.bonoMinimo} % a ${constitucion.resumen.bonoMaximo} % y no supera un afijo medio.`,
         recomendacion: constitucion.resumen.reemplazaAfijos
-          ? "Reducir la fórmula antes de implementarla."
-          : "La fórmula parece pequeña y viable; decidir su implementación en 12.4B.",
+          ? "Reducir la fórmula porque competiría con los afijos."
+          : "Mantener la fórmula activa: aporta poco y no reemplaza los accesorios.",
       },
       {
         id: "enemigos_resistencias",

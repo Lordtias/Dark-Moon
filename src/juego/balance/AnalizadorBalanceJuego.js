@@ -4,6 +4,7 @@ import { calcularCostoBaseAtaque } from "../../entidad/destructible/combatiente/
 import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
 import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
 import { crearInformeBalanceEfectos } from "./AnalizadorBalanceEfectos.js";
+import { calcularBonoResistenciasEfectosPorConstitucion } from "../efectos/ResistenciasEfectos.js";
 import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
 import {
   calcularMultiplicadorDanioMagico,
@@ -42,8 +43,8 @@ const RESISTENCIAS_EFECTOS_VISIBLES = Object.freeze([
 // - Vida y Maná: EstadisticasDerivadas + CalculadorAtributosMagicos.
 // - Catalizadores y doble varita: SistemaCatalizadores y ConfiguracionAtaque.
 //
-// Los escenarios de Constitución, recarga, espera y pociones se marcan como
-// teóricos y nunca alteran una instancia de jugador ni los JSON jugables.
+// Constitución utiliza la fórmula real del jugador. Recarga, espera y
+// pociones continúan como escenarios teóricos que no alteran la partida.
 export function crearAnalizadorBalanceJuego({
   configuracionPersonaje,
   configuracionEnemigos,
@@ -180,12 +181,6 @@ function crearInformeLineaBase({
 
   const advertencias = [
     {
-      id: "constitucion_no_implementada",
-      nivel: "informacion",
-      mensaje:
-        "El aporte de Constitución a resistencias se calcula solo como escenario teórico.",
-    },
-    {
       id: "arco_sin_recarga",
       nivel: "informacion",
       mensaje:
@@ -224,7 +219,7 @@ function crearInformeLineaBase({
       recursos: "EstadisticasDerivadas y CalculadorAtributosMagicos",
       catalizadores: "SistemaCatalizadores y ConfiguracionAtaque",
       efectos: "SistemaEfectosTemporales, FabricaEnemigos y catálogo de afijos",
-      escenarios: "cálculos teóricos aislados",
+      escenarios: "Constitución real y cálculos teóricos aislados",
     },
     resumen: {
       nivelesAnalizados: progresion.tablaNiveles.length,
@@ -1708,10 +1703,14 @@ function crearInformeConstitucion({
   configuracionPersonaje,
   objetivosBalance,
 }) {
+  const valoresPrueba =
+    objetivosBalance.escenariosTeoricos.constitucionResistenciasEfectos
+      .valoresConstitucionPrueba;
   const configuracion =
-    objetivosBalance.escenariosTeoricos.constitucionResistenciasEfectos;
-  const filas = configuracion.valoresConstitucionPrueba.map((constitucion) => {
-    const bono = calcularBonoConstitucion(constitucion, configuracion);
+    CONFIGURACION_COMBATE.resistenciasEfectos.constitucion;
+  const filas = valoresPrueba.map((constitucion) => {
+    const bono =
+      calcularBonoResistenciasEfectosPorConstitucion(constitucion);
     return {
       constitucion,
       bonoResistencia: bono,
@@ -1719,6 +1718,10 @@ function crearInformeConstitucion({
       probabilidadFinalBase40: redondear(40 * (1 - bono / 100)),
       probabilidadFinalBase30: redondear(30 * (1 - bono / 100)),
       probabilidadFinalBase20: redondear(20 * (1 - bono / 100)),
+      estado: "correcto",
+      criterio:
+        `Fórmula activa: máximo ${configuracion.bonificacionMaxima} % y ` +
+        "sin convertir resistencia en inmunidad.",
     };
   });
 
@@ -1737,24 +1740,25 @@ function crearInformeConstitucion({
         profesion: profesion.nombre,
         nivel,
         constitucion: atributos.constitucion,
-        bonoResistencia: calcularBonoConstitucion(
-          atributos.constitucion,
-          configuracion,
-        ),
+        bonoResistencia:
+          calcularBonoResistenciasEfectosPorConstitucion(
+            atributos.constitucion,
+          ),
       });
     }
   }
 
   const apilamiento = [];
   for (const constitucion of [8, 15, 28]) {
-    const bono = calcularBonoConstitucion(constitucion, configuracion);
+    const bono =
+      calcularBonoResistenciasEfectosPorConstitucion(constitucion);
     for (const resistenciaEquipo of [0, 25, 50, 75]) {
       apilamiento.push({
         constitucion,
         bonoConstitucion: bono,
         resistenciaEquipo,
         resistenciaFinal: Math.min(
-          configuracion.limiteResistenciaFinal,
+          CONFIGURACION_COMBATE.resistencias.maxima,
           bono + resistenciaEquipo,
         ),
       });
@@ -1762,27 +1766,20 @@ function crearInformeConstitucion({
   }
 
   return {
-    tipoResultado: "escenario_teorico_no_implementado",
+    tipoResultado: "configuracion_jugable_validada",
     determinista: true,
-    implementado: false,
+    implementado: true,
     formula:
-      "min(10, floor(max(0, Constitución - 8) / 2)) y límite final 75 %",
+      `min(${configuracion.bonificacionMaxima}, ` +
+      `floor(max(0, Constitución - ${configuracion.referencia}) / ` +
+      `${configuracion.puntosPorPorcentaje})) y límite final ` +
+      `${CONFIGURACION_COMBATE.resistencias.maxima} %`,
     resistenciasAfectadas: [...RESISTENCIAS_EFECTOS_VISIBLES],
     configuracion: { ...configuracion },
     filas,
     perfiles,
     apilamiento,
   };
-}
-
-function calcularBonoConstitucion(constitucion, configuracion) {
-  return Math.min(
-    configuracion.bonificacionMaxima,
-    Math.floor(
-      Math.max(0, constitucion - configuracion.atributoReferencia) /
-        configuracion.puntosPorPorcentaje,
-    ),
-  );
 }
 
 function crearInformeEscenariosTeoricos({

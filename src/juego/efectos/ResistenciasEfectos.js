@@ -1,3 +1,5 @@
+import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
+
 export const IDS_RESISTENCIA_EFECTO = Object.freeze([
   "congelamiento",
   "aturdimiento",
@@ -12,11 +14,34 @@ export const PROPIEDAD_RESISTENCIA_EFECTO = Object.freeze({
   quemadura: "resistenciaQuemadura",
 });
 
+export function calcularBonoResistenciasEfectosPorConstitucion(
+  constitucion,
+) {
+  if (!Number.isFinite(constitucion)) {
+    throw new Error("La Constitución debe ser un número finito.");
+  }
+
+  const configuracion =
+    CONFIGURACION_COMBATE.resistenciasEfectos.constitucion;
+  const puntosSobreReferencia = Math.max(
+    0,
+    constitucion - configuracion.referencia,
+  );
+  const bono = Math.floor(
+    puntosSobreReferencia / configuracion.puntosPorPorcentaje,
+  );
+
+  return Math.min(configuracion.bonificacionMaxima, bono);
+}
+
 export function normalizarResistenciaEfecto(valor, descripcion) {
   if (!Number.isFinite(valor)) {
     throw new Error(`${descripcion} debe ser un número finito.`);
   }
-  return Math.max(0, Math.min(75, valor));
+  return Math.max(
+    CONFIGURACION_COMBATE.resistencias.minima,
+    Math.min(CONFIGURACION_COMBATE.resistencias.maxima, valor),
+  );
 }
 
 export function normalizarResistenciasEfectos(resistencias = {}) {

@@ -20,6 +20,16 @@ export const CONFIGURACION_COMBATE = {
     resistenciaMentalPorSabiduria: 2,
     potenciaAuraPorCarisma: 2,
   },
+  resistenciasEfectos: {
+    // El jugador obtiene una defensa pequeña y común contra los cuatro
+    // estados visibles. Los enemigos conservan exclusivamente los valores
+    // configurados en sus catálogos.
+    constitucion: {
+      referencia: 8,
+      puntosPorPorcentaje: 2,
+      bonificacionMaxima: 10,
+    },
+  },
   impacto: {
     // El factor aumentado reduce la frecuencia de fallos
     // durante los combates iniciales.

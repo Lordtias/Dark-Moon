@@ -329,6 +329,9 @@ export class Combatiente extends Destructible {
     this.nivel = nivel;
     this.atributos = atributosNormalizados;
     this.estadisticasBase = baseNormalizada;
+    // Solamente Player activa este aporte. Los enemigos conservan las
+    // resistencias explícitas de sus catálogos.
+    this.aplicaBonoConstitucionResistenciasEfectos = false;
     this.ataqueNatural = ataqueNormalizado;
     this.equipamiento = equipamiento;
     this.factorTiempo = factoresTemporalesNormalizados.factorTiempo;

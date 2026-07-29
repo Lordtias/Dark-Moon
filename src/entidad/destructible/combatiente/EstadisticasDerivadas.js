@@ -15,6 +15,7 @@ import {
 import {
   IDS_RESISTENCIA_EFECTO,
   PROPIEDAD_RESISTENCIA_EFECTO,
+  calcularBonoResistenciasEfectosPorConstitucion,
   normalizarResistenciaEfecto,
 } from "../../../juego/efectos/ResistenciasEfectos.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
@@ -389,10 +390,17 @@ export function calcularEstadisticasDerivadas(combatiente) {
     );
   }
 
+  const bonificacionResistenciasEfectosPorConstitucion =
+    combatiente.aplicaBonoConstitucionResistenciasEfectos === true
+      ? calcularBonoResistenciasEfectosPorConstitucion(
+          atributos.constitucion,
+        )
+      : 0;
   const resistenciasEfectos = {};
   for (const idResistencia of IDS_RESISTENCIA_EFECTO) {
     resistenciasEfectos[idResistencia] = normalizarResistenciaEfecto(
       (base.resistenciasEfectos?.[idResistencia] ?? 0) +
+        bonificacionResistenciasEfectosPorConstitucion +
         sumarPropiedad(
           objetos,
           PROPIEDAD_RESISTENCIA_EFECTO[idResistencia],
@@ -451,6 +459,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
       coeficientes.potenciaAuraPorCarisma * atributos.carisma,
     resistencias,
     resistenciasEfectos,
+    bonificacionResistenciasEfectosPorConstitucion,
     inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
     danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque),
   };

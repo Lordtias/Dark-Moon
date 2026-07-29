@@ -2,9 +2,9 @@
 
 ## Estado de la entrega
 
-Esta entrega contiene los bloques completados **12.1: analizador y línea base** y **12.2: progresión, experiencia, Maná y grados**.
+Esta entrega contiene los bloques completados **12.1**, **12.2**, **12.3**, **12.3A**, **12.4A** y **12.4B**.
 
-No se considera terminada la ETAPA 12 completa. El daño, los tiempos, las armas, los arquetipos, los efectos, los enemigos y la regresión completa quedan para los bloques siguientes. Cada bloque requerirá una propuesta previa y aprobación.
+No se considera terminada la ETAPA 12 completa. Queda pendiente el **Bloque 12.5**, dedicado a la regresión completa de nivel 1 a 10, pruebas desde la interfaz real y documentación final. Cada bloque continúa requiriendo una propuesta previa y aprobación.
 
 ## Base verificada
 
@@ -1384,3 +1384,180 @@ La prueba jugable completa desde nivel 1 hasta nivel 10 continúa reservada para
 **Conclusión:** los contratos de efectos e inmunidades funcionan correctamente. Las dos advertencias de probabilidad aparecen únicamente con Aturdimiento contra 75 % de resistencia. Los enemigos resistentes al Veneno conservan alternativas. Los sufijos no alcanzan inmunidad práctica. No se justifican cambios numéricos en enemigos, habilidades o afijos.
 
 **Qué pienso hacer en 12.4B:** proponer como único cambio jugable la relación pequeña entre Constitución y las cuatro resistencias a efectos. Antes de implementarla se presentará el archivo exacto, la fórmula final y cómo se mostrará en el panel para aprobación.
+
+
+## Bloque 12.4B — Constitución y resistencias a efectos
+
+### Base
+
+```text
+f5ea433586854baffd366a6d5cfe4f472913c766
+```
+
+Este bloque implementa la única modificación jugable aprobada después del análisis de 12.4A.
+
+### Qué se cambió
+
+Constitución aporta ahora una resistencia pequeña y común a:
+
+- Congelamiento;
+- Aturdimiento;
+- Envenenamiento;
+- Quemadura.
+
+La fórmula activa es:
+
+```text
+bono de Constitución =
+mínimo(10, piso(máximo(0, Constitución - 8) / 2))
+
+resistencia final =
+mínimo(75, resistencia base + bono de Constitución + equipo)
+```
+
+Ejemplos:
+
+| Constitución | Bono activo |
+|---:|---:|
+| 8 | 0 % |
+| 10 | 1 % |
+| 12 | 2 % |
+| 15 | 3 % |
+| 18 | 5 % |
+| 24 | 8 % |
+| 28 o más | 10 % |
+
+### Alcance exacto
+
+El bono se aplica únicamente al jugador.
+
+Los enemigos conservan exclusivamente:
+
+- sus resistencias configuradas en `Enemigos.json` o `EnemigosEspeciales.json`;
+- las modificaciones de sus variantes;
+- sus inmunidades explícitas.
+
+Esto evita alterar indirectamente el balance enemigo aprobado en 12.4A.
+
+Las inmunidades continúan separadas. Constitución nunca crea inmunidad, aunque la resistencia alcance el límite de 75 %.
+
+### Fuente canónica
+
+La fórmula jugable quedó centralizada en:
+
+```text
+src/config/ConfiguracionCombate.js
+```
+
+La función común se encuentra en:
+
+```text
+src/juego/efectos/ResistenciasEfectos.js
+```
+
+`EstadisticasDerivadas.js` combina:
+
+1. resistencia base;
+2. bono de Constitución, solamente para `Player`;
+3. afijos del equipo;
+4. límite final de 75 %.
+
+Se eliminaron las copias de la fórmula que existían dentro de `ObjetivosBalance.json`. Ese archivo conserva únicamente valores de prueba y criterios del analizador. Así no existen dos configuraciones jugables diferentes para la misma regla.
+
+### Resultado por profesión
+
+Con los perfiles iniciales medidos:
+
+| Profesión | Constitución inicial | Bono inicial |
+|---|---:|---:|
+| Guerrero | 15 | 3 % |
+| Rogue | 14 | 3 % |
+| Mago | 12 | 2 % |
+
+**Lectura sencilla:** la diferencia inicial es pequeña. Guerrero obtiene una ventaja defensiva leve, mientras que Rogue, Mago e híbridos también pueden invertir en Constitución si desean mejorarla.
+
+### Pruebas deterministas
+
+Se ejecutaron 12 comprobaciones específicas mediante módulos reales del navegador:
+
+- Constitución 8 produce 0 %;
+- Constitución 15 produce 3 %;
+- Constitución 28 produce el máximo de 10 %;
+- las cuatro resistencias reciben el mismo bono;
+- resistencia base 70 % más bono queda limitada a 75 %;
+- un valor de equipo excesivo también queda limitado a 75 %;
+- los enemigos no reciben el bono automático;
+- asignar un punto de Constitución recalcula inmediatamente las resistencias;
+- pasar de Constitución 15 a 16 cambia el bono de 3 % a 4 %;
+- una aplicación base de 40 % contra 3 % de resistencia queda en 38,8 %;
+- `PanelPersonaje` muestra el valor derivado actualizado;
+- ninguna prueba produjo errores de consola o ejecución.
+
+Resultado:
+
+```text
+Pruebas específicas: 12
+Correctas: 12
+Fallidas: 0
+```
+
+### Balanceador
+
+Las tablas de Constitución ya no aparecen como escenario no implementado.
+
+Ahora indican:
+
+- fórmula activa;
+- estado `Correcto` o `Advertencia` calculado;
+- que se aplica únicamente al jugador;
+- que los enemigos conservan sus valores configurados.
+
+Resultado del análisis de efectos después del cambio:
+
+```text
+Correctos: 202
+Advertencias: 34
+Incorrectos: 0
+```
+
+Las 34 advertencias siguen siendo las mismas detectadas en 12.4A. No fueron generadas por Constitución y no justifican cambios adicionales.
+
+### Cambios no realizados
+
+No se modificaron:
+
+- probabilidades de las habilidades;
+- duración o potencia de efectos;
+- resistencias de enemigos;
+- inmunidades;
+- valores o pesos de afijos;
+- límite de 75 %;
+- Inteligencia o Sabiduría;
+- daño, Maná o tiempo;
+- accesorios naturales.
+
+### Archivos modificados en 12.4B
+
+```text
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/ConfiguracionCombate.js
+src/config/balance/ObjetivosBalance.json
+src/entidad/destructible/combatiente/Combatiente.js
+src/entidad/destructible/combatiente/Player.js
+src/entidad/destructible/combatiente/EstadisticasDerivadas.js
+src/juego/efectos/ResistenciasEfectos.js
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/balance/AnalizadorBalanceEfectos.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+### Conclusión final fácil
+
+**Qué analicé:** si la fórmula aprobada se integra correctamente con el jugador, el equipo, el límite de resistencia, el motor de efectos y el panel visual.
+
+**Por qué:** Constitución debía ayudar un poco sin modificar enemigos, sustituir accesorios ni convertirse en inmunidad.
+
+**Conclusión:** el bono funciona como fue diseñado. El aporte inicial es de 2 % a 3 %, puede crecer hasta 10 %, se combina con afijos y nunca supera 75 %. Los enemigos no cambian.
+
+**Qué recomiendo:** conservar esta fórmula y pasar al Bloque 12.5. No hace falta modificar otras resistencias, enemigos o afijos como consecuencia de 12.4B.

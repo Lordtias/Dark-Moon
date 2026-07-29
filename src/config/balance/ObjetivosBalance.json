@@ -56,10 +56,6 @@
   ],
   "escenariosTeoricos": {
     "constitucionResistenciasEfectos": {
-      "atributoReferencia": 8,
-      "puntosPorPorcentaje": 2,
-      "bonificacionMaxima": 10,
-      "limiteResistenciaFinal": 75,
       "valoresConstitucionPrueba": [
         8,
         10,
@@ -266,10 +262,6 @@
     "intentosCorrectosMaximo": 10,
     "intentosAdvertenciaMaximo": 20,
     "resistenciaMensajePrueba": 75,
-    "constitucionReferencia": 8,
-    "puntosConstitucionPorPorcentaje": 2,
-    "bonificacionMaximaConstitucion": 10,
-    "limiteResistenciaFinal": 75,
     "nivelesConstitucion": [
       1,
       3,

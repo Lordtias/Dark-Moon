@@ -82,6 +82,8 @@ export class Player extends Combatiente {
       equipamientoInicial,
     });
 
+    this.aplicaBonoConstitucionResistenciasEfectos = true;
+
     if (
       recursoVisual !== null &&
       (typeof recursoVisual !== "string" || recursoVisual.trim() === "")

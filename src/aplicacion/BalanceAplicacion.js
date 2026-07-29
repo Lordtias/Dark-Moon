@@ -370,8 +370,8 @@ function dibujarTablasProgresion(informe) {
     `${formatearNumero(fila.probabilidadFinalBase100)} %`,
     `${formatearNumero(fila.probabilidadFinalBase40)} %`,
     `${formatearNumero(fila.probabilidadFinalBase20)} %`,
-    "Escenario teórico: el bono debe ser pequeño, no superar 10 % y nunca convertir resistencia en inmunidad.",
-    crearEtiquetaEstado(ESTADOS.INFORMATIVO),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
   ]);
 }
 

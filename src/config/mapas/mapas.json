@@ -166,7 +166,7 @@
                 "cantidadMaxima": 1
               },
               {
-                "idObjeto": "varita_aprendiz",
+                "idObjeto": "varita_veneno_aprendiz",
                 "probabilidad": 2,
                 "cantidadMinima": 1,
                 "cantidadMaxima": 1

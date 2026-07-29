@@ -53,5 +53,25 @@
       "idMapa": "sala_guerra",
       "nivelMapa": 9
     }
-  ]
+  ],
+  "escenariosTeoricos": {
+    "constitucionResistenciasEfectos": {
+      "atributoReferencia": 8,
+      "puntosPorPorcentaje": 2,
+      "bonificacionMaxima": 10,
+      "limiteResistenciaFinal": 75,
+      "valoresConstitucionPrueba": [8, 10, 12, 15, 18, 24, 28]
+    },
+    "recargaArco": {
+      "costoTemporalRecarga": 100
+    },
+    "esperaHabilidadesBasicas": {
+      "costoTemporalEspera": 100
+    },
+    "pocionesMana": {
+      "costoTemporalConsumo": 100,
+      "recuperacionesFijasPrueba": [10],
+      "recuperacionesPorcentualesPrueba": [25, 50, 100]
+    }
+  }
 }

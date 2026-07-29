@@ -105,13 +105,8 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": [
-        "arma",
-        "secundaria"
-      ],
-      "objetosIniciales": [
-        "daga_hierro"
-      ]
+      "ranuras": ["arma", "secundaria"],
+      "objetosIniciales": ["daga_hierro"]
     },
     "tablaBotin": [
       {
@@ -145,7 +140,7 @@
         "cantidadMaxima": 1
       },
       {
-        "idObjeto": "varita_aprendiz",
+        "idObjeto": "varita_veneno_aprendiz",
         "probabilidad": 4,
         "cantidadMinima": 1,
         "cantidadMaxima": 1
@@ -409,12 +404,7 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": [
-        "arma",
-        "secundaria",
-        "cabeza",
-        "torso"
-      ],
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
       "objetosIniciales": [
         "hacha_mano",
         "escudo_hierro",
@@ -568,12 +558,7 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": [
-        "arma",
-        "secundaria",
-        "cabeza",
-        "torso"
-      ],
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",
@@ -747,12 +732,7 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": [
-        "arma",
-        "secundaria",
-        "cabeza",
-        "torso"
-      ],
+      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",

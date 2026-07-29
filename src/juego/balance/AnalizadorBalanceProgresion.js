@@ -1,7 +1,8 @@
+import { calcularDatosEnemigo } from "../fabricas/FabricaEnemigos.js";
 import {
   CONFIGURACION_RECOMPENSAS_EXPERIENCIA,
   calcularExperienciaNecesaria,
-  obtenerAjusteExperienciaEnemigo,
+  calcularRecompensaExperiencia,
 } from "../progresion/SistemaProgresion.js";
 
 const ESTADOS_BALANCE = Object.freeze({
@@ -10,155 +11,113 @@ const ESTADOS_BALANCE = Object.freeze({
   DEMASIADO_LENTO: "demasiado_lento",
 });
 
-// Analiza todos los niveles disponibles en cada mapa
-// y la ruta principal definida en ObjetivosBalance.json.
-//
-// Los cálculos utilizan valores esperados:
-//
-// - Promedio entre cantidad mínima y máxima.
-// - Promedio ponderado de plantillas.
-// - Probabilidad media de variantes.
-// - Probabilidad de encuentros especiales.
-// - Jefes obligatorios o probabilísticos.
+// Analiza la experiencia de mapas utilizando las mismas dos fuentes que el
+// juego real: FabricaEnemigos calcula la XP base final y SistemaProgresion
+// aplica diferencia de nivel y redondeo por enemigo. Las probabilidades de
+// población se usan solamente para obtener el valor esperado de una expedición.
 export function analizarBalanceProgresion({
   configuracionMapas,
-  plantillasEnemigos,
-  variantesEnemigos,
+  configuracionEnemigos,
   objetivosBalance,
 } = {}) {
   validarParametros({
     configuracionMapas,
-    plantillasEnemigos,
-    variantesEnemigos,
+    configuracionEnemigos,
     objetivosBalance,
   });
+  validarObjetivosBalance({ objetivosBalance, configuracionMapas });
 
-  validarObjetivosBalance({
-    objetivosBalance,
+  const detalleMapas = crearFilasTodosLosMapas({
     configuracionMapas,
+    configuracionEnemigos,
   });
-
-  const filasMapas = crearFilasTodosLosMapas({
+  const rutaRecomendada = crearFilasRutaRecomendada({
     configuracionMapas,
-    plantillasEnemigos,
-    variantesEnemigos,
-  });
-
-  const filasRuta = crearFilasRutaRecomendada({
-    configuracionMapas,
-    plantillasEnemigos,
-    variantesEnemigos,
+    configuracionEnemigos,
     objetivosBalance,
   });
 
-  const resumen = crearResumen({
-    filasRuta,
-    objetivosBalance,
-  });
-
-  return {
-    generadoEn: new Date().toISOString(),
-
+  return congelarProfundamente({
+    tipoResultado: "calculo_teorico_canonico",
+    determinista: true,
     configuracion: {
       nivelMaximoContenido: objetivosBalance.nivelMaximoContenido,
-
       factorBaseExperiencia:
         CONFIGURACION_RECOMPENSAS_EXPERIENCIA.factorBaseExperienciaEnemigos,
-
       rangoExpedicionesObjetivo: {
         ...objetivosBalance.rangoExpedicionesObjetivo,
       },
     },
-
-    resumen,
-    rutaRecomendada: filasRuta,
-    detalleMapas: filasMapas,
-  };
+    resumen: crearResumen({ rutaRecomendada, objetivosBalance }),
+    rutaRecomendada,
+    detalleMapas,
+  });
 }
 
-// Calcula la XP esperada de una expedición concreta.
+// Calcula la XP esperada de una expedición concreta. El resultado es exacto
+// para cada combinación enemigo/variante y estadístico solo al promediar las
+// cantidades y probabilidades configuradas en el mapa.
 export function calcularExperienciaEsperadaMapa({
   plantillaMapa,
   nivelMapa,
   nivelJugador,
-  plantillasEnemigos,
-  variantesEnemigos,
+  configuracionEnemigos,
 } = {}) {
-  validarNivelDentroMapa({
-    plantillaMapa,
-    nivelMapa,
-  });
-
-  validarNivel({
-    nivel: nivelJugador,
-
-    descripcion: "El nivel del jugador",
-  });
+  validarNivelDentroMapa({ plantillaMapa, nivelMapa });
+  validarNivel({ nivel: nivelJugador, descripcion: "El nivel del jugador" });
+  validarConfiguracionEnemigos(configuracionEnemigos);
 
   const recurrentes = calcularPoblacionRecurrente({
     configuracion: plantillaMapa.enemigos,
-
     nivelMapa,
-    plantillasEnemigos,
-    variantesEnemigos,
+    nivelJugador,
+    configuracionEnemigos,
   });
-
   const especial = calcularPoblacionUnica({
     configuracion: plantillaMapa.encuentroEspecial ?? null,
-
     nivelMapa,
-    plantillasEnemigos,
-    variantesEnemigos,
+    nivelJugador,
+    configuracionEnemigos,
   });
-
   const jefe = calcularPoblacionUnica({
     configuracion: plantillaMapa.jefe ?? null,
-
     nivelMapa,
-    plantillasEnemigos,
-    variantesEnemigos,
+    nivelJugador,
+    configuracionEnemigos,
   });
 
   const experienciaBruta =
+    recurrentes.experienciaBrutaEsperada +
+    especial.experienciaBrutaEsperada +
+    jefe.experienciaBrutaEsperada;
+  const experienciaAjustada =
     recurrentes.experienciaEsperada +
     especial.experienciaEsperada +
     jefe.experienciaEsperada;
+  const cantidadEnemigosEsperada =
+    recurrentes.cantidadEsperada +
+    especial.cantidadEsperada +
+    jefe.cantidadEsperada;
 
-  const ajuste = obtenerAjusteExperienciaEnemigo({
-    nivelJugador,
-    nivelEnemigo: nivelMapa,
-  });
-
-  // El juego redondea la XP individual de cada enemigo.
-  //
-  // El análisis aplica el factor al total esperado,
-  // por lo que funciona como una aproximación estadística.
-  const experienciaAjustada = experienciaBruta * ajuste.factorTotal;
-
-  return {
+  return congelarProfundamente({
     nivelJugador,
     nivelMapa,
-
+    cantidadEnemigosEsperada: redondear(cantidadEnemigosEsperada),
     experienciaBruta: redondear(experienciaBruta),
-
     experienciaAjustada: redondear(experienciaAjustada),
-
-    factorExperiencia: ajuste.factorTotal,
-
-    multiplicadorDiferencia: ajuste.multiplicadorDiferencia,
-
-    diferenciaNiveles: ajuste.diferenciaNiveles,
-
+    experienciaPromedioPorEnemigo:
+      cantidadEnemigosEsperada > 0
+        ? redondear(experienciaAjustada / cantidadEnemigosEsperada)
+        : 0,
     recurrentes,
     especial,
     jefe,
-  };
+  });
 }
 
 function crearFilasTodosLosMapas({
   configuracionMapas,
-  plantillasEnemigos,
-  variantesEnemigos,
+  configuracionEnemigos,
 }) {
   const filas = [];
 
@@ -168,40 +127,29 @@ function crearFilasTodosLosMapas({
     for (
       let nivelMapa = plantillaMapa.niveles.minimo;
       nivelMapa <= plantillaMapa.niveles.maximo;
-      nivelMapa++
+      nivelMapa += 1
     ) {
       const resultado = calcularExperienciaEsperadaMapa({
         plantillaMapa,
         nivelMapa,
-
-        // El detalle general compara siempre
-        // una expedición del mismo nivel.
         nivelJugador: nivelMapa,
-
-        plantillasEnemigos,
-        variantesEnemigos,
+        configuracionEnemigos,
       });
 
       filas.push({
         idMapa,
         mapa: plantillaMapa.nombre,
         nivelMapa,
-
         cantidadRecurrentesPromedio: resultado.recurrentes.cantidadEsperada,
-
+        cantidadEnemigosPromedio: resultado.cantidadEnemigosEsperada,
         probabilidadEspecial: resultado.especial.probabilidadAparicion,
-
         probabilidadJefe: resultado.jefe.probabilidadAparicion,
-
         experienciaRecurrentes: resultado.recurrentes.experienciaEsperada,
-
         experienciaEspecial: resultado.especial.experienciaEsperada,
-
         experienciaJefe: resultado.jefe.experienciaEsperada,
-
         experienciaBruta: resultado.experienciaBruta,
-
         experienciaAjustada: resultado.experienciaAjustada,
+        experienciaPromedioPorEnemigo: resultado.experienciaPromedioPorEnemigo,
       });
     }
   }
@@ -211,67 +159,48 @@ function crearFilasTodosLosMapas({
 
 function crearFilasRutaRecomendada({
   configuracionMapas,
-  plantillasEnemigos,
-  variantesEnemigos,
+  configuracionEnemigos,
   objetivosBalance,
 }) {
   const { minimo, maximo } = objetivosBalance.rangoExpedicionesObjetivo;
 
   return objetivosBalance.rutaRecomendada.map((paso) => {
     const plantillaMapa = configuracionMapas.plantillas[paso.idMapa];
-
     const resultado = calcularExperienciaEsperadaMapa({
       plantillaMapa,
-
       nivelMapa: paso.nivelMapa,
-
       nivelJugador: paso.nivelJugador,
-
-      plantillasEnemigos,
-      variantesEnemigos,
+      configuracionEnemigos,
     });
-
     const experienciaNecesaria = calcularExperienciaNecesaria(
       paso.nivelJugador,
     );
-
     const expedicionesEsperadas =
       resultado.experienciaAjustada > 0
         ? experienciaNecesaria / resultado.experienciaAjustada
         : Infinity;
-
-    const estado = clasificarExpediciones({
-      expedicionesEsperadas,
-      minimo,
-      maximo,
-    });
+    const enemigosEsperados =
+      resultado.experienciaPromedioPorEnemigo > 0
+        ? experienciaNecesaria / resultado.experienciaPromedioPorEnemigo
+        : Infinity;
 
     return {
       nivelJugador: paso.nivelJugador,
-
       siguienteNivel: paso.nivelJugador + 1,
-
       idMapa: paso.idMapa,
-
       mapa: plantillaMapa.nombre,
-
       nivelMapa: paso.nivelMapa,
-
       experienciaNecesaria,
-
       experienciaBruta: resultado.experienciaBruta,
-
       experienciaEsperada: resultado.experienciaAjustada,
-
-      expedicionesEsperadas: Number.isFinite(expedicionesEsperadas)
-        ? redondear(expedicionesEsperadas)
-        : null,
-
-      estado,
-
-      diferenciaNiveles: resultado.diferenciaNiveles,
-
-      factorExperiencia: resultado.factorExperiencia,
+      cantidadEnemigosExpedicion: resultado.cantidadEnemigosEsperada,
+      enemigosEsperados: numeroFinitoRedondeado(enemigosEsperados),
+      expedicionesEsperadas: numeroFinitoRedondeado(expedicionesEsperadas),
+      estado: clasificarExpediciones({
+        expedicionesEsperadas,
+        minimo,
+        maximo,
+      }),
     };
   });
 }
@@ -279,8 +208,8 @@ function crearFilasRutaRecomendada({
 function calcularPoblacionRecurrente({
   configuracion,
   nivelMapa,
-  plantillasEnemigos,
-  variantesEnemigos,
+  nivelJugador,
+  configuracionEnemigos,
 }) {
   validarConfiguracionPoblacion({
     configuracion,
@@ -289,50 +218,47 @@ function calcularPoblacionRecurrente({
 
   const cantidadEsperada = promedio(
     configuracion.cantidad.minimo,
-
     configuracion.cantidad.maximo,
   );
-
-  const experienciaPlantilla = calcularExperienciaPonderadaPlantillas({
+  const porEnemigo = calcularValoresPonderadosEnemigo({
     permitidos: configuracion.permitidos,
+    probabilidadesVariantes: configuracion.probabilidadesVariantes,
     nivelMapa,
-    plantillasEnemigos,
+    nivelJugador,
+    configuracionEnemigos,
   });
 
-  const multiplicadorVariantes = calcularMultiplicadorVariantesEsperado({
-    probabilidades: configuracion.probabilidadesVariantes,
-
-    variantesEnemigos,
-  });
-
-  const experienciaEsperada =
-    cantidadEsperada * experienciaPlantilla * multiplicadorVariantes;
-
-  return {
+  return congelarProfundamente({
     configurada: true,
     cantidadEsperada: redondear(cantidadEsperada),
     probabilidadAparicion: 100,
-    experienciaPlantilla: redondear(experienciaPlantilla),
-    multiplicadorVariantes: redondear(multiplicadorVariantes),
-    experienciaEsperada: redondear(experienciaEsperada),
-  };
+    experienciaBrutaPorEnemigo: porEnemigo.experienciaBruta,
+    experienciaPorEnemigo: porEnemigo.experienciaAjustada,
+    experienciaBrutaEsperada: redondear(
+      cantidadEsperada * porEnemigo.experienciaBruta,
+    ),
+    experienciaEsperada: redondear(
+      cantidadEsperada * porEnemigo.experienciaAjustada,
+    ),
+  });
 }
 
 function calcularPoblacionUnica({
   configuracion,
   nivelMapa,
-  plantillasEnemigos,
-  variantesEnemigos,
+  nivelJugador,
+  configuracionEnemigos,
 }) {
   if (configuracion === null || configuracion === undefined) {
-    return {
+    return congelarProfundamente({
       configurada: false,
       cantidadEsperada: 0,
       probabilidadAparicion: 0,
-      experienciaPlantilla: 0,
-      multiplicadorVariantes: 0,
+      experienciaBrutaPorEnemigo: 0,
+      experienciaPorEnemigo: 0,
+      experienciaBrutaEsperada: 0,
       experienciaEsperada: 0,
-    };
+    });
   }
 
   validarConfiguracionPoblacion({
@@ -340,243 +266,138 @@ function calcularPoblacionUnica({
     descripcion: "la población única",
     requiereCantidad: false,
   });
-
   const probabilidadAparicion = configuracion.probabilidadAparicion;
-
-  const experienciaPlantilla = calcularExperienciaPonderadaPlantillas({
-    permitidos: configuracion.permitidos,
-    nivelMapa,
-    plantillasEnemigos,
-  });
-
-  const multiplicadorVariantes = calcularMultiplicadorVariantesEsperado({
-    probabilidades: configuracion.probabilidadesVariantes,
-    variantesEnemigos,
-  });
-
   const cantidadEsperada = probabilidadAparicion / 100;
+  const porEnemigo = calcularValoresPonderadosEnemigo({
+    permitidos: configuracion.permitidos,
+    probabilidadesVariantes: configuracion.probabilidadesVariantes,
+    nivelMapa,
+    nivelJugador,
+    configuracionEnemigos,
+  });
 
-  const experienciaEsperada =
-    cantidadEsperada * experienciaPlantilla * multiplicadorVariantes;
-
-  return {
+  return congelarProfundamente({
     configurada: true,
     cantidadEsperada: redondear(cantidadEsperada),
     probabilidadAparicion,
-    experienciaPlantilla: redondear(experienciaPlantilla),
-    multiplicadorVariantes: redondear(multiplicadorVariantes),
-    experienciaEsperada: redondear(experienciaEsperada),
-  };
+    experienciaBrutaPorEnemigo: porEnemigo.experienciaBruta,
+    experienciaPorEnemigo: porEnemigo.experienciaAjustada,
+    experienciaBrutaEsperada: redondear(
+      cantidadEsperada * porEnemigo.experienciaBruta,
+    ),
+    experienciaEsperada: redondear(
+      cantidadEsperada * porEnemigo.experienciaAjustada,
+    ),
+  });
 }
 
-function calcularExperienciaPonderadaPlantillas({
+function calcularValoresPonderadosEnemigo({
   permitidos,
+  probabilidadesVariantes,
   nivelMapa,
-  plantillasEnemigos,
+  nivelJugador,
+  configuracionEnemigos,
 }) {
   validarListaPonderada(permitidos);
+  validarProbabilidadesVariantes(probabilidadesVariantes);
 
   const pesoTotal = permitidos.reduce(
     (total, entrada) => total + entrada.peso,
     0,
   );
+  let experienciaBruta = 0;
+  let experienciaAjustada = 0;
 
-  return permitidos.reduce((total, entrada) => {
-    const plantillaEnemigo = plantillasEnemigos[entrada.id];
+  for (const entrada of permitidos) {
+    const pesoPlantilla = entrada.peso / pesoTotal;
 
-    if (!plantillaEnemigo) {
-      throw new Error(`No existe la plantilla de enemigo "${entrada.id}".`);
-    }
+    for (const [idVariante, probabilidad] of Object.entries(
+      probabilidadesVariantes,
+    )) {
+      if (probabilidad === 0) continue;
 
-    const experiencia = calcularExperienciaPlantilla({
-      plantillaEnemigo,
-      nivel: nivelMapa,
-    });
+      const datos = calcularDatosEnemigo({
+        configuracionEnemigos,
+        idPlantilla: entrada.id,
+        nivel: nivelMapa,
+        idVariante: idVariante === "normal" ? null : idVariante,
+      });
+      const recompensa = calcularRecompensaExperiencia({
+        experienciaBase: datos.experienciaOtorgada,
+        nivelJugador,
+        nivelEnemigo: nivelMapa,
+      });
+      const pesoCombinacion = pesoPlantilla * (probabilidad / 100);
 
-    return total + experiencia * (entrada.peso / pesoTotal);
-  }, 0);
-}
-
-function calcularExperienciaPlantilla({ plantillaEnemigo, nivel }) {
-  const nivelesPermitidos = plantillaEnemigo.nivelesPermitidos;
-
-  if (
-    !nivelesPermitidos ||
-    nivel < nivelesPermitidos.minimo ||
-    nivel > nivelesPermitidos.maximo
-  ) {
-    throw new Error(`${plantillaEnemigo.nombre} no permite el nivel ${nivel}.`);
-  }
-
-  let experiencia = plantillaEnemigo.baseNivel1.experienciaOtorgada;
-
-  const reglaEscalado = plantillaEnemigo.escalado?.experienciaOtorgada;
-
-  if (reglaEscalado) {
-    const cantidadAumentos = Math.floor(
-      (nivel - 1) / reglaEscalado.cadaNiveles,
-    );
-
-    experiencia += cantidadAumentos * reglaEscalado.aumento;
-  }
-
-  const hitos = Array.isArray(plantillaEnemigo.hitos)
-    ? [...plantillaEnemigo.hitos].sort(
-        (hitoA, hitoB) => hitoA.nivel - hitoB.nivel,
-      )
-    : [];
-
-  for (const hito of hitos) {
-    if (nivel < hito.nivel) {
-      continue;
-    }
-
-    if (hito.cambios?.experienciaOtorgada !== undefined) {
-      experiencia = hito.cambios.experienciaOtorgada;
+      experienciaBruta += datos.experienciaOtorgada * pesoCombinacion;
+      experienciaAjustada += recompensa.experienciaFinal * pesoCombinacion;
     }
   }
 
-  if (!Number.isFinite(experiencia) || experiencia < 0) {
-    throw new Error(
-      `La experiencia calculada de "${plantillaEnemigo.nombre}" no es válida.`,
-    );
-  }
-
-  return experiencia;
+  return {
+    experienciaBruta: redondear(experienciaBruta),
+    experienciaAjustada: redondear(experienciaAjustada),
+  };
 }
 
-function calcularMultiplicadorVariantesEsperado({
-  probabilidades,
-  variantesEnemigos,
-}) {
-  if (
-    probabilidades === null ||
-    typeof probabilidades !== "object" ||
-    Array.isArray(probabilidades)
-  ) {
-    throw new Error("Las probabilidades de variantes no son válidas.");
-  }
-
-  let totalProbabilidades = 0;
-  let multiplicadorEsperado = 0;
-
-  for (const [idVariante, probabilidad] of Object.entries(probabilidades)) {
-    if (!Number.isFinite(probabilidad) || probabilidad < 0) {
-      throw new Error(
-        `La probabilidad de la variante "${idVariante}" no es válida.`,
-      );
-    }
-
-    totalProbabilidades += probabilidad;
-
-    const multiplicador =
-      idVariante === "normal"
-        ? 1
-        : obtenerMultiplicadorVariante({
-            idVariante,
-            variantesEnemigos,
-          });
-
-    multiplicadorEsperado += (probabilidad / 100) * multiplicador;
-  }
-
-  if (totalProbabilidades !== 100) {
-    throw new Error("Las probabilidades de variantes deben sumar 100.");
-  }
-
-  return multiplicadorEsperado;
-}
-
-function obtenerMultiplicadorVariante({ idVariante, variantesEnemigos }) {
-  const variante = variantesEnemigos[idVariante];
-
-  if (!variante) {
-    throw new Error(`No existe la variante "${idVariante}".`);
-  }
-
-  const multiplicador = variante.multiplicadorExperiencia ?? 1;
-
-  if (!Number.isFinite(multiplicador) || multiplicador < 0) {
-    throw new Error(
-      `La variante "${idVariante}" tiene un multiplicador de experiencia inválido.`,
-    );
-  }
-
-  return multiplicador;
-}
-
-function clasificarExpediciones({ expedicionesEsperadas, minimo, maximo }) {
-  if (expedicionesEsperadas < minimo) {
-    return ESTADOS_BALANCE.DEMASIADO_RAPIDO;
-  }
-
-  if (expedicionesEsperadas > maximo) {
-    return ESTADOS_BALANCE.DEMASIADO_LENTO;
-  }
-
-  return ESTADOS_BALANCE.CORRECTO;
-}
-
-function crearResumen({ filasRuta, objetivosBalance }) {
+function crearResumen({ rutaRecomendada, objetivosBalance }) {
   const cantidades = {
     correcto: 0,
     demasiadoRapido: 0,
     demasiadoLento: 0,
   };
 
-  for (const fila of filasRuta) {
-    switch (fila.estado) {
-      case ESTADOS_BALANCE.CORRECTO:
-        cantidades.correcto++;
-        break;
-
-      case ESTADOS_BALANCE.DEMASIADO_RAPIDO:
-        cantidades.demasiadoRapido++;
-        break;
-
-      case ESTADOS_BALANCE.DEMASIADO_LENTO:
-        cantidades.demasiadoLento++;
-        break;
+  for (const fila of rutaRecomendada) {
+    if (fila.estado === ESTADOS_BALANCE.CORRECTO) cantidades.correcto += 1;
+    if (fila.estado === ESTADOS_BALANCE.DEMASIADO_RAPIDO) {
+      cantidades.demasiadoRapido += 1;
+    }
+    if (fila.estado === ESTADOS_BALANCE.DEMASIADO_LENTO) {
+      cantidades.demasiadoLento += 1;
     }
   }
 
-  const expediciones = filasRuta
+  const expediciones = rutaRecomendada
     .map((fila) => fila.expedicionesEsperadas)
+    .filter(Number.isFinite);
+  const enemigos = rutaRecomendada
+    .map((fila) => fila.enemigosEsperados)
     .filter(Number.isFinite);
 
   return {
-    nivelesAnalizados: filasRuta.length,
-
+    nivelesAnalizados: rutaRecomendada.length,
     nivelesCorrectos: cantidades.correcto,
-
     nivelesDemasiadoRapidos: cantidades.demasiadoRapido,
-
     nivelesDemasiadoLentos: cantidades.demasiadoLento,
-
     expedicionesMinimas:
       expediciones.length > 0 ? redondear(Math.min(...expediciones)) : null,
-
     expedicionesMaximas:
       expediciones.length > 0 ? redondear(Math.max(...expediciones)) : null,
-
+    enemigosMinimos:
+      enemigos.length > 0 ? redondear(Math.min(...enemigos)) : null,
+    enemigosMaximos:
+      enemigos.length > 0 ? redondear(Math.max(...enemigos)) : null,
     cumpleObjetivo:
       cantidades.demasiadoRapido === 0 && cantidades.demasiadoLento === 0,
-
-    rangoObjetivo: {
-      ...objetivosBalance.rangoExpedicionesObjetivo,
-    },
+    rangoObjetivo: { ...objetivosBalance.rangoExpedicionesObjetivo },
   };
 }
 
-function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
-  if (
-    objetivosBalance === null ||
-    typeof objetivosBalance !== "object" ||
-    Array.isArray(objetivosBalance)
-  ) {
-    throw new Error("La configuración de objetivos de balance no es válida.");
+function clasificarExpediciones({ expedicionesEsperadas, minimo, maximo }) {
+  if (expedicionesEsperadas < minimo) {
+    return ESTADOS_BALANCE.DEMASIADO_RAPIDO;
   }
+  if (expedicionesEsperadas > maximo) {
+    return ESTADOS_BALANCE.DEMASIADO_LENTO;
+  }
+  return ESTADOS_BALANCE.CORRECTO;
+}
 
+function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
+  validarObjeto({
+    valor: objetivosBalance,
+    descripcion: "la configuración de objetivos de balance",
+  });
   if (
     !Number.isInteger(objetivosBalance.nivelMaximoContenido) ||
     objetivosBalance.nivelMaximoContenido < 1
@@ -585,7 +406,6 @@ function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
   }
 
   const rango = objetivosBalance.rangoExpedicionesObjetivo;
-
   if (
     !rango ||
     !Number.isFinite(rango.minimo) ||
@@ -597,10 +417,8 @@ function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
   }
 
   const factorEsperado = objetivosBalance.factorBaseExperienciaEsperado;
-
   const factorReal =
     CONFIGURACION_RECOMPENSAS_EXPERIENCIA.factorBaseExperienciaEnemigos;
-
   if (factorEsperado !== factorReal) {
     throw new Error(
       "El factor base declarado en ObjetivosBalance.json " +
@@ -618,45 +436,33 @@ function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
   }
 
   const nivelesJugador = new Set();
-
   for (const paso of objetivosBalance.rutaRecomendada) {
     validarNivel({
       nivel: paso.nivelJugador,
-
       descripcion: "El nivel del jugador de la ruta",
     });
-
     validarNivel({
       nivel: paso.nivelMapa,
-
       descripcion: "El nivel del mapa de la ruta",
     });
-
     if (nivelesJugador.has(paso.nivelJugador)) {
       throw new Error(
         `El nivel ${paso.nivelJugador} está repetido en la ruta recomendada.`,
       );
     }
-
     nivelesJugador.add(paso.nivelJugador);
 
     const plantillaMapa = configuracionMapas.plantillas[paso.idMapa];
-
     if (!plantillaMapa) {
       throw new Error(
         `La ruta recomienda el mapa inexistente "${paso.idMapa}".`,
       );
     }
-
-    validarNivelDentroMapa({
-      plantillaMapa,
-      nivelMapa: paso.nivelMapa,
-    });
-
+    validarNivelDentroMapa({ plantillaMapa, nivelMapa: paso.nivelMapa });
     if (paso.nivelJugador < plantillaMapa.nivelDesbloqueo) {
       throw new Error(
-        `El mapa "${paso.idMapa}" todavía está bloqueado para ` +
-          `el jugador de nivel ${paso.nivelJugador}.`,
+        `El mapa "${paso.idMapa}" está bloqueado para el nivel ` +
+          `${paso.nivelJugador}.`,
       );
     }
   }
@@ -664,33 +470,36 @@ function validarObjetivosBalance({ objetivosBalance, configuracionMapas }) {
 
 function validarParametros({
   configuracionMapas,
-  plantillasEnemigos,
-  variantesEnemigos,
+  configuracionEnemigos,
   objetivosBalance,
 }) {
   validarObjeto({
     valor: configuracionMapas,
     descripcion: "la configuración de mapas",
   });
-
   validarObjeto({
     valor: configuracionMapas.plantillas,
     descripcion: "las plantillas de mapas",
   });
-
-  validarObjeto({
-    valor: plantillasEnemigos,
-    descripcion: "las plantillas de enemigos",
-  });
-
-  validarObjeto({
-    valor: variantesEnemigos,
-    descripcion: "las variantes de enemigos",
-  });
-
+  validarConfiguracionEnemigos(configuracionEnemigos);
   validarObjeto({
     valor: objetivosBalance,
     descripcion: "los objetivos de balance",
+  });
+}
+
+function validarConfiguracionEnemigos(configuracionEnemigos) {
+  validarObjeto({
+    valor: configuracionEnemigos,
+    descripcion: "la configuración de enemigos",
+  });
+  validarObjeto({
+    valor: configuracionEnemigos.plantillas,
+    descripcion: "las plantillas de enemigos",
+  });
+  validarObjeto({
+    valor: configuracionEnemigos.variantes,
+    descripcion: "las variantes de enemigos",
   });
 }
 
@@ -699,22 +508,12 @@ function validarConfiguracionPoblacion({
   descripcion,
   requiereCantidad = true,
 }) {
-  validarObjeto({
-    valor: configuracion,
-    descripcion,
-  });
-
+  validarObjeto({ valor: configuracion, descripcion });
   validarListaPonderada(configuracion.permitidos);
-
-  validarObjeto({
-    valor: configuracion.probabilidadesVariantes,
-
-    descripcion: `las variantes de ${descripcion}`,
-  });
+  validarProbabilidadesVariantes(configuracion.probabilidadesVariantes);
 
   if (requiereCantidad) {
     const cantidad = configuracion.cantidad;
-
     if (
       !cantidad ||
       !Number.isInteger(cantidad.minimo) ||
@@ -724,7 +523,6 @@ function validarConfiguracionPoblacion({
     ) {
       throw new Error(`La cantidad de ${descripcion} no es válida.`);
     }
-
     return;
   }
 
@@ -739,13 +537,28 @@ function validarConfiguracionPoblacion({
   }
 }
 
+function validarProbabilidadesVariantes(probabilidades) {
+  validarObjeto({
+    valor: probabilidades,
+    descripcion: "las probabilidades de variantes",
+  });
+  const total = Object.values(probabilidades).reduce((suma, probabilidad) => {
+    if (!Number.isFinite(probabilidad) || probabilidad < 0) {
+      throw new Error("Existe una probabilidad de variante inválida.");
+    }
+    return suma + probabilidad;
+  }, 0);
+  if (total !== 100) {
+    throw new Error("Las probabilidades de variantes deben sumar 100.");
+  }
+}
+
 function validarListaPonderada(lista) {
   if (!Array.isArray(lista) || lista.length === 0) {
     throw new Error(
       "La selección ponderada debe contener al menos una entrada.",
     );
   }
-
   for (const entrada of lista) {
     if (
       typeof entrada.id !== "string" ||
@@ -759,17 +572,8 @@ function validarListaPonderada(lista) {
 }
 
 function validarNivelDentroMapa({ plantillaMapa, nivelMapa }) {
-  validarObjeto({
-    valor: plantillaMapa,
-    descripcion: "la plantilla de mapa",
-  });
-
-  validarNivel({
-    nivel: nivelMapa,
-
-    descripcion: "El nivel del mapa",
-  });
-
+  validarObjeto({ valor: plantillaMapa, descripcion: "la plantilla de mapa" });
+  validarNivel({ nivel: nivelMapa, descripcion: "El nivel del mapa" });
   if (
     nivelMapa < plantillaMapa.niveles.minimo ||
     nivelMapa > plantillaMapa.niveles.maximo
@@ -796,6 +600,20 @@ function promedio(minimo, maximo) {
   return (minimo + maximo) / 2;
 }
 
+function numeroFinitoRedondeado(valor) {
+  return Number.isFinite(valor) ? redondear(valor) : null;
+}
+
 function redondear(valor) {
   return Number(valor.toFixed(2));
+}
+
+function congelarProfundamente(valor) {
+  if (!valor || typeof valor !== "object" || Object.isFrozen(valor)) {
+    return valor;
+  }
+  for (const contenido of Object.values(valor)) {
+    congelarProfundamente(contenido);
+  }
+  return Object.freeze(valor);
 }

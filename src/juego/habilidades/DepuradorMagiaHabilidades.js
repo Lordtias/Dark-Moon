@@ -1,3 +1,8 @@
+import { crearAnalizadorBalanceJuego } from "../balance/AnalizadorBalanceJuego.js";
+import {
+  obtenerConfiguracionEjecucionHabilidades,
+  obtenerConfiguracionProgresoMagico,
+} from "../maestrias/ContextoProgresoMagico.js";
 import {
   crearSnapshotJugador,
   guardarJugadorDurable,
@@ -172,11 +177,12 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
         objetivo,
         inmunidades,
       });
-      const retiro =
-        contexto
-          .obtenerJuego()
-          .coordinadorTiempo?.sincronizarInmunidadesEfectos?.(objetivo) ??
-        { cantidad: 0, eventos: [] };
+      const retiro = contexto
+        .obtenerJuego()
+        .coordinadorTiempo?.sincronizarInmunidadesEfectos?.(objetivo) ?? {
+        cantidad: 0,
+        eventos: [],
+      };
       contexto.obtenerIntegracion().panel?.renderizar?.();
       return { ...defensas, retiro };
     },
@@ -295,6 +301,8 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     validarCicloActivo: () => validarCicloActivo(contexto),
   });
 
+  const balance = crearAccesoBalance(contexto);
+
   const magia = Object.freeze({
     progreso,
     persistencia,
@@ -305,6 +313,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     zonas,
     interfaz,
     arquitectura,
+    balance,
     validarTodo: () => {
       const resultados = {
         progreso: progreso.validarContratos(),
@@ -324,6 +333,61 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
   });
 
   return Object.freeze({ magia });
+}
+
+function crearAccesoBalance(contexto) {
+  let aplicacionCache = null;
+  let promesaAnalizador = null;
+
+  async function obtenerAnalizador() {
+    const aplicacion = contexto.obtenerAplicacion();
+
+    if (aplicacion !== aplicacionCache || promesaAnalizador === null) {
+      aplicacionCache = aplicacion;
+      promesaAnalizador = cargarObjetivosBalance().then((objetivosBalance) =>
+        crearAnalizadorBalanceJuego({
+          configuracionPersonaje: aplicacion.configuracionPersonaje,
+          configuracionEnemigos: aplicacion.configuracionEnemigos,
+          configuracionObjetos: aplicacion.configuracionObjetos,
+          configuracionMapas: aplicacion.configuracionMapas,
+          configuracionProgresoMagico: obtenerConfiguracionProgresoMagico(),
+          configuracionEjecucionHabilidades:
+            obtenerConfiguracionEjecucionHabilidades(),
+          objetivosBalance,
+        }),
+      );
+    }
+
+    return promesaAnalizador;
+  }
+
+  const ejecutar = (metodo) => async () => {
+    const analizador = await obtenerAnalizador();
+    return analizador[metodo]();
+  };
+
+  return Object.freeze({
+    lineaBase: ejecutar("lineaBase"),
+    progresion: ejecutar("progresion"),
+    maestrias: ejecutar("maestrias"),
+    mana: ejecutar("mana"),
+    habilidades: ejecutar("habilidades"),
+    armas: ejecutar("armas"),
+    constitucion: ejecutar("constitucion"),
+    escenariosTeoricos: ejecutar("escenariosTeoricos"),
+  });
+}
+
+async function cargarObjetivosBalance() {
+  const respuesta = await fetch("./src/config/balance/ObjetivosBalance.json", {
+    cache: "no-store",
+  });
+  if (!respuesta.ok) {
+    throw new Error(
+      `No se pudo cargar ObjetivosBalance.json (${respuesta.status}).`,
+    );
+  }
+  return respuesta.json();
 }
 
 function crearAccesoContexto(obtenerAplicacion) {
@@ -672,7 +736,7 @@ function validarContratosEfectos(contexto) {
     "Envenenamiento centraliza refresco e intensificación",
     Boolean(
       envenenamiento?.perfilesAplicacion?.refrescar_mayor_potencia &&
-        envenenamiento?.perfilesAplicacion?.intensificar,
+      envenenamiento?.perfilesAplicacion?.intensificar,
     ),
     Object.keys(envenenamiento?.perfilesAplicacion ?? {}),
   );
@@ -686,8 +750,7 @@ function validarContratosEfectos(contexto) {
           ?.politicaAcumulacion === "rechazar_duplicado",
     ),
     {
-      congelamiento:
-        catalogo.congelamiento?.perfilesAplicacion ?? null,
+      congelamiento: catalogo.congelamiento?.perfilesAplicacion ?? null,
       aturdimiento: catalogo.aturdimiento?.perfilesAplicacion ?? null,
     },
   );
@@ -1071,12 +1134,13 @@ function prepararEnemigosEnLineaParaPrueba(
         x: jugador.x + dx * distancia,
         y: jugador.y + dy * distancia,
       };
-    }).every(({ x, y }) =>
-      y >= 0 &&
-      y < juego.map.length &&
-      x >= 0 &&
-      x < juego.map[y].length &&
-      juego.map[y][x] !== "#",
+    }).every(
+      ({ x, y }) =>
+        y >= 0 &&
+        y < juego.map.length &&
+        x >= 0 &&
+        x < juego.map[y].length &&
+        juego.map[y][x] !== "#",
     ),
   );
 
@@ -1114,15 +1178,20 @@ function establecerVidaObjetivoParaPrueba({ objetivo, valor } = {}) {
     throw new Error("Debe indicarse un objetivo válido.");
   }
   if (!Number.isFinite(valor) || valor < 1) {
-    throw new Error("La Vida de prueba debe ser un número mayor o igual que 1.");
+    throw new Error(
+      "La Vida de prueba debe ser un número mayor o igual que 1.",
+    );
   }
-  const maximoActual = objetivo.estadisticasDerivadas?.vidaMaxima ??
-    objetivo.vidaMaxima ?? 0;
-  if (maximoActual < valor && Number.isFinite(objetivo.estadisticasBase?.vida)) {
+  const maximoActual =
+    objetivo.estadisticasDerivadas?.vidaMaxima ?? objetivo.vidaMaxima ?? 0;
+  if (
+    maximoActual < valor &&
+    Number.isFinite(objetivo.estadisticasBase?.vida)
+  ) {
     objetivo.estadisticasBase.vida += valor - maximoActual;
   }
-  const maximoFinal = objetivo.estadisticasDerivadas?.vidaMaxima ??
-    objetivo.vidaMaxima ?? valor;
+  const maximoFinal =
+    objetivo.estadisticasDerivadas?.vidaMaxima ?? objetivo.vidaMaxima ?? valor;
   objetivo.vidaActual = Math.min(valor, maximoFinal);
   return {
     nombre: objetivo.nombre ?? "Objetivo",
@@ -1132,8 +1201,8 @@ function establecerVidaObjetivoParaPrueba({ objetivo, valor } = {}) {
 }
 
 function obtenerDefensasEfectos(objetivo) {
-  const estadisticas = objetivo?.estadisticasDerivadas ??
-    objetivo?.estadisticasBase ?? {};
+  const estadisticas =
+    objetivo?.estadisticasDerivadas ?? objetivo?.estadisticasBase ?? {};
   return {
     resistencias: Object.fromEntries(
       IDS_RESISTENCIA_EFECTO.map((id) => [

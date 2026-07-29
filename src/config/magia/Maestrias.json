@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reglas": {
-    "puntosUniversalesIniciales": 5,
+    "puntosUniversalesIniciales": 1,
     "puntosUniversalesPorNivelGeneral": 1,
     "factorExperienciaPorMana": 1,
     "nivelMaximoMaestria": 10,

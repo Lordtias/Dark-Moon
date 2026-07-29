@@ -16,6 +16,8 @@ import {
   restaurarTiradasAleatoriasHabilidad,
 } from "../habilidades/MotorDanioHabilidad.js";
 import { prepararEfectosHabilidad } from "../habilidades/MotorEfectosHabilidad.js";
+import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
+import { SistemaZonasTemporales } from "../zonas/SistemaZonasTemporales.js";
 import {
   calcularPotenciaHabilidadObjetos,
   esBaston,
@@ -67,6 +69,7 @@ export function crearInformeBalanceCombate({
   const potencia = crearEscenariosPotencia({
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracion,
   });
   const armas = crearInformeArmasCombate({
     configuracionPersonaje,
@@ -90,11 +93,22 @@ export function crearInformeBalanceCombate({
     potencia,
     configuracion,
   });
+  const pruebasFocalizadas = crearInformePruebasFocalizadas({
+    configuracionPersonaje,
+    configuracionEnemigos,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    referencias,
+    potencia,
+    habilidades,
+    configuracion,
+  });
   const conclusiones = crearConclusiones({
     armas,
     habilidades,
     potencia,
     arquetipos,
+    pruebasFocalizadas,
   });
 
   return congelarProfundamente({
@@ -116,6 +130,7 @@ export function crearInformeBalanceCombate({
     habilidades,
     potencia,
     arquetipos,
+    pruebasFocalizadas,
     conclusiones,
   });
 }
@@ -186,6 +201,7 @@ function crearReferenciasEnemigos({
 function crearEscenariosPotencia({
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracion,
 }) {
   const catalizadores = Object.entries(configuracionObjetos)
     .filter(([, objeto]) => esBaston(objeto) || esVarita(objeto))
@@ -262,7 +278,10 @@ function crearEscenariosPotencia({
     filas.push(...escenarios);
   }
 
-  const filasEvaluadas = evaluarPotencia(filas);
+  const filasEvaluadas = evaluarPotencia(
+    filas,
+    configuracion.pruebasFocalizadas.ventajaMaximaDobleVaritaPorcentaje,
+  );
   return {
     tipoResultado: "configuracion_real_y_combinaciones_posibles",
     potenciaAfijoMaxima,
@@ -293,7 +312,10 @@ function obtenerPotenciaAfijoMaxima(configuracionGeneracionObjetos) {
   return maxima;
 }
 
-function evaluarPotencia(filas) {
+function evaluarPotencia(
+  filas,
+  ventajaMaximaDobleVaritaPorcentaje = 15,
+) {
   const porTier = new Map();
   for (const fila of filas) {
     if (!porTier.has(fila.tier)) porTier.set(fila.tier, []);
@@ -335,14 +357,22 @@ function evaluarPotencia(filas) {
       const diferenciaMaxima =
         (dobleAfijo?.potenciaHabilidad ?? 0) -
         (bastonAfijo?.potenciaHabilidad ?? 0);
+      const ventajaMultiplicador = bastonAfijo
+        ? ((1 + (dobleAfijo?.potenciaHabilidad ?? 0) / 100) /
+            (1 + bastonAfijo.potenciaHabilidad / 100) -
+            1) *
+          100
+        : 0;
       const esDobleVarita = fila.id.startsWith("doble_varita_enfocada");
       resultado.push({
         ...comun,
+        ventajaSobreBastonPorcentaje: redondear(ventajaMultiplicador),
         criterio: esDobleVarita
-          ? `La doble varita usa dos afijos y puede superar al bastón máximo en ${diferenciaMaxima} puntos. Más de 10 puntos queda como advertencia de acumulación.`
-          : `El bastón con afijo máximo se compara con la doble varita máxima. La diferencia actual es ${diferenciaMaxima} puntos y el riesgo adicional proviene del segundo afijo de las varitas.`,
+          ? `La doble varita usa dos afijos. Se evalúa la ventaja del multiplicador final, no la diferencia bruta de ${diferenciaMaxima} puntos. Correcto: hasta ${ventajaMaximaDobleVaritaPorcentaje} % sobre el bastón máximo.`
+          : `El bastón con afijo máximo se compara con la doble varita máxima. La diferencia bruta es ${diferenciaMaxima} puntos, pero la decisión usa el multiplicador final.`,
         estado:
-          esDobleVarita && diferenciaMaxima > 10
+          esDobleVarita &&
+          ventajaMultiplicador > ventajaMaximaDobleVaritaPorcentaje
             ? ESTADOS.ADVERTENCIA
             : ESTADOS.CORRECTO,
       });
@@ -1020,18 +1050,38 @@ function crearInformeArquetipos({
     });
     const ataquesBasicos = escenario.ataquesBasicos ?? 0;
     const lanzamientos = escenario.lanzamientos ?? 0;
+    const rotacionHabilidad = crearRotacionHabilidadArquetipo({
+      escenario,
+      filaHabilidad: habilidad,
+      lanzamientos,
+      configuracionPersonaje,
+      configuracionObjetos,
+      configuracionEjecucionHabilidades,
+      potencia,
+    });
     const tiempo =
       ataquesBasicos * (arma?.costoTemporal ?? 0) +
       lanzamientos * (habilidad?.costoTemporal ?? 0);
     const danio =
       ataquesBasicos * (arma?.danioEsperadoAccion ?? 0) +
-      lanzamientos * (habilidad?.danioTotalEsperado ?? 0);
+      rotacionHabilidad.danioObjetivoUnico;
     const mana =
       ataquesBasicos * (arma?.costoMana ?? 0) +
       lanzamientos * (habilidad?.costoMana ?? 0);
-    const danioGrupo =
+    const jugadorReferencia = crearJugadorPrueba({
+      configuracionPersonaje,
+      idProfesion: escenario.profesion,
+      nivel: escenario.nivel,
+    });
+    const manaMaximo = Math.max(0, jugadorReferencia.manaMaximo ?? 0);
+    const manaConsumidoPorcentaje =
+      manaMaximo > 0 ? (mana / manaMaximo) * 100 : 0;
+    const danioGrupoEsperado =
       ataquesBasicos * (arma?.danioEsperadoAccion ?? 0) +
-      lanzamientos * (habilidad?.danioTresObjetivos ?? 0);
+      rotacionHabilidad.danioGrupoEsperado;
+    const danioGrupoPotencial =
+      ataquesBasicos * (arma?.danioEsperadoAccion ?? 0) +
+      rotacionHabilidad.danioGrupoPotencial;
     filas.push({
       id: escenario.id,
       nombre: escenario.nombre,
@@ -1045,13 +1095,19 @@ function crearInformeArquetipos({
         : "Sin habilidad",
       ataquesBasicos,
       lanzamientos,
+      modeloRotacionHabilidad: rotacionHabilidad.modelo,
       costoTemporal: tiempo,
       costoMana: mana,
+      manaMaximo,
+      manaConsumidoPorcentaje: redondear(manaConsumidoPorcentaje),
       danioObjetivoUnico: redondear(danio),
-      danioTresObjetivos: redondear(danioGrupo),
+      danioGrupoEsperado: redondear(danioGrupoEsperado),
+      danioTresObjetivos: redondear(danioGrupoPotencial),
       danioPor100: tiempo > 0 ? redondear((danio / tiempo) * 100) : 0,
       danioGrupoPor100:
-        tiempo > 0 ? redondear((danioGrupo / tiempo) * 100) : 0,
+        tiempo > 0
+          ? redondear((danioGrupoEsperado / tiempo) * 100)
+          : 0,
       dependenciaEquipo:
         (arma?.potenciaHabilidad ?? 0) > 0 || arma?.familia === "varita"
           ? "alta"
@@ -1067,8 +1123,21 @@ function crearInformeArquetipos({
       fila.danioPor100 * 0.65 + fila.danioGrupoPor100 * 0.35,
     bandas: configuracion.bandasRelativasArquetipos,
     descripcionValor:
-      "65 % rendimiento contra un objetivo y 35 % rendimiento contra tres objetivos",
+      "65 % rendimiento contra un objetivo y 35 % rendimiento grupal esperado según la forma de impacto",
   });
+  for (const fila of filas) {
+    if (
+      fila.estado === ESTADOS.INCORRECTO &&
+      fila.costoMana > 0 &&
+      fila.manaConsumidoPorcentaje >= 30
+    ) {
+      fila.estado = ESTADOS.ADVERTENCIA;
+      fila.criterio +=
+        ` El daño explosivo supera la banda, pero consume ${redondear(
+          fila.manaConsumidoPorcentaje,
+        )} % de la reserva; se mantiene como advertencia hasta medir un combate completo.`;
+    }
+  }
   return {
     tipoResultado: "comparacion_rotaciones_representativas",
     determinista: true,
@@ -1076,6 +1145,91 @@ function crearInformeArquetipos({
       "Cada escenario crea el personaje de su profesión y ejecuta sus armas y habilidades con los motores comunes.",
     filas,
     resumen: resumirEstados(filas),
+  };
+}
+
+function crearRotacionHabilidadArquetipo({
+  escenario,
+  filaHabilidad,
+  lanzamientos,
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  potencia,
+}) {
+  if (!filaHabilidad || lanzamientos <= 0) {
+    return {
+      modelo: "sin_habilidad",
+      danioObjetivoUnico: 0,
+      danioGrupoEsperado: 0,
+      danioGrupoPotencial: 0,
+    };
+  }
+
+  const habilidad =
+    configuracionEjecucionHabilidades.habilidades[
+      filaHabilidad.idHabilidad
+    ];
+  const grado = habilidad?.ejecucion?.grados?.[String(filaHabilidad.grado)];
+  const tieneDanioPeriodico = grado?.efectos?.some(
+    (efecto) => efecto.tipo === "danio_periodico",
+  );
+  const directoObjetivo =
+    filaHabilidad.danioDirectoEsperado * lanzamientos;
+  let periodicoObjetivo =
+    filaHabilidad.danioPeriodicoEsperado * lanzamientos;
+  let modelo = "multiplicacion_acciones_independientes";
+
+  if (tieneDanioPeriodico && lanzamientos > 1) {
+    const escenarioPotencia = obtenerEscenarioPotencia(
+      potencia,
+      filaHabilidad.escenarioPotencia,
+    );
+    const probabilidadAplicacion = limitar(
+      (filaHabilidad.probabilidadImpacto / 100) *
+        (filaHabilidad.probabilidadAplicacionEfecto / 100),
+      0,
+      1,
+    );
+    const secuencia = simularSecuenciaEfectoEsperada({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      grado,
+      nivel: escenario.nivel,
+      idProfesion: escenario.profesion,
+      escenarioPotencia,
+      instantes: crearInstantesLanzamiento(
+        lanzamientos,
+        grado.costoTemporalBase,
+      ),
+      probabilidadAplicacion,
+      resistencias: { fuego: 0, frio: 0, rayo: 0, veneno: 0 },
+      resistenciasEfectos: {
+        congelamiento: 0,
+        aturdimiento: 0,
+        envenenamiento: 0,
+        quemadura: 0,
+      },
+    });
+    periodicoObjetivo = secuencia.danioPeriodicoEsperado;
+    modelo = "secuencia_real_una_instancia";
+  }
+
+  const objetivosPotenciales = Math.max(
+    1,
+    filaHabilidad.objetivosComparacion ?? 1,
+  );
+  const objetivosEsperados = Math.max(
+    1,
+    filaHabilidad.objetivosEsperadosBalance ?? 1,
+  );
+  const danioObjetivoUnico = directoObjetivo + periodicoObjetivo;
+  return {
+    modelo,
+    danioObjetivoUnico,
+    danioGrupoEsperado: danioObjetivoUnico * objetivosEsperados,
+    danioGrupoPotencial: danioObjetivoUnico * objetivosPotenciales,
   };
 }
 
@@ -1169,7 +1323,1535 @@ function elegirPotenciaArquetipo({ escenario, potencia }) {
   );
 }
 
-function crearConclusiones({ armas, habilidades, potencia, arquetipos }) {
+function crearInformePruebasFocalizadas({
+  configuracionPersonaje,
+  configuracionEnemigos,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  referencias,
+  potencia,
+  habilidades,
+  configuracion,
+}) {
+  const reglas = configuracion.pruebasFocalizadas;
+  const jefe = crearReferenciaEnemigoEspecifico({
+    configuracionEnemigos,
+    configuracionObjetos,
+    idPlantilla: reglas.idJefeReferencia,
+    nivel: reglas.nivelJefeReferencia,
+  });
+  const bastonBaseT2 = obtenerEscenarioPotencia(
+    potencia,
+    "baston_base_t2",
+  );
+  const bastonBaseT1 = obtenerEscenarioPotencia(
+    potencia,
+    "baston_base_t1",
+  );
+
+  const incinerar = analizarIncinerarFocalizado({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    referencias,
+    habilidades,
+    jefe,
+    escenarioPotencia: bastonBaseT2,
+    reglas,
+  });
+  const prisionGlacial = analizarPrisionGlacialFocalizada({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    referencias,
+    habilidades,
+    jefe,
+    escenarioPotencia: bastonBaseT2,
+    reglas,
+  });
+  const nubeToxica = analizarNubeToxicaFocalizada({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    habilidades,
+    escenarioPotencia: bastonBaseT1,
+    reglas,
+  });
+  const plagaCorrosiva = analizarPlagaCorrosivaFocalizada({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    habilidades,
+    potencia,
+    reglas,
+  });
+  const dobleVarita = analizarDobleVaritaFocalizada({
+    potencia,
+    habilidades,
+    reglas,
+  });
+  const mana = analizarManaFocalizado({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionEjecucionHabilidades,
+    potencia,
+    reglas,
+  });
+
+  const conclusiones = crearConclusionesPruebasFocalizadas({
+    incinerar,
+    prisionGlacial,
+    nubeToxica,
+    plagaCorrosiva,
+    dobleVarita,
+    mana,
+  });
+
+  return {
+    tipoResultado: "pruebas_focalizadas_motores_canonicos",
+    determinista: true,
+    descripcion:
+      "Revisa las advertencias del análisis general mediante secuencias reales de efectos, zonas, regeneración y Potencia de Habilidad.",
+    jefeReferencia: jefe,
+    incinerar,
+    prisionGlacial,
+    nubeToxica,
+    plagaCorrosiva,
+    dobleVarita,
+    mana,
+    conclusiones,
+    resumen: {
+      casos: [
+        ...incinerar.filas,
+        ...prisionGlacial.filas,
+        ...nubeToxica.filas,
+        ...plagaCorrosiva.filas,
+        ...dobleVarita.filas,
+        ...mana.filas,
+      ].length,
+      ...resumirEstados([
+        ...incinerar.filas,
+        ...prisionGlacial.filas,
+        ...nubeToxica.filas,
+        ...plagaCorrosiva.filas,
+        ...dobleVarita.filas,
+        ...mana.filas,
+      ]),
+    },
+  };
+}
+
+function analizarIncinerarFocalizado({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  referencias,
+  habilidades,
+  jefe,
+  escenarioPotencia,
+  reglas,
+}) {
+  const habilidad = obtenerHabilidadRequerida(
+    configuracionEjecucionHabilidades,
+    "incinerar",
+  );
+  const gradoNumero = 3;
+  const grado = habilidad.ejecucion.grados[String(gradoNumero)];
+  const filaMediana = obtenerFilaPrincipalHabilidad({
+    habilidades,
+    idHabilidad: habilidad.id,
+    grado: gradoNumero,
+  });
+  const referenciaNivel10 = obtenerReferenciaMasCercana(
+    referencias.filas,
+    reglas.nivelJefeReferencia,
+  );
+  const filaJefe = crearFilaHabilidad({
+    configuracionPersonaje,
+    configuracionObjetos,
+    habilidad,
+    categoria: "avanzada",
+    grado,
+    gradoNumero,
+    nivel: reglas.nivelJefeReferencia,
+    referencia: jefe,
+    escenarioPotencia,
+    resistenciaElemental: jefe.resistencias.fuego ?? 0,
+    resistenciaEfecto: jefe.resistenciasEfectos.quemadura ?? 0,
+  });
+  const lanzamientos = reglas.lanzamientosRotacionAvanzada;
+  const instantes = crearInstantesLanzamiento(
+    lanzamientos,
+    grado.costoTemporalBase,
+  );
+  const probabilidadEfectoJefe = limitar(
+    (filaJefe.probabilidadImpacto / 100) *
+      (filaJefe.probabilidadAplicacionEfecto / 100),
+    0,
+    1,
+  );
+  const secuenciaJefe = simularSecuenciaEfectoEsperada({
+    configuracionPersonaje,
+    configuracionObjetos,
+    habilidad,
+    grado,
+    nivel: reglas.nivelJefeReferencia,
+    escenarioPotencia,
+    instantes,
+    probabilidadAplicacion: probabilidadEfectoJefe,
+    resistencias: jefe.resistencias,
+    resistenciasEfectos: jefe.resistenciasEfectos,
+  });
+  const manaRotacion = simularManaRotacion({
+    configuracionPersonaje,
+    configuracionObjetos,
+    idProfesion: "mago",
+    nivel: reglas.nivelJefeReferencia,
+    escenarioPotencia,
+    acciones: Array.from({ length: lanzamientos }, () => ({
+      costoMana: grado.costoMana,
+      costoTemporal: grado.costoTemporalBase,
+    })),
+  });
+  const directoRotacion = filaJefe.danioDirectoEsperado * lanzamientos;
+  const totalRotacion = directoRotacion + secuenciaJefe.danioPeriodicoEsperado;
+  const porcentajeVidaJefe = jefe.vida > 0
+    ? (totalRotacion / jefe.vida) * 100
+    : 0;
+  const estadoJefe = porcentajeVidaJefe >=
+    reglas.porcentajeVidaJefeIncorrectoRotacion
+    ? ESTADOS.INCORRECTO
+    : porcentajeVidaJefe >= reglas.porcentajeVidaJefeAdvertenciaRotacion
+      ? ESTADOS.ADVERTENCIA
+      : ESTADOS.CORRECTO;
+
+  const filasGrupo = reglas.objetivosGrupoIncinerar.map((objetivos) => ({
+    id: `incinerar_grupo_${objetivos}`,
+    escenario: `Una Incinerar G3 sobre ${objetivos} objetivo${objetivos === 1 ? "" : "s"}`,
+    objetivo: `Enemigo mediano nivel ${referenciaNivel10.nivel}`,
+    lanzamientos: 1,
+    objetivos,
+    manaGastado: grado.costoMana,
+    tiempoAcciones: grado.costoTemporalBase,
+    danioDirectoEsperado: redondear(
+      filaMediana.danioDirectoEsperado * objetivos,
+    ),
+    danioPeriodicoEsperado: redondear(
+      filaMediana.danioPeriodicoEsperado * objetivos,
+    ),
+    danioTotalEsperado: redondear(
+      filaMediana.danioTotalEsperado * objetivos,
+    ),
+    porcentajeVidaObjetivo: redondear(
+      (filaMediana.danioTotalEsperado / referenciaNivel10.vida) * 100,
+    ),
+    criterio:
+      "La línea puede premiar una buena alineación. Se informa por 1–3 objetivos; el balance contra jefes se decide en la rotación sostenida.",
+    estado: objetivos === 1 ? ESTADOS.INFORMATIVO : ESTADOS.CORRECTO,
+  }));
+
+  const filaRotacion = {
+    id: "incinerar_jefe_tres_lanzamientos",
+    escenario: `${lanzamientos} Incinerar G3 consecutivas`,
+    objetivo: `${jefe.nombre} nivel ${jefe.nivel}`,
+    lanzamientos,
+    objetivos: 1,
+    manaGastado: manaRotacion.manaGastado,
+    manaRegenerado: manaRotacion.manaRegenerado,
+    manaNeto: manaRotacion.manaNeto,
+    manaRestantePorcentaje: manaRotacion.manaRestantePorcentaje,
+    tiempoAcciones: manaRotacion.tiempoTotal,
+    danioDirectoEsperado: redondear(directoRotacion),
+    danioPeriodicoEsperado: redondear(
+      secuenciaJefe.danioPeriodicoEsperado,
+    ),
+    danioTotalEsperado: redondear(totalRotacion),
+    vidaObjetivo: jefe.vida,
+    porcentajeVidaObjetivo: redondear(porcentajeVidaJefe),
+    quemaduraSinAcumulacion: secuenciaJefe.maximoInstancias <= 1,
+    criterio:
+      `Una rotación corta no debería quitar ${reglas.porcentajeVidaJefeIncorrectoRotacion} % o más de la Vida del jefe. Desde ${reglas.porcentajeVidaJefeAdvertenciaRotacion} % queda como advertencia. La Quemadura debe mantener una sola instancia.`,
+    estado:
+      secuenciaJefe.maximoInstancias > 1 ? ESTADOS.INCORRECTO : estadoJefe,
+  };
+
+  return {
+    filas: [...filasGrupo, filaRotacion],
+    detalleSecuenciaJefe: secuenciaJefe,
+    conclusion:
+      filaRotacion.estado === ESTADOS.CORRECTO
+        ? "La advertencia de Incinerar G3 se reduce al simular correctamente la Quemadura: tres lanzamientos renuevan una sola instancia y no triplican todo el daño periódico."
+        : "Incinerar G3 conserva una señal alta contra el jefe y necesita revisar su daño antes de cambiar otros recursos.",
+    recomendacion:
+      filaRotacion.estado === ESTADOS.CORRECTO
+        ? "Mantener sus valores actuales y confirmar la sensación durante la regresión jugable final."
+        : "Proponer una reducción numérica antes de la regresión final.",
+  };
+}
+
+function analizarPrisionGlacialFocalizada({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  referencias,
+  habilidades,
+  jefe,
+  escenarioPotencia,
+  reglas,
+}) {
+  const habilidad = obtenerHabilidadRequerida(
+    configuracionEjecucionHabilidades,
+    "prision_glacial",
+  );
+  const filas = [];
+  const contratos = [];
+
+  for (const gradoNumero of [2, 3]) {
+    const grado = habilidad.ejecucion.grados[String(gradoNumero)];
+    const filaNormal = obtenerFilaPrincipalHabilidad({
+      habilidades,
+      idHabilidad: habilidad.id,
+      grado: gradoNumero,
+    });
+    const filaJefe = crearFilaHabilidad({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      categoria: "avanzada",
+      grado,
+      gradoNumero,
+      nivel: reglas.nivelJefeReferencia,
+      referencia: jefe,
+      escenarioPotencia,
+      resistenciaElemental: jefe.resistencias.frio ?? 0,
+      resistenciaEfecto: jefe.resistenciasEfectos.congelamiento ?? 0,
+    });
+    const contrato = probarContratoCongelamiento({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      grado,
+      gradoNumero,
+      escenarioPotencia,
+      nivel: reglas.nivelJefeReferencia,
+    });
+    contratos.push(contrato);
+
+    for (const objetivo of [
+      { id: "normal", nombre: "Enemigo normal", fila: filaNormal },
+      { id: "jefe", nombre: jefe.nombre, fila: filaJefe },
+    ]) {
+      const probabilidadCongelar = limitar(
+        (objetivo.fila.probabilidadImpacto / 100) *
+          (objetivo.fila.probabilidadAplicacionEfecto / 100),
+        0,
+        1,
+      );
+      for (const distancia of reglas.distanciasPrision) {
+        const accionesMovimientoEvitadas = distancia > 1
+          ? probabilidadCongelar
+          : 0;
+        const estado = distancia === 1
+          ? ESTADOS.INFORMATIVO
+          : accionesMovimientoEvitadas >= 0.5 && contrato.aprobado
+            ? ESTADOS.CORRECTO
+            : accionesMovimientoEvitadas >= 0.25
+              ? ESTADOS.ADVERTENCIA
+              : ESTADOS.INCORRECTO;
+        filas.push({
+          id: `prision_g${gradoNumero}_${objetivo.id}_d${distancia}`,
+          grado: gradoNumero,
+          objetivo: objetivo.nombre,
+          distancia,
+          duracion: grado.efectos[0].duracion,
+          probabilidadCongelar: redondear(probabilidadCongelar * 100),
+          accionesMovimientoEvitadas: redondear(
+            accionesMovimientoEvitadas,
+          ),
+          detieneAtaqueAdyacente: false,
+          duplicadoRechazado: contrato.duplicadoRechazado,
+          unaSolaInstancia: contrato.maximoInstancias === 1,
+          criterio:
+            distancia === 1
+              ? "Congelamiento inmoviliza, pero no impide atacar si el enemigo ya está adyacente. Se muestra como limitación táctica."
+              : "A distancia 2 o mayor debe evitar aproximadamente un movimiento cuando se aplica. Correcto: 0,5 o más acciones esperadas y una sola instancia sin renovación.",
+          estado,
+        });
+      }
+    }
+  }
+
+  return {
+    filas,
+    contratos,
+    conclusion:
+      "Prisión glacial no es una habilidad de daño puro. A distancia puede negar aproximadamente un movimiento; adyacente no evita ataques, por lo que su utilidad depende de la posición.",
+    recomendacion:
+      "Mantener el daño y las duraciones actuales. La prueba jugable debe confirmar que el jugador pueda aprovechar ese turno de distancia.",
+  };
+}
+
+function analizarNubeToxicaFocalizada({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  habilidades,
+  escenarioPotencia,
+  reglas,
+}) {
+  const habilidad = obtenerHabilidadRequerida(
+    configuracionEjecucionHabilidades,
+    "nube_toxica",
+  );
+  const gradoNumero = 1;
+  const grado = habilidad.ejecucion.grados[String(gradoNumero)];
+  const filaPrincipal = obtenerFilaPrincipalHabilidad({
+    habilidades,
+    idHabilidad: habilidad.id,
+    grado: gradoNumero,
+  });
+  const probabilidadAplicacion = limitar(
+    (filaPrincipal.probabilidadImpacto / 100) *
+      (filaPrincipal.probabilidadAplicacionEfecto / 100),
+    0,
+    1,
+  );
+  const esperadaUnObjetivo = simularZonaEsperadaUnObjetivo({
+    configuracionPersonaje,
+    configuracionObjetos,
+    habilidad,
+    grado,
+    escenarioPotencia,
+    nivel: filaPrincipal.nivelReferencia,
+    probabilidadAplicacion,
+  });
+  const contratoTresObjetivos = simularZonaConPatron({
+    configuracionPersonaje,
+    configuracionObjetos,
+    habilidad,
+    grado,
+    escenarioPotencia,
+    nivel: filaPrincipal.nivelReferencia,
+    cantidadObjetivos: 3,
+    patronAplicaciones: Array(9).fill(true),
+  });
+  const entradaTardia = probarEntradaTardiaZona({
+    configuracionPersonaje,
+    configuracionObjetos,
+    habilidad,
+    grado,
+    escenarioPotencia,
+    nivel: filaPrincipal.nivelReferencia,
+  });
+
+  const filas = reglas.objetivosNube.map((objetivos) => {
+    const total = esperadaUnObjetivo.danioPeriodicoEsperado * objetivos;
+    const estado = objetivos === 1
+      ? ESTADOS.INFORMATIVO
+      : contratoTresObjetivos.maximoInstanciasPorObjetivo <= 1 &&
+          entradaTardia.aplicoAlEntrar
+        ? ESTADOS.CORRECTO
+        : ESTADOS.INCORRECTO;
+    return {
+      id: `nube_g1_${objetivos}_objetivos`,
+      escenario: `${objetivos} objetivo${objetivos === 1 ? "" : "s"} dentro durante toda la zona`,
+      objetivos,
+      activacionesPorObjetivo: esperadaUnObjetivo.activaciones,
+      ticksEsperadosPorObjetivo: redondear(
+        esperadaUnObjetivo.ticksEsperados,
+      ),
+      duracionZona: grado.zonaTemporal.duracion,
+      ultimoTickEsperado: esperadaUnObjetivo.ultimoInstante,
+      mana: grado.costoMana,
+      danioTotalEsperado: redondear(total),
+      danioPorMana: redondear(total / grado.costoMana),
+      unaInstanciaPorObjetivo:
+        contratoTresObjetivos.maximoInstanciasPorObjetivo <= 1,
+      aplicaAlEntrar: entradaTardia.aplicoAlEntrar,
+      criterio:
+        objetivos === 1
+          ? "Es una habilidad de área persistente; contra un solo objetivo se informa, pero no se exige que iguale a una habilidad individual."
+          : "Con tres objetivos debe aprovechar al crear, por intervalo y al entrar sin generar efectos paralelos. Una sola instancia por objetivo es obligatoria.",
+      estado,
+    };
+  });
+
+  return {
+    filas,
+    esperadaUnObjetivo,
+    contratoTresObjetivos,
+    entradaTardia,
+    conclusion:
+      "La advertencia inicial de Nube tóxica G1 provenía de contar solo la primera aplicación. La zona real renueva el veneno y prolonga sus ticks; con varios objetivos cumple su función de área.",
+    recomendacion:
+      "Mantener sus valores actuales. No aumentar el daño basándose únicamente en la primera aplicación.",
+  };
+}
+
+function analizarPlagaCorrosivaFocalizada({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  habilidades,
+  potencia,
+}) {
+  const habilidad = obtenerHabilidadRequerida(
+    configuracionEjecucionHabilidades,
+    "plaga_corrosiva",
+  );
+  const filas = [];
+  const detalles = [];
+
+  for (const gradoNumero of [1, 2, 3]) {
+    const grado = habilidad.ejecucion.grados[String(gradoNumero)];
+    const fila = obtenerFilaPrincipalHabilidad({
+      habilidades,
+      idHabilidad: habilidad.id,
+      grado: gradoNumero,
+    });
+    const escenarioPotencia = obtenerEscenarioPotencia(
+      potencia,
+      fila.nivelReferencia >= 6 ? "baston_base_t2" : "baston_base_t1",
+    );
+    const aplicaciones = grado.efectos[0].maximo;
+    const instantes = crearInstantesLanzamiento(
+      aplicaciones,
+      grado.costoTemporalBase,
+    );
+    const probabilidadAplicacion = limitar(
+      (fila.probabilidadImpacto / 100) *
+        (fila.probabilidadAplicacionEfecto / 100),
+      0,
+      1,
+    );
+    const secuencia = simularSecuenciaEfectoEsperada({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      grado,
+      nivel: fila.nivelReferencia,
+      escenarioPotencia,
+      instantes,
+      probabilidadAplicacion,
+      resistencias: { fuego: 0, frio: 0, rayo: 0, veneno: 0 },
+      resistenciasEfectos: {
+        congelamiento: 0,
+        aturdimiento: 0,
+        envenenamiento: 0,
+        quemadura: 0,
+      },
+    });
+    detalles.push(secuencia);
+    const directo = fila.danioDirectoEsperado * aplicaciones;
+    const total = directo + secuencia.danioPeriodicoEsperado;
+    const tiempoAcciones = grado.costoTemporalBase * aplicaciones;
+    const alcanzaMaximo =
+      secuencia.simulacionExitoTotal.maximaIntensidad === aplicaciones;
+    const unaInstancia =
+      secuencia.simulacionExitoTotal.maximoInstancias <= 1;
+    filas.push({
+      id: `plaga_g${gradoNumero}_maximo`,
+      grado: gradoNumero,
+      aplicaciones,
+      intensidadMaximaConfigurada: aplicaciones,
+      intensidadMaximaComprobada:
+        secuencia.simulacionExitoTotal.maximaIntensidad,
+      probabilidadAlcanzarMaximo: redondear(
+        Math.pow(probabilidadAplicacion, aplicaciones) * 100,
+      ),
+      unaInstancia,
+      mana: grado.costoMana * aplicaciones,
+      tiempoAcciones,
+      danioDirectoEsperado: redondear(directo),
+      danioPeriodicoEsperado: redondear(
+        secuencia.danioPeriodicoEsperado,
+      ),
+      danioTotalEsperado: redondear(total),
+      danioPor100Accion: redondear((total / tiempoAcciones) * 100),
+      danioPorMana: redondear(total / (grado.costoMana * aplicaciones)),
+      criterio:
+        "Debe alcanzar su intensidad configurada tras las reaplicaciones, conservar una sola instancia y pagar ese crecimiento con varios lanzamientos y Maná.",
+      estado:
+        alcanzaMaximo && unaInstancia
+          ? ESTADOS.CORRECTO
+          : ESTADOS.INCORRECTO,
+    });
+  }
+
+  return {
+    filas,
+    detalles,
+    conclusion:
+      "Plaga corrosiva funciona como daño de preparación: necesita dos o tres lanzamientos para alcanzar el máximo, conserva una sola instancia y no crea temporizadores paralelos.",
+    recomendacion:
+      "Mantener sus valores. Su mayor daño sostenido queda compensado por el coste de acciones, Maná y la probabilidad de completar todas las aplicaciones.",
+  };
+}
+
+function analizarDobleVaritaFocalizada({ potencia, habilidades, reglas }) {
+  const filas = [];
+  for (const tier of [1, 2]) {
+    const bastonBase = obtenerEscenarioPotencia(
+      potencia,
+      `baston_base_t${tier}`,
+    );
+    const dobleBase = obtenerEscenarioPotencia(
+      potencia,
+      `doble_varita_base_t${tier}`,
+    );
+    const bastonEnfocado = obtenerEscenarioPotencia(
+      potencia,
+      `baston_enfocado_t${tier}`,
+    );
+    const dobleEnfocado = obtenerEscenarioPotencia(
+      potencia,
+      `doble_varita_enfocada_t${tier}`,
+    );
+
+    const comparacionBase = compararEscenariosPotenciaHabilidades({
+      habilidades,
+      escenarioReferencia: bastonBase,
+      escenarioComparado: dobleBase,
+    });
+    const comparacionEnfocada = compararEscenariosPotenciaHabilidades({
+      habilidades,
+      escenarioReferencia: bastonEnfocado,
+      escenarioComparado: dobleEnfocado,
+    });
+    const ventajaAdicionalAfijos =
+      ((1 + comparacionEnfocada.ventajaAgregada / 100) /
+        (1 + comparacionBase.ventajaAgregada / 100) -
+        1) *
+      100;
+    const ventajaTeoricaBase =
+      ((1 + dobleBase.potenciaHabilidad / 100) /
+        (1 + bastonBase.potenciaHabilidad / 100) -
+        1) *
+      100;
+    const ventajaTeoricaEnfocada =
+      ((1 + dobleEnfocado.potenciaHabilidad / 100) /
+        (1 + bastonEnfocado.potenciaHabilidad / 100) -
+        1) *
+      100;
+    const ventajaTeoricaAdicional =
+      ((1 + ventajaTeoricaEnfocada / 100) /
+        (1 + ventajaTeoricaBase / 100) -
+        1) *
+      100;
+    const ventajaEvaluada = Math.max(
+      ventajaAdicionalAfijos,
+      ventajaTeoricaAdicional,
+    );
+    const estado =
+      ventajaEvaluada <= reglas.ventajaMaximaDobleVaritaPorcentaje
+        ? ESTADOS.CORRECTO
+        : ESTADOS.ADVERTENCIA;
+
+    filas.push({
+      id: `doble_varita_afijos_t${tier}`,
+      tier,
+      potenciaBastonBase: bastonBase.potenciaHabilidad,
+      potenciaDobleVaritaBase: dobleBase.potenciaHabilidad,
+      potenciaBastonMaxima: bastonEnfocado.potenciaHabilidad,
+      potenciaDobleVaritaMaxima: dobleEnfocado.potenciaHabilidad,
+      ventajaBaseDanioPorcentaje: redondear(
+        comparacionBase.ventajaAgregada,
+      ),
+      ventajaMaximaDanioPorcentaje: redondear(
+        comparacionEnfocada.ventajaAgregada,
+      ),
+      ventajaAdicionalAfijosPorcentaje: redondear(
+        ventajaAdicionalAfijos,
+      ),
+      ventajaTeoricaAdicionalPorcentaje: redondear(
+        ventajaTeoricaAdicional,
+      ),
+      ventajaIndividualMaximaPorcentaje: redondear(
+        comparacionEnfocada.ventajaIndividualMaxima,
+      ),
+      habilidadesComparadas: comparacionEnfocada.cantidad,
+      criterio:
+        `Se descuenta la ventaja que la doble varita ya posee por precisión, crítico y equipo base. Correcto: los dos afijos pueden aportar hasta ${reglas.ventajaMaximaDobleVaritaPorcentaje} % adicional frente al bastón con un afijo. El máximo individual se informa, pero no decide solo porque el redondeo de daños pequeños puede exagerarlo.`,
+      estado,
+    });
+  }
+  return {
+    filas,
+    conclusion:
+      filas.every((fila) => fila.estado === ESTADOS.CORRECTO)
+        ? "La doble varita máxima supera al bastón máximo, pero la parte adicional causada específicamente por equipar dos afijos queda dentro del límite propuesto."
+        : "Los dos afijos de doble varita añaden una ventaja superior al límite incluso después de descontar la diferencia del equipo base.",
+    recomendacion:
+      filas.every((fila) => fila.estado === ESTADOS.CORRECTO)
+        ? "Mantener la Potencia, los afijos y la regla canónica de doble varita."
+        : "Revisar el valor máximo del afijo antes de modificar la regla canónica.",
+  };
+}
+
+function compararEscenariosPotenciaHabilidades({
+  habilidades,
+  escenarioReferencia,
+  escenarioComparado,
+}) {
+  const pares = [];
+  const filasReferencia = habilidades.filas.filter(
+    (fila) =>
+      fila.resistenciaElemental === 0 &&
+      fila.escenarioPotencia === escenarioReferencia.id,
+  );
+  for (const referencia of filasReferencia) {
+    const comparada = habilidades.filas.find(
+      (fila) =>
+        fila.idHabilidad === referencia.idHabilidad &&
+        fila.grado === referencia.grado &&
+        fila.resistenciaElemental === 0 &&
+        fila.escenarioPotencia === escenarioComparado.id,
+    );
+    if (!comparada || referencia.danioTotalEsperado <= 0) continue;
+    pares.push({
+      referencia: referencia.danioTotalEsperado,
+      comparada: comparada.danioTotalEsperado,
+      ventaja:
+        ((comparada.danioTotalEsperado / referencia.danioTotalEsperado) - 1) *
+        100,
+    });
+  }
+  const totalReferencia = pares.reduce(
+    (total, par) => total + par.referencia,
+    0,
+  );
+  const totalComparado = pares.reduce(
+    (total, par) => total + par.comparada,
+    0,
+  );
+  return {
+    cantidad: pares.length,
+    ventajaAgregada:
+      totalReferencia > 0
+        ? ((totalComparado / totalReferencia) - 1) * 100
+        : 0,
+    ventajaMediana: mediana(pares.map((par) => par.ventaja)),
+    ventajaIndividualMaxima:
+      pares.length > 0 ? Math.max(...pares.map((par) => par.ventaja)) : 0,
+  };
+}
+
+function analizarManaFocalizado({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionEjecucionHabilidades,
+  potencia,
+  reglas,
+}) {
+  const definiciones = [
+    { id: "incinerar", grado: 3, lanzamientos: 3 },
+    { id: "prision_glacial", grado: 3, lanzamientos: 3 },
+    { id: "plaga_corrosiva", grado: 3, lanzamientos: 3 },
+    { id: "nube_toxica", grado: 1, lanzamientos: 1 },
+  ];
+  const escenarioPotencia = obtenerEscenarioPotencia(
+    potencia,
+    "baston_base_t2",
+  );
+  const filas = definiciones.map((definicion) => {
+    const habilidad = obtenerHabilidadRequerida(
+      configuracionEjecucionHabilidades,
+      definicion.id,
+    );
+    const grado = habilidad.ejecucion.grados[String(definicion.grado)];
+    const simulacion = simularManaRotacion({
+      configuracionPersonaje,
+      configuracionObjetos,
+      idProfesion: "mago",
+      nivel: 10,
+      escenarioPotencia,
+      acciones: Array.from({ length: definicion.lanzamientos }, () => ({
+        costoMana: grado.costoMana,
+        costoTemporal: grado.costoTemporalBase,
+      })),
+    });
+    const estado = simulacion.manaRestantePorcentaje >=
+      reglas.reservaManaCorrectaMinimaPorcentaje
+      ? ESTADOS.CORRECTO
+      : simulacion.manaRestantePorcentaje >=
+          reglas.reservaManaAdvertenciaMinimaPorcentaje
+        ? ESTADOS.ADVERTENCIA
+        : ESTADOS.INCORRECTO;
+    return {
+      id: `mana_${definicion.id}_g${definicion.grado}`,
+      habilidad: habilidad.nombre,
+      grado: definicion.grado,
+      lanzamientos: definicion.lanzamientos,
+      manaMaximo: simulacion.manaMaximo,
+      manaGastado: simulacion.manaGastado,
+      manaRegenerado: simulacion.manaRegenerado,
+      manaNeto: simulacion.manaNeto,
+      manaRestante: simulacion.manaRestante,
+      manaRestantePorcentaje: simulacion.manaRestantePorcentaje,
+      tiempo: simulacion.tiempoTotal,
+      criterio:
+        `Una rotación focalizada debe dejar al menos ${reglas.reservaManaCorrectaMinimaPorcentaje} % de la reserva para quedar Correcta. Entre ${reglas.reservaManaAdvertenciaMinimaPorcentaje} % y ${reglas.reservaManaCorrectaMinimaPorcentaje} % es Advertencia.`,
+      estado,
+    };
+  });
+  return {
+    filas,
+    conclusion:
+      filas.every((fila) => fila.estado !== ESTADOS.INCORRECTO)
+        ? "Las rotaciones focalizadas no vacían al Mago. La regeneración ayuda, pero el Maná sigue siendo un límite visible para repetir habilidades avanzadas."
+        : "Alguna rotación focalizada deja al Mago prácticamente sin recursos.",
+    recomendacion:
+      filas.every((fila) => fila.estado !== ESTADOS.INCORRECTO)
+        ? "No agregar todavía pociones de Maná ni aumentar la regeneración. Confirmar los jefes en la regresión jugable."
+        : "Comparar una poción del 25 % antes de modificar la regeneración base.",
+  };
+}
+
+function simularSecuenciaEfectoEsperada({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  nivel,
+  idProfesion = "mago",
+  escenarioPotencia,
+  instantes,
+  probabilidadAplicacion,
+  resistencias,
+  resistenciasEfectos,
+}) {
+  const cantidad = instantes.length;
+  let danioPeriodicoEsperado = 0;
+  let ticksEsperados = 0;
+  let ultimoInstanteEsperado = 0;
+  let maximoInstancias = 0;
+  let maximaIntensidadEsperada = 0;
+  let simulacionExitoTotal = null;
+
+  for (let mascara = 0; mascara < 2 ** cantidad; mascara += 1) {
+    const patron = Array.from({ length: cantidad }, (_, indice) =>
+      Boolean(mascara & (1 << indice)),
+    );
+    const exitos = patron.filter(Boolean).length;
+    const fallos = cantidad - exitos;
+    const peso =
+      Math.pow(probabilidadAplicacion, exitos) *
+      Math.pow(1 - probabilidadAplicacion, fallos);
+    if (peso === 0) continue;
+    const simulacion = simularSecuenciaEfectoConPatron({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      grado,
+      nivel,
+      idProfesion,
+      escenarioPotencia,
+      instantes,
+      patronAplicaciones: patron,
+      resistencias,
+      resistenciasEfectos,
+    });
+    danioPeriodicoEsperado += simulacion.danioPeriodico * peso;
+    ticksEsperados += simulacion.ticks * peso;
+    ultimoInstanteEsperado += simulacion.ultimoInstante * peso;
+    maximoInstancias = Math.max(maximoInstancias, simulacion.maximoInstancias);
+    maximaIntensidadEsperada += simulacion.maximaIntensidad * peso;
+    if (exitos === cantidad) simulacionExitoTotal = simulacion;
+  }
+
+  return {
+    aplicaciones: cantidad,
+    probabilidadAplicacion: redondear(probabilidadAplicacion * 100),
+    danioPeriodicoEsperado: redondear(danioPeriodicoEsperado),
+    ticksEsperados: redondear(ticksEsperados),
+    ultimoInstanteEsperado: redondear(ultimoInstanteEsperado),
+    maximoInstancias,
+    maximaIntensidadEsperada: redondear(maximaIntensidadEsperada),
+    simulacionExitoTotal,
+  };
+}
+
+function simularSecuenciaEfectoConPatron({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  nivel,
+  idProfesion = "mago",
+  escenarioPotencia,
+  instantes,
+  patronAplicaciones,
+  resistencias,
+  resistenciasEfectos,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion,
+    nivel,
+  });
+  equiparEscenarioPotencia({
+    jugador,
+    configuracionObjetos,
+    escenario: escenarioPotencia,
+  });
+  const objetivo = crearObjetivoPrueba({
+    nivel,
+    resistencias,
+    resistenciasEfectos,
+  });
+  let tiempoActual = 0;
+  const sistema = new SistemaEfectosTemporales({
+    obtenerTiempoActual: () => tiempoActual,
+  });
+  const eventos = [];
+  let maximoInstancias = 0;
+  let maximaIntensidad = 0;
+
+  const registrarEstado = () => {
+    const activos = sistema.obtenerEfectosObjetivo(objetivo);
+    maximoInstancias = Math.max(maximoInstancias, activos.length);
+    maximaIntensidad = Math.max(
+      maximaIntensidad,
+      0,
+      ...activos.map((efecto) => efecto.intensidad ?? 1),
+    );
+  };
+  const procesarHasta = (destino) => {
+    while (true) {
+      const siguiente = sistema.obtenerSiguienteInstante();
+      if (siguiente === null || siguiente > destino) break;
+      tiempoActual = siguiente;
+      const resultado = sistema.procesarEventosEn(siguiente);
+      eventos.push(...resultado.eventos);
+      registrarEstado();
+    }
+    tiempoActual = destino;
+  };
+
+  for (let indice = 0; indice < instantes.length; indice += 1) {
+    procesarHasta(instantes[indice]);
+    if (!patronAplicaciones[indice]) continue;
+    const preparadas = prepararEfectosHabilidad({
+      lanzador: jugador,
+      objetivo,
+      efectosConfigurados: grado.efectos,
+      idEjecucion: `balance-foco:${habilidad.id}:${indice}`,
+    });
+    for (const preparada of preparadas) {
+      const resultado = sistema.aplicar(preparada.definicion, {
+        obtenerTiradaAplicacion: () => 1,
+      });
+      eventos.push(...(resultado.eventos ?? []));
+      registrarEstado();
+    }
+  }
+
+  while (sistema.obtenerSiguienteInstante() !== null) {
+    const siguiente = sistema.obtenerSiguienteInstante();
+    tiempoActual = siguiente;
+    const resultado = sistema.procesarEventosEn(siguiente);
+    eventos.push(...resultado.eventos);
+    registrarEstado();
+  }
+
+  const ticks = eventos.filter(
+    (evento) => evento.tipo === "danio_periodico_aplicado",
+  );
+  const danioPeriodico = ticks.reduce(
+    (total, evento) => total + (evento.danio ?? 0),
+    0,
+  );
+  sistema.destruir();
+  return {
+    patronAplicaciones: [...patronAplicaciones],
+    danioPeriodico,
+    ticks: ticks.length,
+    maximoInstancias,
+    maximaIntensidad,
+    ultimoInstante: tiempoActual,
+    eventosAplicacion: eventos
+      .filter((evento) =>
+        [
+          "efecto_aplicado",
+          "efecto_renovado",
+          "efecto_intensificado",
+          "efecto_rechazado",
+        ].includes(evento.tipo),
+      )
+      .map((evento) => ({
+        tipo: evento.tipo,
+        intensidad: evento.intensidad,
+        venceEn: evento.venceEn,
+      })),
+  };
+}
+
+function probarContratoCongelamiento({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  gradoNumero,
+  escenarioPotencia,
+  nivel,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion: "mago",
+    nivel,
+  });
+  equiparEscenarioPotencia({
+    jugador,
+    configuracionObjetos,
+    escenario: escenarioPotencia,
+  });
+  const objetivo = crearObjetivoPrueba({ nivel });
+  let tiempoActual = 0;
+  const sistema = new SistemaEfectosTemporales({
+    obtenerTiempoActual: () => tiempoActual,
+  });
+  const preparar = (sufijo) =>
+    prepararEfectosHabilidad({
+      lanzador: jugador,
+      objetivo,
+      efectosConfigurados: grado.efectos,
+      idEjecucion: `balance-prision:g${gradoNumero}:${sufijo}`,
+    })[0].definicion;
+  const primera = sistema.aplicar(preparar("primera"), {
+    obtenerTiradaAplicacion: () => 1,
+  });
+  const duplicada = sistema.aplicar(preparar("duplicada"), {
+    obtenerTiradaAplicacion: () => 1,
+  });
+  const maximoInstancias = sistema.obtenerEfectosObjetivo(objetivo).length;
+  tiempoActual = grado.efectos[0].duracion - 1;
+  const activoAntesVencer = sistema.estaInmovilizado(objetivo);
+  tiempoActual = grado.efectos[0].duracion;
+  sistema.procesarEventosEn(tiempoActual);
+  const inactivoAlVencer = !sistema.estaInmovilizado(objetivo);
+  sistema.destruir();
+  return {
+    grado: gradoNumero,
+    primeraAplicada: primera.aplicado === true,
+    duplicadoRechazado:
+      duplicada.estadoAplicacion === "rechazado_por_politica" &&
+      duplicada.motivo === "duplicado",
+    maximoInstancias,
+    activoAntesVencer,
+    inactivoAlVencer,
+    aprobado:
+      primera.aplicado === true &&
+      duplicada.estadoAplicacion === "rechazado_por_politica" &&
+      maximoInstancias === 1 &&
+      activoAntesVencer &&
+      inactivoAlVencer,
+  };
+}
+
+function simularZonaEsperadaUnObjetivo({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  escenarioPotencia,
+  nivel,
+  probabilidadAplicacion,
+}) {
+  const activaciones = contarActivacionesZona(grado.zonaTemporal);
+  let danioPeriodicoEsperado = 0;
+  let ticksEsperados = 0;
+  let ultimoInstante = 0;
+  let maximoInstanciasPorObjetivo = 0;
+  let simulacionExitoTotal = null;
+  for (let mascara = 0; mascara < 2 ** activaciones; mascara += 1) {
+    const patron = Array.from({ length: activaciones }, (_, indice) =>
+      Boolean(mascara & (1 << indice)),
+    );
+    const exitos = patron.filter(Boolean).length;
+    const fallos = activaciones - exitos;
+    const peso =
+      Math.pow(probabilidadAplicacion, exitos) *
+      Math.pow(1 - probabilidadAplicacion, fallos);
+    if (peso === 0) continue;
+    const simulacion = simularZonaConPatron({
+      configuracionPersonaje,
+      configuracionObjetos,
+      habilidad,
+      grado,
+      escenarioPotencia,
+      nivel,
+      cantidadObjetivos: 1,
+      patronAplicaciones: patron,
+    });
+    danioPeriodicoEsperado += simulacion.danioPeriodico * peso;
+    ticksEsperados += simulacion.ticks * peso;
+    ultimoInstante += simulacion.ultimoInstante * peso;
+    maximoInstanciasPorObjetivo = Math.max(
+      maximoInstanciasPorObjetivo,
+      simulacion.maximoInstanciasPorObjetivo,
+    );
+    if (exitos === activaciones) simulacionExitoTotal = simulacion;
+  }
+  return {
+    activaciones,
+    probabilidadAplicacion: redondear(probabilidadAplicacion * 100),
+    danioPeriodicoEsperado: redondear(danioPeriodicoEsperado),
+    ticksEsperados: redondear(ticksEsperados),
+    ultimoInstante: redondear(ultimoInstante),
+    maximoInstanciasPorObjetivo,
+    simulacionExitoTotal,
+  };
+}
+
+function simularZonaConPatron({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  escenarioPotencia,
+  nivel,
+  cantidadObjetivos,
+  patronAplicaciones,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion: "mago",
+    nivel,
+  });
+  equiparEscenarioPotencia({
+    jugador,
+    configuracionObjetos,
+    escenario: escenarioPotencia,
+  });
+  jugador.x = 0;
+  jugador.y = 0;
+  const posiciones = [
+    { x: 2, y: 2 },
+    { x: 2, y: 1 },
+    { x: 3, y: 2 },
+    { x: 2, y: 3 },
+    { x: 1, y: 2 },
+  ];
+  const objetivos = Array.from({ length: cantidadObjetivos }, (_, indice) => {
+    const objetivo = crearObjetivoPrueba({ nivel });
+    Object.assign(objetivo, posiciones[indice]);
+    return objetivo;
+  });
+  const mapa = Array.from({ length: 5 }, () => Array(5).fill("."));
+  let tiempoActual = 0;
+  let indiceAplicacion = 0;
+  const eventos = [];
+  const sistemaEfectos = new SistemaEfectosTemporales({
+    obtenerTiempoActual: () => tiempoActual,
+  });
+  let maximoInstanciasPorObjetivo = 0;
+  const registrarInstancias = () => {
+    for (const objetivo of objetivos) {
+      maximoInstanciasPorObjetivo = Math.max(
+        maximoInstanciasPorObjetivo,
+        sistemaEfectos.obtenerEfectosObjetivo(objetivo).length,
+      );
+    }
+  };
+  const sistemaZonas = new SistemaZonasTemporales({
+    mapa,
+    obtenerTiempoActual: () => tiempoActual,
+    obtenerActores: () => objetivos,
+    esObjetivoValido: () => true,
+    aplicarContenido: ({ zona, objetivo, instante }) => {
+      const aplicar = patronAplicaciones[indiceAplicacion] === true;
+      indiceAplicacion += 1;
+      if (!aplicar) {
+        return {
+          impacto: false,
+          critico: false,
+          objetivoDerrotado: false,
+          efectos: [],
+        };
+      }
+      const preparadas = prepararEfectosHabilidad({
+        lanzador: jugador,
+        objetivo,
+        efectosConfigurados: zona.contenido.efectos,
+        idEjecucion: `balance-nube:${instante}:${indiceAplicacion}`,
+      });
+      const resultados = preparadas.map((preparada) =>
+        sistemaEfectos.aplicar(preparada.definicion, {
+          obtenerTiradaAplicacion: () => 1,
+        }),
+      );
+      for (const resultado of resultados) {
+        eventos.push(...(resultado.eventos ?? []));
+      }
+      registrarInstancias();
+      return {
+        impacto: true,
+        critico: false,
+        objetivoDerrotado: false,
+        efectos: resultados,
+      };
+    },
+  });
+  sistemaZonas.crear({
+    idEjecucion: "balance-nube-zona",
+    idHabilidad: habilidad.id,
+    nombre: habilidad.nombre,
+    grado: 1,
+    fuente: jugador,
+    hostil: true,
+    casillas: posiciones.slice(0, cantidadObjetivos),
+    configuracion: grado.zonaTemporal,
+    contenido: {
+      danio: grado.danio,
+      efectos: grado.efectos,
+    },
+    contextoPotencia: null,
+  });
+  registrarInstancias();
+
+  while (true) {
+    const siguienteEfecto = sistemaEfectos.obtenerSiguienteInstante();
+    const siguienteZona = sistemaZonas.obtenerSiguienteInstante();
+    const candidatos = [siguienteEfecto, siguienteZona].filter(Number.isFinite);
+    if (candidatos.length === 0) break;
+    const siguiente = Math.min(...candidatos);
+    tiempoActual = siguiente;
+    if (sistemaEfectos.obtenerSiguienteInstante() === siguiente) {
+      const resultado = sistemaEfectos.procesarEventosEn(siguiente);
+      eventos.push(...resultado.eventos);
+      registrarInstancias();
+    }
+    if (sistemaZonas.obtenerSiguienteInstante() === siguiente) {
+      const resultado = sistemaZonas.procesarEventosEn(siguiente);
+      eventos.push(...(resultado.eventos ?? []));
+      registrarInstancias();
+    }
+  }
+
+  const ticks = eventos.filter(
+    (evento) => evento.tipo === "danio_periodico_aplicado",
+  );
+  const danioPeriodico = ticks.reduce(
+    (total, evento) => total + (evento.danio ?? 0),
+    0,
+  );
+  sistemaZonas.destruir();
+  sistemaEfectos.destruir();
+  return {
+    cantidadObjetivos,
+    aplicacionesConsumidas: indiceAplicacion,
+    danioPeriodico,
+    ticks: ticks.length,
+    ultimoInstante: tiempoActual,
+    maximoInstanciasPorObjetivo,
+  };
+}
+
+function probarEntradaTardiaZona({
+  configuracionPersonaje,
+  configuracionObjetos,
+  habilidad,
+  grado,
+  escenarioPotencia,
+  nivel,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion: "mago",
+    nivel,
+  });
+  equiparEscenarioPotencia({
+    jugador,
+    configuracionObjetos,
+    escenario: escenarioPotencia,
+  });
+  const objetivo = crearObjetivoPrueba({ nivel });
+  objetivo.x = 0;
+  objetivo.y = 0;
+  const mapa = Array.from({ length: 5 }, () => Array(5).fill("."));
+  let tiempoActual = 0;
+  const sistemaEfectos = new SistemaEfectosTemporales({
+    obtenerTiempoActual: () => tiempoActual,
+  });
+  let aplicaciones = 0;
+  const sistemaZonas = new SistemaZonasTemporales({
+    mapa,
+    obtenerTiempoActual: () => tiempoActual,
+    obtenerActores: () => [objetivo],
+    esObjetivoValido: () => true,
+    aplicarContenido: ({ zona, objetivo: destino, instante }) => {
+      aplicaciones += 1;
+      const preparadas = prepararEfectosHabilidad({
+        lanzador: jugador,
+        objetivo: destino,
+        efectosConfigurados: zona.contenido.efectos,
+        idEjecucion: `balance-nube-entrada:${instante}`,
+      });
+      for (const preparada of preparadas) {
+        sistemaEfectos.aplicar(preparada.definicion, {
+          obtenerTiradaAplicacion: () => 1,
+        });
+      }
+      return {
+        impacto: true,
+        critico: false,
+        objetivoDerrotado: false,
+        efectos: preparadas,
+      };
+    },
+  });
+  sistemaZonas.crear({
+    idEjecucion: "balance-nube-entrada",
+    idHabilidad: habilidad.id,
+    nombre: habilidad.nombre,
+    grado: 1,
+    fuente: jugador,
+    hostil: true,
+    casillas: [{ x: 2, y: 2 }],
+    configuracion: grado.zonaTemporal,
+    contenido: { danio: grado.danio, efectos: grado.efectos },
+  });
+  tiempoActual = 150;
+  const resultado = sistemaZonas.procesarMovimiento({
+    actor: objetivo,
+    origen: { x: 0, y: 0 },
+    destino: { x: 2, y: 2 },
+  });
+  objetivo.x = 2;
+  objetivo.y = 2;
+  const aplicoAlEntrar =
+    aplicaciones === 1 &&
+    resultado.eventos.some(
+      (evento) => evento.tipo === "actor_entro_zona_temporal",
+    ) &&
+    sistemaEfectos.obtenerEfectosObjetivo(objetivo).length === 1;
+  sistemaZonas.destruir();
+  sistemaEfectos.destruir();
+  return {
+    instanteEntrada: 150,
+    aplicaciones,
+    aplicoAlEntrar,
+  };
+}
+
+function simularManaRotacion({
+  configuracionPersonaje,
+  configuracionObjetos,
+  idProfesion,
+  nivel,
+  escenarioPotencia,
+  acciones,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion,
+    nivel,
+  });
+  equiparEscenarioPotencia({
+    jugador,
+    configuracionObjetos,
+    escenario: escenarioPotencia,
+  });
+  const manaMaximo = jugador.manaMaximo;
+  let tiempoActual = 0;
+  let siguientePulso = TIEMPO_REFERENCIA;
+  let manaGastado = 0;
+  let manaRegenerado = 0;
+  for (const accion of acciones) {
+    const gastado = jugador.gastarMana(accion.costoMana);
+    if (!gastado) break;
+    manaGastado += accion.costoMana;
+    const destino = tiempoActual + accion.costoTemporal;
+    while (siguientePulso <= destino) {
+      manaRegenerado += jugador.procesarPulsoRegeneracion().manaRecuperado;
+      siguientePulso += TIEMPO_REFERENCIA;
+    }
+    tiempoActual = destino;
+  }
+  return {
+    manaMaximo,
+    manaGastado,
+    manaRegenerado,
+    manaNeto: manaGastado - manaRegenerado,
+    manaRestante: jugador.manaActual,
+    manaRestantePorcentaje: redondear(
+      (jugador.manaActual / manaMaximo) * 100,
+    ),
+    tiempoTotal: tiempoActual,
+  };
+}
+
+function crearConclusionesPruebasFocalizadas({
+  incinerar,
+  prisionGlacial,
+  nubeToxica,
+  plagaCorrosiva,
+  dobleVarita,
+  mana,
+}) {
+  return {
+    resumenFacil: [
+      {
+        id: "foco_incinerar",
+        queSeAnalizo:
+          "Incinerar G3 contra grupos y contra el Señor de la Guerra durante tres lanzamientos consecutivos.",
+        porQue:
+          "El análisis anterior podía sobrevalorarla al multiplicar la Quemadura completa por cada lanzamiento.",
+        conclusion: incinerar.conclusion,
+        recomendacion: incinerar.recomendacion,
+      },
+      {
+        id: "foco_prision",
+        queSeAnalizo:
+          "Prisión glacial G2 y G3 a distintas distancias, incluyendo resistencia de jefe y rechazo de reaplicación.",
+        porQue:
+          "Su daño parecía bajo, pero Congelamiento puede ganar distancia y tiempo.",
+        conclusion: prisionGlacial.conclusion,
+        recomendacion: prisionGlacial.recomendacion,
+      },
+      {
+        id: "foco_nube",
+        queSeAnalizo:
+          "Nube tóxica G1 durante toda la vida de la zona, con uno y tres objetivos y entrada tardía.",
+        porQue:
+          "La tabla anterior contaba la primera aplicación y no toda la zona persistente.",
+        conclusion: nubeToxica.conclusion,
+        recomendacion: nubeToxica.recomendacion,
+      },
+      {
+        id: "foco_plaga",
+        queSeAnalizo:
+          "Plaga corrosiva en todos sus grados hasta alcanzar la intensidad máxima.",
+        porQue:
+          "La primera aplicación no representa su daño sostenido ni su coste de preparación.",
+        conclusion: plagaCorrosiva.conclusion,
+        recomendacion: plagaCorrosiva.recomendacion,
+      },
+      {
+        id: "foco_doble_varita",
+        queSeAnalizo:
+          "Bastón y doble varita con los afijos máximos, comparando el daño final real y no solo los puntos de Potencia.",
+        porQue:
+          "La diferencia de 14–16 puntos parecía alta, pero los multiplicadores finales reducen esa ventaja relativa.",
+        conclusion: dobleVarita.conclusion,
+        recomendacion: dobleVarita.recomendacion,
+      },
+      {
+        id: "foco_mana",
+        queSeAnalizo:
+          "Maná gastado, regenerado y restante durante las rotaciones focalizadas.",
+        porQue:
+          "Una habilidad fuerte puede ser válida si su uso sostenido consume una parte importante de la reserva.",
+        conclusion: mana.conclusion,
+        recomendacion: mana.recomendacion,
+      },
+    ],
+    decisionRecomendada: {
+      aplicarCambiosNumericos: false,
+      mantenerValoresActuales: [
+        "incinerar",
+        "prision_glacial",
+        "nube_toxica",
+        "plaga_corrosiva",
+        "potencia_habilidad",
+        "mana",
+      ],
+      pendientePruebaInterfaz: [
+        "aprovechamiento táctico de Congelamiento",
+        "alineación real de Incinerar",
+        "ocupación real de Nube tóxica",
+        "sostenibilidad contra el jefe completo",
+      ],
+    },
+  };
+}
+
+function crearReferenciaEnemigoEspecifico({
+  configuracionEnemigos,
+  configuracionObjetos,
+  idPlantilla,
+  nivel,
+}) {
+  const enemigo = crearEnemigo({
+    configuracionEnemigos,
+    configuracionObjetos,
+    idPlantilla,
+    nivel,
+  });
+  return {
+    idPlantilla,
+    nombre: enemigo.nombre,
+    nivel,
+    vida: enemigo.vidaMaxima,
+    armadura: enemigo.estadisticasDerivadas.armadura ?? 0,
+    evasion: enemigo.estadisticasDerivadas.evasion ?? 0,
+    resistencias: {
+      ...(enemigo.estadisticasDerivadas.resistencias ?? {}),
+    },
+    resistenciasEfectos: {
+      ...(enemigo.estadisticasDerivadas.resistenciasEfectos ?? {}),
+    },
+    inmunidadesEfectos: [
+      ...(enemigo.estadisticasDerivadas.inmunidadesEfectos ?? []),
+    ],
+  };
+}
+
+function obtenerHabilidadRequerida(configuracion, idHabilidad) {
+  const habilidad = configuracion.habilidades[idHabilidad];
+  if (!habilidad) {
+    throw new Error(`No existe la habilidad focalizada "${idHabilidad}".`);
+  }
+  return habilidad;
+}
+
+function obtenerFilaPrincipalHabilidad({ habilidades, idHabilidad, grado }) {
+  const fila = habilidades.filasPrincipales.find(
+    (candidata) =>
+      candidata.idHabilidad === idHabilidad && candidata.grado === grado,
+  );
+  if (!fila) {
+    throw new Error(
+      `No existe la fila principal de ${idHabilidad} grado ${grado}.`,
+    );
+  }
+  return fila;
+}
+
+function obtenerEscenarioPotencia(potencia, id) {
+  const escenario = potencia.filas.find((fila) => fila.id === id);
+  if (!escenario) {
+    throw new Error(`No existe el escenario de Potencia "${id}".`);
+  }
+  return escenario;
+}
+
+function crearInstantesLanzamiento(cantidad, costoTemporal) {
+  return Array.from({ length: cantidad }, (_, indice) => indice * costoTemporal);
+}
+
+function contarActivacionesZona(configuracion) {
+  let cantidad = configuracion.activadores.includes("al_crear") ? 1 : 0;
+  if (
+    configuracion.activadores.includes("por_intervalo") &&
+    configuracion.intervalo > 0
+  ) {
+    cantidad += Math.max(
+      0,
+      Math.ceil(configuracion.duracion / configuracion.intervalo) - 1,
+    );
+  }
+  return cantidad;
+}
+
+
+function crearConclusiones({
+  armas,
+  habilidades,
+  potencia,
+  arquetipos,
+  pruebasFocalizadas,
+}) {
   const armasProblematicas = armas.filas.filter(
     (fila) => fila.estado === ESTADOS.INCORRECTO,
   );
@@ -1243,9 +2925,12 @@ function crearConclusiones({ armas, habilidades, potencia, arquetipos }) {
         recomendacion:
           "Usar estas rotaciones como señal inicial y confirmar cualquier cambio con pruebas reales de combate antes de modificar números.",
       },
+      ...pruebasFocalizadas.conclusiones.resumenFacil,
     ],
     decisionRecomendada: {
       aplicarCambiosAutomaticos: false,
+      pruebasFocalizadas:
+        pruebasFocalizadas.conclusiones.decisionRecomendada,
       revisarArmas: [...armasProblematicas, ...armasAdvertencia].map(
         (fila) => fila.id,
       ),
@@ -1527,6 +3212,20 @@ function normalizarConfiguracionAnalisis(configuracion = {}) {
     },
     arquetipos:
       configuracion.arquetipos ?? crearArquetiposPredeterminados(),
+    pruebasFocalizadas: {
+      idJefeReferencia: "senor_guerra",
+      nivelJefeReferencia: 10,
+      lanzamientosRotacionAvanzada: 3,
+      objetivosGrupoIncinerar: [1, 2, 3],
+      distanciasPrision: [1, 2, 3],
+      objetivosNube: [1, 3],
+      ventajaMaximaDobleVaritaPorcentaje: 15,
+      reservaManaCorrectaMinimaPorcentaje: 40,
+      reservaManaAdvertenciaMinimaPorcentaje: 20,
+      porcentajeVidaJefeAdvertenciaRotacion: 70,
+      porcentajeVidaJefeIncorrectoRotacion: 100,
+      ...(configuracion.pruebasFocalizadas ?? {}),
+    },
   };
 }
 
@@ -1699,6 +3398,10 @@ function mediana(valores) {
 function promedio(valores) {
   if (!Array.isArray(valores) || valores.length === 0) return 0;
   return valores.reduce((total, valor) => total + valor, 0) / valores.length;
+}
+
+function limitar(valor, minimo, maximo) {
+  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function redondear(valor) {

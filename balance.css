@@ -396,3 +396,12 @@ h2 {
 .balance-seccion--combate {
   border-color: rgba(136, 99, 156, 0.5);
 }
+
+.balance-seccion--focalizada {
+  border-color: rgba(104, 155, 124, 0.55);
+  background: linear-gradient(
+    180deg,
+    rgba(104, 155, 124, 0.06),
+    rgba(18, 23, 31, 0)
+  );
+}

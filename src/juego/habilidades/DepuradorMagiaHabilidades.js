@@ -383,6 +383,7 @@ function crearAccesoBalance(contexto) {
     danioHabilidades: ejecutar("danioHabilidades"),
     potenciaHabilidad: ejecutar("potenciaHabilidad"),
     arquetipos: ejecutar("arquetipos"),
+    pruebasFocalizadas: ejecutar("pruebasFocalizadas"),
     constitucion: ejecutar("constitucion"),
     escenariosTeoricos: ejecutar("escenariosTeoricos"),
   });

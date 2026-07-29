@@ -119,6 +119,7 @@ export function crearAnalizadorBalanceJuego({
     danioHabilidades: () => analizador.combate().habilidades,
     potenciaHabilidad: () => analizador.combate().potencia,
     arquetipos: () => analizador.combate().arquetipos,
+    pruebasFocalizadas: () => analizador.combate().pruebasFocalizadas,
     constitucion: () =>
       obtener("constitucion", crearInformeConstitucion),
     escenariosTeoricos: () =>
@@ -203,7 +204,7 @@ function crearInformeLineaBase({
   }
 
   return {
-    versionInforme: 3,
+    versionInforme: 5,
     tipoResultado: "linea_base",
     determinista: true,
     origenes: {
@@ -237,6 +238,7 @@ function crearInformeLineaBase({
       puntosArbolCompleto: puntosHabilidad.resumen.costoArbolCompleto,
       casosVaritaCostoCasiNulo:
         sostenibilidadMana.resumen.casosVaritaCostoCasiNulo,
+      pruebasFocalizadas: combate.pruebasFocalizadas.resumen.casos,
     },
     progresion,
     maestrias,

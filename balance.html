@@ -118,7 +118,44 @@
       <section class="balance-seccion balance-seccion--combate">
         <h2>Comparación de arquetipos</h2>
         <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> rotaciones cortas de Guerrero, Rogue, Mago e híbridos. Se busca evitar opciones inviables o dominantes, no igualarlas.</p>
-        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Arquetipo</th><th>Profesión</th><th>Arma</th><th>Habilidad</th><th>Acciones</th><th>Maná</th><th>Tiempo</th><th>Daño único</th><th>Daño 3 objetivos</th><th>Daño/100</th><th>Dependencia</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceArquetiposCuerpo"></tbody></table></div>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Arquetipo</th><th>Profesión</th><th>Arma</th><th>Habilidad</th><th>Acciones</th><th>Maná</th><th>% reserva</th><th>Tiempo</th><th>Daño único</th><th>Daño 3 objetivos</th><th>Daño/100</th><th>Dependencia</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceArquetiposCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <p class="balance-sobretitulo">Pruebas focalizadas</p>
+        <h2>Incinerar grado 3</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> una aplicación contra grupos y tres lanzamientos contra el Señor de la Guerra. <strong>Correcto:</strong> la rotación no derrota por sí sola al jefe y Quemadura conserva una sola instancia.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Escenario</th><th>Objetivo</th><th>Lanzamientos</th><th>Objetivos</th><th>Maná</th><th>Regenerado</th><th>Tiempo</th><th>Directo</th><th>Periódico</th><th>Total</th><th>% de Vida</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoIncinerarCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <h2>Prisión glacial</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> utilidad del Congelamiento a distintas distancias. <strong>Correcto:</strong> desde distancia 2 debe evitar aproximadamente un movimiento cuando se aplica, sin acumular ni renovar el efecto.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Grado</th><th>Objetivo</th><th>Distancia</th><th>Duración</th><th>Congelar</th><th>Movimientos evitados</th><th>Detiene ataque adyacente</th><th>Reaplicación rechazada</th><th>Una instancia</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoPrisionCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <h2>Nube tóxica grado 1</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> la zona durante toda su duración y no solo la primera aplicación. <strong>Correcto:</strong> debe volverse eficiente al afectar varios objetivos, aplicar al entrar y conservar una instancia por enemigo.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Escenario</th><th>Objetivos</th><th>Activaciones</th><th>Ticks esperados</th><th>Duración zona</th><th>Último tick</th><th>Maná</th><th>Daño total</th><th>Daño/Maná</th><th>Una instancia</th><th>Aplica al entrar</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoNubeCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <h2>Plaga corrosiva</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> todos sus grados tras completar las reaplicaciones necesarias. <strong>Correcto:</strong> debe alcanzar el máximo configurado con una sola instancia y pagar el crecimiento con acciones y Maná.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Grado</th><th>Aplicaciones</th><th>Intensidad</th><th>Prob. máximo</th><th>Una instancia</th><th>Maná</th><th>Tiempo</th><th>Directo</th><th>Periódico</th><th>Total</th><th>Daño/100</th><th>Daño/Maná</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoPlagaCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <h2>Doble varita con afijos máximos</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> cuánto poder adicional aportan específicamente dos afijos frente al único afijo posible en un bastón. <strong>Correcto:</strong> después de descontar la ventaja del equipo base, el aporte adicional no debe superar 15 %.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Tier</th><th>Bastón base</th><th>Doble base</th><th>Bastón máximo</th><th>Doble máxima</th><th>Ventaja base</th><th>Ventaja máxima</th><th>Ventaja de los afijos</th><th>Ventaja teórica</th><th>Máximo individual</th><th>Habilidades</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoPotenciaCuerpo"></tbody></table></div>
+      </section>
+
+      <section class="balance-seccion balance-seccion--focalizada">
+        <h2>Maná de las rotaciones</h2>
+        <p class="balance-criterio-tabla"><strong>Qué se analiza:</strong> Maná gastado, regenerado y restante durante las secuencias anteriores. <strong>Correcto:</strong> debe quedar al menos 40 % de la reserva; entre 20 % y 40 % es advertencia.</p>
+        <div class="balance-tabla-contenedor"><table class="balance-tabla"><thead><tr><th>Habilidad</th><th>Grado</th><th>Lanzamientos</th><th>Maná máximo</th><th>Gastado</th><th>Regenerado</th><th>Coste real</th><th>Restante</th><th>% restante</th><th>Tiempo</th><th>Criterio de evaluación</th><th>Estado</th></tr></thead><tbody id="balanceFocoManaCuerpo"></tbody></table></div>
       </section>
 
       <section class="balance-seccion"><h2>Escenarios teóricos no implementados</h2><div id="balanceEscenarios" class="balance-escenarios"></div></section>

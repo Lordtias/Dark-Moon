@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Potencia de Habilidad y arquetipos de Dark Moon entre los niveles 1 y 10.",
+  "version": 5,
+  "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Potencia de Habilidad, arquetipos y pruebas focalizadas de Dark Moon entre los niveles 1 y 10.",
   "nivelMaximoContenido": 10,
   "factorBaseExperienciaEsperado": 0.45,
   "rangoExpedicionesObjetivo": {
@@ -230,6 +230,30 @@
         "ataquesBasicos": 2,
         "lanzamientos": 1
       }
-    ]
+    ],
+    "pruebasFocalizadas": {
+      "idJefeReferencia": "senor_guerra",
+      "nivelJefeReferencia": 10,
+      "lanzamientosRotacionAvanzada": 3,
+      "objetivosGrupoIncinerar": [
+        1,
+        2,
+        3
+      ],
+      "distanciasPrision": [
+        1,
+        2,
+        3
+      ],
+      "objetivosNube": [
+        1,
+        3
+      ],
+      "ventajaMaximaDobleVaritaPorcentaje": 15,
+      "reservaManaCorrectaMinimaPorcentaje": 40,
+      "reservaManaAdvertenciaMinimaPorcentaje": 20,
+      "porcentajeVidaJefeAdvertenciaRotacion": 70,
+      "porcentajeVidaJefeIncorrectoRotacion": 100
+    }
   }
 }

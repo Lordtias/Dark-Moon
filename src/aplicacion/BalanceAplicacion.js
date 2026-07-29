@@ -41,6 +41,12 @@ const elementos = Object.fromEntries(
     "balanceResistenciasCuerpo",
     "balancePotenciaCuerpo",
     "balanceArquetiposCuerpo",
+    "balanceFocoIncinerarCuerpo",
+    "balanceFocoPrisionCuerpo",
+    "balanceFocoNubeCuerpo",
+    "balanceFocoPlagaCuerpo",
+    "balanceFocoPotenciaCuerpo",
+    "balanceFocoManaCuerpo",
     "balanceEscenarios",
     "balanceAdvertencias",
     "balanceRecargar",
@@ -108,18 +114,28 @@ function dibujarInforme(informe) {
     resumenCombate.habilidades.resumen.incorrectos,
     resumenCombate.potencia.resumen.escenariosAltos,
     resumenCombate.arquetipos.resumen.incorrectos,
+    resumenCombate.pruebasFocalizadas.resumen.incorrectos,
+  ].some((cantidad) => cantidad > 0);
+  const hayAdvertencias = [
+    resumenCombate.armas.resumen.advertencias,
+    resumenCombate.habilidades.resumen.advertencias,
+    resumenCombate.arquetipos.resumen.advertencias,
+    resumenCombate.pruebasFocalizadas.resumen.advertencias,
   ].some((cantidad) => cantidad > 0);
   elementos.balanceEstado.textContent = hayIncorrectos
-    ? "El análisis terminó. Hay resultados de combate que requieren una decisión antes de cambiar números."
-    : "El análisis terminó. Los resultados están dentro de los rangos actuales o quedaron marcados como informativos.";
+    ? "El análisis terminó. Hay resultados incorrectos que requieren una decisión antes de cambiar números."
+    : hayAdvertencias
+      ? "El análisis terminó. No hay resultados incorrectos, pero quedan advertencias que necesitan pruebas adicionales."
+      : "El análisis terminó. Las pruebas focalizadas no justifican cambios numéricos; lo pendiente quedó marcado como informativo.";
   elementos.balanceEstado.className = `balance-estado balance-estado--${
-    hayIncorrectos ? "advertencia" : "correcto"
+    hayIncorrectos || hayAdvertencias ? "advertencia" : "correcto"
   }`;
 
   dibujarResumen(informe);
   dibujarConclusiones(informe.conclusiones);
   dibujarTablasProgresion(informe);
   dibujarTablasCombate(informe.combate);
+  dibujarPruebasFocalizadas(informe.combate.pruebasFocalizadas);
   dibujarEscenarios(informe.escenariosTeoricos);
   dibujarAdvertencias(informe.advertencias);
 }
@@ -132,6 +148,7 @@ function dibujarResumen(informe) {
     ["Armas evaluadas", informe.resumen.armasCombateAnalizadas],
     ["Simulaciones", informe.resumen.simulacionesCombate],
     ["Arquetipos", informe.combate.arquetipos.resumen.cantidad],
+    ["Pruebas focalizadas", informe.combate.pruebasFocalizadas.resumen.casos],
   ];
   elementos.balanceResumen.replaceChildren(
     ...datos.map(([etiqueta, valor]) => crearTarjetaResumen(etiqueta, valor)),
@@ -169,6 +186,12 @@ function tituloConclusion(id) {
     habilidades_danio: "Daño de habilidades",
     potencia_habilidad: "Potencia de Habilidad",
     arquetipos: "Comparación de arquetipos",
+    foco_incinerar: "Incinerar grado 3",
+    foco_prision: "Prisión glacial",
+    foco_nube: "Nube tóxica",
+    foco_plaga: "Plaga corrosiva",
+    foco_doble_varita: "Doble varita con afijos máximos",
+    foco_mana: "Maná de las rotaciones",
   }[id] ?? id;
 }
 
@@ -411,11 +434,108 @@ function dibujarTablasCombate(combate) {
     fila.habilidad,
     `${fila.ataquesBasicos} + ${fila.lanzamientos}`,
     fila.costoMana,
+    `${formatearNumero(fila.manaConsumidoPorcentaje)} %`,
     fila.costoTemporal,
     formatearNumero(fila.danioObjetivoUnico),
     formatearNumero(fila.danioTresObjetivos),
     formatearNumero(fila.danioPor100),
     fila.dependenciaEquipo,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+}
+
+function dibujarPruebasFocalizadas(pruebas) {
+  llenar("balanceFocoIncinerarCuerpo", pruebas.incinerar.filas, (fila) => [
+    fila.escenario,
+    fila.objetivo,
+    fila.lanzamientos,
+    fila.objetivos,
+    fila.manaGastado,
+    fila.manaRegenerado ?? "—",
+    fila.tiempoAcciones,
+    formatearNumero(fila.danioDirectoEsperado),
+    formatearNumero(fila.danioPeriodicoEsperado),
+    formatearNumero(fila.danioTotalEsperado),
+    `${formatearNumero(fila.porcentajeVidaObjetivo)} %`,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceFocoPrisionCuerpo", pruebas.prisionGlacial.filas, (fila) => [
+    `G${fila.grado}`,
+    fila.objetivo,
+    fila.distancia,
+    fila.duracion,
+    `${formatearNumero(fila.probabilidadCongelar)} %`,
+    formatearNumero(fila.accionesMovimientoEvitadas),
+    fila.detieneAtaqueAdyacente ? "Sí" : "No",
+    fila.duplicadoRechazado ? "Sí" : "No",
+    fila.unaSolaInstancia ? "Sí" : "No",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceFocoNubeCuerpo", pruebas.nubeToxica.filas, (fila) => [
+    fila.escenario,
+    fila.objetivos,
+    fila.activacionesPorObjetivo,
+    formatearNumero(fila.ticksEsperadosPorObjetivo),
+    fila.duracionZona,
+    fila.ultimoTickEsperado,
+    fila.mana,
+    formatearNumero(fila.danioTotalEsperado),
+    formatearNumero(fila.danioPorMana),
+    fila.unaInstanciaPorObjetivo ? "Sí" : "No",
+    fila.aplicaAlEntrar ? "Sí" : "No",
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceFocoPlagaCuerpo", pruebas.plagaCorrosiva.filas, (fila) => [
+    `G${fila.grado}`,
+    fila.aplicaciones,
+    `${fila.intensidadMaximaComprobada}/${fila.intensidadMaximaConfigurada}`,
+    `${formatearNumero(fila.probabilidadAlcanzarMaximo)} %`,
+    fila.unaInstancia ? "Sí" : "No",
+    fila.mana,
+    fila.tiempoAcciones,
+    formatearNumero(fila.danioDirectoEsperado),
+    formatearNumero(fila.danioPeriodicoEsperado),
+    formatearNumero(fila.danioTotalEsperado),
+    formatearNumero(fila.danioPor100Accion),
+    formatearNumero(fila.danioPorMana),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceFocoPotenciaCuerpo", pruebas.dobleVarita.filas, (fila) => [
+    `T${fila.tier}`,
+    `${fila.potenciaBastonBase} %`,
+    `${fila.potenciaDobleVaritaBase} %`,
+    `${fila.potenciaBastonMaxima} %`,
+    `${fila.potenciaDobleVaritaMaxima} %`,
+    `${formatearNumero(fila.ventajaBaseDanioPorcentaje)} %`,
+    `${formatearNumero(fila.ventajaMaximaDanioPorcentaje)} %`,
+    `${formatearNumero(fila.ventajaAdicionalAfijosPorcentaje)} %`,
+    `${formatearNumero(fila.ventajaTeoricaAdicionalPorcentaje)} %`,
+    `${formatearNumero(fila.ventajaIndividualMaximaPorcentaje)} %`,
+    fila.habilidadesComparadas,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceFocoManaCuerpo", pruebas.mana.filas, (fila) => [
+    fila.habilidad,
+    `G${fila.grado}`,
+    fila.lanzamientos,
+    fila.manaMaximo,
+    fila.manaGastado,
+    fila.manaRegenerado,
+    fila.manaNeto,
+    fila.manaRestante,
+    `${formatearNumero(fila.manaRestantePorcentaje)} %`,
+    fila.tiempo,
     fila.criterio,
     crearEtiquetaEstado(fila.estado),
   ]);

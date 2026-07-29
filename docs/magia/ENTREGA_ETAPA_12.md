@@ -896,3 +896,218 @@ La prueba completa jugable desde nivel 1 hasta nivel 10 continúa reservada para
 - Poción de Maná: no implementada.
 - Cambios numéricos pendientes: requieren aprobación específica.
 - Commit o push realizado: no.
+
+---
+
+## Bloque 12.3A — Pruebas focalizadas de combate
+
+### Base utilizada
+
+```text
+Commit confirmado por el usuario:
+a7b606485de27338533c3601ed71fc7dd51d2ee1
+```
+
+La implementación se preparó sobre la copia completa correspondiente al Bloque 12.3. En el entorno de trabajo no se modificaron valores jugables, no se realizó commit y no se realizó push.
+
+### Objetivo sencillo
+
+El Bloque 12.3 había encontrado varias señales de posible desequilibrio. Este subbloque no cambió números: repitió esas comparaciones usando secuencias completas de efectos, zonas, regeneración y acumulaciones para comprobar si las advertencias eran reales o si provenían de medir solamente una parte de la habilidad.
+
+### Resultado general
+
+```text
+Casos focalizados: 27
+Correctos: 21
+Advertencias: 0
+Incorrectos: 0
+Informativos: 6
+```
+
+Los seis casos informativos corresponden a situaciones cuyo resultado depende de la posición o de la cantidad real de objetivos, no a errores del sistema.
+
+### Incinerar grado 3
+
+**Qué se analizó:** una Incinerar contra uno, dos y tres objetivos, y tres lanzamientos consecutivos contra el Señor de la Guerra.
+
+**Por qué:** el análisis anterior podía contar la Quemadura completa tres veces, aunque el contrato real conserva una sola instancia y renueva su duración.
+
+Resultados principales:
+
+| Caso | Daño esperado | Resultado |
+|---|---:|---|
+| Una Incinerar G3, un objetivo mediano nivel 10 | 47,39 | Informativo |
+| Una Incinerar G3, dos objetivos | 94,78 | Correcto |
+| Una Incinerar G3, tres objetivos | 142,17 | Correcto |
+| Tres Incinerar G3 contra Señor de la Guerra | 75,98 de 136 de Vida | Correcto |
+
+La rotación contra el jefe quita aproximadamente 55,87 % de su Vida esperada, consume 45 de Maná, regenera 4 y deja 63,06 % de la reserva del Mago.
+
+**Conclusión:** Incinerar conserva un daño explosivo alto, especialmente cuando alinea varios enemigos, pero las tres aplicaciones no triplican todo el daño periódico. No se justifica reducirla ahora.
+
+**Decisión recomendada:** mantener sus valores y comprobar en el Bloque 12.5 con qué frecuencia el jugador consigue alinear varios enemigos durante una partida real.
+
+### Prisión glacial
+
+**Qué se analizó:** grados 2 y 3, contra enemigo normal y jefe, desde distancias 1, 2 y 3.
+
+**Por qué:** su daño parecía bajo, pero la habilidad también inmoviliza.
+
+Resultados:
+
+- Congelamiento mantiene una sola instancia.
+- Una reaplicación mientras está activo es rechazada.
+- A distancia 2 o 3 evita aproximadamente 0,77 movimientos esperados contra un enemigo sin resistencia alta.
+- Si el enemigo ya está adyacente, puede seguir atacando aunque no pueda moverse.
+
+**Conclusión:** el valor de Prisión glacial es posicional. No necesita más daño solo porque su número directo sea menor.
+
+**Decisión recomendada:** mantener daño y duración. Confirmar desde la interfaz que el jugador pueda aprovechar la distancia ganada.
+
+### Nube tóxica grado 1
+
+**Qué se analizó:** toda la duración de la zona, con uno y tres objetivos, incluyendo entrada tardía.
+
+**Por qué:** la advertencia anterior contaba principalmente la primera aplicación y no las renovaciones posteriores.
+
+Resultados:
+
+| Objetivos | Daño esperado total | Daño por Maná | Estado |
+|---:|---:|---:|---|
+| 1 | 9,02 | 1,50 | Informativo |
+| 3 | 27,06 | 4,51 | Correcto |
+
+La zona realiza tres activaciones por objetivo, mantiene una sola instancia de Veneno y puede aplicar el efecto a un enemigo que entra después de creada.
+
+**Conclusión:** Nube tóxica grado 1 cumple su función cuando permanece activa y afecta grupos. La primera aplicación aislada no representa su rendimiento real.
+
+**Decisión recomendada:** mantener sus valores.
+
+### Plaga corrosiva
+
+**Qué se analizó:** grados 1, 2 y 3 hasta alcanzar su intensidad máxima.
+
+**Por qué:** su primera aplicación no representa el daño de una habilidad diseñada para intensificarse.
+
+| Grado | Aplicaciones | Probabilidad de completar el máximo | Daño total esperado | Maná | Estado |
+|---:|---:|---:|---:|---:|---|
+| 1 | 2 | 58,87 % | 34,64 | 18 | Correcto |
+| 2 | 3 | 45,17 % | 95,93 | 36 | Correcto |
+| 3 | 3 | 36,38 % | 117,41 | 45 | Correcto |
+
+En todos los grados conserva una única instancia y alcanza la intensidad máxima configurada cuando las aplicaciones tienen éxito.
+
+**Conclusión:** su daño sostenido es alto, pero exige varias acciones, bastante Maná y completar todas las aplicaciones.
+
+**Decisión recomendada:** mantener sus valores.
+
+### Doble varita con afijos máximos
+
+**Qué se analizó:** el daño real de bastón y doble varita, primero con equipo base y después con los afijos máximos de Potencia.
+
+**Por qué:** comparar únicamente 30 % contra 46 %, o 40 % contra 54 %, mezclaba la ventaja propia de las varitas con el beneficio específico de poder equipar dos afijos.
+
+| Tier | Ventaja doble varita base | Ventaja doble varita máxima | Ventaja adicional causada por los dos afijos | Estado |
+|---:|---:|---:|---:|---|
+| I | 3,37 % | 12,29 % | 8,63 % | Correcto |
+| II | 4,21 % | 17,31 % | 12,58 % | Correcto |
+
+El criterio aprobado admite hasta 15 % adicional proveniente específicamente de los dos afijos. Los máximos individuales más altos se conservan como información porque el redondeo de daños pequeños puede exagerar algunos porcentajes aislados.
+
+**Conclusión:** la doble varita máxima supera al bastón máximo, pero el beneficio adicional causado por disponer de dos afijos permanece dentro del límite.
+
+**Decisión recomendada:** mantener Potencia de Habilidad, afijos y regla de doble varita.
+
+### Maná de las rotaciones
+
+**Qué se analizó:** Maná gastado, regenerado y restante durante las secuencias focalizadas.
+
+| Rotación | Maná máximo | Gastado | Regenerado | Reserva restante | Estado |
+|---|---:|---:|---:|---:|---|
+| Incinerar G3 × 3 | 111 | 45 | 4 | 63,06 % | Correcto |
+| Prisión glacial G3 × 3 | 111 | 39 | 4 | 68,47 % | Correcto |
+| Plaga corrosiva G3 × 3 | 111 | 45 | 4 | 63,06 % | Correcto |
+| Nube tóxica G1 × 1 | 111 | 6 | 1 | 95,50 % | Correcto |
+
+**Conclusión:** la regeneración ayuda, pero las habilidades avanzadas todavía consumen una parte visible de la reserva. Tres lanzamientos fuertes no dejan al Mago sin Maná, pero tampoco son gratuitos.
+
+**Decisión recomendada:** no agregar todavía pociones de Maná y no aumentar la regeneración. La necesidad real debe comprobarse durante un mapa y un jefe completos.
+
+### Ajuste del análisis de arquetipos
+
+El análisis anterior multiplicaba el daño periódico completo por cada lanzamiento y valoraba siempre tres objetivos perfectos. Eso exageraba al Mago especializado.
+
+El analizador ahora:
+
+- ejecuta una secuencia real cuando se repite una habilidad periódica;
+- respeta la política de una sola instancia y renovación;
+- utiliza la cantidad esperada de objetivos según la forma de impacto para evaluar el rendimiento grupal;
+- conserva el daño potencial a tres objetivos como información separada;
+- considera cuánto porcentaje de la reserva de Maná consume una rotación explosiva.
+
+Resultado actualizado:
+
+```text
+Arquetipos correctos: 7
+Advertencias: 1
+Incorrectos: 0
+```
+
+La advertencia corresponde al Mago especializado: sigue teniendo el mayor daño explosivo, pero consume aproximadamente 40,54 % de su Maná. No se considera un error demostrado hasta medir el combate completo.
+
+### Cambios de valores jugables
+
+```text
+Daño: sin cambios
+Maná: sin cambios
+Tiempo: sin cambios
+Potencia de Habilidad: sin cambios
+Afijos: sin cambios
+Efectos: sin cambios
+Enemigos: sin cambios
+```
+
+Solo se ampliaron y corrigieron los criterios del analizador.
+
+### Archivos del Bloque 12.3A
+
+```text
+balance.css
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/balance/ObjetivosBalance.json
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/balance/AnalizadorBalanceCombate.js
+src/juego/habilidades/DepuradorMagiaHabilidades.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+### Comandos de consola
+
+Desde `balance.html`:
+
+```javascript
+balanceDarkMoon.pruebasFocalizadas()
+console.table(balanceDarkMoon.pruebasFocalizadas().incinerar.filas)
+console.table(balanceDarkMoon.pruebasFocalizadas().prisionGlacial.filas)
+console.table(balanceDarkMoon.pruebasFocalizadas().nubeToxica.filas)
+console.table(balanceDarkMoon.pruebasFocalizadas().plagaCorrosiva.filas)
+console.table(balanceDarkMoon.pruebasFocalizadas().dobleVarita.filas)
+console.table(balanceDarkMoon.pruebasFocalizadas().mana.filas)
+```
+
+Desde el juego:
+
+```javascript
+await darkMoonDebug.magia.balance.pruebasFocalizadas()
+```
+
+### Conclusión final fácil
+
+**Qué analicé:** las cinco señales que habían quedado dudosas en 12.3 y el Maná necesario para utilizarlas.
+
+**Por qué:** para evitar reducir habilidades o equipo basándonos en tablas incompletas.
+
+**Conclusión:** las advertencias de Incinerar, Prisión glacial, Nube tóxica, Plaga corrosiva y doble varita se explican por sus contratos, posición, preparación o consumo de recursos. Las pruebas focalizadas no encontraron valores incorrectos.
+
+**Qué pienso hacer:** no cambiar números en 12.3A. Mantener los valores actuales y trasladar a la prueba jugable final la sensación real de Incinerar contra grupos, el aprovechamiento de Prisión glacial, la permanencia de enemigos dentro de Nube tóxica y la sostenibilidad completa contra jefes.

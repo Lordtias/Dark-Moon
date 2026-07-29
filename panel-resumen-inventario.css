@@ -63,3 +63,41 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Presentación compacta: conserva los tres datos y evita restar altura
+   al área de objetos y al panel de equipamiento. */
+.resumen-inventario {
+  gap: 5px;
+  margin-top: 7px;
+  padding-top: 7px;
+}
+
+.resumen-inventario__dato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 5px 6px;
+  border-radius: 5px;
+}
+
+.resumen-inventario__etiqueta {
+  font-size: 0.65rem;
+}
+
+.resumen-inventario__valor {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+  .resumen-inventario {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .resumen-inventario {
+    grid-template-columns: 1fr;
+  }
+}

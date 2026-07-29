@@ -93,3 +93,22 @@
   text-align: center;
   white-space: nowrap;
 }
+
+/* La rareza debe conservar prioridad sobre los bordes genéricos de las
+   casillas ocupadas, tanto en inventario como en equipamiento. */
+.slot-inventario.ocupado.objeto-con-rareza,
+.casilla-equipamiento.ocupada.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 1px var(--color-rareza-objeto-suave) inset,
+    0 0 8px var(--color-rareza-objeto-suave);
+}
+
+.slot-inventario.ocupado.interactuable.objeto-con-rareza:hover,
+.slot-equipamiento.interactuable:hover
+  .casilla-equipamiento.ocupada.objeto-con-rareza {
+  border-color: var(--color-rareza-objeto);
+  box-shadow:
+    0 0 0 1px var(--color-rareza-objeto-suave) inset,
+    0 0 14px var(--color-rareza-objeto-suave);
+}

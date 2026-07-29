@@ -102,3 +102,119 @@
 .boton-sumar-atributo:disabled {
   opacity: 0.25;
 }
+
+/* =========================================================
+   ORGANIZACIÓN COMPACTA DEL PANEL DEL PERSONAJE
+========================================================= */
+
+.panel-personaje {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 8px;
+  align-content: start;
+  scrollbar-gutter: stable;
+}
+
+.panel-personaje > h2,
+.panel-personaje > .identidad-personaje,
+.panel-personaje > .experiencia-personaje,
+.panel-personaje > .seccion-panel {
+  grid-column: 1 / -1;
+}
+
+.identidad-personaje {
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.identidad-personaje strong {
+  font-size: 18px;
+}
+
+.experiencia-personaje {
+  margin-bottom: 10px;
+}
+
+/* Vida y Maná aprovechan una columna cada uno. */
+.panel-personaje > .recurso-personaje {
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px;
+  border: 1px solid #31395f;
+  border-radius: 5px;
+  background: #0d1020;
+}
+
+.panel-personaje > .recurso-personaje .barra-recurso {
+  height: 12px;
+}
+
+.panel-personaje .seccion-panel {
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.panel-personaje .seccion-panel h3 {
+  margin-bottom: 7px;
+  color: #cbd2ff;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cabecera-seccion-atributos {
+  margin-bottom: 7px;
+}
+
+.lista-atributos {
+  gap: 4px;
+}
+
+.panel-personaje .fila-atributo {
+  grid-template-columns: minmax(0, 1fr) 32px 26px;
+  gap: 4px;
+  padding: 5px 6px;
+}
+
+.boton-sumar-atributo {
+  width: 26px;
+  height: 26px;
+}
+
+/* Combate, magia y resistencias se leen como filas de etiqueta/valor. */
+.panel-personaje .resumen-personaje {
+  gap: 5px;
+}
+
+.panel-personaje .dato-personaje {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px;
+  align-items: center;
+  padding: 5px 6px;
+}
+
+.panel-personaje .dato-personaje span {
+  min-width: 0;
+  color: #929cbe;
+  font-size: 10px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.panel-personaje .dato-personaje strong {
+  color: #f0f2ff;
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.seccion-magia-personaje .dato-personaje strong {
+  color: #aeb8ff;
+}
+
+@media (max-width: 680px) {
+  .panel-personaje {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

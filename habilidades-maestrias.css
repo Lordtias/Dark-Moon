@@ -745,3 +745,15 @@
     white-space: nowrap;
   }
 }
+
+/* El primer dato del bloque corresponde al daño base del grado visible.
+   Se destaca sin alterar el diseño general del panel de maestrías. */
+.detalle-ejecucion-habilidad--con-danio > dt:first-child,
+.detalle-ejecucion-habilidad--con-danio > dt:first-child + dd {
+  color: var(--tema, #aeb8ff);
+  font-weight: 700;
+}
+
+.detalle-ejecucion-habilidad dd {
+  overflow-wrap: anywhere;
+}

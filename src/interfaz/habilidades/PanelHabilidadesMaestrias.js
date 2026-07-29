@@ -54,7 +54,6 @@ export class PanelHabilidadesMaestrias {
     this.instalarEventosGlobales();
     this.renderizar();
   }
-
   estaAbierto() {
     return Boolean(this.dialogo?.open);
   }
@@ -66,7 +65,6 @@ export class PanelHabilidadesMaestrias {
     }
     this.dialogo.focus();
   }
-
   cerrar() {
     this.cerrarCapaAccion();
     if (this.dialogo.open) {
@@ -100,7 +98,6 @@ export class PanelHabilidadesMaestrias {
     this.mensaje.textContent = texto;
     this.mensaje.dataset.tipo = tipo;
   }
-
   destruir() {
     this.manejadores.forEach(({ elemento, tipo, manejador, opciones }) => {
       elemento.removeEventListener(tipo, manejador, opciones);
@@ -165,12 +162,10 @@ export class PanelHabilidadesMaestrias {
     this.navegacion.setAttribute("aria-label", "Categorías de maestrías");
     this.contenido = crearElemento("main", "panel-habilidades__contenido");
     cuerpo.append(this.navegacion, this.contenido);
-
     this.mensaje = crearElemento("p", "panel-habilidades__mensaje");
     this.mensaje.setAttribute("aria-live", "polite");
     this.capaAccion = crearElemento("div", "panel-habilidades__capa-accion");
     this.capaAccion.hidden = true;
-
     marco.append(cabecera, cuerpo, this.mensaje, this.capaAccion);
     dialogo.append(marco);
     document.body.append(dialogo);
@@ -425,7 +420,6 @@ export class PanelHabilidadesMaestrias {
         ),
       );
     }
-
     tarjeta.append(
       cabecera,
       insignias,
@@ -721,7 +715,6 @@ export class PanelHabilidadesMaestrias {
       this.alGuardarCambios({ tipo });
     }
   }
-
   escuchar(elemento, tipo, manejador, opciones = undefined) {
     elemento.addEventListener(tipo, manejador, opciones);
     this.manejadores.push({ elemento, tipo, manejador, opciones });
@@ -767,6 +760,8 @@ function crearDetalleEjecucion({ ejecucion, grado }) {
   }
   const gradoVisible = grado > 0 ? grado : 1;
   const definicionGrado = ejecucion.ejecucion.grados[gradoVisible];
+  lista.classList.add("detalle-ejecucion-habilidad--con-danio");
+  agregarDato(lista, "Daño base", formatearDanioBase(definicionGrado?.danio));
   agregarDato(lista, "Maná", definicionGrado?.costoMana ?? "—");
   agregarDato(lista, "Tiempo", definicionGrado?.costoTemporalBase ?? "—");
   agregarDato(lista, "Alcance", definicionGrado?.alcance ?? "—");
@@ -849,6 +844,7 @@ function crearTooltipTexto({
     const gradoVisible = grado > 0 ? grado : 1;
     const config = ejecucion.ejecucion.grados[gradoVisible];
     lineas.push(
+      `Daño base: ${formatearDanioBase(config.danio)}`,
       `Maná: ${config.costoMana}`,
       `Tiempo: ${config.costoTemporalBase}`,
       `Alcance: ${config.alcance}`,
@@ -890,7 +886,6 @@ function agregarDato(lista, termino, valor) {
     crearElemento("dd", "", String(valor)),
   );
 }
-
 function agregarInsignia(contenedor, texto, estado) {
   const insignia = crearElemento(
     "span",
@@ -945,7 +940,29 @@ function crearElemento(etiqueta, clase = "", texto = "") {
   if (texto !== "") elemento.textContent = texto;
   return elemento;
 }
-
+function formatearDanioBase(componentes) {
+  if (!Array.isArray(componentes) || componentes.length === 0) {
+    return "—";
+  }
+  const valoresPorTipo = new Map();
+  for (const componente of componentes) {
+    const valor = Number(componente?.valorBase);
+    if (!Number.isFinite(valor)) {
+      continue;
+    }
+    const tipo = formatearNombre(componente?.tipo ?? "sin tipo");
+    valoresPorTipo.set(tipo, (valoresPorTipo.get(tipo) ?? 0) + valor);
+  }
+  if (valoresPorTipo.size === 0) {
+    return "—";
+  }
+  return [...valoresPorTipo.entries()]
+    .map(([tipo, valor]) => `${formatearNumero(valor)} ${tipo}`)
+    .join(" + ");
+}
+function formatearNumero(valor) {
+  return Number.isInteger(valor) ? String(valor) : valor.toFixed(1);
+}
 function formatearNombre(valor) {
   if (!valor) return "—";
   const texto = String(valor).replaceAll("_", " ");

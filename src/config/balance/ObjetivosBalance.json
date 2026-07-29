@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "descripcion": "Objetivos utilizados para medir la progresión principal de Dark Moon entre los niveles 1 y 10.",
+  "version": 2,
+  "descripcion": "Objetivos y escenarios reproducibles para medir la progresión, los puntos de habilidad y el Maná de Dark Moon entre los niveles 1 y 10.",
   "nivelMaximoContenido": 10,
   "factorBaseExperienciaEsperado": 0.45,
   "rangoExpedicionesObjetivo": {
@@ -60,7 +60,15 @@
       "puntosPorPorcentaje": 2,
       "bonificacionMaxima": 10,
       "limiteResistenciaFinal": 75,
-      "valoresConstitucionPrueba": [8, 10, 12, 15, 18, 24, 28]
+      "valoresConstitucionPrueba": [
+        8,
+        10,
+        12,
+        15,
+        18,
+        24,
+        28
+      ]
     },
     "recargaArco": {
       "costoTemporalRecarga": 100
@@ -70,8 +78,40 @@
     },
     "pocionesMana": {
       "costoTemporalConsumo": 100,
-      "recuperacionesFijasPrueba": [10],
-      "recuperacionesPorcentualesPrueba": [25, 50, 100]
+      "recuperacionesFijasPrueba": [
+        10
+      ],
+      "recuperacionesPorcentualesPrueba": [
+        25,
+        50,
+        100
+      ]
     }
+  },
+  "analisisProgresionMagica": {
+    "usosHabilidadPorEnemigo": [
+      1,
+      2,
+      3
+    ],
+    "estrategiasPuntos": [
+      "conservar_universales",
+      "especializacion_total"
+    ]
+  },
+  "analisisMana": {
+    "nivelesDestacados": [
+      1,
+      3,
+      6,
+      10
+    ],
+    "estrategiasMago": [
+      "inteligencia",
+      "equilibrada",
+      "sabiduria"
+    ],
+    "costoNetoIrrelevante": 0.5,
+    "pulsosRecuperacionLenta": 50
   }
 }

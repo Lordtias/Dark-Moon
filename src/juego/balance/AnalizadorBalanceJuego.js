@@ -14,7 +14,10 @@ import {
   esVarita,
   validarCatalogoCatalizadores,
 } from "../magia/SistemaCatalizadores.js";
-import { ProgresoMagicoJugador } from "../maestrias/ProgresoMagicoJugador.js";
+import {
+  ORIGENES_PUNTO_HABILIDAD,
+  ProgresoMagicoJugador,
+} from "../maestrias/ProgresoMagicoJugador.js";
 import {
   calcularExperienciaAcumuladaParaNivel,
   calcularExperienciaNecesaria,
@@ -78,12 +81,36 @@ export function crearAnalizadorBalanceJuego({
   };
 
   const analizador = {
-    progresion: () => obtener("progresion", crearInformeProgresion),
-    maestrias: () => obtener("maestrias", crearInformeMaestrias),
-    mana: () => obtener("mana", crearInformeMana),
-    habilidades: () => obtener("habilidades", crearInformeHabilidades),
-    armas: () => obtener("armas", crearInformeArmas),
-    constitucion: () => obtener("constitucion", crearInformeConstitucion),
+    progresion: () =>
+      obtener("progresion", crearInformeProgresion),
+    maestrias: () =>
+      obtener("maestrias", crearInformeMaestrias),
+    progresionMagica: () =>
+      obtener("progresionMagica", () =>
+        crearInformeProgresionMagica({
+          ...dependencias,
+          progresion: analizador.progresion(),
+        }),
+      ),
+    puntosHabilidad: () =>
+      obtener("puntosHabilidad", crearInformePuntosHabilidad),
+    mana: () =>
+      obtener("mana", crearInformeMana),
+    sostenibilidadMana: () =>
+      obtener("sostenibilidadMana", () =>
+        crearInformeSostenibilidadMana({
+          ...dependencias,
+          mana: analizador.mana(),
+          habilidades: analizador.habilidades(),
+          armas: analizador.armas(),
+        }),
+      ),
+    habilidades: () =>
+      obtener("habilidades", crearInformeHabilidades),
+    armas: () =>
+      obtener("armas", crearInformeArmas),
+    constitucion: () =>
+      obtener("constitucion", crearInformeConstitucion),
     escenariosTeoricos: () =>
       obtener("escenariosTeoricos", crearInformeEscenariosTeoricos),
     lineaBase: () =>
@@ -91,7 +118,10 @@ export function crearAnalizadorBalanceJuego({
         crearInformeLineaBase({
           progresion: analizador.progresion(),
           maestrias: analizador.maestrias(),
+          progresionMagica: analizador.progresionMagica(),
+          puntosHabilidad: analizador.puntosHabilidad(),
           mana: analizador.mana(),
+          sostenibilidadMana: analizador.sostenibilidadMana(),
           habilidades: analizador.habilidades(),
           armas: analizador.armas(),
           constitucion: analizador.constitucion(),
@@ -107,7 +137,10 @@ export function crearAnalizadorBalanceJuego({
 function crearInformeLineaBase({
   progresion,
   maestrias,
+  progresionMagica,
+  puntosHabilidad,
   mana,
+  sostenibilidadMana,
   habilidades,
   armas,
   constitucion,
@@ -158,12 +191,13 @@ function crearInformeLineaBase({
   }
 
   return {
-    versionInforme: 1,
+    versionInforme: 2,
     tipoResultado: "linea_base",
     determinista: true,
     origenes: {
       progresionGeneral: "SistemaProgresion y FabricaEnemigos",
-      progresionMagica: "ProgresoMagicoJugador",
+      progresionMagica: "ProgresoMagicoJugador y ruta de enemigos estimados",
+      puntosHabilidad: "ProgresoMagicoJugador",
       recursos: "EstadisticasDerivadas y CalculadorAtributosMagicos",
       catalizadores: "SistemaCatalizadores y ConfiguracionAtaque",
       escenarios: "cálculos teóricos aislados",
@@ -179,14 +213,35 @@ function crearInformeLineaBase({
         dependencias.configuracionProgresoMagico.reglas
           .puntosUniversalesIniciales,
       rutaCumpleObjetivo: progresion.resumen.cumpleObjetivo,
+      expedicionesEstimadasNivel10: redondear(
+        progresion.rutaRecomendada.reduce(
+          (total, fila) => total + fila.expedicionesEsperadas,
+          0,
+        ),
+      ),
+      ritmoMagicoMedio: progresionMagica.resumen.usoMedio,
+      puntosArbolCompleto: puntosHabilidad.resumen.costoArbolCompleto,
+      casosVaritaCostoCasiNulo:
+        sostenibilidadMana.resumen.casosVaritaCostoCasiNulo,
     },
     progresion,
     maestrias,
+    progresionMagica,
+    puntosHabilidad,
     mana,
+    sostenibilidadMana,
     habilidades,
     armas,
     constitucion,
     escenariosTeoricos,
+    conclusiones: crearConclusionesProgresionRecursos({
+      progresion,
+      progresionMagica,
+      puntosHabilidad,
+      mana,
+      sostenibilidadMana,
+      escenariosTeoricos,
+    }),
     advertencias,
   };
 }
@@ -250,7 +305,8 @@ function crearInformeMaestrias({
         manaConsumido: grado.costoMana,
       });
       const puedeSubirHasta3 = habilidad.requisitoNivelMaestria === 0;
-      const puedeSubirDesde3Hasta6 = habilidad.requisitoNivelMaestria <= 3;
+      const puedeSubirDesde3Hasta6 =
+        habilidad.requisitoNivelMaestria <= 3;
 
       filas.push({
         idHabilidad: habilidad.id,
@@ -323,6 +379,431 @@ function crearInformeMaestrias({
   };
 }
 
+function crearInformeProgresionMagica({
+  configuracionProgresoMagico,
+  configuracionEjecucionHabilidades,
+  objetivosBalance,
+  progresion,
+}) {
+  const configuracion = objetivosBalance.analisisProgresionMagica;
+  if (
+    !configuracion ||
+    !Array.isArray(configuracion.usosHabilidadPorEnemigo) ||
+    !Array.isArray(configuracion.estrategiasPuntos)
+  ) {
+    throw new Error(
+      "ObjetivosBalance.json no define el análisis de progresión mágica.",
+    );
+  }
+
+  const filas = [];
+  for (const idMaestria of Object.keys(configuracionProgresoMagico.maestrias)) {
+    for (const usosPorEnemigo of configuracion.usosHabilidadPorEnemigo) {
+      for (const estrategia of configuracion.estrategiasPuntos) {
+        filas.push(
+          simularRutaProgresionMagica({
+            idMaestria,
+            usosPorEnemigo,
+            estrategia,
+            configuracionProgresoMagico,
+            configuracionEjecucionHabilidades,
+            rutaRecomendada: progresion.rutaRecomendada,
+          }),
+        );
+      }
+    }
+  }
+
+  const usoMedio = resumirUsoMagico({
+    filas: filas.filter(
+      (fila) =>
+        fila.usosPorEnemigo === 2 &&
+        fila.estrategia === "conservar_universales",
+    ),
+    usosPorEnemigo: 2,
+  });
+  const resumenPorIntensidad = configuracion.usosHabilidadPorEnemigo.map(
+    (usosPorEnemigo) =>
+      resumirUsoMagico({
+        filas: filas.filter(
+          (fila) =>
+            fila.usosPorEnemigo === usosPorEnemigo &&
+            fila.estrategia === "conservar_universales",
+        ),
+        usosPorEnemigo,
+      }),
+  );
+
+  return {
+    tipoResultado: "simulacion_determinista_motor_real",
+    determinista: true,
+    descripcion:
+      "Simula una especialización elemental usando ProgresoMagicoJugador. La cantidad de usos se obtiene al multiplicar los enemigos estimados de la ruta por 1, 2 o 3 lanzamientos efectivos.",
+    configuracion: {
+      usosHabilidadPorEnemigo: [...configuracion.usosHabilidadPorEnemigo],
+      estrategiasPuntos: [...configuracion.estrategiasPuntos],
+      redondeoEnemigos: "Math.round por tramo de nivel",
+    },
+    resumen: {
+      cantidadEscenarios: filas.length,
+      usoMedio,
+      resumenPorIntensidad,
+    },
+    filas,
+  };
+}
+
+function simularRutaProgresionMagica({
+  idMaestria,
+  usosPorEnemigo,
+  estrategia,
+  configuracionProgresoMagico,
+  configuracionEjecucionHabilidades,
+  rutaRecomendada,
+}) {
+  if (!Number.isInteger(usosPorEnemigo) || usosPorEnemigo <= 0) {
+    throw new Error("Los usos de habilidad por enemigo deben ser positivos.");
+  }
+  if (
+    !["conservar_universales", "especializacion_total"].includes(estrategia)
+  ) {
+    throw new Error(`La estrategia de puntos "${estrategia}" no existe.`);
+  }
+
+  const progreso = new ProgresoMagicoJugador({
+    configuracion: configuracionProgresoMagico,
+    idProfesion: "mago",
+  });
+  const habilidades = Object.values(
+    configuracionEjecucionHabilidades.habilidades,
+  )
+    .filter((habilidad) => habilidad.maestria === idMaestria)
+    .sort(
+      (a, b) =>
+        a.requisitoNivelMaestria - b.requisitoNivelMaestria ||
+        a.id.localeCompare(b.id),
+    );
+
+  gastarPuntosEspecializacion({
+    progreso,
+    habilidades,
+    idMaestria,
+    estrategia,
+  });
+
+  let usosTotales = 0;
+  let manaTotal = 0;
+  let accesoNivel3 = null;
+  let accesoNivel6 = null;
+  let arbolCompleto = null;
+  const recorrido = [];
+
+  for (const tramo of rutaRecomendada) {
+    const usosTramo = Math.max(
+      1,
+      Math.round(tramo.enemigosEsperados * usosPorEnemigo),
+    );
+
+    for (let uso = 0; uso < usosTramo; uso += 1) {
+      gastarPuntosEspecializacion({
+        progreso,
+        habilidades,
+        idMaestria,
+        estrategia,
+      });
+      const resumenAntes = progreso.obtenerResumen();
+      const maestriaAntes = resumenAntes.maestrias[idMaestria];
+      const habilidad = [...habilidades]
+        .reverse()
+        .find(
+          (actual) =>
+            maestriaAntes.nivel >= actual.requisitoNivelMaestria &&
+            resumenAntes.habilidades[actual.id].grado > 0,
+        );
+      if (!habilidad) {
+        throw new Error(
+          `No existe una habilidad aprendida para simular ${idMaestria}.`,
+        );
+      }
+      const grado = resumenAntes.habilidades[habilidad.id].grado;
+      const costoMana = habilidad.ejecucion.grados[grado].costoMana;
+
+      usosTotales += 1;
+      manaTotal += costoMana;
+      progreso.registrarEjecucionEfectiva({
+        idEjecucion: `balance:${idMaestria}:${usosPorEnemigo}:${estrategia}:${usosTotales}`,
+        idMaestria,
+        manaConsumido: costoMana,
+        ejecucionEfectiva: true,
+      });
+      gastarPuntosEspecializacion({
+        progreso,
+        habilidades,
+        idMaestria,
+        estrategia,
+      });
+
+      const resumenDespues = progreso.obtenerResumen();
+      const nivelMaestria = resumenDespues.maestrias[idMaestria].nivel;
+      if (accesoNivel3 === null && nivelMaestria >= 3) {
+        accesoNivel3 = crearHitoProgresionMagica({
+          nivelGeneral: tramo.nivelJugador,
+          usosTotales,
+          manaTotal,
+        });
+      }
+      if (accesoNivel6 === null && nivelMaestria >= 6) {
+        accesoNivel6 = crearHitoProgresionMagica({
+          nivelGeneral: tramo.nivelJugador,
+          usosTotales,
+          manaTotal,
+        });
+      }
+      if (
+        arbolCompleto === null &&
+        habilidades.every(
+          (actual) =>
+            resumenDespues.habilidades[actual.id].grado === actual.gradoMaximo,
+        )
+      ) {
+        arbolCompleto = {
+          ...crearHitoProgresionMagica({
+            nivelGeneral: tramo.nivelJugador,
+            usosTotales,
+            manaTotal,
+          }),
+          nivelMaestria,
+        };
+      }
+    }
+
+    progreso.agregarPuntosUniversales(
+      configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+    );
+    gastarPuntosEspecializacion({
+      progreso,
+      habilidades,
+      idMaestria,
+      estrategia,
+    });
+    const resumenTramo = progreso.obtenerResumen();
+    recorrido.push({
+      nivelGeneralAlcanzado: tramo.siguienteNivel,
+      nivelMaestria: resumenTramo.maestrias[idMaestria].nivel,
+      experienciaMaestria:
+        resumenTramo.maestrias[idMaestria].experienciaTotal,
+      usosTotales,
+      manaTotal,
+      puntosUniversales: resumenTramo.puntosUniversales,
+      puntosEspecificos:
+        resumenTramo.maestrias[idMaestria].puntosEspecificos,
+      grados: Object.fromEntries(
+        habilidades.map((habilidad) => [
+          habilidad.id,
+          resumenTramo.habilidades[habilidad.id].grado,
+        ]),
+      ),
+    });
+  }
+
+  const resumenFinal = progreso.obtenerResumen();
+  return {
+    maestria: idMaestria,
+    usosPorEnemigo,
+    estrategia,
+    nombreEstrategia:
+      estrategia === "conservar_universales"
+        ? "Conservar universales"
+        : "Especialización total",
+    accesoNivel3,
+    accesoNivel6,
+    arbolCompleto,
+    nivelMaestriaFinal: resumenFinal.maestrias[idMaestria].nivel,
+    experienciaMaestriaFinal:
+      resumenFinal.maestrias[idMaestria].experienciaTotal,
+    usosTotales,
+    manaTotal,
+    puntosUniversalesRestantes: resumenFinal.puntosUniversales,
+    puntosEspecificosRestantes:
+      resumenFinal.maestrias[idMaestria].puntosEspecificos,
+    gradosFinales: Object.fromEntries(
+      habilidades.map((habilidad) => [
+        habilidad.id,
+        resumenFinal.habilidades[habilidad.id].grado,
+      ]),
+    ),
+    recorrido,
+  };
+}
+
+function gastarPuntosEspecializacion({
+  progreso,
+  habilidades,
+  idMaestria,
+  estrategia,
+}) {
+  let huboMejora = true;
+  while (huboMejora) {
+    huboMejora = false;
+    const resumen = progreso.obtenerResumen();
+    const maestria = resumen.maestrias[idMaestria];
+    const objetivo = habilidades.find(
+      (habilidad) =>
+        maestria.nivel >= habilidad.requisitoNivelMaestria &&
+        resumen.habilidades[habilidad.id].grado < habilidad.gradoMaximo,
+    );
+    if (!objetivo) return;
+
+    if (maestria.puntosEspecificos > 0) {
+      const resultado = progreso.mejorarHabilidad({
+        idHabilidad: objetivo.id,
+        origenPunto: ORIGENES_PUNTO_HABILIDAD.ESPECIFICO,
+        idMaestriaPunto: idMaestria,
+      });
+      if (resultado.exito) {
+        huboMejora = true;
+        continue;
+      }
+    }
+
+    const gradoActual = resumen.habilidades[objetivo.id].grado;
+    const puedeUsarUniversal =
+      resumen.puntosUniversales > 0 &&
+      (estrategia === "especializacion_total" || gradoActual === 0);
+    if (puedeUsarUniversal) {
+      const resultado = progreso.mejorarHabilidad({
+        idHabilidad: objetivo.id,
+        origenPunto: ORIGENES_PUNTO_HABILIDAD.UNIVERSAL,
+      });
+      if (resultado.exito) {
+        huboMejora = true;
+      }
+    }
+  }
+}
+
+function crearHitoProgresionMagica({ nivelGeneral, usosTotales, manaTotal }) {
+  return { nivelGeneral, usosTotales, manaTotal };
+}
+
+function resumirUsoMagico({ filas, usosPorEnemigo }) {
+  const niveles3 = filas
+    .map((fila) => fila.accesoNivel3?.nivelGeneral)
+    .filter(Number.isFinite);
+  const niveles6 = filas
+    .map((fila) => fila.accesoNivel6?.nivelGeneral)
+    .filter(Number.isFinite);
+  const nivelesArbol = filas
+    .map((fila) => fila.arbolCompleto?.nivelGeneral)
+    .filter(Number.isFinite);
+  return {
+    usosPorEnemigo,
+    nivelMinimoMaestria3: niveles3.length ? Math.min(...niveles3) : null,
+    nivelMaximoMaestria3: niveles3.length ? Math.max(...niveles3) : null,
+    nivelMinimoMaestria6: niveles6.length ? Math.min(...niveles6) : null,
+    nivelMaximoMaestria6: niveles6.length ? Math.max(...niveles6) : null,
+    maestriasQueAlcanzanNivel6: niveles6.length,
+    nivelMinimoArbolCompleto: nivelesArbol.length
+      ? Math.min(...nivelesArbol)
+      : null,
+    nivelMaximoArbolCompleto: nivelesArbol.length
+      ? Math.max(...nivelesArbol)
+      : null,
+  };
+}
+
+function crearInformePuntosHabilidad({
+  configuracionProgresoMagico,
+  configuracionEjecucionHabilidades,
+}) {
+  const habilidadesModelo = Object.values(
+    configuracionEjecucionHabilidades.habilidades,
+  )
+    .filter((habilidad) => habilidad.maestria === "fuego")
+    .sort(
+      (a, b) =>
+        a.requisitoNivelMaestria - b.requisitoNivelMaestria ||
+        a.id.localeCompare(b.id),
+    );
+  const costos = Object.fromEntries(
+    habilidadesModelo.map((habilidad) => [
+      obtenerCategoriaHabilidad(habilidad.requisitoNivelMaestria),
+      habilidad.gradoMaximo,
+    ]),
+  );
+  const costoBasicaIntermedia = costos.basica + costos.intermedia;
+  const costoArbolCompleto = costoBasicaIntermedia + costos.avanzada;
+  const iniciales =
+    configuracionProgresoMagico.reglas.puntosUniversalesIniciales;
+
+  const hitos = [
+    {
+      nivelMaestria: 3,
+      puntosEspecificos: 3,
+      puntosUniversalesMinimos: iniciales,
+      puntosTotales: 3 + iniciales,
+      objetivo: "Habilidad básica en grado máximo",
+      puntosNecesarios: costos.basica,
+      alcanza: 3 + iniciales >= costos.basica,
+    },
+    {
+      nivelMaestria: 6,
+      puntosEspecificos: 6,
+      puntosUniversalesMinimos: iniciales,
+      puntosTotales: 6 + iniciales,
+      objetivo: "Básica e intermedia en grado máximo",
+      puntosNecesarios: costoBasicaIntermedia,
+      alcanza: 6 + iniciales >= costoBasicaIntermedia,
+    },
+    {
+      nivelMaestria: 8,
+      puntosEspecificos: 8,
+      puntosUniversalesMinimos: iniciales + 1,
+      puntosTotales: 8 + iniciales + 1,
+      objetivo: "Árbol elemental completo usando un universal adicional",
+      puntosNecesarios: costoArbolCompleto,
+      alcanza: 8 + iniciales + 1 >= costoArbolCompleto,
+    },
+    {
+      nivelMaestria: 9,
+      puntosEspecificos: 9,
+      puntosUniversalesMinimos: iniciales,
+      puntosTotales: 9 + iniciales,
+      objetivo: "Árbol elemental completo sin gastar más universales",
+      puntosNecesarios: costoArbolCompleto,
+      alcanza: 9 + iniciales >= costoArbolCompleto,
+    },
+  ];
+
+  const universalesPorNivel = [1, 3, 6, 10].map((nivelGeneral) => ({
+    nivelGeneral,
+    puntosUniversalesAcumulados:
+      iniciales +
+      Math.max(0, nivelGeneral - 1) *
+        configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+  }));
+
+  return {
+    tipoResultado: "calculo_teorico_contrato_canonico",
+    determinista: true,
+    resumen: {
+      costoBasica: costos.basica,
+      costoIntermedia: costos.intermedia,
+      costoAvanzada: costos.avanzada,
+      costoArbolCompleto,
+      puntosUniversalesIniciales: iniciales,
+      puntosUniversalesPorNivel:
+        configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+      puntoEspecificoPorNivelMaestria: 1,
+    },
+    hitos,
+    universalesPorNivel,
+    conclusion:
+      "La ruta natural permite maximizar la básica cerca de maestría 3, la intermedia cerca de maestría 6 y el árbol completo entre maestría 8 y 9. Gastar universales acelera la especialización a cambio de renunciar a otras maestrías.",
+  };
+}
+
+
 function crearUmbralesMaestria(configuracionProgresoMagico) {
   let acumulada = 0;
   return configuracionProgresoMagico.reglas.experienciaPorNivel.map(
@@ -366,10 +847,9 @@ function simularUsosMaestria({
     configuracion: configuracionProgresoMagico,
     idProfesion: "mago",
   });
-  const experienciaInicial =
-    configuracionProgresoMagico.reglas.experienciaPorNivel
-      .slice(0, nivelInicial)
-      .reduce((total, valor) => total + valor, 0);
+  const experienciaInicial = configuracionProgresoMagico.reglas
+    .experienciaPorNivel.slice(0, nivelInicial)
+    .reduce((total, valor) => total + valor, 0);
 
   if (experienciaInicial > 0) {
     progreso.agregarExperienciaMaestria({
@@ -380,9 +860,7 @@ function simularUsosMaestria({
 
   let usos = 0;
   let manaTotal = 0;
-  while (
-    progreso.obtenerResumen().maestrias[idMaestria].nivel < nivelObjetivo
-  ) {
+  while (progreso.obtenerResumen().maestrias[idMaestria].nivel < nivelObjetivo) {
     usos += 1;
     manaTotal += manaConsumido;
     progreso.registrarEjecucionEfectiva({
@@ -446,7 +924,8 @@ function crearRutaDesbloqueo({
   configuracionProgresoMagico,
 }) {
   const manaBasica = basica.ejecucion.grados[gradoBasica].costoMana;
-  const manaIntermedia = intermedia.ejecucion.grados[gradoIntermedia].costoMana;
+  const manaIntermedia =
+    intermedia.ejecucion.grados[gradoIntermedia].costoMana;
   const progreso = new ProgresoMagicoJugador({
     configuracion: configuracionProgresoMagico,
     idProfesion: "mago",
@@ -571,22 +1050,28 @@ function crearInformeMana({
     }
   }
 
+  const perfilesAlternativosMago = crearPerfilesAlternativosMago({
+    configuracionPersonaje,
+    niveles: NIVELES_RECURSOS_DESTACADOS,
+  });
+
   return {
     tipoResultado: "calculo_teorico_canonico",
     determinista: true,
     descripcionPerfil:
-      "Los 27 puntos iniciales se reparten de forma proporcional y reproducible según los pesos de cada profesión. Los puntos de nivel se asignan al atributo de mayor peso.",
+      "Los 27 puntos iniciales se reparten de forma proporcional y reproducible según los pesos de cada profesión. El informe compara distintas decisiones para los puntos obtenidos al subir de nivel.",
     pulsoTemporal: TIEMPO_REFERENCIA,
     costosPorCategoria,
     resumen: {
-      cantidadProfesiones: Object.keys(configuracionPersonaje.profesiones)
-        .length,
+      cantidadProfesiones: Object.keys(configuracionPersonaje.profesiones).length,
       nivelesPorProfesion: 10,
+      estrategiasMago: perfilesAlternativosMago.length,
     },
     filas,
     filasDestacadas: filas.filter((fila) =>
       NIVELES_RECURSOS_DESTACADOS.includes(fila.nivel),
     ),
+    perfilesAlternativosMago,
   };
 }
 
@@ -621,6 +1106,7 @@ function crearPerfilAtributosProfesion({
   configuracionPersonaje,
   idProfesion,
   nivel,
+  estrategiaNivel = "prioritario",
 }) {
   const profesion = configuracionPersonaje.profesiones[idProfesion];
   const atributos = crearAtributosIniciales(configuracionPersonaje);
@@ -643,9 +1129,12 @@ function crearPerfilAtributosProfesion({
       .map(({ id }, indice) => ({
         id,
         indice,
-        prioridad: (profesion.pesosAtributos[id] ?? 0) / (asignados[id] + 1),
+        prioridad:
+          (profesion.pesosAtributos[id] ?? 0) / (asignados[id] + 1),
       }))
-      .sort((a, b) => b.prioridad - a.prioridad || a.indice - b.indice);
+      .sort(
+        (a, b) => b.prioridad - a.prioridad || a.indice - b.indice,
+      );
     if (candidatos.length === 0) {
       throw new Error(
         `No se pudieron distribuir los atributos de ${profesion.nombre}.`,
@@ -656,9 +1145,96 @@ function crearPerfilAtributosProfesion({
     asignados[elegido] += 1;
   }
 
-  const prioritario = obtenerAtributoPrioritario(profesion);
-  atributos[prioritario] += Math.max(0, nivel - 1);
+  asignarPuntosNivel({
+    atributos,
+    cantidad: Math.max(0, nivel - 1),
+    estrategiaNivel,
+    profesion,
+  });
   return atributos;
+}
+
+function asignarPuntosNivel({
+  atributos,
+  cantidad,
+  estrategiaNivel,
+  profesion,
+}) {
+  if (estrategiaNivel === "prioritario" || estrategiaNivel === "inteligencia") {
+    const atributo =
+      estrategiaNivel === "inteligencia"
+        ? "inteligencia"
+        : obtenerAtributoPrioritario(profesion);
+    atributos[atributo] += cantidad;
+    return;
+  }
+  if (estrategiaNivel === "sabiduria") {
+    atributos.sabiduria += cantidad;
+    return;
+  }
+  if (estrategiaNivel === "equilibrada") {
+    for (let punto = 0; punto < cantidad; punto += 1) {
+      const atributo =
+        atributos.inteligencia <= atributos.sabiduria
+          ? "inteligencia"
+          : "sabiduria";
+      atributos[atributo] += 1;
+    }
+    return;
+  }
+  throw new Error(`La estrategia de atributos "${estrategiaNivel}" no existe.`);
+}
+
+function crearPerfilesAlternativosMago({ configuracionPersonaje, niveles }) {
+  const profesion = configuracionPersonaje.profesiones.mago;
+  const estrategias = [
+    { id: "inteligencia", nombre: "Priorizar Inteligencia" },
+    { id: "equilibrada", nombre: "Equilibrar INT/SAB" },
+    { id: "sabiduria", nombre: "Priorizar Sabiduría" },
+  ];
+  const filas = [];
+
+  for (const estrategia of estrategias) {
+    for (const nivel of niveles) {
+      const atributos = crearPerfilAtributosProfesion({
+        configuracionPersonaje,
+        idProfesion: "mago",
+        nivel,
+        estrategiaNivel: estrategia.id,
+      });
+      const recursos = calcularRecursosMaximos({
+        nivel,
+        atributos,
+        estadisticasBase: profesion.estadisticasBase,
+        objetosEquipados: [],
+      });
+      const regeneracionMana = calcularRegeneracionMana({
+        regeneracionBase: profesion.estadisticasBase.regeneracionMana,
+        sabiduria: atributos.sabiduria,
+        manaMaximo: recursos.manaMaximo,
+      });
+      filas.push({
+        estrategia: estrategia.id,
+        nombreEstrategia: estrategia.nombre,
+        nivel,
+        inteligencia: atributos.inteligencia,
+        sabiduria: atributos.sabiduria,
+        manaMaximo: recursos.manaMaximo,
+        regeneracionManaPorPulso: redondear(regeneracionMana),
+        pulsosParaRecuperarTodo:
+          regeneracionMana > 0
+            ? redondear(recursos.manaMaximo / regeneracionMana)
+            : null,
+        multiplicadorDanioMagico: redondear(
+          calcularMultiplicadorDanioMagico(atributos),
+        ),
+        multiplicadorEfectos: redondear(
+          calcularMultiplicadorEfectos(atributos),
+        ),
+      });
+    }
+  }
+  return filas;
 }
 
 function obtenerAtributoPrioritario(profesion) {
@@ -666,6 +1242,266 @@ function obtenerAtributoPrioritario(profesion) {
     ([idA, pesoA], [idB, pesoB]) => pesoB - pesoA || idA.localeCompare(idB),
   )[0][0];
 }
+
+function crearInformeSostenibilidadMana({
+  objetivosBalance,
+  mana,
+  habilidades,
+  armas,
+}) {
+  const configuracion = objetivosBalance.analisisMana;
+  if (!configuracion) {
+    throw new Error("ObjetivosBalance.json no define el análisis de Maná.");
+  }
+  const perfiles = mana.filasDestacadas;
+  const habilidadesFilas = [];
+
+  for (const perfil of perfiles) {
+    for (const habilidad of habilidades.filas) {
+      habilidadesFilas.push(
+        crearFilaSostenibilidad({
+          perfil,
+          tipoAccion: "habilidad",
+          idAccion: `${habilidad.idHabilidad}:${habilidad.grado}`,
+          accion: `${habilidad.habilidad} G${habilidad.grado}`,
+          categoria: habilidad.categoria,
+          costoMana: habilidad.costoMana,
+          costoTemporal: habilidad.costoTemporal,
+          costoNetoIrrelevante: configuracion.costoNetoIrrelevante,
+        }),
+      );
+    }
+  }
+
+  const varitasFilas = [];
+  const varitasRepresentativas = armas.filas.filter(
+    (arma, indice, todas) =>
+      arma.esVarita &&
+      todas.findIndex(
+        (otra) => otra.esVarita && otra.tier === arma.tier,
+      ) === indice,
+  );
+  for (const perfil of perfiles) {
+    for (const varita of varitasRepresentativas) {
+      varitasFilas.push(
+        crearFilaSostenibilidad({
+          perfil,
+          tipoAccion: "varita_simple",
+          idAccion: varita.id,
+          accion: `${varita.nombre} (una)` ,
+          categoria: `tier_${varita.tier}`,
+          costoMana: varita.costoMana,
+          costoTemporal: varita.costoTemporal,
+          costoNetoIrrelevante: configuracion.costoNetoIrrelevante,
+        }),
+      );
+    }
+    for (const doble of armas.dobleVarita) {
+      varitasFilas.push(
+        crearFilaSostenibilidad({
+          perfil,
+          tipoAccion: "doble_varita",
+          idAccion: `doble_varita_tier_${doble.tier}`,
+          accion: `Doble varita Tier ${doble.tier}`,
+          categoria: `tier_${doble.tier}`,
+          costoMana: doble.costoMana,
+          costoTemporal: doble.costoTemporal,
+          costoNetoIrrelevante: configuracion.costoNetoIrrelevante,
+        }),
+      );
+    }
+  }
+
+  const casosVaritaCostoCasiNulo = varitasFilas.filter((fila) =>
+    ["sostenible_por_regeneracion", "costo_casi_nulo"].includes(fila.estado),
+  ).length;
+  const perfilesRecuperacionLenta = perfiles.filter(
+    (perfil) =>
+      perfil.pulsosParaRecuperarTodo >= configuracion.pulsosRecuperacionLenta,
+  );
+
+  return {
+    tipoResultado: "calculo_teorico_con_motores_canonicos",
+    determinista: true,
+    descripcion:
+      "El costo neto resta la regeneración promedio que ocurre durante el tiempo de la propia acción. El resultado no incluye movimiento ni esperas, que mejorarían la recuperación.",
+    configuracion: { ...configuracion },
+    resumen: {
+      casosHabilidad: habilidadesFilas.length,
+      casosVarita: varitasFilas.length,
+      casosVaritaCostoCasiNulo,
+      perfilesRecuperacionLenta: perfilesRecuperacionLenta.length,
+    },
+    habilidades: habilidadesFilas,
+    varitas: varitasFilas,
+    perfilesMago: mana.perfilesAlternativosMago,
+    perfilesRecuperacionLenta,
+  };
+}
+
+function crearFilaSostenibilidad({
+  perfil,
+  tipoAccion,
+  idAccion,
+  accion,
+  categoria,
+  costoMana,
+  costoTemporal,
+  costoNetoIrrelevante,
+}) {
+  const regeneracionDuranteAccion =
+    perfil.regeneracionManaPorPulso * (costoTemporal / TIEMPO_REFERENCIA);
+  const costoNetoPromedio = costoMana - regeneracionDuranteAccion;
+  let estado = "limitado_por_mana";
+  if (costoNetoPromedio <= 0) {
+    estado = "sostenible_por_regeneracion";
+  } else if (costoNetoPromedio <= costoNetoIrrelevante) {
+    estado = "costo_casi_nulo";
+  }
+
+  return {
+    idProfesion: perfil.idProfesion,
+    profesion: perfil.profesion,
+    nivel: perfil.nivel,
+    manaMaximo: perfil.manaMaximo,
+    regeneracionManaPorPulso: perfil.regeneracionManaPorPulso,
+    tipoAccion,
+    idAccion,
+    accion,
+    categoria,
+    costoMana,
+    costoTemporal,
+    regeneracionDuranteAccion: redondear(regeneracionDuranteAccion),
+    costoNetoPromedio: redondear(costoNetoPromedio),
+    accionesAproximadasHastaAgotar:
+      costoNetoPromedio > 0
+        ? Math.max(1, Math.floor(perfil.manaMaximo / costoNetoPromedio))
+        : null,
+    estado,
+  };
+}
+
+function crearConclusionesProgresionRecursos({
+  progresion,
+  progresionMagica,
+  puntosHabilidad,
+  mana,
+  sostenibilidadMana,
+  escenariosTeoricos,
+}) {
+  const expedicionesTotales = redondear(
+    progresion.rutaRecomendada.reduce(
+      (total, fila) => total + fila.expedicionesEsperadas,
+      0,
+    ),
+  );
+  const expediciones = progresion.rutaRecomendada.map(
+    (fila) => fila.expedicionesEsperadas,
+  );
+  const usoBajo = progresionMagica.resumen.resumenPorIntensidad.find(
+    (fila) => fila.usosPorEnemigo === 1,
+  );
+  const usoMedio = progresionMagica.resumen.resumenPorIntensidad.find(
+    (fila) => fila.usosPorEnemigo === 2,
+  );
+  const usoAlto = progresionMagica.resumen.resumenPorIntensidad.find(
+    (fila) => fila.usosPorEnemigo === 3,
+  );
+  const magoNivel1 = mana.filas.find(
+    (fila) => fila.idProfesion === "mago" && fila.nivel === 1,
+  );
+  const magoNivel10 = mana.filas.find(
+    (fila) => fila.idProfesion === "mago" && fila.nivel === 10,
+  );
+
+  return {
+    resumenFacil: [
+      {
+        id: "experiencia_general",
+        queSeAnalizo:
+          "Cuántos mapas y enemigos hacen falta para pasar del nivel 1 al 10.",
+        porQue:
+          "Para comprobar que el personaje no suba demasiado rápido ni quede bloqueado.",
+        conclusion:
+          `La ruta completa necesita unas ${expedicionesTotales} expediciones. Cada nivel requiere entre ${redondear(
+            Math.min(...expediciones),
+          )} y ${redondear(Math.max(...expediciones))} expediciones. No aparece un bloqueo ni un salto brusco de experiencia.`,
+        recomendacion:
+          "Mantener por ahora la experiencia general y volver a revisarla junto con la dificultad real de los combates.",
+      },
+      {
+        id: "ritmo_maestria",
+        queSeAnalizo:
+          "Cuándo se alcanzan maestría 3 y 6 usando una, dos o tres habilidades por enemigo.",
+        porQue:
+          "Para comprobar que las habilidades intermedias y avanzadas aparezcan durante la progresión normal.",
+        conclusion:
+          `Con dos usos por enemigo, maestría 3 llega entre nivel general ${usoMedio.nivelMinimoMaestria3} y ${usoMedio.nivelMaximoMaestria3}, y maestría 6 entre ${usoMedio.nivelMinimoMaestria6} y ${usoMedio.nivelMaximoMaestria6}. Con un solo uso el progreso es lento; con tres usos es rápido.`,
+        recomendacion:
+          "No cambiar todavía la experiencia de maestría. El bloque de daño debe confirmar cuántos lanzamientos necesita realmente cada enemigo.",
+      },
+      {
+        id: "puntos_habilidad",
+        queSeAnalizo:
+          "Cuántos puntos universales y específicos hacen falta para mejorar un árbol elemental.",
+        porQue:
+          "Para evitar que una habilidad se maximice sin esfuerzo o que falten puntos para avanzar.",
+        conclusion:
+          puntosHabilidad.conclusion,
+        recomendacion:
+          "Mantener un punto universal por nivel y un punto específico por nivel de maestría.",
+      },
+      {
+        id: "mana",
+        queSeAnalizo:
+          "Reserva, regeneración y cantidad de acciones mágicas posibles para Guerrero, Rogue y Mago.",
+        porQue:
+          "Para comprobar que el Mago pueda jugar y que los híbridos no obtengan magia ilimitada.",
+        conclusion:
+          `El Mago pasa de ${magoNivel1.manaMaximo} a ${magoNivel10.manaMaximo} de Maná. La reserva alcanza para varias habilidades avanzadas, pero recuperar toda la barra priorizando Inteligencia pasa de ${magoNivel1.pulsosParaRecuperarTodo} a ${magoNivel10.pulsosParaRecuperarTodo} pulsos. Priorizar Sabiduría reduce esa espera a cambio de daño directo.`,
+        recomendacion:
+          "Mantener por ahora el Maná máximo y la regeneración. Comparar después el consumo contra la duración real de mapas y jefes.",
+      },
+      {
+        id: "varitas",
+        queSeAnalizo:
+          "Cuánto Maná pierden realmente una varita y dos varitas después de considerar la regeneración durante el ataque.",
+        porQue:
+          "Para comprobar que el coste de los ataques mágicos básicos tenga importancia.",
+        conclusion:
+          `${sostenibilidadMana.resumen.casosVaritaCostoCasiNulo} escenarios de varita resultan sostenibles o tienen un coste neto casi nulo. El coste de una varita es especialmente poco relevante para Rogue y Mago.`,
+        recomendacion:
+          "No aumentar todavía el coste. Primero hay que comparar el daño de varitas y bastones en el análisis de combate.",
+      },
+      {
+        id: "pociones_mana",
+        queSeAnalizo:
+          "Qué aportarían pociones fijas y porcentuales sin agregarlas al juego.",
+        porQue:
+          "Para saber si son necesarias antes de crear otro consumible.",
+        conclusion:
+          escenariosTeoricos.estadoActual.existePocionMana
+            ? "Ya existe una fuente consumible de recuperación de Maná."
+            : "No existe una poción de Maná y las mediciones actuales no demuestran todavía que sea necesaria para mapas normales.",
+        recomendacion:
+          "Posponer la poción. Si los jefes agotan al Mago, probar primero una recuperación del 25 % con coste temporal 100.",
+      },
+    ],
+    decisionRecomendada: {
+      modificarExperienciaGeneral: false,
+      modificarPuntosHabilidad: false,
+      modificarManaMaximo: false,
+      modificarRegeneracionMana: false,
+      modificarExperienciaMaestria: false,
+      agregarPocionMana: false,
+      revisarCostoVaritasConDanio: true,
+      motivo:
+        "La progresión general y los puntos son coherentes. Las dudas restantes dependen del daño y de la cantidad real de acciones por combate.",
+    },
+    sensibilidadMaestria: { usoBajo, usoMedio, usoAlto },
+  };
+}
+
 
 function crearInformeHabilidades({ configuracionEjecucionHabilidades }) {
   const filas = [];
@@ -737,10 +1573,7 @@ function crearInformeHabilidades({ configuracionEjecucionHabilidades }) {
 }
 
 function calcularDanioPeriodicoBase(efecto) {
-  if (
-    !Number.isFinite(efecto.valorBase) ||
-    !Number.isFinite(efecto.intervalo)
-  ) {
+  if (!Number.isFinite(efecto.valorBase) || !Number.isFinite(efecto.intervalo)) {
     return 0;
   }
   return efecto.valorBase * Math.floor(efecto.duracion / efecto.intervalo);
@@ -797,9 +1630,7 @@ function crearInformeArmas({ configuracionObjetos }) {
     });
 
   const dobleVarita = [];
-  const tiers = [
-    ...new Set(armas.filter((arma) => arma.esVarita).map((arma) => arma.tier)),
-  ];
+  const tiers = [...new Set(armas.filter((arma) => arma.esVarita).map((arma) => arma.tier))];
   for (const tier of tiers) {
     const varita = Object.values(configuracionObjetos).find(
       (objeto) => esVarita(objeto) && objeto.tierBase === tier,
@@ -897,7 +1728,8 @@ function crearInformeConstitucion({
     tipoResultado: "escenario_teorico_no_implementado",
     determinista: true,
     implementado: false,
-    formula: "min(10, floor(max(0, Constitución - 8) / 2)) y límite final 75 %",
+    formula:
+      "min(10, floor(max(0, Constitución - 8) / 2)) y límite final 75 %",
     resistenciasAfectadas: [...RESISTENCIAS_EFECTOS_VISIBLES],
     configuracion: { ...configuracion },
     filas,

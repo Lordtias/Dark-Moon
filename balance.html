@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dark Moon — Línea base de balance</title>
+    <title>Dark Moon — Analizador de balance</title>
     <link rel="stylesheet" href="./balance.css" />
   </head>
   <body>
@@ -13,8 +13,8 @@
           <p class="balance-sobretitulo">Dark Moon</p>
           <h1>Analizador de balance</h1>
           <p class="balance-introduccion">
-            Línea base reproducible de progresión, maestrías, Vida, Maná,
-            armas y escenarios todavía no implementados.
+            Resultados reproducibles de progresión, maestrías, puntos, Vida,
+            Maná y escenarios reservados para decisiones posteriores.
           </p>
         </div>
         <button id="balanceRecargar" class="balance-boton" type="button">
@@ -27,6 +27,19 @@
         <p id="balanceEstado" class="balance-estado">Calculando balance…</p>
         <p id="balanceError" class="balance-error" hidden></p>
         <div id="balanceResumen" class="balance-resumen"></div>
+      </section>
+
+      <section class="balance-seccion" aria-labelledby="tituloConclusiones">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloConclusiones">Conclusiones fáciles</h2>
+            <p>
+              Cada tarjeta explica qué se revisó, por qué, qué muestran las
+              pruebas y qué conviene hacer después.
+            </p>
+          </div>
+        </div>
+        <div id="balanceConclusiones" class="balance-conclusiones"></div>
       </section>
 
       <section class="balance-seccion" aria-labelledby="tituloRuta">
@@ -80,7 +93,7 @@
       <section class="balance-seccion" aria-labelledby="tituloMaestrias">
         <div class="balance-encabezado-seccion">
           <div>
-            <h2 id="tituloMaestrias">Acceso a maestría 3 y 6</h2>
+            <h2 id="tituloMaestrias">Coste en usos y Maná</h2>
             <p>
               Simulación determinista ejecutada con ProgresoMagicoJugador.
             </p>
@@ -99,6 +112,62 @@
               </tr>
             </thead>
             <tbody id="balanceMaestriasCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="balance-seccion" aria-labelledby="tituloRitmoMagico">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloRitmoMagico">Ritmo realista de maestrías</h2>
+            <p>
+              Compara uno, dos y tres usos mágicos por enemigo conservando los
+              puntos universales para otras decisiones del personaje.
+            </p>
+          </div>
+        </div>
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Maestría</th>
+                <th>Usos/enemigo</th>
+                <th>Maestría 3</th>
+                <th>Maestría 6</th>
+                <th>Árbol completo</th>
+                <th>Nivel final</th>
+                <th>Universales libres</th>
+              </tr>
+            </thead>
+            <tbody id="balanceRitmoMagicoCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="balance-seccion" aria-labelledby="tituloPuntos">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloPuntos">Puntos de habilidad</h2>
+            <p>
+              Comprueba si los puntos específicos y universales alcanzan para
+              los grados básicos, intermedios y avanzados.
+            </p>
+          </div>
+        </div>
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Maestría</th>
+                <th>Específicos</th>
+                <th>Universales mínimos</th>
+                <th>Total</th>
+                <th>Objetivo</th>
+                <th>Necesarios</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="balancePuntosCuerpo"></tbody>
           </table>
         </div>
       </section>
@@ -125,6 +194,65 @@
               </tr>
             </thead>
             <tbody id="balanceManaCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="balance-seccion" aria-labelledby="tituloPerfilesMago">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloPerfilesMago">Inteligencia o Sabiduría</h2>
+            <p>
+              Muestra el intercambio entre daño directo, potencia de efectos,
+              reserva y regeneración de Maná.
+            </p>
+          </div>
+        </div>
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Estrategia</th>
+                <th>Nivel</th>
+                <th>INT</th>
+                <th>SAB</th>
+                <th>Maná</th>
+                <th>Regeneración</th>
+                <th>Pulsos barra completa</th>
+                <th>Daño mágico</th>
+                <th>Efectos</th>
+              </tr>
+            </thead>
+            <tbody id="balancePerfilesMagoCuerpo"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="balance-seccion" aria-labelledby="tituloVaritas">
+        <div class="balance-encabezado-seccion">
+          <div>
+            <h2 id="tituloVaritas">Sostenibilidad de varitas Tier I</h2>
+            <p>
+              Resta la regeneración ocurrida durante el propio ataque para
+              mostrar cuánto Maná se pierde realmente.
+            </p>
+          </div>
+        </div>
+        <div class="balance-tabla-contenedor">
+          <table class="balance-tabla">
+            <thead>
+              <tr>
+                <th>Profesión</th>
+                <th>Nivel</th>
+                <th>Ataque</th>
+                <th>Coste nominal</th>
+                <th>Regenerado</th>
+                <th>Coste real</th>
+                <th>Ataques</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="balanceVaritasCuerpo"></tbody>
           </table>
         </div>
       </section>
@@ -174,7 +302,8 @@
           informe en <code>window.balanceDarkMoonInforme</code>.
         </p>
         <p>
-          Ejemplo: <code>console.table(balanceDarkMoon.mana().filas)</code>.
+          Ejemplo:
+          <code>console.table(balanceDarkMoon.progresionMagica().filas)</code>.
         </p>
       </aside>
     </main>

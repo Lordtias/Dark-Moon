@@ -17,10 +17,15 @@ const elementos = {
   estado: document.getElementById("balanceEstado"),
   error: document.getElementById("balanceError"),
   resumen: document.getElementById("balanceResumen"),
+  conclusiones: document.getElementById("balanceConclusiones"),
   cuerpoRuta: document.getElementById("balanceRutaCuerpo"),
   cuerpoNiveles: document.getElementById("balanceNivelesCuerpo"),
   cuerpoMaestrias: document.getElementById("balanceMaestriasCuerpo"),
+  cuerpoRitmoMagico: document.getElementById("balanceRitmoMagicoCuerpo"),
+  cuerpoPuntos: document.getElementById("balancePuntosCuerpo"),
   cuerpoMana: document.getElementById("balanceManaCuerpo"),
+  cuerpoPerfilesMago: document.getElementById("balancePerfilesMagoCuerpo"),
+  cuerpoVaritas: document.getElementById("balanceVaritasCuerpo"),
   cuerpoConstitucion: document.getElementById("balanceConstitucionCuerpo"),
   escenarios: document.getElementById("balanceEscenarios"),
   advertencias: document.getElementById("balanceAdvertencias"),
@@ -88,8 +93,8 @@ async function cargarJson(ruta) {
 function dibujarInforme(informe) {
   const cumpleObjetivo = informe.resumen.rutaCumpleObjetivo;
   elementos.estado.textContent = cumpleObjetivo
-    ? "La línea base fue calculada y la ruta cumple el rango objetivo."
-    : "La línea base fue calculada, pero la ruta tiene valores fuera del rango objetivo.";
+    ? "El análisis terminó. La progresión general, los puntos y el Maná no necesitan cambios inmediatos."
+    : "El análisis terminó, pero la ruta general contiene valores fuera del objetivo.";
   elementos.estado.className =
     "balance-estado " +
     (cumpleObjetivo
@@ -97,10 +102,15 @@ function dibujarInforme(informe) {
       : "balance-estado--advertencia");
 
   dibujarResumen(informe);
+  dibujarConclusiones(informe.conclusiones);
   dibujarRuta(informe.progresion.rutaRecomendada);
   dibujarNiveles(informe.progresion.tablaNiveles);
   dibujarMaestrias(informe.maestrias.rutasDesbloqueo);
+  dibujarRitmoMagico(informe.progresionMagica.filas);
+  dibujarPuntos(informe.puntosHabilidad.hitos);
   dibujarMana(informe.mana.filasDestacadas);
+  dibujarPerfilesMago(informe.mana.perfilesAlternativosMago);
+  dibujarVaritas(informe.sostenibilidadMana.varitas);
   dibujarConstitucion(informe.constitucion.filas);
   dibujarEscenarios(informe.escenariosTeoricos);
   dibujarAdvertencias(informe.advertencias);
@@ -109,15 +119,59 @@ function dibujarInforme(informe) {
 function dibujarResumen(informe) {
   const datos = [
     ["Puntos iniciales", informe.resumen.puntosUniversalesIniciales],
-    ["Niveles", informe.resumen.nivelesAnalizados],
+    ["Expediciones 1–10", formatearNumero(informe.resumen.expedicionesEstimadasNivel10)],
+    ["Escenarios de maestría", informe.progresionMagica.resumen.cantidadEscenarios],
     ["Habilidades", informe.resumen.habilidadesAnalizadas],
     ["Grados", informe.resumen.gradosAnalizados],
     ["Armas", informe.resumen.armasAnalizadas],
-    ["Profesiones", informe.resumen.profesionesAnalizadas],
   ];
   elementos.resumen.replaceChildren(
     ...datos.map(([etiqueta, valor]) => crearTarjetaResumen(etiqueta, valor)),
   );
+}
+
+function dibujarConclusiones(conclusiones) {
+  elementos.conclusiones.replaceChildren(
+    ...conclusiones.resumenFacil.map((conclusion) => {
+      const tarjeta = document.createElement("article");
+      tarjeta.className = "balance-conclusion";
+      const titulo = document.createElement("h3");
+      titulo.textContent = tituloConclusion(conclusion.id);
+      tarjeta.append(
+        titulo,
+        crearBloqueConclusion("Qué se analizó", conclusion.queSeAnalizo),
+        crearBloqueConclusion("Por qué", conclusion.porQue),
+        crearBloqueConclusion("Conclusión", conclusion.conclusion),
+        crearBloqueConclusion("Qué recomiendo", conclusion.recomendacion, true),
+      );
+      return tarjeta;
+    }),
+  );
+}
+
+function crearBloqueConclusion(etiqueta, texto, destacado = false) {
+  const contenedor = document.createElement("div");
+  contenedor.className = destacado
+    ? "balance-conclusion__bloque balance-conclusion__bloque--decision"
+    : "balance-conclusion__bloque";
+  const titulo = document.createElement("strong");
+  titulo.textContent = etiqueta;
+  const parrafo = document.createElement("p");
+  parrafo.textContent = texto;
+  contenedor.append(titulo, parrafo);
+  return contenedor;
+}
+
+function tituloConclusion(id) {
+  const titulos = {
+    experiencia_general: "Experiencia general",
+    ritmo_maestria: "Ritmo de maestrías",
+    puntos_habilidad: "Puntos de habilidad",
+    mana: "Maná y regeneración",
+    varitas: "Consumo de las varitas",
+    pociones_mana: "Pociones de Maná",
+  };
+  return titulos[id] ?? id;
 }
 
 function dibujarRuta(filas) {
@@ -165,6 +219,41 @@ function dibujarMaestrias(filas) {
   );
 }
 
+function dibujarRitmoMagico(filas) {
+  const filasVisibles = filas.filter(
+    (fila) => fila.estrategia === "conservar_universales",
+  );
+  elementos.cuerpoRitmoMagico.replaceChildren(
+    ...filasVisibles.map((fila) =>
+      crearFilaTabla([
+        capitalizar(fila.maestria),
+        fila.usosPorEnemigo,
+        formatearHito(fila.accesoNivel3),
+        formatearHito(fila.accesoNivel6),
+        formatearHito(fila.arbolCompleto),
+        fila.nivelMaestriaFinal,
+        fila.puntosUniversalesRestantes,
+      ]),
+    ),
+  );
+}
+
+function dibujarPuntos(filas) {
+  elementos.cuerpoPuntos.replaceChildren(
+    ...filas.map((fila) =>
+      crearFilaTabla([
+        fila.nivelMaestria,
+        fila.puntosEspecificos,
+        fila.puntosUniversalesMinimos,
+        fila.puntosTotales,
+        fila.objetivo,
+        fila.puntosNecesarios,
+        crearEtiquetaEstado(fila.alcanza ? "correcto" : "demasiado_lento"),
+      ]),
+    ),
+  );
+}
+
 function dibujarMana(filas) {
   elementos.cuerpoMana.replaceChildren(
     ...filas.map((fila) =>
@@ -177,6 +266,42 @@ function dibujarMana(filas) {
         fila.lanzamientosBasicaBarata,
         fila.lanzamientosAvanzadaCara,
         fila.ataquesDobleVarita,
+      ]),
+    ),
+  );
+}
+
+function dibujarPerfilesMago(filas) {
+  elementos.cuerpoPerfilesMago.replaceChildren(
+    ...filas.map((fila) =>
+      crearFilaTabla([
+        fila.nombreEstrategia,
+        fila.nivel,
+        fila.inteligencia,
+        fila.sabiduria,
+        fila.manaMaximo,
+        formatearNumero(fila.regeneracionManaPorPulso),
+        formatearNumero(fila.pulsosParaRecuperarTodo),
+        formatearNumero(fila.multiplicadorDanioMagico),
+        formatearNumero(fila.multiplicadorEfectos),
+      ]),
+    ),
+  );
+}
+
+function dibujarVaritas(filas) {
+  const filasVisibles = filas.filter((fila) => fila.categoria === "tier_1");
+  elementos.cuerpoVaritas.replaceChildren(
+    ...filasVisibles.map((fila) =>
+      crearFilaTabla([
+        fila.profesion,
+        fila.nivel,
+        fila.accion,
+        fila.costoMana,
+        formatearNumero(fila.regeneracionDuranteAccion),
+        formatearNumero(fila.costoNetoPromedio),
+        fila.accionesAproximadasHastaAgotar ?? "No se agota",
+        crearEtiquetaSostenibilidad(fila.estado),
       ]),
     ),
   );
@@ -301,16 +426,38 @@ function crearEtiquetaEstado(estado) {
   return etiqueta;
 }
 
+function crearEtiquetaSostenibilidad(estado) {
+  const etiqueta = document.createElement("span");
+  etiqueta.className = `balance-etiqueta balance-etiqueta--${estado}`;
+  etiqueta.textContent =
+    estado === "sostenible_por_regeneracion"
+      ? "No se agota"
+      : estado === "costo_casi_nulo"
+        ? "Costo casi nulo"
+        : "Consume Maná";
+  return etiqueta;
+}
+
+function formatearHito(hito) {
+  if (!hito) return "No alcanzado";
+  return `Nivel ${hito.nivelGeneral} · ${hito.usosTotales} usos`;
+}
+
 function prepararCarga() {
   elementos.estado.textContent = "Calculando balance…";
   elementos.estado.className = "balance-estado";
   elementos.error.hidden = true;
   elementos.error.textContent = "";
   elementos.resumen.replaceChildren();
+  elementos.conclusiones.replaceChildren();
   elementos.cuerpoRuta.replaceChildren();
   elementos.cuerpoNiveles.replaceChildren();
   elementos.cuerpoMaestrias.replaceChildren();
+  elementos.cuerpoRitmoMagico.replaceChildren();
+  elementos.cuerpoPuntos.replaceChildren();
   elementos.cuerpoMana.replaceChildren();
+  elementos.cuerpoPerfilesMago.replaceChildren();
+  elementos.cuerpoVaritas.replaceChildren();
   elementos.cuerpoConstitucion.replaceChildren();
   elementos.escenarios.replaceChildren();
   elementos.advertencias.replaceChildren();

@@ -290,3 +290,73 @@ h2 {
     padding: 16px;
   }
 }
+
+.balance-conclusiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 14px;
+}
+
+.balance-conclusion {
+  border: 1px solid #3d4655;
+  border-radius: 10px;
+  padding: 18px;
+  background: #20252d;
+}
+
+.balance-conclusion h3 {
+  margin: 0 0 14px;
+  color: #f0f2f5;
+  font-size: 1.05rem;
+}
+
+.balance-conclusion__bloque {
+  margin-top: 11px;
+}
+
+.balance-conclusion__bloque strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #b89be4;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.balance-conclusion__bloque p {
+  margin: 0;
+  color: #c6ced9;
+  line-height: 1.5;
+}
+
+.balance-conclusion__bloque--decision {
+  border-left: 4px solid #6fca8c;
+  border-radius: 5px;
+  padding: 10px 12px;
+  background: #24322a;
+}
+
+.balance-conclusion__bloque--decision strong {
+  color: #9de0af;
+}
+
+.balance-etiqueta--sostenible_por_regeneracion {
+  background: #234b31;
+  color: #9de0af;
+}
+
+.balance-etiqueta--costo_casi_nulo {
+  background: #4c3c22;
+  color: #efd18a;
+}
+
+.balance-etiqueta--limitado_por_mana {
+  background: #3f314d;
+  color: #dbbdf7;
+}
+
+@media (max-width: 700px) {
+  .balance-conclusiones {
+    grid-template-columns: 1fr;
+  }
+}

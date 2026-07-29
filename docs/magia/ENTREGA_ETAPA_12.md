@@ -2,19 +2,20 @@
 
 ## Estado de la entrega
 
-Esta entrega corresponde únicamente al **Bloque 12.1: analizador y línea base**.
+Esta entrega contiene los bloques completados **12.1: analizador y línea base** y **12.2: progresión, experiencia, Maná y grados**.
 
-No se considera terminada la ETAPA 12 completa. Los ajustes de daño, Maná, tiempos, enemigos, efectos y arquetipos quedan para los bloques siguientes y requerirán una propuesta previa y aprobación.
+No se considera terminada la ETAPA 12 completa. El daño, los tiempos, las armas, los arquetipos, los efectos, los enemigos y la regresión completa quedan para los bloques siguientes. Cada bloque requerirá una propuesta previa y aprobación.
 
 ## Base verificada
 
-- Ruta de trabajo: `/mnt/data/etapa12_trabajo`
-- Rama de origen: `main`
-- Commit base: `7a0f5ce8b423375ae5836919b2423d7fe71cfef5`
-- Estado inicial del worktree limpio: sin cambios
-- Commit o push realizado: ninguno
+- Ruta de trabajo del Bloque 12.2: `/mnt/data/etapa12_2_repo/repo`
+- Rama de origen informada: `main`
+- Commit base confirmado por el usuario: `6e0f1a524fd57a02f17fac22aac2937a080e7977`
+- Commit anterior del Bloque 12.1: incluido en esa base
+- Ajuste adicional conservado: referencias de botín a `varita_veneno_aprendiz`
+- Commit o push realizado durante esta entrega: ninguno
 
-El ZIP recibido mostraba 156 archivos modificados por diferencias LF/CRLF. Se comprobó que no existían diferencias reales de contenido. Para trabajar sin mezclar esos cambios se creó un worktree limpio desde el mismo commit local.
+El entorno no pudo descargar el commit desde GitHub. La copia de análisis se reconstruyó desde el ZIP local, los archivos completos del Bloque 12.1 y las dos sustituciones de varita incluidas en el commit informado. Los archivos entregados deben aplicarse sobre el repositorio del usuario ubicado en el SHA indicado.
 
 ## Objetivo cumplido en este bloque
 
@@ -127,7 +128,7 @@ Conclusión inicial sencilla:
 - una habilidad cara necesita muchas menos acciones para subir la maestría;
 - el Maná total necesario permanece casi igual: entre 371 y 376;
 - por tanto, el sistema actual iguala el esfuerzo por **Maná gastado**, pero no por cantidad de acciones ni por cantidad de combates;
-- el Bloque 12.2 deberá comprobar si regenerar ese Maná hace que el acceso a nivel 3 y 6 sea razonable o demasiado lento.
+- el Bloque 12.2 comprobó ese ritmo dentro de la ruta estimada y dejó la decisión vinculada al daño real del Bloque 12.3.
 
 No se modificó todavía la fórmula de experiencia de maestría.
 
@@ -384,30 +385,231 @@ Este mismo documento también es nuevo durante el Bloque 12.1:
 docs/magia/ENTREGA_ETAPA_12.md
 ```
 
+## Bloque 12.2 — Progresión, experiencia, Maná y grados
+
+### Alcance realizado
+
+Se amplió el analizador para responder de manera reproducible:
+
+- en qué nivel general se alcanzan maestría 3 y 6;
+- qué ocurre usando una, dos o tres habilidades por enemigo;
+- cómo cambia el resultado al conservar o gastar puntos universales;
+- cuántos puntos necesita un árbol elemental completo;
+- cuánto Maná poseen Guerrero, Rogue y Mago;
+- qué aporta priorizar Inteligencia, equilibrar INT/SAB o priorizar Sabiduría;
+- cuánto Maná consumen realmente una y dos varitas después de considerar la regeneración;
+- si los resultados actuales justifican una poción de Maná.
+
+No se modificó ningún valor jugable en este bloque. Se conservaron la experiencia general, la experiencia de maestría, los puntos, el Maná máximo, la regeneración, las habilidades, las varitas y los consumibles.
+
+### Qué se analizó y por qué
+
+#### Experiencia general
+
+Se recorrió la ruta estimada del nivel 1 al 10 para comprobar que el personaje no suba demasiado rápido ni quede bloqueado.
+
+Resultado:
+
+- unas 10,8 expediciones para completar los nueve ascensos;
+- entre 0,85 y 1,60 expediciones por nivel;
+- todos los tramos permanecen dentro del objetivo actual.
+
+**Conclusión sencilla:** la experiencia general no muestra un problema numérico. No conviene cambiarla antes de conocer la dificultad real de los combates.
+
+#### Ritmo de maestrías
+
+Se ejecutó `ProgresoMagicoJugador` con los enemigos estimados de la ruta y tres intensidades de uso.
+
+| Uso mágico | Maestría 3 | Maestría 6 | Árbol completo | Lectura sencilla |
+|---|---|---|---|---|
+| 1 habilidad por enemigo | nivel general 5–6 | nivel 9; Rayo no llega antes de 10 | no se completa | lento |
+| 2 habilidades por enemigo | nivel general 3–4 | nivel 5–6 | nivel 8 | ritmo coherente |
+| 3 habilidades por enemigo | nivel general 2–3 | nivel 4–5 | nivel 6 | rápido |
+
+**Conclusión sencilla:** el sistema funciona bien si un especialista necesita aproximadamente dos lanzamientos efectivos por enemigo. No se debe cambiar la experiencia de maestría hasta medir en el Bloque 12.3 cuántas acciones necesita realmente cada enemigo.
+
+#### Puntos de habilidad
+
+Un árbol elemental necesita:
+
+| Parte | Puntos |
+|---|---:|
+| Habilidad básica | 4 |
+| Habilidad intermedia | 3 |
+| Habilidad avanzada | 3 |
+| Árbol completo | 10 |
+
+Con la regla actual:
+
+- maestría 3 entrega los puntos necesarios para maximizar la básica;
+- maestría 6 permite maximizar básica e intermedia;
+- el árbol puede completarse en maestría 8 usando un universal adicional;
+- puede completarse en maestría 9 conservando los demás universales.
+
+Gastar todos los puntos universales permite terminar antes, pero sacrifica otras maestrías o configuraciones híbridas.
+
+**Conclusión sencilla:** la cantidad y el ritmo de puntos son coherentes. No se recomienda modificarlos.
+
+#### Maná del Mago: Inteligencia y Sabiduría
+
+Se compararon tres formas de distribuir los puntos obtenidos por nivel.
+
+Valores representativos en nivel 10:
+
+| Estrategia | INT | SAB | Maná | Regeneración | Pulsos para barra completa | Daño mágico | Potencia de efectos |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Priorizar Inteligencia | 24 | 15 | 111 | 1,5 | 74 | ×1,56 | ×1,39 |
+| Equilibrar INT/SAB | 20 | 19 | 107 | 1,9 | 56,32 | ×1,49 | ×1,46 |
+| Priorizar Sabiduría | 15 | 24 | 102 | 2,4 | 42,5 | ×1,39 | ×1,56 |
+
+**Conclusión sencilla:** Inteligencia y Sabiduría ya presentan una decisión real. Inteligencia ofrece más daño y una reserva ligeramente mayor; Sabiduría recupera Maná con mayor rapidez y fortalece los efectos. No se recomienda cambiar el Maná máximo ni la regeneración en este bloque.
+
+#### Varitas y regeneración
+
+Se restó del coste de cada ataque el Maná que se regenera durante el tiempo consumido por la propia acción.
+
+Resultados:
+
+- 48 escenarios comparados entre profesiones, niveles, una varita y doble varita;
+- 32 casos resultan sostenibles o tienen un coste neto casi nulo;
+- una sola varita cuesta 1 de Maná y tarda 85;
+- con regeneración base 1, incluso el Guerrero recupera aproximadamente 0,85 durante ese tiempo;
+- el coste neto teórico de una varita simple queda alrededor de 0,15 para Guerrero y puede ser nulo para Rogue o Mago;
+- la doble varita continúa consumiendo Maná, pero mucho menos que los 2 puntos nominales.
+
+**Conclusión sencilla:** el coste de Maná de una varita simple podría ser casi decorativo. No debe aumentarse todavía, porque primero hay que saber si su daño es bajo, correcto o excesivo frente a bastones y armas físicas. Esa decisión pasa al Bloque 12.3.
+
+#### Pociones de Maná
+
+Se compararon de forma teórica recuperaciones fijas y porcentuales, sin crear objetos.
+
+**Conclusión sencilla:** las mediciones actuales no demuestran que una poción sea necesaria para mapas normales. Si las pruebas contra jefes muestran que el Mago se agota, la primera opción a probar será una poción que recupere 25 % del Maná máximo y consuma 100 unidades de tiempo.
+
+### Conclusión final del Bloque 12.2
+
+**Qué analicé:** experiencia de nivel, progreso de maestrías, puntos de habilidad, reservas y regeneración de Maná, decisiones INT/SAB, varitas y pociones.
+
+**Por qué:** para saber si esos sistemas necesitan cambios antes de comenzar a calibrar daño y tiempo.
+
+**Conclusión:** la experiencia general, la experiencia de maestría, los puntos y el Maná forman un conjunto razonable. La única advertencia importante es que una varita simple puede consumir casi nada de Maná después de considerar la regeneración.
+
+**Qué recomiendo hacer:** conservar todos los valores actuales y pasar al Bloque 12.3. Allí se comparará el daño por tiempo y por Maná de armas, varitas, bastones y las doce habilidades. Solo entonces se decidirá si debe cambiar el coste de las varitas, el ritmo de maestría o algún valor de Maná.
+
+### Decisiones resultantes
+
+| Tema | Decisión recomendada ahora |
+|---|---|
+| Experiencia general | Mantener |
+| Experiencia de maestría | Mantener provisionalmente |
+| Puntos universales | Mantener |
+| Puntos específicos | Mantener |
+| Maná máximo | Mantener |
+| Regeneración de Maná | Mantener |
+| Poción de Maná | No agregar todavía |
+| Coste de varitas | Revisar junto con el daño en 12.3 |
+| Recarga del arco | Continúa como escenario teórico |
+| Espera de habilidades | Continúa como escenario teórico |
+| Constitución y resistencias | Continúa como escenario teórico hasta 12.4 |
+
+### Archivos modificados en el Bloque 12.2
+
+```text
+balance.css
+balance.html
+src/aplicacion/BalanceAplicacion.js
+src/config/balance/ObjetivosBalance.json
+src/juego/balance/AnalizadorBalanceJuego.js
+src/juego/habilidades/DepuradorMagiaHabilidades.js
+docs/magia/ENTREGA_ETAPA_12.md
+```
+
+No se agregó otro archivo de producción ni se modificó configuración jugable.
+
+### Comandos nuevos
+
+Desde `balance.html`:
+
+```javascript
+balanceDarkMoon.progresionMagica()
+balanceDarkMoon.puntosHabilidad()
+balanceDarkMoon.sostenibilidadMana()
+```
+
+Desde la interfaz principal:
+
+```javascript
+await darkMoonDebug.magia.balance.progresionMagica()
+await darkMoonDebug.magia.balance.puntosHabilidad()
+await darkMoonDebug.magia.balance.sostenibilidadMana()
+```
+
+Ejemplos:
+
+```javascript
+console.table(balanceDarkMoon.progresionMagica().filas);
+console.table(balanceDarkMoon.puntosHabilidad().hitos);
+console.table(balanceDarkMoon.sostenibilidadMana().perfilesMago);
+console.table(balanceDarkMoon.sostenibilidadMana().varitas);
+```
+
+### Pruebas del Bloque 12.2
+
+Se cargó `balance.html` con Chromium y los módulos reales del repositorio.
+
+Resultados visibles:
+
+- 6 tarjetas de conclusiones sencillas;
+- 9 filas de progresión general;
+- 10 filas de niveles;
+- 8 rutas nominales de maestría;
+- 12 comparaciones realistas de maestría;
+- 4 hitos de puntos;
+- 12 perfiles de Vida y Maná;
+- 12 perfiles alternativos del Mago;
+- 24 escenarios visibles de varitas Tier I;
+- 7 escenarios teóricos de Constitución;
+- 3 temas teóricos reservados;
+- 5 advertencias.
+
+Validación:
+
+- cero errores de página;
+- cero errores de consola;
+- botón **Recalcular** funcional;
+- dos informes consecutivos idénticos;
+- `darkMoonDebug.magia.balance` expone los tres comandos nuevos;
+- 24 simulaciones de progreso mágico ejecutadas;
+- árbol elemental confirmado en 10 puntos;
+- 48 escenarios de sostenibilidad de varitas calculados.
+
+La regresión jugable completa de niveles 1 a 10 continúa reservada para el Bloque 12.5.
+
 ## Pendiente
 
-### Bloque 12.2
+### Bloque 12.3
 
-- propuesta previa para aprobación;
-- progresión general y experiencia de maestría;
-- puntos y grados;
-- Maná y regeneración;
-- decisión numérica antes/después.
+- daño medio por acción;
+- daño por tiempo y por Maná;
+- ataques físicos, varitas, bastones y doble varita;
+- doce habilidades en todos sus grados;
+- Potencia de Habilidad y arquetipos;
+- propuesta de cambios antes de modificar valores.
 
 ### Bloques posteriores
 
-- daño, tiempo, armas y arquetipos;
 - efectos, resistencias, inmunidades, enemigos y afijos;
 - decisión final sobre Constitución;
 - regresión completa jugable de nivel 1 a 10;
 - ZIP y documentación final de la ETAPA 12 completa.
 
-## Estado final del Bloque 12.1
+## Estado actual después del Bloque 12.2
 
-- Bloque implementado: sí.
+- Bloque 12.1 implementado: sí.
+- Bloque 12.2 implementado: sí.
 - ETAPA 12 completa: no.
-- Valores de combate modificados: ninguno.
-- Cambio de balance aplicado: 5 → 1 punto universal inicial.
+- Valores jugables modificados en 12.2: ninguno.
+- Cambio de balance acumulado desde 12.1: 5 → 1 punto universal inicial.
 - Escenarios teóricos aplicados al juego: ninguno.
-- Commit creado: no.
-- Push realizado: no.
+- Commit creado durante esta entrega: no.
+- Push realizado durante esta entrega: no.
+- Próximo paso propuesto: Bloque 12.3, sujeto a aprobación.

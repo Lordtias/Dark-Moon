@@ -1,10 +1,10 @@
 const ID_HOJA_ESTILOS = "hojaEstilosModalSeleccionMazmorra";
 
-const RUTA_HOJA_ESTILOS = "./modal-seleccion-mazmorra.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/modales/modal-seleccion-mazmorra.css";
 
 const ID_HOJA_ESTILOS_NIVEL = "hojaEstilosNivelExpedicion";
 
-const RUTA_HOJA_ESTILOS_NIVEL = "./nivel-expedicion.css";
+const RUTA_HOJA_ESTILOS_NIVEL = "./assets/estilos/modales/nivel-expedicion.css";
 
 let siguienteIdModal = 1;
 

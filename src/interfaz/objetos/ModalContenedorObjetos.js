@@ -6,17 +6,17 @@ import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
 
 const ID_HOJA_ESTILOS_DETALLE = "hojaEstilosModalDetalleObjeto";
 
-const RUTA_HOJA_ESTILOS_DETALLE = "./modal-detalle-objeto.css";
+const RUTA_HOJA_ESTILOS_DETALLE = "./assets/estilos/modales/modal-detalle-objeto.css";
 
 const ID_HOJA_ESTILOS_CONTENEDOR = "hojaEstilosModalContenedorObjetos";
 
-const RUTA_HOJA_ESTILOS_CONTENEDOR = "./modal-contenedor-objetos.css";
+const RUTA_HOJA_ESTILOS_CONTENEDOR = "./assets/estilos/modales/modal-contenedor-objetos.css";
 
 // Esta hoja reúne correcciones compartidas por
 // el detalle reutilizado y el modal de comercio.
 const ID_HOJA_ESTILOS_AJUSTES = "hojaEstilosAjustesModales";
 
-const RUTA_HOJA_ESTILOS_AJUSTES = "./ajustes-modales.css";
+const RUTA_HOJA_ESTILOS_AJUSTES = "./assets/estilos/modales/ajustes-modales.css";
 
 const TECLA_RECOGER_TODO = "KeyR";
 

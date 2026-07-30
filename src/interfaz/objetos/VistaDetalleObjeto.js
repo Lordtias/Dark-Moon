@@ -1,6 +1,6 @@
 const ID_HOJA_ESTILOS_ECONOMICOS = "hojaEstilosDetalleEconomicoObjeto";
 
-const RUTA_HOJA_ESTILOS_ECONOMICOS = "./detalle-economico-objeto.css";
+const RUTA_HOJA_ESTILOS_ECONOMICOS = "./assets/estilos/modales/detalle-economico-objeto.css";
 
 let siguienteIdVista = 1;
 

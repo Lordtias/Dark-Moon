@@ -11,11 +11,11 @@ const ORIGENES_COMERCIO = Object.freeze({
 
 const ID_HOJA_ESTILOS_DETALLE = "hojaEstilosModalDetalleObjeto";
 
-const RUTA_HOJA_ESTILOS_DETALLE = "./modal-detalle-objeto.css";
+const RUTA_HOJA_ESTILOS_DETALLE = "./assets/estilos/modales/modal-detalle-objeto.css";
 
 const ID_HOJA_ESTILOS_COMERCIO = "hojaEstilosModalComercio";
 
-const RUTA_HOJA_ESTILOS_COMERCIO = "./modal-comercio.css";
+const RUTA_HOJA_ESTILOS_COMERCIO = "./assets/estilos/modales/modal-comercio.css";
 
 let siguienteIdModal = 1;
 

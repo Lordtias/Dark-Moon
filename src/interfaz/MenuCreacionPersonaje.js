@@ -11,7 +11,7 @@ import {
 } from "../juego/generacion/GeneradorEquipoInicial.js";
 
 const ID_HOJA_ESTILOS = "menuCreacionPersonajeStyles";
-const RUTA_HOJA_ESTILOS = "./menu-creacion-personaje.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/pantallas/menu-creacion-personaje.css";
 const ID_PLANTILLA_EQUIPO = "plantillaEquipoCreacion";
 
 /**

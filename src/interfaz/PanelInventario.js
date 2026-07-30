@@ -2,7 +2,7 @@ import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosResumenInventario";
 
-const RUTA_HOJA_ESTILOS = "./panel-resumen-inventario.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/paneles/panel-resumen-inventario.css";
 
 // Muestra el inventario y notifica
 // cuando el usuario selecciona un objeto.

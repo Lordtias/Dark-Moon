@@ -2,7 +2,7 @@ import { TIPOS_SERVICIO_CURACION } from "../../juego/curacion/ConfiguracionCurac
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalCuracion";
 
-const RUTA_HOJA_ESTILOS = "./modal-curacion.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/modales/modal-curacion.css";
 
 const ID_PLANTILLA_MODAL = "plantillaModalCuracion";
 

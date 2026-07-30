@@ -931,7 +931,7 @@ function asegurarHojaEstilos() {
   const enlace = document.createElement("link");
   enlace.id = "estilosHabilidadesMaestrias";
   enlace.rel = "stylesheet";
-  enlace.href = "./habilidades-maestrias.css";
+  enlace.href = "./assets/estilos/paneles/habilidades-maestrias.css";
   document.head.append(enlace);
 }
 function crearElemento(etiqueta, clase = "", texto = "") {

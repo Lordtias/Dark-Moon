@@ -8,7 +8,7 @@ import { crearComparacionObjetos } from "./ComparadorObjetos.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalDetalleObjeto";
 
-const RUTA_HOJA_ESTILOS = "./modal-detalle-objeto.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/modales/modal-detalle-objeto.css";
 
 const ESTADOS_MODAL = Object.freeze({
   DETALLE: "detalle",

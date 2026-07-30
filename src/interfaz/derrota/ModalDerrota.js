@@ -1,6 +1,6 @@
 const ID_HOJA_ESTILOS = "hojaEstilosModalDerrota";
 
-const RUTA_HOJA_ESTILOS = "./modal-derrota.css";
+const RUTA_HOJA_ESTILOS = "./assets/estilos/modales/modal-derrota.css";
 
 let siguienteIdModal = 1;
 

@@ -128,7 +128,10 @@ globalThis.balanceDarkMoonInforme
 
 ```text
 Dark-Moon/
-├─ assets/                       Recursos visuales y licencias.
+├─ assets/                       Recursos estáticos del navegador.
+│  ├─ estilos/                   CSS agrupado por base, pantallas, paneles, modales y herramientas.
+│  ├─ imagenes/                  Sprites, iconos, fondos y miniaturas.
+│  └─ licencias/                 Licencias de recursos externos.
 ├─ src/
 │  ├─ aplicacion/                Casos de uso, comandos y coordinación de la sesión.
 │  ├─ partida/                   Estado que sobrevive a los cambios de mapa.
@@ -142,9 +145,23 @@ Dark-Moon/
 ├─ index.html                    Página principal del juego.
 ├─ balance.html                  Herramienta de análisis de balance.
 ├─ game.js                       Composición y arranque principal.
-├─ *.css                         Estilos generales y de componentes.
 └─ README.md                     Este documento.
 ```
+
+### Organización de estilos
+
+Las hojas de estilo se concentran en `assets/estilos/`:
+
+```text
+assets/estilos/
+├─ base/                         Estilos generales y composición principal.
+├─ pantallas/                    Menús y pantallas completas.
+├─ paneles/                      Paneles persistentes de la partida.
+├─ modales/                      Ventanas, detalles e interacciones superpuestas.
+└─ herramientas/                 Estilos de utilidades de desarrollo.
+```
+
+Los módulos de interfaz que cargan CSS dinámicamente usan rutas públicas desde la raíz del proyecto, por ejemplo `./assets/estilos/modales/modal-curacion.css`. Los recursos referenciados dentro de una hoja CSS se resuelven desde la ubicación de esa hoja.
 
 ### Regla práctica para encontrar código
 

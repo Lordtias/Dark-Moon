@@ -16,7 +16,6 @@ const MAXIMO_MENSAJES_REGISTRO = 120;
 // - Panel del personaje.
 // - Inventario.
 // - Equipamiento.
-// - Agenda temporal.
 // - Historial de eventos.
 export class Renderizador {
   constructor({
@@ -25,7 +24,6 @@ export class Renderizador {
     combatLogText,
     panelInventario,
     panelEquipamiento,
-    panelOrdenTemporal,
   } = {}) {
     if (
       !renderizadorMapa ||
@@ -52,13 +50,6 @@ export class Renderizador {
       throw new Error("Renderizador necesita un PanelEquipamiento.");
     }
 
-    if (
-      !panelOrdenTemporal ||
-      typeof panelOrdenTemporal.actualizar !== "function"
-    ) {
-      throw new Error("Renderizador necesita un PanelOrdenTemporal.");
-    }
-
     if (!combatLogText) {
       throw new Error("Renderizador necesita el registro de combate.");
     }
@@ -67,7 +58,6 @@ export class Renderizador {
     this.panelPersonaje = panelPersonaje;
     this.panelInventario = panelInventario;
     this.panelEquipamiento = panelEquipamiento;
-    this.panelOrdenTemporal = panelOrdenTemporal;
     this.combatLogText = combatLogText;
 
     // Se utiliza para interpretar correctamente
@@ -122,7 +112,6 @@ export class Renderizador {
     // ni ocupa una casilla de inventario.
     this.panelInventario.actualizar(juego.player.inventario, juego.player);
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
-    this.panelOrdenTemporal.actualizar(juego);
   }
 
   // Agrega mensajes al historial

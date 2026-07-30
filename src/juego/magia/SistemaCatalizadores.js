@@ -139,39 +139,6 @@ export function crearContextoPotenciaHabilidad({
   });
 }
 
-// Conserva la ecuación de las fuentes de ataque básico. Esta función no se
-// utiliza para lanzar habilidades: los ataques duales mantienen aquí el
-// multiplicador de su mano, mientras las habilidades usan el contexto general
-// de equipamiento calculado por crearContextoPotenciaHabilidad().
-export function calcularPotenciaHabilidadFuentes(fuentes = []) {
-  if (!Array.isArray(fuentes)) {
-    throw new Error("Las fuentes de catalización deben ser una lista.");
-  }
-
-  return fuentes.reduce((total, fuente) => {
-    const objeto = fuente?.arma ?? fuente?.objeto ?? fuente;
-    if (!esCatalizador(objeto)) return total;
-    const multiplicador =
-      fuente?.multiplicadorGolpe ?? fuente?.multiplicadorDanio ?? 1;
-    if (!Number.isFinite(multiplicador) || multiplicador < 0) {
-      throw new Error(
-        "El multiplicador de una fuente catalizadora no es válido.",
-      );
-    }
-    return total + obtenerPotenciaHabilidadCatalizador(objeto) * multiplicador;
-  }, 0);
-}
-
-export function crearContextoCatalizador({ fuentes = [] } = {}) {
-  const potenciaHabilidad = calcularPotenciaHabilidadFuentes(fuentes);
-
-  return Object.freeze({
-    potenciaHabilidad,
-    multiplicadorHabilidad: 1 + potenciaHabilidad / 100,
-    tieneCatalizador: potenciaHabilidad > 0,
-  });
-}
-
 export function validarCatalogoCatalizadores(configuracionObjetos) {
   validarObjetoPlano(
     configuracionObjetos,

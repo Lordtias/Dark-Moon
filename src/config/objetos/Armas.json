@@ -216,7 +216,7 @@
     "nivelMinimoGeneracion": 6,
     "familiaObjeto": "mandoble",
     "descripcion": "Una enorme hoja de acero de dos manos capaz de causar daños devastadores.",
-    "recursoVisual": "assets/imagenes/objetos/mandoble_hierro.png",
+    "recursoVisual": "assets/imagenes/objetos/mandoble_acero.png",
     "valorBase": 360,
     "pesoUnitario": 3.8,
     "vendible": true,

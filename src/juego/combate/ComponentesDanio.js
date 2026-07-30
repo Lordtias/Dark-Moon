@@ -13,13 +13,6 @@ export const TIPOS_DANIO = Object.freeze({
 });
 
 export const TIPOS_DANIO_VALIDOS = Object.freeze(Object.values(TIPOS_DANIO));
-export const TIPOS_DANIO_ELEMENTAL = Object.freeze([
-  TIPOS_DANIO.FUEGO,
-  TIPOS_DANIO.FRIO,
-  TIPOS_DANIO.RAYO,
-  TIPOS_DANIO.VENENO,
-]);
-
 const PROPIEDAD_RESISTENCIA_POR_TIPO = Object.freeze({
   [TIPOS_DANIO.FUEGO]: "resistenciaFuego",
   [TIPOS_DANIO.FRIO]: "resistenciaFrio",

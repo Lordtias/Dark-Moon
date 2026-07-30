@@ -62,8 +62,6 @@ export function obtenerUltimaEjecucion(jugador) {
   return resultado ? clonarPlano(resultado) : null;
 }
 
-export const CANTIDAD_RANURAS_HABILIDADES = CANTIDAD_RANURAS;
-
 function clonarPlano(valor) {
   if (typeof structuredClone === "function") {
     try {

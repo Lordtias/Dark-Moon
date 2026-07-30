@@ -262,7 +262,6 @@ Actualiza la presentación general:
 - crea la escena visual a partir de `Juego`;
 - dibuja el mapa mediante Canvas;
 - actualiza panel de personaje, inventario y equipamiento;
-- actualiza orden temporal cuando está habilitado;
 - administra el registro de mensajes.
 
 #### `ProcesadorResultadoAccion`

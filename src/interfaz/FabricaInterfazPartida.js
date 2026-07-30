@@ -3,7 +3,6 @@ import { RenderizadorCanvas2D } from "./graficos/RenderizadorCanvas2D.js";
 import { PanelPersonaje } from "./PanelPersonaje.js";
 import { PanelInventario } from "./PanelInventario.js";
 import { PanelEquipamiento } from "./PanelEquipamiento.js";
-import { PanelOrdenTemporal } from "./PanelOrdenTemporal.js";
 import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
 import { ModalContenedorObjetos } from "./objetos/ModalContenedorObjetos.js";
 import { ModalSeleccionMazmorra } from "./ModalSeleccionMazmorra.js";
@@ -89,12 +88,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
   // y stock persistente.
   const modalComercio = new ModalComercio();
 
-  const panelOrdenTemporal = new PanelOrdenTemporal({
-    referenciaInsercion: panelMapa,
-
-    maximoActores: 8,
-  });
-
   const combatLogText = obtenerElementoObligatorio(
     "combatLog",
     "registro de combate",
@@ -105,7 +98,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
     panelPersonaje,
     panelInventario,
     panelEquipamiento,
-    panelOrdenTemporal,
     combatLogText,
   });
 
@@ -113,7 +105,6 @@ export function crearInterfazPartida({ tileSize } = {}) {
     renderizador,
     panelInventario,
     panelEquipamiento,
-    panelOrdenTemporal,
     modalDetalleObjeto,
     modalContenedorObjetos,
     modalSeleccionMazmorra,

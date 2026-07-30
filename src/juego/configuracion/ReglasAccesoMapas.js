@@ -150,37 +150,6 @@ export function filtrarConfiguracionMapasAccesibles({
   };
 }
 
-// Genera un resumen útil para consola y pruebas.
-export function crearResumenAccesoMapas({
-  configuracionMapas,
-  nivelJugador,
-} = {}) {
-  validarConfiguracionMapas(configuracionMapas);
-
-  validarNivelJugador(nivelJugador);
-
-  return Object.entries(configuracionMapas.plantillas).map(
-    ([idMapa, plantilla]) => ({
-      idMapa,
-
-      nombre: plantilla.nombre ?? idMapa,
-
-      nivelJugador,
-
-      nivelDesbloqueo: obtenerNivelDesbloqueoMapa(plantilla),
-
-      nivelMinimo: plantilla.niveles?.minimo ?? null,
-
-      nivelMaximo: plantilla.niveles?.maximo ?? null,
-
-      ...evaluarAccesoMapa({
-        plantilla,
-        nivelJugador,
-      }),
-    }),
-  );
-}
-
 function crearMensajeBloqueo({ nivelDesbloqueo, nivelesFaltantes }) {
   const textoNiveles =
     nivelesFaltantes === 1

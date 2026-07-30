@@ -202,14 +202,6 @@ export function obtenerContextoPotenciaHabilidad(lanzador) {
   return crearContextoPotenciaHabilidad({ combatiente: lanzador });
 }
 
-export function obtenerContextoCatalizadorHabilidad(lanzador) {
-  const contexto = obtenerContextoPotenciaHabilidad(lanzador);
-  return Object.freeze({
-    ...contexto,
-    tieneCatalizador: false,
-  });
-}
-
 export function obtenerMultiplicadorDanioMagico(lanzador) {
   const derivado = obtenerEstadisticas(lanzador)?.multiplicadorDanioMagico;
   if (Number.isFinite(derivado) && derivado > 0) return derivado;

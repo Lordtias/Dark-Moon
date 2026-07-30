@@ -82,106 +82,6 @@ export function validarPlantillaDisponible({
   );
 }
 
-// Filtra una lista de candidatos ponderados.
-//
-// Cada candidato debe poseer:
-//
-// {
-//     "id": "espada_larga",
-//     "peso": 10
-// }
-//
-// La función conserva el objeto candidato completo,
-// por lo que futuros campos adicionales no se pierden.
-export function filtrarCandidatosPorNivel({
-  candidatos,
-  configuracionObjetos,
-  nivelProgreso,
-} = {}) {
-  if (!Array.isArray(candidatos)) {
-    throw new Error(
-      "Los candidatos de objetos deben estar dentro de una lista.",
-    );
-  }
-
-  validarConfiguracionObjetos(configuracionObjetos);
-  validarNivelProgreso(nivelProgreso);
-
-  const disponibles = [];
-  const bloqueados = [];
-
-  candidatos.forEach((candidato, indice) => {
-    validarCandidato({
-      candidato,
-      indice,
-    });
-
-    const idObjeto = candidato.id.trim().toLowerCase();
-
-    const plantilla = configuracionObjetos[idObjeto];
-
-    if (!plantilla) {
-      throw new Error(
-        `El candidato "${idObjeto}" no existe ` +
-          "en la configuración de objetos.",
-      );
-    }
-
-    const nivelMinimo = obtenerNivelMinimoGeneracionPlantilla(plantilla);
-
-    const detalle = {
-      ...candidato,
-      id: idObjeto,
-      nivelMinimoGeneracion: nivelMinimo,
-    };
-
-    if (
-      puedeGenerarsePlantilla({
-        plantilla,
-        nivelProgreso,
-      })
-    ) {
-      disponibles.push(detalle);
-    } else {
-      bloqueados.push(detalle);
-    }
-  });
-
-  return {
-    disponibles,
-    bloqueados,
-  };
-}
-
-// Devuelve un resumen simple para consola,
-// validaciones y futuras herramientas de balance.
-export function crearResumenDisponibilidadObjetos({
-  configuracionObjetos,
-  nivelProgreso,
-} = {}) {
-  validarConfiguracionObjetos(configuracionObjetos);
-  validarNivelProgreso(nivelProgreso);
-
-  return Object.entries(configuracionObjetos)
-    .map(([idObjeto, plantilla]) => {
-      const nivelMinimo = obtenerNivelMinimoGeneracionPlantilla(plantilla);
-
-      return {
-        idObjeto,
-        nombre: plantilla.nombre ?? idObjeto,
-        tipo: plantilla.tipo ?? "desconocido",
-        tier: plantilla.tierBase ?? 1,
-        nivelMinimo,
-        disponible: nivelProgreso >= nivelMinimo,
-      };
-    })
-    .sort(
-      (entradaA, entradaB) =>
-        entradaA.nivelMinimo - entradaB.nivelMinimo ||
-        entradaA.idObjeto.localeCompare(entradaB.idObjeto),
-    );
-}
-
 function obtenerNombrePlantilla({ plantilla, idObjeto }) {
   if (typeof plantilla.nombre === "string" && plantilla.nombre.trim() !== "") {
     return plantilla.nombre.trim();
@@ -204,40 +104,10 @@ function validarPlantilla(plantilla) {
   }
 }
 
-function validarConfiguracionObjetos(configuracionObjetos) {
-  if (
-    configuracionObjetos === null ||
-    typeof configuracionObjetos !== "object" ||
-    Array.isArray(configuracionObjetos)
-  ) {
-    throw new Error("Se necesita una configuración de objetos válida.");
-  }
-}
-
 function validarNivelProgreso(nivelProgreso) {
   if (!Number.isInteger(nivelProgreso) || nivelProgreso < 1) {
     throw new Error(
       "El nivel de progreso debe ser un entero mayor o igual que 1.",
-    );
-  }
-}
-
-function validarCandidato({ candidato, indice }) {
-  if (
-    candidato === null ||
-    typeof candidato !== "object" ||
-    Array.isArray(candidato)
-  ) {
-    throw new Error(`El candidato ${indice + 1} no es válido.`);
-  }
-
-  if (typeof candidato.id !== "string" || candidato.id.trim() === "") {
-    throw new Error(`El candidato ${indice + 1} necesita un ID de objeto.`);
-  }
-
-  if (!Number.isFinite(candidato.peso) || candidato.peso <= 0) {
-    throw new Error(
-      `El peso del candidato "${candidato.id}" ` + "debe ser mayor que 0.",
     );
   }
 }

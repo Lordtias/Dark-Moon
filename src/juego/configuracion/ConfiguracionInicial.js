@@ -211,54 +211,6 @@ export function crearConfiguracionMazmorra({
   });
 }
 
-// Conserva la función utilizada originalmente
-// para crear jugador y mazmorra en una sola llamada.
-//
-// El flujo nuevo crea ambas partes por separado,
-// pero mantener esta función evita romper pruebas
-// o herramientas que todavía puedan utilizarla.
-export function crearConfiguracionInicial({
-  datosPersonaje,
-  configuracionPersonaje,
-  configuracionEnemigos,
-  configuracionObjetos,
-  configuracionMapas,
-
-  semillaMapa = null,
-  idMapaForzado = null,
-  nivelMapaForzado = null,
-
-  botinPrueba = false,
-  portalPrueba = false,
-} = {}) {
-  const preparacion = prepararGeneracionMazmorra({
-    configuracionMapas,
-    semillaMapa,
-    idMapaForzado,
-    nivelMapaForzado,
-  });
-
-  const player = crearJugadorInicial({
-    datosPersonaje,
-    configuracionPersonaje,
-    configuracionObjetos,
-
-    posicionInicial: preparacion.terreno.posicionInicialSugerida,
-  });
-
-  return completarConfiguracionMazmorra({
-    player,
-    configuracionEnemigos,
-    configuracionObjetos,
-    botinPrueba,
-    portalPrueba,
-    semillaMapa,
-    idMapaForzado,
-    nivelMapaForzado,
-    ...preparacion,
-  });
-}
-
 // Selecciona la plantilla y genera únicamente
 // la estructura física de la mazmorra.
 function prepararGeneracionMazmorra({

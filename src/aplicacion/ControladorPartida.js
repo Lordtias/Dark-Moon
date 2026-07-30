@@ -3,13 +3,13 @@ import {
   TILE_SIZE,
 } from "../juego/configuracion/ConfiguracionInicial.js";
 import { Juego } from "../juego/Juego.js";
-import { EstadoPartida } from "../Partida/EstadoPartida.js";
-import { GestorMapasPartida } from "../Partida/GestorMapasPartida.js";
-import { GestorMercaderesPartida } from "../Partida/GestorMercaderesPartida.js";
+import { EstadoPartida } from "../partida/EstadoPartida.js";
+import { GestorMapasPartida } from "../partida/GestorMapasPartida.js";
+import { GestorMercaderesPartida } from "../partida/GestorMercaderesPartida.js";
 import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../Partida/TransicionesMapa.js";
+} from "../partida/TransicionesMapa.js";
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";

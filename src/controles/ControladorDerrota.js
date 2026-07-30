@@ -1,6 +1,6 @@
 import { EVENTO_JUGADOR_DERROTADO } from "./ProcesadorResultadoAccion.js";
 import { ModalDerrota } from "../interfaz/ModalDerrota.js";
-import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
+import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
 
 // Coordina el cierre de una partida derrotada.
 export class ControladorDerrota {

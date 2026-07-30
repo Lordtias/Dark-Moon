@@ -11,7 +11,7 @@ import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 import {
   crearSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../../Partida/TransicionesMapa.js";
+} from "../../partida/TransicionesMapa.js";
 
 import {
   seleccionarPlantillaMapa,

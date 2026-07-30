@@ -3,7 +3,7 @@ import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
 import {
   crearSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../../Partida/TransicionesMapa.js";
+} from "../../partida/TransicionesMapa.js";
 
 const SIMBOLO_PARED = "#";
 const SIMBOLO_CAMINO = ".";

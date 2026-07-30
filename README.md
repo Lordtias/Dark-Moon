@@ -2,13 +2,7 @@
 
 Este es el único documento funcional del repositorio. Su objetivo es permitir que una persona pueda comprender la estructura actual de Dark Moon, encontrar cada sistema y realizar cambios sin tener que reconstruir el historial de desarrollo.
 
-La información se basa en el código existente en el commit:
-
-```text
-9da5b548e4e835e9441d892b14472f3ad73975a8
-```
-
-Cuando el comportamiento del juego cambie, este documento debe actualizarse en el mismo cambio. El código y las configuraciones JSON son siempre la fuente de verdad final.
+Este documento describe el estado funcional actual del repositorio. Cuando el comportamiento o la estructura cambien, debe actualizarse en el mismo cambio. El código y las configuraciones JSON son siempre la fuente de verdad final.
 
 ---
 
@@ -135,7 +129,7 @@ Dark-Moon/
 ├─ assets/                       Recursos visuales y licencias.
 ├─ src/
 │  ├─ aplicacion/                Arranque y coordinación de la sesión.
-│  ├─ Partida/                   Estado que sobrevive a los cambios de mapa.
+│  ├─ partida/                   Estado que sobrevive a los cambios de mapa.
 │  ├─ config/                    Datos JSON y constantes generales.
 │  ├─ controles/                 Entrada DOM y coordinación de acciones visuales.
 │  ├─ entidad/                   Entidades del mundo y combatientes.
@@ -155,7 +149,7 @@ Dark-Moon/
 - Si representa un **actor u objeto con estado**, buscar en `src/entidad/` o `src/objetos/`.
 - Si conecta botones, teclado o ventanas con el juego, buscar en `src/controles/`.
 - Si dibuja o muestra información, buscar en `src/interfaz/`.
-- Si coordina el inicio, la ciudad, las expediciones o el cambio de mapa, buscar en `src/aplicacion/` y `src/Partida/`.
+- Si coordina el inicio, la ciudad, las expediciones o el cambio de mapa, buscar en `src/aplicacion/` y `src/partida/`.
 - Si modifica contenido sin cambiar código, buscar en `src/config/`.
 
 ---
@@ -220,7 +214,7 @@ Coordina toda la sesión:
 
 #### `EstadoPartida`
 
-`src/Partida/EstadoPartida.js`
+`src/partida/EstadoPartida.js`
 
 Conserva aquello que debe sobrevivir al cambio de mapa:
 
@@ -594,8 +588,8 @@ src/config/mapas/mapas.json
 Código principal:
 
 ```text
-src/Partida/GestorMapasPartida.js
-src/Partida/TransicionesMapa.js
+src/partida/GestorMapasPartida.js
+src/partida/TransicionesMapa.js
 src/juego/configuracion/SelectorMapa.js
 src/juego/configuracion/ReglasAccesoMapas.js
 src/juego/configuracion/ValidadorConfiguracionMapas.js
@@ -775,8 +769,8 @@ src/config/comercio/Comercio.json
 Código:
 
 ```text
-src/Partida/EstadoMercader.js
-src/Partida/GestorMercaderesPartida.js
+src/partida/EstadoMercader.js
+src/partida/GestorMercaderesPartida.js
 src/juego/comercio/GeneradorStockMercader.js
 src/juego/comercio/CalculadorValorObjeto.js
 src/juego/comercio/CalculadorPreciosComercio.js
@@ -952,7 +946,7 @@ Las zonas pertenecen al `Juego` activo. Al cambiar de mapa se destruyen junto co
 ### Jugador
 
 ```text
-src/Partida/PersistenciaJugador.js
+src/partida/PersistenciaJugador.js
 ```
 
 Clave de `localStorage`:

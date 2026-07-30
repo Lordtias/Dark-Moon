@@ -11,7 +11,7 @@ import {
 } from "../juego/configuracion/CargadorConfiguracion.js";
 import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
-import { eliminarGuardadoJugador } from "../Partida/PersistenciaJugador.js";
+import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
 import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
 // Pantalla utilizada para crear al personaje.
 import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";

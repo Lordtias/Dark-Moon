@@ -9,7 +9,7 @@ import {
   leerSnapshotJugador,
   eliminarGuardadoJugador,
   crearJugadorDesdeGuardado,
-} from "../../Partida/PersistenciaJugador.js";
+} from "../../partida/PersistenciaJugador.js";
 import {
   obtenerConfiguracionAtaque,
   verificarRequisitosAtaque,
@@ -177,11 +177,12 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
         objetivo,
         inmunidades,
       });
-      const retiro =
-        contexto
-          .obtenerJuego()
-          .coordinadorTiempo?.sincronizarInmunidadesEfectos?.(objetivo) ??
-        { cantidad: 0, eventos: [] };
+      const retiro = contexto
+        .obtenerJuego()
+        .coordinadorTiempo?.sincronizarInmunidadesEfectos?.(objetivo) ?? {
+        cantidad: 0,
+        eventos: [],
+      };
       contexto.obtenerIntegracion().panel?.renderizar?.();
       return { ...defensas, retiro };
     },
@@ -351,8 +352,7 @@ function crearAccesoBalance(contexto) {
           configuracionGeneracionObjetos:
             aplicacion.configuracionGeneracionObjetos,
           configuracionMapas: aplicacion.configuracionMapas,
-          configuracionProgresoMagico:
-            obtenerConfiguracionProgresoMagico(),
+          configuracionProgresoMagico: obtenerConfiguracionProgresoMagico(),
           configuracionEjecucionHabilidades:
             obtenerConfiguracionEjecucionHabilidades(),
           objetivosBalance,
@@ -754,7 +754,7 @@ function validarContratosEfectos(contexto) {
     "Envenenamiento centraliza refresco e intensificación",
     Boolean(
       envenenamiento?.perfilesAplicacion?.refrescar_mayor_potencia &&
-        envenenamiento?.perfilesAplicacion?.intensificar,
+      envenenamiento?.perfilesAplicacion?.intensificar,
     ),
     Object.keys(envenenamiento?.perfilesAplicacion ?? {}),
   );
@@ -768,8 +768,7 @@ function validarContratosEfectos(contexto) {
           ?.politicaAcumulacion === "rechazar_duplicado",
     ),
     {
-      congelamiento:
-        catalogo.congelamiento?.perfilesAplicacion ?? null,
+      congelamiento: catalogo.congelamiento?.perfilesAplicacion ?? null,
       aturdimiento: catalogo.aturdimiento?.perfilesAplicacion ?? null,
     },
   );
@@ -1153,12 +1152,13 @@ function prepararEnemigosEnLineaParaPrueba(
         x: jugador.x + dx * distancia,
         y: jugador.y + dy * distancia,
       };
-    }).every(({ x, y }) =>
-      y >= 0 &&
-      y < juego.map.length &&
-      x >= 0 &&
-      x < juego.map[y].length &&
-      juego.map[y][x] !== "#",
+    }).every(
+      ({ x, y }) =>
+        y >= 0 &&
+        y < juego.map.length &&
+        x >= 0 &&
+        x < juego.map[y].length &&
+        juego.map[y][x] !== "#",
     ),
   );
 
@@ -1196,15 +1196,20 @@ function establecerVidaObjetivoParaPrueba({ objetivo, valor } = {}) {
     throw new Error("Debe indicarse un objetivo válido.");
   }
   if (!Number.isFinite(valor) || valor < 1) {
-    throw new Error("La Vida de prueba debe ser un número mayor o igual que 1.");
+    throw new Error(
+      "La Vida de prueba debe ser un número mayor o igual que 1.",
+    );
   }
-  const maximoActual = objetivo.estadisticasDerivadas?.vidaMaxima ??
-    objetivo.vidaMaxima ?? 0;
-  if (maximoActual < valor && Number.isFinite(objetivo.estadisticasBase?.vida)) {
+  const maximoActual =
+    objetivo.estadisticasDerivadas?.vidaMaxima ?? objetivo.vidaMaxima ?? 0;
+  if (
+    maximoActual < valor &&
+    Number.isFinite(objetivo.estadisticasBase?.vida)
+  ) {
     objetivo.estadisticasBase.vida += valor - maximoActual;
   }
-  const maximoFinal = objetivo.estadisticasDerivadas?.vidaMaxima ??
-    objetivo.vidaMaxima ?? valor;
+  const maximoFinal =
+    objetivo.estadisticasDerivadas?.vidaMaxima ?? objetivo.vidaMaxima ?? valor;
   objetivo.vidaActual = Math.min(valor, maximoFinal);
   return {
     nombre: objetivo.nombre ?? "Objetivo",
@@ -1214,8 +1219,8 @@ function establecerVidaObjetivoParaPrueba({ objetivo, valor } = {}) {
 }
 
 function obtenerDefensasEfectos(objetivo) {
-  const estadisticas = objetivo?.estadisticasDerivadas ??
-    objetivo?.estadisticasBase ?? {};
+  const estadisticas =
+    objetivo?.estadisticasDerivadas ?? objetivo?.estadisticasBase ?? {};
   return {
     resistencias: Object.fromEntries(
       IDS_RESISTENCIA_EFECTO.map((id) => [

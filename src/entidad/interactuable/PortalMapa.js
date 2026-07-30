@@ -2,7 +2,7 @@ import { Entidad } from "../Entidad.js";
 
 import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js";
 
-import { normalizarSolicitudTransicionMapa } from "../../Partida/TransicionesMapa.js";
+import { normalizarSolicitudTransicionMapa } from "../../partida/TransicionesMapa.js";
 
 export const RECURSO_VISUAL_PORTAL_PREDETERMINADO =
   "assets/imagenes/interactuables/portal_magico.png";

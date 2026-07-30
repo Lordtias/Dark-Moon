@@ -1,4 +1,4 @@
-import { guardarJugadorDurable } from "../../Partida/PersistenciaJugador.js";
+import { guardarJugadorDurable } from "../../partida/PersistenciaJugador.js";
 import { BarraHabilidades } from "../../interfaz/habilidades/BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "../../interfaz/habilidades/PanelHabilidadesMaestrias.js";
 import { ControladorEntradaHabilidades } from "./ControladorEntradaHabilidades.js";

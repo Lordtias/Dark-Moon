@@ -18,7 +18,9 @@ import {
   TIPOS_COMANDO_JUGADOR,
 } from "./EjecutorAccionesJugador.js";
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
-import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
+import {
+  AdaptadorInteraccionesDom,
+} from "../interfaz/interacciones/AdaptadorInteraccionesDom.js";
 import { ControladorComercio } from "../controles/ControladorComercio.js";
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
 import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
@@ -63,7 +65,7 @@ export class ControladorPartida {
     this.ejecutorAccionesJugador = null;
     this.controladorTeclado = null;
     this.controladorEquipamiento = null;
-    this.controladorInteracciones = null;
+    this.adaptadorInteraccionesDom = null;
     this.controladorComercio = null;
     this.integracionHabilidades = null;
 
@@ -368,11 +370,32 @@ export class ControladorPartida {
       return resultadoHabilidad.resultado;
     }
 
+    const resultadoProcesado = this.procesarResultadoAccion(resultado);
+    this.presentarInteraccionResultado(resultadoProcesado);
+    return resultadoProcesado;
+  }
+
+  procesarResultadoAccion(resultado) {
     return aplicarResultadoAccion({
       resultado,
       juego: this.juego,
       renderizador: this.renderizador,
     });
+  }
+
+  presentarInteraccionResultado(resultado) {
+    if (!resultado?.interaccion) {
+      return false;
+    }
+
+    if (!this.adaptadorInteraccionesDom) {
+      throw new Error(
+        "No se puede presentar una interacción sin un adaptador DOM activo.",
+      );
+    }
+
+    this.adaptadorInteraccionesDom.presentar(resultado.interaccion);
+    return true;
   }
 
   procesarResultadoComandoHabilidad({
@@ -399,11 +422,7 @@ export class ControladorPartida {
 
       return {
         procesado: true,
-        resultado: aplicarResultadoAccion({
-          resultado: resultadoParaProcesar,
-          juego: this.juego,
-          renderizador: this.renderizador,
-        }),
+        resultado: this.procesarResultadoAccion(resultadoParaProcesar),
       };
     }
 
@@ -493,21 +512,21 @@ export class ControladorPartida {
       configuracionComercio: this.configuracionComercio,
     });
 
-    const controladorInteracciones = new ControladorInteracciones({
+    const adaptadorInteraccionesDom = new AdaptadorInteraccionesDom({
       juego,
-      renderizador,
       modalContenedorObjetos,
       modalSeleccionMazmorra,
       obtenerMazmorrasDisponibles: () =>
         this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
-      // ControladorInteracciones reenvía
-      // el resultado completo del modal.
+      // El adaptador reenvía el resultado completo del modal.
       alSeleccionarMazmorra: (seleccion) =>
         this.iniciarExpedicionSeleccionada(seleccion),
       alSolicitarComercio: (idMercader) =>
         controladorComercio.abrir(idMercader),
       alSolicitarTransicionMapa: (solicitud) =>
         this.procesarSolicitudTransicionMapa(solicitud),
+      alProcesarResultado: (resultado) =>
+        this.procesarResultadoAccion(resultado),
     });
 
     this.juego = juego;
@@ -516,7 +535,7 @@ export class ControladorPartida {
     this.controladorTeclado = controladorTeclado;
     this.controladorEquipamiento = controladorEquipamiento;
     this.controladorComercio = controladorComercio;
-    this.controladorInteracciones = controladorInteracciones;
+    this.adaptadorInteraccionesDom = adaptadorInteraccionesDom;
 
     const juegoActivo = this.juego;
     this.integracionHabilidades = new IntegracionHabilidadesJugador({
@@ -533,8 +552,6 @@ export class ControladorPartida {
 
     this.controladorTeclado.activar();
     this.controladorEquipamiento.activar();
-    this.controladorInteracciones.activar();
-
     this.renderizador.dibujarJuego(this.juego);
   }
 
@@ -619,7 +636,7 @@ export class ControladorPartida {
     this.controladorComercio?.desactivar();
     this.controladorTeclado?.desactivar();
     this.controladorEquipamiento?.desactivar();
-    this.controladorInteracciones?.desactivar();
+    this.adaptadorInteraccionesDom?.desactivar();
   }
 }
 

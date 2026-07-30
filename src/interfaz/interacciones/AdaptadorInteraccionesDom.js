@@ -1,56 +1,43 @@
-import { ModalCuracion } from "../interfaz/curacion/ModalCuracion.js";
+import { ModalCuracion } from "../curacion/ModalCuracion.js";
 import {
   calcularEstadoCuracion,
   curarJugador,
-} from "../juego/curacion/SistemaCuracion.js";
-import { TIPOS_INTERACCION } from "../juego/interacciones/TiposInteraccion.js";
-import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
+} from "../../juego/curacion/SistemaCuracion.js";
+import {
+  TIPOS_INTERACCION,
+} from "../../juego/interacciones/TiposInteraccion.js";
 
-// E ya se utiliza para el movimiento diagonal noreste.
-// Utilizamos R como abreviatura de Revisar.
-const TECLA_INTERACCION = "KeyR";
-
-// Conecta las capacidades de interacción del dominio
-// con las ventanas y acciones de la aplicación.
+// Presenta mediante la interfaz DOM las interacciones resueltas
+// por el sistema común de comandos.
 //
-// Este controlador administra:
+// Este adaptador administra:
 //
-// - La tecla R.
 // - La apertura de contenedores.
 // - La selección de mazmorras.
 // - La solicitud de comercio.
 // - Los servicios de curación.
-// - La confirmación del selector.
 // - Las transiciones entre mapas.
-export class ControladorInteracciones {
+//
+// No escucha teclado, no decide qué entidad interactuar
+// y no procesa directamente el resultado visual general.
+export class AdaptadorInteraccionesDom {
   constructor({
     juego,
-    renderizador,
     modalContenedorObjetos,
     modalSeleccionMazmorra,
     obtenerMazmorrasDisponibles,
     alSeleccionarMazmorra,
     alSolicitarComercio,
     alSolicitarTransicionMapa,
+    alProcesarResultado,
   } = {}) {
     if (
       !juego ||
-      typeof juego.obtenerOpcionesInteraccion !== "function" ||
-      typeof juego.entrarModoInteraccion !== "function" ||
-      typeof juego.confirmarInteraccionSeleccionada !== "function" ||
       typeof juego.recogerObjetoInteractuable !== "function" ||
       typeof juego.recogerTodoInteractuable !== "function"
     ) {
-      throw new Error("ControladorInteracciones necesita una partida válida.");
-    }
-
-    if (
-      !renderizador ||
-      typeof renderizador.dibujarJuego !== "function" ||
-      typeof renderizador.mostrarMensaje !== "function"
-    ) {
       throw new Error(
-        "ControladorInteracciones necesita un renderizador válido.",
+        "AdaptadorInteraccionesDom necesita una partida válida.",
       );
     }
 
@@ -61,7 +48,7 @@ export class ControladorInteracciones {
       typeof modalContenedorObjetos.cerrar !== "function"
     ) {
       throw new Error(
-        "ControladorInteracciones necesita un modal de contenedores.",
+        "AdaptadorInteraccionesDom necesita un modal de contenedores.",
       );
     }
 
@@ -71,148 +58,100 @@ export class ControladorInteracciones {
       typeof modalSeleccionMazmorra.cerrar !== "function"
     ) {
       throw new Error(
-        "ControladorInteracciones necesita un selector de mazmorras.",
+        "AdaptadorInteraccionesDom necesita un selector de mazmorras.",
       );
     }
 
     if (typeof obtenerMazmorrasDisponibles !== "function") {
       throw new Error(
-        "ControladorInteracciones necesita consultar las mazmorras disponibles.",
+        "AdaptadorInteraccionesDom necesita consultar las mazmorras disponibles.",
       );
     }
 
     if (typeof alSeleccionarMazmorra !== "function") {
       throw new Error(
-        "ControladorInteracciones necesita una acción para seleccionar mazmorras.",
+        "AdaptadorInteraccionesDom necesita una acción para seleccionar mazmorras.",
       );
     }
 
     if (typeof alSolicitarComercio !== "function") {
       throw new Error(
-        "ControladorInteracciones necesita un manejador de comercio.",
+        "AdaptadorInteraccionesDom necesita un manejador de comercio.",
       );
     }
 
     if (typeof alSolicitarTransicionMapa !== "function") {
       throw new Error(
-        "ControladorInteracciones necesita un manejador de transiciones de mapa.",
+        "AdaptadorInteraccionesDom necesita un manejador de transiciones de mapa.",
+      );
+    }
+
+    if (typeof alProcesarResultado !== "function") {
+      throw new Error(
+        "AdaptadorInteraccionesDom necesita procesar resultados de acción.",
       );
     }
 
     this.juego = juego;
-    this.renderizador = renderizador;
     this.modalContenedorObjetos = modalContenedorObjetos;
     this.modalSeleccionMazmorra = modalSeleccionMazmorra;
     this.obtenerMazmorrasDisponibles = obtenerMazmorrasDisponibles;
     this.alSeleccionarMazmorra = alSeleccionarMazmorra;
     this.alSolicitarComercio = alSolicitarComercio;
     this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
+    this.alProcesarResultado = alProcesarResultado;
 
     // El modal de curación se crea de forma diferida.
     // Así las mazmorras que no contienen curanderas
     // no agregan una ventana innecesaria al documento.
     this.modalCuracion = null;
     this.interactuableActual = null;
-    this.manejarTecla = this.manejarTecla.bind(this);
-    this.estaActivo = false;
-  }
-
-  activar() {
-    if (this.estaActivo) {
-      return;
-    }
-
-    document.addEventListener("keydown", this.manejarTecla);
-    this.estaActivo = true;
   }
 
   desactivar() {
-    if (this.estaActivo) {
-      document.removeEventListener("keydown", this.manejarTecla);
-    }
-
     this.modalContenedorObjetos.cerrar();
     this.modalSeleccionMazmorra.cerrar();
     this.modalCuracion?.destruir();
     this.modalCuracion = null;
     this.interactuableActual = null;
-    this.estaActivo = false;
   }
 
-  manejarTecla(event) {
-    if (event.code !== TECLA_INTERACCION || event.repeat) {
-      return;
+  presentar(interaccion) {
+    if (
+      !interaccion ||
+      typeof interaccion !== "object" ||
+      Array.isArray(interaccion)
+    ) {
+      throw new Error(
+        "AdaptadorInteraccionesDom necesita una interacción válida.",
+      );
     }
 
-    // Una ventana abierta administra
-    // sus propias teclas.
-    if (document.querySelector("dialog[open]")) {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (this.juego.modoInteraccionActivo) {
-      const resultado = this.juego.confirmarInteraccionSeleccionada();
-      this.procesarResultado(resultado);
-
-      if (resultado?.interaccion) {
-        this.ejecutarInteraccion(resultado.interaccion);
-      }
-
-      return;
-    }
-
-    const bloqueo = this.juego.obtenerBloqueoInteraccion();
-
-    if (bloqueo) {
-      this.procesarResultado(bloqueo);
-      return;
-    }
-
-    const opciones = this.juego.obtenerOpcionesInteraccion();
-
-    if (opciones.length === 0) {
-      this.renderizador.mostrarMensaje("No hay nada para revisar cerca.");
-      return;
-    }
-
-    if (opciones.length === 1) {
-      this.ejecutarInteraccion(opciones[0].interaccionPrioritaria);
-      return;
-    }
-
-    const resultado = this.juego.entrarModoInteraccion();
-    this.procesarResultado(resultado);
-  }
-
-  ejecutarInteraccion(interaccion) {
     switch (interaccion.tipo) {
       case TIPOS_INTERACCION.ABRIR_CONTENEDOR:
-        this.abrirContenedor(interaccion);
-        break;
+        return this.abrirContenedor(interaccion);
 
       case TIPOS_INTERACCION.COMERCIAR:
-        this.solicitarComercio(interaccion);
-        break;
+        return this.solicitarComercio(interaccion);
 
       case TIPOS_INTERACCION.CURAR:
-        this.abrirCuracion(interaccion);
-        break;
+        return this.abrirCuracion(interaccion);
 
       case TIPOS_INTERACCION.SELECCIONAR_MAZMORRA:
-        this.abrirSeleccionMazmorra();
-        break;
+        return this.abrirSeleccionMazmorra();
 
       case TIPOS_INTERACCION.TRANSICION_MAPA:
-        this.solicitarTransicionMapa(interaccion);
-        break;
+        return this.solicitarTransicionMapa(interaccion);
 
       default:
-        this.renderizador.mostrarMensaje(
-          `La interacción "${interaccion.texto}" ` +
+        return this.procesarResultado({
+          exito: false,
+          mensaje:
+            `La interacción "${interaccion.texto}" ` +
             "todavía no tiene una interfaz asociada.",
-        );
+          turnoConsumido: false,
+          redibujar: false,
+        });
     }
   }
 
@@ -259,7 +198,7 @@ export class ControladorInteracciones {
     this.modalSeleccionMazmorra.cerrar();
     this.modalCuracion?.cerrar();
     this.interactuableActual = null;
-    this.alSolicitarComercio(mercader.id);
+    return this.alSolicitarComercio(mercader.id);
   }
 
   abrirCuracion(interaccion) {
@@ -314,7 +253,7 @@ export class ControladorInteracciones {
 
     this.modalSeleccionMazmorra.abrir({
       mazmorras,
-      alConfirmar: (idMazmorra) => this.alSeleccionarMazmorra(idMazmorra),
+      alConfirmar: (seleccion) => this.alSeleccionarMazmorra(seleccion),
     });
   }
 
@@ -331,7 +270,7 @@ export class ControladorInteracciones {
     this.modalSeleccionMazmorra.cerrar();
     this.modalCuracion?.cerrar();
     this.interactuableActual = null;
-    this.alSolicitarTransicionMapa(solicitud);
+    return this.alSolicitarTransicionMapa(solicitud);
   }
 
   actualizarModalDespuesAccion(interactuable) {
@@ -351,10 +290,6 @@ export class ControladorInteracciones {
   }
 
   procesarResultado(resultado) {
-    return aplicarResultadoAccion({
-      resultado,
-      juego: this.juego,
-      renderizador: this.renderizador,
-    });
+    return this.alProcesarResultado(resultado);
   }
 }

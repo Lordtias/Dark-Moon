@@ -27,6 +27,7 @@ const TECLAS_ESPERA = new Set(["Space", "Numpad5"]);
 const TECLA_CONFIRMAR = "KeyF";
 const TECLA_RESPALDO = "KeyG";
 const TECLA_CANCELAR = "Escape";
+const TECLA_INTERACTUAR = "KeyR";
 
 // Adaptador de entrada del navegador.
 //
@@ -64,6 +65,7 @@ export class ControladorTeclado {
     const esConfirmar = evento.code === TECLA_CONFIRMAR;
     const esRespaldo = evento.code === TECLA_RESPALDO;
     const esCancelar = evento.code === TECLA_CANCELAR;
+    const esInteractuar = evento.code === TECLA_INTERACTUAR;
 
     // La selección numérica de habilidades no debe activarse mientras el
     // usuario escribe en un control editable. El resto de las teclas conserva
@@ -78,15 +80,22 @@ export class ControladorTeclado {
       !esEspera &&
       !esConfirmar &&
       !esRespaldo &&
-      !esCancelar
+      !esCancelar &&
+      !esInteractuar
     ) {
       return;
     }
 
-    // Evita múltiples confirmaciones, cancelaciones o activaciones de respaldo
-    // al mantener una tecla presionada. Movimiento, espera y ranuras conservan
+    // Evita múltiples confirmaciones, cancelaciones, interacciones o
+    // activaciones de respaldo al mantener una tecla presionada. Movimiento,
+    // espera y ranuras conservan
     // la repetición que ya tenían antes de centralizar el teclado.
-    if (evento.repeat && (esConfirmar || esRespaldo || esCancelar)) return;
+    if (
+      evento.repeat &&
+      (esConfirmar || esRespaldo || esCancelar || esInteractuar)
+    ) {
+      return;
+    }
 
     evento.preventDefault();
 
@@ -97,6 +106,7 @@ export class ControladorTeclado {
       esConfirmar,
       esRespaldo,
       esCancelar,
+      esInteractuar,
     });
 
     this.alEjecutarComando(comando);
@@ -110,6 +120,7 @@ function crearComandoDesdeEntrada({
   esConfirmar,
   esRespaldo,
   esCancelar,
+  esInteractuar,
 }) {
   if (indiceRanura !== null) {
     return {
@@ -137,6 +148,12 @@ function crearComandoDesdeEntrada({
   if (esCancelar) {
     return {
       tipo: TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION,
+    };
+  }
+
+  if (esInteractuar) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR,
     };
   }
 

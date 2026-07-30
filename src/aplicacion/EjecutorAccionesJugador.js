@@ -1,3 +1,5 @@
+import { crearResultadoAccion } from "../juego/acciones/ResultadoAccion.js";
+
 export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   MOVER: "mover",
   ESPERAR: "esperar",
@@ -6,6 +8,7 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   CANCELAR_SELECCION: "cancelar-seleccion",
   SELECCIONAR_HABILIDAD_RANURA: "seleccionar-habilidad-ranura",
   FIJAR_SELECTOR_HABILIDAD: "fijar-selector-habilidad",
+  INTERACTUAR_O_CONFIRMAR: "interactuar-o-confirmar",
 });
 
 // Ejecuta acciones jugables sin conocer el dispositivo de entrada
@@ -13,7 +16,8 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
 //
 // Los adaptadores DOM, una futura escena de Phaser, la consola y las
 // pruebas deterministas pueden construir los mismos comandos y reutilizar
-// este flujo sin duplicar reglas de movimiento, combate o habilidades.
+// este flujo sin duplicar reglas de movimiento, combate, habilidades
+// o interacción.
 export class EjecutorAccionesJugador {
   constructor({ juego, obtenerSistemaHabilidades = null } = {}) {
     validarJuego(juego);
@@ -48,6 +52,9 @@ export class EjecutorAccionesJugador {
 
       case TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD:
         return this.fijarSelectorHabilidad(comando);
+
+      case TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR:
+        return this.interactuarOConfirmar();
 
       default:
         throw new Error(`Comando de jugador desconocido: ${comando.tipo}.`);
@@ -170,6 +177,43 @@ export class EjecutorAccionesJugador {
     return sistemaHabilidades.fijarSelector(x, y);
   }
 
+  interactuarOConfirmar() {
+    if (this.juego.modoInteraccionActivo) {
+      return this.juego.confirmarInteraccionSeleccionada();
+    }
+
+    const bloqueo = this.juego.obtenerBloqueoInteraccion();
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    const opciones = this.juego.obtenerOpcionesInteraccion();
+    if (!Array.isArray(opciones)) {
+      throw new Error(
+        "Juego debe devolver una lista de opciones de interacción.",
+      );
+    }
+
+    if (opciones.length === 0) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "No hay nada para revisar cerca.",
+      });
+    }
+
+    if (opciones.length === 1) {
+      const opcion = opciones[0];
+
+      return crearResultadoAccion({
+        exito: true,
+        interaccion: opcion.interaccionPrioritaria,
+        entidad: opcion.entidad,
+      });
+    }
+
+    return this.juego.entrarModoInteraccion();
+  }
+
   obtenerSistemaHabilidadesActivo() {
     const sistema = this.obtenerSistemaHabilidades();
 
@@ -260,6 +304,10 @@ function validarJuego(juego) {
     "confirmarAtaque",
     "cancelarModoInteraccion",
     "cancelarModoCombate",
+    "obtenerBloqueoInteraccion",
+    "obtenerOpcionesInteraccion",
+    "entrarModoInteraccion",
+    "confirmarInteraccionSeleccionada",
   ];
 
   if (!juego || typeof juego !== "object") {

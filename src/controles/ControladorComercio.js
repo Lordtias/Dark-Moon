@@ -8,8 +8,6 @@ import {
   venderObjetoMercader,
 } from "../juego/comercio/SistemaComercio.js";
 
-import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
-
 // Conecta el dominio comercial con ModalComercio.
 //
 // El controlador no genera stock ni calcula rarezas.
@@ -22,16 +20,14 @@ import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 export class ControladorComercio {
   constructor({
     juego,
-    renderizador,
     modalComercio,
     gestorMercaderesPartida,
     configuracionObjetos,
     configuracionRarezas,
     configuracionComercio,
+    alProcesarResultado,
   } = {}) {
     validarJuego(juego);
-
-    validarRenderizador(renderizador);
 
     validarModal(modalComercio);
 
@@ -43,8 +39,14 @@ export class ControladorComercio {
 
     validarObjetoPlano(configuracionComercio, "configuración de comercio");
 
+    if (typeof alProcesarResultado !== "function") {
+      throw new Error(
+        "ControladorComercio necesita una acción para procesar resultados.",
+      );
+    }
+
     this.juego = juego;
-    this.renderizador = renderizador;
+    this.alProcesarResultado = alProcesarResultado;
     this.modalComercio = modalComercio;
 
     this.gestorMercaderesPartida = gestorMercaderesPartida;
@@ -181,13 +183,7 @@ export class ControladorComercio {
   }
 
   procesarResultado(resultado) {
-    return aplicarResultadoAccion({
-      resultado,
-
-      juego: this.juego,
-
-      renderizador: this.renderizador,
-    });
+    return this.alProcesarResultado(resultado);
   }
 
   desactivar() {
@@ -200,16 +196,6 @@ function validarJuego(juego) {
     throw new Error(
       "ControladorComercio necesita un Juego con jugador e inventario.",
     );
-  }
-}
-
-function validarRenderizador(renderizador) {
-  if (
-    !renderizador ||
-    typeof renderizador.dibujarJuego !== "function" ||
-    typeof renderizador.mostrarMensaje !== "function"
-  ) {
-    throw new Error("ControladorComercio necesita un renderizador válido.");
   }
 }
 

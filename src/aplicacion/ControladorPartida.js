@@ -12,7 +12,7 @@ import {
 } from "../partida/TransicionesMapa.js";
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
-import { aplicarResultadoAccion } from "../controles/ProcesadorResultadoAccion.js";
+import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 import {
   EjecutorAccionesJugador,
   TIPOS_COMANDO_JUGADOR,
@@ -39,7 +39,7 @@ import {
 // Juego y sus controladores se reemplazan
 // cada vez que se activa un mapa diferente.
 export class ControladorPartida {
-  constructor({ controladorPantallas } = {}) {
+  constructor({ controladorPantallas, alJugadorDerrotado } = {}) {
     if (
       !controladorPantallas ||
       typeof controladorPantallas.mostrarPartida !== "function"
@@ -49,7 +49,14 @@ export class ControladorPartida {
       );
     }
 
+    if (typeof alJugadorDerrotado !== "function") {
+      throw new Error(
+        "ControladorPartida necesita una acción para presentar la derrota.",
+      );
+    }
+
     this.controladorPantallas = controladorPantallas;
+    this.alJugadorDerrotado = alJugadorDerrotado;
 
     // Estado persistente.
     this.estadoPartida = null;
@@ -380,6 +387,7 @@ export class ControladorPartida {
       resultado,
       juego: this.juego,
       renderizador: this.renderizador,
+      alJugadorDerrotado: this.alJugadorDerrotado,
     });
   }
 
@@ -496,20 +504,22 @@ export class ControladorPartida {
 
     const controladorEquipamiento = new ControladorEquipamiento({
       juego,
-      renderizador,
       panelInventario,
       panelEquipamiento,
       modalDetalleObjeto,
+      alProcesarResultado: (resultado) =>
+        this.procesarResultadoAccion(resultado),
     });
 
     const controladorComercio = new ControladorComercio({
       juego,
-      renderizador,
       modalComercio,
       gestorMercaderesPartida: this.gestorMercaderesPartida,
       configuracionObjetos: this.configuracionObjetos,
       configuracionRarezas: this.configuracionRarezas,
       configuracionComercio: this.configuracionComercio,
+      alProcesarResultado: (resultado) =>
+        this.procesarResultadoAccion(resultado),
     });
 
     const adaptadorInteraccionesDom = new AdaptadorInteraccionesDom({

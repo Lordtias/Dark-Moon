@@ -1,5 +1,3 @@
-import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
-
 // Coordina inventario, equipamiento, modal
 // y acciones expuestas por Juego.
 //
@@ -8,10 +6,10 @@ import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 export class ControladorEquipamiento {
   constructor({
     juego,
-    renderizador,
     panelInventario,
     panelEquipamiento,
     modalDetalleObjeto,
+    alProcesarResultado,
   } = {}) {
     if (
       !juego ||
@@ -29,14 +27,6 @@ export class ControladorEquipamiento {
         "ControladorEquipamiento necesita un jugador " +
           "con inventario y equipamiento.",
       );
-    }
-
-    if (
-      !renderizador ||
-      typeof renderizador.dibujarJuego !== "function" ||
-      typeof renderizador.mostrarMensaje !== "function"
-    ) {
-      throw new Error("ControladorEquipamiento necesita un renderizador.");
     }
 
     if (
@@ -67,9 +57,14 @@ export class ControladorEquipamiento {
       );
     }
 
-    this.juego = juego;
+    if (typeof alProcesarResultado !== "function") {
+      throw new Error(
+        "ControladorEquipamiento necesita una acción para procesar resultados.",
+      );
+    }
 
-    this.renderizador = renderizador;
+    this.juego = juego;
+    this.alProcesarResultado = alProcesarResultado;
 
     this.panelInventario = panelInventario;
 
@@ -232,16 +227,10 @@ export class ControladorEquipamiento {
     return objetosEquipados;
   }
 
-  // Entrega el resultado al procesador común.
-  //
-  // De esta manera, inventario, equipamiento, teclado
-  // e interacciones respetan el mismo contrato.
+  // Entrega el resultado al coordinador de la partida para que mensajes,
+  // redibujado y derrota utilicen un único camino de aplicación.
   procesarResultado(resultado) {
-    return aplicarResultadoAccion({
-      resultado,
-      juego: this.juego,
-      renderizador: this.renderizador,
-    });
+    return this.alProcesarResultado(resultado);
   }
 }
 

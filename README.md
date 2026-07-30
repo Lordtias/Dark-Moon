@@ -182,8 +182,10 @@ Motores jugables
 ResultadoAccion
    ↓
 ProcesadorResultadoAccion
-   ↓
-Renderizador + paneles y modales DOM
+   ├─ mensaje y redibujado
+   └─ callback de derrota
+          ↓
+Renderizador + adaptadores DOM
 ```
 
 ### Responsabilidades principales
@@ -203,6 +205,8 @@ Confirmar un personaje representa una partida nueva. Antes de iniciarla se elimi
 - el guardado durable anterior;
 - la configuración anterior de la barra de habilidades.
 
+`Aplicacion` también elige la presentación de derrota actual: construye `AdaptadorDerrotaDom` y conecta su método `presentar()` con `ControladorPartida`.
+
 #### `ControladorPartida`
 
 `src/aplicacion/ControladorPartida.js`
@@ -217,8 +221,9 @@ Coordina toda la sesión:
 - reemplaza `Juego` y sus controladores al cambiar de mapa;
 - crea el ejecutor compartido de comandos para el mapa activo;
 - conecta habilidades, inventario, comercio e interacciones;
-- procesa los resultados de acciones e interacciones en un único punto;
+- procesa en un único punto los resultados de acciones, inventario, equipamiento, comercio e interacciones;
 - entrega las interacciones resueltas al adaptador DOM correspondiente;
+- notifica la derrota mediante un callback de presentación;
 - destruye correctamente los sistemas del mapa anterior.
 
 #### `EjecutorAccionesJugador`
@@ -285,22 +290,25 @@ Actualiza la presentación general:
 
 #### `ProcesadorResultadoAccion`
 
-`src/controles/ProcesadorResultadoAccion.js`
+`src/aplicacion/ProcesadorResultadoAccion.js`
 
 Recibe los resultados producidos por el juego y centraliza:
 
 - normalización;
 - mensajes;
 - redibujado;
-- notificación de derrota.
+- detección y notificación de derrota.
 
-Actualmente la derrota visual se comunica mediante el evento DOM:
+No depende de `document`, eventos del navegador ni modales. Cuando el jugador es derrotado ejecuta el callback entregado por `ControladorPartida`.
+
+La presentación HTML actual utiliza:
 
 ```text
-dark-moon:jugador-derrotado
+src/interfaz/derrota/AdaptadorDerrotaDom.js
+src/interfaz/derrota/ModalDerrota.js
 ```
 
-Este punto es una frontera natural para una presentación futura que no dependa del DOM.
+Una presentación futura puede conectar otro adaptador sin modificar las reglas ni el procesador.
 
 ---
 
@@ -676,7 +684,7 @@ La resolución centralizada evita que ataques básicos, habilidades, efectos o z
 
 Los sistemas nuevos que puedan matar una entidad deben notificar el daño al motor real y permitir que el resolutor procese la derrota. No deben otorgar experiencia u oro directamente.
 
-Cuando el jugador muere, `ProcesadorResultadoAccion` emite el evento de derrota una sola vez por instancia de `Juego`, y `ControladorDerrota` muestra el modal correspondiente.
+Cuando el jugador muere, `ProcesadorResultadoAccion` notifica la derrota una sola vez por instancia de `Juego`. `ControladorPartida` entrega esa notificación a `AdaptadorDerrotaDom`, que cierra otros diálogos y muestra `ModalDerrota`.
 
 ---
 
@@ -1453,9 +1461,8 @@ Phaser futuro ────────────┘
 
 ### Preparaciones concretas pendientes
 
-1. Reemplazar la notificación DOM de derrota por un callback o adaptador pequeño, manteniendo el evento DOM actual.
-2. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
-3. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
+1. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
+2. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
 
 ### Lo que Phaser no debe contener
 

@@ -18,13 +18,13 @@ import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
 // Controladores principales de la aplicación.
 import { ControladorPantallas } from "./ControladorPantallas.js";
 import { ControladorPartida } from "./ControladorPartida.js";
-import { ControladorDerrota } from "../controles/ControladorDerrota.js";
+import { AdaptadorDerrotaDom } from "../interfaz/derrota/AdaptadorDerrotaDom.js";
 // Aplicacion funciona como coordinador general.
 export class Aplicacion {
   constructor() {
     this.controladorPantallas = null;
     this.controladorPartida = null;
-    this.controladorDerrota = null;
+    this.adaptadorDerrotaDom = null;
     this.menuCreacionPersonaje = null;
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
@@ -57,10 +57,12 @@ export class Aplicacion {
       botonConfiguracion: document.getElementById("settingsButton"),
       botonVolverMenuPrincipal: document.getElementById("backToMainMenuButton"),
     });
+    this.adaptadorDerrotaDom = new AdaptadorDerrotaDom();
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
+      alJugadorDerrotado: (detalle) =>
+        this.adaptadorDerrotaDom.presentar(detalle),
     });
-    this.controladorDerrota = new ControladorDerrota();
   }
   // La configuración de maestrías se carga junto con el resto. Así, Player
   // siempre se construye después de validar los cuatro catálogos mágicos.

@@ -1,37 +1,37 @@
-import { EVENTO_JUGADOR_DERROTADO } from "./ProcesadorResultadoAccion.js";
-import { ModalDerrota } from "../interfaz/ModalDerrota.js";
-import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
+import { eliminarGuardadoJugador } from "../../partida/PersistenciaJugador.js";
+import { ModalDerrota } from "./ModalDerrota.js";
 
-// Coordina el cierre de una partida derrotada.
-export class ControladorDerrota {
+// Presenta mediante DOM el cierre de una partida derrotada.
+//
+// La detección de la derrota pertenece al procesamiento de aplicación. Este
+// adaptador solamente conoce el modal HTML y las acciones propias del navegador.
+export class AdaptadorDerrotaDom {
   constructor() {
     this.modalDerrota = new ModalDerrota();
     this.derrotaProcesada = false;
-    this.manejarJugadorDerrotado = this.manejarJugadorDerrotado.bind(this);
-
-    document.addEventListener(
-      EVENTO_JUGADOR_DERROTADO,
-      this.manejarJugadorDerrotado,
-    );
   }
 
-  manejarJugadorDerrotado(event) {
+  presentar({ juego, jugador } = {}) {
     if (this.derrotaProcesada) {
-      return;
+      return false;
     }
 
-    const jugador = event.detail?.jugador ?? event.detail?.juego?.player;
+    const jugadorDerrotado = jugador ?? juego?.player;
 
-    if (!jugador) {
-      return;
+    if (!jugadorDerrotado) {
+      throw new Error(
+        "AdaptadorDerrotaDom necesita un jugador derrotado válido.",
+      );
     }
 
     this.derrotaProcesada = true;
     this.cerrarOtrosDialogos();
     this.modalDerrota.abrir({
-      jugador,
+      jugador: jugadorDerrotado,
       alVolverMenu: () => this.volverAlMenuPrincipal(),
     });
+
+    return true;
   }
 
   cerrarOtrosDialogos() {
@@ -45,8 +45,8 @@ export class ControladorDerrota {
   }
 
   volverAlMenuPrincipal() {
-    // La muerte cierra el ciclo roguelike. Ningún inventario, oro o
-    // progreso durable del personaje derrotado debe reaparecer.
+    // La muerte cierra el ciclo roguelike. Ningún inventario, oro o progreso
+    // durable del personaje derrotado debe reaparecer.
     try {
       eliminarGuardadoJugador();
     } catch (error) {
@@ -74,10 +74,6 @@ export class ControladorDerrota {
   }
 
   destruir() {
-    document.removeEventListener(
-      EVENTO_JUGADOR_DERROTADO,
-      this.manejarJugadorDerrotado,
-    );
     this.modalDerrota.destruir();
   }
 }

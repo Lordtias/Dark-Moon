@@ -97,6 +97,7 @@ El modo por URL puede ignorar el nivel de desbloqueo porque está destinado a pr
 index.html
   └─ game.js
       ├─ src/interfaz/dom/PresentacionAplicacionDom.js
+      ├─ src/interfaz/dom/PresentacionMapaActivoDom.js
       └─ src/aplicacion/Aplicacion.js
 ```
 
@@ -171,15 +172,15 @@ game.js
    └─ Aplicacion
           ↓
    ControladorPartida
-   ↓
-EstadoPartida + Gestores persistentes
-   ↓
-EjecutorAccionesJugador
-   ↓
-Juego del mapa activo
-   ↓
-Motores jugables
-   ↓
+      ├─ EstadoPartida + gestores persistentes
+      ├─ EjecutorAccionesJugador
+      ├─ Juego del mapa activo
+      │      ↓
+      │   Motores jugables
+      └─ solicita PresentacionMapaActivoDom
+                 ↓
+       teclado, paneles, modales y habilidades
+
 ResultadoAccion
    ↓
 ProcesadorResultadoAccion
@@ -217,11 +218,26 @@ Concentra la composición HTML actual:
 - localiza y valida los elementos iniciales del documento;
 - crea `ControladorPantallasDom`;
 - crea el menú de personaje;
-- entrega la fábrica de interfaz Canvas/DOM de la partida;
+- entrega la fábrica de interfaz Canvas/DOM persistente de la partida;
+- construye `PresentacionMapaActivoDom` para cada mapa activado;
 - presenta la derrota mediante `AdaptadorDerrotaDom`;
 - muestra errores de inicio en la pantalla de creación.
 
 `game.js` decide utilizar esta presentación. Una composición futura puede entregar otra implementación sin modificar la coordinación general de `Aplicacion`.
+
+#### `PresentacionMapaActivoDom`
+
+`src/interfaz/dom/PresentacionMapaActivoDom.js`
+
+Agrupa los componentes visuales y de entrada que existen solamente mientras un mapa está activo:
+
+- teclado DOM;
+- inventario y equipamiento;
+- comercio;
+- contenedores, curación y transiciones;
+- barra, panel y puntero de habilidades.
+
+Se crea nuevamente al entrar en una ciudad o mazmorra y se destruye antes de retirar el `Juego` anterior. De esta forma, `ControladorPartida` no elige controladores DOM concretos ni administra sus listeners y modales de manera individual.
 
 #### `ControladorPartida`
 
@@ -234,13 +250,13 @@ Coordina toda la sesión:
 - crea los gestores de mapas y mercaderes;
 - solicita a la presentación una única interfaz persistente;
 - activa ciudad o mazmorra;
-- reemplaza `Juego` y sus controladores al cambiar de mapa;
+- reemplaza `Juego` al cambiar de mapa;
 - crea el ejecutor compartido de comandos para el mapa activo;
-- conecta habilidades, inventario, comercio e interacciones;
+- solicita a la presentación una composición nueva para cada mapa;
 - procesa en un único punto los resultados de acciones, inventario, equipamiento, comercio e interacciones;
-- entrega las interacciones resueltas al adaptador DOM correspondiente;
+- entrega las interacciones resueltas a la presentación activa;
 - notifica la derrota mediante un callback de presentación;
-- destruye correctamente los sistemas del mapa anterior.
+- destruye primero la presentación y después los sistemas del mapa anterior.
 
 #### `EjecutorAccionesJugador`
 
@@ -878,6 +894,7 @@ src/interfaz/objetos/VistaDetalleObjeto.js
 src/interfaz/objetos/ComparadorObjetos.js
 src/interfaz/objetos/VistaComparacionObjetos.js
 src/interfaz/objetos/ModalDetalleObjeto.js
+src/interfaz/objetos/ControladorEquipamientoDom.js
 ```
 
 El modal recibe objetos reales y puede ofrecer una acción de equipar, consumir, cargar o desequipar.
@@ -903,7 +920,7 @@ src/juego/comercio/GeneradorStockMercader.js
 src/juego/comercio/CalculadorValorObjeto.js
 src/juego/comercio/CalculadorPreciosComercio.js
 src/juego/comercio/SistemaComercio.js
-src/controles/ControladorComercio.js
+src/interfaz/comercio/ControladorComercioDom.js
 src/interfaz/comercio/ModalComercio.js
 ```
 
@@ -970,7 +987,7 @@ Código principal:
 
 ```text
 src/juego/habilidades/SistemaHabilidadesJugador.js
-src/juego/habilidades/IntegracionHabilidadesJugador.js
+src/interfaz/habilidades/IntegracionHabilidadesDom.js
 src/juego/habilidades/EstadoSesionHabilidades.js
 src/juego/habilidades/GeometriaHabilidades.js
 src/juego/habilidades/MotorDanioHabilidad.js
@@ -987,7 +1004,7 @@ src/juego/habilidades/ObservadorProgresoMagico.js
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
 - `MotorEfectosHabilidad`: aplicación de efectos.
-- `IntegracionHabilidadesJugador`: conecta un `Juego` activo con barra, panel, puntero, comandos y persistencia.
+- `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel, puntero, comandos y persistencia.
 - `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
 - `ControladorPunteroHabilidades`: adaptación DOM de clics a coordenadas del selector.
 - `PanelHabilidadesMaestrias`: presentación y mejora de habilidades.
@@ -1235,13 +1252,15 @@ Los IDs son contratos entre JSON, código, persistencia e interfaz. Antes de ren
 
 ### Composición DOM
 
-`src/interfaz/dom/PresentacionAplicacionDom.js` construye la presentación inicial utilizada por `game.js`. Agrupa el menú, las pantallas, la derrota y la fábrica visual de la partida sin trasladar reglas jugables al DOM.
+`src/interfaz/dom/PresentacionAplicacionDom.js` construye la presentación inicial utilizada por `game.js`. Agrupa el menú, las pantallas, la derrota y las fábricas visuales sin trasladar reglas jugables al DOM.
 
 `src/interfaz/dom/ControladorPantallasDom.js` cambia la visibilidad del menú, la creación del personaje y el contenedor del juego mediante clases CSS.
 
+`src/interfaz/dom/PresentacionMapaActivoDom.js` construye y destruye los adaptadores asociados a cada ciudad o mazmorra: teclado, equipamiento, comercio, interacciones y habilidades.
+
 ### Interfaz de partida
 
-`src/interfaz/FabricaInterfazPartida.js` crea los componentes principales utilizando elementos ya declarados en `index.html`:
+`src/interfaz/dom/FabricaInterfazPartidaDom.js` crea los componentes persistentes utilizando elementos ya declarados en `index.html`:
 
 - renderizador;
 - panel del personaje;
@@ -1254,7 +1273,7 @@ Los IDs son contratos entre JSON, código, persistencia e interfaz. Antes de ren
 
 `src/interfaz/interacciones/AdaptadorInteraccionesDom.js` coordina la presentación de contenedores, comercio, curación, selección de mazmorras y transiciones después de que el comando compartido resuelve la interacción.
 
-Otros componentes se crean cuando son necesarios, como el modal de curación y la integración de habilidades.
+`src/interfaz/objetos/ControladorEquipamientoDom.js`, `src/interfaz/comercio/ControladorComercioDom.js` y `src/interfaz/habilidades/IntegracionHabilidadesDom.js` conectan los paneles y modales con los motores reales. Otros componentes se crean cuando son necesarios, como el modal de curación.
 
 ### Contrato gráfico
 
@@ -1483,8 +1502,8 @@ Phaser futuro ────────────┘
 
 ### Preparaciones concretas pendientes
 
-1. Agrupar la construcción de los adaptadores del mapa activo para que `ControladorPartida` no elija controladores DOM concretos.
-2. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
+1. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
+2. Incorporar Phaser inicialmente como backend del mapa, conservando los paneles y modales DOM.
 
 ### Lo que Phaser no debe contener
 

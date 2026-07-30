@@ -1,12 +1,12 @@
 import {
   calcularPrecioCompra,
   calcularPrecioVenta,
-} from "../juego/comercio/CalculadorPreciosComercio.js";
+} from "../../juego/comercio/CalculadorPreciosComercio.js";
 
 import {
   comprarObjetoMercader,
   venderObjetoMercader,
-} from "../juego/comercio/SistemaComercio.js";
+} from "../../juego/comercio/SistemaComercio.js";
 
 // Conecta el dominio comercial con ModalComercio.
 //
@@ -17,7 +17,7 @@ import {
 // - Transacciones.
 // - Mensajes.
 // - Actualización visual.
-export class ControladorComercio {
+export class ControladorComercioDom {
   constructor({
     juego,
     modalComercio,
@@ -41,7 +41,7 @@ export class ControladorComercio {
 
     if (typeof alProcesarResultado !== "function") {
       throw new Error(
-        "ControladorComercio necesita una acción para procesar resultados.",
+        "ControladorComercioDom necesita una acción para procesar resultados.",
       );
     }
 
@@ -194,7 +194,7 @@ export class ControladorComercio {
 function validarJuego(juego) {
   if (!juego?.player?.inventario) {
     throw new Error(
-      "ControladorComercio necesita un Juego con jugador e inventario.",
+      "ControladorComercioDom necesita un Juego con jugador e inventario.",
     );
   }
 }
@@ -206,7 +206,7 @@ function validarModal(modalComercio) {
     typeof modalComercio.cerrar !== "function"
   ) {
     throw new Error(
-      "ControladorComercio necesita un modal de comercio válido.",
+      "ControladorComercioDom necesita un modal de comercio válido.",
     );
   }
 }
@@ -214,13 +214,15 @@ function validarModal(modalComercio) {
 function validarGestorMercaderes(gestor) {
   if (!gestor || typeof gestor.obtenerMercader !== "function") {
     throw new Error(
-      "ControladorComercio necesita un gestor de mercaderes válido.",
+      "ControladorComercioDom necesita un gestor de mercaderes válido.",
     );
   }
 }
 
 function validarObjetoPlano(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
-    throw new Error(`ControladorComercio necesita una ${descripcion} válida.`);
+    throw new Error(
+      `ControladorComercioDom necesita una ${descripcion} válida.`,
+    );
   }
 }

@@ -1,15 +1,16 @@
-import { Renderizador } from "./Renderizador.js";
-import { RenderizadorCanvas2D } from "./graficos/RenderizadorCanvas2D.js";
-import { PanelPersonaje } from "./PanelPersonaje.js";
-import { PanelInventario } from "./PanelInventario.js";
-import { PanelEquipamiento } from "./PanelEquipamiento.js";
-import { ModalDetalleObjeto } from "./objetos/ModalDetalleObjeto.js";
-import { ModalContenedorObjetos } from "./objetos/ModalContenedorObjetos.js";
-import { ModalSeleccionMazmorra } from "./ModalSeleccionMazmorra.js";
-import { ModalComercio } from "./comercio/ModalComercio.js";
+import { configurarContextoPresentacionObjetos } from "../objetos/ContextoPresentacionObjetos.js";
+import { Renderizador } from "../Renderizador.js";
+import { RenderizadorCanvas2D } from "../graficos/RenderizadorCanvas2D.js";
+import { PanelPersonaje } from "../PanelPersonaje.js";
+import { PanelInventario } from "../PanelInventario.js";
+import { PanelEquipamiento } from "../PanelEquipamiento.js";
+import { ModalDetalleObjeto } from "../objetos/ModalDetalleObjeto.js";
+import { ModalContenedorObjetos } from "../objetos/ModalContenedorObjetos.js";
+import { ModalSeleccionMazmorra } from "../ModalSeleccionMazmorra.js";
+import { ModalComercio } from "../comercio/ModalComercio.js";
 
-// Crea todos los componentes visuales
-// utilizados durante una partida.
+// Crea los componentes visuales persistentes
+// utilizados durante toda una partida.
 //
 // Esta fábrica centraliza:
 //
@@ -18,12 +19,17 @@ import { ModalComercio } from "./comercio/ModalComercio.js";
 // - Las ventanas modales.
 // - Las referencias obligatorias del documento.
 //
-// Los controladores reciben componentes ya construidos
-// y no necesitan conocer su estructura interna.
-export function crearInterfazPartida({ tileSize } = {}) {
+// La presentación de cada mapa recibe componentes ya construidos
+// y no necesita conocer su estructura HTML interna.
+export function crearInterfazPartidaDom({
+  tileSize,
+  configuracionRarezas,
+} = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
   }
+
+  configurarContextoPresentacionObjetos({ configuracionRarezas });
 
   const canvas = obtenerElementoObligatorio("gameCanvas", "canvas del mapa");
 

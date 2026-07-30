@@ -55,6 +55,8 @@ export class Aplicacion {
         this.presentacion.presentarDerrota(detalle),
       crearInterfazPartida: (configuracion) =>
         this.presentacion.crearInterfazPartida(configuracion),
+      crearPresentacionMapaActivo: (configuracion) =>
+        this.presentacion.crearPresentacionMapaActivo(configuracion),
     });
   }
 
@@ -136,6 +138,7 @@ function validarPresentacion(presentacion) {
     "crearControladorPantallas",
     "crearMenuCreacionPersonaje",
     "crearInterfazPartida",
+    "crearPresentacionMapaActivo",
     "presentarDerrota",
     "mostrarErrorInicio",
   ];

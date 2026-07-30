@@ -1,5 +1,6 @@
 import { MenuCreacionPersonaje } from "../MenuCreacionPersonaje.js";
-import { crearInterfazPartida as crearInterfazPartidaDom } from "../FabricaInterfazPartida.js";
+import { crearInterfazPartidaDom } from "./FabricaInterfazPartidaDom.js";
+import { PresentacionMapaActivoDom } from "./PresentacionMapaActivoDom.js";
 import { AdaptadorDerrotaDom } from "../derrota/AdaptadorDerrotaDom.js";
 import { ControladorPantallasDom } from "./ControladorPantallasDom.js";
 
@@ -55,6 +56,10 @@ export class PresentacionAplicacionDom {
 
   crearInterfazPartida(configuracion) {
     return crearInterfazPartidaDom(configuracion);
+  }
+
+  crearPresentacionMapaActivo(configuracion) {
+    return new PresentacionMapaActivoDom(configuracion);
   }
 
   presentarDerrota(detalle) {

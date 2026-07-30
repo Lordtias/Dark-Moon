@@ -1,19 +1,19 @@
 import { guardarJugadorDurable } from "../../partida/PersistenciaJugador.js";
-import { BarraHabilidades } from "../../interfaz/habilidades/BarraHabilidades.js";
-import { PanelHabilidadesMaestrias } from "../../interfaz/habilidades/PanelHabilidadesMaestrias.js";
+import { BarraHabilidades } from "./BarraHabilidades.js";
+import { PanelHabilidadesMaestrias } from "./PanelHabilidadesMaestrias.js";
 import { ControladorPunteroHabilidades } from "../../controles/ControladorPunteroHabilidades.js";
 import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
-import { suscribirCambiosProgresoMagico } from "./ObservadorProgresoMagico.js";
+import { suscribirCambiosProgresoMagico } from "../../juego/habilidades/ObservadorProgresoMagico.js";
 import {
   guardarConfiguracionBarraHabilidades,
   leerConfiguracionBarraHabilidades,
   eliminarConfiguracionBarraHabilidades,
-} from "./PersistenciaBarraHabilidades.js";
-import { SistemaHabilidadesJugador } from "./SistemaHabilidadesJugador.js";
+} from "../../juego/habilidades/PersistenciaBarraHabilidades.js";
+import { SistemaHabilidadesJugador } from "../../juego/habilidades/SistemaHabilidadesJugador.js";
 
-// Coordina los componentes permanentes de habilidades durante la vida de un
-// mapa activo. No contiene reglas de progreso, combate ni persistencia propia.
-export class IntegracionHabilidadesJugador {
+// Coordina la presentación DOM de habilidades durante la vida de un mapa
+// activo. No contiene reglas de progreso, combate ni persistencia propia.
+export class IntegracionHabilidadesDom {
   constructor({
     juego,
     renderizador,
@@ -25,7 +25,7 @@ export class IntegracionHabilidadesJugador {
   } = {}) {
     if (!juego || typeof esJuegoActivo !== "function") {
       throw new Error(
-        "La integración de habilidades necesita un Juego y su verificación de actividad.",
+        "La integración DOM de habilidades necesita un Juego y su verificación de actividad.",
       );
     }
 
@@ -36,13 +36,13 @@ export class IntegracionHabilidadesJugador {
       typeof renderizador.actualizarEstadoVisualHabilidad !== "function"
     ) {
       throw new Error(
-        "La integración de habilidades necesita el renderizador activo de la partida.",
+        "La integración DOM de habilidades necesita el renderizador activo de la partida.",
       );
     }
 
     if (typeof alEjecutarComando !== "function") {
       throw new Error(
-        "La integración de habilidades necesita una función para ejecutar comandos.",
+        "La integración DOM de habilidades necesita una función para ejecutar comandos.",
       );
     }
 
@@ -256,7 +256,7 @@ export class IntegracionHabilidadesJugador {
 function normalizarFachadaJuego(juego) {
   if (!juego || typeof juego !== "object") {
     throw new Error(
-      "La integración de habilidades recibió una instancia de Juego inválida.",
+      "La integración DOM de habilidades recibió una instancia de Juego inválida.",
     );
   }
 

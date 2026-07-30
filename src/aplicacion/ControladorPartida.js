@@ -10,24 +10,12 @@ import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
 } from "../partida/TransicionesMapa.js";
-import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 import {
   EjecutorAccionesJugador,
   TIPOS_COMANDO_JUGADOR,
 } from "./EjecutorAccionesJugador.js";
-import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
-import {
-  AdaptadorInteraccionesDom,
-} from "../interfaz/interacciones/AdaptadorInteraccionesDom.js";
-import { ControladorComercio } from "../controles/ControladorComercio.js";
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
-import { configurarContextoPresentacionObjetos } from "../interfaz/objetos/ContextoPresentacionObjetos.js";
-import { IntegracionHabilidadesJugador } from "../juego/habilidades/IntegracionHabilidadesJugador.js";
-import {
-  obtenerConfiguracionEjecucionHabilidades,
-  obtenerConfiguracionProgresoMagico,
-} from "../juego/maestrias/ContextoProgresoMagico.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -35,13 +23,14 @@ import {
 // EstadoPartida, GestorMapasPartida y
 // GestorMercaderesPartida viven durante toda la sesión.
 //
-// Juego y sus controladores se reemplazan
+// Juego y su presentación se reemplazan
 // cada vez que se activa un mapa diferente.
 export class ControladorPartida {
   constructor({
     controladorPantallas,
     alJugadorDerrotado,
     crearInterfazPartida,
+    crearPresentacionMapaActivo,
   } = {}) {
     if (
       !controladorPantallas ||
@@ -64,9 +53,16 @@ export class ControladorPartida {
       );
     }
 
+    if (typeof crearPresentacionMapaActivo !== "function") {
+      throw new Error(
+        "ControladorPartida necesita una fábrica de presentación de mapa.",
+      );
+    }
+
     this.controladorPantallas = controladorPantallas;
     this.alJugadorDerrotado = alJugadorDerrotado;
     this.crearInterfazPartida = crearInterfazPartida;
+    this.crearPresentacionMapaActivo = crearPresentacionMapaActivo;
 
     // Estado persistente.
     this.estadoPartida = null;
@@ -80,14 +76,10 @@ export class ControladorPartida {
     this.juego = null;
     this.renderizador = null;
     this.ejecutorAccionesJugador = null;
-    this.controladorTeclado = null;
-    this.controladorEquipamiento = null;
-    this.adaptadorInteraccionesDom = null;
-    this.controladorComercio = null;
-    this.integracionHabilidades = null;
+    this.presentacionMapaActivo = null;
 
     // Configuraciones persistentes requeridas
-    // por los controladores de cada mapa.
+    // por la presentación de cada mapa.
     this.configuracionObjetos = null;
     this.configuracionRarezas = null;
     this.configuracionComercio = null;
@@ -141,12 +133,9 @@ export class ControladorPartida {
     this.configuracionRarezas = configuracionGeneracionObjetos.rarezas;
     this.configuracionComercio = configuracionComercio;
 
-    configurarContextoPresentacionObjetos({
-      configuracionRarezas: this.configuracionRarezas,
-    });
-
     this.interfazPartida = this.crearInterfazPartida({
       tileSize: TILE_SIZE,
+      configuracionRarezas: this.configuracionRarezas,
     });
 
     this.renderizador = this.interfazPartida.renderizador;
@@ -352,10 +341,13 @@ export class ControladorPartida {
 
     const contextoHabilidad = crearContextoHabilidadParaComando({
       comando,
-      integracionHabilidades: this.integracionHabilidades,
+      integracionHabilidades:
+        this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null,
     });
+    const integracionHabilidades =
+      this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null;
     const contextoProcesamiento = contextoHabilidad.esComandoHabilidad
-      ? this.integracionHabilidades.iniciarProcesamientoComando({
+      ? integracionHabilidades.iniciarProcesamientoComando({
           suprimirRedibujado: contextoHabilidad.esConfirmacion,
         })
       : null;
@@ -364,14 +356,14 @@ export class ControladorPartida {
     try {
       resultado = this.ejecutorAccionesJugador.ejecutar(comando);
     } catch (error) {
-      this.integracionHabilidades?.cancelarProcesamientoComando(
+      integracionHabilidades?.cancelarProcesamientoComando(
         contextoProcesamiento,
       );
       throw error;
     }
 
     const estadoProcesamiento = contextoProcesamiento
-      ? this.integracionHabilidades.finalizarProcesamientoComando(
+      ? integracionHabilidades.finalizarProcesamientoComando(
           contextoProcesamiento,
         )
       : { cambioEmitido: false };
@@ -406,13 +398,13 @@ export class ControladorPartida {
       return false;
     }
 
-    if (!this.adaptadorInteraccionesDom) {
+    if (!this.presentacionMapaActivo) {
       throw new Error(
-        "No se puede presentar una interacción sin un adaptador DOM activo.",
+        "No se puede presentar una interacción sin un mapa activo.",
       );
     }
 
-    this.adaptadorInteraccionesDom.presentar(resultado.interaccion);
+    this.presentacionMapaActivo.presentarInteraccion(resultado.interaccion);
     return true;
   }
 
@@ -426,7 +418,8 @@ export class ControladorPartida {
       return { procesado: false, resultado };
     }
 
-    const integracion = this.integracionHabilidades;
+    const integracion =
+      this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null;
 
     if (contextoHabilidad.esConfirmacion) {
       integracion.registrarResultado(resultado);
@@ -463,11 +456,10 @@ export class ControladorPartida {
       throw new Error("No se puede activar un mapa sin una interfaz creada.");
     }
 
-    // La integración pertenece al mapa activo. Debe destruirse antes que el
-    // Juego anterior para retirar listeners, observadores e intervalos.
-    this.integracionHabilidades?.destruir();
-    this.integracionHabilidades = null;
-    this.desactivarControles();
+    // La presentación pertenece al mapa activo. Debe destruirse antes que el
+    // Juego anterior para retirar listeners, observadores, ventanas e intervalos.
+    this.presentacionMapaActivo?.destruir();
+    this.presentacionMapaActivo = null;
     this.ejecutorAccionesJugador = null;
 
     // La transición no consume tiempo. El jugador conserva sus efectos con
@@ -477,15 +469,7 @@ export class ControladorPartida {
       preservarEfectosJugador: true,
     });
 
-    const {
-      renderizador,
-      panelInventario,
-      panelEquipamiento,
-      modalDetalleObjeto,
-      modalContenedorObjetos,
-      modalSeleccionMazmorra,
-      modalComercio,
-    } = this.interfazPartida;
+    const { renderizador } = this.interfazPartida;
 
     const cantidadFilas = configuracionMapa.map.length;
     const cantidadColumnas = configuracionMapa.map[0].length;
@@ -501,77 +485,41 @@ export class ControladorPartida {
       configuracionObjetos: this.configuracionObjetos,
     });
 
+    this.juego = juego;
+    this.renderizador = renderizador;
+
     const ejecutorAccionesJugador = new EjecutorAccionesJugador({
       juego,
       obtenerSistemaHabilidades: () =>
-        this.integracionHabilidades?.obtenerSistemaParaEntrada() ?? null,
+        this.presentacionMapaActivo?.obtenerSistemaHabilidades() ?? null,
     });
 
-    const controladorTeclado = new ControladorTeclado({
-      alEjecutarComando: (comando) =>
-        this.ejecutarComandoJugador(comando),
-    });
+    this.ejecutorAccionesJugador = ejecutorAccionesJugador;
 
-    const controladorEquipamiento = new ControladorEquipamiento({
+    const juegoActivo = juego;
+    const presentacionMapaActivo = this.crearPresentacionMapaActivo({
       juego,
-      panelInventario,
-      panelEquipamiento,
-      modalDetalleObjeto,
-      alProcesarResultado: (resultado) =>
-        this.procesarResultadoAccion(resultado),
-    });
-
-    const controladorComercio = new ControladorComercio({
-      juego,
-      modalComercio,
+      interfazPartida: this.interfazPartida,
       gestorMercaderesPartida: this.gestorMercaderesPartida,
       configuracionObjetos: this.configuracionObjetos,
       configuracionRarezas: this.configuracionRarezas,
       configuracionComercio: this.configuracionComercio,
-      alProcesarResultado: (resultado) =>
-        this.procesarResultadoAccion(resultado),
-    });
-
-    const adaptadorInteraccionesDom = new AdaptadorInteraccionesDom({
-      juego,
-      modalContenedorObjetos,
-      modalSeleccionMazmorra,
       obtenerMazmorrasDisponibles: () =>
         this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
-      // El adaptador reenvía el resultado completo del modal.
       alSeleccionarMazmorra: (seleccion) =>
         this.iniciarExpedicionSeleccionada(seleccion),
-      alSolicitarComercio: (idMercader) =>
-        controladorComercio.abrir(idMercader),
       alSolicitarTransicionMapa: (solicitud) =>
         this.procesarSolicitudTransicionMapa(solicitud),
       alProcesarResultado: (resultado) =>
         this.procesarResultadoAccion(resultado),
-    });
-
-    this.juego = juego;
-    this.renderizador = renderizador;
-    this.ejecutorAccionesJugador = ejecutorAccionesJugador;
-    this.controladorTeclado = controladorTeclado;
-    this.controladorEquipamiento = controladorEquipamiento;
-    this.controladorComercio = controladorComercio;
-    this.adaptadorInteraccionesDom = adaptadorInteraccionesDom;
-
-    const juegoActivo = this.juego;
-    this.integracionHabilidades = new IntegracionHabilidadesJugador({
-      juego: juegoActivo,
-      renderizador: this.renderizador,
-      configuracionEjecucion: obtenerConfiguracionEjecucionHabilidades(),
-      configuracionProgreso: obtenerConfiguracionProgresoMagico(),
-      configuracionObjetos: this.configuracionObjetos,
-      esJuegoActivo: () =>
-        this.partidaIniciada === true && this.juego === juegoActivo,
       alEjecutarComando: (comando) =>
         this.ejecutarComandoJugador(comando),
+      esJuegoActivo: () =>
+        this.partidaIniciada === true && this.juego === juegoActivo,
     });
 
-    this.controladorTeclado.activar();
-    this.controladorEquipamiento.activar();
+    this.presentacionMapaActivo = presentacionMapaActivo;
+    this.presentacionMapaActivo.activar();
     this.renderizador.dibujarJuego(this.juego);
   }
 
@@ -650,14 +598,6 @@ export class ControladorPartida {
     console.groupEnd();
   }
 
-  desactivarControles() {
-    // Cerramos primero las ventanas
-    // asociadas al mapa anterior.
-    this.controladorComercio?.desactivar();
-    this.controladorTeclado?.desactivar();
-    this.controladorEquipamiento?.desactivar();
-    this.adaptadorInteraccionesDom?.desactivar();
-  }
 }
 
 function crearContextoHabilidadParaComando({

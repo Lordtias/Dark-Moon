@@ -3,7 +3,7 @@
 //
 // El controlador entrega una lista única del equipamiento.
 // La comparación es manual y no intenta adivinar reemplazos.
-export class ControladorEquipamiento {
+export class ControladorEquipamientoDom {
   constructor({
     juego,
     panelInventario,
@@ -17,14 +17,14 @@ export class ControladorEquipamiento {
       typeof juego.desequiparObjetoAInventario !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita una partida " +
+        "ControladorEquipamientoDom necesita una partida " +
           "con acciones de inventario válidas.",
       );
     }
 
     if (!juego.player?.inventario || !juego.player?.equipamiento) {
       throw new Error(
-        "ControladorEquipamiento necesita un jugador " +
+        "ControladorEquipamientoDom necesita un jugador " +
           "con inventario y equipamiento.",
       );
     }
@@ -34,7 +34,7 @@ export class ControladorEquipamiento {
       typeof panelInventario.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel de inventario.",
+        "ControladorEquipamientoDom necesita un panel de inventario.",
       );
     }
 
@@ -43,7 +43,7 @@ export class ControladorEquipamiento {
       typeof panelEquipamiento.configurarSeleccionador !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un panel de equipamiento.",
+        "ControladorEquipamientoDom necesita un panel de equipamiento.",
       );
     }
 
@@ -53,13 +53,14 @@ export class ControladorEquipamiento {
       typeof modalDetalleObjeto.cerrar !== "function"
     ) {
       throw new Error(
-        "ControladorEquipamiento necesita un modal " + "de detalle de objetos.",
+        "ControladorEquipamientoDom necesita un modal " +
+          "de detalle de objetos.",
       );
     }
 
     if (typeof alProcesarResultado !== "function") {
       throw new Error(
-        "ControladorEquipamiento necesita una acción para procesar resultados.",
+        "ControladorEquipamientoDom necesita una acción para procesar resultados.",
       );
     }
 

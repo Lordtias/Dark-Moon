@@ -450,8 +450,8 @@ function crearAccesoContexto(obtenerAplicacion) {
       return jugador;
     },
     obtenerIntegracion() {
-      const integracion =
-        acceso.obtenerControladorPartida().integracionHabilidades;
+      const controlador = acceso.obtenerControladorPartida();
+      const integracion = obtenerIntegracionHabilidadesActiva(controlador);
       if (!integracion || integracion.destruida) {
         throw new Error("No existe una integración activa de habilidades.");
       }
@@ -466,6 +466,13 @@ function crearAccesoContexto(obtenerAplicacion) {
     },
   };
   return Object.freeze(acceso);
+}
+
+function obtenerIntegracionHabilidadesActiva(controlador) {
+  return (
+    controlador?.presentacionMapaActivo?.obtenerIntegracionHabilidades?.() ??
+    null
+  );
 }
 
 function crearInstantaneaEjecucion(contexto) {
@@ -991,12 +998,12 @@ function validarContratosInterfaz(contexto) {
       typeof integracion.panel.estaAbierto === "function",
     integracion.panel?.constructor?.name,
   );
+  const entrada = integracion.puntero;
   comprobar(
     comprobaciones,
     "Existe un único controlador de entrada destruible",
-    Boolean(integracion.entrada) &&
-      typeof integracion.entrada.destruir === "function",
-    integracion.entrada?.constructor?.name,
+    Boolean(entrada) && typeof entrada.destruir === "function",
+    entrada?.constructor?.name,
   );
   comprobar(
     comprobaciones,
@@ -1010,7 +1017,8 @@ function validarContratosInterfaz(contexto) {
 
 function crearResumenArquitectura(contexto) {
   const controlador = contexto.obtenerControladorPartida();
-  const integracion = controlador.integracionHabilidades;
+  const integracion = obtenerIntegracionHabilidadesActiva(controlador);
+  const entrada = integracion?.puntero ?? null;
   return {
     partidaIniciada: controlador.partidaIniciada === true,
     juegoActivo: Boolean(controlador.juego),
@@ -1020,7 +1028,7 @@ function crearResumenArquitectura(contexto) {
     ),
     barraActiva: Boolean(integracion?.barra),
     panelActivo: Boolean(integracion?.panel),
-    entradaActiva: Boolean(integracion?.entrada),
+    entradaActiva: Boolean(entrada),
     sistemaZonasActivo: Boolean(
       controlador.juego?.sistemaZonasTemporales &&
       !controlador.juego.sistemaZonasTemporales.destruido,

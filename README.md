@@ -96,10 +96,11 @@ El modo por URL puede ignorar el nivel de desbloqueo porque está destinado a pr
 ```text
 index.html
   └─ game.js
+      ├─ src/interfaz/dom/PresentacionAplicacionDom.js
       └─ src/aplicacion/Aplicacion.js
 ```
 
-`game.js` crea una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
+`game.js` crea la presentación DOM actual, la inyecta en una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
 
 ```js
 globalThis.darkMoonAplicacion
@@ -133,7 +134,7 @@ Dark-Moon/
 │  ├─ config/                    Datos JSON y constantes generales.
 │  ├─ controles/                 Adaptadores de teclado y puntero DOM.
 │  ├─ entidad/                   Entidades del mundo y combatientes.
-│  ├─ interfaz/                  Paneles, modales y representación visual.
+│  ├─ interfaz/                  Composición DOM, paneles, modales y representación visual.
 │  ├─ juego/                     Motores y reglas jugables.
 │  ├─ herramientas/              Balance y depuración para desarrollo.
 │  └─ objetos/                   Modelo base de objetos, inventario y equipo.
@@ -166,10 +167,10 @@ El flujo principal es:
 index.html
    ↓
 game.js
-   ↓
-Aplicacion
-   ↓
-ControladorPartida
+   ├─ PresentacionAplicacionDom
+   └─ Aplicacion
+          ↓
+   ControladorPartida
    ↓
 EstadoPartida + Gestores persistentes
    ↓
@@ -194,18 +195,33 @@ Renderizador + adaptadores DOM
 
 `src/aplicacion/Aplicacion.js`
 
-- localiza los elementos iniciales del DOM;
-- crea los controladores generales;
+- coordina el arranque general;
 - carga y valida los JSON;
-- crea el menú de personaje;
+- solicita a la presentación los componentes visuales necesarios;
+- crea `ControladorPartida` mediante dependencias inyectadas;
 - inicia una nueva sesión.
+
+No utiliza `document`, selectores HTML ni clases visuales concretas.
 
 Confirmar un personaje representa una partida nueva. Antes de iniciarla se eliminan:
 
 - el guardado durable anterior;
 - la configuración anterior de la barra de habilidades.
 
-`Aplicacion` también elige la presentación de derrota actual: construye `AdaptadorDerrotaDom` y conecta su método `presentar()` con `ControladorPartida`.
+#### `PresentacionAplicacionDom`
+
+`src/interfaz/dom/PresentacionAplicacionDom.js`
+
+Concentra la composición HTML actual:
+
+- localiza y valida los elementos iniciales del documento;
+- crea `ControladorPantallasDom`;
+- crea el menú de personaje;
+- entrega la fábrica de interfaz Canvas/DOM de la partida;
+- presenta la derrota mediante `AdaptadorDerrotaDom`;
+- muestra errores de inicio en la pantalla de creación.
+
+`game.js` decide utilizar esta presentación. Una composición futura puede entregar otra implementación sin modificar la coordinación general de `Aplicacion`.
 
 #### `ControladorPartida`
 
@@ -216,7 +232,7 @@ Coordina toda la sesión:
 - crea al jugador;
 - crea `EstadoPartida`;
 - crea los gestores de mapas y mercaderes;
-- crea una única interfaz persistente;
+- solicita a la presentación una única interfaz persistente;
 - activa ciudad o mazmorra;
 - reemplaza `Juego` y sus controladores al cambiar de mapa;
 - crea el ejecutor compartido de comandos para el mapa activo;
@@ -1217,7 +1233,13 @@ Los IDs son contratos entre JSON, código, persistencia e interfaz. Antes de ren
 
 ## 21. Interfaz y representación visual
 
-### Interfaz HTML
+### Composición DOM
+
+`src/interfaz/dom/PresentacionAplicacionDom.js` construye la presentación inicial utilizada por `game.js`. Agrupa el menú, las pantallas, la derrota y la fábrica visual de la partida sin trasladar reglas jugables al DOM.
+
+`src/interfaz/dom/ControladorPantallasDom.js` cambia la visibilidad del menú, la creación del personaje y el contenedor del juego mediante clases CSS.
+
+### Interfaz de partida
 
 `src/interfaz/FabricaInterfazPartida.js` crea los componentes principales utilizando elementos ya declarados en `index.html`:
 
@@ -1461,7 +1483,7 @@ Phaser futuro ────────────┘
 
 ### Preparaciones concretas pendientes
 
-1. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
+1. Agrupar la construcción de los adaptadores del mapa activo para que `ControladorPartida` no elija controladores DOM concretos.
 2. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
 
 ### Lo que Phaser no debe contener

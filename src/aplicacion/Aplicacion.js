@@ -13,18 +13,16 @@ import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProg
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
 import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
 import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
-// Pantalla utilizada para crear al personaje.
-import { MenuCreacionPersonaje } from "../interfaz/MenuCreacionPersonaje.js";
-// Controladores principales de la aplicación.
-import { ControladorPantallas } from "./ControladorPantallas.js";
 import { ControladorPartida } from "./ControladorPartida.js";
-import { AdaptadorDerrotaDom } from "../interfaz/derrota/AdaptadorDerrotaDom.js";
-// Aplicacion funciona como coordinador general.
+
+// Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
 export class Aplicacion {
-  constructor() {
+  constructor({ presentacion } = {}) {
+    validarPresentacion(presentacion);
+
+    this.presentacion = presentacion;
     this.controladorPantallas = null;
     this.controladorPartida = null;
-    this.adaptadorDerrotaDom = null;
     this.menuCreacionPersonaje = null;
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
@@ -35,6 +33,7 @@ export class Aplicacion {
     this.configuracionComercio = null;
     this.configuracionProgresoMagico = null;
   }
+
   async iniciar() {
     try {
       this.crearControladores();
@@ -42,28 +41,23 @@ export class Aplicacion {
       await this.cargarConfiguraciones();
       this.crearMenuCreacionPersonaje();
     } catch (error) {
-      this.mostrarErrorInicio(error);
+      this.presentacion.mostrarErrorInicio(error);
     }
   }
+
   crearControladores() {
-    this.controladorPantallas = new ControladorPantallas({
-      pantallaMenuPrincipal: document.getElementById("mainMenu"),
-      contenedorBotonesMenuPrincipal:
-        document.getElementById("mainMenuButtons"),
-      panelConfiguracionMenu: document.getElementById("settingsPlaceholder"),
-      pantallaCreacion: document.getElementById("characterCreation"),
-      contenedorJuego: document.getElementById("gameContainer"),
-      botonNuevoJuego: document.getElementById("newGameButton"),
-      botonConfiguracion: document.getElementById("settingsButton"),
-      botonVolverMenuPrincipal: document.getElementById("backToMainMenuButton"),
-    });
-    this.adaptadorDerrotaDom = new AdaptadorDerrotaDom();
+    this.controladorPantallas =
+      this.presentacion.crearControladorPantallas();
+
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
       alJugadorDerrotado: (detalle) =>
-        this.adaptadorDerrotaDom.presentar(detalle),
+        this.presentacion.presentarDerrota(detalle),
+      crearInterfazPartida: (configuracion) =>
+        this.presentacion.crearInterfazPartida(configuracion),
     });
   }
+
   // La configuración de maestrías se carga junto con el resto. Así, Player
   // siempre se construye después de validar los cuatro catálogos mágicos.
   async cargarConfiguraciones() {
@@ -86,6 +80,7 @@ export class Aplicacion {
       cargarConfiguracionComercio(),
       cargarYConfigurarProgresoMagico(),
     ]);
+
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
     this.configuracionObjetos =
@@ -96,43 +91,64 @@ export class Aplicacion {
     this.configuracionComercio = configuracionComercio;
     this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
+
   crearMenuCreacionPersonaje() {
-    this.menuCreacionPersonaje = new MenuCreacionPersonaje({
-      configuracion: this.configuracionPersonaje,
-      configuracionObjetos: this.configuracionObjetos,
-      configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
-      alConfirmar: (datosPersonaje) => {
-        // Confirmar una creación representa una nueva partida. El
-        // guardado roguelike anterior y la configuración de accesos rápidos
-        // no deben heredarse al nuevo personaje.
-        try {
-          eliminarGuardadoJugador();
-        } catch (error) {
-          console.warn("No se pudo limpiar el guardado anterior:", error);
-        }
-        try {
-          eliminarConfiguracionBarraHabilidades();
-        } catch (error) {
-          console.warn("No se pudo limpiar la barra anterior:", error);
-        }
-        this.controladorPartida.iniciar({
-          datosPersonaje,
-          configuracionPersonaje: this.configuracionPersonaje,
-          configuracionEnemigos: this.configuracionEnemigos,
-          configuracionObjetos: this.configuracionObjetos,
-          configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
-          configuracionMapas: this.configuracionMapas,
-          configuracionCiudad: this.configuracionCiudad,
-          configuracionComercio: this.configuracionComercio,
-        });
-      },
-    });
+    this.menuCreacionPersonaje =
+      this.presentacion.crearMenuCreacionPersonaje({
+        configuracion: this.configuracionPersonaje,
+        configuracionObjetos: this.configuracionObjetos,
+        configuracionGeneracionObjetos:
+          this.configuracionGeneracionObjetos,
+        alConfirmar: (datosPersonaje) => {
+          // Confirmar una creación representa una nueva partida. El
+          // guardado roguelike anterior y la configuración de accesos rápidos
+          // no deben heredarse al nuevo personaje.
+          try {
+            eliminarGuardadoJugador();
+          } catch (error) {
+            console.warn("No se pudo limpiar el guardado anterior:", error);
+          }
+
+          try {
+            eliminarConfiguracionBarraHabilidades();
+          } catch (error) {
+            console.warn("No se pudo limpiar la barra anterior:", error);
+          }
+
+          this.controladorPartida.iniciar({
+            datosPersonaje,
+            configuracionPersonaje: this.configuracionPersonaje,
+            configuracionEnemigos: this.configuracionEnemigos,
+            configuracionObjetos: this.configuracionObjetos,
+            configuracionGeneracionObjetos:
+              this.configuracionGeneracionObjetos,
+            configuracionMapas: this.configuracionMapas,
+            configuracionCiudad: this.configuracionCiudad,
+            configuracionComercio: this.configuracionComercio,
+          });
+        },
+      });
   }
-  mostrarErrorInicio(error) {
-    console.error("No se pudo iniciar la aplicación:", error);
-    const mensaje = document.getElementById("creationMessage");
-    if (mensaje) {
-      mensaje.textContent = "No se pudo cargar la configuración del juego.";
+}
+
+function validarPresentacion(presentacion) {
+  const metodosObligatorios = [
+    "crearControladorPantallas",
+    "crearMenuCreacionPersonaje",
+    "crearInterfazPartida",
+    "presentarDerrota",
+    "mostrarErrorInicio",
+  ];
+
+  if (!presentacion || typeof presentacion !== "object") {
+    throw new Error("Aplicacion necesita una presentación válida.");
+  }
+
+  for (const metodo of metodosObligatorios) {
+    if (typeof presentacion[metodo] !== "function") {
+      throw new Error(
+        `La presentación debe implementar el método "${metodo}".`,
+      );
     }
   }
 }

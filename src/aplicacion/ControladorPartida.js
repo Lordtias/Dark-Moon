@@ -10,7 +10,6 @@ import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
 } from "../partida/TransicionesMapa.js";
-import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 import {
@@ -39,7 +38,11 @@ import {
 // Juego y sus controladores se reemplazan
 // cada vez que se activa un mapa diferente.
 export class ControladorPartida {
-  constructor({ controladorPantallas, alJugadorDerrotado } = {}) {
+  constructor({
+    controladorPantallas,
+    alJugadorDerrotado,
+    crearInterfazPartida,
+  } = {}) {
     if (
       !controladorPantallas ||
       typeof controladorPantallas.mostrarPartida !== "function"
@@ -55,8 +58,15 @@ export class ControladorPartida {
       );
     }
 
+    if (typeof crearInterfazPartida !== "function") {
+      throw new Error(
+        "ControladorPartida necesita una fábrica de interfaz de partida.",
+      );
+    }
+
     this.controladorPantallas = controladorPantallas;
     this.alJugadorDerrotado = alJugadorDerrotado;
+    this.crearInterfazPartida = crearInterfazPartida;
 
     // Estado persistente.
     this.estadoPartida = null;
@@ -135,7 +145,7 @@ export class ControladorPartida {
       configuracionRarezas: this.configuracionRarezas,
     });
 
-    this.interfazPartida = crearInterfazPartida({
+    this.interfazPartida = this.crearInterfazPartida({
       tileSize: TILE_SIZE,
     });
 

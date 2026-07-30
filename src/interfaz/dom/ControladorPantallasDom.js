@@ -1,8 +1,8 @@
-// ControladorPantallas administra exclusivamente
+// ControladorPantallasDom administra exclusivamente
 // qué pantalla de la aplicación debe estar visible.
 //
 // No crea partidas ni conoce las reglas del juego.
-export class ControladorPantallas {
+export class ControladorPantallasDom {
   constructor({
     pantallaMenuPrincipal,
     contenedorBotonesMenuPrincipal,

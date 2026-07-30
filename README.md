@@ -216,22 +216,23 @@ Coordina toda la sesión:
 - reemplaza `Juego` y sus controladores al cambiar de mapa;
 - crea el ejecutor compartido de comandos para el mapa activo;
 - conecta habilidades, inventario, comercio e interacciones;
-- procesa los resultados de las acciones básicas;
+- procesa los resultados de acciones básicas y habilidades;
 - destruye correctamente los sistemas del mapa anterior.
 
 #### `EjecutorAccionesJugador`
 
 `src/aplicacion/EjecutorAccionesJugador.js`
 
-Ejecuta comandos básicos sin conocer teclado, DOM, Canvas o Phaser:
+Ejecuta comandos jugables sin conocer teclado, DOM, Canvas o Phaser:
 
-- movimiento del jugador o de los selectores activos;
+- movimiento del jugador o del selector activo;
 - espera;
 - activación y confirmación del ataque básico;
+- selección, apuntado, confirmación y cancelación de habilidades;
 - ataque natural de respaldo;
 - cancelación de combate o interacción.
 
-El teclado DOM, una futura escena de Phaser, la consola y las pruebas pueden reutilizar el mismo punto de entrada mediante `ControladorPartida.ejecutarComandoJugador()`.
+El teclado DOM, la barra, el puntero, una futura escena de Phaser, la consola y las pruebas pueden reutilizar el mismo punto de entrada mediante `ControladorPartida.ejecutarComandoJugador()`.
 
 #### `EstadoPartida`
 
@@ -439,13 +440,15 @@ Un resultado puede indicar, entre otros datos:
 
 Inventario, equipamiento, comercio, curación y paneles se operan mediante la interfaz HTML.
 
-### Separación actual de las acciones básicas
+### Separación actual de las entradas jugables
 
-`src/controles/ControladorTeclado.js` es un adaptador DOM: reconoce las teclas y las traduce a comandos, pero no conoce `Juego`, el renderizador ni las reglas de combate.
+`src/controles/ControladorTeclado.js` es el único adaptador global de teclado jugable: reconoce movimiento, espera, confirmación, cancelación, respaldo y ranuras `1–0`, pero no conoce `Juego`, el sistema de habilidades, el renderizador ni sus reglas.
 
-`src/aplicacion/EjecutorAccionesJugador.js` resuelve esos comandos sobre el mapa activo. `ControladorPartida` procesa después el `ResultadoAccion`, por lo que la consola o una futura escena de Phaser pueden recorrer el mismo flujo sin fabricar eventos de teclado.
+`src/controles/ControladorPunteroHabilidades.js` convierte clics sobre casillas o Canvas en coordenadas de mapa. `src/interfaz/habilidades/BarraHabilidades.js` entrega la ranura elegida mediante un callback. Ninguno de esos adaptadores ejecuta directamente una habilidad.
 
-Las habilidades y la interacción iniciada con `R` todavía mantienen controladores específicos. Su integración con el mismo límite corresponde a una preparación posterior y debe hacerse sin duplicar actualizaciones visuales.
+`src/aplicacion/EjecutorAccionesJugador.js` resuelve todos esos comandos sobre el mapa activo y respeta la prioridad habilidad → interacción → combate → movimiento. `ControladorPartida` coordina el procesamiento visual para conservar mensajes, redibujados y derrota sin duplicarlos.
+
+La interacción iniciada con `R` todavía mantiene un controlador específico. Su integración con el mismo límite corresponde al siguiente bloque de preparación.
 
 ### Ejecución determinista desde consola
 
@@ -475,11 +478,30 @@ darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
 });
 ```
 
-Entrar en modo combate o confirmar el ataque:
+Confirmar la selección activa o entrar en modo combate:
 
 ```js
 darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
-  tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_ATAQUE,
+  tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION,
+});
+```
+
+Seleccionar la primera ranura de habilidad:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA,
+  indiceRanura: 0,
+});
+```
+
+Fijar el selector de habilidad en una casilla:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD,
+  x: 5,
+  y: 4,
 });
 ```
 
@@ -918,7 +940,7 @@ src/juego/habilidades/EstadoSesionHabilidades.js
 src/juego/habilidades/GeometriaHabilidades.js
 src/juego/habilidades/MotorDanioHabilidad.js
 src/juego/habilidades/MotorEfectosHabilidad.js
-src/juego/habilidades/ControladorEntradaHabilidades.js
+src/controles/ControladorPunteroHabilidades.js
 src/juego/habilidades/ObservadorProgresoMagico.js
 ```
 
@@ -930,8 +952,9 @@ src/juego/habilidades/ObservadorProgresoMagico.js
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
 - `MotorEfectosHabilidad`: aplicación de efectos.
-- `IntegracionHabilidadesJugador`: conecta un `Juego` activo con barra, panel, entrada y persistencia.
-- `BarraHabilidades`: presentación de las diez ranuras.
+- `IntegracionHabilidadesJugador`: conecta un `Juego` activo con barra, panel, puntero, comandos y persistencia.
+- `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
+- `ControladorPunteroHabilidades`: adaptación DOM de clics a coordenadas del selector.
 - `PanelHabilidadesMaestrias`: presentación y mejora de habilidades.
 
 La ejecución de una habilidad no debe depender de que el personaje equipe una varita o bastón. El equipamiento puede aportar potencia y configurar ataques básicos mágicos, pero no habilita o deshabilita el uso de las habilidades aprendidas.
@@ -1408,7 +1431,7 @@ Phaser futuro ────────────┘
 - `Juego` como fachada del mapa activo;
 - motores de combate, tiempo, movimiento, objetos y habilidades;
 - `ResultadoAccion`;
-- `EjecutorAccionesJugador` y sus comandos básicos;
+- `EjecutorAccionesJugador` y sus comandos de movimiento, combate y habilidades;
 - `AdaptadorEscenaJuego`;
 - `TiposEscena`;
 - rutas de assets declaradas en configuraciones;
@@ -1417,7 +1440,7 @@ Phaser futuro ────────────┘
 
 ### Preparaciones concretas pendientes
 
-1. Integrar habilidades e interacción con comandos compartidos sin duplicar redibujados.
+1. Integrar la interacción iniciada con `R` al sistema común de comandos, conservando sus modales DOM.
 2. Reemplazar la notificación DOM de derrota por un callback o adaptador pequeño, manteniendo el evento DOM actual.
 3. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
 4. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.

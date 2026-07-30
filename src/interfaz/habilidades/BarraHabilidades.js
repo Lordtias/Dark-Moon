@@ -1,12 +1,19 @@
 // Representa exclusivamente accesos rápidos. El contenido de cada habilidad,
 // sus grados y su validez se consultan siempre al sistema y al progreso real.
 export class BarraHabilidades {
-  constructor({ sistemaHabilidades }) {
+  constructor({ sistemaHabilidades, alSeleccionarRanura } = {}) {
     if (!sistemaHabilidades) {
       throw new Error("BarraHabilidades necesita el sistema de habilidades.");
     }
 
+    if (typeof alSeleccionarRanura !== "function") {
+      throw new Error(
+        "BarraHabilidades necesita una función para seleccionar ranuras.",
+      );
+    }
+
     this.sistema = sistemaHabilidades;
+    this.alSeleccionarRanura = alSeleccionarRanura;
     this.contenedor = obtenerContenedor();
     this.ranuras = obtenerRanuras(this.contenedor);
     this.manejadoresClick = [];
@@ -88,7 +95,7 @@ export class BarraHabilidades {
         }
 
         evento.preventDefault();
-        this.sistema.seleccionarPorRanura(indice);
+        this.alSeleccionarRanura(indice);
       };
 
       ranura.addEventListener("click", seleccionar);

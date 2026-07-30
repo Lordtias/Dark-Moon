@@ -13,7 +13,10 @@ import {
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
 import { aplicarResultadoAccion } from "../controles/ProcesadorResultadoAccion.js";
-import { EjecutorAccionesJugador } from "./EjecutorAccionesJugador.js";
+import {
+  EjecutorAccionesJugador,
+  TIPOS_COMANDO_JUGADOR,
+} from "./EjecutorAccionesJugador.js";
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
 import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
 import { ControladorComercio } from "../controles/ControladorComercio.js";
@@ -313,9 +316,9 @@ export class ControladorPartida {
     return false;
   }
 
-  // Punto común para ejecutar acciones básicas desde cualquier adaptador de
-  // entrada. El teclado DOM, una futura escena de Phaser, la consola y las
-  // pruebas deterministas pueden utilizar el mismo camino.
+  // Punto común para ejecutar acciones desde cualquier adaptador de entrada.
+  // El teclado DOM, la barra, el puntero, una futura escena de Phaser, la
+  // consola y las pruebas deterministas utilizan el mismo camino.
   ejecutarComandoJugador(comando) {
     if (
       !this.partidaIniciada ||
@@ -328,13 +331,92 @@ export class ControladorPartida {
       );
     }
 
-    const resultado = this.ejecutorAccionesJugador.ejecutar(comando);
+    const contextoHabilidad = crearContextoHabilidadParaComando({
+      comando,
+      integracionHabilidades: this.integracionHabilidades,
+    });
+    const contextoProcesamiento = contextoHabilidad.esComandoHabilidad
+      ? this.integracionHabilidades.iniciarProcesamientoComando({
+          suprimirRedibujado: contextoHabilidad.esConfirmacion,
+        })
+      : null;
+
+    let resultado;
+    try {
+      resultado = this.ejecutorAccionesJugador.ejecutar(comando);
+    } catch (error) {
+      this.integracionHabilidades?.cancelarProcesamientoComando(
+        contextoProcesamiento,
+      );
+      throw error;
+    }
+
+    const estadoProcesamiento = contextoProcesamiento
+      ? this.integracionHabilidades.finalizarProcesamientoComando(
+          contextoProcesamiento,
+        )
+      : { cambioEmitido: false };
+
+    const resultadoHabilidad = this.procesarResultadoComandoHabilidad({
+      comando,
+      resultado,
+      contextoHabilidad,
+      estadoProcesamiento,
+    });
+
+    if (resultadoHabilidad.procesado) {
+      return resultadoHabilidad.resultado;
+    }
 
     return aplicarResultadoAccion({
       resultado,
       juego: this.juego,
       renderizador: this.renderizador,
     });
+  }
+
+  procesarResultadoComandoHabilidad({
+    comando,
+    resultado,
+    contextoHabilidad,
+    estadoProcesamiento,
+  }) {
+    if (!contextoHabilidad.esComandoHabilidad) {
+      return { procesado: false, resultado };
+    }
+
+    const integracion = this.integracionHabilidades;
+
+    if (contextoHabilidad.esConfirmacion) {
+      integracion.registrarResultado(resultado);
+
+      const resultadoParaProcesar =
+        estadoProcesamiento.cambioEmitido &&
+        resultado &&
+        resultado.redibujar !== true
+          ? { ...resultado, redibujar: true }
+          : resultado;
+
+      return {
+        procesado: true,
+        resultado: aplicarResultadoAccion({
+          resultado: resultadoParaProcesar,
+          juego: this.juego,
+          renderizador: this.renderizador,
+        }),
+      };
+    }
+
+    if (
+      contextoHabilidad.esBloqueoRespaldo ||
+      (contextoHabilidad.esSeleccionRanura &&
+        resultado?.exito === false &&
+        comando.silenciarRechazo !== true)
+    ) {
+      integracion.procesarResultado(resultado);
+    }
+
+    return { procesado: true, resultado };
   }
 
   activarMapa(configuracionMapa) {
@@ -384,6 +466,8 @@ export class ControladorPartida {
 
     const ejecutorAccionesJugador = new EjecutorAccionesJugador({
       juego,
+      obtenerSistemaHabilidades: () =>
+        this.integracionHabilidades?.obtenerSistemaParaEntrada() ?? null,
     });
 
     const controladorTeclado = new ControladorTeclado({
@@ -434,12 +518,6 @@ export class ControladorPartida {
     this.controladorComercio = controladorComercio;
     this.controladorInteracciones = controladorInteracciones;
 
-    this.controladorTeclado.activar();
-    this.controladorEquipamiento.activar();
-    this.controladorInteracciones.activar();
-
-    this.renderizador.dibujarJuego(this.juego);
-
     const juegoActivo = this.juego;
     this.integracionHabilidades = new IntegracionHabilidadesJugador({
       juego: juegoActivo,
@@ -449,7 +527,15 @@ export class ControladorPartida {
       configuracionObjetos: this.configuracionObjetos,
       esJuegoActivo: () =>
         this.partidaIniciada === true && this.juego === juegoActivo,
+      alEjecutarComando: (comando) =>
+        this.ejecutarComandoJugador(comando),
     });
+
+    this.controladorTeclado.activar();
+    this.controladorEquipamiento.activar();
+    this.controladorInteracciones.activar();
+
+    this.renderizador.dibujarJuego(this.juego);
   }
 
   mostrarResumenCiudad({ esInicioPartida } = {}) {
@@ -535,6 +621,48 @@ export class ControladorPartida {
     this.controladorEquipamiento?.desactivar();
     this.controladorInteracciones?.desactivar();
   }
+}
+
+function crearContextoHabilidadParaComando({
+  comando,
+  integracionHabilidades,
+}) {
+  const sistemaHabilidades =
+    integracionHabilidades?.obtenerSistemaParaEntrada() ?? null;
+  const modoHabilidadAntes = sistemaHabilidades?.modoHabilidad === true;
+  const tipo = comando?.tipo;
+  const esSeleccionRanura =
+    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA;
+  const esFijarSelector =
+    tipo === TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD;
+  const esConfirmacion =
+    modoHabilidadAntes &&
+    tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION;
+  const esBloqueoRespaldo =
+    modoHabilidadAntes &&
+    tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_RESPALDO;
+  const esMovimiento =
+    modoHabilidadAntes && tipo === TIPOS_COMANDO_JUGADOR.MOVER;
+  const esCancelacion =
+    modoHabilidadAntes &&
+    tipo === TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION;
+
+  return {
+    esSeleccionRanura,
+    esFijarSelector,
+    esConfirmacion,
+    esBloqueoRespaldo,
+    esMovimiento,
+    esCancelacion,
+    esComandoHabilidad:
+      Boolean(sistemaHabilidades) &&
+      (esSeleccionRanura ||
+        esFijarSelector ||
+        esConfirmacion ||
+        esBloqueoRespaldo ||
+        esMovimiento ||
+        esCancelacion),
+  };
 }
 
 function formatearConteo(conteo) {

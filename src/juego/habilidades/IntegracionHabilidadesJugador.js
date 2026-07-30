@@ -1,7 +1,8 @@
 import { guardarJugadorDurable } from "../../partida/PersistenciaJugador.js";
 import { BarraHabilidades } from "../../interfaz/habilidades/BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "../../interfaz/habilidades/PanelHabilidadesMaestrias.js";
-import { ControladorEntradaHabilidades } from "./ControladorEntradaHabilidades.js";
+import { ControladorPunteroHabilidades } from "../../controles/ControladorPunteroHabilidades.js";
+import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
 import { suscribirCambiosProgresoMagico } from "./ObservadorProgresoMagico.js";
 import {
   guardarConfiguracionBarraHabilidades,
@@ -20,6 +21,7 @@ export class IntegracionHabilidadesJugador {
     configuracionProgreso,
     configuracionObjetos,
     esJuegoActivo,
+    alEjecutarComando,
   } = {}) {
     if (!juego || typeof esJuegoActivo !== "function") {
       throw new Error(
@@ -38,6 +40,12 @@ export class IntegracionHabilidadesJugador {
       );
     }
 
+    if (typeof alEjecutarComando !== "function") {
+      throw new Error(
+        "La integración de habilidades necesita una función para ejecutar comandos.",
+      );
+    }
+
     normalizarFachadaJuego(juego);
 
     this.juego = juego;
@@ -48,7 +56,9 @@ export class IntegracionHabilidadesJugador {
     this.configuracionObjetos =
       configuracionObjetos ?? juego.configuracionObjetos;
     this.esJuegoActivo = esJuegoActivo;
+    this.alEjecutarComando = alEjecutarComando;
     this.destruida = false;
+    this.contextoProcesamientoComando = null;
 
     this.sistema = new SistemaHabilidadesJugador({
       juego,
@@ -57,7 +67,17 @@ export class IntegracionHabilidadesJugador {
 
     this.restaurarBarraGuardada();
 
-    this.barra = new BarraHabilidades({ sistemaHabilidades: this.sistema });
+    this.barra = new BarraHabilidades({
+      sistemaHabilidades: this.sistema,
+      alSeleccionarRanura: (indiceRanura) =>
+        this.alEjecutarComando({
+          tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA,
+          indiceRanura,
+          origenEntrada: "barra",
+          silenciarRechazo: true,
+        }),
+    });
+
     this.panel = new PanelHabilidadesMaestrias({
       sistemaHabilidades: this.sistema,
       jugador: this.jugador,
@@ -67,17 +87,23 @@ export class IntegracionHabilidadesJugador {
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
     });
 
-    this.entrada = new ControladorEntradaHabilidades({
+    this.puntero = new ControladorPunteroHabilidades({
       sistemaHabilidades: this.sistema,
-      esJuegoActivo: () =>
-        !this.destruida && this.esJuegoActivo() && !this.panel.estaAbierto(),
-      alProcesarResultado: (resultado) => this.procesarResultado(resultado),
+      esJuegoActivo: () => Boolean(this.obtenerSistemaParaEntrada()),
+      alEjecutarComando: (comando) => this.alEjecutarComando(comando),
     });
 
     this.desuscribirSistema = this.sistema.suscribirCambio(() => {
       this.actualizarSeleccionVisual();
       this.panel.renderizar();
-      this.redibujarPartida();
+
+      if (this.contextoProcesamientoComando) {
+        this.contextoProcesamientoComando.cambioEmitido = true;
+      }
+
+      if (!this.contextoProcesamientoComando?.suprimirRedibujado) {
+        this.redibujarPartida();
+      }
     });
 
     this.desuscribirProgreso = suscribirCambiosProgresoMagico(
@@ -87,6 +113,46 @@ export class IntegracionHabilidadesJugador {
         this.guardarJugador();
       },
     );
+  }
+
+  obtenerSistemaParaEntrada() {
+    if (
+      this.destruida ||
+      !this.esJuegoActivo() ||
+      this.panel?.estaAbierto()
+    ) {
+      return null;
+    }
+
+    return this.sistema;
+  }
+
+  iniciarProcesamientoComando({ suprimirRedibujado = false } = {}) {
+    const contexto = {
+      suprimirRedibujado: suprimirRedibujado === true,
+      cambioEmitido: false,
+    };
+
+    this.contextoProcesamientoComando = contexto;
+    return contexto;
+  }
+
+  finalizarProcesamientoComando(contexto) {
+    if (this.contextoProcesamientoComando !== contexto) {
+      return {
+        suprimirRedibujado: false,
+        cambioEmitido: false,
+      };
+    }
+
+    this.contextoProcesamientoComando = null;
+    return { ...contexto };
+  }
+
+  cancelarProcesamientoComando(contexto) {
+    if (this.contextoProcesamientoComando === contexto) {
+      this.contextoProcesamientoComando = null;
+    }
   }
 
   restaurarBarraGuardada() {
@@ -134,7 +200,19 @@ export class IntegracionHabilidadesJugador {
     });
   }
 
+  registrarResultado(resultado) {
+    if (!resultado) {
+      return resultado;
+    }
+
+    const metodo = resultado.exito ? "info" : "warn";
+    console[metodo]("[Dark Moon · Habilidades]", resultado.mensaje, resultado);
+    return resultado;
+  }
+
   procesarResultado(resultado) {
+    this.registrarResultado(resultado);
+
     if (!resultado?.mensaje || this.destruida || !this.esJuegoActivo()) {
       return resultado;
     }
@@ -155,6 +233,7 @@ export class IntegracionHabilidadesJugador {
   destruir() {
     if (this.destruida) return false;
     this.destruida = true;
+    this.contextoProcesamientoComando = null;
 
     try {
       this.guardarBarra();
@@ -164,7 +243,7 @@ export class IntegracionHabilidadesJugador {
 
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
-    this.entrada?.destruir();
+    this.puntero?.destruir();
     this.barra?.destruir();
     this.panel?.destruir();
     this.sistema?.destruir();

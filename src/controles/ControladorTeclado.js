@@ -24,14 +24,14 @@ const MOVIMIENTOS_POR_TECLA = {
 };
 
 const TECLAS_ESPERA = new Set(["Space", "Numpad5"]);
-const TECLA_COMBATE = "KeyF";
+const TECLA_CONFIRMAR = "KeyF";
 const TECLA_RESPALDO = "KeyG";
 const TECLA_CANCELAR = "Escape";
 
 // Adaptador de entrada del navegador.
 //
 // Su única responsabilidad es traducir teclas a comandos compartidos.
-// No conoce Juego, renderizadores ni reglas de movimiento o combate.
+// No conoce Juego, sistemas de habilidades, renderizadores ni reglas.
 export class ControladorTeclado {
   constructor({ alEjecutarComando } = {}) {
     if (typeof alEjecutarComando !== "function") {
@@ -57,27 +57,44 @@ export class ControladorTeclado {
     this.estaActivo = false;
   }
 
-  manejarTecla(event) {
-    const movimiento = MOVIMIENTOS_POR_TECLA[event.code];
-    const esEspera = TECLAS_ESPERA.has(event.code);
-    const esCombate = event.code === TECLA_COMBATE;
-    const esRespaldo = event.code === TECLA_RESPALDO;
-    const esCancelar = event.code === TECLA_CANCELAR;
+  manejarTecla(evento) {
+    const movimiento = MOVIMIENTOS_POR_TECLA[evento.code];
+    const indiceRanura = obtenerIndiceRanura(evento);
+    const esEspera = TECLAS_ESPERA.has(evento.code);
+    const esConfirmar = evento.code === TECLA_CONFIRMAR;
+    const esRespaldo = evento.code === TECLA_RESPALDO;
+    const esCancelar = evento.code === TECLA_CANCELAR;
 
-    if (!movimiento && !esEspera && !esCombate && !esRespaldo && !esCancelar) {
+    // La selección numérica de habilidades no debe activarse mientras el
+    // usuario escribe en un control editable. El resto de las teclas conserva
+    // el comportamiento general que ya tenía el controlador principal.
+    if (indiceRanura !== null && esElementoEditable(evento.target)) {
+      return;
+    }
+
+    if (
+      !movimiento &&
+      indiceRanura === null &&
+      !esEspera &&
+      !esConfirmar &&
+      !esRespaldo &&
+      !esCancelar
+    ) {
       return;
     }
 
     // Evita múltiples confirmaciones, cancelaciones o activaciones de respaldo
-    // al mantener una tecla presionada. Movimiento y espera conservan repetición.
-    if (event.repeat && (esCombate || esRespaldo || esCancelar)) return;
+    // al mantener una tecla presionada. Movimiento, espera y ranuras conservan
+    // la repetición que ya tenían antes de centralizar el teclado.
+    if (evento.repeat && (esConfirmar || esRespaldo || esCancelar)) return;
 
-    event.preventDefault();
+    evento.preventDefault();
 
     const comando = crearComandoDesdeEntrada({
       movimiento,
+      indiceRanura,
       esEspera,
-      esCombate,
+      esConfirmar,
       esRespaldo,
       esCancelar,
     });
@@ -88,14 +105,23 @@ export class ControladorTeclado {
 
 function crearComandoDesdeEntrada({
   movimiento,
+  indiceRanura,
   esEspera,
-  esCombate,
+  esConfirmar,
   esRespaldo,
   esCancelar,
 }) {
-  if (esCombate) {
+  if (indiceRanura !== null) {
     return {
-      tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_ATAQUE,
+      tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA,
+      indiceRanura,
+      origenEntrada: "teclado",
+    };
+  }
+
+  if (esConfirmar) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION,
     };
   }
 
@@ -129,4 +155,23 @@ function crearComandoDesdeEntrada({
   }
 
   throw new Error("No se pudo traducir la entrada a un comando de jugador.");
+}
+
+function obtenerIndiceRanura(evento) {
+  if (evento.altKey || evento.ctrlKey || evento.metaKey) {
+    return null;
+  }
+
+  if (/^Digit[1-9]$/.test(evento.code)) {
+    return Number(evento.code.slice(-1)) - 1;
+  }
+
+  return evento.code === "Digit0" ? 9 : null;
+}
+
+function esElementoEditable(elemento) {
+  return Boolean(
+    elemento?.isContentEditable ||
+      elemento?.closest?.('input, textarea, select, [contenteditable="true"]'),
+  );
 }

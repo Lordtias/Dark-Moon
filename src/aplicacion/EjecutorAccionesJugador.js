@@ -1,9 +1,11 @@
 export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   MOVER: "mover",
   ESPERAR: "esperar",
-  ACTIVAR_O_CONFIRMAR_ATAQUE: "activar-o-confirmar-ataque",
+  ACTIVAR_O_CONFIRMAR_SELECCION: "activar-o-confirmar-seleccion",
   ACTIVAR_ATAQUE_RESPALDO: "activar-ataque-respaldo",
   CANCELAR_SELECCION: "cancelar-seleccion",
+  SELECCIONAR_HABILIDAD_RANURA: "seleccionar-habilidad-ranura",
+  FIJAR_SELECTOR_HABILIDAD: "fijar-selector-habilidad",
 });
 
 // Ejecuta acciones jugables sin conocer el dispositivo de entrada
@@ -11,11 +13,15 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
 //
 // Los adaptadores DOM, una futura escena de Phaser, la consola y las
 // pruebas deterministas pueden construir los mismos comandos y reutilizar
-// este flujo sin duplicar reglas de movimiento o combate.
+// este flujo sin duplicar reglas de movimiento, combate o habilidades.
 export class EjecutorAccionesJugador {
-  constructor({ juego } = {}) {
+  constructor({ juego, obtenerSistemaHabilidades = null } = {}) {
     validarJuego(juego);
+    validarProveedorHabilidades(obtenerSistemaHabilidades);
+
     this.juego = juego;
+    this.obtenerSistemaHabilidades =
+      obtenerSistemaHabilidades ?? (() => null);
   }
 
   ejecutar(comando) {
@@ -28,18 +34,20 @@ export class EjecutorAccionesJugador {
       case TIPOS_COMANDO_JUGADOR.ESPERAR:
         return this.juego.esperarTurno();
 
-      case TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_ATAQUE:
-        return this.juego.modoCombateActivo
-          ? this.juego.confirmarAtaque()
-          : this.juego.entrarModoCombate();
+      case TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION:
+        return this.activarOConfirmarSeleccion();
 
       case TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_RESPALDO:
         return this.activarAtaqueRespaldo(comando);
 
       case TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION:
-        return this.juego.modoInteraccionActivo
-          ? this.juego.cancelarModoInteraccion()
-          : this.juego.cancelarModoCombate();
+        return this.cancelarSeleccion();
+
+      case TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA:
+        return this.seleccionarHabilidadPorRanura(comando);
+
+      case TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD:
+        return this.fijarSelectorHabilidad(comando);
 
       default:
         throw new Error(`Comando de jugador desconocido: ${comando.tipo}.`);
@@ -48,6 +56,11 @@ export class EjecutorAccionesJugador {
 
   ejecutarMovimiento({ movimientoX, movimientoY }) {
     validarMovimiento(movimientoX, movimientoY);
+
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (sistemaHabilidades?.modoHabilidad) {
+      return sistemaHabilidades.moverSelector(movimientoX, movimientoY);
+    }
 
     if (this.juego.modoInteraccionActivo) {
       return this.juego.moverSelectorInteraccion(movimientoX, movimientoY);
@@ -60,7 +73,29 @@ export class EjecutorAccionesJugador {
     return this.juego.moverJugador(movimientoX, movimientoY);
   }
 
+  activarOConfirmarSeleccion() {
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (sistemaHabilidades?.modoHabilidad) {
+      return sistemaHabilidades.confirmar();
+    }
+
+    return this.juego.modoCombateActivo
+      ? this.juego.confirmarAtaque()
+      : this.juego.entrarModoCombate();
+  }
+
   activarAtaqueRespaldo({ mensajeActivacion = null } = {}) {
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (sistemaHabilidades?.modoHabilidad) {
+      return {
+        exito: false,
+        mensaje:
+          "Cancelá primero la habilidad con Escape para usar el ataque de respaldo.",
+        turnoConsumido: false,
+        redibujar: false,
+      };
+    }
+
     const jugador = this.juego.player;
 
     if (!jugador?.estaVivo) {
@@ -101,6 +136,50 @@ export class EjecutorAccionesJugador {
           : "Ataque de respaldo activo. Seleccioná una casilla adyacente y confirmá.",
     };
   }
+
+  cancelarSeleccion() {
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (sistemaHabilidades?.modoHabilidad) {
+      return sistemaHabilidades.cancelar();
+    }
+
+    return this.juego.modoInteraccionActivo
+      ? this.juego.cancelarModoInteraccion()
+      : this.juego.cancelarModoCombate();
+  }
+
+  seleccionarHabilidadPorRanura({ indiceRanura }) {
+    validarIndiceRanura(indiceRanura);
+
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (!sistemaHabilidades) {
+      return null;
+    }
+
+    return sistemaHabilidades.seleccionarPorRanura(indiceRanura);
+  }
+
+  fijarSelectorHabilidad({ x, y }) {
+    validarCoordenadas(x, y);
+
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (!sistemaHabilidades?.modoHabilidad) {
+      return null;
+    }
+
+    return sistemaHabilidades.fijarSelector(x, y);
+  }
+
+  obtenerSistemaHabilidadesActivo() {
+    const sistema = this.obtenerSistemaHabilidades();
+
+    if (sistema === null || sistema === undefined) {
+      return null;
+    }
+
+    validarSistemaHabilidades(sistema);
+    return sistema;
+  }
 }
 
 function validarComando(comando) {
@@ -126,6 +205,48 @@ function validarMovimiento(movimientoX, movimientoY) {
     throw new Error(
       "El comando de movimiento necesita una dirección válida entre -1 y 1.",
     );
+  }
+}
+
+function validarIndiceRanura(indiceRanura) {
+  if (!Number.isInteger(indiceRanura) || indiceRanura < 0 || indiceRanura > 9) {
+    throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
+  }
+}
+
+function validarCoordenadas(x, y) {
+  if (!Number.isInteger(x) || !Number.isInteger(y)) {
+    throw new Error("El selector de habilidad necesita coordenadas enteras.");
+  }
+}
+
+function validarProveedorHabilidades(obtenerSistemaHabilidades) {
+  if (
+    obtenerSistemaHabilidades !== null &&
+    obtenerSistemaHabilidades !== undefined &&
+    typeof obtenerSistemaHabilidades !== "function"
+  ) {
+    throw new Error(
+      "El proveedor del sistema de habilidades debe ser una función.",
+    );
+  }
+}
+
+function validarSistemaHabilidades(sistema) {
+  const metodosRequeridos = [
+    "seleccionarPorRanura",
+    "moverSelector",
+    "fijarSelector",
+    "confirmar",
+    "cancelar",
+  ];
+
+  for (const metodo of metodosRequeridos) {
+    if (typeof sistema[metodo] !== "function") {
+      throw new Error(
+        `El sistema de habilidades activo necesita implementar ${metodo}().`,
+      );
+    }
   }
 }
 

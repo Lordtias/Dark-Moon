@@ -110,7 +110,7 @@ globalThis.darkMoonDebug
 
 ```text
 balance.html
-  └─ src/aplicacion/BalanceAplicacion.js
+  └─ src/herramientas/balance/BalanceAplicacion.js
 ```
 
 Cuando termina de cargar publica:
@@ -135,6 +135,7 @@ Dark-Moon/
 │  ├─ entidad/                   Entidades del mundo y combatientes.
 │  ├─ interfaz/                  Paneles, modales y representación visual.
 │  ├─ juego/                     Motores y reglas jugables.
+│  ├─ herramientas/              Balance y depuración para desarrollo.
 │  └─ objetos/                   Modelo base de objetos, inventario y equipo.
 ├─ index.html                    Página principal del juego.
 ├─ balance.html                  Herramienta de análisis de balance.
@@ -150,6 +151,7 @@ Dark-Moon/
 - Si conecta botones, teclado o ventanas con el juego, buscar en `src/controles/`.
 - Si dibuja o muestra información, buscar en `src/interfaz/`.
 - Si coordina el inicio, la ciudad, las expediciones o el cambio de mapa, buscar en `src/aplicacion/` y `src/partida/`.
+- Si analiza o depura el juego sin formar parte de sus reglas, buscar en `src/herramientas/`.
 - Si modifica contenido sin cambiar código, buscar en `src/config/`.
 
 ---
@@ -1083,7 +1085,7 @@ Define perfiles de mercader, stock y economía.
 ### Balance
 
 ```text
-src/config/balance/ObjetivosBalance.json
+src/herramientas/balance/ObjetivosBalance.json
 ```
 
 Define bandas y objetivos de evaluación utilizados por `balance.html`.
@@ -1188,12 +1190,12 @@ http://localhost:8000/balance.html
 Código principal:
 
 ```text
-src/aplicacion/BalanceAplicacion.js
-src/juego/balance/AnalizadorBalanceJuego.js
-src/juego/balance/AnalizadorBalanceProgresion.js
-src/juego/balance/AnalizadorBalanceCombate.js
-src/juego/balance/AnalizadorBalanceEfectos.js
-src/juego/balance/AnalizadorBalanceRegresion.js
+src/herramientas/balance/BalanceAplicacion.js
+src/herramientas/balance/AnalizadorBalanceJuego.js
+src/herramientas/balance/AnalizadorBalanceProgresion.js
+src/herramientas/balance/AnalizadorBalanceCombate.js
+src/herramientas/balance/AnalizadorBalanceEfectos.js
+src/herramientas/balance/AnalizadorBalanceRegresion.js
 ```
 
 El balanceador importa motores y fórmulas reales. No debe mantener copias de:
@@ -1250,6 +1252,14 @@ console.table(balanceDarkMoon.probabilidadesEfectos().filas);
 ---
 
 ## 23. Depuración desde la consola
+
+La herramienta se encuentra en:
+
+```text
+src/herramientas/depuracion/DepuradorMagiaHabilidades.js
+```
+
+`game.js` la publica como ayuda de desarrollo. El motor de habilidades no depende del depurador. Los analizadores de balance se cargan bajo demanda solamente al ejecutar comandos de `darkMoonDebug.magia.balance`.
 
 Después de crear un personaje están disponibles:
 

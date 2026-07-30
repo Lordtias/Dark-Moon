@@ -1,6 +1,6 @@
 // Aplicacion coordina la carga inicial, los menús y la partida.
 import { Aplicacion } from "./src/aplicacion/Aplicacion.js";
-import { crearDepuradorMagiaHabilidades } from "./src/juego/habilidades/DepuradorMagiaHabilidades.js";
+import { crearDepuradorMagiaHabilidades } from "./src/herramientas/depuracion/DepuradorMagiaHabilidades.js";
 
 const aplicacion = new Aplicacion();
 // La referencia pública es deliberadamente pequeña y sirve para validaciones

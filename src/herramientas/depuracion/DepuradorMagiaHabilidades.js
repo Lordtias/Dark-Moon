@@ -1,8 +1,7 @@
-import { crearAnalizadorBalanceJuego } from "../../herramientas/balance/AnalizadorBalanceJuego.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
   obtenerConfiguracionProgresoMagico,
-} from "../maestrias/ContextoProgresoMagico.js";
+} from "../../juego/maestrias/ContextoProgresoMagico.js";
 import {
   crearSnapshotJugador,
   guardarJugadorDurable,
@@ -20,22 +19,22 @@ import {
   esBaston,
   esVarita,
   validarCatalogoCatalizadores,
-} from "../magia/SistemaCatalizadores.js";
+} from "../../juego/magia/SistemaCatalizadores.js";
 import {
   guardarConfiguracionBarraHabilidades,
   leerConfiguracionBarraHabilidades,
   eliminarConfiguracionBarraHabilidades,
-} from "./PersistenciaBarraHabilidades.js";
+} from "../../juego/habilidades/PersistenciaBarraHabilidades.js";
 import {
   crearCasillasFormaImpacto,
   ORIENTACIONES_LINEA,
   TIPOS_FORMA_IMPACTO,
-} from "./GeometriaHabilidades.js";
+} from "../../juego/habilidades/GeometriaHabilidades.js";
 import {
   IDS_RESISTENCIA_EFECTO,
   normalizarInmunidadesEfectos,
   normalizarResistenciaEfecto,
-} from "../efectos/ResistenciasEfectos.js";
+} from "../../juego/efectos/ResistenciasEfectos.js";
 
 const ELEMENTOS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
 const HABILIDADES_BASICAS = Object.freeze([
@@ -344,8 +343,11 @@ function crearAccesoBalance(contexto) {
 
     if (aplicacion !== aplicacionCache || promesaAnalizador === null) {
       aplicacionCache = aplicacion;
-      promesaAnalizador = cargarObjetivosBalance().then((objetivosBalance) =>
-        crearAnalizadorBalanceJuego({
+      promesaAnalizador = Promise.all([
+        import("../balance/AnalizadorBalanceJuego.js"),
+        cargarObjetivosBalance(),
+      ]).then(([moduloBalance, objetivosBalance]) =>
+        moduloBalance.crearAnalizadorBalanceJuego({
           configuracionPersonaje: aplicacion.configuracionPersonaje,
           configuracionEnemigos: aplicacion.configuracionEnemigos,
           configuracionObjetos: aplicacion.configuracionObjetos,

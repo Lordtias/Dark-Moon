@@ -128,10 +128,10 @@ globalThis.balanceDarkMoonInforme
 Dark-Moon/
 ├─ assets/                       Recursos visuales y licencias.
 ├─ src/
-│  ├─ aplicacion/                Arranque y coordinación de la sesión.
+│  ├─ aplicacion/                Casos de uso, comandos y coordinación de la sesión.
 │  ├─ partida/                   Estado que sobrevive a los cambios de mapa.
 │  ├─ config/                    Datos JSON y constantes generales.
-│  ├─ controles/                 Entrada DOM y coordinación de acciones visuales.
+│  ├─ controles/                 Adaptadores de entrada DOM y coordinación visual.
 │  ├─ entidad/                   Entidades del mundo y combatientes.
 │  ├─ interfaz/                  Paneles, modales y representación visual.
 │  ├─ juego/                     Motores y reglas jugables.
@@ -148,7 +148,8 @@ Dark-Moon/
 
 - Si define **qué puede ocurrir en el juego**, buscar en `src/juego/`.
 - Si representa un **actor u objeto con estado**, buscar en `src/entidad/` o `src/objetos/`.
-- Si conecta botones, teclado o ventanas con el juego, buscar en `src/controles/`.
+- Si traduce botones, teclado o ventanas del navegador, buscar en `src/controles/`.
+- Si ejecuta comandos compartidos o coordina casos de uso, buscar en `src/aplicacion/`.
 - Si dibuja o muestra información, buscar en `src/interfaz/`.
 - Si coordina el inicio, la ciudad, las expediciones o el cambio de mapa, buscar en `src/aplicacion/` y `src/partida/`.
 - Si analiza o depura el juego sin formar parte de sus reglas, buscar en `src/herramientas/`.
@@ -170,6 +171,8 @@ Aplicacion
 ControladorPartida
    ↓
 EstadoPartida + Gestores persistentes
+   ↓
+EjecutorAccionesJugador
    ↓
 Juego del mapa activo
    ↓
@@ -211,8 +214,24 @@ Coordina toda la sesión:
 - crea una única interfaz persistente;
 - activa ciudad o mazmorra;
 - reemplaza `Juego` y sus controladores al cambiar de mapa;
+- crea el ejecutor compartido de comandos para el mapa activo;
 - conecta habilidades, inventario, comercio e interacciones;
+- procesa los resultados de las acciones básicas;
 - destruye correctamente los sistemas del mapa anterior.
+
+#### `EjecutorAccionesJugador`
+
+`src/aplicacion/EjecutorAccionesJugador.js`
+
+Ejecuta comandos básicos sin conocer teclado, DOM, Canvas o Phaser:
+
+- movimiento del jugador o de los selectores activos;
+- espera;
+- activación y confirmación del ataque básico;
+- ataque natural de respaldo;
+- cancelación de combate o interacción.
+
+El teclado DOM, una futura escena de Phaser, la consola y las pruebas pueden reutilizar el mismo punto de entrada mediante `ControladorPartida.ejecutarComandoJugador()`.
 
 #### `EstadoPartida`
 
@@ -354,12 +373,16 @@ Si existen parámetros de prueba en la URL, se inicia directamente una expedici�
 
 ## 8. Flujo de una acción del jugador
 
-El patrón general es:
+El patrón de las acciones básicas es:
 
 ```text
-Entrada DOM
+Entrada DOM, consola o futuro Phaser
    ↓
-Controlador
+Comando de jugador
+   ↓
+ControladorPartida
+   ↓
+EjecutorAccionesJugador
    ↓
 Método de Juego
    ↓
@@ -416,11 +439,57 @@ Un resultado puede indicar, entre otros datos:
 
 Inventario, equipamiento, comercio, curación y paneles se operan mediante la interfaz HTML.
 
-### Dependencia actual a separar en el futuro
+### Separación actual de las acciones básicas
 
-`ControladorTeclado` y `ControladorEntradaHabilidades` detectan entrada y llaman directamente a acciones de `Juego` o `SistemaHabilidadesJugador`.
+`src/controles/ControladorTeclado.js` es un adaptador DOM: reconoce las teclas y las traduce a comandos, pero no conoce `Juego`, el renderizador ni las reglas de combate.
 
-Una integración futura con Phaser debe reutilizar las mismas acciones y no copiar sus reglas. La forma recomendada es introducir un ejecutor de comandos compartido entre DOM, Phaser, consola y pruebas deterministas.
+`src/aplicacion/EjecutorAccionesJugador.js` resuelve esos comandos sobre el mapa activo. `ControladorPartida` procesa después el `ResultadoAccion`, por lo que la consola o una futura escena de Phaser pueden recorrer el mismo flujo sin fabricar eventos de teclado.
+
+Las habilidades y la interacción iniciada con `R` todavía mantienen controladores específicos. Su integración con el mismo límite corresponde a una preparación posterior y debe hacerse sin duplicar actualizaciones visuales.
+
+### Ejecución determinista desde consola
+
+Después de crear una partida:
+
+```js
+const { TIPOS_COMANDO_JUGADOR } = await import(
+  "./src/aplicacion/EjecutorAccionesJugador.js"
+);
+```
+
+Mover hacia la derecha:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.MOVER,
+  movimientoX: 1,
+  movimientoY: 0,
+});
+```
+
+Esperar:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.ESPERAR,
+});
+```
+
+Entrar en modo combate o confirmar el ataque:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_ATAQUE,
+});
+```
+
+Cancelar la selección activa:
+
+```js
+darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
+  tipo: TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION,
+});
+```
 
 ---
 
@@ -1339,6 +1408,7 @@ Phaser futuro ────────────┘
 - `Juego` como fachada del mapa activo;
 - motores de combate, tiempo, movimiento, objetos y habilidades;
 - `ResultadoAccion`;
+- `EjecutorAccionesJugador` y sus comandos básicos;
 - `AdaptadorEscenaJuego`;
 - `TiposEscena`;
 - rutas de assets declaradas en configuraciones;
@@ -1347,11 +1417,10 @@ Phaser futuro ────────────┘
 
 ### Preparaciones concretas pendientes
 
-1. Separar detección de teclado de ejecución de acciones.
-2. Permitir que las acciones sean llamadas mediante comandos compartidos.
-3. Reemplazar la notificación DOM de derrota por un callback o adaptador pequeño, manteniendo el evento DOM actual.
-4. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
-5. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
+1. Integrar habilidades e interacción con comandos compartidos sin duplicar redibujados.
+2. Reemplazar la notificación DOM de derrota por un callback o adaptador pequeño, manteniendo el evento DOM actual.
+3. Separar la construcción concreta de la interfaz DOM del arranque general de `Aplicacion`.
+4. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
 
 ### Lo que Phaser no debe contener
 

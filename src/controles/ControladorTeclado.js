@@ -1,4 +1,4 @@
-import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
+import { TIPOS_COMANDO_JUGADOR } from "../aplicacion/EjecutorAccionesJugador.js";
 
 const MOVIMIENTOS_POR_TECLA = {
   ArrowUp: { x: 0, y: -1 },
@@ -28,22 +28,19 @@ const TECLA_COMBATE = "KeyF";
 const TECLA_RESPALDO = "KeyG";
 const TECLA_CANCELAR = "Escape";
 
+// Adaptador de entrada del navegador.
+//
+// Su única responsabilidad es traducir teclas a comandos compartidos.
+// No conoce Juego, renderizadores ni reglas de movimiento o combate.
 export class ControladorTeclado {
-  constructor({ juego, renderizador } = {}) {
-    if (
-      !juego ||
-      typeof juego.moverJugador !== "function" ||
-      typeof juego.moverSelectorInteraccion !== "function" ||
-      typeof juego.cancelarModoInteraccion !== "function"
-    ) {
-      throw new Error("ControladorTeclado necesita una partida válida.");
-    }
-    if (!renderizador || typeof renderizador.dibujarJuego !== "function") {
-      throw new Error("ControladorTeclado necesita un renderizador válido.");
+  constructor({ alEjecutarComando } = {}) {
+    if (typeof alEjecutarComando !== "function") {
+      throw new Error(
+        "ControladorTeclado necesita una función para ejecutar comandos.",
+      );
     }
 
-    this.juego = juego;
-    this.renderizador = renderizador;
+    this.alEjecutarComando = alEjecutarComando;
     this.manejarTecla = this.manejarTecla.bind(this);
     this.estaActivo = false;
   }
@@ -60,44 +57,6 @@ export class ControladorTeclado {
     this.estaActivo = false;
   }
 
-  activarAtaqueRespaldo() {
-    const jugador = this.juego.player;
-    if (!jugador?.estaVivo) {
-      return {
-        exito: false,
-        mensaje: "No podés atacar estando derrotado.",
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-    if (this.juego.modoInteraccionActivo) {
-      return {
-        exito: false,
-        mensaje: "Cancelá la interacción antes de usar el ataque de respaldo.",
-        turnoConsumido: false,
-        redibujar: false,
-      };
-    }
-
-    if (this.juego.modoCombateActivo) {
-      this.juego.cancelarModoCombate();
-    }
-
-    jugador.ataqueNaturalForzado = true;
-    const resultado = this.juego.entrarModoCombate();
-    if (resultado?.exito === false) {
-      jugador.ataqueNaturalForzado = false;
-      return resultado;
-    }
-
-    return {
-      ...resultado,
-      mensaje:
-        "Ataque de respaldo activo. Seleccioná una casilla adyacente y " +
-        "confirmá con F; Escape cancela.",
-    };
-  }
-
   manejarTecla(event) {
     const movimiento = MOVIMIENTOS_POR_TECLA[event.code];
     const esEspera = TECLAS_ESPERA.has(event.code);
@@ -110,41 +69,64 @@ export class ControladorTeclado {
     }
 
     // Evita múltiples confirmaciones, cancelaciones o activaciones de respaldo
-    // al mantener una tecla presionada.
+    // al mantener una tecla presionada. Movimiento y espera conservan repetición.
     if (event.repeat && (esCombate || esRespaldo || esCancelar)) return;
 
     event.preventDefault();
 
-    let resultado;
-    if (esCombate) {
-      resultado = this.juego.modoCombateActivo
-        ? this.juego.confirmarAtaque()
-        : this.juego.entrarModoCombate();
-    } else if (esRespaldo) {
-      resultado = this.activarAtaqueRespaldo();
-    } else if (esCancelar) {
-      resultado = this.juego.modoInteraccionActivo
-        ? this.juego.cancelarModoInteraccion()
-        : this.juego.cancelarModoCombate();
-    } else if (movimiento) {
-      if (this.juego.modoInteraccionActivo) {
-        resultado = this.juego.moverSelectorInteraccion(
-          movimiento.x,
-          movimiento.y,
-        );
-      } else if (this.juego.modoCombateActivo) {
-        resultado = this.juego.moverSelectorCombate(movimiento.x, movimiento.y);
-      } else {
-        resultado = this.juego.moverJugador(movimiento.x, movimiento.y);
-      }
-    } else if (esEspera) {
-      resultado = this.juego.esperarTurno();
-    }
-
-    aplicarResultadoAccion({
-      resultado,
-      juego: this.juego,
-      renderizador: this.renderizador,
+    const comando = crearComandoDesdeEntrada({
+      movimiento,
+      esEspera,
+      esCombate,
+      esRespaldo,
+      esCancelar,
     });
+
+    this.alEjecutarComando(comando);
   }
+}
+
+function crearComandoDesdeEntrada({
+  movimiento,
+  esEspera,
+  esCombate,
+  esRespaldo,
+  esCancelar,
+}) {
+  if (esCombate) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_ATAQUE,
+    };
+  }
+
+  if (esRespaldo) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_RESPALDO,
+      mensajeActivacion:
+        "Ataque de respaldo activo. Seleccioná una casilla adyacente y " +
+        "confirmá con F; Escape cancela.",
+    };
+  }
+
+  if (esCancelar) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION,
+    };
+  }
+
+  if (movimiento) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.MOVER,
+      movimientoX: movimiento.x,
+      movimientoY: movimiento.y,
+    };
+  }
+
+  if (esEspera) {
+    return {
+      tipo: TIPOS_COMANDO_JUGADOR.ESPERAR,
+    };
+  }
+
+  throw new Error("No se pudo traducir la entrada a un comando de jugador.");
 }

@@ -12,6 +12,8 @@ import {
 } from "../partida/TransicionesMapa.js";
 import { crearInterfazPartida } from "../interfaz/FabricaInterfazPartida.js";
 import { ControladorTeclado } from "../controles/ControladorTeclado.js";
+import { aplicarResultadoAccion } from "../controles/ProcesadorResultadoAccion.js";
+import { EjecutorAccionesJugador } from "./EjecutorAccionesJugador.js";
 import { ControladorEquipamiento } from "../controles/ControladorEquipamiento.js";
 import { ControladorInteracciones } from "../controles/ControladorInteracciones.js";
 import { ControladorComercio } from "../controles/ControladorComercio.js";
@@ -55,6 +57,7 @@ export class ControladorPartida {
     // Estado y controladores del mapa activo.
     this.juego = null;
     this.renderizador = null;
+    this.ejecutorAccionesJugador = null;
     this.controladorTeclado = null;
     this.controladorEquipamiento = null;
     this.controladorInteracciones = null;
@@ -310,6 +313,30 @@ export class ControladorPartida {
     return false;
   }
 
+  // Punto común para ejecutar acciones básicas desde cualquier adaptador de
+  // entrada. El teclado DOM, una futura escena de Phaser, la consola y las
+  // pruebas deterministas pueden utilizar el mismo camino.
+  ejecutarComandoJugador(comando) {
+    if (
+      !this.partidaIniciada ||
+      !this.juego ||
+      !this.renderizador ||
+      !this.ejecutorAccionesJugador
+    ) {
+      throw new Error(
+        "No se puede ejecutar un comando sin un mapa activo.",
+      );
+    }
+
+    const resultado = this.ejecutorAccionesJugador.ejecutar(comando);
+
+    return aplicarResultadoAccion({
+      resultado,
+      juego: this.juego,
+      renderizador: this.renderizador,
+    });
+  }
+
   activarMapa(configuracionMapa) {
     validarConfiguracionMapa(configuracionMapa);
 
@@ -322,6 +349,7 @@ export class ControladorPartida {
     this.integracionHabilidades?.destruir();
     this.integracionHabilidades = null;
     this.desactivarControles();
+    this.ejecutorAccionesJugador = null;
 
     // La transición no consume tiempo. El jugador conserva sus efectos con
     // duración y próximo tick relativos; las entidades del mapa anterior se
@@ -354,9 +382,13 @@ export class ControladorPartida {
       configuracionObjetos: this.configuracionObjetos,
     });
 
-    const controladorTeclado = new ControladorTeclado({
+    const ejecutorAccionesJugador = new EjecutorAccionesJugador({
       juego,
-      renderizador,
+    });
+
+    const controladorTeclado = new ControladorTeclado({
+      alEjecutarComando: (comando) =>
+        this.ejecutarComandoJugador(comando),
     });
 
     const controladorEquipamiento = new ControladorEquipamiento({
@@ -396,6 +428,7 @@ export class ControladorPartida {
 
     this.juego = juego;
     this.renderizador = renderizador;
+    this.ejecutorAccionesJugador = ejecutorAccionesJugador;
     this.controladorTeclado = controladorTeclado;
     this.controladorEquipamiento = controladorEquipamiento;
     this.controladorComercio = controladorComercio;

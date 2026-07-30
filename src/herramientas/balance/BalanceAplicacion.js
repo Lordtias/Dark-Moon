@@ -4,15 +4,15 @@ import {
   cargarConfiguracionMapas,
   cargarConfiguracionObjetos,
   cargarConfiguracionPersonaje,
-} from "../juego/configuracion/CargadorConfiguracion.js";
-import { crearAnalizadorBalanceJuego } from "../juego/balance/AnalizadorBalanceJuego.js";
+} from "../../juego/configuracion/CargadorConfiguracion.js";
+import { crearAnalizadorBalanceJuego } from "./AnalizadorBalanceJuego.js";
 import {
   cargarYConfigurarProgresoMagico,
   obtenerConfiguracionEjecucionHabilidades,
-} from "../juego/maestrias/ContextoProgresoMagico.js";
-import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
+} from "../../juego/maestrias/ContextoProgresoMagico.js";
+import { validarCatalogoCatalizadores } from "../../juego/magia/SistemaCatalizadores.js";
 
-const RUTA_OBJETIVOS = "./src/config/balance/ObjetivosBalance.json";
+const RUTA_OBJETIVOS = "./src/herramientas/balance/ObjetivosBalance.json";
 const ESTADOS = Object.freeze({
   CORRECTO: "correcto",
   ADVERTENCIA: "advertencia",

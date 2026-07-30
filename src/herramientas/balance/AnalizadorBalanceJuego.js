@@ -5,29 +5,29 @@ import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
 import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
 import { crearInformeBalanceEfectos } from "./AnalizadorBalanceEfectos.js";
 import { crearInformeBalanceRegresion } from "./AnalizadorBalanceRegresion.js";
-import { calcularBonoResistenciasEfectosPorConstitucion } from "../efectos/ResistenciasEfectos.js";
-import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
+import { calcularBonoResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
+import { crearAtributosIniciales } from "../../juego/generacion/GeneradorAtributos.js";
 import {
   calcularMultiplicadorDanioMagico,
   calcularMultiplicadorEfectos,
   calcularRegeneracionMana,
-} from "../magia/CalculadorAtributosMagicos.js";
+} from "../../juego/magia/CalculadorAtributosMagicos.js";
 import {
   calcularPotenciaHabilidadObjetos,
   esBaston,
   esVarita,
   validarCatalogoCatalizadores,
-} from "../magia/SistemaCatalizadores.js";
+} from "../../juego/magia/SistemaCatalizadores.js";
 import {
   ORIGENES_PUNTO_HABILIDAD,
   ProgresoMagicoJugador,
-} from "../maestrias/ProgresoMagicoJugador.js";
+} from "../../juego/maestrias/ProgresoMagicoJugador.js";
 import {
   calcularExperienciaAcumuladaParaNivel,
   calcularExperienciaNecesaria,
   crearTablaProgresion,
-} from "../progresion/SistemaProgresion.js";
-import { TIEMPO_REFERENCIA } from "../tiempo/SistemaTiempo.js";
+} from "../../juego/progresion/SistemaProgresion.js";
+import { TIEMPO_REFERENCIA } from "../../juego/tiempo/SistemaTiempo.js";
 
 const NIVELES_RECURSOS_DESTACADOS = Object.freeze([1, 3, 6, 10]);
 const RESISTENCIAS_EFECTOS_VISIBLES = Object.freeze([

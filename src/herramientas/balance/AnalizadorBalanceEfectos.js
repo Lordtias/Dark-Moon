@@ -1,8 +1,8 @@
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
-import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
-import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
-import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
-import { calcularBonoResistenciasEfectosPorConstitucion } from "../efectos/ResistenciasEfectos.js";
+import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
+import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemporales.js";
+import { crearAtributosIniciales } from "../../juego/generacion/GeneradorAtributos.js";
+import { calcularBonoResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
 
 const IDS_EFECTOS_VISIBLES = Object.freeze([
   "congelamiento",

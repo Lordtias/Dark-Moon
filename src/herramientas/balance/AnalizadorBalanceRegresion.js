@@ -1,26 +1,26 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
-import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
+import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import {
   crearConfiguracionMazmorra,
   crearJugadorInicial,
-} from "../configuracion/ConfiguracionInicial.js";
-import { crearAtributosIniciales } from "../generacion/GeneradorAtributos.js";
+} from "../../juego/configuracion/ConfiguracionInicial.js";
+import { crearAtributosIniciales } from "../../juego/generacion/GeneradorAtributos.js";
 import {
   calcularExperienciaAcumuladaParaNivel,
   calcularRecompensaExperiencia,
-} from "../progresion/SistemaProgresion.js";
-import { ResolutorDerrotasJugador } from "../combate/ResolutorDerrotasJugador.js";
-import { resolverPaqueteDanio } from "../combate/ComponentesDanio.js";
+} from "../../juego/progresion/SistemaProgresion.js";
+import { ResolutorDerrotasJugador } from "../../juego/combate/ResolutorDerrotasJugador.js";
+import { resolverPaqueteDanio } from "../../juego/combate/ComponentesDanio.js";
 import {
   configurarContextoGeneracionBotin,
   limpiarContextoGeneracionBotin,
-} from "../botin/ContextoGeneracionBotin.js";
-import { Juego } from "../Juego.js";
+} from "../../juego/botin/ContextoGeneracionBotin.js";
+import { Juego } from "../../juego/Juego.js";
 import {
   MOTIVOS_HABILIDADES,
   SistemaHabilidadesJugador,
-} from "../habilidades/SistemaHabilidadesJugador.js";
-import { ORIGENES_PUNTO_HABILIDAD } from "../maestrias/ProgresoMagicoJugador.js";
+} from "../../juego/habilidades/SistemaHabilidadesJugador.js";
+import { ORIGENES_PUNTO_HABILIDAD } from "../../juego/maestrias/ProgresoMagicoJugador.js";
 
 const PROFESION_PRUEBA = "guerrero";
 const HABILIDAD_BASICA_REFERENCIA = "ascua";

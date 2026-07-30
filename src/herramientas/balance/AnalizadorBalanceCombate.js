@@ -6,28 +6,28 @@ import {
 import { crearObjeto } from "../../objetos/FabricaObjetos.js";
 import {
   resolverPaqueteDanio,
-} from "../combate/ComponentesDanio.js";
-import { calcularProbabilidadImpacto } from "../combate/SistemaCombate.js";
-import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
+} from "../../juego/combate/ComponentesDanio.js";
+import { calcularProbabilidadImpacto } from "../../juego/combate/SistemaCombate.js";
+import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import {
   configurarTiradasDeterministasHabilidad,
   resolverDanioHabilidad,
   resolverImpactoHabilidad,
   restaurarTiradasAleatoriasHabilidad,
-} from "../habilidades/MotorDanioHabilidad.js";
-import { prepararEfectosHabilidad } from "../habilidades/MotorEfectosHabilidad.js";
-import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
-import { SistemaZonasTemporales } from "../zonas/SistemaZonasTemporales.js";
+} from "../../juego/habilidades/MotorDanioHabilidad.js";
+import { prepararEfectosHabilidad } from "../../juego/habilidades/MotorEfectosHabilidad.js";
+import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemporales.js";
+import { SistemaZonasTemporales } from "../../juego/zonas/SistemaZonasTemporales.js";
 import {
   calcularPotenciaHabilidadObjetos,
   esBaston,
   esVarita,
-} from "../magia/SistemaCatalizadores.js";
+} from "../../juego/magia/SistemaCatalizadores.js";
 import {
   calcularCostoAccionCombatiente,
   TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
-} from "../tiempo/SistemaTiempo.js";
+} from "../../juego/tiempo/SistemaTiempo.js";
 
 const ESTADOS = Object.freeze({
   CORRECTO: "correcto",

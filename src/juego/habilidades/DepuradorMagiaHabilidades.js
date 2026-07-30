@@ -1,4 +1,4 @@
-import { crearAnalizadorBalanceJuego } from "../balance/AnalizadorBalanceJuego.js";
+import { crearAnalizadorBalanceJuego } from "../../herramientas/balance/AnalizadorBalanceJuego.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
   obtenerConfiguracionProgresoMagico,
@@ -397,7 +397,7 @@ function crearAccesoBalance(contexto) {
 }
 
 async function cargarObjetivosBalance() {
-  const respuesta = await fetch("./src/config/balance/ObjetivosBalance.json", {
+  const respuesta = await fetch("./src/herramientas/balance/ObjetivosBalance.json", {
     cache: "no-store",
   });
   if (!respuesta.ok) {

@@ -1,9 +1,9 @@
-import { calcularDatosEnemigo } from "../fabricas/FabricaEnemigos.js";
+import { calcularDatosEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import {
   CONFIGURACION_RECOMPENSAS_EXPERIENCIA,
   calcularExperienciaNecesaria,
   calcularRecompensaExperiencia,
-} from "../progresion/SistemaProgresion.js";
+} from "../../juego/progresion/SistemaProgresion.js";
 
 const ESTADOS_BALANCE = Object.freeze({
   CORRECTO: "correcto",

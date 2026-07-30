@@ -5,25 +5,6 @@ const CATEGORIAS = Object.freeze([
   { id: "armaduras", nombre: "Armaduras" },
 ]);
 const ORDEN_MAESTRIAS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
-const DESCRIPCIONES = Object.freeze({
-  ascua: "Proyectil ígneo básico destinado al corte vertical de Fuego.",
-  explosion_ignea: "Explosión intermedia de Fuego para una etapa posterior.",
-  incinerar: "Técnica avanzada de Fuego todavía pendiente de implementación.",
-  esquirla_hielo:
-    "Proyectil básico de Frío previsto para el siguiente corte vertical.",
-  nova_escarcha: "Expansión intermedia de Frío todavía en construcción.",
-  prision_glacial:
-    "Control avanzado de Frío reservado para una etapa posterior.",
-  chispa: "Descarga básica de Rayo prevista para el siguiente corte vertical.",
-  cadena_rayos: "Habilidad intermedia de Rayo todavía en construcción.",
-  descarga_fulminante:
-    "Habilidad avanzada de Rayo reservada para una etapa posterior.",
-  aguijon_toxico:
-    "Dispara un aguijón de veneno que causa daño inmediato y deja una toxina temporal.",
-  nube_toxica: "Habilidad intermedia de Veneno todavía en construcción.",
-  plaga_corrosiva:
-    "Habilidad avanzada de Veneno reservada para una etapa posterior.",
-});
 export class PanelHabilidadesMaestrias {
   constructor({
     sistemaHabilidades,
@@ -367,9 +348,7 @@ export class PanelHabilidadesMaestrias {
     const descripcion = crearElemento(
       "p",
       "tarjeta-habilidad__descripcion",
-      ejecucion?.descripcion ??
-        DESCRIPCIONES[habilidad.id] ??
-        "Sin descripción.",
+      ejecucion?.descripcion ?? "Sin descripción.",
     );
     const requisito = crearElemento(
       "p",
@@ -838,7 +817,7 @@ function crearTooltipTexto({
     `${habilidad.nombre} — grado ${grado}/${habilidad.gradoMaximo}`,
     `Maestría: ${formatearNombre(habilidad.maestria)} (nivel ${estado.nivel})`,
     `Requisito: nivel ${habilidad.requisitoNivelMaestria}`,
-    ejecucion?.descripcion ?? DESCRIPCIONES[habilidad.id] ?? "",
+    ejecucion?.descripcion ?? "",
   ];
   if (ejecucion?.ejecucion) {
     const gradoVisible = grado > 0 ? grado : 1;

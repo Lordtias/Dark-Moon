@@ -161,7 +161,7 @@ assets/estilos/
 └─ herramientas/                 Estilos de utilidades de desarrollo.
 ```
 
-Los módulos de interfaz que cargan CSS dinámicamente usan rutas públicas desde la raíz del proyecto, por ejemplo `./assets/estilos/modales/modal-curacion.css`. Los recursos referenciados dentro de una hoja CSS se resuelven desde la ubicación de esa hoja.
+Los módulos de interfaz que cargan CSS dinámicamente usan rutas públicas desde la raíz del proyecto, por ejemplo `./assets/estilos/modales/modal-curacion.css`. Los recursos referenciados dentro de una hoja CSS se resuelven desde la ubicación de esa hoja. Debe evitarse incluir una misma hoja simultáneamente desde HTML y mediante `@import`. Los cargadores dinámicos que comparten una hoja reutilizan el mismo ID de enlace para no insertarla dos veces; `panel-personaje.css` se carga directamente desde `index.html`.
 
 ### Regla práctica para encontrar código
 
@@ -359,6 +359,17 @@ src/interfaz/derrota/ModalDerrota.js
 
 Una presentación futura puede conectar otro adaptador sin modificar las reglas ni el procesador.
 
+### Límites consolidados después de la higienización
+
+- `src/juego/` y `src/objetos/` contienen reglas y estado autoritativo, no componentes visuales.
+- `src/aplicacion/` coordina casos de uso y resultados, sin depender de `document`, Canvas o Phaser.
+- `src/interfaz/` construye la presentación DOM/Canvas actual y puede ser reemplazada o combinada con otro backend gráfico.
+- `src/controles/` traduce teclado o puntero a comandos compartidos; no decide reglas jugables.
+- `assets/estilos/` concentra todas las hojas CSS, organizadas por responsabilidad.
+- Los nombres, descripciones, costes y ejecuciones de habilidades provienen de las configuraciones JSON; la interfaz no mantiene catálogos paralelos.
+
+El punto previsto para introducir Phaser es una nueva composición visual que consuma los comandos de `EjecutorAccionesJugador` y el contrato de `AdaptadorEscenaJuego`, conservando inicialmente los paneles y modales DOM.
+
 ---
 
 ## 6. Fuentes de verdad
@@ -372,6 +383,7 @@ Cada dato importante debe tener un único propietario.
 | Inventario | `Player.inventario` |
 | Equipamiento | `Player.equipamiento` |
 | Progreso de maestrías, puntos y grados | `Player.progresoMagico` |
+| Definición, descripción y ejecución de habilidades | `src/config/magia/Habilidades.json` |
 | Barra de accesos rápidos | `SistemaHabilidadesJugador`, persistida por `PersistenciaBarraHabilidades` |
 | Mapa activo | Instancia actual de `Juego` |
 | Enemigos y destructibles activos | `Juego.objetivos` |
@@ -1517,10 +1529,9 @@ Phaser futuro ────────────┘
 - gestores persistentes de partida;
 - balanceador y depurador.
 
-### Preparaciones concretas pendientes
+### Próximo paso concreto
 
-1. Formalizar el contrato de escena visual que consumirá Canvas o Phaser.
-2. Incorporar Phaser inicialmente como backend del mapa, conservando los paneles y modales DOM.
+El contrato visual ya está aislado mediante `AdaptadorEscenaJuego` y la composición DOM ya se inyecta desde `game.js`. El siguiente paso técnico es incorporar Phaser inicialmente como backend del mapa, conservando los paneles y modales DOM y verificando que produzca la misma lectura del estado jugable.
 
 ### Lo que Phaser no debe contener
 
@@ -1718,10 +1729,30 @@ balanceDarkMoon.regresion()
 
 - no quedan imports hacia rutas anteriores;
 - no quedan referencias JSON a recursos inexistentes;
-- no se duplicaron fórmulas;
+- no se duplicaron fórmulas ni descripciones de contenido;
 - no se creó una segunda fuente de verdad;
+- ninguna hoja CSS se carga simultáneamente desde HTML y mediante `@import`;
 - no aparecieron errores en consola;
 - `git diff --check` no informa errores.
+
+### Comprobaciones deterministas después de mover archivos
+
+Ejecutar desde la raíz del repositorio:
+
+```bash
+git status --short
+git diff --check
+find . -path './.git' -prune -o -type f -name '*.css' -print | sort
+grep -RIn --exclude-dir=.git "ruta/anterior" .
+```
+
+Levantar después un servidor local y comprobar que los puntos de entrada y recursos modificados responden sin `404`:
+
+```bash
+python3 -m http.server 8000
+```
+
+La validación estática no sustituye la regresión jugable desde `index.html`.
 
 ---
 
@@ -1735,6 +1766,8 @@ balanceDarkMoon.regresion()
 - No acoplar lógica jugable a `document`, Canvas o Phaser.
 - No cambiar IDs públicos sin revisar todos sus consumidores.
 - No eliminar recursos solamente porque no aparezcan en un import: pueden ser cargados desde JSON o CSS.
+- No duplicar en JavaScript nombres o descripciones cuyo propietario sea un JSON de configuración.
+- Evitar cargas CSS duplicadas entre HTML y `@import`; los cargadores dinámicos compartidos deben reutilizar el mismo ID de enlace.
 - Mantener `README.md` como único documento funcional del repositorio.
 - Conservar los avisos de licencia de los recursos utilizados.
 

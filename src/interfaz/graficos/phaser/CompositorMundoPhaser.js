@@ -58,13 +58,16 @@ const TIPOS_DECORACION = Object.freeze({
 // Compone el mundo Phaser a partir de la escena neutral. La clase solo dibuja:
 // no ejecuta comandos ni consulta objetos del dominio.
 export class CompositorMundoPhaser {
-  constructor({ escena, gestorRecursos } = {}) {
-    if (!escena?.add || !gestorRecursos) {
-      throw new Error("CompositorMundoPhaser necesita escena y recursos.");
+  constructor({ escena, gestorRecursos, conversorCoordenadas } = {}) {
+    if (!escena?.add || !gestorRecursos || !conversorCoordenadas) {
+      throw new Error(
+        "CompositorMundoPhaser necesita escena, recursos y conversor.",
+      );
     }
 
     this.escena = escena;
     this.gestorRecursos = gestorRecursos;
+    this.conversorCoordenadas = conversorCoordenadas;
     this.escenaDarkMoon = null;
     this.geometria = null;
     this.firmaTerreno = null;
@@ -92,12 +95,12 @@ export class CompositorMundoPhaser {
 
     this.precargarRecursos(escenaDarkMoon);
 
+    this.geometria = geometriaNueva;
+    this.conversorCoordenadas.actualizarGeometria(this.geometria);
+
     if (firmaNueva !== this.firmaTerreno) {
       this.firmaTerreno = firmaNueva;
-      this.geometria = geometriaNueva;
       this.dibujarBaseMundo();
-    } else {
-      this.geometria = geometriaNueva;
     }
 
     this.dibujarZonas();
@@ -128,21 +131,6 @@ export class CompositorMundoPhaser {
 
     this.casillaPuntero = normalizada;
     this.dibujarSeleccion();
-  }
-
-  convertirMundoACasilla(xMundo, yMundo) {
-    if (!this.geometria) {
-      return null;
-    }
-
-    const x = Math.floor(
-      (xMundo - this.geometria.origenX) / TAMANO_CASILLA_REFERENCIA,
-    );
-    const y = Math.floor(
-      (yMundo - this.geometria.origenY) / TAMANO_CASILLA_REFERENCIA,
-    );
-
-    return normalizarCasilla({ x, y }, this.geometria);
   }
 
   precargarRecursos(escenaDarkMoon) {
@@ -898,17 +886,7 @@ export class CompositorMundoPhaser {
   }
 
   obtenerPosicionCasilla(casilla) {
-    const normalizada = normalizarCasilla(casilla, this.geometria);
-    if (!normalizada) return null;
-
-    return {
-      x:
-        this.geometria.origenX +
-        normalizada.x * TAMANO_CASILLA_REFERENCIA,
-      y:
-        this.geometria.origenY +
-        normalizada.y * TAMANO_CASILLA_REFERENCIA,
-    };
+    return this.conversorCoordenadas.casillaAMundo(casilla);
   }
 
   destruir() {
@@ -923,6 +901,7 @@ export class CompositorMundoPhaser {
     this.escenaDarkMoon = null;
     this.escena = null;
     this.gestorRecursos = null;
+    this.conversorCoordenadas = null;
   }
 }
 

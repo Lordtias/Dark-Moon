@@ -1,25 +1,41 @@
 import {
   ALTO_REFERENCIA_PHASER,
   ANCHO_REFERENCIA_PHASER,
-  TAMANO_CASILLA_REFERENCIA,
+  CONFIGURACION_CAMARA_PHASER,
 } from "./ConfiguracionPhaser.js";
 
-const ZOOM_MINIMO = 0.8;
-const ZOOM_MAXIMO = 1.6;
-const ZOOM_INICIAL = 1.2;
-const PASO_ZOOM = 0.1;
-const RETARDO_DOBLE_CLIC_MS = 320;
+const DIRECCIONES_CAMARA_POR_TECLA = Object.freeze({
+  KeyI: Object.freeze({ x: 0, y: -1 }),
+  KeyJ: Object.freeze({ x: -1, y: 0 }),
+  KeyK: Object.freeze({ x: 0, y: 1 }),
+  KeyL: Object.freeze({ x: 1, y: 0 }),
+});
+const TECLA_RECENTRAR = "KeyH";
+const MAX_DELTA_CAMARA_MS = 100;
 
-// Gestiona exclusivamente la vista Phaser. El puntero puede señalar casillas,
-// desplazar la cámara y cambiar zoom, pero nunca emite acciones jugables.
+// Gestiona exclusivamente la vista Phaser. El teclado y el puntero pueden
+// navegar la cámara, pero nunca emiten acciones jugables ni consumen turnos.
 export class ControladorCamaraPhaser {
-  constructor({ escena, compositor, alCambiar = null } = {}) {
-    if (!escena?.cameras?.main || !escena?.input || !compositor) {
-      throw new Error("ControladorCamaraPhaser necesita escena y compositor.");
+  constructor({
+    escena,
+    compositor,
+    conversorCoordenadas,
+    alCambiar = null,
+  } = {}) {
+    if (
+      !escena?.cameras?.main ||
+      !escena?.input ||
+      !compositor ||
+      !conversorCoordenadas
+    ) {
+      throw new Error(
+        "ControladorCamaraPhaser necesita escena, compositor y conversor.",
+      );
     }
 
     this.escena = escena;
     this.compositor = compositor;
+    this.conversorCoordenadas = conversorCoordenadas;
     this.camara = escena.cameras.main;
     this.alCambiar = alCambiar;
     this.geometria = null;
@@ -32,8 +48,11 @@ export class ControladorCamaraPhaser {
     this.ultimoClicIzquierdo = 0;
     this.firmaLimites = null;
     this.canvas = escena.game.canvas;
+    this.documento = this.canvas.ownerDocument;
+    this.ventana = this.documento.defaultView ?? globalThis;
+    this.teclasDireccionActivas = new Set();
 
-    this.camara.setZoom(ZOOM_INICIAL);
+    this.camara.setZoom(CONFIGURACION_CAMARA_PHASER.zoomInicial);
     this.camara.setBackgroundColor("#101814");
 
     this.alPointerDown = (pointer) => this.manejarPointerDown(pointer);
@@ -44,6 +63,14 @@ export class ControladorCamaraPhaser {
       this.manejarWheel(pointer, deltaY);
     this.alContextMenu = (evento) => evento.preventDefault();
     this.alSalirCanvas = () => this.manejarPointerOut();
+    this.alKeyDown = (evento) => this.manejarKeyDown(evento);
+    this.alKeyUp = (evento) => this.manejarKeyUp(evento);
+    this.alPerderFoco = () => this.limpiarTeclasDireccion();
+    this.alCambiarVisibilidad = () => {
+      if (this.documento.hidden) {
+        this.limpiarTeclasDireccion();
+      }
+    };
 
     escena.input.on("pointerdown", this.alPointerDown);
     escena.input.on("pointermove", this.alPointerMove);
@@ -52,6 +79,13 @@ export class ControladorCamaraPhaser {
     escena.input.on("wheel", this.alWheel);
     this.canvas.addEventListener("contextmenu", this.alContextMenu);
     this.canvas.addEventListener("mouseleave", this.alSalirCanvas);
+    this.documento.addEventListener("keydown", this.alKeyDown);
+    this.documento.addEventListener("keyup", this.alKeyUp);
+    this.documento.addEventListener(
+      "visibilitychange",
+      this.alCambiarVisibilidad,
+    );
+    this.ventana.addEventListener("blur", this.alPerderFoco);
 
     this.notificarCambio();
   }
@@ -80,10 +114,11 @@ export class ControladorCamaraPhaser {
     if (cambioMapa) {
       // El personaje de la escena anterior no debe utilizarse como referencia
       // durante el cambio. actualizarJugador recibirá la posición nueva dentro
-      // del mismo ciclo de representación y centrará sin mostrar el centro del mapa.
+      // del mismo ciclo de representación.
       this.jugador = null;
       this.siguiendoJugador = true;
       this.finalizarArrastre();
+      this.limpiarTeclasDireccion();
     }
 
     if (cambioGeometria || cambioMapa) {
@@ -119,6 +154,7 @@ export class ControladorCamaraPhaser {
 
     if (this.seleccionActiva) {
       this.finalizarArrastre();
+      this.limpiarTeclasDireccion();
       this.siguiendoJugador = true;
       this.centrarEnJugador();
     }
@@ -126,6 +162,39 @@ export class ControladorCamaraPhaser {
     if (cambio) {
       this.notificarCambio();
     }
+  }
+
+  actualizar(deltaMs) {
+    if (
+      this.seleccionActiva ||
+      this.teclasDireccionActivas.size === 0 ||
+      !this.geometria ||
+      !this.estaVistaDisponible()
+    ) {
+      return;
+    }
+
+    const direccion = this.obtenerDireccionTeclado();
+    if (direccion.x === 0 && direccion.y === 0) return;
+
+    const deltaSeguro = limitar(
+      Number.isFinite(deltaMs) ? deltaMs : 0,
+      0,
+      MAX_DELTA_CAMARA_MS,
+    );
+    const longitud = Math.hypot(direccion.x, direccion.y) || 1;
+    const distanciaVisible =
+      CONFIGURACION_CAMARA_PHASER.velocidadTecladoPixelesVisiblesSegundo *
+      (deltaSeguro / 1000);
+    const distanciaMundo = distanciaVisible / this.camara.zoom;
+
+    this.camara.scrollX +=
+      (direccion.x / longitud) * distanciaMundo;
+    this.camara.scrollY +=
+      (direccion.y / longitud) * distanciaMundo;
+    this.aplicarLimitesDesplazamiento();
+
+    this.actualizarCasillaPunteroConocido();
   }
 
   // Se invoca después de refrescos de escala, visibilidad, modal o tamaño del
@@ -138,6 +207,8 @@ export class ControladorCamaraPhaser {
     if (this.siguiendoJugador || this.seleccionActiva) {
       this.centrarEnJugador();
     }
+
+    this.actualizarCasillaPunteroConocido();
   }
 
   manejarPointerDown(pointer) {
@@ -160,7 +231,10 @@ export class ControladorCamaraPhaser {
     if (pointer.button === 0) {
       const ahora = performance.now();
 
-      if (ahora - this.ultimoClicIzquierdo <= RETARDO_DOBLE_CLIC_MS) {
+      if (
+        ahora - this.ultimoClicIzquierdo <=
+        CONFIGURACION_CAMARA_PHASER.retardoDobleClicMs
+      ) {
         this.recentrar();
         this.ultimoClicIzquierdo = 0;
       } else {
@@ -175,9 +249,10 @@ export class ControladorCamaraPhaser {
       const deltaY = pointer.y - this.ultimoPuntero.y;
       this.camara.scrollX -= deltaX / this.camara.zoom;
       this.camara.scrollY -= deltaY / this.camara.zoom;
-      this.ultimoPuntero = { x: pointer.x, y: pointer.y };
+      this.aplicarLimitesDesplazamiento();
     }
 
+    this.ultimoPuntero = { x: pointer.x, y: pointer.y };
     this.actualizarCasillaPuntero(pointer);
   }
 
@@ -188,22 +263,86 @@ export class ControladorCamaraPhaser {
 
   manejarPointerOut() {
     this.finalizarArrastre();
+    this.ultimoPuntero = null;
     this.compositor.establecerCasillaPuntero(null);
   }
 
   manejarWheel(pointer, deltaY) {
     if (!Number.isFinite(deltaY) || deltaY === 0) return;
 
+    const direccion = deltaY > 0 ? -1 : 1;
+    this.cambiarZoom(direccion, {
+      puntoPantalla: { x: pointer.x, y: pointer.y },
+    });
+    pointer.event?.preventDefault?.();
+  }
+
+  manejarKeyDown(evento) {
+    if (
+      esElementoEditable(evento.target) ||
+      evento.altKey ||
+      evento.ctrlKey ||
+      evento.metaKey ||
+      !this.estaVistaDisponible()
+    ) {
+      return;
+    }
+
+    const direccion = DIRECCIONES_CAMARA_POR_TECLA[evento.code];
+
+    if (direccion) {
+      if (this.seleccionActiva) return;
+
+      const primeraPulsacion =
+        !this.teclasDireccionActivas.has(evento.code);
+      this.teclasDireccionActivas.add(evento.code);
+      this.finalizarArrastre();
+      this.siguiendoJugador = false;
+      evento.preventDefault();
+
+      if (primeraPulsacion) {
+        this.notificarCambio();
+      }
+      return;
+    }
+
+    if (evento.code === TECLA_RECENTRAR) {
+      if (evento.repeat) return;
+      evento.preventDefault();
+      this.recentrar();
+      return;
+    }
+
+    const direccionZoom = obtenerDireccionZoomTeclado(evento);
+    if (direccionZoom === 0 || evento.repeat) return;
+
+    evento.preventDefault();
+    this.cambiarZoom(direccionZoom);
+  }
+
+  manejarKeyUp(evento) {
+    if (!DIRECCIONES_CAMARA_POR_TECLA[evento.code]) return;
+    this.teclasDireccionActivas.delete(evento.code);
+  }
+
+  cambiarZoom(direccion, { puntoPantalla = null } = {}) {
     const debeConservarJugador =
       this.siguiendoJugador || this.seleccionActiva;
-    const puntoAntes = debeConservarJugador
+    const puntoMundoAntes = debeConservarJugador
       ? null
-      : this.camara.getWorldPoint(pointer.x, pointer.y);
-    const direccion = deltaY > 0 ? -1 : 1;
+      : puntoPantalla
+        ? this.conversorCoordenadas.pantallaAMundo(
+            puntoPantalla.x,
+            puntoPantalla.y,
+          )
+        : this.obtenerCentroMundoVisible();
     const zoomNuevo = limitar(
-      redondearZoom(this.camara.zoom + direccion * PASO_ZOOM),
-      ZOOM_MINIMO,
-      ZOOM_MAXIMO,
+      redondearZoom(
+        this.camara.zoom +
+          direccion * CONFIGURACION_CAMARA_PHASER.pasoZoom,
+      ),
+      CONFIGURACION_CAMARA_PHASER.zoomMinimo,
+      CONFIGURACION_CAMARA_PHASER.zoomMaximo,
     );
 
     if (zoomNuevo === this.camara.zoom) return;
@@ -214,39 +353,75 @@ export class ControladorCamaraPhaser {
 
     if (debeConservarJugador) {
       this.centrarEnJugador();
-    } else {
-      const puntoDespues = this.camara.getWorldPoint(pointer.x, pointer.y);
-      this.camara.scrollX += puntoAntes.x - puntoDespues.x;
-      this.camara.scrollY += puntoAntes.y - puntoDespues.y;
+    } else if (puntoMundoAntes && puntoPantalla) {
+      const puntoMundoDespues =
+        this.conversorCoordenadas.pantallaAMundo(
+          puntoPantalla.x,
+          puntoPantalla.y,
+        );
+      this.camara.scrollX += puntoMundoAntes.x - puntoMundoDespues.x;
+      this.camara.scrollY += puntoMundoAntes.y - puntoMundoDespues.y;
+      this.aplicarLimitesDesplazamiento();
+    } else if (puntoMundoAntes) {
+      this.camara.centerOn(puntoMundoAntes.x, puntoMundoAntes.y);
     }
 
-    pointer.event?.preventDefault?.();
-    this.actualizarCasillaPuntero(pointer);
+    this.actualizarCasillaPunteroConocido();
     this.notificarCambio();
   }
 
   actualizarCasillaPuntero(pointer) {
-    const punto = this.camara.getWorldPoint(pointer.x, pointer.y);
-    const casilla = this.compositor.convertirMundoACasilla(punto.x, punto.y);
+    const casilla = this.conversorCoordenadas.pantallaACasilla(
+      pointer.x,
+      pointer.y,
+    );
     this.compositor.establecerCasillaPuntero(casilla);
   }
 
+  actualizarCasillaPunteroConocido() {
+    if (!this.ultimoPuntero) return;
+    this.actualizarCasillaPuntero(this.ultimoPuntero);
+  }
+
   recentrar() {
+    this.finalizarArrastre();
+    this.limpiarTeclasDireccion();
     this.siguiendoJugador = true;
     this.centrarEnJugador();
+    this.actualizarCasillaPunteroConocido();
     this.notificarCambio();
   }
 
   centrarEnJugador() {
     if (!this.jugador || !this.geometria) return;
 
-    const x =
-      this.geometria.origenX +
-      (this.jugador.x + 0.5) * TAMANO_CASILLA_REFERENCIA;
-    const y =
-      this.geometria.origenY +
-      (this.jugador.y + 0.5) * TAMANO_CASILLA_REFERENCIA;
-    this.camara.centerOn(x, y);
+    const posicion = this.conversorCoordenadas.casillaAMundo(
+      this.jugador,
+      { centro: true },
+    );
+    if (!posicion) return;
+
+    this.camara.centerOn(posicion.x, posicion.y);
+  }
+
+  obtenerCentroMundoVisible() {
+    return {
+      x: this.camara.scrollX + this.camara.width / 2,
+      y: this.camara.scrollY + this.camara.height / 2,
+    };
+  }
+
+  obtenerDireccionTeclado() {
+    let x = 0;
+    let y = 0;
+
+    for (const codigo of this.teclasDireccionActivas) {
+      const direccion = DIRECCIONES_CAMARA_POR_TECLA[codigo];
+      x += direccion?.x ?? 0;
+      y += direccion?.y ?? 0;
+    }
+
+    return { x, y };
   }
 
   actualizarLimitesCamara() {
@@ -267,6 +442,10 @@ export class ControladorCamaraPhaser {
     }
 
     this.firmaLimites = firma;
+    const centroLibre =
+      !this.siguiendoJugador && !this.seleccionActiva
+        ? this.obtenerCentroMundoVisible()
+        : null;
     const medioAnchoVisible = this.camara.width / (2 * this.camara.zoom);
     const medioAltoVisible = this.camara.height / (2 * this.camara.zoom);
 
@@ -277,13 +456,42 @@ export class ControladorCamaraPhaser {
       this.geometria.altoMapa + medioAltoVisible * 2,
       true,
     );
+
+    if (centroLibre) {
+      this.camara.centerOn(centroLibre.x, centroLibre.y);
+    }
+  }
+
+  aplicarLimitesDesplazamiento() {
+    if (
+      !this.camara.useBounds ||
+      typeof this.camara.clampX !== "function" ||
+      typeof this.camara.clampY !== "function"
+    ) {
+      return;
+    }
+
+    this.camara.scrollX = this.camara.clampX(this.camara.scrollX);
+    this.camara.scrollY = this.camara.clampY(this.camara.scrollY);
   }
 
   finalizarArrastre() {
     if (!this.arrastrando) return;
     this.arrastrando = false;
-    this.ultimoPuntero = null;
     this.canvas.classList.remove("game-canvas--phaser-arrastrando");
+  }
+
+  limpiarTeclasDireccion() {
+    this.teclasDireccionActivas.clear();
+  }
+
+  estaVistaDisponible() {
+    if (!this.canvas?.isConnected || !this.geometria || !this.jugador) {
+      return false;
+    }
+
+    const limites = this.canvas.getBoundingClientRect();
+    return limites.width > 0 && limites.height > 0;
   }
 
   obtenerEstado() {
@@ -302,6 +510,7 @@ export class ControladorCamaraPhaser {
 
   destruir() {
     this.finalizarArrastre();
+    this.limpiarTeclasDireccion();
     this.escena.input.off("pointerdown", this.alPointerDown);
     this.escena.input.off("pointermove", this.alPointerMove);
     this.escena.input.off("pointerup", this.alPointerUp);
@@ -309,13 +518,44 @@ export class ControladorCamaraPhaser {
     this.escena.input.off("wheel", this.alWheel);
     this.canvas.removeEventListener("contextmenu", this.alContextMenu);
     this.canvas.removeEventListener("mouseleave", this.alSalirCanvas);
+    this.documento.removeEventListener("keydown", this.alKeyDown);
+    this.documento.removeEventListener("keyup", this.alKeyUp);
+    this.documento.removeEventListener(
+      "visibilitychange",
+      this.alCambiarVisibilidad,
+    );
+    this.ventana.removeEventListener("blur", this.alPerderFoco);
     this.compositor.establecerCasillaPuntero(null);
     this.alCambiar = null;
     this.escena = null;
     this.compositor = null;
+    this.conversorCoordenadas = null;
     this.camara = null;
     this.canvas = null;
+    this.documento = null;
+    this.ventana = null;
   }
+}
+
+function obtenerDireccionZoomTeclado(evento) {
+  if (evento.key === "+" || evento.code === "NumpadAdd") {
+    return 1;
+  }
+
+  if (evento.key === "-" || evento.code === "NumpadSubtract") {
+    return -1;
+  }
+
+  return 0;
+}
+
+function esElementoEditable(elemento) {
+  return Boolean(
+    elemento?.isContentEditable ||
+      elemento?.closest?.(
+        'input, textarea, select, [contenteditable="true"]',
+      ),
+  );
 }
 
 function redondearZoom(valor) {

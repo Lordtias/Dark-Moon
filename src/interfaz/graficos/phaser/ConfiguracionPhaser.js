@@ -2,6 +2,15 @@ export const ANCHO_REFERENCIA_PHASER = 1024;
 export const ALTO_REFERENCIA_PHASER = 640;
 export const TAMANO_CASILLA_REFERENCIA = 32;
 
+export const CONFIGURACION_CAMARA_PHASER = Object.freeze({
+  zoomInicial: 1.2,
+  zoomMinimo: 0.8,
+  zoomMaximo: 1.6,
+  pasoZoom: 0.1,
+  velocidadTecladoPixelesVisiblesSegundo: 420,
+  retardoDobleClicMs: 320,
+});
+
 // La resolución es una referencia visual. No limita el tamaño real de los
 // mapas: la cámara recorre un mundo que conserva casillas lógicas de 32 × 32.
 export function crearConfiguracionPhaser({

@@ -361,39 +361,56 @@ Debe soportar:
 
 ## 8.3 Seguimiento
 
-El personaje no tiene que estar siempre exactamente en el centro.
+Mientras el seguimiento esté activo, el personaje permanece exactamente en el centro visual. El contrato se conserva después de movimiento, espera, modales, redimensionamiento, pantalla completa y cambios de zoom.
 
-Se recomienda una zona muerta suave para evitar movimientos constantes de cámara por cada casilla.
+El seguimiento se desactiva solamente cuando el usuario desplaza la cámara de forma manual. Cambiar de mapa, iniciar una selección táctica o utilizar la acción de recentrado vuelve a activarlo.
 
 ## 8.4 Desplazamiento
 
-Controles posibles:
+Los controles aprobados son:
 
-- teclas dedicadas;
-- teclas modificadoras;
-- arrastre con ratón;
-- movimiento por bordes, solo si no resulta molesto.
+- `I`: cámara hacia arriba;
+- `J`: cámara hacia la izquierda;
+- `K`: cámara hacia abajo;
+- `L`: cámara hacia la derecha;
+- arrastre con botón derecho o central.
 
-El movimiento de cámara no debe activar movimientos del personaje.
+El desplazamiento se calcula por tiempo real para mantener una velocidad estable, normaliza las diagonales y respeta los límites del mapa. No activa movimientos del personaje, no ejecuta comandos jugables y no consume turnos.
+
+Durante ataque, interacción o selección de habilidad, el desplazamiento manual queda bloqueado y la cámara vuelve al personaje.
 
 ## 8.5 Zoom
 
-El zoom debe:
+El zoom aprobado utiliza:
 
-- conservar lectura;
-- mantener la casilla seleccionada;
-- respetar límites;
-- no romper paneles;
-- permitir volver a un valor predeterminado;
-- utilizar pasos controlados.
+- rueda del ratón;
+- `+` para acercar;
+- `-` para alejar;
+- pasos de 10 %;
+- mínimo de 80 %;
+- máximo de 160 %;
+- valor inicial de 120 %.
+
+En seguimiento o selección táctica, el personaje se conserva como centro. En cámara libre, la rueda conserva el punto situado bajo el puntero y el teclado conserva el centro visible. El zoom debe mantener la lectura de casillas, selección, entidades y paneles.
 
 ## 8.6 Recentrado
 
-Debe existir una acción simple para volver al personaje.
+`H` vuelve al personaje y reactiva el seguimiento. El doble clic izquierdo conserva la misma función como alternativa de ratón.
 
-La tecla exacta se definirá durante P3.
+## 8.7 Coordenadas
 
-## 8.7 Sensación
+La presentación mantiene un único conversor para:
+
+- pantalla a mundo;
+- mundo a pantalla;
+- mundo a casilla;
+- pantalla a casilla;
+- casilla a mundo;
+- casilla a pantalla.
+
+La conversión no ejecuta acciones, no contiene reglas jugables y debe reutilizarse cuando P4 traduzca entradas a intenciones canónicas.
+
+## 8.8 Sensación
 
 La cámara debe ser:
 
@@ -1608,9 +1625,15 @@ No se utiliza aura permanente para portales, objetos o enemigos comunes. Una fut
 
 Los PNG transparentes se apoyan mediante su contenido visible y no mediante el borde completo del archivo. Phaser calcula una vez los límites alfa de cada recurso, utiliza el centro visible como eje horizontal y apoya el último píxel visible sobre la base de la casilla. Las sombras adaptan discretamente su ancho al dibujo real. Los PNG originales no se recortan ni se alteran, por lo que continúan siendo reutilizables en inventario, paneles y detalles.
 
+## V-018 — Controles y coordenadas de cámara
+
+La cámara utiliza `IJKL` para desplazamiento, `+` y `-` para zoom y `H` para volver al personaje y reactivar el seguimiento. La rueda, el arrastre derecho o central y el doble clic izquierdo continúan disponibles. Estos controles son exclusivamente visuales: no mueven al personaje, no ejecutan acciones y se ignoran en campos editables.
+
+Las traducciones entre pantalla, mundo y casilla pertenecen a un conversor único reutilizable. El compositor dibuja y el controlador navega utilizando ese contrato, sin duplicar matemáticas de coordenadas.
+
 ---
 
-# 35. REFERENCIA IMPLEMENTADA EN P2
+# 35. REFERENCIAS IMPLEMENTADAS EN P2 Y P3
 
 La referencia P2 aplica las siguientes decisiones concretas:
 
@@ -1633,6 +1656,18 @@ La referencia P2 aplica las siguientes decisiones concretas:
 - Canvas 2D conservado como backend predeterminado.
 
 Esta referencia no define todavía animaciones finales, niebla, minimapa, sprites direccionales ni controles jugables directos desde Phaser.
+
+La referencia P3 agrega:
+
+- desplazamiento continuo con `IJKL` sin consumir turnos;
+- velocidad de cámara configurable y estable por tiempo real;
+- zoom por rueda y `+`/`-` dentro de 80 % a 160 %;
+- `H` y doble clic izquierdo para recentrar y reactivar seguimiento;
+- bloqueo de desplazamiento manual durante selección táctica;
+- límites recalculados al cambiar zoom o tamaño;
+- conservación del punto bajo el puntero durante zoom libre;
+- conversor único entre pantalla, mundo y casilla;
+- controles ignorados mientras se escribe en elementos editables.
 
 ---
 

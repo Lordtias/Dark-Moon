@@ -5,6 +5,12 @@ Etapa: P2 — Corte vertical visual
 Estado: **Cerrada**  
 Fecha: 31 de julio de 2026
 
+## Actualización posterior al cierre
+
+P2 fue commiteada y publicada en `2b572cf5e587c4ea1d85f2f9069255fb83938a85`. La copia local utilizada para iniciar P3 y el estado publicado en GitHub coincidían exactamente en ese SHA y presentaban un `git status` limpio.
+
+La decisión D-023 del Plan Maestro autorizó posteriormente implementar P3 mientras E0 continúa pausada. Esa decisión reemplaza las referencias históricas de esta entrega que exigían completar E0 antes de P3. El resto del alcance, pruebas y decisiones de P2 se conserva sin cambios.
+
 ---
 
 ## 1. Estado de la copia de trabajo
@@ -350,8 +356,9 @@ Estado: **Correcto**.
 
 ### Electron
 
-Sin implementación ni prueba en P2. E0 sigue pausada y debe completarse antes
-de P3.
+Sin implementación ni prueba en P2. E0 sigue pausada y no se considera
+completada. D-023 autorizó posteriormente P3 como excepción, sin modificar el
+alcance pendiente de Electron.
 
 ### Persistencia
 
@@ -426,6 +433,8 @@ después de aplicar el ZIP final y revisar el estado local.
 ---
 
 ## 17. Enlace para la siguiente etapa
+
+> Nota de trazabilidad: este enlace refleja la decisión vigente al cerrar P2. La autorización D-023 y el commit final `2b572cf5e587c4ea1d85f2f9069255fb83938a85` reemplazan sus referencias a realizar E0 antes de P3. No debe reutilizarse como estado actual del plan.
 
 ---------------- INICIO DEL ENLACE ----------------
 

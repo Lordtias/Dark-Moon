@@ -71,7 +71,7 @@ También puede solicitarse Canvas 2D de forma explícita:
 http://localhost:8000/index.html?render=canvas2d
 ```
 
-Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El canvas Phaser acepta puntero únicamente para destacar casillas, modificar el zoom, desplazar la cámara y recentrarla. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. La rueda cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el arrastre manual.
+Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. En Phaser, `I`, `J`, `K` y `L` desplazan únicamente la cámara; `+` y `-` cambian el zoom; `H` vuelve al personaje y reactiva el seguimiento. La rueda también cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el desplazamiento manual. Los controles de cámara se ignoran mientras se escribe en un campo editable.
 
 Balanceador:
 
@@ -1559,7 +1559,7 @@ El modo `?render=phaser` utiliza actualmente:
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
 
-Los clics sobre el canvas todavía no ordenan movimiento, ataque, habilidades ni interacción. P2 conserva la entrada canónica existente. La siguiente etapa técnica del plan es E0; P3 no debe comenzar hasta completar esa prueba de Electron.
+Los clics sobre el canvas todavía no ordenan movimiento, ataque, habilidades ni interacción. P3 agrega navegación visual por teclado, ratón y zoom sin emitir comandos jugables. E0 continúa pausada por decisión explícita y deberá reanudarse mediante una etapa aprobada; P4 no queda autorizado automáticamente.
 
 ### Lo que Phaser no debe contener
 

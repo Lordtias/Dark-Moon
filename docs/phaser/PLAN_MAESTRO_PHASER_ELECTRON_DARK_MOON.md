@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.5
+Versión del documento: 1.6
 Fecha inicial: 30 de julio de 2026  
 Última actualización: 31 de julio de 2026
-Estado: P0, P1 y P2 cerradas; E0 pausada temporalmente
+Estado: P0, P1, P2 y P3 cerradas; E0 pausada temporalmente
 
 ---
 
@@ -557,9 +557,10 @@ El usuario confirmó el commit final de P1:
 `251b2037b6180848bb7a15610251b6fed0f492dc`
 
 Ese commit incluye la validación de P1 y la corrección del ajuste inicial de
-resolución. P1 queda cerrada y commiteada. Por la decisión D-019, E0 se pausa
-temporalmente y P2 pasa a ser la siguiente etapa autorizada para análisis y
-propuesta. E0 deberá completarse antes de comenzar P3.
+resolución. P1 queda cerrada y commiteada. Por la decisión D-019, E0 se pausó
+temporalmente y P2 pasó a ser la siguiente etapa autorizada. La restricción que
+exigía cerrar E0 antes de P3 fue reemplazada posteriormente por la autorización
+excepcional D-023. E0 continúa pausada y no se considera completada.
 
 ### Entregables
 
@@ -633,9 +634,10 @@ Una versión técnica ejecutable que pueda abrirse fuera del navegador.
 ### Estado temporal y condición de reanudación
 
 E0 está pausada temporalmente por las limitaciones de conectividad, permisos de
-instalación y descarga del equipo actual. Se realizará después de P2 y antes de
-P3. La pausa no modifica su alcance ni permite considerar sus criterios como
-cumplidos.
+instalación y descarga del equipo actual. La pausa no modifica su alcance ni
+permite considerar sus criterios como cumplidos. Por la decisión D-023 se
+habilitó completar P3 antes de E0, sin autorizar automáticamente etapas
+posteriores ni incorporar Electron, Node.js o npm dentro de P3.
 
 Antes de instalar cualquier herramienta deberán proponerse y aprobarse las
 versiones exactas de Node.js, Electron y la herramienta de empaquetado, junto
@@ -710,7 +712,7 @@ La cámara ya no depende de listas de acciones que deban recentrarla. Mientras e
 
 Los recursos transparentes se analizan una sola vez al cargarse. El compositor utiliza la base y el centro del contenido alfa para apoyar sprites y dimensionar sombras, sin recortar archivos ni introducir excepciones por enemigo u objeto.
 
-Canvas 2D sigue siendo el backend predeterminado. Phaser no emite todavía comandos de movimiento, combate, habilidades o interacción. La implementación superó las validaciones automatizadas de navegador y la validación manual del usuario. P2 queda **Cerrada**. La decisión visual es continuar con Phaser conservando Canvas 2D como respaldo y sin adelantar los controles jugables directos previstos para P3.
+Canvas 2D sigue siendo el backend predeterminado. Phaser no emite todavía comandos de movimiento, combate, habilidades o interacción. La implementación superó las validaciones automatizadas de navegador y la validación manual del usuario. P2 queda **Cerrada** en el commit `2b572cf5e587c4ea1d85f2f9069255fb83938a85`. La decisión visual es continuar con Phaser conservando Canvas 2D como respaldo y sin adelantar los controles jugables directos previstos para P4.
 
 ---
 
@@ -720,36 +722,46 @@ Canvas 2D sigue siendo el backend predeterminado. Phaser no emite todavía coman
 
 Crear el sistema de navegación visual necesario para mapas más grandes.
 
-### Alcance mínimo
+### Alcance aprobado
 
 - seguimiento opcional del personaje;
-- desplazamiento de cámara por teclado;
-- desplazamiento por ratón si se aprueba;
-- zoom con teclado;
-- zoom con rueda;
+- desplazamiento de cámara con `I`, `J`, `K` y `L`;
+- desplazamiento por arrastre derecho o central;
+- zoom con `+`, `-` y rueda;
 - límites dinámicos;
-- recentrado;
-- configuración de velocidad;
-- configuración de zoom mínimo y máximo;
-- conversión entre coordenadas de pantalla, mundo y casilla;
+- `H` y doble clic izquierdo para recentrar y reactivar seguimiento;
+- velocidad configurable y calculada por tiempo real;
+- zoom inicial de 120 %, mínimo de 80 %, máximo de 160 % y pasos de 10 %;
+- conversión única entre coordenadas de pantalla, mundo y casilla;
 - mantenimiento de nitidez;
-- compatibilidad con paneles;
-- comportamiento al redimensionar.
+- compatibilidad con paneles y campos editables;
+- conservación del modo libre al redimensionar;
+- bloqueo del desplazamiento manual durante selección táctica.
+
+### Arquitectura aprobada
+
+`ConversorCoordenadasPhaser` centraliza pantalla, mundo y casilla. `ControladorCamaraPhaser` consume ese contrato para navegar y nunca emite comandos jugables. `CompositorMundoPhaser` reutiliza el mismo conversor para ubicar casillas. La escena llama al controlador desde su ciclo `update` sin trasladar reglas del juego a Phaser.
 
 ### No incluye
 
 - movimiento lógico migrado;
+- clics o teclado Phaser traducidos a intenciones jugables;
 - combate;
 - minimapa obligatorio;
-- mapas definitivos de gran tamaño.
+- mapas definitivos de gran tamaño;
+- Electron, Node.js o npm.
+
+### Estado actual
+
+La implementación fue aprobada y completada el 31 de julio de 2026. Las comprobaciones estáticas, de configuración, de comportamiento aislado y de navegador automatizado fueron correctas para Phaser y Canvas 2D. El usuario aprobó además las pruebas manuales en su navegador habitual. P3 queda **Cerrada**; sus cambios permanecen localmente sin commit ni push.
 
 ### Resultado esperado
 
-Una cámara cómoda, predecible y preparada para mapas mayores que la pantalla.
+Una cámara cómoda, predecible y preparada para mapas mayores que la pantalla, sin consumir turnos ni interferir con los controles canónicos del personaje.
 
 ### Criterio de cierre
 
-El usuario puede navegar, ampliar, reducir y volver al personaje sin perder orientación.
+El usuario puede navegar, ampliar, reducir y volver al personaje sin perder orientación; la selección táctica, los paneles, el redimensionamiento, Canvas 2D y la entrada canónica conservan su comportamiento.
 
 ---
 
@@ -1404,7 +1416,7 @@ no terminó de inicializarse. Esto evita que WebGL conserve un canvas técnico d
 
 Fecha: 31 de julio de 2026
 
-Estado: vigente
+Estado: reemplazada parcialmente por D-023
 
 El usuario confirmó `251b2037b6180848bb7a15610251b6fed0f492dc` como commit de cierre de P1, incluida la
 validación manual y la corrección del ajuste inicial de resolución.
@@ -1418,7 +1430,8 @@ P1 → P2 → E0 → P3
 ```
 
 P2 no deberá incorporar Node.js, npm, Electron ni nuevas dependencias. E0 no se
-descarta ni se considera completada y deberá cerrarse antes de iniciar P3.
+descarta ni se considera completada. La exigencia original de cerrarla antes de
+P3 quedó reemplazada por D-023.
 
 ## Decisión D-020
 
@@ -1444,6 +1457,38 @@ Estado: vigente
 
 En ventanas de poca altura, solo el modo Phaser puede habilitar desplazamiento vertical de la pantalla para preservar un área de mapa legible. Canvas 2D conserva su comportamiento histórico.
 
+## Decisión D-023
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+El usuario autoriza excepcionalmente implementar P3 mientras E0 continúa pausada por las limitaciones del equipo actual. Esta autorización reemplaza únicamente la obligación de cerrar E0 antes de P3. E0 no se descarta, no se considera cumplida y ninguna etapa posterior queda autorizada automáticamente por esta excepción.
+
+## Decisión D-024
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+Los controles de cámara de P3 son `IJKL` para desplazamiento, `+` y `-` para zoom y `H` para recentrar y reactivar seguimiento. Se conservan rueda, arrastre derecho o central y doble clic izquierdo. Los controles se ignoran en campos editables, no mueven al personaje, no ejecutan acciones y no consumen turnos.
+
+## Decisión D-025
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+La conversión pantalla, mundo y casilla se centraliza en `ConversorCoordenadasPhaser`. El compositor y el controlador de cámara reutilizan ese contrato. P3 no traduce clics o teclado Phaser a intenciones jugables; esa integración continúa reservada para P4.
+
+## Decisión D-026
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+El usuario aprueba las pruebas manuales de P3. La etapa queda cerrada funcional y documentalmente con los cambios locales todavía sin commit ni push. GitHub Pages deberá comprobarse después de publicar el commit, E0 continúa pausada y P4 requiere una propuesta y aprobación nuevas.
+
 ---
 
 # 17. Estado del plan
@@ -1454,9 +1499,9 @@ Actualizar esta tabla al cerrar cada etapa.
 |---|---|---|---|---|
 | P0 | Cerrada | Commiteada | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; P1 iniciada |
 | P1 | Cerrada | `251b2037b6180848bb7a15610251b6fed0f492dc` | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala validados y commiteados |
-| E0 | Pausada | — | — | Postergada temporalmente hasta después de P2; debe cerrarse antes de P3 |
-| P2 | Cerrada | Pendiente de commit local | `docs/phaser/entregas/ENTREGA_P2.md` | Corte visual aprobado; continuar con E0 antes de P3 |
-| P3 | Pendiente | — | — | — |
+| E0 | Pausada | — | — | Continúa pendiente; D-023 autorizó excepcionalmente completar P3 antes de reanudarla |
+| P2 | Cerrada | `2b572cf5e587c4ea1d85f2f9069255fb83938a85` | `docs/phaser/entregas/ENTREGA_P2.md` | Corte visual aprobado, validado y publicado |
+| P3 | Cerrada | Pendiente del usuario | `docs/phaser/entregas/ENTREGA_P3.md` | Implementación y pruebas automáticas y manuales aprobadas; cambios locales sin commit |
 | P4 | Pendiente | — | — | — |
 | P5 | Pendiente | — | — | — |
 | P6 | Pendiente | — | — | — |
@@ -1484,23 +1529,13 @@ Estados permitidos:
 
 # 18. Próxima acción
 
-P2 fue validada manualmente y aprobada para cierre el 31 de julio de 2026.
+P2 está cerrada y publicada en `2b572cf5e587c4ea1d85f2f9069255fb83938a85`.
 
-La siguiente acción operativa es:
+P3 fue aprobada, implementada y validada manualmente sobre ese commit. La siguiente acción operativa es:
 
-1. aplicar el ZIP final de archivos nuevos y modificados sobre el repositorio local;
-2. revisar `git -c core.autocrlf=true status`;
-3. realizar el Conventional Commit propuesto para P2;
-4. confirmar el SHA resultante antes de iniciar otra etapa.
+1. revisar `git -c core.autocrlf=true status`;
+2. realizar un único Conventional Commit para P3;
+3. comunicar el SHA final para actualizar la referencia heredada de la próxima etapa;
+4. comprobar GitHub Pages después del push.
 
-La siguiente etapa recomendada es:
-
-> ETAPA E0 — Prueba técnica temprana de Electron.
-
-La secuencia aprobada continúa siendo:
-
-```text
-P1 → P2 → E0 → P3
-```
-
-E0 permanece pausada por las limitaciones del equipo actual, pero no está descartada ni completada. P3 no debe comenzar antes de cerrar E0.
+E0 continúa pausada y no está completada. D-023 autorizó P3 antes de E0, pero no autoriza automáticamente P4. Antes de iniciar otra implementación deberá decidirse si se reanuda E0 o si se propone expresamente una nueva excepción para otra etapa.

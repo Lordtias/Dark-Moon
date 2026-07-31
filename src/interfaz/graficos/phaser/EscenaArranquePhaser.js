@@ -1,6 +1,7 @@
 import { TIPOS_ENTIDAD_VISUAL } from "../TiposEscena.js";
 import { CompositorMundoPhaser } from "./CompositorMundoPhaser.js";
 import { ControladorCamaraPhaser } from "./ControladorCamaraPhaser.js";
+import { ConversorCoordenadasPhaser } from "./ConversorCoordenadasPhaser.js";
 import { GestorRecursosPhaser } from "./GestorRecursosPhaser.js";
 
 // La clase se crea después de cargar Phaser para no introducir una dependencia
@@ -17,6 +18,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.escenaDarkMoon = null;
       this.dimensionesMapa = null;
       this.gestorRecursos = null;
+      this.conversorCoordenadas = null;
       this.compositor = null;
       this.controladorCamara = null;
       this.textoAyuda = null;
@@ -33,14 +35,20 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         },
       });
 
+      this.conversorCoordenadas = new ConversorCoordenadasPhaser({
+        camara: this.cameras.main,
+      });
+
       this.compositor = new CompositorMundoPhaser({
         escena: this,
         gestorRecursos: this.gestorRecursos,
+        conversorCoordenadas: this.conversorCoordenadas,
       });
 
       this.controladorCamara = new ControladorCamaraPhaser({
         escena: this,
         compositor: this.compositor,
+        conversorCoordenadas: this.conversorCoordenadas,
         alCambiar: (estado) => this.actualizarTextoAyuda(estado),
       });
 
@@ -67,6 +75,10 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       }
 
       this.redibujar();
+    }
+
+    update(tiempo, delta) {
+      this.controladorCamara?.actualizar(delta);
     }
 
     configurarDimensionesMapa(dimensiones) {
@@ -122,8 +134,8 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         ? "siguiendo al personaje"
         : "cámara libre";
       const controles = estado.seleccionActiva
-        ? "Selección táctica: cámara centrada · rueda: zoom"
-        : "Rueda: zoom · arrastre derecho/central: cámara · doble clic: recentrar";
+        ? "Selección táctica: cámara centrada · rueda o +/-: zoom · H: recentrar"
+        : "IJKL: cámara · rueda o +/-: zoom · arrastre: cámara · H: recentrar";
 
       this.textoAyuda.setText(
         `Vista ${zoom}% · ${seguimiento}\n` +
@@ -139,9 +151,11 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.destruida = true;
       this.controladorCamara?.destruir();
       this.compositor?.destruir();
+      this.conversorCoordenadas?.destruir();
       this.gestorRecursos?.destruir();
       this.controladorCamara = null;
       this.compositor = null;
+      this.conversorCoordenadas = null;
       this.gestorRecursos = null;
       this.textoAyuda = null;
       this.escenaDarkMoon = null;

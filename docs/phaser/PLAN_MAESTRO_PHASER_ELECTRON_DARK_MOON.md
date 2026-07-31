@@ -3,9 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.0  
+Versión del documento: 1.1
 Fecha inicial: 30 de julio de 2026  
-Estado: planificación aprobable y editable
+Última actualización: 30 de julio de 2026
+Estado: P0 cerrada; P1 pendiente de inicio
 
 ---
 
@@ -90,6 +91,10 @@ Electron debe probarse temprano, pero no se convertirá todavía en el entorno o
 
 Los mapas podrán ser mayores que el área visible.
 
+La referencia inicial del área del mundo será de **1024 × 640 unidades lógicas**, equivalente a 32 × 20 casillas cuando se utilice la casilla lógica de 32 × 32. Esta medida sirve para diseño, diagnóstico y pruebas; no limita el tamaño futuro de los mapas ni obliga a que la ventana mantenga esa resolución.
+
+La integración con Phaser deberá mostrar una parte del mapa mediante cámara. No deberá reducir progresivamente todo el mapa para hacerlo entrar en el panel.
+
 La cámara deberá permitir:
 
 - seguimiento del personaje;
@@ -135,22 +140,61 @@ Los detalles completos se encuentran en:
 La arquitectura objetivo inicial es:
 
 ```text
-Lógica y datos de Dark Moon
-            │
-            ▼
+Entrada de teclado, ratón o Phaser
+                │
+                ▼
+        Comando compartido
+                │
+                ▼
+       Lógica canónica actual
+                │
+                ▼
+        Resultado canónico
+                │
+                ▼
  Estado neutral de presentación
-            │
-      ┌─────┴─────┐
-      ▼           ▼
-   Phaser       HTML/CSS
-   Mundo        Interfaz
-      │           │
-      └─────┬─────┘
-            ▼
-     Navegador o Electron
+                │
+        ┌───────┴────────┐
+        ▼                ▼
+ Canvas 2D o Phaser    HTML/CSS
+     Mundo             Interfaz
+        │                │
+        └───────┬────────┘
+                ▼
+         Navegador o Electron
 ```
 
+La revisión de P0 confirmó que la base actual ya se aproxima a este contrato:
+
+- `ControladorTeclado` produce comandos compartidos;
+- `ControladorPartida` ofrece un punto común para ejecutar comandos;
+- `EjecutorAccionesJugador` conecta comandos con la lógica canónica;
+- `ProcesadorResultadoAccion` normaliza y presenta resultados;
+- `AdaptadorEscenaJuego` crea una escena plana;
+- `Renderizador` delega el mapa a un backend gráfico intercambiable;
+- `RenderizadorCanvas2D` representa la escena sin resolver reglas.
+
+El backend gráfico mínimo debe aceptar:
+
+- `configurarDimensiones({ columnas, filas })`;
+- `dibujar(escena)`;
+- un mecanismo de destrucción cuando el ciclo de vida lo requiera.
+
+Phaser deberá consumir la escena neutral y emitir los mismos comandos utilizados por las entradas actuales. No podrá mover entidades, calcular daño, ejecutar IA ni alterar el tiempo directamente.
+
 Phaser no debe reemplazar reglas que ya funcionan solamente para aumentar su presencia en el proyecto.
+
+### 4.6 Fuente principal de cada etapa
+
+A partir de P0, la fuente principal y obligatoria será la copia descomprimida del ZIP completo proporcionado para la etapa, incluido su directorio `.git`.
+
+La conexión de GitHub se utilizará como fuente complementaria para:
+
+- confirmar el repositorio publicado;
+- contrastar commits y archivos;
+- revisar el estado remoto cuando resulte útil.
+
+Si la copia del ZIP y GitHub difieren, no se reemplazará automáticamente la copia local. La diferencia deberá explicarse antes de modificar arquitectura o contenido.
 
 ---
 
@@ -396,6 +440,29 @@ P0 termina cuando existe una arquitectura aprobada basada en el repositorio real
 ### Punto de decisión
 
 Si el repositorio está demasiado acoplado, puede agregarse una etapa P0A de desacoplamiento mínimo antes de incorporar Phaser.
+
+### Resultado de P0
+
+P0 determinó que **no es necesaria una etapa P0A**.
+
+La arquitectura ya contiene un camino común de comandos, una lógica canónica, un procesador de resultados, un adaptador de escena y un backend Canvas 2D intercambiable. Los acoplamientos encontrados son controlables y pueden tratarse de forma progresiva sin una reescritura previa.
+
+Decisiones cerradas:
+
+- P0 es exclusivamente documental;
+- la casilla lógica queda fijada en 32 × 32;
+- 1024 × 640 es una referencia inicial, no un límite del mapa;
+- los mapas grandes serán recorridos mediante cámara;
+- el selector temporal será `?render=canvas2d|phaser`;
+- sin parámetro se utilizará Canvas 2D durante la transición;
+- los paneles densos continúan en HTML/CSS durante este hito;
+- una revisión o migración posterior de esos paneles podrá evaluarse después del hito;
+- Phaser deberá usar estado neutral y comandos compartidos obligatoriamente;
+- Canvas 2D no se eliminará antes de validar su reemplazo.
+
+Entrega asociada:
+
+`docs/phaser/entregas/ENTREGA_P0.md`
 
 ---
 
@@ -1136,6 +1203,70 @@ Estado: vigente
 
 El estilo visual objetivo será fantasía medieval 2D ilustrada, estilizada y luminosa, con lectura táctica por casillas.
 
+## Decisión D-006
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+P0 confirma que no se necesita una etapa P0A. La arquitectura actual ya posee separación suficiente para incorporar Phaser como backend visual progresivo.
+
+## Decisión D-007
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+La casilla lógica se fija en 32 × 32. La resolución de los archivos gráficos podrá ser mayor y no determinará por sí sola el espacio lógico ocupado.
+
+## Decisión D-008
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+Se adopta 1024 × 640 como resolución inicial de referencia para el área del mundo. No es un límite para el tamaño de los mapas, la ventana ni el modo de pantalla completa.
+
+## Decisión D-009
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+Phaser utilizará cámara para mostrar mapas mayores que el panel. No deberá reducir todo el mapa para mantenerlo completamente visible.
+
+## Decisión D-010
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+Durante la transición se utilizará el selector de URL `?render=canvas2d|phaser`. Canvas 2D será el valor predeterminado hasta que Phaser haya sido validado.
+
+## Decisión D-011
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+Los paneles, menús y modales densos continuarán en HTML/CSS durante el hito actual. Podrá evaluarse una mejora o migración posterior al hito, pero no forma parte de la integración inicial.
+
+## Decisión D-012
+
+Fecha: 30 de julio de 2026
+
+Estado: obligatoria
+
+Phaser deberá consumir un estado neutral de presentación y producir comandos compartidos. No podrá convertirse en un segundo motor de movimiento, combate, IA, tiempo, muerte, experiencia, botín o persistencia.
+
+## Decisión D-013
+
+Fecha: 30 de julio de 2026
+
+Estado: vigente
+
+La copia descomprimida del ZIP completo con `.git` será la fuente principal de cada etapa. GitHub será una fuente complementaria de consulta y contraste.
+
 ---
 
 # 17. Estado del plan
@@ -1144,7 +1275,7 @@ Actualizar esta tabla al cerrar cada etapa.
 
 | Etapa | Estado | Commit | Entrega | Decisión |
 |---|---|---|---|---|
-| P0 | Pendiente | — | — | — |
+| P0 | Cerrada | Pendiente de commit | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; avanzar a P1 |
 | P1 | Pendiente | — | — | — |
 | E0 | Pendiente | — | — | — |
 | P2 | Pendiente | — | — | — |
@@ -1176,12 +1307,17 @@ Estados permitidos:
 
 # 18. Próxima acción
 
-La primera etapa recomendada es:
+La siguiente etapa recomendada es:
 
-> ETAPA P0 — Revalidación y contrato de arquitectura.
+> ETAPA P1 — Núcleo técnico de Phaser.
 
-P0 debe comenzar en un chat nuevo utilizando:
+P1 debe comenzar utilizando el enlace incluido en:
 
-`docs/phaser/PROMPT_MAESTRO_ETAPAS_PHASER_ELECTRON.txt`
+`docs/phaser/entregas/ENTREGA_P0.md`
 
-No debe implementarse Phaser hasta que el análisis de P0 sea aprobado explícitamente.
+Antes de incorporar la dependencia se deberá:
+
+- verificar la versión estable oficial de Phaser;
+- proponer una versión exacta;
+- confirmar licencia, ubicación y forma de carga;
+- esperar aprobación de la propuesta específica de P1.

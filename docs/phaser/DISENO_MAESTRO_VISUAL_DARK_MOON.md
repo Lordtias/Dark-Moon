@@ -1,9 +1,10 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon  
-Versión del documento: 1.0  
+Versión del documento: 1.1
 Fecha inicial: 30 de julio de 2026  
-Estado: guía visual principal, editable
+Última actualización: 30 de julio de 2026
+Estado: guía visual principal, editable; decisiones P0 incorporadas
 
 ---
 
@@ -243,6 +244,8 @@ Ejemplo:
 
 La resolución del archivo no determina por sí sola el espacio ocupado.
 
+La casilla lógica base queda definida en **32 × 32 unidades**. Esta medida se utiliza para posiciones, anclajes, selección y relación entre el mundo y la pantalla. No obliga a crear imágenes de 32 × 32 píxeles.
+
 ## 6.2 Principio de nitidez
 
 Al escalar:
@@ -269,6 +272,20 @@ Guía inicial:
 - icono en inventario: centrado y con margen consistente.
 
 Estas relaciones deben ajustarse en una prueba real antes de convertirse en valores definitivos.
+
+## 6.4 Resolución base de referencia
+
+La referencia inicial para diseñar y probar el área visible del mundo es **1024 × 640 unidades lógicas**.
+
+Con casillas de 32 × 32 equivale a una referencia de 32 × 20 casillas visibles. Esta medida:
+
+- no limita el tamaño del mapa;
+- no obliga a usar una ventana fija;
+- no impide redimensionamiento ni pantalla completa;
+- no determina cuántas casillas se verán en todas las pantallas;
+- puede ajustarse después de pruebas reales sin cambiar la lógica del juego.
+
+Los mapas futuros podrán ser considerablemente mayores. La cámara será responsable de mostrar el sector relevante sin reducir todo el mundo para hacerlo entrar.
 
 ---
 
@@ -328,6 +345,8 @@ No se debe depender únicamente del color. Puede utilizarse:
 ## 8.1 Objetivo
 
 La cámara debe permitir mapas mayores sin desorientar al jugador.
+
+El mapa completo no debe achicarse progresivamente para permanecer siempre visible. La cámara mostrará una porción del mundo y conservará una escala legible de casillas, personajes y efectos.
 
 ## 8.2 Modos
 
@@ -1472,7 +1491,9 @@ Estas preguntas no bloquean P0, pero deberán resolverse antes de etapas visuale
 
 ## 33.1 Tamaño lógico de casilla
 
-Pendiente de medir en el repositorio y validar en P0/P1.
+Resuelta en P0: 32 × 32 unidades lógicas.
+
+La decisión podrá revisarse únicamente si una prueba posterior demuestra un problema concreto. La resolución de los archivos gráficos continúa siendo independiente.
 
 ## 33.2 Perspectiva definitiva de personajes
 
@@ -1533,11 +1554,25 @@ Mapas mayores con desplazamiento, zoom, límites y recentrado.
 
 ## V-005 — Interfaz
 
-Se mantiene híbrida. Los paneles densos continúan en HTML/CSS salvo beneficio demostrado.
+Se mantiene híbrida durante el hito actual. Los paneles densos continúan en HTML/CSS salvo beneficio demostrado.
+
+Una mejora o migración adicional de paneles podrá evaluarse después de cerrar este hito, sin convertirla en requisito para integrar Phaser.
 
 ## V-006 — Animación inicial
 
 Se permiten animaciones simples y efectos antes de crear ciclos completos en múltiples direcciones.
+
+## V-007 — Casilla lógica
+
+La casilla lógica base es de 32 × 32 unidades. Los recursos pueden tener mayor resolución y sobresalir visualmente si conservan anclaje y lectura correctos.
+
+## V-008 — Resolución de referencia
+
+1024 × 640 es la referencia inicial para diseño y pruebas del área del mundo. No es un límite de mapa ni una resolución rígida de ventana.
+
+## V-009 — Escalado de mapas grandes
+
+Los mapas mayores se recorrerán mediante cámara, zoom y desplazamiento. No se reducirá todo el mapa hasta volver ilegibles las entidades o las casillas.
 
 ---
 

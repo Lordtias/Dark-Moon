@@ -14,6 +14,9 @@
 
     <!-- Estilos específicos del panel del personaje. -->
     <link rel="stylesheet" href="./assets/estilos/paneles/panel-personaje.css" />
+
+    <!-- Ajuste del backend Phaser cuando se selecciona por URL. -->
+    <link rel="stylesheet" href="./assets/estilos/phaser/phaser.css" />
   </head>
 
   <body>
@@ -25,6 +28,12 @@
         <div class="menu-principal-capa">
           <h1 class="titulo-menu-principal">Dark Moon</h1>
           <p class="subtitulo-menu-principal">---</p>
+          <p
+            id="startupError"
+            class="mensaje-creacion"
+            role="alert"
+            aria-live="assertive"
+          ></p>
 
           <div id="mainMenuButtons" class="acciones-menu-principal">
             <button

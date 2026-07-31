@@ -28,12 +28,12 @@ La versión actual incluye:
 - doce habilidades jugables;
 - efectos temporales, resistencias e inmunidades;
 - zonas temporales persistentes dentro del mapa activo;
-- interfaz HTML con representación del mapa mediante Canvas 2D;
+- interfaz HTML con backend Canvas 2D y una escena técnica Phaser seleccionable;
 - persistencia durable del jugador y de la barra de habilidades;
 - depurador accesible desde la consola;
 - balanceador independiente en `balance.html`.
 
-No se utiliza un empaquetador, servidor de aplicación, framework de interfaz ni framework de juego.
+No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Canvas 2D continúa siendo el modo operativo predeterminado. Phaser 4.2.1 está incorporado localmente como backend técnico opcional y no se carga cuando se utiliza Canvas 2D.
 
 ---
 
@@ -53,11 +53,25 @@ En Windows también puede funcionar:
 python -m http.server 8000
 ```
 
-Abrir en el navegador:
+Abrir en el navegador con Canvas 2D, que continúa siendo el modo predeterminado:
 
 ```text
 http://localhost:8000/index.html
 ```
+
+Escena técnica Phaser:
+
+```text
+http://localhost:8000/index.html?render=phaser
+```
+
+También puede solicitarse Canvas 2D de forma explícita:
+
+```text
+http://localhost:8000/index.html?render=canvas2d
+```
+
+Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. En esta primera integración el canvas Phaser no acepta clics: es una protección temporal hasta que cámara, zoom y traducción de coordenadas formen un único contrato.
 
 Balanceador:
 
@@ -101,11 +115,12 @@ index.html
       └─ src/aplicacion/Aplicacion.js
 ```
 
-`game.js` crea la presentación DOM actual, la inyecta en una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
+`game.js` resuelve `?render=canvas2d|phaser`, carga Phaser solamente cuando corresponde, crea la presentación DOM, la inyecta en una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
 
 ```js
 globalThis.darkMoonAplicacion
 globalThis.darkMoonDebug
+globalThis.darkMoonRenderizador
 ```
 
 ### Balanceador
@@ -131,7 +146,8 @@ Dark-Moon/
 ├─ assets/                       Recursos estáticos del navegador.
 │  ├─ estilos/                   CSS agrupado por base, pantallas, paneles, modales y herramientas.
 │  ├─ imagenes/                  Sprites, iconos, fondos y miniaturas.
-│  └─ licencias/                 Licencias de recursos externos.
+│  ├─ licencias/                 Licencias de recursos externos.
+│  └─ vendor/                    Dependencias gráficas locales con versión fijada.
 ├─ src/
 │  ├─ aplicacion/                Casos de uso, comandos y coordinación de la sesión.
 │  ├─ partida/                   Estado que sobrevive a los cambios de mapa.
@@ -235,7 +251,7 @@ Concentra la composición HTML actual:
 - localiza y valida los elementos iniciales del documento;
 - crea `ControladorPantallasDom`;
 - crea el menú de personaje;
-- entrega la fábrica de interfaz Canvas/DOM persistente de la partida;
+- entrega la fábrica de interfaz persistente y el backend de mapa seleccionado;
 - construye `PresentacionMapaActivoDom` para cada mapa activado;
 - presenta la derrota mediante `AdaptadorDerrotaDom`;
 - muestra errores de inicio en la pantalla de creación.
@@ -333,7 +349,7 @@ Representa el mapa activo y es la fachada jugable utilizada por los controladore
 Actualiza la presentación general:
 
 - crea la escena visual a partir de `Juego`;
-- dibuja el mapa mediante Canvas;
+- entrega el mapa al backend Canvas 2D o Phaser seleccionado;
 - actualiza panel de personaje, inventario y equipamiento;
 - administra el registro de mensajes.
 

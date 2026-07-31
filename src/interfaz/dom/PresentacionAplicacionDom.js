@@ -9,8 +9,10 @@ import { ControladorPantallasDom } from "./ControladorPantallasDom.js";
 // La capa de aplicación solicita componentes mediante este contrato y no
 // necesita conocer elementos, selectores o clases concretas del DOM.
 export class PresentacionAplicacionDom {
-  constructor() {
+  constructor({ tipoRenderizador = "canvas2d", Phaser = null } = {}) {
     this.adaptadorDerrota = null;
+    this.tipoRenderizador = tipoRenderizador;
+    this.Phaser = Phaser;
   }
 
   crearControladorPantallas() {
@@ -55,7 +57,11 @@ export class PresentacionAplicacionDom {
   }
 
   crearInterfazPartida(configuracion) {
-    return crearInterfazPartidaDom(configuracion);
+    return crearInterfazPartidaDom({
+      ...configuracion,
+      tipoRenderizador: this.tipoRenderizador,
+      Phaser: this.Phaser,
+    });
   }
 
   crearPresentacionMapaActivo(configuracion) {

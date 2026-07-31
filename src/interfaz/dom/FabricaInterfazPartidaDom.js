@@ -1,6 +1,11 @@
 import { configurarContextoPresentacionObjetos } from "../objetos/ContextoPresentacionObjetos.js";
 import { Renderizador } from "../Renderizador.js";
 import { RenderizadorCanvas2D } from "../graficos/RenderizadorCanvas2D.js";
+import {
+  TIPO_RENDERIZADOR_CANVAS_2D,
+  TIPO_RENDERIZADOR_PHASER,
+} from "../graficos/SelectorRenderizador.js";
+import { RenderizadorPhaser } from "../graficos/phaser/RenderizadorPhaser.js";
 import { PanelPersonaje } from "../PanelPersonaje.js";
 import { PanelInventario } from "../PanelInventario.js";
 import { PanelEquipamiento } from "../PanelEquipamiento.js";
@@ -24,6 +29,8 @@ import { ModalComercio } from "../comercio/ModalComercio.js";
 export function crearInterfazPartidaDom({
   tileSize,
   configuracionRarezas,
+  tipoRenderizador = TIPO_RENDERIZADOR_CANVAS_2D,
+  Phaser = null,
 } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
@@ -40,9 +47,11 @@ export function crearInterfazPartidaDom({
   }
 
   // Backend gráfico intercambiable.
-  const renderizadorMapa = new RenderizadorCanvas2D({
+  const renderizadorMapa = crearRenderizadorMapa({
+    tipoRenderizador,
+    Phaser,
     canvas,
-    contenedor: panelMapa,
+    panelMapa,
     tileSize,
   });
 
@@ -116,6 +125,40 @@ export function crearInterfazPartidaDom({
     modalSeleccionMazmorra,
     modalComercio,
   };
+}
+
+function crearRenderizadorMapa({
+  tipoRenderizador,
+  Phaser,
+  canvas,
+  panelMapa,
+  tileSize,
+}) {
+  canvas.classList.remove("game-canvas--oculto-phaser");
+  canvas.removeAttribute("aria-hidden");
+  canvas.style.removeProperty("width");
+  canvas.style.removeProperty("height");
+
+  switch (tipoRenderizador) {
+    case TIPO_RENDERIZADOR_PHASER:
+      return new RenderizadorPhaser({
+        Phaser,
+        canvasBase: canvas,
+        contenedor: panelMapa,
+      });
+
+    case TIPO_RENDERIZADOR_CANVAS_2D:
+      return new RenderizadorCanvas2D({
+        canvas,
+        contenedor: panelMapa,
+        tileSize,
+      });
+
+    default:
+      throw new Error(
+        `No existe una fábrica para el renderizador "${tipoRenderizador}".`,
+      );
+  }
 }
 
 // Busca un elemento del HTML y genera

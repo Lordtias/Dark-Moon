@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.1
+Versión del documento: 1.2
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 30 de julio de 2026
-Estado: P0 cerrada; P1 pendiente de inicio
+Última actualización: 31 de julio de 2026
+Estado: P0 y P1 cerradas; E0 pendiente de propuesta
 
 ---
 
@@ -286,19 +286,24 @@ Electron no debe convertirse en dueño de la lógica del juego.
 
 ### 6.1 Phaser
 
-Al comenzar la etapa P1 se debe verificar cuál es la versión estable oficial adecuada.
+P1 revalidó y aprobó Phaser 4.2.1 como versión exacta para la integración técnica inicial.
 
-La planificación inicial toma Phaser 4.2.1 como versión candidata, pero no debe instalarse ni incorporarse sin revalidarla en la etapa correspondiente.
+Decisiones vigentes:
 
-Una vez elegida:
+- versión exacta: `4.2.1`;
+- licencia: MIT;
+- distribución aprobada: `dist/phaser.min.js` oficial;
+- ubicación local: `assets/vendor/phaser/4.2.1/phaser.min.js`;
+- carga condicional únicamente cuando se solicita `?render=phaser`;
+- Canvas 2D continúa siendo el modo predeterminado;
+- no se utiliza `latest` ni un rango flotante;
+- no se utiliza CDN durante la ejecución;
+- no se actualiza Phaser automáticamente;
+- solo se cambiará de versión ante una necesidad concreta y aprobada.
 
-- debe fijarse una versión exacta;
-- no debe usarse `latest`;
-- no debe actualizarse automáticamente;
-- no debe utilizarse un rango flotante;
-- debe documentarse la versión;
-- debe conservarse la licencia correspondiente;
-- solo se actualizará ante una necesidad concreta y aprobada.
+El archivo oficial quedó incorporado y verificado mediante su versión, Git blob
+SHA y SHA-256. La carga es completamente local y fue validada sin solicitar
+servicios externos.
 
 ### 6.2 Electron
 
@@ -510,6 +515,45 @@ Una escena Phaser visible dentro de Dark Moon, activable sin romper la versión 
 - el modo anterior continúa funcionando;
 - no se requieren servicios externos;
 - no se duplicaron reglas del juego.
+
+### Decisiones aprobadas para P1
+
+- `Phaser.AUTO` elegirá WebGL o Canvas según disponibilidad;
+- `Phaser.Scale.FIT` conservará la proporción dentro del panel central;
+- 1024 × 640 será solamente una referencia técnica inicial de prueba;
+- la casilla lógica continuará siendo 32 × 32;
+- el backend se seleccionará al arrancar mediante `?render=canvas2d|phaser`;
+- no habrá cambio de backend en caliente;
+- Canvas 2D seguirá siendo el modo predeterminado;
+- el canvas Phaser tendrá protección temporal de puntero hasta definir cámara,
+  zoom y conversión de coordenadas;
+- Phaser consumirá la escena neutral y no recibirá la instancia de `Juego`.
+
+### Estado final de P1
+
+P1 quedó **cerrada** con Phaser 4.2.1 incorporado localmente y verificado contra
+el Git blob oficial. El backend Phaser se activa mediante `?render=phaser`, crea
+su propio canvas dentro del panel central y consume la misma escena neutral que
+Canvas 2D.
+
+Validaciones cerradas:
+
+- Canvas 2D continúa siendo el modo predeterminado y no carga Phaser;
+- Phaser inicia desde el vendor local sin servicios externos;
+- `Phaser.AUTO` selecciona el renderizador disponible y `Scale.FIT` conserva la
+  proporción dentro del panel;
+- el backend detecta cuando la pantalla de partida deja de estar oculta y
+  refresca automáticamente el Scale Manager, sin exigir un `resize` manual;
+- la escena técnica representa cuadrícula, jugador, enemigos e interactuables;
+- el movimiento continúa entrando por el controlador canónico y actualiza la
+  escena Phaser;
+- la protección temporal impide que el puntero sobre Phaser emita comandos;
+- los paneles HTML/CSS y la persistencia conservan sus contratos;
+- un parámetro inválido vuelve a Canvas 2D y una dependencia ausente produce un
+  error explícito.
+
+El commit de P1 queda propuesto para que lo realice el usuario después de revisar
+la entrega. La siguiente etapa recomendada es E0.
 
 ### Entregables
 
@@ -1267,6 +1311,60 @@ Estado: vigente
 
 La copia descomprimida del ZIP completo con `.git` será la fuente principal de cada etapa. GitHub será una fuente complementaria de consulta y contraste.
 
+## Decisión D-014
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+P1 adopta Phaser 4.2.1 con licencia MIT, `Phaser.AUTO`, `Phaser.Scale.FIT`,
+resolución técnica inicial de 1024 × 640, casilla lógica de 32 × 32 y carga
+local condicional mediante `?render=phaser`. Canvas 2D continúa siendo el modo
+predeterminado.
+
+## Decisión D-015
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente hasta aprobar el contrato de cámara y coordenadas
+
+El canvas Phaser no aceptará clics temporalmente. La protección se retirará
+cuando cámara, zoom y conversión de coordenadas formen un contrato único que
+pueda traducir el puntero a comandos canónicos sin ambigüedad.
+
+## Decisión D-016
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+P1 no se cerrará con una dependencia simulada, incompleta o sustituida por CDN.
+Si el archivo oficial exacto no puede incorporarse o validarse offline, la etapa
+se mantendrá pausada y no se avanzará a E0.
+
+## Decisión D-017
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+Para conservar `Phaser.AUTO`, Phaser crea su propio canvas dentro de un host del
+panel central. El canvas original de Dark Moon se mantiene para Canvas 2D y se
+oculta únicamente durante el modo Phaser. Esta separación evita forzar WebGL o
+Canvas manualmente y conserva un único backend activo.
+
+## Decisión D-018
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+El backend Phaser observará el tamaño y la visibilidad de su contenedor. Cuando
+la pantalla de partida pase de oculta a visible, actualizará los límites y
+refrescará `Phaser.Scale.FIT`, con reintentos breves si el Scale Manager todavía
+no terminó de inicializarse. Esto evita que WebGL conserve un canvas técnico de
+2 × 2 píxeles hasta que el usuario redimensione la ventana.
+
 ---
 
 # 17. Estado del plan
@@ -1275,8 +1373,8 @@ Actualizar esta tabla al cerrar cada etapa.
 
 | Etapa | Estado | Commit | Entrega | Decisión |
 |---|---|---|---|---|
-| P0 | Cerrada | Pendiente de commit | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; avanzar a P1 |
-| P1 | Pendiente | — | — | — |
+| P0 | Cerrada | Commiteada | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; P1 iniciada |
+| P1 | Cerrada | Pendiente del usuario | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala inicial validados; E0 es la siguiente etapa recomendada |
 | E0 | Pendiente | — | — | — |
 | P2 | Pendiente | — | — | — |
 | P3 | Pendiente | — | — | — |
@@ -1307,17 +1405,13 @@ Estados permitidos:
 
 # 18. Próxima acción
 
-La siguiente etapa recomendada es:
+La siguiente acción recomendada, después de confirmar el commit de P1, es
+proponer:
 
-> ETAPA P1 — Núcleo técnico de Phaser.
+> ETAPA E0 — Prueba técnica temprana de Electron.
 
-P1 debe comenzar utilizando el enlace incluido en:
-
-`docs/phaser/entregas/ENTREGA_P0.md`
-
-Antes de incorporar la dependencia se deberá:
-
-- verificar la versión estable oficial de Phaser;
-- proponer una versión exacta;
-- confirmar licencia, ubicación y forma de carga;
-- esperar aprobación de la propuesta específica de P1.
+E0 deberá seleccionar y justificar versiones exactas de Electron, Node.js y la
+herramienta de empaquetado antes de instalar dependencias. Su objetivo será
+comprobar que la aplicación puede abrir Canvas 2D y Phaser desde recursos
+locales, conservar la persistencia y generar una versión portable técnica para
+Windows con aislamiento de contexto y sin exponer Node al contenido.

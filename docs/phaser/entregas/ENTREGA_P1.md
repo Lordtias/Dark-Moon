@@ -4,7 +4,7 @@ Proyecto: Dark Moon
 Plan: Integración progresiva de Phaser, beta y Electron  
 Etapa: P1 — Núcleo técnico de Phaser  
 Fecha: 31 de julio de 2026  
-Estado: **Cerrada; implementación validada y commit pendiente del usuario**
+Estado: **Cerrada y commiteada; validación incluida en el commit confirmado por el usuario**
 
 ---
 
@@ -50,8 +50,10 @@ mostrarse la partida y reintenta brevemente si Phaser todavía no está listo.
 
 ### Decisión o acción recomendada
 
-Revisar la entrega, ejecutar las pruebas manuales indicadas y realizar el único
-commit propuesto para P1. No comenzar E0 hasta confirmar ese commit.
+El usuario confirmó `251b2037b6180848bb7a15610251b6fed0f492dc` como commit final de P1. La siguiente
+acción es presentar la propuesta de P2 y esperar aprobación explícita antes de
+implementarla. E0 permanece pausada temporalmente y deberá completarse después
+de P2 y antes de P3.
 
 ---
 
@@ -85,10 +87,15 @@ GitHub publica `Lordtias/Dark-Moon`, rama `main`, en el mismo commit base.
 
 Ninguna. La copia inició limpia y alineada con `origin/main`.
 
-### Estado local al cerrar P1
+### Commit final confirmado por el usuario
 
-La copia contiene únicamente los cambios sin confirmar de P1. No se realizó
-commit ni push.
+`251b2037b6180848bb7a15610251b6fed0f492dc`
+
+El usuario confirmó que este commit contiene la implementación validada de P1 y
+la corrección del ajuste inicial de resolución. Esta actualización documental
+se prepara después de ese commit y deberá incorporarse al repositorio mediante
+un commit documental separado o mediante el procedimiento Git que el usuario
+considere apropiado.
 
 ---
 
@@ -445,19 +452,16 @@ Ninguno de estos puntos impide cerrar el alcance técnico de P1.
 
 ---
 
-## 17. Conventional Commit propuesto
+## 17. Commit final de P1 confirmado
 
 ```text
-feat(phaser): incorporar núcleo técnico con backend seleccionable
-
-- agrega Phaser 4.2.1 local con licencia MIT y carga condicional;
-- integra una escena técnica neutral con Phaser.AUTO y Phaser.Scale.FIT;
-- corrige la escala inicial cuando la pantalla de partida pasa a visible;
-- conserva Canvas 2D como modo predeterminado y los paneles HTML/CSS;
-- aplica protección temporal del puntero sobre el canvas Phaser;
-- valida creación, movimiento, redimensionamiento, persistencia y modo offline;
-- actualiza README, Plan Maestro y entrega de P1.
+251b2037b6180848bb7a15610251b6fed0f492dc
 ```
+
+El usuario confirmó que este commit incluye la validación de P1 y la corrección
+del ajuste inicial de resolución. El mensaje propuesto durante la entrega queda
+conservado en el historial de la conversación, pero el dato vinculante para la
+documentación es el SHA confirmado.
 
 ---
 
@@ -472,32 +476,16 @@ ETAPA CERRADA:
 P1 — Núcleo técnico de Phaser
 
 ESTADO:
-Cerrada
+Cerrada y commiteada
 
-COMMIT BASE:
+COMMIT BASE DE P1:
 2d884b22f2d911a36d4b4e32539cba9dcb6f1dcc
 
-HEAD FINAL VERIFICADO:
-2d884b22f2d911a36d4b4e32539cba9dcb6f1dcc
+COMMIT FINAL CONFIRMADO POR EL USUARIO:
+251b2037b6180848bb7a15610251b6fed0f492dc
 
-GIT STATUS FINAL:
-
-```text
-## main...origin/main
- M README.md
- M docs/phaser/PLAN_MAESTRO_PHASER_ELECTRON_DARK_MOON.md
- M game.js
- M index.html
- M src/interfaz/dom/FabricaInterfazPartidaDom.js
- M src/interfaz/dom/PresentacionAplicacionDom.js
-?? assets/estilos/phaser/
-?? assets/vendor/
-?? docs/phaser/entregas/ENTREGA_P1.md
-?? src/interfaz/graficos/SelectorRenderizador.js
-?? src/interfaz/graficos/phaser/
-```
-
-Todos corresponden exclusivamente a P1. Phaser 4.2.1 y su documentación están incorporados. No se realizó commit ni push.
+ACLARACIÓN DE VERIFICACIÓN:
+El SHA final fue informado y confirmado por el usuario. Esta actualización documental no ejecutó una comprobación remota ni conserva un `git status` posterior a ese commit.
 
 DOCUMENTO DE ENTREGA:
 docs/phaser/entregas/ENTREGA_P1.md
@@ -505,62 +493,43 @@ docs/phaser/entregas/ENTREGA_P1.md
 DOCUMENTOS MAESTROS ACTUALIZADOS:
 - docs/phaser/PLAN_MAESTRO_PHASER_ELECTRON_DARK_MOON.md
 - Sin cambios en docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md
+- Sin cambios en docs/phaser/PROMPT_MAESTRO_ETAPAS_PHASER_ELECTRON.txt
 
 OBJETIVO QUE SE COMPLETÓ:
-Se incorporó Phaser 4.2.1 como backend técnico opcional, cargado localmente y activable por URL, sin duplicar reglas ni reemplazar Canvas 2D.
+Se incorporó Phaser 4.2.1 como backend técnico opcional, cargado localmente y activable por URL, sin duplicar reglas ni reemplazar Canvas 2D. La corrección final evita que WebGL conserve un canvas de 2 × 2 píxeles cuando la pantalla de partida se muestra después de inicializar Phaser.
 
 ARQUITECTURA HEREDADA:
 Canvas 2D continúa siendo el backend predeterminado. Phaser consume únicamente la escena neutral producida por AdaptadorEscenaJuego mediante configurarDimensiones, dibujar y destruir. Juego, comandos, resultados, paneles y persistencia siguen siendo canónicos y compartidos.
 
-ARCHIVOS CLAVE:
-- src/interfaz/graficos/SelectorRenderizador.js: selecciona un único backend durante el arranque.
-- src/interfaz/graficos/phaser/CargadorPhaser.js: carga y valida exclusivamente Phaser 4.2.1.
-- src/interfaz/graficos/phaser/ConfiguracionPhaser.js: fija Phaser.AUTO, Scale.FIT y la referencia 1024 × 640.
-- src/interfaz/graficos/phaser/RenderizadorPhaser.js: adapta la escena neutral a Phaser sin recibir Juego.
-- src/interfaz/graficos/phaser/EscenaArranquePhaser.js: escena técnica que representa mapa y entidades.
-- assets/vendor/phaser/4.2.1/phaser.min.js: dependencia local exacta.
-
-DEPENDENCIAS Y VERSIONES:
+DEPENDENCIAS Y VERSIONES HEREDADAS:
 Phaser 4.2.1, licencia MIT, incorporado localmente. No existen dependencias npm.
 
-PRUEBAS CLAVE SUPERADAS:
-- Canvas 2D predeterminado y explícito conserva creación, movimiento y paneles para Guerrero, Rogue y Mago.
-- Phaser 4.2.1 inicia localmente para las tres profesiones y actualiza su canvas al cambiar el estado canónico.
-- Scale.FIT aparece correctamente al mostrar la partida, conserva la proporción sin desborde y la protección temporal evita clics accidentales.
-- Parámetro inválido, dependencia ausente, persistencia cruzada y ejecución sin recursos externos fueron comprobados.
+DECISIÓN DE SECUENCIA APROBADA:
+E0 no fue descartada ni completada. Se pausa temporalmente por las limitaciones de conectividad, permisos de instalación y descarga del equipo actual.
 
-PROBLEMAS O RIESGOS PENDIENTES:
-- repetir el camino WebGL en un navegador con GPU y en Electron;
-- validar GitHub Pages después del commit y push;
-- mantener la protección del puntero hasta definir cámara, zoom y coordenadas.
+Secuencia temporal aprobada:
 
-DECISIONES APROBADAS:
-- Phaser 4.2.1 exacto, licencia MIT y carga local condicional;
-- Phaser.AUTO y Phaser.Scale.FIT;
-- 1024 × 640 como referencia técnica, no como límite;
-- Canvas 2D predeterminado y selector por URL;
-- Phaser crea su propio canvas dentro del panel central;
-- paneles HTML/CSS compartidos;
-- protección temporal del puntero;
-- una sola lógica y una sola escena neutral.
+P1 → P2 → E0 → P3
 
-DECISIONES QUE SIGUEN ABIERTAS:
-Ninguna para P1. Las versiones y herramientas de Electron deben proponerse y aprobarse en E0.
+P2 puede analizarse y proponerse porque utiliza Phaser ya incorporado y no deberá agregar Node.js, npm, Electron ni nuevas dependencias. E0 deberá cerrarse antes de comenzar P3.
 
-SIGUIENTE ETAPA RECOMENDADA:
-E0 — Prueba técnica temprana de Electron
+SIGUIENTE ETAPA A PROPONER:
+P2 — Corte vertical visual
 
 OBJETIVO DE LA SIGUIENTE ETAPA:
-Comprobar tempranamente que Dark Moon puede ejecutarse como aplicación de escritorio, cargar recursos locales, utilizar Canvas 2D y Phaser, guardar datos y generar una compilación portable técnica para Windows sin exponer privilegios innecesarios.
+Demostrar el valor visual de Phaser mediante una escena pequeña pero representativa basada en un mapa o fragmento real, con suelo, paredes, obstáculos, personaje, entre dos y cinco enemigos, objetivo, decoración, profundidad, sombras, cuadrícula discreta, iluminación básica, selección, cámara, zoom y desplazamiento.
+
+REGLA DE INICIO:
+Primero presentar una propuesta clara de P2 y esperar la aprobación explícita del usuario. No comenzar la implementación por el solo hecho de que la secuencia haya sido autorizada.
 
 PRIMEROS ARCHIVOS A REVISAR:
 - docs/phaser/PLAN_MAESTRO_PHASER_ELECTRON_DARK_MOON.md
+- docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md
 - docs/phaser/entregas/ENTREGA_P1.md
-- index.html
-- game.js
-- src/interfaz/graficos/phaser/CargadorPhaser.js
+- src/interfaz/graficos/phaser/RenderizadorPhaser.js
+- src/interfaz/graficos/phaser/EscenaArranquePhaser.js
 - src/interfaz/graficos/phaser/ConfiguracionPhaser.js
-- src/partida/PersistenciaJugador.js
+- AdaptadorEscenaJuego y los recursos visuales existentes que resulten relevantes para el corte elegido
 
 NO MODIFICAR SIN NUEVA APROBACIÓN:
 - lógica canónica de Juego, movimiento, combate, IA, muerte, experiencia y botín;
@@ -568,19 +537,23 @@ NO MODIFICAR SIN NUEVA APROBACIÓN:
 - contratos de AdaptadorEscenaJuego, Renderizador y EjecutorAccionesJugador;
 - Canvas 2D como modo predeterminado durante la transición;
 - protección temporal del puntero antes de definir cámara, zoom y coordenadas;
-- dependencias, versiones o configuración de Electron antes de aprobar la propuesta de E0.
+- Node.js, npm, Electron, herramienta de empaquetado o cualquier dependencia nueva;
+- alcance completo de todos los mapas o combate, porque P2 es un corte vertical limitado.
 
-CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
-Electron abre Dark Moon, carga JSON, imágenes, CSS y JavaScript locales, ejecuta Canvas 2D y Phaser, permite jugar, guarda y recupera datos, cierra correctamente, genera una versión portable técnica para Windows y utiliza aislamiento de contexto sin exponer Node al contenido.
+CRITERIO DE DECISIÓN DE P2:
+- la mejora visual debe ser clara;
+- el estilo debe ser coherente con el Diseño Maestro;
+- la cuadrícula debe seguir siendo legible;
+- el rendimiento debe ser suficiente;
+- la dirección artística debe resultar viable;
+- debe decidirse si conviene continuar con la migración.
 
-CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
-feat(phaser): incorporar núcleo técnico con backend seleccionable
+COMMIT DOCUMENTAL SUGERIDO PARA ESTA ACTUALIZACIÓN:
+docs(phaser): reordenar P2 antes de E0
 
-- agrega Phaser 4.2.1 local con licencia MIT y carga condicional;
-- integra una escena técnica neutral con Phaser.AUTO y Phaser.Scale.FIT;
-- conserva Canvas 2D como modo predeterminado y los paneles HTML/CSS;
-- aplica protección temporal del puntero sobre el canvas Phaser;
-- valida creación, movimiento, redimensionamiento, persistencia y modo offline;
-- actualiza README, Plan Maestro y entrega de P1.
+- registra el commit final confirmado de P1;
+- pausa temporalmente E0 por limitaciones del equipo actual;
+- establece P2 como siguiente etapa a proponer;
+- exige completar E0 antes de comenzar P3.
 
 ----------------- FIN DEL ENLACE -----------------

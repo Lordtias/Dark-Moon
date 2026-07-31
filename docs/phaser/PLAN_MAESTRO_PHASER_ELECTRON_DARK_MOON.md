@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.2
+Versión del documento: 1.3
 Fecha inicial: 30 de julio de 2026  
 Última actualización: 31 de julio de 2026
-Estado: P0 y P1 cerradas; E0 pendiente de propuesta
+Estado: P0 y P1 cerradas y commiteadas; E0 pausada temporalmente; P2 siguiente etapa a proponer
 
 ---
 
@@ -552,8 +552,14 @@ Validaciones cerradas:
 - un parámetro inválido vuelve a Canvas 2D y una dependencia ausente produce un
   error explícito.
 
-El commit de P1 queda propuesto para que lo realice el usuario después de revisar
-la entrega. La siguiente etapa recomendada es E0.
+El usuario confirmó el commit final de P1:
+
+`251b2037b6180848bb7a15610251b6fed0f492dc`
+
+Ese commit incluye la validación de P1 y la corrección del ajuste inicial de
+resolución. P1 queda cerrada y commiteada. Por la decisión D-019, E0 se pausa
+temporalmente y P2 pasa a ser la siguiente etapa autorizada para análisis y
+propuesta. E0 deberá completarse antes de comenzar P3.
 
 ### Entregables
 
@@ -561,7 +567,7 @@ la entrega. La siguiente etapa recomendada es E0.
 - `ENTREGA_P1.md`;
 - instrucciones de prueba;
 - Conventional Commit;
-- enlace para E0.
+- enlace para la siguiente etapa aprobada por secuencia.
 
 ---
 
@@ -623,6 +629,17 @@ Una versión técnica ejecutable que pueda abrirse fuera del navegador.
 **E0-B — Viable con ajustes:** resolver los ajustes antes de ampliar la migración.
 
 **E0-C — Problema estructural:** priorizar una etapa de compatibilidad de empaquetado antes de continuar.
+
+### Estado temporal y condición de reanudación
+
+E0 está pausada temporalmente por las limitaciones de conectividad, permisos de
+instalación y descarga del equipo actual. Se realizará después de P2 y antes de
+P3. La pausa no modifica su alcance ni permite considerar sus criterios como
+cumplidos.
+
+Antes de instalar cualquier herramienta deberán proponerse y aprobarse las
+versiones exactas de Node.js, Electron y la herramienta de empaquetado, junto
+con su propósito, comandos, archivos generados, impacto y alternativa.
 
 ---
 
@@ -1365,6 +1382,26 @@ refrescará `Phaser.Scale.FIT`, con reintentos breves si el Scale Manager todav�
 no terminó de inicializarse. Esto evita que WebGL conserve un canvas técnico de
 2 × 2 píxeles hasta que el usuario redimensione la ventana.
 
+## Decisión D-019
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+El usuario confirmó `251b2037b6180848bb7a15610251b6fed0f492dc` como commit de cierre de P1, incluida la
+validación manual y la corrección del ajuste inicial de resolución.
+
+Debido a las limitaciones de conectividad, permisos de instalación y descarga
+del equipo actual, E0 se pausa temporalmente y se autoriza analizar y proponer
+P2 antes de realizar Electron. La secuencia temporal aprobada es:
+
+```text
+P1 → P2 → E0 → P3
+```
+
+P2 no deberá incorporar Node.js, npm, Electron ni nuevas dependencias. E0 no se
+descarta ni se considera completada y deberá cerrarse antes de iniciar P3.
+
 ---
 
 # 17. Estado del plan
@@ -1374,9 +1411,9 @@ Actualizar esta tabla al cerrar cada etapa.
 | Etapa | Estado | Commit | Entrega | Decisión |
 |---|---|---|---|---|
 | P0 | Cerrada | Commiteada | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; P1 iniciada |
-| P1 | Cerrada | Pendiente del usuario | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala inicial validados; E0 es la siguiente etapa recomendada |
-| E0 | Pendiente | — | — | — |
-| P2 | Pendiente | — | — | — |
+| P1 | Cerrada | `251b2037b6180848bb7a15610251b6fed0f492dc` | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala validados y commiteados |
+| E0 | Pausada | — | — | Postergada temporalmente hasta después de P2; debe cerrarse antes de P3 |
+| P2 | Pendiente | — | — | Siguiente etapa autorizada para análisis y propuesta; requiere aprobación explícita antes de implementar |
 | P3 | Pendiente | — | — | — |
 | P4 | Pendiente | — | — | — |
 | P5 | Pendiente | — | — | — |
@@ -1405,13 +1442,21 @@ Estados permitidos:
 
 # 18. Próxima acción
 
-La siguiente acción recomendada, después de confirmar el commit de P1, es
-proponer:
+La siguiente acción es presentar la propuesta de:
 
-> ETAPA E0 — Prueba técnica temprana de Electron.
+> ETAPA P2 — Corte vertical visual.
 
-E0 deberá seleccionar y justificar versiones exactas de Electron, Node.js y la
-herramienta de empaquetado antes de instalar dependencias. Su objetivo será
-comprobar que la aplicación puede abrir Canvas 2D y Phaser desde recursos
-locales, conservar la persistencia y generar una versión portable técnica para
-Windows con aislamiento de contexto y sin exponer Node al contenido.
+P2 podrá utilizar Phaser 4.2.1 y los recursos ya presentes en el repositorio,
+pero no deberá incorporar Node.js, npm, Electron ni nuevas dependencias. Como en
+todas las etapas de Dark Moon, primero deberá presentarse una propuesta clara y
+esperarse la aprobación explícita del usuario antes de implementar.
+
+La secuencia temporal aprobada es:
+
+```text
+P1 → P2 → E0 → P3
+```
+
+E0 permanece pausada por las limitaciones de conectividad, permisos de
+instalación y descarga del equipo actual. No está descartada ni completada y
+deberá cerrarse antes de comenzar P3.

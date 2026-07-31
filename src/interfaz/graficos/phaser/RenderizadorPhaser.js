@@ -5,6 +5,8 @@ const CLASE_PANEL_PHASER = "panel-mapa--phaser";
 const CLASE_CANVAS_BASE_OCULTO = "game-canvas--oculto-phaser";
 const CLASE_HOST_PHASER = "host-phaser-dark-moon";
 const CLASE_CANVAS_PHASER = "game-canvas--phaser";
+const CLASE_INTERFAZ_PHASER = "interfaz-partida--phaser";
+const CLASE_PANTALLA_PHASER = "pantalla-juego--phaser";
 const MAX_REINTENTOS_AJUSTE_ESCALA = 20;
 const RETARDO_REINTENTO_AJUSTE_ESCALA_MS = 50;
 
@@ -18,6 +20,8 @@ export class RenderizadorPhaser {
     this.canvasBase = canvasBase;
     this.contenedor = contenedor;
     this.host = null;
+    this.interfazPartida = null;
+    this.pantallaJuego = null;
     this.canvasPhaser = null;
     this.escenaPhaser = null;
     this.ultimaEscena = null;
@@ -50,7 +54,7 @@ export class RenderizadorPhaser {
           this.canvasPhaser.classList.add(CLASE_CANVAS_PHASER);
           this.canvasPhaser.setAttribute(
             "aria-label",
-            "Escena técnica de Dark Moon representada con Phaser",
+            "Mapa de Dark Moon representado visualmente con Phaser",
           );
           this.solicitarAjusteEscala();
         },
@@ -161,6 +165,17 @@ export class RenderizadorPhaser {
       });
       elementoObservado = elementoObservado.parentElement;
     }
+
+    // Los modales HTML viven fuera de la jerarquía directa del mapa. Observar
+    // el atributo estándar "open" permite resincronizar la vista ante cualquier
+    // diálogo actual o futuro sin acoplar la cámara a nombres de modales.
+    if (document.body) {
+      this.observadorVisibilidad.observe(document.body, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ["open"],
+      });
+    }
   }
 
   solicitarAjusteEscala({ reiniciarReintentos = true } = {}) {
@@ -214,6 +229,7 @@ export class RenderizadorPhaser {
 
     gestorEscala.updateBounds();
     gestorEscala.refresh();
+    this.escenaPhaser?.sincronizarCamaraConVista();
 
     const limitesCanvas = this.canvasPhaser?.getBoundingClientRect();
     const anchoVisible = limitesCanvas?.width ?? 0;
@@ -254,6 +270,10 @@ export class RenderizadorPhaser {
   }
 
   prepararContenedor() {
+    this.interfazPartida = this.contenedor.closest(".interfaz-partida");
+    this.pantallaJuego = this.contenedor.closest(".pantalla-juego");
+    this.interfazPartida?.classList.add(CLASE_INTERFAZ_PHASER);
+    this.pantallaJuego?.classList.add(CLASE_PANTALLA_PHASER);
     this.contenedor.classList.add(CLASE_PANEL_PHASER);
     this.canvasBase.classList.add(CLASE_CANVAS_BASE_OCULTO);
     this.canvasBase.setAttribute("aria-hidden", "true");
@@ -268,6 +288,10 @@ export class RenderizadorPhaser {
     this.host?.remove();
     this.host = null;
     this.contenedor.classList.remove(CLASE_PANEL_PHASER);
+    this.interfazPartida?.classList.remove(CLASE_INTERFAZ_PHASER);
+    this.pantallaJuego?.classList.remove(CLASE_PANTALLA_PHASER);
+    this.interfazPartida = null;
+    this.pantallaJuego = null;
     this.canvasBase.classList.remove(CLASE_CANVAS_BASE_OCULTO);
     this.canvasBase.removeAttribute("aria-hidden");
   }

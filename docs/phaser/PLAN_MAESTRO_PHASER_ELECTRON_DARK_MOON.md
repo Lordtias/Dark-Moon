@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.3
+Versión del documento: 1.5
 Fecha inicial: 30 de julio de 2026  
 Última actualización: 31 de julio de 2026
-Estado: P0 y P1 cerradas y commiteadas; E0 pausada temporalmente; P2 siguiente etapa a proponer
+Estado: P0, P1 y P2 cerradas; E0 pausada temporalmente
 
 ---
 
@@ -693,6 +693,24 @@ Preguntas obligatorias:
 - ¿Conviene continuar con la migración?
 
 Si la respuesta general es negativa, se puede conservar Phaser solo para efectos o abandonar la ruta antes de invertir más.
+
+### Estado de implementación de P2
+
+P2 fue aprobada y se implementó en dos bloques internos sin commits separados:
+
+- **P2.1 — Corte funcional:** recursos locales, composición del mundo, entidades reales, cámara, zoom, desplazamiento y lectura visual del puntero.
+- **P2.2 — Acabado visual:** decoración determinista, sombras de muros y entidades, profundidad por base, iluminación ambiental básica, selección táctica y adaptación para ventanas de poca altura.
+- **Ajustes de cierre de P2:** retiro del aura permanente de interactuables, clasificación configurable de muros por vecinos cardinales, seguimiento centralizado de cámara y anclaje de sprites por contenido visible.
+
+La Alcantarilla es el corte vertical de referencia. Su apariencia Phaser se declara en `src/config/mapas/mapas.json` y sus imágenes ambientales se ubican en `assets/imagenes/mundo/alcantarilla/`.
+
+La familia inicial de muros diferencia aislados, extremos, rectos, esquinas, uniones en T, cruces e interiores. P5 reutilizará y ampliará este contrato para el resto de biomas, puertas, transiciones y obstáculos complejos; no deberá crear un segundo clasificador paralelo.
+
+La cámara ya no depende de listas de acciones que deban recentrarla. Mientras el seguimiento esté activo, la posición del personaje se confirma en cada actualización visual y después de cambios de escala o visibilidad. La carga inicial, las esperas, los modales y el redimensionamiento utilizan el mismo contrato general. El desplazamiento manual conserva el modo de cámara libre y cualquier selección táctica restablece el seguimiento.
+
+Los recursos transparentes se analizan una sola vez al cargarse. El compositor utiliza la base y el centro del contenido alfa para apoyar sprites y dimensionar sombras, sin recortar archivos ni introducir excepciones por enemigo u objeto.
+
+Canvas 2D sigue siendo el backend predeterminado. Phaser no emite todavía comandos de movimiento, combate, habilidades o interacción. La implementación superó las validaciones automatizadas de navegador y la validación manual del usuario. P2 queda **Cerrada**. La decisión visual es continuar con Phaser conservando Canvas 2D como respaldo y sin adelantar los controles jugables directos previstos para P3.
 
 ---
 
@@ -1402,6 +1420,30 @@ P1 → P2 → E0 → P3
 P2 no deberá incorporar Node.js, npm, Electron ni nuevas dependencias. E0 no se
 descarta ni se considera completada y deberá cerrarse antes de iniciar P3.
 
+## Decisión D-020
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+P2 utiliza la Alcantarilla como corte vertical visual. Los recursos ambientales se ubican en `assets/imagenes/mundo/alcantarilla/` y se referencian desde la apariencia configurable del mapa. El compositor no utiliza el nombre visible del mapa como excepción.
+
+## Decisión D-021
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+La entrada de Phaser durante P2 se limita a cámara, zoom, recentrado y lectura visual de casilla. Movimiento, espera, combate, habilidades e interacción continúan entrando por `ControladorTeclado` y `EjecutorAccionesJugador`.
+
+## Decisión D-022
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+En ventanas de poca altura, solo el modo Phaser puede habilitar desplazamiento vertical de la pantalla para preservar un área de mapa legible. Canvas 2D conserva su comportamiento histórico.
+
 ---
 
 # 17. Estado del plan
@@ -1413,7 +1455,7 @@ Actualizar esta tabla al cerrar cada etapa.
 | P0 | Cerrada | Commiteada | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; P1 iniciada |
 | P1 | Cerrada | `251b2037b6180848bb7a15610251b6fed0f492dc` | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala validados y commiteados |
 | E0 | Pausada | — | — | Postergada temporalmente hasta después de P2; debe cerrarse antes de P3 |
-| P2 | Pendiente | — | — | Siguiente etapa autorizada para análisis y propuesta; requiere aprobación explícita antes de implementar |
+| P2 | Cerrada | Pendiente de commit local | `docs/phaser/entregas/ENTREGA_P2.md` | Corte visual aprobado; continuar con E0 antes de P3 |
 | P3 | Pendiente | — | — | — |
 | P4 | Pendiente | — | — | — |
 | P5 | Pendiente | — | — | — |
@@ -1442,21 +1484,23 @@ Estados permitidos:
 
 # 18. Próxima acción
 
-La siguiente acción es presentar la propuesta de:
+P2 fue validada manualmente y aprobada para cierre el 31 de julio de 2026.
 
-> ETAPA P2 — Corte vertical visual.
+La siguiente acción operativa es:
 
-P2 podrá utilizar Phaser 4.2.1 y los recursos ya presentes en el repositorio,
-pero no deberá incorporar Node.js, npm, Electron ni nuevas dependencias. Como en
-todas las etapas de Dark Moon, primero deberá presentarse una propuesta clara y
-esperarse la aprobación explícita del usuario antes de implementar.
+1. aplicar el ZIP final de archivos nuevos y modificados sobre el repositorio local;
+2. revisar `git -c core.autocrlf=true status`;
+3. realizar el Conventional Commit propuesto para P2;
+4. confirmar el SHA resultante antes de iniciar otra etapa.
 
-La secuencia temporal aprobada es:
+La siguiente etapa recomendada es:
+
+> ETAPA E0 — Prueba técnica temprana de Electron.
+
+La secuencia aprobada continúa siendo:
 
 ```text
 P1 → P2 → E0 → P3
 ```
 
-E0 permanece pausada por las limitaciones de conectividad, permisos de
-instalación y descarga del equipo actual. No está descartada ni completada y
-deberá cerrarse antes de comenzar P3.
+E0 permanece pausada por las limitaciones del equipo actual, pero no está descartada ni completada. P3 no debe comenzar antes de cerrar E0.

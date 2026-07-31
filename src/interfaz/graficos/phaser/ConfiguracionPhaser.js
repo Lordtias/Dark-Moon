@@ -2,8 +2,8 @@ export const ANCHO_REFERENCIA_PHASER = 1024;
 export const ALTO_REFERENCIA_PHASER = 640;
 export const TAMANO_CASILLA_REFERENCIA = 32;
 
-// La resolución es una referencia técnica inicial. No limita el tamaño real
-// de los mapas ni fija la política definitiva de cámara.
+// La resolución es una referencia visual. No limita el tamaño real de los
+// mapas: la cámara recorre un mundo que conserva casillas lógicas de 32 × 32.
 export function crearConfiguracionPhaser({
   Phaser,
   host,
@@ -17,7 +17,7 @@ export function crearConfiguracionPhaser({
     parent: host,
     width: ANCHO_REFERENCIA_PHASER,
     height: ALTO_REFERENCIA_PHASER,
-    backgroundColor: "#101526",
+    backgroundColor: "#101814",
     transparent: false,
     antialias: true,
     pixelArt: false,
@@ -25,14 +25,14 @@ export function crearConfiguracionPhaser({
     autoFocus: false,
     input: {
       keyboard: false,
-      mouse: false,
-      touch: false,
+      mouse: true,
+      touch: true,
       gamepad: false,
       windowEvents: false,
     },
     dom: {
       createContainer: false,
-      pointerEvents: "none",
+      pointerEvents: "auto",
     },
     scale: {
       mode: Phaser.Scale.FIT,

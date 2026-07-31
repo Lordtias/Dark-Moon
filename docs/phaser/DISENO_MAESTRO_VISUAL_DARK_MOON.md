@@ -1,10 +1,10 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon  
-Versión del documento: 1.1
+Versión del documento: 1.2
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 30 de julio de 2026
-Estado: guía visual principal, editable; decisiones P0 incorporadas
+Última actualización: 31 de julio de 2026
+Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
 
 ---
 
@@ -1574,9 +1574,69 @@ La casilla lógica base es de 32 × 32 unidades. Los recursos pueden tener mayor
 
 Los mapas mayores se recorrerán mediante cámara, zoom y desplazamiento. No se reducirá todo el mapa hasta volver ilegibles las entidades o las casillas.
 
+## V-010 — Corte visual de Alcantarilla
+
+La Alcantarilla es la primera referencia visual concreta de Phaser. Utiliza piedra húmeda, variaciones de suelo, pared diferenciada, humedad, metal oxidado y puntos de luz fría. Los recursos propios se almacenan en `assets/imagenes/mundo/alcantarilla/`.
+
+## V-011 — Capas y profundidad del corte
+
+El corte P2 se compone en este orden: fondo, terreno, decoración baja, zonas, sombras, selección, entidades e iluminación. Las entidades se ordenan principalmente por la base vertical para conservar una lectura superior o de tres cuartos sin adoptar perspectiva isométrica estricta.
+
+## V-012 — Sombra e iluminación de P2
+
+Las sombras son elipses suaves que anclan entidades y bandas discretas junto a muros. La iluminación utiliza una base fría verdosa y un apoyo cálido muy suave alrededor del jugador. Los interactuables no reciben un aura permanente porque deben integrarse naturalmente con el mapa. Ninguna luz debe ocultar cuadrícula, objetivos o casillas seleccionadas.
+
+## V-013 — Ventanas de poca altura
+
+Cuando el modo Phaser no dispone de altura suficiente, la pantalla puede desplazarse verticalmente antes que comprimir el mapa hasta volverlo ilegible. Esta adaptación no altera el diseño histórico de Canvas 2D.
+
+## V-014 — Muros configurables por vecinos
+
+La presentación Phaser clasifica cada muro mediante sus vecinos cardinales. Puede representar bloques aislados, extremos, tramos rectos, esquinas, uniones en T, cruces e interiores sin modificar la matriz lógica del mapa. La Alcantarilla incorpora la primera familia de recursos; P5 ampliará el mismo contrato a otros biomas, puertas y obstáculos complejos.
+
+## V-015 — Seguimiento permanente y selección táctica
+
+Mientras el seguimiento esté activo, el personaje es la referencia permanente de la cámara y permanece exactamente en el centro visual. La regla se aplica desde el primer cuadro del mapa y después de esperas, redibujados, apertura o cierre de modales, cambios de zoom, redimensionamiento y pantalla completa. No se agregan excepciones por acción o nombre de modal.
+
+El desplazamiento manual puede pasar voluntariamente a cámara libre. Al comenzar ataque, interacción o selección de habilidad, el seguimiento vuelve a activarse, se bloquea el arrastre y el zoom conserva al personaje como centro.
+
+## V-016 — Aura reservada para objetivos contextuales
+
+No se utiliza aura permanente para portales, objetos o enemigos comunes. Una futura misión podrá marcar desde el estado canónico una entidad como objetivo y Phaser podrá representarla con una luminiscencia pequeña y discreta. El renderizador no decidirá objetivos por nombre visible ni por tipo de enemigo.
+
+## V-017 — Anclaje por contenido visible
+
+Los PNG transparentes se apoyan mediante su contenido visible y no mediante el borde completo del archivo. Phaser calcula una vez los límites alfa de cada recurso, utiliza el centro visible como eje horizontal y apoya el último píxel visible sobre la base de la casilla. Las sombras adaptan discretamente su ancho al dibujo real. Los PNG originales no se recortan ni se alteran, por lo que continúan siendo reutilizables en inventario, paneles y detalles.
+
 ---
 
-# 35. CONCLUSIÓN DE DISEÑO
+# 35. REFERENCIA IMPLEMENTADA EN P2
+
+La referencia P2 aplica las siguientes decisiones concretas:
+
+- casilla lógica de 32 × 32;
+- imágenes ambientales de 64 × 64 reducidas visualmente a la casilla;
+- cuadrícula más visible en suelo que en paredes;
+- variación decorativa determinista para no cambiar entre redibujados;
+- personaje marcado mediante sombra y aro cálido discreto;
+- enemigos agresivos con indicador y apoyo visual rojo;
+- portales e interactuables integrados sin aura permanente;
+- muros seleccionados por vecinos cardinales y familia configurable;
+- cámara con zoom entre 80 % y 160 %;
+- seguimiento permanente desde la carga y después de esperas, modales o redimensionamiento;
+- zoom centrado en el personaje durante seguimiento y alrededor del puntero en cámara libre;
+- desplazamiento con botón derecho o central;
+- doble clic izquierdo para recentrar;
+- selección táctica con cámara fijada sobre el personaje;
+- entidades apoyadas mediante los límites visibles de sus PNG transparentes;
+- clic izquierdo sin acción jugable durante P2;
+- Canvas 2D conservado como backend predeterminado.
+
+Esta referencia no define todavía animaciones finales, niebla, minimapa, sprites direccionales ni controles jugables directos desde Phaser.
+
+---
+
+# 36. CONCLUSIÓN DE DISEÑO
 
 Dark Moon no necesita parecer un juego completamente distinto para beneficiarse de Phaser.
 

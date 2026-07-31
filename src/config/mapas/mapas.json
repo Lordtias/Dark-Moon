@@ -10,7 +10,51 @@
       "apariencia": {
         "colorSuelo": "#26372f",
         "colorPared": "#53695d",
-        "colorGrilla": "#17231d"
+        "colorGrilla": "#17231d",
+        "phaser": {
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_01.png",
+              "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_02.png"
+            ]
+          },
+          "pared": {
+            "recurso": "assets/imagenes/mundo/alcantarilla/estructura_pared_piedra.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/alcantarilla/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/alcantarilla/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/alcantarilla/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/alcantarilla/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/alcantarilla/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/alcantarilla/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/alcantarilla/muros/muro_interior.png"
+            }
+          },
+          "grilla": {
+            "opacidadSuelo": 0.2,
+            "opacidadPared": 0.07
+          },
+          "decoracion": {
+            "densidad": 0.18,
+            "colorHumedad": "#2f7568",
+            "colorReflejo": "#9bcfc1",
+            "colorMetal": "#46514c",
+            "colorOxido": "#9a6338",
+            "colorEscombro": "#858d7f",
+            "colorMancha": "#172a23"
+          },
+          "sombras": {
+            "color": "#06100c",
+            "opacidadMuros": 0.34,
+            "opacidadEntidades": 0.42
+          },
+          "iluminacion": {
+            "colorAmbiente": "#27483f",
+            "colorSombraAmbiente": "#071411",
+            "colorJugador": "#e6c56a",
+            "intensidad": 0.1
+          }
+        }
       },
       "dimensiones": {
         "ancho": {

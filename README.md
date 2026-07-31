@@ -28,7 +28,7 @@ La versión actual incluye:
 - doce habilidades jugables;
 - efectos temporales, resistencias e inmunidades;
 - zonas temporales persistentes dentro del mapa activo;
-- interfaz HTML con backend Canvas 2D y una escena técnica Phaser seleccionable;
+- interfaz HTML con backend Canvas 2D y un corte visual Phaser seleccionable;
 - persistencia durable del jugador y de la barra de habilidades;
 - depurador accesible desde la consola;
 - balanceador independiente en `balance.html`.
@@ -59,7 +59,7 @@ Abrir en el navegador con Canvas 2D, que continúa siendo el modo predeterminado
 http://localhost:8000/index.html
 ```
 
-Escena técnica Phaser:
+Corte visual Phaser:
 
 ```text
 http://localhost:8000/index.html?render=phaser
@@ -71,7 +71,7 @@ También puede solicitarse Canvas 2D de forma explícita:
 http://localhost:8000/index.html?render=canvas2d
 ```
 
-Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. En esta primera integración el canvas Phaser no acepta clics: es una protección temporal hasta que cámara, zoom y traducción de coordenadas formen un único contrato.
+Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El canvas Phaser acepta puntero únicamente para destacar casillas, modificar el zoom, desplazar la cámara y recentrarla. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. La rueda cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el arrastre manual.
 
 Balanceador:
 
@@ -1515,22 +1515,23 @@ Los métodos que alteran Maná, enemigos, resistencias, inmunidades o tiradas es
 
 ---
 
-## 24. Preparación para una futura integración con Phaser
+## 24. Integración actual con Phaser
 
-Phaser debe incorporarse como una nueva capa de entrada y representación, no como reemplazo de las reglas del juego.
+Phaser está incorporado como backend visual opcional del mapa y no reemplaza las reglas del juego. Canvas 2D continúa siendo el backend predeterminado.
 
-Arquitectura objetivo gradual:
+Arquitectura vigente:
 
 ```text
-Interfaz DOM actual ─────┐
-Phaser futuro ───────────┼─> comando o acción compartida
-Consola/pruebas ─────────┘              ↓
-                                      Juego
-                                        ↓
-                                  ResultadoAccion
-                                        ↓
-Canvas/DOM actual ────────┐
-Phaser futuro ────────────┘
+Teclado y DOM actuales ──┐
+Consola/pruebas ──────────┼─> comando o acción compartida
+Phaser (solo vista) ──────┘              ↓
+                                       Juego
+                                         ↓
+                                   ResultadoAccion
+                                         ↓
+                                  escena neutral
+                                   ┌─────┴─────┐
+                              Canvas 2D     Phaser
 ```
 
 ### Piezas que ya pueden reutilizarse
@@ -1545,9 +1546,20 @@ Phaser futuro ────────────┘
 - gestores persistentes de partida;
 - balanceador y depurador.
 
-### Próximo paso concreto
+### Estado del corte visual
 
-El contrato visual ya está aislado mediante `AdaptadorEscenaJuego` y la composición DOM ya se inyecta desde `game.js`. El siguiente paso técnico es incorporar Phaser inicialmente como backend del mapa, conservando los paneles y modales DOM y verificando que produzca la misma lectura del estado jugable.
+El modo `?render=phaser` utiliza actualmente:
+
+- `GestorRecursosPhaser` para cargar imágenes locales declaradas en configuración;
+- `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades e iluminación;
+- `ControladorCamaraPhaser` para seguimiento, zoom, desplazamiento y conversión visual entre mundo y casilla;
+- recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`;
+- clasificación configurable de muros aislados, extremos, rectos, esquinas, uniones, cruces e interiores mediante vecinos cardinales;
+- interactuables integrados al mapa sin un aura permanente;
+- cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
+- una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
+
+Los clics sobre el canvas todavía no ordenan movimiento, ataque, habilidades ni interacción. P2 conserva la entrada canónica existente. La siguiente etapa técnica del plan es E0; P3 no debe comenzar hasta completar esa prueba de Electron.
 
 ### Lo que Phaser no debe contener
 

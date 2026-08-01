@@ -610,8 +610,9 @@ function crearContextoHabilidadParaComando({
   const tipo = comando?.tipo;
   const esSeleccionRanura =
     tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA;
-  const esFijarSelector =
-    tipo === TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD;
+  const esSeleccionCasilla =
+    modoHabilidadAntes &&
+    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA;
   const esConfirmacion =
     modoHabilidadAntes &&
     tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION;
@@ -626,7 +627,7 @@ function crearContextoHabilidadParaComando({
 
   return {
     esSeleccionRanura,
-    esFijarSelector,
+    esSeleccionCasilla,
     esConfirmacion,
     esBloqueoRespaldo,
     esMovimiento,
@@ -634,7 +635,7 @@ function crearContextoHabilidadParaComando({
     esComandoHabilidad:
       Boolean(sistemaHabilidades) &&
       (esSeleccionRanura ||
-        esFijarSelector ||
+        esSeleccionCasilla ||
         esConfirmacion ||
         esBloqueoRespaldo ||
         esMovimiento ||

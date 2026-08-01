@@ -1,6 +1,7 @@
 import { TIPOS_ENTIDAD_VISUAL } from "../TiposEscena.js";
 import { CompositorMundoPhaser } from "./CompositorMundoPhaser.js";
 import { ControladorCamaraPhaser } from "./ControladorCamaraPhaser.js";
+import { ControladorEntradaJugablePhaser } from "./ControladorEntradaJugablePhaser.js";
 import { ConversorCoordenadasPhaser } from "./ConversorCoordenadasPhaser.js";
 import { GestorRecursosPhaser } from "./GestorRecursosPhaser.js";
 
@@ -21,6 +22,8 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.conversorCoordenadas = null;
       this.compositor = null;
       this.controladorCamara = null;
+      this.controladorEntradaJugable = null;
+      this.alEjecutarComando = null;
       this.textoAyuda = null;
       this.redibujoPendiente = false;
       this.destruida = false;
@@ -95,6 +98,37 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.controladorCamara?.sincronizarVista();
     }
 
+    establecerManejadorEntradaJugable(alEjecutarComando = null) {
+      if (
+        alEjecutarComando !== null &&
+        alEjecutarComando !== undefined &&
+        typeof alEjecutarComando !== "function"
+      ) {
+        throw new Error(
+          "La escena Phaser necesita una función de entrada o null.",
+        );
+      }
+
+      this.controladorEntradaJugable?.destruir();
+      this.controladorEntradaJugable = null;
+      this.alEjecutarComando = alEjecutarComando ?? null;
+
+      if (!this.alEjecutarComando || !this.conversorCoordenadas) {
+        return false;
+      }
+
+      this.controladorEntradaJugable =
+        new ControladorEntradaJugablePhaser({
+          escena: this,
+          conversorCoordenadas: this.conversorCoordenadas,
+          obtenerModoSeleccion: () =>
+            this.escenaDarkMoon?.combate?.modo ?? null,
+          alEjecutarComando: this.alEjecutarComando,
+        });
+
+      return true;
+    }
+
     redibujar() {
       if (!this.compositor || !this.controladorCamara || !this.escenaDarkMoon) {
         return;
@@ -134,7 +168,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         ? "siguiendo al personaje"
         : "cámara libre";
       const controles = estado.seleccionActiva
-        ? "Selección táctica: cámara centrada · rueda o +/-: zoom · H: recentrar"
+        ? "Selección: clic para elegir · F/R: confirmar · rueda o +/-: zoom"
         : "IJKL: cámara · rueda o +/-: zoom · arrastre: cámara · H: recentrar";
 
       this.textoAyuda.setText(
@@ -149,11 +183,14 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       }
 
       this.destruida = true;
+      this.controladorEntradaJugable?.destruir();
       this.controladorCamara?.destruir();
       this.compositor?.destruir();
       this.conversorCoordenadas?.destruir();
       this.gestorRecursos?.destruir();
+      this.controladorEntradaJugable = null;
       this.controladorCamara = null;
+      this.alEjecutarComando = null;
       this.compositor = null;
       this.conversorCoordenadas = null;
       this.gestorRecursos = null;

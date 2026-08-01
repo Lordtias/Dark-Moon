@@ -240,6 +240,10 @@ export class Juego {
     );
   }
 
+  seleccionarCasillaInteraccion(x, y) {
+    return this.sistemaInteraccionJugador.seleccionarCasilla(x, y);
+  }
+
   confirmarInteraccionSeleccionada() {
     const bloqueo = this.obtenerBloqueoAccionTemporal();
     return bloqueo ?? this.sistemaInteraccionJugador.confirmarSeleccion();
@@ -310,6 +314,10 @@ export class Juego {
 
   moverSelectorCombate(movimientoX, movimientoY) {
     return this.sistemaCombateJugador.moverSelector(movimientoX, movimientoY);
+  }
+
+  seleccionarCasillaCombate(x, y) {
+    return this.sistemaCombateJugador.seleccionarCasilla(x, y);
   }
 
   atacarObjetivo(objetivo) {

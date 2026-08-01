@@ -2,8 +2,9 @@ import { TIPOS_COMANDO_JUGADOR } from "../aplicacion/EjecutorAccionesJugador.js"
 
 // Adaptador DOM exclusivo del puntero de habilidades.
 //
-// Convierte clics sobre casillas o Canvas en coordenadas del mapa y entrega
-// un comando compartido. No ejecuta reglas ni escucha el teclado.
+// Convierte clics sobre casillas DOM o el Canvas 2D en coordenadas del mapa
+// y entrega un comando compartido. El canvas Phaser posee su propio adaptador
+// porque necesita considerar cámara y zoom.
 export class ControladorPunteroHabilidades {
   constructor({ sistemaHabilidades, esJuegoActivo, alEjecutarComando } = {}) {
     if (!sistemaHabilidades || typeof esJuegoActivo !== "function") {
@@ -50,7 +51,7 @@ export class ControladorPunteroHabilidades {
 
     detener(evento);
     this.alEjecutarComando({
-      tipo: TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD,
+      tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA,
       x: coordenadas.x,
       y: coordenadas.y,
       origenEntrada: "puntero",
@@ -79,7 +80,10 @@ function obtenerCoordenadasDesdeElemento(elemento) {
 
 function obtenerCoordenadasDesdeCanvas(evento, sistema) {
   const canvas = evento.target;
-  if (canvas?.tagName !== "CANVAS") {
+  if (
+    canvas?.tagName !== "CANVAS" ||
+    canvas.classList?.contains("game-canvas--phaser")
+  ) {
     return null;
   }
 

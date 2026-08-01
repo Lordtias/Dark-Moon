@@ -465,7 +465,7 @@ Si existen parámetros de prueba en la URL, se inicia directamente una expedici�
 El patrón de las acciones básicas es:
 
 ```text
-Entrada DOM, consola o futuro Phaser
+Teclado DOM, puntero DOM, Phaser o consola
    ↓
 Comando de jugador
    ↓
@@ -522,7 +522,7 @@ Un resultado puede indicar, entre otros datos:
 #### Habilidades
 
 - `1` a `0`: seleccionar una ranura de la barra.
-- Movimiento o clic en Canvas: mover/fijar selector.
+- Movimiento por teclado o clic sobre el mapa: mover/fijar el selector.
 - `F`: confirmar.
 - `Escape`: cancelar.
 
@@ -532,7 +532,7 @@ Inventario, equipamiento, comercio, curación y paneles se operan mediante la in
 
 `src/controles/ControladorTeclado.js` es el único adaptador global de teclado jugable: reconoce movimiento, espera, confirmación, cancelación, respaldo, interacción con `R` y ranuras `1–0`, pero no conoce `Juego`, el sistema de habilidades, el renderizador ni sus reglas.
 
-`src/controles/ControladorPunteroHabilidades.js` convierte clics sobre casillas o Canvas en coordenadas de mapa. `src/interfaz/habilidades/BarraHabilidades.js` entrega la ranura elegida mediante un callback. Ninguno de esos adaptadores ejecuta directamente una habilidad.
+`src/controles/ControladorPunteroHabilidades.js` convierte clics sobre casillas DOM o Canvas 2D en coordenadas de mapa. `src/interfaz/graficos/phaser/ControladorEntradaJugablePhaser.js` convierte el clic izquierdo sobre Phaser mediante la cámara y el zoom reales. Ambos emiten `SELECCIONAR_CASILLA`; ninguno decide alcance, objetivos, interacción ni ejecución. `src/interfaz/habilidades/BarraHabilidades.js` entrega la ranura elegida mediante un callback.
 
 `src/aplicacion/EjecutorAccionesJugador.js` resuelve todos esos comandos sobre el mapa activo y respeta la prioridad habilidad → interacción → combate → movimiento. `ControladorPartida` coordina mensajes, redibujados y derrota sin duplicarlos.
 
@@ -591,11 +591,11 @@ darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
 });
 ```
 
-Fijar el selector de habilidad en una casilla:
+Seleccionar una casilla para el modo activo:
 
 ```js
 darkMoonAplicacion.controladorPartida.ejecutarComandoJugador({
-  tipo: TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD,
+  tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA,
   x: 5,
   y: 4,
 });
@@ -1522,17 +1522,23 @@ Phaser está incorporado como backend visual opcional del mapa y no reemplaza la
 Arquitectura vigente:
 
 ```text
-Teclado y DOM actuales ──┐
-Consola/pruebas ──────────┼─> comando o acción compartida
-Phaser (solo vista) ──────┘              ↓
-                                       Juego
-                                         ↓
-                                   ResultadoAccion
-                                         ↓
-                                  escena neutral
-                                   ┌─────┴─────┐
-                              Canvas 2D     Phaser
+Teclado jugable DOM ───────────────┐
+Puntero DOM / Canvas 2D ───────────┼─> comando compartido
+Puntero del mapa Phaser ───────────┘           ↓
+                                      ControladorPartida
+                                              ↓
+                                  EjecutorAccionesJugador
+                                              ↓
+                                            Juego
+                                              ↓
+                                      ResultadoAccion
+                                              ↓
+                                       escena neutral
+                                        ┌─────┴─────┐
+                                   Canvas 2D     Phaser
 ```
+
+El teclado jugable permanece centralizado en `ControladorTeclado`. Phaser conserva por separado únicamente los controles visuales de cámara. Una futura pantalla de configuración podrá alimentar ambos componentes desde una sola configuración de acciones y teclas, sin convertirlos en dos fuentes de verdad.
 
 ### Piezas que ya pueden reutilizarse
 
@@ -1552,14 +1558,16 @@ El modo `?render=phaser` utiliza actualmente:
 
 - `GestorRecursosPhaser` para cargar imágenes locales declaradas en configuración;
 - `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades e iluminación;
-- `ControladorCamaraPhaser` para seguimiento, zoom, desplazamiento y conversión visual entre mundo y casilla;
+- `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
+- `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
+- `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
 - recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`;
 - clasificación configurable de muros aislados, extremos, rectos, esquinas, uniones, cruces e interiores mediante vecinos cardinales;
 - interactuables integrados al mapa sin un aura permanente;
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
 
-Los clics sobre el canvas todavía no ordenan movimiento, ataque, habilidades ni interacción. P3 agrega navegación visual por teclado, ratón y zoom sin emitir comandos jugables. E0 continúa pausada por decisión explícita y deberá reanudarse mediante una etapa aprobada; P4 no queda autorizado automáticamente.
+Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
 
 ### Lo que Phaser no debe contener
 

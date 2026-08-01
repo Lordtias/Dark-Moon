@@ -26,6 +26,7 @@ export class RenderizadorPhaser {
     this.escenaPhaser = null;
     this.ultimaEscena = null;
     this.dimensionesMapa = null;
+    this.alEjecutarComando = null;
     this.juegoPhaser = null;
     this.observadorTamano = null;
     this.observadorVisibilidad = null;
@@ -95,7 +96,25 @@ export class RenderizadorPhaser {
     this.escenaPhaser?.actualizarEscena(escena);
   }
 
+  conectarEntradaJugable(alEjecutarComando = null) {
+    if (
+      alEjecutarComando !== null &&
+      alEjecutarComando !== undefined &&
+      typeof alEjecutarComando !== "function"
+    ) {
+      throw new Error(
+        "RenderizadorPhaser necesita una función de entrada o null.",
+      );
+    }
+
+    this.alEjecutarComando = alEjecutarComando ?? null;
+    this.escenaPhaser?.establecerManejadorEntradaJugable(
+      this.alEjecutarComando,
+    );
+  }
+
   destruir() {
+    this.conectarEntradaJugable(null);
     this.detenerObservacionTamano();
     this.juegoPhaser?.destroy(true);
     this.juegoPhaser = null;
@@ -112,6 +131,10 @@ export class RenderizadorPhaser {
     if (this.dimensionesMapa) {
       this.escenaPhaser.configurarDimensionesMapa(this.dimensionesMapa);
     }
+
+    this.escenaPhaser.establecerManejadorEntradaJugable(
+      this.alEjecutarComando,
+    );
 
     if (this.ultimaEscena) {
       this.escenaPhaser.actualizarEscena(this.ultimaEscena);

@@ -5,6 +5,8 @@ Etapa: P3 — Cámara, escala y controles
 Estado: **Cerrada**  
 Fecha: 31 de julio de 2026
 
+> **Trazabilidad posterior:** el usuario aprobó las pruebas manuales y publicó P3 en el commit `5c47a48aaf45c637172930afeff3c3dac5ef8120`. Las referencias posteriores de este documento a cambios “sin commit” describen la fotografía exacta de la entrega previa a ese commit y no el estado heredado por P4. P3 está cerrada y probada.
+
 ---
 
 ## 1. Estado de la copia de trabajo

@@ -240,27 +240,41 @@ export class SistemaCombateJugador {
   moverSelector(movimientoX, movimientoY) {
     if (!this.modoActivo) return crearResultadoAccion({ exito: false });
 
-    const nuevaX = this.selector.x + movimientoX;
-    const nuevaY = this.selector.y + movimientoY;
-    if (!this.esCaminable(nuevaX, nuevaY)) {
+    return this.seleccionarCasilla(
+      this.selector.x + movimientoX,
+      this.selector.y + movimientoY,
+    );
+  }
+
+  seleccionarCasilla(x, y) {
+    if (!this.modoActivo) return crearResultadoAccion({ exito: false });
+
+    if (!Number.isInteger(x) || !Number.isInteger(y)) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "La casilla seleccionada es inválida.",
+      });
+    }
+
+    if (!this.esCaminable(x, y)) {
       return crearResultadoAccion({
         exito: false,
         mensaje: "No podés seleccionar una pared.",
       });
     }
-    if (!this.estaCasillaDentroAlcance(nuevaX, nuevaY)) {
+    if (!this.estaCasillaDentroAlcance(x, y)) {
       return crearResultadoAccion({
         exito: false,
         mensaje: `Esa casilla supera el alcance ${this.jugador.alcanceAtaque}.`,
       });
     }
 
-    this.selector = { x: nuevaX, y: nuevaY };
-    const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
-    const evaluacion = this.evaluarCasillaAtaque(nuevaX, nuevaY);
+    this.selector = { x, y };
+    const objetivo = this.obtenerObjetivoEn(x, y);
+    const evaluacion = this.evaluarCasillaAtaque(x, y);
     const textoSeleccion = objetivo
       ? `Seleccionaste a ${objetivo.nombre}.`
-      : `Seleccionaste la casilla ${nuevaX}, ${nuevaY}.`;
+      : `Seleccionaste la casilla ${x}, ${y}.`;
 
     return crearResultadoAccion({
       mensaje: evaluacion.puedeAtacar

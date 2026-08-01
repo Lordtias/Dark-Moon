@@ -7,7 +7,7 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   ACTIVAR_ATAQUE_RESPALDO: "activar-ataque-respaldo",
   CANCELAR_SELECCION: "cancelar-seleccion",
   SELECCIONAR_HABILIDAD_RANURA: "seleccionar-habilidad-ranura",
-  FIJAR_SELECTOR_HABILIDAD: "fijar-selector-habilidad",
+  SELECCIONAR_CASILLA: "seleccionar-casilla",
   INTERACTUAR_O_CONFIRMAR: "interactuar-o-confirmar",
 });
 
@@ -50,8 +50,8 @@ export class EjecutorAccionesJugador {
       case TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA:
         return this.seleccionarHabilidadPorRanura(comando);
 
-      case TIPOS_COMANDO_JUGADOR.FIJAR_SELECTOR_HABILIDAD:
-        return this.fijarSelectorHabilidad(comando);
+      case TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA:
+        return this.seleccionarCasilla(comando);
 
       case TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR:
         return this.interactuarOConfirmar();
@@ -166,15 +166,23 @@ export class EjecutorAccionesJugador {
     return sistemaHabilidades.seleccionarPorRanura(indiceRanura);
   }
 
-  fijarSelectorHabilidad({ x, y }) {
+  seleccionarCasilla({ x, y }) {
     validarCoordenadas(x, y);
 
     const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
-    if (!sistemaHabilidades?.modoHabilidad) {
-      return null;
+    if (sistemaHabilidades?.modoHabilidad) {
+      return sistemaHabilidades.fijarSelector(x, y);
     }
 
-    return sistemaHabilidades.fijarSelector(x, y);
+    if (this.juego.modoInteraccionActivo) {
+      return this.juego.seleccionarCasillaInteraccion(x, y);
+    }
+
+    if (this.juego.modoCombateActivo) {
+      return this.juego.seleccionarCasillaCombate(x, y);
+    }
+
+    return crearResultadoAccion({ exito: false });
   }
 
   interactuarOConfirmar() {
@@ -260,7 +268,7 @@ function validarIndiceRanura(indiceRanura) {
 
 function validarCoordenadas(x, y) {
   if (!Number.isInteger(x) || !Number.isInteger(y)) {
-    throw new Error("El selector de habilidad necesita coordenadas enteras.");
+    throw new Error("La selección necesita coordenadas enteras.");
   }
 }
 
@@ -298,7 +306,9 @@ function validarJuego(juego) {
   const metodosRequeridos = [
     "moverJugador",
     "moverSelectorInteraccion",
+    "seleccionarCasillaInteraccion",
     "moverSelectorCombate",
+    "seleccionarCasillaCombate",
     "esperarTurno",
     "entrarModoCombate",
     "confirmarAtaque",

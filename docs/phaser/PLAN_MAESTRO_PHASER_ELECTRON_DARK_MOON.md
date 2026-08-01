@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.6
+Versión del documento: 1.7
 Fecha inicial: 30 de julio de 2026  
 Última actualización: 31 de julio de 2026
-Estado: P0, P1, P2 y P3 cerradas; E0 pausada temporalmente
+Etapa operativa actual: P4 — Entrada e intenciones jugables desde Phaser
 
 ---
 
@@ -529,38 +529,22 @@ Una escena Phaser visible dentro de Dark Moon, activable sin romper la versión 
   zoom y conversión de coordenadas;
 - Phaser consumirá la escena neutral y no recibirá la instancia de `Juego`.
 
-### Estado final de P1
+### Resultado consolidado de P1
 
-P1 quedó **cerrada** con Phaser 4.2.1 incorporado localmente y verificado contra
-el Git blob oficial. El backend Phaser se activa mediante `?render=phaser`, crea
-su propio canvas dentro del panel central y consume la misma escena neutral que
-Canvas 2D.
+P1 incorporó Phaser 4.2.1 localmente y verificó su funcionamiento offline. El backend Phaser se activa mediante `?render=phaser`, crea su propio canvas dentro del panel central y consume la misma escena neutral que Canvas 2D.
 
-Validaciones cerradas:
+Validaciones consolidadas:
 
 - Canvas 2D continúa siendo el modo predeterminado y no carga Phaser;
 - Phaser inicia desde el vendor local sin servicios externos;
-- `Phaser.AUTO` selecciona el renderizador disponible y `Scale.FIT` conserva la
-  proporción dentro del panel;
-- el backend detecta cuando la pantalla de partida deja de estar oculta y
-  refresca automáticamente el Scale Manager, sin exigir un `resize` manual;
+- `Phaser.AUTO` selecciona el renderizador disponible y `Scale.FIT` conserva la proporción dentro del panel;
+- el backend refresca su escala cuando la pantalla de partida pasa de oculta a visible;
 - la escena técnica representa cuadrícula, jugador, enemigos e interactuables;
-- el movimiento continúa entrando por el controlador canónico y actualiza la
-  escena Phaser;
-- la protección temporal impide que el puntero sobre Phaser emita comandos;
+- el movimiento continúa entrando por el controlador canónico y actualiza la escena Phaser;
 - los paneles HTML/CSS y la persistencia conservan sus contratos;
-- un parámetro inválido vuelve a Canvas 2D y una dependencia ausente produce un
-  error explícito.
+- un parámetro inválido vuelve a Canvas 2D y una dependencia ausente produce un error explícito.
 
-El usuario confirmó el commit final de P1:
-
-`251b2037b6180848bb7a15610251b6fed0f492dc`
-
-Ese commit incluye la validación de P1 y la corrección del ajuste inicial de
-resolución. P1 queda cerrada y commiteada. Por la decisión D-019, E0 se pausó
-temporalmente y P2 pasó a ser la siguiente etapa autorizada. La restricción que
-exigía cerrar E0 antes de P3 fue reemplazada posteriormente por la autorización
-excepcional D-023. E0 continúa pausada y no se considera completada.
+Los identificadores de commits cerrados no se registran en este documento maestro. Se heredan mediante el prompt y los documentos de entrega de cada etapa.
 
 ### Entregables
 
@@ -696,7 +680,7 @@ Preguntas obligatorias:
 
 Si la respuesta general es negativa, se puede conservar Phaser solo para efectos o abandonar la ruta antes de invertir más.
 
-### Estado de implementación de P2
+### Resultado consolidado de P2
 
 P2 fue aprobada y se implementó en dos bloques internos sin commits separados:
 
@@ -712,7 +696,7 @@ La cámara ya no depende de listas de acciones que deban recentrarla. Mientras e
 
 Los recursos transparentes se analizan una sola vez al cargarse. El compositor utiliza la base y el centro del contenido alfa para apoyar sprites y dimensionar sombras, sin recortar archivos ni introducir excepciones por enemigo u objeto.
 
-Canvas 2D sigue siendo el backend predeterminado. Phaser no emite todavía comandos de movimiento, combate, habilidades o interacción. La implementación superó las validaciones automatizadas de navegador y la validación manual del usuario. P2 queda **Cerrada** en el commit `2b572cf5e587c4ea1d85f2f9069255fb83938a85`. La decisión visual es continuar con Phaser conservando Canvas 2D como respaldo y sin adelantar los controles jugables directos previstos para P4.
+Canvas 2D sigue siendo el backend predeterminado. P2 superó las validaciones automatizadas de navegador y la validación manual del usuario. La decisión visual consolidada es continuar con Phaser conservando Canvas 2D como respaldo y sin adelantar en esa etapa los controles jugables directos previstos para P4.
 
 ---
 
@@ -751,9 +735,9 @@ Crear el sistema de navegación visual necesario para mapas más grandes.
 - mapas definitivos de gran tamaño;
 - Electron, Node.js o npm.
 
-### Estado actual
+### Resultado consolidado de P3
 
-La implementación fue aprobada y completada el 31 de julio de 2026. Las comprobaciones estáticas, de configuración, de comportamiento aislado y de navegador automatizado fueron correctas para Phaser y Canvas 2D. El usuario aprobó además las pruebas manuales en su navegador habitual. P3 queda **Cerrada**; sus cambios permanecen localmente sin commit ni push.
+La implementación fue completada el 31 de julio de 2026. Las comprobaciones estáticas, de configuración, de comportamiento aislado y de navegador automatizado fueron correctas para Phaser y Canvas 2D. El usuario aprobó además las pruebas manuales en su navegador habitual.
 
 ### Resultado esperado
 
@@ -765,44 +749,58 @@ El usuario puede navegar, ampliar, reducir y volver al personaje sin perder orie
 
 ---
 
-## ETAPA P4 — Puente entre lógica y presentación
+## ETAPA P4 — Entrada e intenciones jugables desde Phaser
 
 ### Objetivo
 
-Hacer que Phaser represente el estado real del juego sin controlar sus reglas.
+Permitir que Phaser traduzca clics sobre su mapa a los mismos comandos compartidos utilizados por el juego, sin trasladar reglas jugables a la escena.
 
-### Alcance mínimo
+### Alcance aprobado
 
-- definir estado neutral de presentación;
-- definir eventos visuales;
-- definir intenciones del jugador;
-- conectar posiciones reales;
-- crear y actualizar sprites;
-- sincronizar aparición y eliminación;
-- traducir clics a intención;
-- traducir teclado a intención;
-- devolver las decisiones al motor existente;
-- animar únicamente resultados aprobados;
-- evitar lectura directa innecesaria del DOM;
-- mantener el renderizador anterior durante la validación.
+- conservar `ControladorTeclado` como único adaptador global de teclado jugable;
+- conservar los controles de cámara en su componente especializado;
+- crear un adaptador de puntero exclusivo para el canvas Phaser;
+- reutilizar `ConversorCoordenadasPhaser` para considerar cámara, zoom y redimensionamiento;
+- emitir un comando genérico `SELECCIONAR_CASILLA`;
+- seleccionar casillas en combate, interacción y habilidades;
+- mantener `F` como confirmación de combate o habilidad;
+- mantener `R` como confirmación de interacción;
+- impedir que el controlador DOM de habilidades procese también el canvas Phaser;
+- ignorar clics fuera del mapa, botones no izquierdos y repeticiones inmediatas de un doble clic;
+- conservar Canvas 2D y su puntero histórico;
+- no agregar movimiento mediante clic;
+- no agregar inspección de entidades todavía;
+- no agregar una segunda configuración de teclas.
 
 ### Contrato conceptual
 
 ```text
-Entrada del jugador
+Teclado DOM o puntero del backend activo
         ↓
-Lógica de Dark Moon
+Comando compartido
         ↓
-Resultado canónico
+ControladorPartida
         ↓
-Estado o evento visual
+EjecutorAccionesJugador
         ↓
-Phaser representa el resultado
+Sistema canónico correspondiente
+        ↓
+ResultadoAccion
+        ↓
+Estado neutral
+        ↓
+Canvas 2D o Phaser representa el resultado
 ```
+
+Phaser entrega únicamente la casilla señalada. Combate, interacción y habilidades continúan decidiendo si esa casilla es válida. El clic cambia el selector, pero nunca confirma ni consume un turno por sí mismo.
+
+### Estado operativo de P4
+
+**En validación manual.** La implementación y las pruebas automatizadas están completas. El cierre definitivo requiere la comprobación del usuario en su navegador habitual. El SHA final se heredará mediante el próximo prompt y no se agregará posteriormente al Documento Maestro.
 
 ### Criterio de cierre
 
-Una misma acción produce el mismo resultado lógico con el renderizador anterior y con Phaser.
+Una entrada realizada sobre Phaser debe producir el mismo cambio de selector que el flujo canónico existente, ejecutarse una sola vez, conservar `F`/`R` como confirmación y no crear reglas jugables paralelas ni regresiones en Canvas 2D.
 
 ### Punto de decisión A — Viabilidad de la migración
 
@@ -1373,11 +1371,9 @@ predeterminado.
 
 Fecha: 31 de julio de 2026
 
-Estado: vigente hasta aprobar el contrato de cámara y coordenadas
+Estado: reemplazada por D-027
 
-El canvas Phaser no aceptará clics temporalmente. La protección se retirará
-cuando cámara, zoom y conversión de coordenadas formen un contrato único que
-pueda traducir el puntero a comandos canónicos sin ambigüedad.
+El bloqueo temporal del clic sobre Phaser se mantuvo hasta completar cámara, zoom y conversión de coordenadas. P4 reemplaza esta restricción mediante un adaptador de puntero que reutiliza el conversor único y emite comandos canónicos.
 
 ## Decisión D-016
 
@@ -1418,8 +1414,7 @@ Fecha: 31 de julio de 2026
 
 Estado: reemplazada parcialmente por D-023
 
-El usuario confirmó `251b2037b6180848bb7a15610251b6fed0f492dc` como commit de cierre de P1, incluida la
-validación manual y la corrección del ajuste inicial de resolución.
+El usuario confirmó el cierre de P1, incluida la validación manual y la corrección del ajuste inicial de resolución. El identificador del commit se conserva en la entrega correspondiente y se hereda mediante los prompts de etapa.
 
 Debido a las limitaciones de conectividad, permisos de instalación y descarga
 del equipo actual, E0 se pausa temporalmente y se autoriza analizar y proponer
@@ -1487,55 +1482,41 @@ Fecha: 31 de julio de 2026
 
 Estado: vigente
 
-El usuario aprueba las pruebas manuales de P3. La etapa queda cerrada funcional y documentalmente con los cambios locales todavía sin commit ni push. GitHub Pages deberá comprobarse después de publicar el commit, E0 continúa pausada y P4 requiere una propuesta y aprobación nuevas.
+El usuario aprobó las pruebas manuales de P3. La etapa quedó cerrada funcional y documentalmente. El commit final se heredó mediante el prompt de P4 y no se incorpora como dato mutable del Documento Maestro. E0 continúa pausada.
 
 ---
 
-# 17. Estado del plan
+## Decisión D-027
 
-Actualizar esta tabla al cerrar cada etapa.
+Fecha: 31 de julio de 2026
 
-| Etapa | Estado | Commit | Entrega | Decisión |
-|---|---|---|---|---|
-| P0 | Cerrada | Commiteada | `docs/phaser/entregas/ENTREGA_P0.md` | P0A no necesaria; P1 iniciada |
-| P1 | Cerrada | `251b2037b6180848bb7a15610251b6fed0f492dc` | `docs/phaser/entregas/ENTREGA_P1.md` | Núcleo técnico y corrección de escala validados y commiteados |
-| E0 | Pausada | — | — | Continúa pendiente; D-023 autorizó excepcionalmente completar P3 antes de reanudarla |
-| P2 | Cerrada | `2b572cf5e587c4ea1d85f2f9069255fb83938a85` | `docs/phaser/entregas/ENTREGA_P2.md` | Corte visual aprobado, validado y publicado |
-| P3 | Cerrada | Pendiente del usuario | `docs/phaser/entregas/ENTREGA_P3.md` | Implementación y pruebas automáticas y manuales aprobadas; cambios locales sin commit |
-| P4 | Pendiente | — | — | — |
-| P5 | Pendiente | — | — | — |
-| P6 | Pendiente | — | — | — |
-| P7 | Pendiente | — | — | — |
-| E1 | Pendiente | — | — | — |
-| E2 | Futuro | — | — | — |
-| S1 | Futuro | — | — | — |
-| P8 | Opcional | — | — | — |
+Estado: vigente
 
-Estados permitidos:
+El puntero sobre Phaser pertenece a `ControladorEntradaJugablePhaser`, que convierte pantalla a casilla mediante `ConversorCoordenadasPhaser` y emite `SELECCIONAR_CASILLA`. `EjecutorAccionesJugador` deriva el comando al selector activo con prioridad habilidad, interacción y combate. Phaser no valida alcance, objetivos ni reglas. `F` y `R` continúan confirmando desde el teclado canónico.
 
-- Pendiente
-- En análisis
-- Aprobada
-- En implementación
-- En validación
-- Cerrada
-- Pausada
-- Reemplazada
-- Descartada
-- Futuro
-- Opcional
+## Decisión D-028
+
+Fecha: 31 de julio de 2026
+
+Estado: vigente
+
+El Documento Maestro no mantendrá una tabla histórica de estados ni identificadores de commits por etapa. Las etapas cerradas se documentan mediante su resultado consolidado y sus entregas. Solo la etapa operativa actual indica si está cerrada o no; su SHA final se transmite en el prompt de la etapa siguiente.
 
 ---
 
-# 18. Próxima acción
+# 17. Etapa operativa actual
 
-P2 está cerrada y publicada en `2b572cf5e587c4ea1d85f2f9069255fb83938a85`.
+## P4 — Entrada e intenciones jugables desde Phaser
 
-P3 fue aprobada, implementada y validada manualmente sobre ese commit. La siguiente acción operativa es:
+Estado: **En validación manual**.
 
-1. revisar `git -c core.autocrlf=true status`;
-2. realizar un único Conventional Commit para P3;
-3. comunicar el SHA final para actualizar la referencia heredada de la próxima etapa;
-4. comprobar GitHub Pages después del push.
+La implementación permite seleccionar casillas con clic en combate, interacción y habilidades, conserva la confirmación mediante `F` o `R`, evita la doble captura DOM/Phaser y mantiene Canvas 2D sin cambios de reglas.
 
-E0 continúa pausada y no está completada. D-023 autorizó P3 antes de E0, pero no autoriza automáticamente P4. Antes de iniciar otra implementación deberá decidirse si se reanuda E0 o si se propone expresamente una nueva excepción para otra etapa.
+Próxima acción:
+
+1. realizar la validación manual indicada en `docs/phaser/entregas/ENTREGA_P4.md`;
+2. corregir cualquier incidencia real encontrada;
+3. marcar P4 como cerrada solamente después de esa aprobación;
+4. transmitir el SHA final mediante el prompt de la siguiente etapa, sin editar este documento para agregarlo.
+
+E0 continúa pausada y no se considera completada.

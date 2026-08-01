@@ -1631,9 +1631,18 @@ La cámara utiliza `IJKL` para desplazamiento, `+` y `-` para zoom y `H` para vo
 
 Las traducciones entre pantalla, mundo y casilla pertenecen a un conversor único reutilizable. El compositor dibuja y el controlador navega utilizando ese contrato, sin duplicar matemáticas de coordenadas.
 
+
+## V-019 — Selección mediante puntero Phaser
+
+Durante combate, interacción o selección de habilidad, el clic izquierdo sobre el mapa Phaser señala una casilla y mueve el selector canónico. La acción continúa confirmándose mediante `F` o `R`; seleccionar no consume turno ni ejecuta automáticamente ataques, habilidades o interacciones.
+
+El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.
+
+El teclado jugable y la cámara permanecen en componentes especializados. Una futura pantalla de configuración deberá modificar una única asignación central de acciones y teclas para ambos componentes, evitando configuraciones paralelas.
+
 ---
 
-# 35. REFERENCIAS IMPLEMENTADAS EN P2 Y P3
+# 35. REFERENCIAS IMPLEMENTADAS EN P2, P3 Y P4
 
 La referencia P2 aplica las siguientes decisiones concretas:
 
@@ -1652,10 +1661,10 @@ La referencia P2 aplica las siguientes decisiones concretas:
 - doble clic izquierdo para recentrar;
 - selección táctica con cámara fijada sobre el personaje;
 - entidades apoyadas mediante los límites visibles de sus PNG transparentes;
-- clic izquierdo sin acción jugable durante P2;
+- clic izquierdo reservado a navegación visual durante P2;
 - Canvas 2D conservado como backend predeterminado.
 
-Esta referencia no define todavía animaciones finales, niebla, minimapa, sprites direccionales ni controles jugables directos desde Phaser.
+Esta referencia no define todavía animaciones finales, niebla, minimapa ni sprites direccionales.
 
 La referencia P3 agrega:
 
@@ -1668,6 +1677,17 @@ La referencia P3 agrega:
 - conservación del punto bajo el puntero durante zoom libre;
 - conversor único entre pantalla, mundo y casilla;
 - controles ignorados mientras se escribe en elementos editables.
+
+
+La referencia P4 agrega:
+
+- clic izquierdo para seleccionar una casilla durante combate, interacción o habilidad;
+- confirmación conservada mediante `F` o `R`;
+- conversión exacta con cámara, zoom y redimensionamiento;
+- ausencia de acción jugable cuando no existe un modo de selección;
+- doble clic de recentrado disponible solamente fuera de la selección;
+- un único comando neutral para el selector activo;
+- teclado jugable centralizado y cámara especializada, preparados para una futura configuración común de teclas.
 
 ---
 

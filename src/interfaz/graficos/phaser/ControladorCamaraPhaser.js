@@ -153,6 +153,7 @@ export class ControladorCamaraPhaser {
     this.seleccionActiva = valorNuevo;
 
     if (this.seleccionActiva) {
+      this.ultimoClicIzquierdo = 0;
       this.finalizarArrastre();
       this.limpiarTeclasDireccion();
       this.siguiendoJugador = true;
@@ -229,6 +230,11 @@ export class ControladorCamaraPhaser {
     }
 
     if (pointer.button === 0) {
+      if (this.seleccionActiva) {
+        this.ultimoClicIzquierdo = 0;
+        return;
+      }
+
       const ahora = performance.now();
 
       if (

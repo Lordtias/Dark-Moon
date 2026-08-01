@@ -219,11 +219,57 @@ export class SistemaInteraccionJugador {
       });
     }
 
-    this.establecerSelector(siguienteOpcion);
+    return this.seleccionarOpcion(siguienteOpcion);
+  }
+
+  seleccionarCasilla(x, y) {
+    if (!this.modoActivo) {
+      return crearResultadoAccion();
+    }
+
+    if (!Number.isInteger(x) || !Number.isInteger(y)) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "La casilla seleccionada es inválida.",
+      });
+    }
+
+    const opciones = this.obtenerOpcionesInteraccion();
+
+    if (opciones.length === 0) {
+      this.limpiarSelector();
+
+      return crearResultadoAccion({
+        mensaje: "Ya no hay interacciones disponibles.",
+        redibujar: true,
+      });
+    }
+
+    const opcion =
+      opciones.find(
+        (candidata) =>
+          candidata.x === x &&
+          candidata.y === y &&
+          candidata.entidad === this.selector.entidad,
+      ) ??
+      opciones.find((candidata) => candidata.x === x && candidata.y === y) ??
+      null;
+
+    if (!opcion) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "No hay un interactuable seleccionable en esa casilla.",
+      });
+    }
+
+    return this.seleccionarOpcion(opcion);
+  }
+
+  seleccionarOpcion(opcion) {
+    this.establecerSelector(opcion);
 
     return crearResultadoAccion({
-      mensaje:
-        `Seleccionaste ${siguienteOpcion.entidad.nombre}. ` + "Confirmá con R.",
+      mensaje: `Seleccionaste ${opcion.entidad.nombre}. Confirmá con R.`,
       redibujar: true,
     });
   }

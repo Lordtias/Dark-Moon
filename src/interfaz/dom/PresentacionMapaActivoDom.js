@@ -42,6 +42,7 @@ export class PresentacionMapaActivoDom {
 
     this.juego = juego;
     this.interfazPartida = interfazPartida;
+    this.alEjecutarComando = alEjecutarComando;
     this.estaActiva = false;
     this.destruida = false;
 
@@ -102,11 +103,15 @@ export class PresentacionMapaActivoDom {
     }
 
     try {
+      this.interfazPartida.renderizador.conectarEntradaMapa(
+        this.alEjecutarComando,
+      );
       this.controladorTeclado.activar();
       this.controladorEquipamiento.activar();
       this.estaActiva = true;
       return true;
     } catch (error) {
+      this.interfazPartida.renderizador.conectarEntradaMapa(null);
       this.controladorTeclado.desactivar();
       this.controladorEquipamiento.desactivar();
       throw error;
@@ -136,7 +141,11 @@ export class PresentacionMapaActivoDom {
       return false;
     }
 
-    // Se retiran primero observadores y listeners de habilidades, igual que en
+    // Se desconecta primero la entrada del mapa para que ningún clic tardío
+    // alcance la instancia de Juego que está por destruirse.
+    this.interfazPartida.renderizador.conectarEntradaMapa(null);
+
+    // Se retiran después observadores y listeners de habilidades, igual que en
     // el flujo anterior, antes de destruir la instancia de Juego asociada.
     this.integracionHabilidades?.destruir();
     this.controladorComercio?.desactivar();
@@ -144,6 +153,7 @@ export class PresentacionMapaActivoDom {
     this.controladorEquipamiento?.desactivar();
     this.adaptadorInteracciones?.desactivar();
 
+    this.alEjecutarComando = null;
     this.estaActiva = false;
     this.destruida = true;
     return true;

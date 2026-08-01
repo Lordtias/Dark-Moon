@@ -83,6 +83,27 @@ export class Renderizador {
     });
   }
 
+  conectarEntradaMapa(alEjecutarComando = null) {
+    if (
+      alEjecutarComando !== null &&
+      alEjecutarComando !== undefined &&
+      typeof alEjecutarComando !== "function"
+    ) {
+      throw new Error(
+        "La entrada del mapa debe ser una función o null para desconectarla.",
+      );
+    }
+
+    if (
+      typeof this.renderizadorMapa.conectarEntradaJugable !== "function"
+    ) {
+      return false;
+    }
+
+    this.renderizadorMapa.conectarEntradaJugable(alEjecutarComando ?? null);
+    return true;
+  }
+
   // Actualiza la capa visual de selección mágica. La integración del mapa
   // activo es la única responsable de establecerla y limpiarla.
   actualizarEstadoVisualHabilidad(estado = null) {

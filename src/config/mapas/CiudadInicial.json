@@ -39,6 +39,124 @@
         "color": "#6e5638",
         "detalle": "tierra"
       }
+    },
+    "phaser": {
+      "grilla": {
+        "opacidadSuelo": 0.016,
+        "opacidadPared": 0.006
+      },
+      "decoracion": {
+        "densidad": 0.06,
+        "tipos": [
+          "escombros",
+          "mancha"
+        ],
+        "colorHumedad": "#4d6656",
+        "colorReflejo": "#9bb09d",
+        "colorMetal": "#5f6462",
+        "colorOxido": "#8e613f",
+        "colorEscombro": "#88857d",
+        "colorMancha": "#353c35"
+      },
+      "sombras": {
+        "color": "#111713",
+        "opacidadMuros": 0.28,
+        "opacidadEntidades": 0.38
+      },
+      "iluminacion": {
+        "colorAmbiente": "#75806f",
+        "colorSombraAmbiente": "#151b17",
+        "colorJugador": "#efd38a",
+        "intensidad": 0.11
+      },
+      "terrenos": {
+        "#": {
+          "opacidadGrilla": 0.006,
+          "pared": {
+            "recurso": "assets/imagenes/mundo/ciudad/estructura_pared.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/ciudad/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/ciudad/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/ciudad/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/ciudad/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/ciudad/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/ciudad/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/ciudad/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/ciudad/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/ciudad/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 20,
+              "solapeSuperior": 2,
+              "anchoLateral": 5,
+              "sombraProyectada": 6,
+              "opacidad": 1
+            }
+          }
+        },
+        ".": {
+          "opacidadGrilla": 0.016,
+          "decoracion": {
+            "densidad": 0.035,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorEscombro": "#8b8982",
+            "colorMancha": "#4c4b47"
+          },
+          "recursos": [
+            "assets/imagenes/mundo/ciudad/adoquin_01.png",
+            "assets/imagenes/mundo/ciudad/adoquin_02.png"
+          ]
+        },
+        ",": {
+          "opacidadGrilla": 0.016,
+          "decoracion": {
+            "densidad": 0.06,
+            "tipos": [
+              "mancha"
+            ],
+            "colorMancha": "#2c5737"
+          },
+          "recursos": [
+            "assets/imagenes/mundo/ciudad/cesped_01.png",
+            "assets/imagenes/mundo/ciudad/cesped_02.png"
+          ]
+        },
+        "=": {
+          "opacidadGrilla": 0.016,
+          "decoracion": {
+            "densidad": 0.02,
+            "tipos": [
+              "mancha"
+            ],
+            "colorMancha": "#5a3d28"
+          },
+          "recursos": [
+            "assets/imagenes/mundo/ciudad/madera_01.png",
+            "assets/imagenes/mundo/ciudad/madera_02.png"
+          ]
+        },
+        ":": {
+          "opacidadGrilla": 0.016,
+          "decoracion": {
+            "densidad": 0.06,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorEscombro": "#887259",
+            "colorMancha": "#53432f"
+          },
+          "recursos": [
+            "assets/imagenes/mundo/ciudad/tierra_01.png",
+            "assets/imagenes/mundo/ciudad/tierra_02.png"
+          ]
+        }
+      }
     }
   },
   "terreno": [
@@ -77,7 +195,9 @@
       "id": "mercader_refugio",
       "nombre": "Edran, el mercader",
       "descripcion": "Un comerciante del refugio que compra botines y prepara provisiones para nuevas expediciones.",
-      "roles": ["mercader"],
+      "roles": [
+        "mercader"
+      ],
       "faccion": "refugio_luna_oscura",
       "x": 6,
       "y": 13,
@@ -100,7 +220,9 @@
       "id": "curandera_refugio",
       "nombre": "Lythra, sanadora lunar",
       "descripcion": "Una sanadora élfica que atiende a quienes regresan heridos o agotados de las mazmorras.",
-      "roles": ["curandera"],
+      "roles": [
+        "curandera"
+      ],
       "faccion": "refugio_luna_oscura",
       "x": 21,
       "y": 13,

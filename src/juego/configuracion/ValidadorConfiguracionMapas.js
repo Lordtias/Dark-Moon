@@ -1,10 +1,10 @@
+import { validarAparienciaMapa } from "./ValidadorAparienciaMapa.js";
+
 const TIPOS_GENERACION_VALIDOS = ["habitaciones"];
 
 const VARIANTES_REQUERIDAS = ["normal", "enfermo", "gigante", "elite"];
 
 const RAREZAS_FORZADAS_VALIDAS = new Set(["comun", "magico", "raro"]);
-
-const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 
 // Valida completamente la estructura general
 // de Mapas.json.
@@ -119,19 +119,22 @@ function validarRutaRecursoVisual({ ruta, idPlantilla }) {
 }
 
 function validarApariencia(idPlantilla, apariencia) {
-  validarObjeto(apariencia, `la apariencia de "${idPlantilla}"`);
+  validarAparienciaMapa({
+    identificador: `"${idPlantilla}"`,
+    apariencia,
+    simbolosRequeridos: ["#", "."],
+  });
 
-  const colores = ["colorSuelo", "colorPared", "colorGrilla"];
+  if (apariencia.terrenos["#"].tipo !== "pared") {
+    throw new Error(
+      `El símbolo "#" de "${idPlantilla}" debe representarse como pared.`,
+    );
+  }
 
-  for (const nombreColor of colores) {
-    const valor = apariencia[nombreColor];
-
-    if (typeof valor !== "string" || !EXPRESION_COLOR_HEXADECIMAL.test(valor)) {
-      throw new Error(
-        `"${nombreColor}" de "${idPlantilla}" ` +
-          "debe ser un color hexadecimal como #26372f.",
-      );
-    }
+  if (apariencia.terrenos["."].tipo !== "suelo") {
+    throw new Error(
+      `El símbolo "." de "${idPlantilla}" debe representarse como suelo.`,
+    );
   }
 }
 

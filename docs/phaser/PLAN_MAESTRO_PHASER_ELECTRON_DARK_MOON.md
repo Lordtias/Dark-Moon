@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.7
+Versión del documento: 2.0
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 31 de julio de 2026
-Etapa operativa actual: P4 — Entrada e intenciones jugables desde Phaser
+Última actualización: 1 de agosto de 2026
+Etapa operativa actual: P5 — Mundo jugable y mapas grandes
 
 ---
 
@@ -818,6 +818,15 @@ Una entrada realizada sobre Phaser debe producir el mismo cambio de selector que
 
 Renderizar los mapas reales y permitir recorrerlos mediante Phaser.
 
+### División operativa aprobada
+
+- **P5.1 — Soporte real de mapas en Phaser:** contrato genérico de terrenos, símbolos configurables, muros, cámara, límites, entidades y transiciones sin reglas paralelas.
+- **P5.2 — Tiles mejorados por bioma:** recursos visuales más detallados para Alcantarilla, Cementerio, Casa del Guerrero, Fortaleza abandonada, Sala de guerra y Ciudad Inicial.
+
+P5.1 dejó preparada la configuración por símbolo. P5.2 incorpora familias de PNG de 128 × 128 para los cinco mapas procedurales y para los terrenos diferenciados de la Ciudad Inicial. Además agrega frentes modulares de 128 × 96 que Phaser representa como fachadas 2.5D de altura moderada. El compositor continúa utilizando la casilla lógica de 32 × 32 y no utiliza los recursos como regla jugable.
+
+P5 permanece abierta hasta completar la validación manual de los seis escenarios, sus transiciones y la regresión de Canvas 2D.
+
 ### Alcance mínimo
 
 - mapas normales;
@@ -1502,21 +1511,46 @@ Estado: vigente
 
 El Documento Maestro no mantendrá una tabla histórica de estados ni identificadores de commits por etapa. Las etapas cerradas se documentan mediante su resultado consolidado y sus entregas. Solo la etapa operativa actual indica si está cerrada o no; su SHA final se transmite en el prompt de la etapa siguiente.
 
+
+## Decisión D-029
+
+Fecha: 1 de agosto de 2026
+
+Estado: vigente
+
+P5 se divide operativamente en P5.1 y P5.2. P5.2 adopta tiles ilustrados de 128 × 128 generados específicamente para Dark Moon a partir de la dirección visual aprobada. Cada bioma conserva una familia propia de suelos y topologías de muro; la Ciudad Inicial diferencia adoquín, césped, madera y tierra. Phaser reduce estos recursos a la casilla lógica de 32 × 32. Los PNG no modifican caminabilidad, conectividad, generación, ocupación ni resultados canónicos.
+
+La cuadrícula y la decoración vectorial se reducen cuando la textura ya aporta detalle para conservar lectura táctica. No se agrega una dependencia ni un atlas propietario externo.
+
+---
+
+## Decisión D-030
+
+Fecha: 1 de agosto de 2026
+
+Estado: vigente
+
+Las paredes de P5.2 incorporan altura visual 2.5D utilizando la referencia gráfica aprobada por el usuario. Cada bioma declara dos recursos de fachada y parámetros de altura, solape, lateral y sombra dentro de la configuración visual Phaser.
+
+La fachada solo se representa cuando la cara correspondiente está expuesta. La topología lógica del muro, su casilla, la caminabilidad, la generación y las reglas canónicas permanecen sin cambios. Los selectores, zonas y entidades continúan por encima de los frentes para no perder lectura táctica.
+
+No se incorpora 3D real, perspectiva isométrica, físicas, un segundo mapa ni una lógica de ocultamiento autoritativa.
+
 ---
 
 # 17. Etapa operativa actual
 
-## P4 — Entrada e intenciones jugables desde Phaser
+## P5 — Mundo jugable y mapas grandes
 
-Estado: **En validación manual**.
+Estado: **P5.2 implementada; validación manual pendiente**.
 
-La implementación permite seleccionar casillas con clic en combate, interacción y habilidades, conserva la confirmación mediante `F` o `R`, evita la doble captura DOM/Phaser y mantiene Canvas 2D sin cambios de reglas.
+P5.1 agregó el contrato visual genérico por símbolo y P5.2 incorporó tiles detallados y paredes con altura 2.5D para Alcantarilla, Cementerio, Casa del Guerrero, Fortaleza abandonada, Sala de guerra y Ciudad Inicial. Los mapas conservan sus matrices, generación, conectividad, reglas y resultados canónicos.
 
 Próxima acción:
 
-1. realizar la validación manual indicada en `docs/phaser/entregas/ENTREGA_P4.md`;
-2. corregir cualquier incidencia real encontrada;
-3. marcar P4 como cerrada solamente después de esa aprobación;
-4. transmitir el SHA final mediante el prompt de la siguiente etapa, sin editar este documento para agregarlo.
+1. ejecutar la validación manual indicada en `docs/phaser/entregas/AVANCE_P5_2.md`;
+2. revisar especialmente Ciudad Inicial, mapa máximo, transición repetida y recursos ausentes;
+3. corregir cualquier incidencia visual o funcional real;
+4. crear `docs/phaser/entregas/ENTREGA_P5.md` y cerrar P5 solamente después de la aprobación del usuario.
 
 E0 continúa pausada y no se considera completada.

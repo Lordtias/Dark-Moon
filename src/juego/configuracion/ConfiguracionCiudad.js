@@ -1,6 +1,7 @@
 import { NPC } from "../../entidad/interactuable/NPC.js";
 
 import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
+import { validarAparienciaMapa } from "./ValidadorAparienciaMapa.js";
 
 const TIPOS_ENTIDAD_CIUDAD = Object.freeze({
   NPC: "npc",
@@ -225,17 +226,7 @@ function validarTerreno(configuracion) {
     throw new Error("Las filas de la ciudad deben ser textos no vacíos.");
   }
 
-  const terrenosVisuales = configuracion.apariencia?.terrenos;
-
-  if (
-    !terrenosVisuales ||
-    typeof terrenosVisuales !== "object" ||
-    Array.isArray(terrenosVisuales)
-  ) {
-    throw new Error(
-      "La ciudad necesita la configuración visual de sus terrenos.",
-    );
-  }
+  const simbolosUtilizados = new Set();
 
   terreno.forEach((fila, indiceFila) => {
     if (typeof fila !== "string" || fila.length !== ancho) {
@@ -245,12 +236,14 @@ function validarTerreno(configuracion) {
     }
 
     for (const simbolo of fila) {
-      if (!terrenosVisuales[simbolo]) {
-        throw new Error(
-          `El terreno "${simbolo}" no tiene ` + "una apariencia configurada.",
-        );
-      }
+      simbolosUtilizados.add(simbolo);
     }
+  });
+
+  validarAparienciaMapa({
+    identificador: `de la ciudad "${configuracion.id}"`,
+    apariencia: configuracion.apariencia,
+    simbolosRequeridos: [...simbolosUtilizados],
   });
 }
 
@@ -475,20 +468,25 @@ function validarPosicionMapa({
 }
 
 function copiarApariencia(apariencia) {
-  const terrenos = {};
+  return clonarConfiguracion(apariencia);
+}
 
-  for (const [simbolo, configuracion] of Object.entries(
-    apariencia.terrenos ?? {},
-  )) {
-    terrenos[simbolo] = {
-      ...configuracion,
-    };
+function clonarConfiguracion(valor) {
+  if (Array.isArray(valor)) {
+    return valor.map((elemento) => clonarConfiguracion(elemento));
   }
 
-  return {
-    ...apariencia,
-    terrenos,
-  };
+  if (valor !== null && typeof valor === "object") {
+    const copia = {};
+
+    for (const [clave, contenido] of Object.entries(valor)) {
+      copia[clave] = clonarConfiguracion(contenido);
+    }
+
+    return copia;
+  }
+
+  return valor;
 }
 
 function validarJugador(player) {

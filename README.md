@@ -1558,11 +1558,16 @@ El modo `?render=phaser` utiliza actualmente:
 
 - `GestorRecursosPhaser` para cargar imágenes locales declaradas en configuración;
 - `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades e iluminación;
+- `ResolutorTerrenosPhaser` para interpretar cada símbolo mediante `apariencia.terrenos` y sus recursos Phaser opcionales, sin decidir reglas jugables;
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
 - `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
-- recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`;
+- familias ambientales de Alcantarilla, Cementerio, Casa del Guerrero, Fortaleza abandonada, Sala de guerra y Ciudad Inicial en `assets/imagenes/mundo/`;
 - clasificación configurable de muros aislados, extremos, rectos, esquinas, uniones, cruces e interiores mediante vecinos cardinales;
+- terrenos diferenciados por símbolo en la Ciudad Inicial: mampostería, adoquín, césped, madera y tierra;
+- tiles ilustrados de 128 × 128 reducidos a la casilla lógica de 32 × 32, con suelos y topologías de muro configurables por bioma;
+- frentes de pared 2.5D configurables por bioma, con altura moderada, cara frontal, lateral oscuro y sombra sin modificar la casilla lógica;
+- adoquín, césped, madera y tierra diferenciados en la Ciudad Inicial;
 - interactuables integrados al mapa sin un aura permanente;
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.

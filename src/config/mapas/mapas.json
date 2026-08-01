@@ -14,12 +14,13 @@
         "phaser": {
           "suelo": {
             "recursos": [
-              "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_01.png",
-              "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_02.png"
+              "assets/imagenes/mundo/alcantarilla/terreno_01.png",
+              "assets/imagenes/mundo/alcantarilla/terreno_02.png",
+              "assets/imagenes/mundo/alcantarilla/terreno_03.png"
             ]
           },
           "pared": {
-            "recurso": "assets/imagenes/mundo/alcantarilla/estructura_pared_piedra.png",
+            "recurso": "assets/imagenes/mundo/alcantarilla/estructura_pared.png",
             "variantes": {
               "aislado": "assets/imagenes/mundo/alcantarilla/muros/muro_aislado.png",
               "extremo": "assets/imagenes/mundo/alcantarilla/muros/muro_extremo.png",
@@ -28,31 +29,77 @@
               "unionT": "assets/imagenes/mundo/alcantarilla/muros/muro_union_t.png",
               "cruce": "assets/imagenes/mundo/alcantarilla/muros/muro_cruce.png",
               "interior": "assets/imagenes/mundo/alcantarilla/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/alcantarilla/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/alcantarilla/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 22,
+              "solapeSuperior": 2,
+              "anchoLateral": 5,
+              "sombraProyectada": 7,
+              "opacidad": 1
             }
           },
           "grilla": {
-            "opacidadSuelo": 0.2,
-            "opacidadPared": 0.07
+            "opacidadSuelo": 0.025,
+            "opacidadPared": 0.01
           },
           "decoracion": {
-            "densidad": 0.18,
+            "densidad": 0.135,
             "colorHumedad": "#2f7568",
             "colorReflejo": "#9bcfc1",
             "colorMetal": "#46514c",
             "colorOxido": "#9a6338",
             "colorEscombro": "#858d7f",
-            "colorMancha": "#172a23"
+            "colorMancha": "#172a23",
+            "tipos": [
+              "charco",
+              "rejilla",
+              "escombros",
+              "mancha"
+            ]
           },
           "sombras": {
             "color": "#06100c",
-            "opacidadMuros": 0.34,
+            "opacidadMuros": 0.4,
             "opacidadEntidades": 0.42
           },
           "iluminacion": {
             "colorAmbiente": "#27483f",
             "colorSombraAmbiente": "#071411",
             "colorJugador": "#e6c56a",
-            "intensidad": 0.1
+            "intensidad": 0.14
+          },
+          "terrenos": {
+            "#": {
+              "opacidadGrilla": 0.01
+            },
+            ".": {
+              "opacidadGrilla": 0.025,
+              "decoracion": {
+                "densidad": 0.135,
+                "tipos": [
+                  "charco",
+                  "rejilla",
+                  "escombros",
+                  "mancha"
+                ]
+              }
+            }
+          }
+        },
+        "terrenos": {
+          "#": {
+            "tipo": "pared",
+            "color": "#53695d",
+            "detalle": "mamposteria_humeda"
+          },
+          ".": {
+            "tipo": "suelo",
+            "color": "#26372f",
+            "detalle": "piedra_humeda"
           }
         }
       },
@@ -141,7 +188,94 @@
       "apariencia": {
         "colorSuelo": "#302f3b",
         "colorPared": "#686879",
-        "colorGrilla": "#1e1d27"
+        "colorGrilla": "#1e1d27",
+        "terrenos": {
+          "#": {
+            "tipo": "pared",
+            "color": "#686879",
+            "detalle": "mamposteria_funebre"
+          },
+          ".": {
+            "tipo": "suelo",
+            "color": "#302f3b",
+            "detalle": "tierra_funebre"
+          }
+        },
+        "phaser": {
+          "grilla": {
+            "opacidadSuelo": 0.02,
+            "opacidadPared": 0.008
+          },
+          "decoracion": {
+            "densidad": 0.105,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorHumedad": "#414552",
+            "colorReflejo": "#8790a2",
+            "colorMetal": "#4b4d56",
+            "colorOxido": "#72503e",
+            "colorEscombro": "#777886",
+            "colorMancha": "#20212b"
+          },
+          "sombras": {
+            "color": "#0c0c13",
+            "opacidadMuros": 0.4,
+            "opacidadEntidades": 0.44
+          },
+          "iluminacion": {
+            "colorAmbiente": "#373849",
+            "colorSombraAmbiente": "#101019",
+            "colorJugador": "#c9c6b1",
+            "intensidad": 0.16
+          },
+          "terrenos": {
+            "#": {
+              "opacidadGrilla": 0.008
+            },
+            ".": {
+              "opacidadGrilla": 0.02,
+              "decoracion": {
+                "densidad": 0.105,
+                "tipos": [
+                  "escombros",
+                  "mancha"
+                ]
+              }
+            }
+          },
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/cementerio/terreno_01.png",
+              "assets/imagenes/mundo/cementerio/terreno_02.png",
+              "assets/imagenes/mundo/cementerio/terreno_03.png"
+            ]
+          },
+          "pared": {
+            "recurso": "assets/imagenes/mundo/cementerio/estructura_pared.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/cementerio/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/cementerio/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/cementerio/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/cementerio/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/cementerio/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/cementerio/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/cementerio/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/cementerio/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/cementerio/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 22,
+              "solapeSuperior": 2,
+              "anchoLateral": 5,
+              "sombraProyectada": 7,
+              "opacidad": 1
+            }
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -248,7 +382,93 @@
       "apariencia": {
         "colorSuelo": "#3c332b",
         "colorPared": "#796650",
-        "colorGrilla": "#241e19"
+        "colorGrilla": "#241e19",
+        "terrenos": {
+          "#": {
+            "tipo": "pared",
+            "color": "#796650",
+            "detalle": "muro_madera_piedra"
+          },
+          ".": {
+            "tipo": "suelo",
+            "color": "#3c332b",
+            "detalle": "piso_rustico"
+          }
+        },
+        "phaser": {
+          "grilla": {
+            "opacidadSuelo": 0.02,
+            "opacidadPared": 0.008
+          },
+          "decoracion": {
+            "densidad": 0.068,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorHumedad": "#544638",
+            "colorReflejo": "#b29168",
+            "colorMetal": "#5f554b",
+            "colorOxido": "#8a5635",
+            "colorEscombro": "#8d755d",
+            "colorMancha": "#30251d"
+          },
+          "sombras": {
+            "color": "#130d09",
+            "opacidadMuros": 0.38,
+            "opacidadEntidades": 0.38
+          },
+          "iluminacion": {
+            "colorAmbiente": "#5a402b",
+            "colorSombraAmbiente": "#1a100b",
+            "colorJugador": "#f1c47b",
+            "intensidad": 0.14
+          },
+          "terrenos": {
+            "#": {
+              "opacidadGrilla": 0.008
+            },
+            ".": {
+              "opacidadGrilla": 0.02,
+              "decoracion": {
+                "densidad": 0.068,
+                "tipos": [
+                  "escombros",
+                  "mancha"
+                ]
+              }
+            }
+          },
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/casa_guerrero/terreno_01.png",
+              "assets/imagenes/mundo/casa_guerrero/terreno_02.png"
+            ]
+          },
+          "pared": {
+            "recurso": "assets/imagenes/mundo/casa_guerrero/estructura_pared.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/casa_guerrero/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/casa_guerrero/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/casa_guerrero/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/casa_guerrero/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/casa_guerrero/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/casa_guerrero/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/casa_guerrero/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/casa_guerrero/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/casa_guerrero/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 21,
+              "solapeSuperior": 2,
+              "anchoLateral": 5,
+              "sombraProyectada": 6,
+              "opacidad": 1
+            }
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -349,7 +569,94 @@
       "apariencia": {
         "colorSuelo": "#363942",
         "colorPared": "#737985",
-        "colorGrilla": "#202229"
+        "colorGrilla": "#202229",
+        "terrenos": {
+          "#": {
+            "tipo": "pared",
+            "color": "#737985",
+            "detalle": "muro_derruido"
+          },
+          ".": {
+            "tipo": "suelo",
+            "color": "#363942",
+            "detalle": "piedra_agrietada"
+          }
+        },
+        "phaser": {
+          "grilla": {
+            "opacidadSuelo": 0.02,
+            "opacidadPared": 0.008
+          },
+          "decoracion": {
+            "densidad": 0.135,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorHumedad": "#454b50",
+            "colorReflejo": "#929aa1",
+            "colorMetal": "#555b62",
+            "colorOxido": "#875b3f",
+            "colorEscombro": "#858a91",
+            "colorMancha": "#23262c"
+          },
+          "sombras": {
+            "color": "#0b0d11",
+            "opacidadMuros": 0.38,
+            "opacidadEntidades": 0.44
+          },
+          "iluminacion": {
+            "colorAmbiente": "#3c424b",
+            "colorSombraAmbiente": "#101217",
+            "colorJugador": "#d7c89a",
+            "intensidad": 0.14
+          },
+          "terrenos": {
+            "#": {
+              "opacidadGrilla": 0.008
+            },
+            ".": {
+              "opacidadGrilla": 0.02,
+              "decoracion": {
+                "densidad": 0.135,
+                "tipos": [
+                  "escombros",
+                  "mancha"
+                ]
+              }
+            }
+          },
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/fortaleza_abandonada/terreno_01.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/terreno_02.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/terreno_03.png"
+            ]
+          },
+          "pared": {
+            "recurso": "assets/imagenes/mundo/fortaleza_abandonada/estructura_pared.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/fortaleza_abandonada/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/fortaleza_abandonada/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/fortaleza_abandonada/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 23,
+              "solapeSuperior": 2,
+              "anchoLateral": 6,
+              "sombraProyectada": 8,
+              "opacidad": 1
+            }
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -450,7 +757,93 @@
       "apariencia": {
         "colorSuelo": "#403129",
         "colorPared": "#8a674e",
-        "colorGrilla": "#261b17"
+        "colorGrilla": "#261b17",
+        "terrenos": {
+          "#": {
+            "tipo": "pared",
+            "color": "#8a674e",
+            "detalle": "muro_fortificado"
+          },
+          ".": {
+            "tipo": "suelo",
+            "color": "#403129",
+            "detalle": "losas_militares"
+          }
+        },
+        "phaser": {
+          "grilla": {
+            "opacidadSuelo": 0.02,
+            "opacidadPared": 0.008
+          },
+          "decoracion": {
+            "densidad": 0.075,
+            "tipos": [
+              "escombros",
+              "mancha"
+            ],
+            "colorHumedad": "#55463d",
+            "colorReflejo": "#aa8d70",
+            "colorMetal": "#62564e",
+            "colorOxido": "#965b38",
+            "colorEscombro": "#927d6c",
+            "colorMancha": "#2c201b"
+          },
+          "sombras": {
+            "color": "#120b08",
+            "opacidadMuros": 0.38,
+            "opacidadEntidades": 0.42
+          },
+          "iluminacion": {
+            "colorAmbiente": "#5a3828",
+            "colorSombraAmbiente": "#1a0e0a",
+            "colorJugador": "#efbd70",
+            "intensidad": 0.14
+          },
+          "terrenos": {
+            "#": {
+              "opacidadGrilla": 0.008
+            },
+            ".": {
+              "opacidadGrilla": 0.02,
+              "decoracion": {
+                "densidad": 0.075,
+                "tipos": [
+                  "escombros",
+                  "mancha"
+                ]
+              }
+            }
+          },
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/sala_guerra/terreno_01.png",
+              "assets/imagenes/mundo/sala_guerra/terreno_02.png"
+            ]
+          },
+          "pared": {
+            "recurso": "assets/imagenes/mundo/sala_guerra/estructura_pared.png",
+            "variantes": {
+              "aislado": "assets/imagenes/mundo/sala_guerra/muros/muro_aislado.png",
+              "extremo": "assets/imagenes/mundo/sala_guerra/muros/muro_extremo.png",
+              "recto": "assets/imagenes/mundo/sala_guerra/muros/muro_recto.png",
+              "esquina": "assets/imagenes/mundo/sala_guerra/muros/muro_esquina.png",
+              "unionT": "assets/imagenes/mundo/sala_guerra/muros/muro_union_t.png",
+              "cruce": "assets/imagenes/mundo/sala_guerra/muros/muro_cruce.png",
+              "interior": "assets/imagenes/mundo/sala_guerra/muros/muro_interior.png"
+            },
+            "altura": {
+              "frentes": [
+                "assets/imagenes/mundo/sala_guerra/paredes_altura/frente_01.png",
+                "assets/imagenes/mundo/sala_guerra/paredes_altura/frente_02.png"
+              ],
+              "altoVisual": 23,
+              "solapeSuperior": 2,
+              "anchoLateral": 6,
+              "sombraProyectada": 7,
+              "opacidad": 1
+            }
+          }
+        }
       },
       "dimensiones": {
         "ancho": {

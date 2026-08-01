@@ -1,10 +1,10 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon  
-Versión del documento: 1.2
+Versión del documento: 1.3
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 31 de julio de 2026
-Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
+Última actualización: 1 de agosto de 2026
+Estado: guía visual principal, editable; decisiones P0, P2 y P5 incorporadas
 
 ---
 
@@ -1638,11 +1638,53 @@ Durante combate, interacción o selección de habilidad, el clic izquierdo sobre
 
 El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.
 
+## V-020 — Contrato visual de terrenos por símbolo
+
+Cada símbolo del mapa puede declarar un tipo visual, color, detalle y configuración Phaser propia. El compositor no asume que solamente `#` representa pared ni que todos los demás símbolos comparten un único suelo. La Ciudad Inicial conserva adoquín, césped, madera y tierra como terrenos diferenciados.
+
+`ResolutorTerrenosPhaser` combina el contrato común de `apariencia.terrenos` con los recursos y efectos opcionales de `apariencia.phaser`. Este proceso es exclusivamente visual: no decide caminabilidad, conectividad, ocupación ni movimiento.
+
+Los muros continúan clasificándose mediante vecinos cardinales, pero la pertenencia a la familia de pared se obtiene desde el tipo visual configurado. P5.2 asocia PNG específicos a cada símbolo o bioma sin cambiar este contrato.
+
+## V-021 — Familias visuales de P5.2
+
+Los seis escenarios utilizan recursos ilustrados de 128 × 128 y los muestran dentro de una casilla lógica de 32 × 32. La resolución adicional aporta piedra, grietas, humedad, musgo, tierra, madera y juntas más legibles sin agrandar el tablero.
+
+La identidad aprobada es:
+
+- **Alcantarilla:** piedra húmeda, musgo, agua y tonos verdosos;
+- **Cementerio:** tierra fría, vegetación seca y piedra apagada;
+- **Casa del Guerrero:** tablones cálidos, madera rústica y estructura resistente;
+- **Fortaleza abandonada:** losas quebradas, desgaste y mampostería en ruina;
+- **Sala de guerra:** piedra severa, trazado ordenado y detalles sobrios;
+- **Ciudad Inicial:** adoquín, césped, madera y tierra claramente diferenciados.
+
+Las variantes de muro conservan aislado, extremo, recto, esquina, unión en T, cruce e interior. Los vacíos transparentes permiten leer la forma del tramo, mientras el volumen, el borde oscuro y la luz superior separan el muro del suelo.
+
+La cuadrícula debe permanecer visible pero tenue. La decoración procedural se reduce frente a P2 porque las nuevas texturas ya contienen detalle. Ningún patrón debe impedir distinguir una casilla seleccionada, una zona temporal, una entidad o un interactuable.
+
+## V-022 — Muros con altura visual 2.5D
+
+P5.2 utiliza la lámina visual aprobada como referencia de material, tono y construcción. Los muros dejan de depender únicamente de una figura plana vista desde arriba y combinan:
+
+- superficie superior o topología de la casilla;
+- cara frontal texturada cuando el muro queda expuesto hacia el sur;
+- lateral oscuro cuando queda expuesto hacia el este;
+- borde superior más claro;
+- sombra proyectada corta y controlada.
+
+La altura es visual y moderada. No cambia la casilla ocupada, la caminabilidad, la conectividad ni la posición de entidades. Las zonas, selectores y personajes permanecen por encima de la fachada para conservar lectura táctica.
+
+Cada bioma dispone de dos frentes modulares de 128 × 96 reducidos por Phaser a una fachada aproximada de 32 × 20–23. Los frentes utilizan materiales coherentes con su escenario: piedra húmeda, mampostería funeraria, entramado de madera, ruina, piedra militar o mampostería urbana.
+
+No se busca perspectiva isométrica real ni profundidad física. El objetivo es obtener una lectura 2.5D similar a una ilustración superior en tres cuartos, sin reescribir mapas ni ocultar acciones.
+
+
 El teclado jugable y la cámara permanecen en componentes especializados. Una futura pantalla de configuración deberá modificar una única asignación central de acciones y teclas para ambos componentes, evitando configuraciones paralelas.
 
 ---
 
-# 35. REFERENCIAS IMPLEMENTADAS EN P2, P3 Y P4
+# 35. REFERENCIAS IMPLEMENTADAS EN P2, P3, P4 Y P5
 
 La referencia P2 aplica las siguientes decisiones concretas:
 
@@ -1688,6 +1730,18 @@ La referencia P4 agrega:
 - doble clic de recentrado disponible solamente fuera de la selección;
 - un único comando neutral para el selector activo;
 - teclado jugable centralizado y cámara especializada, preparados para una futura configuración común de teclas.
+
+
+La referencia P5 agrega:
+
+- resolución visual de terrenos por símbolo sin cambiar reglas canónicas;
+- familias ambientales propias para los seis escenarios existentes;
+- tiles de 128 × 128 reducidos a la casilla de 32 × 32;
+- dos o tres variaciones deterministas de suelo por bioma;
+- adoquín, césped, madera y tierra separados en la Ciudad Inicial;
+- siete topologías transparentes de muro por escenario;
+- cuadrícula y decoración más tenues frente a texturas detalladas;
+- recursos locales sin dependencia externa ni carga por CDN.
 
 ---
 

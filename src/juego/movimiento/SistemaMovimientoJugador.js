@@ -10,6 +10,7 @@ export class SistemaMovimientoJugador {
     mapa,
     jugador,
     obtenerObjetivoEn,
+    obtenerInteractuableBloqueanteEn,
     obtenerModoInteraccionActivo,
     moverSelectorInteraccion,
     obtenerModoCombateActivo,
@@ -29,6 +30,10 @@ export class SistemaMovimientoJugador {
     }
 
     this.validarFuncion(obtenerObjetivoEn, "consultar objetivos del mapa");
+    this.validarFuncion(
+      obtenerInteractuableBloqueanteEn,
+      "consultar interactuables que bloquean casillas",
+    );
     this.validarFuncion(
       obtenerModoInteraccionActivo,
       "consultar el modo interacción",
@@ -64,6 +69,7 @@ export class SistemaMovimientoJugador {
     this.mapa = mapa;
     this.jugador = jugador;
     this.obtenerObjetivoEn = obtenerObjetivoEn;
+    this.obtenerInteractuableBloqueanteEn = obtenerInteractuableBloqueanteEn;
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
     this.moverSelectorInteraccion = moverSelectorInteraccion;
     this.obtenerModoCombateActivo = obtenerModoCombateActivo;
@@ -151,6 +157,15 @@ export class SistemaMovimientoJugador {
       return crearResultadoAccion({
         exito: false,
         mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
+      });
+    }
+
+    const interactuableBloqueante =
+      this.obtenerInteractuableBloqueanteEn(nuevaX, nuevaY);
+    if (interactuableBloqueante) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: `No podés caminar sobre ${interactuableBloqueante.nombre}.`,
       });
     }
 

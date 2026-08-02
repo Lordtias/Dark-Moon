@@ -95,6 +95,8 @@ export class Juego {
       mapa: this.map,
       jugador: this.player,
       obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
+      obtenerInteractuableBloqueanteEn: (x, y) =>
+        this.obtenerInteractuableBloqueanteEn(x, y),
       obtenerModoInteraccionActivo: () => this.modoInteraccionActivo,
       moverSelectorInteraccion: (movimientoX, movimientoY) =>
         this.moverSelectorInteraccion(movimientoX, movimientoY),
@@ -174,8 +176,24 @@ export class Juego {
   }
 
   obtenerInteractuablesEn(x, y) {
-    return this.interactuables.filter(
-      (interactuable) => interactuable.x === x && interactuable.y === y,
+    return this.interactuables.filter((interactuable) =>
+      ocupaCasilla(interactuable, x, y),
+    );
+  }
+
+  // Devuelve el primer interactuable sólido que impide ocupar la casilla.
+  // Las puertas deciden dinámicamente según su estado; NPC y futuras
+  // entidades sólidas utilizan esSolida. Botín y portales siguen siendo
+  // transitables porque no declaran esa propiedad.
+  obtenerInteractuableBloqueanteEn(x, y) {
+    return (
+      this.interactuables.find((interactuable) => {
+        if (typeof interactuable?.bloqueaMovimientoEn === "function") {
+          return interactuable.bloqueaMovimientoEn(x, y) === true;
+        }
+
+        return interactuable?.esSolida === true && ocupaCasilla(interactuable, x, y);
+      }) ?? null
     );
   }
 
@@ -412,6 +430,11 @@ export class Juego {
     });
   }
 
+  alternarPuerta(interactuable) {
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return bloqueo ?? this.sistemaInteraccionJugador.alternarPuerta(interactuable);
+  }
+
   recogerObjetoInteractuable(interactuable, indiceOrigen) {
     const bloqueo = this.obtenerBloqueoAccionTemporal();
     return (
@@ -531,4 +554,16 @@ export class Juego {
     this.coordinadorTiempo.destruir({ preservarEfectosJugador });
     this.destruido = true;
   }
+}
+
+function ocupaCasilla(entidad, x, y) {
+  if (!entidad || !Number.isInteger(x) || !Number.isInteger(y)) {
+    return false;
+  }
+
+  if (typeof entidad.ocupaCasilla === "function") {
+    return entidad.ocupaCasilla(x, y) === true;
+  }
+
+  return entidad.x === x && entidad.y === y;
 }

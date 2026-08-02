@@ -5,6 +5,7 @@ import { crearConfiguracionCiudad } from "../juego/configuracion/ConfiguracionCi
 import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGeneracionBotin.js";
 
 import { generarSalidaMazmorra } from "../juego/generacion/GeneradorSalidaMapa.js";
+import { generarPuertasMapa } from "../juego/generacion/GeneradorPuertasMapa.js";
 
 import {
   evaluarAccesoMapa,
@@ -220,6 +221,21 @@ export class GestorMapasPartida {
     // para el sistema de selección.
     configuracionMapa.interactuables.unshift(salida.portal);
 
+    const puertas = generarPuertasMapa({
+      mapa: configuracionMapa.map,
+      configuracion: configuracionMapa.mapaSeleccionado.puertas ?? null,
+      entidadesOcupantes: [
+        ...configuracionMapa.objetivos,
+        ...configuracionMapa.interactuables,
+        this.estadoPartida.jugador,
+      ],
+      semilla:
+        configuracionMapa.mapaSeleccionado.generacionActual?.semilla ??
+        "puertas",
+    });
+
+    configuracionMapa.interactuables.push(...puertas);
+
     const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
 
     generacion.salida = {
@@ -235,6 +251,14 @@ export class GestorMapasPartida {
 
       casillasAbiertas: salida.casillasAbiertas.length,
     };
+
+    generacion.puertas = puertas.map((puerta) => ({
+      id: puerta.id,
+      estadoInicial: puerta.estado,
+      orientacion: puerta.orientacion,
+      direccionApertura: puerta.direccionApertura,
+      casillas: puerta.casillas.map((casilla) => ({ ...casilla })),
+    }));
 
     // El corredor puede convertir algunas paredes
     // en suelo, por eso actualizamos el porcentaje

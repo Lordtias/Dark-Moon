@@ -11,6 +11,7 @@ export const TIPOS_INTERACCION = Object.freeze({
   COMERCIAR: "comerciar",
   CURAR: "curar",
   ACTIVAR: "activar",
+  ALTERNAR_PUERTA: "alternarPuerta",
   MISION: "mision",
   TRANSICION_MAPA: "transicionMapa",
   SELECCIONAR_MAZMORRA: "seleccionarMazmorra",

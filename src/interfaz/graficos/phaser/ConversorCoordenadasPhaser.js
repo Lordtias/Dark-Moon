@@ -1,4 +1,4 @@
-import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
+import { TAMANO_CASILLA_VISUAL_PHASER } from "./ConfiguracionPhaser.js";
 
 // Centraliza la traducción entre pantalla, mundo y casillas lógicas.
 // No dibuja, no modifica el estado jugable y no emite comandos.
@@ -73,11 +73,11 @@ export class ConversorCoordenadasPhaser {
     const casilla = {
       x: Math.floor(
         (xMundo - this.geometria.origenX) /
-          TAMANO_CASILLA_REFERENCIA,
+          TAMANO_CASILLA_VISUAL_PHASER,
       ),
       y: Math.floor(
         (yMundo - this.geometria.origenY) /
-          TAMANO_CASILLA_REFERENCIA,
+          TAMANO_CASILLA_VISUAL_PHASER,
       ),
     };
 
@@ -101,10 +101,10 @@ export class ConversorCoordenadasPhaser {
     return {
       x:
         this.geometria.origenX +
-        (normalizada.x + desplazamiento) * TAMANO_CASILLA_REFERENCIA,
+        (normalizada.x + desplazamiento) * TAMANO_CASILLA_VISUAL_PHASER,
       y:
         this.geometria.origenY +
-        (normalizada.y + desplazamiento) * TAMANO_CASILLA_REFERENCIA,
+        (normalizada.y + desplazamiento) * TAMANO_CASILLA_VISUAL_PHASER,
     };
   }
 

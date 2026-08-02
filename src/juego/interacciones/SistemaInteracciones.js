@@ -109,10 +109,27 @@ export function calcularDistanciaInteraccion(origen, destino) {
 
   validarPosicionEntidad(destino);
 
-  return Math.max(
-    Math.abs(destino.x - origen.x),
+  const casillasDestino = Array.isArray(destino.casillas)
+    ? destino.casillas.filter(
+        (casilla) =>
+          Number.isInteger(casilla?.x) && Number.isInteger(casilla?.y),
+      )
+    : [];
 
-    Math.abs(destino.y - origen.y),
+  if (casillasDestino.length === 0) {
+    return Math.max(
+      Math.abs(destino.x - origen.x),
+      Math.abs(destino.y - origen.y),
+    );
+  }
+
+  return Math.min(
+    ...casillasDestino.map((casilla) =>
+      Math.max(
+        Math.abs(casilla.x - origen.x),
+        Math.abs(casilla.y - origen.y),
+      ),
+    ),
   );
 }
 

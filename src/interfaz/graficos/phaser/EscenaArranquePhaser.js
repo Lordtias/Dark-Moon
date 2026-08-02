@@ -66,7 +66,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
           strokeThickness: 1,
         })
         .setScrollFactor(0)
-        .setDepth(1000);
+        .setDepth(200000);
 
       this.actualizarTextoAyuda(this.controladorCamara.obtenerEstado());
 

@@ -59,8 +59,8 @@ export class ControladorCamaraPhaser {
     this.alPointerMove = (pointer) => this.manejarPointerMove(pointer);
     this.alPointerUp = (pointer) => this.manejarPointerUp(pointer);
     this.alPointerOut = () => this.manejarPointerOut();
-    this.alWheel = (pointer, objetos, deltaX, deltaY) =>
-      this.manejarWheel(pointer, deltaY);
+    this.alWheel = (pointer, objetos, deltaX, deltaY, deltaZ, evento) =>
+      this.manejarWheel(pointer, deltaY, evento);
     this.alContextMenu = (evento) => evento.preventDefault();
     this.alSalirCanvas = () => this.manejarPointerOut();
     this.alKeyDown = (evento) => this.manejarKeyDown(evento);
@@ -273,13 +273,19 @@ export class ControladorCamaraPhaser {
     this.compositor.establecerCasillaPuntero(null);
   }
 
-  manejarWheel(pointer, deltaY) {
+  manejarWheel(pointer, deltaY, eventoNativo = null) {
     if (!Number.isFinite(deltaY) || deltaY === 0) return;
 
     const direccion = deltaY > 0 ? -1 : 1;
     this.cambiarZoom(direccion, {
       puntoPantalla: { x: pointer.x, y: pointer.y },
     });
+
+    // Phaser puede entregar el WheelEvent como último argumento. En algunas
+    // versiones el evento también queda asociado al puntero. Se contemplan
+    // ambos caminos para impedir que la página se desplace mientras se usa el
+    // zoom sobre el canvas.
+    eventoNativo?.preventDefault?.();
     pointer.event?.preventDefault?.();
   }
 
@@ -544,11 +550,24 @@ export class ControladorCamaraPhaser {
 }
 
 function obtenerDireccionZoomTeclado(evento) {
-  if (evento.key === "+" || evento.code === "NumpadAdd") {
+  const tecla = String(evento.key ?? "");
+  const codigo = String(evento.code ?? "");
+
+  if (
+    tecla === "+" ||
+    tecla === "Add" ||
+    codigo === "NumpadAdd"
+  ) {
     return 1;
   }
 
-  if (evento.key === "-" || evento.code === "NumpadSubtract") {
+  if (
+    tecla === "-" ||
+    tecla === "_" ||
+    tecla === "Subtract" ||
+    codigo === "Minus" ||
+    codigo === "NumpadSubtract"
+  ) {
     return -1;
   }
 
@@ -565,7 +584,10 @@ function esElementoEditable(elemento) {
 }
 
 function redondearZoom(valor) {
-  return Math.round(valor * 10) / 10;
+  // El paso configurado es 0,05. Redondear a un solo decimal hacía que, por
+  // ejemplo, 0,80 - 0,05 volviera a 0,80 y anulaba el zoom hacia afuera.
+  // Dos decimales preservan cada paso configurado sin acumular ruido binario.
+  return Math.round((valor + Number.EPSILON) * 100) / 100;
 }
 
 function limitar(valor, minimo, maximo) {

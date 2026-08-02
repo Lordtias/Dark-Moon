@@ -102,6 +102,11 @@ export class NPC extends Entidad {
 
     this.recursoVisual = recursoVisual === null ? null : recursoVisual.trim();
 
+    // Los NPC ocupan su casilla y bloquean el movimiento. Esta propiedad es
+    // consultada por el sistema canónico de movimiento; no depende del sprite
+    // ni del backend gráfico utilizado.
+    this.esSolida = true;
+
     // Las interacciones se normalizan y congelan
     // para que la configuración externa no pueda
     // modificarlas después de crear el NPC.

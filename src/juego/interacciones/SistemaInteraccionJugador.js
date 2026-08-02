@@ -458,6 +458,111 @@ export class SistemaInteraccionJugador {
     });
   }
 
+  // Abre o cierra una puerta arquitectónica. La acción reutiliza el
+  // factorTiempo y factorAccion del jugador mediante el coordinador temporal.
+  alternarPuerta(interactuable) {
+    const bloqueo = this.obtenerBloqueoInteraccion();
+
+    if (bloqueo) {
+      return bloqueo;
+    }
+
+    if (!this.interactuables.includes(interactuable)) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "Esa puerta ya no está disponible.",
+      });
+    }
+
+    if (
+      interactuable?.esPuertaArquitectonica !== true ||
+      typeof interactuable.alternar !== "function" ||
+      !Array.isArray(interactuable.casillas)
+    ) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "La entidad seleccionada no es una puerta válida.",
+      });
+    }
+
+    const disponible = this.obtenerInteraccionesDisponibles().some(
+      (interaccion) =>
+        interaccion.entidad === interactuable &&
+        interaccion.tipo === TIPOS_INTERACCION.ALTERNAR_PUERTA,
+    );
+
+    if (!disponible) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "Acercate a la puerta para manipularla.",
+      });
+    }
+
+    const contexto = this.crearContextoInteraccion();
+    const juego = contexto.juego;
+
+    if (!juego || !Array.isArray(juego.map)) {
+      throw new Error(
+        "La interacción con puertas necesita el mapa activo dentro del contexto.",
+      );
+    }
+
+    if (interactuable.estaAbierta && this.puertaTieneCasillasOcupadas({
+      puerta: interactuable,
+      juego,
+    })) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "No podés cerrar la puerta mientras el paso está ocupado.",
+        redibujar: false,
+      });
+    }
+
+    const estabaCerrada = interactuable.estaCerrada === true;
+    const cambio = interactuable.alternar({ mapa: juego.map });
+
+    if (!cambio) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: "La puerta ya se encuentra en ese estado.",
+      });
+    }
+
+    if (this.selector.entidad === interactuable) {
+      this.limpiarSelector();
+    }
+
+    const resultado = crearResultadoAccion({
+      exito: true,
+      mensaje: estabaCerrada
+        ? `Abriste ${interactuable.nombre}.`
+        : `Cerraste ${interactuable.nombre}.`,
+      redibujar: true,
+    });
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+      costoBase: interactuable.costoAccion,
+    });
+  }
+
+  puertaTieneCasillasOcupadas({ puerta, juego }) {
+    const ocupantes = [
+      juego.player,
+      ...(juego.objetivos ?? []).filter(
+        (objetivo) => objetivo?.estaDestruido !== true,
+      ),
+      ...(juego.interactuables ?? []).filter(
+        (interactuable) => interactuable !== puerta,
+      ),
+    ].filter(Boolean);
+
+    return puerta.casillas.some((casilla) =>
+      ocupantes.some((ocupante) => ocupaCasilla(ocupante, casilla.x, casilla.y)),
+    );
+  }
+
   // Valida que la entidad siga existiendo,
   // contenga objetos y esté al alcance del jugador.
   validarInteraccionContenedor(interactuable) {
@@ -572,4 +677,12 @@ export class SistemaInteraccionJugador {
 
     return contexto;
   }
+}
+
+function ocupaCasilla(entidad, x, y) {
+  if (typeof entidad?.ocupaCasilla === "function") {
+    return entidad.ocupaCasilla(x, y);
+  }
+
+  return entidad?.x === x && entidad?.y === y;
 }

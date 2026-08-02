@@ -1,18 +1,32 @@
 export const ANCHO_REFERENCIA_PHASER = 1024;
 export const ALTO_REFERENCIA_PHASER = 640;
-export const TAMANO_CASILLA_REFERENCIA = 32;
+
+// La lógica de Dark Moon trabaja con coordenadas enteras de casilla. Esta
+// constante define únicamente la separación visual utilizada por Phaser.
+// Puede cambiar sin alterar movimiento, combate, IA ni ocupación canónica.
+export const TAMANO_CASILLA_VISUAL_PHASER = 64;
+
+export const PROFUNDIDAD_MUNDO_BASE_PHASER = 1000;
+export const PROFUNDIDAD_SELECCION_PHASER = 100000;
+export const PROFUNDIDAD_ILUMINACION_PHASER = 110000;
+
+export function calcularProfundidadMundoPhaser(baseY, desplazamiento = 0) {
+  const base = Number.isFinite(baseY) ? baseY : 0;
+  const ajuste = Number.isFinite(desplazamiento) ? desplazamiento : 0;
+  return PROFUNDIDAD_MUNDO_BASE_PHASER + base + ajuste;
+}
 
 export const CONFIGURACION_CAMARA_PHASER = Object.freeze({
-  zoomInicial: 1.2,
-  zoomMinimo: 0.8,
-  zoomMaximo: 1.6,
-  pasoZoom: 0.1,
+  zoomInicial: 0.85,
+  zoomMinimo: 0.5,
+  zoomMaximo: 1.5,
+  pasoZoom: 0.05,
   velocidadTecladoPixelesVisiblesSegundo: 420,
   retardoDobleClicMs: 320,
 });
 
 // La resolución es una referencia visual. No limita el tamaño real de los
-// mapas: la cámara recorre un mundo que conserva casillas lógicas de 32 × 32.
+// mapas ni establece la resolución de los PNG del personaje o equipamiento.
 export function crearConfiguracionPhaser({
   Phaser,
   host,

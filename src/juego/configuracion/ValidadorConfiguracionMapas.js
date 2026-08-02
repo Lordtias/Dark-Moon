@@ -86,6 +86,8 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarGeneracion(idPlantilla, plantilla.generacion);
 
+  validarPuertas(idPlantilla, plantilla.puertas);
+
   const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
 
   const idsEspeciales = validarEncuentroEspecial({
@@ -192,6 +194,50 @@ function validarGeneracion(idPlantilla, generacion) {
     1,
     `los intentos máximos de "${idPlantilla}"`,
   );
+}
+
+function validarPuertas(idPlantilla, puertas) {
+  if (puertas === undefined || puertas === null) {
+    return;
+  }
+
+  validarObjeto(puertas, `las puertas de "${idPlantilla}"`);
+  validarEnteroMinimo(
+    puertas.cantidad,
+    0,
+    `la cantidad de puertas de "${idPlantilla}"`,
+  );
+
+  if (
+    puertas.estadoInicial !== undefined &&
+    !["abierta", "cerrada"].includes(puertas.estadoInicial)
+  ) {
+    throw new Error(
+      `El estado inicial de las puertas de "${idPlantilla}" ` +
+        'debe ser "abierta" o "cerrada".',
+    );
+  }
+
+  if (puertas.costoAccion !== undefined) {
+    validarNumeroMayorQueCero(
+      puertas.costoAccion,
+      `el costo de acción de las puertas de "${idPlantilla}"`,
+    );
+  }
+
+  if (puertas.prefijoId !== undefined) {
+    validarTexto(
+      puertas.prefijoId,
+      `el prefijo de las puertas de "${idPlantilla}"`,
+    );
+  }
+
+  if (puertas.nombre !== undefined) {
+    validarTexto(
+      puertas.nombre,
+      `el nombre de las puertas de "${idPlantilla}"`,
+    );
+  }
 }
 
 function validarEnemigos(idPlantilla, enemigos) {

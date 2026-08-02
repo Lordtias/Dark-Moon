@@ -274,5 +274,13 @@ function crearEntidadVisual(entidad, tipo) {
       vidaActual < vidaMaxima,
 
     recursoVisual: entidad.recursoVisual ?? null,
+
+    // Los interactuables arquitectónicos exponen un contrato plano para que
+    // Phaser pueda integrarlos con paredes, fachadas y profundidad sin recibir
+    // la entidad de dominio ni decidir reglas jugables.
+    arquitectura:
+      typeof entidad.obtenerEstadoVisual === "function"
+        ? entidad.obtenerEstadoVisual()
+        : null,
   };
 }

@@ -3,10 +3,10 @@
 Proyecto: Dark Moon  
 Repositorio: https://github.com/Lordtias/Dark-Moon.git  
 Rama principal: main  
-Versión del documento: 1.7
+Versión del documento: 1.8
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 31 de julio de 2026
-Etapa operativa actual: P4 — Entrada e intenciones jugables desde Phaser
+Última actualización: 1 de agosto de 2026
+Etapa operativa actual: P5.R1 — Base visual reconstruida y puertas interactuables
 
 ---
 
@@ -1504,19 +1504,90 @@ El Documento Maestro no mantendrá una tabla histórica de estados ni identifica
 
 ---
 
+## Decisión D-029
+
+Fecha: 1 de agosto de 2026
+
+Estado: vigente
+
+P5 se reconstruye desde el cierre de P4. La implementación anterior queda preservada en la rama `respaldo-p5-2r`. La nueva base mantiene una sola grilla lógica, desacopla su tamaño visual y prueba 64 píxeles por casilla exclusivamente en Phaser.
+
+## Decisión D-030
+
+Fecha: 1 de agosto de 2026
+
+Estado: vigente
+
+La representación arquitectónica se deriva de la matriz canónica y puede agrupar varias casillas en regiones de suelo, tramos de pared y fachadas. Las fachadas pueden superponerse visualmente a entidades, mientras selectores y alcances permanecen por encima. No existe una segunda grilla jugable.
+
+## Decisión D-031
+
+Fecha: 1 de agosto de 2026
+
+Estado: vigente
+
+Las puertas son interactuables canónicos. Abrir o cerrar modifica la matriz, utiliza el tipo temporal `ACCION` y aplica `factorTiempo` y `factorAccion`. Una puerta no puede cerrarse si el paso está ocupado. Las puertas horizontales abren al norte o sur; las verticales al este u oeste. El contrato multicelda prepara portones futuros.
+
+---
+
 # 17. Etapa operativa actual
 
-## P4 — Entrada e intenciones jugables desde Phaser
+## P5.R1 — Base visual reconstruida y puertas interactuables
 
-Estado: **En validación manual**.
+Estado: **Implementada y pendiente de validación manual**.
 
-La implementación permite seleccionar casillas con clic en combate, interacción y habilidades, conserva la confirmación mediante `F` o `R`, evita la doble captura DOM/Phaser y mantiene Canvas 2D sin cambios de reglas.
+La etapa parte de P4 y agrega escala visual Phaser configurable, primer corte a 64 × 64, composición arquitectónica por regiones y tramos, oclusión de fachadas y una puerta interactuable generada en Alcantarilla.
 
 Próxima acción:
 
-1. realizar la validación manual indicada en `docs/phaser/entregas/ENTREGA_P4.md`;
-2. corregir cualquier incidencia real encontrada;
-3. marcar P4 como cerrada solamente después de esa aprobación;
-4. transmitir el SHA final mediante el prompt de la siguiente etapa, sin editar este documento para agregarlo.
+1. realizar las pruebas de `docs/phaser/entregas/ENTREGA_P5_R1.md`;
+2. ajustar escala, cámara, proporciones y oclusión según el resultado visual;
+3. validar apertura, cierre, coste temporal y bloqueo por ocupación;
+4. validar regresión Canvas 2D;
+5. publicar solamente después de la aprobación explícita.
 
-E0 continúa pausada y no se considera completada.
+## Corrección P5.R1A — Profundidad por línea de apoyo y puerta integrada
+
+Fecha: 2 de agosto de 2026
+
+Estado: implementada; pendiente de validación manual.
+
+La primera versión de P5.R1 no producía una oclusión real porque paredes y entidades se encontraban en contenedores de profundidad fija. P5.R1A reemplaza ese modelo por una profundidad calculada desde la línea inferior de apoyo de cada fachada, puerta y entidad.
+
+El resultado esperado es:
+
+- una pared situada al norte del personaje queda detrás de su cuerpo;
+- una pared situada al sur puede ocultar sus pies o parte inferior;
+- el orden cambia automáticamente al desplazarse;
+- selección, alcance e indicadores permanecen por encima para conservar lectura táctica.
+
+Las puertas dejan de comprimirse como barras al abrirse. Se incorporan seis poses de 128 × 128: dos cerradas y cuatro abiertas. La hoja abierta se representa completa y se apoya visualmente sobre la pared correspondiente.
+
+## Corrección P5.R1B — Profundidad compartida, esquinas y apertura animada
+
+Fecha: 2 de agosto de 2026
+
+Estado: implementada; pendiente de validación manual.
+
+P5.R1B reemplaza el ajuste parcial de P5.R1A. Los elementos que pueden ocultarse entre sí dejan de depender de contenedores de profundidad fija y comparten una única regla basada en su línea de apoyo visible.
+
+El analizador arquitectónico incorpora laterales este y oeste y las cuatro orientaciones de esquina. La fachada sur utiliza inicialmente 18 píxeles de solapamiento visual. Personajes y destructibles conservan proporción y una altura suficiente para superponerse entre filas vecinas.
+
+Las puertas utilizan cinco cuadros por transición, un marco fijo y una hoja anclada a bisagra. `ladoBisagra` forma parte del contrato canónico. La animación no altera caminabilidad, coste temporal ni validaciones de ocupación.
+
+Próxima acción: ejecutar las pruebas manuales de `docs/phaser/entregas/ENTREGA_P5_R1B.md` antes de realizar commit o publicar la reconstrucción de P5.
+
+
+## Corrección P5.R1C — Puerta abierta sin hoja, oclusión media y solidez de NPC
+
+Fecha: 2 de agosto de 2026
+
+Estado: implementada; pendiente de validación manual.
+
+P5.R1C sustituye la apertura animada de P5.R1B por una regla visual simple: una puerta cerrada muestra marco y hoja; una puerta abierta conserva únicamente el marco. Los cuadros de animación dejan de cargarse y no forman parte del estado vigente.
+
+La fachada sur aumenta su altura hasta 132 píxeles sin modificar el solape de base. En una fila inmediatamente delante de un personaje de 94 píxeles, esto produce aproximadamente 48 píxeles de cobertura, equivalente a media entidad.
+
+La ocupación de interactuables se incorpora al movimiento canónico. Los NPC son sólidos; las puertas consultan su estado; botín y portales permanecen transitables. La regla es compartida por cualquier backend gráfico.
+
+Próxima acción: ejecutar las pruebas manuales de `docs/phaser/entregas/ENTREGA_P5_R1C.md` antes de realizar commit o publicar la reconstrucción de P5.

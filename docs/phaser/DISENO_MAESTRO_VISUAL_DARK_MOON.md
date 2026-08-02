@@ -1,10 +1,10 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon  
-Versión del documento: 1.2
+Versión del documento: 1.3
 Fecha inicial: 30 de julio de 2026  
-Última actualización: 31 de julio de 2026
-Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
+Última actualización: 1 de agosto de 2026
+Estado: guía visual principal, editable; decisiones P0, P2 y reconstrucción P5.R1 incorporadas
 
 ---
 
@@ -1709,3 +1709,82 @@ La meta es:
 Toda decisión visual futura debe responder primero:
 
 > ¿Mejora la comprensión, la atmósfera o la satisfacción del jugador sin romper la lectura táctica?
+
+
+---
+
+# 37. REFERENCIA P5.R1 — ESCALA Y ARQUITECTURA
+
+## V-020 — Grilla lógica y escala visual
+
+Dark Moon conserva una única grilla canónica. Phaser utiliza inicialmente 64 píxeles por casilla, pero este valor no limita la resolución de personajes, equipamiento ni recursos. Los sprites se alinean mediante una base común en los pies y pueden desbordar su casilla.
+
+## V-021 — Composición de varias casillas
+
+Los pisos pueden representarse como superficies mayores y las paredes como tramos continuos. La huella visual no agrega ocupación jugable. Las fachadas pueden ocultar parcial o totalmente una entidad cuando sus píxeles se superponen, pero los selectores tácticos permanecen visibles por encima.
+
+## V-022 — Puertas arquitectónicas
+
+El marco pertenece a la arquitectura. La hoja móvil pertenece al interactuable canónico. Una puerta horizontal dispone de aperturas norte y sur; una vertical, este y oeste. La dirección determina anclaje, desbordamiento y profundidad.
+
+El estado visual nunca decide caminabilidad. Phaser representa el estado entregado por la lógica.
+
+# 38. CORRECCIÓN P5.R1A — PROFUNDIDAD Y PUERTAS
+
+## V-023 — Profundidad por línea inferior
+
+Paredes altas, hojas de puerta, personajes, enemigos y props altos comparten un criterio de profundidad basado en la coordenada vertical de su base. No se utilizan capas globales que obliguen a que todas las fachadas estén siempre delante o siempre detrás.
+
+Una entidad situada al sur de una pared se dibuja delante de ella. Una pared situada al sur de una entidad puede cubrir su parte inferior. La huella lógica no cambia.
+
+## V-024 — Hoja completa de puerta
+
+Una puerta abierta no se representa comprimiendo su hoja hasta convertirla en una línea. Las seis poses visuales conservan un panel completo:
+
+- cerrada horizontal;
+- cerrada vertical;
+- abierta norte;
+- abierta sur;
+- abierta este;
+- abierta oeste.
+
+Las poses este y oeste colocan la hoja vertical sobre el tramo de pared lateral. Las poses norte y sur la colocan sobre el tramo horizontal correspondiente. El marco permanece integrado en la arquitectura.
+
+# 39. CORRECCIÓN P5.R1B — ORDEN VISUAL Y BISAGRAS
+
+## V-025 — Lista de profundidad compartida
+
+Todo elemento que pueda cubrir o ser cubierto por otro utiliza su línea de apoyo sobre el suelo. Esto incluye fachadas, laterales, esquinas, puertas, personajes, enemigos y props altos. Los contenedores de fondo no participan de este orden.
+
+La categoría del objeto no determina si queda delante. Dos entidades cambian su relación visual al cambiar la posición vertical de sus bases.
+
+## V-026 — Solapamiento arquitectónico inicial
+
+La fachada sur se extiende inicialmente 18 píxeles sobre el suelo de una casilla visual de 64. Es una invasión exclusivamente gráfica: no agrega bloqueo, alcance ni ocupación.
+
+Las esquinas noroeste, noreste, suroeste y sureste tienen remates y líneas de apoyo independientes. Los laterales oeste y este también pueden participar en la oclusión.
+
+## V-027 — Apertura dibujada por cuadros
+
+La hoja de puerta utiliza una transición de cinco cuadros dibujados. No se resuelve mediante una simple compresión ni mediante la rotación automática de un rectángulo.
+
+El marco permanece fijo. La hoja conserva una bisagra y termina como un panel completo en las aperturas norte, sur, este y oeste. El contrato admite `ladoBisagra: inicio | fin`; las combinaciones laterales utilizan la variante que mantiene legible la hoja completa.
+
+
+# 40. CORRECCIÓN P5.R1C — APERTURA SIMPLE Y OCLUSIÓN MEDIA
+
+## V-028 — Puerta abierta sin hoja
+
+La puerta arquitectónica utiliza una representación deliberadamente simple y estable. Cerrada muestra marco y hoja; abierta conserva el marco y elimina visualmente la hoja. La desaparición de la hoja no decide caminabilidad: representa el estado que ya resolvió la entidad canónica.
+
+Las animaciones y poses de apertura de P5.R1B quedan como intento histórico y no forman parte de la dirección vigente.
+
+## V-029 — Cobertura de paredes delanteras
+
+Con una casilla visual de 64 píxeles y personajes de aproximadamente 94 píxeles, la fachada delantera debe poder cubrir cerca de la mitad inferior de una entidad situada inmediatamente detrás. La altura inicial de fachada es 132 píxeles y su línea de apoyo continúa ordenándose con las entidades por posición vertical.
+
+La huella lógica de la pared continúa siendo una única casilla. La altura y la cobertura son exclusivamente visuales.
+
+## V-030 — Solidez independiente de la imagen
+
+La posibilidad de ocupar una casilla no se deduce del PNG ni de su tamaño. NPC y futuras entidades sólidas lo declaran en el dominio. Botín y portales pueden seguir compartiendo casilla con el jugador; puertas abiertas dejan pasar y puertas cerradas bloquean.

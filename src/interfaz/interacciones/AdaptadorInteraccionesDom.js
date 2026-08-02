@@ -34,7 +34,8 @@ export class AdaptadorInteraccionesDom {
     if (
       !juego ||
       typeof juego.recogerObjetoInteractuable !== "function" ||
-      typeof juego.recogerTodoInteractuable !== "function"
+      typeof juego.recogerTodoInteractuable !== "function" ||
+      typeof juego.alternarPuerta !== "function"
     ) {
       throw new Error(
         "AdaptadorInteraccionesDom necesita una partida válida.",
@@ -137,6 +138,9 @@ export class AdaptadorInteraccionesDom {
       case TIPOS_INTERACCION.CURAR:
         return this.abrirCuracion(interaccion);
 
+      case TIPOS_INTERACCION.ALTERNAR_PUERTA:
+        return this.alternarPuerta(interaccion);
+
       case TIPOS_INTERACCION.SELECCIONAR_MAZMORRA:
         return this.abrirSeleccionMazmorra();
 
@@ -179,6 +183,12 @@ export class AdaptadorInteraccionesDom {
         this.actualizarModalDespuesAccion(interactuable);
       },
     });
+  }
+
+  alternarPuerta(interaccion) {
+    const puerta = interaccion.entidad;
+    const resultado = this.juego.alternarPuerta(puerta);
+    return this.procesarResultado(resultado);
   }
 
   solicitarComercio(interaccion) {

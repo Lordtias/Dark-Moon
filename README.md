@@ -1572,9 +1572,9 @@ El modo `?render=phaser` utiliza actualmente:
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
 
-Los PNG cenitales definitivos de jugador, enemigos, barril y botín todavía deben reemplazarse o incorporarse por sus rutas existentes. P5.2 prepara únicamente el comportamiento técnico; no crea assets ni agrega `aparienciaVisual` al dominio.
+P5.2 dejó preparado el soporte técnico global de entidades sin agregar `aparienciaVisual` al dominio. P5.3 amplió el mismo enfoque al resto del mundo: Phaser resuelve suelos por símbolo de casilla, la ciudad distingue adoquín, césped, madera y tierra, y cada bioma dispone de su propia familia de pisos, masas de pared, bordes, esquinas internas y sombras de contacto.
 
-P5.3 amplía el mismo enfoque al resto del mundo: Phaser ahora puede resolver suelos por símbolo de casilla, por lo que la ciudad soporta adoquín, césped, madera y tierra dentro del mismo mapa, y cada bioma dispone de su propia familia de pisos, masas de pared, bordes, esquinas internas y sombras de contacto. Los PNG cenitales definitivos de entidades quedarán para el commit posterior `P5.3Especial` y su validación integral corresponderá a P5.4.
+P5.4 cierra técnicamente la etapa P5. Los PNG activos de Guerrero, Rogue y Mago fueron auditados en dimensiones, transparencia, centro visible, escala, sombra y lectura sobre todos los biomas. El resto de enemigos, destructibles, botín, portales y NPC continúa como arte provisional, pero todas sus rutas existen y el contrato gráfico ya permite reemplazarlos sin modificar `Player`, `Enemigo`, fábricas, combate o persistencia. La sustitución artística pendiente no bloquea P6.
 
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
 

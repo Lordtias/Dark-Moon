@@ -868,12 +868,17 @@ P5.2 prepara el contrato técnico para recibir los assets cenitales definitivos.
 - validar terreno, transiciones, cámara, selección, guardado y regresión Canvas 2D;
 - dejar los PNG cenitales definitivos de entidades para el commit posterior `P5.3Especial`.
 
-#### P5.4 — Validación integral y cierre de P5
+#### P5.4 — Validación integral y cierre técnico de P5
 
-- integrar y revisar los PNG cenitales definitivos de jugador, enemigos, barril, botín y NPC;
-- comprobar centrado, tamaño, transparencia y lectura táctica de todos los recursos;
-- validar ciudad, mapas normales, mapas especiales, jefe, props, transiciones, cámara, combate, habilidades, guardado y regresión Canvas 2D;
-- cerrar P5 completa sin cambiar resultados canónicos.
+Estado: **completada técnicamente**.
+
+- auditar los PNG cenitales definitivos de Guerrero, Rogue y Mago incorporados en `P5.3Especial`;
+- comprobar dimensiones, transparencia, centro visible, tamaño, sombra y lectura táctica de los tres jugadores;
+- verificar que todas las rutas activas de entidades existan y separar claramente arte definitivo de arte provisional;
+- validar mediante pruebas estáticas y composición simulada ciudad, mapas normales, mapas especiales, terrenos, entidades, selección y regresión Canvas 2D;
+- cerrar P5 sin cambiar resultados canónicos y sin introducir propiedades visuales en el dominio.
+
+Los enemigos, destructibles, botín, portales y NPC conservan temporalmente sus PNG anteriores. Esta deuda es artística y no arquitectónica: pueden reemplazarse por las mismas rutas sin modificar la lógica del juego ni el contrato Phaser.
 
 ### No incluye
 
@@ -898,7 +903,7 @@ Todos los mapas existentes cuentan con configuración ambiental Phaser, la ciuda
 
 ### Criterio de cierre de P5 completa
 
-Todos los mapas existentes pueden jugarse con Phaser sin cambiar sus resultados y con los PNG cenitales definitivos de entidades ya validados.
+Todos los mapas existentes disponen de representación ambiental Phaser sin cambiar sus resultados canónicos; el renderizador centra, escala y sombrea cualquier entidad mediante `recursoVisual`; los tres jugadores definitivos están validados; y los recursos provisionales restantes quedan identificados para sustitución directa sin deuda arquitectónica. Con este criterio P5 queda cerrada técnicamente y el proyecto puede avanzar a P6.
 
 ---
 

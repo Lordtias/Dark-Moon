@@ -1720,4 +1720,10 @@ Cada bioma debe disponer de una familia coherente de recursos ambientales: varia
 
 ## V-022 — Secuencia de cierre visual de P5
 
-P5.3 cubre únicamente el mundo ambiental y la expansión de biomas. Los PNG cenitales definitivos de jugador, enemigos, barril, botín y NPC pueden incorporarse en un commit posterior (`P5.3Especial`) sin volver a tocar el dominio. P5.4 será la validación integral del corte visual de todo P5: terrenos, entidades, props, transiciones, cámara, combate, habilidades y regresión Canvas 2D.
+P5.3 cubre el mundo ambiental y la expansión de biomas. `P5.3Especial` incorpora los PNG activos de Guerrero, Rogue y Mago sin cambiar sus rutas. P5.4 valida esos tres recursos y cierra técnicamente el corte visual de P5: terrenos por símbolo, autotiling, presentación global de entidades, selección y regresión Canvas 2D.
+
+## V-023 — Cierre técnico con deuda artística explícita
+
+Una etapa visual puede cerrarse técnicamente aunque parte del arte siga siendo provisional, siempre que la sustitución futura no requiera cambiar dominio, reglas o contratos. En P5 los jugadores son los recursos definitivos auditados. Enemigos, barril, botín, portales, puerta y NPC conservan temporalmente sus PNG anteriores.
+
+La condición para reemplazar esos recursos es mantener las rutas activas o actualizar exclusivamente la configuración que contiene `recursoVisual`. Phaser continuará calculando límites alfa, centro visible, escala y sombra de forma general. No deben agregarse excepciones por nombre de entidad para compensar un PNG mal compuesto.

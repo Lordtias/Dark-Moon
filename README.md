@@ -1556,16 +1556,23 @@ El teclado jugable permanece centralizado en `ControladorTeclado`. Phaser conser
 
 El modo `?render=phaser` utiliza actualmente:
 
-- `GestorRecursosPhaser` para cargar imágenes locales declaradas en configuración;
+- `GestorRecursosPhaser` para cargar imágenes locales y calcular los límites alfa, la base y el centro visible de cada PNG;
+- `ConfiguracionEntidadesPhaser` como única fuente de presentación cenital de entidades dentro de Phaser;
 - `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades e iluminación;
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
 - `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
-- recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`;
-- clasificación configurable de muros aislados, extremos, rectos, esquinas, uniones, cruces e interiores mediante vecinos cardinales;
+- recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`, incluida la familia cenital de `cenital/`;
+- `AnalizadorVecindadTerreno` y `ResolutorAutotilingParedes` como contrato genérico de ocho vecinos para muros y suelos;
+- paredes representadas como una masa continua, con bordes expuestos y esquinas interiores definidos por la configuración del bioma;
+- sombra de contacto opcional sobre las casillas de piso contiguas a una pared;
+- entidades centradas por el centro visible de su PNG, conservando relación de aspecto dentro de una casilla de 32 × 32;
+- sombras de entidades centradas y calculadas desde el contenido visible, sin propiedades visuales en `Player`, `Enemigo`, `Barril` o `BotinSuelo`;
 - interactuables integrados al mapa sin un aura permanente;
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
+
+Los PNG cenitales definitivos de jugador, enemigos, barril y botín todavía deben reemplazarse o incorporarse por sus rutas existentes. P5.2 prepara únicamente el comportamiento técnico; no crea assets ni agrega `aparienciaVisual` al dominio.
 
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
 

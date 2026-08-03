@@ -7,46 +7,22 @@ import {
   ANCHO_REFERENCIA_PHASER,
   TAMANO_CASILLA_REFERENCIA,
 } from "./ConfiguracionPhaser.js";
+import {
+  normalizarConfiguracionAutotilingPared,
+  obtenerRutasRecursosPared,
+  resolverCasillaParedAutotiling,
+  resolverCasillaSueloAutotiling,
+} from "../mapas/ResolutorAutotilingParedes.js";
+import {
+  calcularPresentacionEntidadPhaser,
+  CONFIGURACION_ENTIDADES_PHASER,
+  obtenerEstiloRespaldoEntidadPhaser,
+} from "./ConfiguracionEntidadesPhaser.js";
 
 const COLOR_FONDO_MUNDO = 0x0b120f;
 const COLOR_SELECTOR_VALIDO = 0xffe66d;
 const COLOR_SELECTOR_INVALIDO = 0xff705c;
 const OPACIDAD_REJILLA_RESPALDO = 0.2;
-
-const ESTILOS_ENTIDAD = Object.freeze({
-  [TIPOS_ENTIDAD_VISUAL.JUGADOR]: {
-    fondo: 0x342e0f,
-    borde: 0xd6bd45,
-    texto: "#ffe66d",
-    tamano: 44,
-    sombraAncho: 26,
-    sombraAlto: 10,
-  },
-  [TIPOS_ENTIDAD_VISUAL.ENEMIGO]: {
-    fondo: 0x371015,
-    borde: 0xbd4b55,
-    texto: "#ffb0b0",
-    tamano: 42,
-    sombraAncho: 24,
-    sombraAlto: 9,
-  },
-  [TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE]: {
-    fondo: 0x342211,
-    borde: 0xa97942,
-    texto: "#e2b276",
-    tamano: 38,
-    sombraAncho: 24,
-    sombraAlto: 9,
-  },
-  [TIPOS_ENTIDAD_VISUAL.INTERACTUABLE]: {
-    fondo: 0x12303d,
-    borde: 0x68b7d3,
-    texto: "#c8f1ff",
-    tamano: 42,
-    sombraAncho: 28,
-    sombraAlto: 10,
-  },
-});
 
 const TIPOS_DECORACION = Object.freeze({
   CHARCO: 0,
@@ -135,13 +111,12 @@ export class CompositorMundoPhaser {
 
   precargarRecursos(escenaDarkMoon) {
     const aparienciaPhaser = escenaDarkMoon.mapa.apariencia?.phaser ?? {};
-    const configuracionPared = normalizarConfiguracionPared(
+    const configuracionPared = normalizarConfiguracionAutotilingPared(
       aparienciaPhaser.pared,
     );
     const rutas = [
       ...(aparienciaPhaser.suelo?.recursos ?? []),
-      configuracionPared.recurso,
-      ...Object.values(configuracionPared.variantes),
+      ...obtenerRutasRecursosPared(configuracionPared),
       ...(escenaDarkMoon.entidades ?? []).map(
         (entidad) => entidad.recursoVisual,
       ),
@@ -161,7 +136,7 @@ export class CompositorMundoPhaser {
     const rutasSuelo = normalizarListaRutas(
       aparienciaPhaser.suelo?.recursos,
     );
-    const configuracionPared = normalizarConfiguracionPared(
+    const configuracionPared = normalizarConfiguracionAutotilingPared(
       aparienciaPhaser.pared,
     );
     const colorSuelo = convertirColor(apariencia.colorSuelo, 0x26372f);
@@ -169,9 +144,6 @@ export class CompositorMundoPhaser {
     const colorGrilla = convertirColor(apariencia.colorGrilla, 0x17231d);
     const configuracionDecoracion = normalizarConfiguracionDecoracion(
       aparienciaPhaser.decoracion,
-    );
-    const configuracionSombras = normalizarConfiguracionSombras(
-      aparienciaPhaser.sombras,
     );
     const configuracionGrilla = normalizarConfiguracionGrilla(
       aparienciaPhaser.grilla,
@@ -181,9 +153,11 @@ export class CompositorMundoPhaser {
 
     const respaldos = this.escena.add.graphics();
     const grilla = this.escena.add.graphics();
-    const volumenMuros = this.escena.add.graphics();
     const decoracion = this.escena.add.graphics();
-    const sombrasMuros = this.escena.add.graphics();
+    const sombrasContacto = this.escena.add.graphics();
+    const detallesMuros = this.escena.add.graphics();
+    const imagenesSombrasContacto = [];
+    const imagenesBordesMuros = [];
 
     for (let y = 0; y < this.geometria.filas; y++) {
       for (let x = 0; x < this.geometria.columnas; x++) {
@@ -192,9 +166,16 @@ export class CompositorMundoPhaser {
           this.geometria.origenX + x * TAMANO_CASILLA_REFERENCIA;
         const pixelY =
           this.geometria.origenY + y * TAMANO_CASILLA_REFERENCIA;
-        const varianteMuro = esPared ? clasificarMuro(mapa, x, y) : null;
+        const resolucionPared = esPared
+          ? resolverCasillaParedAutotiling({
+              mapa,
+              x,
+              y,
+              configuracion: configuracionPared,
+            })
+          : null;
         const ruta = esPared
-          ? obtenerRutaMuro(configuracionPared, varianteMuro.tipo)
+          ? resolucionPared.recursoBase
           : elegirRutaDeterminista(rutasSuelo, x, y);
         const claveTextura = esPared
           ? this.gestorRecursos.obtener(ruta) ??
@@ -211,8 +192,8 @@ export class CompositorMundoPhaser {
             TAMANO_CASILLA_REFERENCIA,
             TAMANO_CASILLA_REFERENCIA,
           );
-          if (esPared) {
-            imagen.setAngle(varianteMuro.angulo);
+          if (esPared && resolucionPared.anguloBase) {
+            imagen.setAngle(resolucionPared.anguloBase);
           }
           imagen.setAlpha(esPared ? 0.98 : 1);
           this.capaTerreno.add(imagen);
@@ -238,32 +219,48 @@ export class CompositorMundoPhaser {
         );
 
         if (esPared) {
-          this.dibujarVolumenMuro({
-            graficos: volumenMuros,
-            sombras: sombrasMuros,
-            mapa,
-            x,
-            y,
+          this.dibujarDetallesMuro({
+            graficos: detallesMuros,
+            imagenes: imagenesBordesMuros,
             pixelX,
             pixelY,
-            colorPared,
-            configuracionSombras,
+            resolucion: resolucionPared,
           });
-        } else {
-          this.dibujarDecoracionCasilla({
-            graficos: decoracion,
-            x,
-            y,
-            pixelX,
-            pixelY,
-            configuracion: configuracionDecoracion,
-          });
+          continue;
         }
+
+        const resolucionSuelo = resolverCasillaSueloAutotiling({
+          mapa,
+          x,
+          y,
+          configuracion: configuracionPared,
+        });
+        this.dibujarSombraContactoSuelo({
+          graficos: sombrasContacto,
+          imagenes: imagenesSombrasContacto,
+          pixelX,
+          pixelY,
+          resolucion: resolucionSuelo,
+        });
+        this.dibujarDecoracionCasilla({
+          graficos: decoracion,
+          x,
+          y,
+          pixelX,
+          pixelY,
+          configuracion: configuracionDecoracion,
+        });
       }
     }
 
     this.capaTerreno.add([respaldos, grilla]);
-    this.capaDecoracion.add([sombrasMuros, decoracion, volumenMuros]);
+    this.capaDecoracion.add([
+      decoracion,
+      sombrasContacto,
+      ...imagenesSombrasContacto,
+      detallesMuros,
+      ...imagenesBordesMuros,
+    ]);
     this.dibujarMarcoMapa();
   }
 
@@ -313,72 +310,247 @@ export class CompositorMundoPhaser {
     this.capaDecoracion.add(marco);
   }
 
-  dibujarVolumenMuro({
+  dibujarDetallesMuro({
     graficos,
-    sombras,
-    mapa,
-    x,
-    y,
+    imagenes,
     pixelX,
     pixelY,
-    colorPared,
-    configuracionSombras,
+    resolucion,
   }) {
-    const tieneSueloAbajo = mapa[y + 1]?.[x] !== "#" && mapa[y + 1]?.[x];
-    const tieneSueloDerecha = mapa[y]?.[x + 1] !== "#" && mapa[y]?.[x + 1];
-    const colorClaro = mezclarColor(colorPared, 0xffffff, 0.28);
-    const colorOscuro = mezclarColor(colorPared, 0x000000, 0.55);
-
-    graficos.lineStyle(1, colorClaro, 0.48);
-    graficos.lineBetween(
-      pixelX + 3,
-      pixelY + 3.5,
-      pixelX + TAMANO_CASILLA_REFERENCIA - 3,
-      pixelY + 3.5,
-    );
-    graficos.lineStyle(2, colorOscuro, 0.58);
-    graficos.lineBetween(
-      pixelX + 2,
-      pixelY + TAMANO_CASILLA_REFERENCIA - 2,
-      pixelX + TAMANO_CASILLA_REFERENCIA - 2,
-      pixelY + TAMANO_CASILLA_REFERENCIA - 2,
+    const { ladosExpuestos, esquinasInteriores } = resolucion.analisis;
+    const borde = resolucion.borde;
+    const claveBorde = this.gestorRecursos.obtener(borde.recurso);
+    const claveEsquinaInterior = this.gestorRecursos.obtener(
+      borde.recursoEsquinaInterior,
     );
 
-    if (tieneSueloAbajo) {
-      sombras.fillStyle(
-        configuracionSombras.color,
-        configuracionSombras.opacidadMuros,
-      );
-      sombras.fillRect(
-        pixelX + 2,
-        pixelY + TAMANO_CASILLA_REFERENCIA,
-        TAMANO_CASILLA_REFERENCIA - 4,
-        6,
-      );
-      sombras.fillStyle(
-        configuracionSombras.color,
-        configuracionSombras.opacidadMuros * 0.45,
-      );
-      sombras.fillRect(
-        pixelX + 5,
-        pixelY + TAMANO_CASILLA_REFERENCIA + 6,
-        TAMANO_CASILLA_REFERENCIA - 10,
-        3,
-      );
+    const orientaciones = [
+      ["norte", 0],
+      ["este", 90],
+      ["sur", 180],
+      ["oeste", 270],
+    ];
+
+    for (const [lado, angulo] of orientaciones) {
+      if (!ladosExpuestos[lado]) continue;
+
+      if (claveBorde) {
+        imagenes.push(
+          this.crearImagenOverlayCasilla({
+            pixelX,
+            pixelY,
+            claveTextura: claveBorde,
+            angulo,
+            alpha: borde.opacidad,
+          }),
+        );
+      } else {
+        this.dibujarBordeMuroRespaldo({
+          graficos,
+          pixelX,
+          pixelY,
+          lado,
+          borde,
+        });
+      }
     }
 
-    if (tieneSueloDerecha) {
-      sombras.fillStyle(
-        configuracionSombras.color,
-        configuracionSombras.opacidadMuros * 0.6,
-      );
-      sombras.fillRect(
-        pixelX + TAMANO_CASILLA_REFERENCIA,
-        pixelY + 4,
-        4,
-        TAMANO_CASILLA_REFERENCIA - 8,
-      );
+    const orientacionesEsquina = [
+      ["noroeste", 0],
+      ["noreste", 90],
+      ["sureste", 180],
+      ["suroeste", 270],
+    ];
+
+    for (const [esquina, angulo] of orientacionesEsquina) {
+      if (!esquinasInteriores[esquina]) continue;
+
+      if (claveEsquinaInterior) {
+        imagenes.push(
+          this.crearImagenOverlayCasilla({
+            pixelX,
+            pixelY,
+            claveTextura: claveEsquinaInterior,
+            angulo,
+            alpha: borde.opacidad,
+          }),
+        );
+      } else {
+        this.dibujarEsquinaInteriorRespaldo({
+          graficos,
+          pixelX,
+          pixelY,
+          esquina,
+          borde,
+        });
+      }
     }
+  }
+
+  dibujarBordeMuroRespaldo({
+    graficos,
+    pixelX,
+    pixelY,
+    lado,
+    borde,
+  }) {
+    const tamano = TAMANO_CASILLA_REFERENCIA;
+    const grosor = borde.grosor;
+    const grosorLuz = Math.min(borde.grosorLuz, grosor);
+    const esHorizontal = lado === "norte" || lado === "sur";
+    const x = lado === "este" ? pixelX + tamano - grosor : pixelX;
+    const y = lado === "sur" ? pixelY + tamano - grosor : pixelY;
+    const ancho = esHorizontal ? tamano : grosor;
+    const alto = esHorizontal ? grosor : tamano;
+
+    graficos.fillStyle(borde.color, borde.opacidad);
+    graficos.fillRect(x, y, ancho, alto);
+    graficos.fillStyle(borde.colorLuz, borde.opacidadLuz);
+    graficos.fillRect(
+      x,
+      y,
+      esHorizontal ? ancho : grosorLuz,
+      esHorizontal ? grosorLuz : alto,
+    );
+    graficos.fillStyle(borde.colorSombra, borde.opacidadSombra);
+
+    if (lado === "norte") {
+      graficos.fillRect(x, y + grosor - 1, ancho, 1);
+    } else if (lado === "sur") {
+      graficos.fillRect(x, y, ancho, 1);
+    } else if (lado === "oeste") {
+      graficos.fillRect(x + grosor - 1, y, 1, alto);
+    } else {
+      graficos.fillRect(x, y, 1, alto);
+    }
+  }
+
+  dibujarEsquinaInteriorRespaldo({
+    graficos,
+    pixelX,
+    pixelY,
+    esquina,
+    borde,
+  }) {
+    const tamano = TAMANO_CASILLA_REFERENCIA;
+    const grosor = borde.grosor;
+    const x = esquina.includes("este")
+      ? pixelX + tamano - grosor
+      : pixelX;
+    const y = esquina.includes("sur")
+      ? pixelY + tamano - grosor
+      : pixelY;
+
+    graficos.fillStyle(borde.color, borde.opacidad);
+    graficos.fillRect(x, y, grosor, grosor);
+    graficos.lineStyle(1, borde.colorLuz, borde.opacidadLuz);
+    graficos.strokeRect(x + 0.5, y + 0.5, grosor - 1, grosor - 1);
+  }
+
+  dibujarSombraContactoSuelo({
+    graficos,
+    imagenes,
+    pixelX,
+    pixelY,
+    resolucion,
+  }) {
+    const { ladosExpuestos } = resolucion.analisis;
+    const sombra = resolucion.sombraContacto;
+
+    if (!sombra.habilitada) return;
+
+    const claveSombra = this.gestorRecursos.obtener(sombra.recurso);
+    const orientaciones = [
+      ["norte", 0],
+      ["este", 90],
+      ["sur", 180],
+      ["oeste", 270],
+    ];
+
+    for (const [lado, angulo] of orientaciones) {
+      if (!ladosExpuestos[lado]) continue;
+
+      if (claveSombra) {
+        imagenes.push(
+          this.crearImagenOverlayCasilla({
+            pixelX,
+            pixelY,
+            claveTextura: claveSombra,
+            angulo,
+            alpha: 1,
+          }),
+        );
+      } else {
+        this.dibujarSombraContactoRespaldo({
+          graficos,
+          pixelX,
+          pixelY,
+          lado,
+          sombra,
+        });
+      }
+    }
+  }
+
+  dibujarSombraContactoRespaldo({
+    graficos,
+    pixelX,
+    pixelY,
+    lado,
+    sombra,
+  }) {
+    const tamano = TAMANO_CASILLA_REFERENCIA;
+    const grosor = sombra.grosor;
+    const margen = sombra.margen;
+    const largo = Math.max(0, tamano - margen * 2);
+    const secundario = Math.max(1, Math.floor(grosor / 2));
+    const esHorizontal = lado === "norte" || lado === "sur";
+    const x = lado === "este"
+      ? pixelX + tamano - margen - grosor
+      : pixelX + margen;
+    const y = lado === "sur"
+      ? pixelY + tamano - margen - grosor
+      : pixelY + margen;
+
+    graficos.fillStyle(sombra.color, sombra.opacidad);
+    graficos.fillRect(
+      x,
+      y,
+      esHorizontal ? largo : grosor,
+      esHorizontal ? grosor : largo,
+    );
+    graficos.fillStyle(sombra.color, sombra.opacidadSecundaria);
+
+    if (lado === "norte") {
+      graficos.fillRect(x, y + grosor, largo, secundario);
+    } else if (lado === "sur") {
+      graficos.fillRect(x, y - secundario, largo, secundario);
+    } else if (lado === "oeste") {
+      graficos.fillRect(x + grosor, y, secundario, largo);
+    } else {
+      graficos.fillRect(x - secundario, y, secundario, largo);
+    }
+  }
+
+  crearImagenOverlayCasilla({
+    pixelX,
+    pixelY,
+    claveTextura,
+    angulo = 0,
+    alpha = 1,
+  }) {
+    const imagen = this.escena.add.image(
+      pixelX + TAMANO_CASILLA_REFERENCIA / 2,
+      pixelY + TAMANO_CASILLA_REFERENCIA / 2,
+      claveTextura,
+    );
+    imagen.setDisplaySize(
+      TAMANO_CASILLA_REFERENCIA,
+      TAMANO_CASILLA_REFERENCIA,
+    );
+    imagen.setAngle(angulo);
+    imagen.setAlpha(alpha);
+    return imagen;
   }
 
   dibujarDecoracionCasilla({
@@ -485,12 +657,10 @@ export class CompositorMundoPhaser {
       const posicion = this.obtenerPosicionCasilla(entidad);
       if (!posicion) continue;
 
-      const estilo =
-        ESTILOS_ENTIDAD[entidad.tipo] ??
-        ESTILOS_ENTIDAD[TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE];
-      const centroX = posicion.x + TAMANO_CASILLA_REFERENCIA / 2;
-      const baseY = obtenerBaseEntidad(posicion);
-      const metricas = this.obtenerMetricasVisualesEntidad(entidad, estilo);
+      const centro = obtenerCentroEntidad(posicion);
+      const metricas = this.obtenerMetricasVisualesEntidad(entidad);
+      const sombraX = centro.x + metricas.desplazamientoSombraX;
+      const sombraY = centro.y + metricas.desplazamientoSombraY;
       const opacidad =
         entidad.estaViva === false
           ? configuracionSombras.opacidadEntidades * 0.45
@@ -498,8 +668,8 @@ export class CompositorMundoPhaser {
 
       graficos.fillStyle(configuracionSombras.color, opacidad);
       graficos.fillEllipse(
-        centroX,
-        baseY,
+        sombraX,
+        sombraY,
         metricas.sombraAncho,
         metricas.sombraAlto,
       );
@@ -507,8 +677,8 @@ export class CompositorMundoPhaser {
       if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR) {
         graficos.lineStyle(2, 0xf1d579, 0.62);
         graficos.strokeEllipse(
-          centroX,
-          baseY,
+          sombraX,
+          sombraY,
           metricas.sombraAncho + 4,
           metricas.sombraAlto + 3,
         );
@@ -518,8 +688,8 @@ export class CompositorMundoPhaser {
       ) {
         graficos.lineStyle(1, 0xf06b64, 0.48);
         graficos.strokeEllipse(
-          centroX,
-          baseY,
+          sombraX,
+          sombraY,
           metricas.sombraAncho + 2,
           metricas.sombraAlto + 2,
         );
@@ -591,29 +761,32 @@ export class CompositorMundoPhaser {
       const posicion = this.obtenerPosicionCasilla(entidad);
       if (!posicion) continue;
 
-      const estilo =
-        ESTILOS_ENTIDAD[entidad.tipo] ??
-        ESTILOS_ENTIDAD[TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE];
-      const centroX = posicion.x + TAMANO_CASILLA_REFERENCIA / 2;
-      const baseY = obtenerBaseEntidad(posicion);
-      const metricas = this.obtenerMetricasVisualesEntidad(entidad, estilo);
+      const estilo = obtenerEstiloRespaldoEntidadPhaser(entidad.tipo);
+      const centro = obtenerCentroEntidad(posicion);
+      const metricas = this.obtenerMetricasVisualesEntidad(entidad);
       const informacionRecurso = metricas.informacionRecurso;
 
       if (informacionRecurso) {
         const imagen = this.escena.add.image(
-          centroX,
-          baseY,
+          centro.x,
+          centro.y,
           informacionRecurso.claveTextura,
         );
-        imagen.setOrigin(
-          informacionRecurso.anclaje.x,
-          informacionRecurso.anclaje.y,
+        imagen.setOrigin(metricas.anclaje.x, metricas.anclaje.y);
+        imagen.setDisplaySize(metricas.anchoDibujo, metricas.altoDibujo);
+        imagen.setAlpha(
+          entidad.estaViva === false
+            ? CONFIGURACION_ENTIDADES_PHASER.opacidadEntidadMuerta
+            : 1,
         );
-        imagen.setDisplaySize(estilo.tamano, estilo.tamano);
-        imagen.setAlpha(entidad.estaViva === false ? 0.42 : 1);
         this.capaEntidades.add(imagen);
       } else {
-        this.dibujarRespaldoEntidad({ entidad, estilo, centroX, baseY });
+        this.dibujarRespaldoEntidad({
+          entidad,
+          estilo,
+          centroX: centro.x,
+          centroY: centro.y,
+        });
       }
 
       if (
@@ -629,41 +802,12 @@ export class CompositorMundoPhaser {
     }
   }
 
-
-  obtenerMetricasVisualesEntidad(entidad, estilo) {
+  obtenerMetricasVisualesEntidad(entidad) {
     const informacionRecurso = this.gestorRecursos.obtenerInformacion(
       entidad.recursoVisual,
     );
 
-    if (!informacionRecurso) {
-      return Object.freeze({
-        informacionRecurso: null,
-        sombraAncho: estilo.sombraAncho,
-        sombraAlto: estilo.sombraAlto,
-      });
-    }
-
-    const escala = estilo.tamano / Math.max(1, informacionRecurso.ancho);
-    const anchoVisible =
-      informacionRecurso.limitesVisibles.ancho * escala;
-    const sombraAncho = limitarNumero(
-      Math.round(anchoVisible * 0.78),
-      Math.max(8, Math.round(estilo.sombraAncho * 0.5)),
-      estilo.sombraAncho,
-      estilo.sombraAncho,
-    );
-    const sombraAlto = limitarNumero(
-      Math.round(sombraAncho * 0.34),
-      4,
-      estilo.sombraAlto,
-      estilo.sombraAlto,
-    );
-
-    return Object.freeze({
-      informacionRecurso,
-      sombraAncho,
-      sombraAlto,
-    });
+    return calcularPresentacionEntidadPhaser(informacionRecurso);
   }
 
   dibujarIluminacion() {
@@ -708,21 +852,26 @@ export class CompositorMundoPhaser {
     this.capaIluminacion.add(graficos);
   }
 
-  dibujarRespaldoEntidad({ entidad, estilo, centroX, baseY }) {
-    const tamano = 24;
+  dibujarRespaldoEntidad({ entidad, estilo, centroX, centroY }) {
+    const tamano = CONFIGURACION_ENTIDADES_PHASER.respaldo.tamano;
     const graficos = this.escena.add.graphics();
     graficos.fillStyle(estilo.fondo, 0.94);
-    graficos.fillRect(centroX - tamano / 2, baseY - tamano, tamano, tamano);
+    graficos.fillRect(
+      centroX - tamano / 2,
+      centroY - tamano / 2,
+      tamano,
+      tamano,
+    );
     graficos.lineStyle(2, estilo.borde, 1);
     graficos.strokeRect(
       centroX - tamano / 2 + 0.5,
-      baseY - tamano + 0.5,
+      centroY - tamano / 2 + 0.5,
       tamano - 1,
       tamano - 1,
     );
 
     const texto = this.escena.add
-      .text(centroX, baseY - tamano / 2, entidad.simbolo ?? "?", {
+      .text(centroX, centroY, entidad.simbolo ?? "?", {
         color: estilo.texto,
         fontFamily: "monospace",
         fontSize: "16px",
@@ -905,8 +1054,11 @@ export class CompositorMundoPhaser {
   }
 }
 
-function obtenerBaseEntidad(posicion) {
-  return posicion.y + TAMANO_CASILLA_REFERENCIA - 2;
+function obtenerCentroEntidad(posicion) {
+  return Object.freeze({
+    x: posicion.x + TAMANO_CASILLA_REFERENCIA / 2,
+    y: posicion.y + TAMANO_CASILLA_REFERENCIA / 2,
+  });
 }
 
 function crearGeometria({ columnas, filas }) {
@@ -1002,78 +1154,6 @@ function obtenerHashCasilla(x, y) {
 function normalizarListaRutas(rutas) {
   if (!Array.isArray(rutas)) return [];
   return rutas.map(normalizarRuta).filter(Boolean);
-}
-
-function normalizarConfiguracionPared(configuracion = {}) {
-  const variantesEntrada = configuracion?.variantes ?? {};
-
-  return Object.freeze({
-    recurso: normalizarRuta(configuracion?.recurso),
-    variantes: Object.freeze({
-      aislado: normalizarRuta(variantesEntrada.aislado),
-      extremo: normalizarRuta(variantesEntrada.extremo),
-      recto: normalizarRuta(variantesEntrada.recto),
-      esquina: normalizarRuta(variantesEntrada.esquina),
-      unionT: normalizarRuta(variantesEntrada.unionT),
-      cruce: normalizarRuta(variantesEntrada.cruce),
-      interior: normalizarRuta(variantesEntrada.interior),
-    }),
-  });
-}
-
-function obtenerRutaMuro(configuracion, tipo) {
-  return configuracion.variantes[tipo] ?? configuracion.recurso;
-}
-
-function clasificarMuro(mapa, x, y) {
-  const norte = mapa[y - 1]?.[x] === "#";
-  const este = mapa[y]?.[x + 1] === "#";
-  const sur = mapa[y + 1]?.[x] === "#";
-  const oeste = mapa[y]?.[x - 1] === "#";
-  const cantidad = [norte, este, sur, oeste].filter(Boolean).length;
-
-  if (cantidad === 0) {
-    return { tipo: "aislado", angulo: 0 };
-  }
-
-  if (cantidad === 1) {
-    return {
-      tipo: "extremo",
-      angulo: norte ? 0 : este ? 90 : sur ? 180 : 270,
-    };
-  }
-
-  if (cantidad === 2) {
-    if ((norte && sur) || (este && oeste)) {
-      return {
-        tipo: "recto",
-        angulo: norte && sur ? 90 : 0,
-      };
-    }
-
-    return {
-      tipo: "esquina",
-      angulo: norte && este ? 0 : este && sur ? 90 : sur && oeste ? 180 : 270,
-    };
-  }
-
-  if (cantidad === 3) {
-    return {
-      tipo: "unionT",
-      angulo: !sur ? 0 : !oeste ? 90 : !norte ? 180 : 270,
-    };
-  }
-
-  const diagonalesCompletas =
-    mapa[y - 1]?.[x - 1] === "#" &&
-    mapa[y - 1]?.[x + 1] === "#" &&
-    mapa[y + 1]?.[x + 1] === "#" &&
-    mapa[y + 1]?.[x - 1] === "#";
-
-  return {
-    tipo: diagonalesCompletas ? "interior" : "cruce",
-    angulo: 0,
-  };
 }
 
 function normalizarRuta(ruta) {
@@ -1183,18 +1263,4 @@ function limitarNumero(valor, minimo, maximo, respaldo) {
   }
 
   return Math.max(minimo, Math.min(maximo, valor));
-}
-
-function mezclarColor(colorA, colorB, proporcion) {
-  const t = Math.max(0, Math.min(1, proporcion));
-  const ar = (colorA >> 16) & 0xff;
-  const ag = (colorA >> 8) & 0xff;
-  const ab = colorA & 0xff;
-  const br = (colorB >> 16) & 0xff;
-  const bg = (colorB >> 8) & 0xff;
-  const bb = colorB & 0xff;
-  const r = Math.round(ar + (br - ar) * t);
-  const g = Math.round(ag + (bg - ag) * t);
-  const b = Math.round(ab + (bb - ab) * t);
-  return (r << 16) | (g << 8) | b;
 }

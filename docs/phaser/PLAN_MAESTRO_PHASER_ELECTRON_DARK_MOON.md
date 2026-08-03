@@ -121,7 +121,7 @@ El ratón se utilizará especialmente para:
 
 El estilo objetivo se define como:
 
-> Fantasía medieval 2D ilustrada, estilizada y luminosa, con vista superior o tres cuartos y lectura táctica clara por casillas.
+> Fantasía medieval 2D ilustrada, estilizada y luminosa, con vista cenital ortográfica y lectura táctica clara por casillas.
 
 No se busca:
 
@@ -688,9 +688,9 @@ P2 fue aprobada y se implementó en dos bloques internos sin commits separados:
 - **P2.2 — Acabado visual:** decoración determinista, sombras de muros y entidades, profundidad por base, iluminación ambiental básica, selección táctica y adaptación para ventanas de poca altura.
 - **Ajustes de cierre de P2:** retiro del aura permanente de interactuables, clasificación configurable de muros por vecinos cardinales, seguimiento centralizado de cámara y anclaje de sprites por contenido visible.
 
-La Alcantarilla es el corte vertical de referencia. Su apariencia Phaser se declara en `src/config/mapas/mapas.json` y sus imágenes ambientales se ubican en `assets/imagenes/mundo/alcantarilla/`.
+La Alcantarilla sigue siendo el mapa de referencia para validar el lenguaje visual de Phaser. Su apariencia se declara en `src/config/mapas/mapas.json` y sus imágenes ambientales se ubican en `assets/imagenes/mundo/alcantarilla/`.
 
-La familia inicial de muros diferencia aislados, extremos, rectos, esquinas, uniones en T, cruces e interiores. P5 reutilizará y ampliará este contrato para el resto de biomas, puertas, transiciones y obstáculos complejos; no deberá crear un segundo clasificador paralelo.
+P5.1 reemplaza la clasificación puntual de muros por un análisis genérico de ocho vecinos reutilizable. El sistema describe lados expuestos, esquinas exteriores, esquinas interiores y sombra de contacto sobre el piso sin modificar la matriz lógica del mapa. El material visible del borde queda a cargo de la configuración del bioma; no debe existir una segunda implementación específica por mapa.
 
 La cámara ya no depende de listas de acciones que deban recentrarla. Mientras el seguimiento esté activo, la posición del personaje se confirma en cada actualización visual y después de cambios de escala o visibilidad. La carga inicial, las esperas, los modales y el redimensionamiento utilizan el mismo contrato general. El desplazamiento manual conserva el modo de cámara libre y cualquier selección táctica restablece el seguimiento.
 
@@ -816,29 +816,57 @@ Una entrada realizada sobre Phaser debe producir el mismo cambio de selector que
 
 ### Objetivo
 
-Renderizar los mapas reales y permitir recorrerlos mediante Phaser.
+Renderizar los mapas reales y permitir recorrerlos mediante Phaser, comenzando por un sistema reutilizable de autotiling cenital para paredes y piso.
 
 ### Alcance mínimo
 
-- mapas normales;
-- mapas especiales;
-- terrenos;
-- paredes;
-- obstáculos;
-- puertas;
-- portales;
-- personajes;
-- enemigos;
-- objetos;
-- elementos interactivos;
-- transiciones;
+- sistema genérico de autotiling de paredes reutilizable por bioma;
+- análisis de ocho vecinos;
+- identificación de lados expuestos, esquinas exteriores e interiores;
+- sombra de contacto opcional sobre el piso;
+- validación inicial en Alcantarilla;
+- posterior ampliación al resto de mapas, personajes, props e interactuables;
 - límites;
 - cámara;
 - mapas mayores que el área visible;
 - selección de casillas;
 - casillas válidas e inválidas;
-- niebla o visibilidad únicamente si ya existe contrato aprobado;
 - optimización solo si se mide una necesidad real.
+
+### División aprobada
+
+#### P5.1 — Alcantarilla cenital base
+
+- validar únicamente piso y paredes de Alcantarilla;
+- analizar ocho vecinos mediante una función genérica y reutilizable;
+- representar el interior del muro como una masa continua;
+- aplicar bordes únicamente en los lados que limitan con piso real;
+- obtener material, grosor y apariencia del borde desde el bioma;
+- aplicar una sombra de contacto opcional sobre el piso;
+- conservar temporalmente personajes, enemigos y props heredados.
+
+P5.1 no cierra P5 completa. Su resultado debe aprobar primero el lenguaje visual y el contrato técnico antes de extender recursos a otros mapas.
+
+#### P5.2 — Soporte técnico para entidades cenitales
+
+- mantener `recursoVisual` como única ruta de imagen transportada por las entidades;
+- no agregar `aparienciaVisual` ni otras decisiones de Phaser a `Player`, `Enemigo`, `Barril` o `BotinSuelo`;
+- centralizar perspectiva, tamaño, anclaje y sombra en `ConfiguracionEntidadesPhaser`;
+- ampliar `GestorRecursosPhaser` para calcular el centro vertical visible de cada PNG;
+- centrar todas las entidades Phaser según el contenido alfa del recurso;
+- conservar la relación de aspecto dentro de la casilla lógica de 32 × 32;
+- calcular sombras centradas desde el tamaño visible;
+- omitir la creación o sustitución de PNG de entidades durante esta subetapa.
+
+P5.2 prepara el contrato técnico para recibir los assets cenitales definitivos. Los recursos heredados pueden verse transitoriamente distintos porque Phaser ya aplica la colocación cenital global, pero la lógica jugable y Canvas 2D permanecen sin cambios.
+
+#### P5.3 — Expansión a todos los mapas y cierre de P5
+
+- incorporar los assets cenitales definitivos;
+- configurar el resto de biomas mediante el autotiling reusable;
+- validar ciudad, mapas normales y mapas especiales;
+- comprobar entidades, props, transiciones, cámara, combate, habilidades, guardado y regresión Canvas 2D;
+- cerrar P5 completa sin cambiar resultados canónicos.
 
 ### No incluye
 
@@ -846,9 +874,18 @@ Renderizar los mapas reales y permitir recorrerlos mediante Phaser.
 - cambio de conectividad;
 - cambio de IA;
 - cambio de reglas de ocupación;
-- ampliación obligatoria del contenido.
+- ampliación obligatoria del contenido;
+- migración automática de todos los biomas antes de aprobar Alcantarilla.
 
-### Criterio de cierre
+### Criterio de cierre de P5.1
+
+Alcantarilla muestra piso y paredes cenitales continuas, bordes correctos según vecindad, esquinas internas y sombra de contacto; cámara, zoom, selección, movimiento, transiciones, guardado y Canvas 2D continúan funcionando sin cambios canónicos.
+
+### Criterio de cierre de P5.2
+
+Phaser centra entidades por el centro visible del PNG, conserva su relación de aspecto, calcula sombras cenitales y mantiene `recursoVisual` como único dato visual del dominio. No se modifican clases jugables, persistencia ni Canvas 2D. Los PNG definitivos quedan pendientes para P5.3.
+
+### Criterio de cierre de P5 completa
 
 Todos los mapas existentes pueden jugarse con Phaser sin cambiar sus resultados.
 

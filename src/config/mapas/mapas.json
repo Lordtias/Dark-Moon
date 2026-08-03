@@ -19,7 +19,6 @@
             ]
           },
           "pared": {
-            "recurso": "assets/imagenes/mundo/alcantarilla/estructura_pared_piedra.png",
             "variantes": {
               "aislado": "assets/imagenes/mundo/alcantarilla/muros/muro_aislado.png",
               "extremo": "assets/imagenes/mundo/alcantarilla/muros/muro_extremo.png",
@@ -28,7 +27,36 @@
               "unionT": "assets/imagenes/mundo/alcantarilla/muros/muro_union_t.png",
               "cruce": "assets/imagenes/mundo/alcantarilla/muros/muro_cruce.png",
               "interior": "assets/imagenes/mundo/alcantarilla/muros/muro_interior.png"
-            }
+            },
+            "estrategiaBase": "masa",
+            "borde": {
+              "color": "#7f8f86",
+              "colorLuz": "#b7c1ba",
+              "colorSombra": "#24322d",
+              "grosor": 5,
+              "grosorLuz": 1,
+              "opacidad": 0.94,
+              "opacidadLuz": 0.68,
+              "opacidadSombra": 0.34,
+              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/borde_pared_humeda.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/alcantarilla/cenital/esquina_interior_pared_humeda.png"
+            },
+            "sombraContacto": {
+              "habilitada": true,
+              "color": "#06100c",
+              "grosor": 4,
+              "margen": 2,
+              "opacidad": 0.18,
+              "opacidadSecundaria": 0.08,
+              "opacidadEsquina": 0.22,
+              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/sombra_contacto_pared.png"
+            },
+            "recursos": [
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_02.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_03.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_04.png"
+            ]
           },
           "grilla": {
             "opacidadSuelo": 0.2,

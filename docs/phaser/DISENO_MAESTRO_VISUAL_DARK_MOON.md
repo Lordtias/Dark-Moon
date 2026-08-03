@@ -187,12 +187,12 @@ Pueden existir exageraciones estilizadas, pero el tono general debe continuar si
 
 ## 5.1 Perspectiva recomendada
 
-Vista superior con una inclinación ligera de tres cuartos.
+Vista cenital ortográfica, sin inclinación frontal ni lateral del tablero.
 
 Debe permitir ver:
 
 - superficie del suelo;
-- parte frontal o lateral de paredes;
+- borde superior y contorno visible de paredes;
 - volumen de personajes;
 - puertas;
 - obstáculos;
@@ -1512,15 +1512,11 @@ Resuelta en P0: 32 × 32 unidades lógicas.
 
 La decisión podrá revisarse únicamente si una prueba posterior demuestra un problema concreto. La resolución de los archivos gráficos continúa siendo independiente.
 
-## 33.2 Perspectiva definitiva de personajes
+## 33.2 Perspectiva definitiva del mundo y personajes
 
-Opciones:
+Resuelta para el mundo en P5.1: vista cenital ortográfica.
 
-- superior;
-- superior inclinada;
-- tres cuartos más marcado.
-
-Debe decidirse con una escena real en P2.
+Los personajes y enemigos deben producirse también desde arriba, con un ángulo mínimo únicamente cuando sea necesario para reconocer la silueta. Su iteración gráfica se realiza por separado y su integración no puede alterar la ocupación lógica de casillas.
 
 ## 33.3 Nivel de animación
 
@@ -1593,15 +1589,15 @@ Los mapas mayores se recorrerán mediante cámara, zoom y desplazamiento. No se 
 
 ## V-010 — Corte visual de Alcantarilla
 
-La Alcantarilla es la primera referencia visual concreta de Phaser. Utiliza piedra húmeda, variaciones de suelo, pared diferenciada, humedad, metal oxidado y puntos de luz fría. Los recursos propios se almacenan en `assets/imagenes/mundo/alcantarilla/`.
+La Alcantarilla es la primera referencia visual concreta de Phaser y la primera validación cenital de P5.1. Utiliza piedra húmeda, variaciones de suelo, pared diferenciada, humedad, metal oxidado y puntos de luz fría. Los recursos propios se almacenan en `assets/imagenes/mundo/alcantarilla/`.
 
 ## V-011 — Capas y profundidad del corte
 
-El corte P2 se compone en este orden: fondo, terreno, decoración baja, zonas, sombras, selección, entidades e iluminación. Las entidades se ordenan principalmente por la base vertical para conservar una lectura superior o de tres cuartos sin adoptar perspectiva isométrica estricta.
+El corte Phaser se compone en este orden: fondo, terreno, decoración baja, zonas, sombras, selección, entidades e iluminación. El piso, las paredes y la colocación de entidades responden a una vista cenital ortográfica. Las entidades continúan ordenándose por fila para mantener una profundidad determinista, pero su anclaje visual se realiza en el centro de la casilla y no en la base del sprite.
 
-## V-012 — Sombra e iluminación de P2
+## V-012 — Sombra e iluminación del mundo
 
-Las sombras son elipses suaves que anclan entidades y bandas discretas junto a muros. La iluminación utiliza una base fría verdosa y un apoyo cálido muy suave alrededor del jugador. Los interactuables no reciben un aura permanente porque deben integrarse naturalmente con el mapa. Ninguna luz debe ocultar cuadrícula, objetivos o casillas seleccionadas.
+Las sombras de entidades son suaves, centradas y se dimensionan a partir del contenido alfa visible del PNG. Las paredes cenitales pueden proyectar una sombra de contacto corta y configurable sobre el piso adyacente; esa sombra deriva de la misma vecindad del muro, no modifica iluminación jugable y puede desactivarse por bioma. La iluminación utiliza una base fría verdosa y un apoyo cálido muy suave alrededor del jugador. Los interactuables no reciben un aura permanente porque deben integrarse naturalmente con el mapa. Ninguna luz o sombra debe ocultar cuadrícula, objetivos o casillas seleccionadas.
 
 ## V-013 — Ventanas de poca altura
 
@@ -1609,7 +1605,7 @@ Cuando el modo Phaser no dispone de altura suficiente, la pantalla puede desplaz
 
 ## V-014 — Muros configurables por vecinos
 
-La presentación Phaser clasifica cada muro mediante sus vecinos cardinales. Puede representar bloques aislados, extremos, tramos rectos, esquinas, uniones en T, cruces e interiores sin modificar la matriz lógica del mapa. La Alcantarilla incorpora la primera familia de recursos; P5 ampliará el mismo contrato a otros biomas, puertas y obstáculos complejos.
+La presentación Phaser debe analizar ocho vecinos y no dibujar muros como bloques aislados. Cada casilla de pared puede derivar lados expuestos, esquinas exteriores y esquinas interiores sin modificar la matriz lógica del mapa. El borde visible se define por el bioma y el interior del muro debe verse continuo. La Alcantarilla valida primero este contrato y luego P5 ampliará el mismo sistema al resto de biomas, puertas y obstáculos complejos.
 
 ## V-015 — Seguimiento permanente y selección táctica
 
@@ -1623,7 +1619,7 @@ No se utiliza aura permanente para portales, objetos o enemigos comunes. Una fut
 
 ## V-017 — Anclaje por contenido visible
 
-Los PNG transparentes se apoyan mediante su contenido visible y no mediante el borde completo del archivo. Phaser calcula una vez los límites alfa de cada recurso, utiliza el centro visible como eje horizontal y apoya el último píxel visible sobre la base de la casilla. Las sombras adaptan discretamente su ancho al dibujo real. Los PNG originales no se recortan ni se alteran, por lo que continúan siendo reutilizables en inventario, paneles y detalles.
+Phaser calcula una vez los límites alfa de cada PNG y conserva tanto el anclaje histórico por base como el centro visible completo. P5.2 utiliza el centro horizontal y vertical visible para ubicar las entidades en el centro exacto de su casilla. El recurso mantiene su relación de aspecto y cabe dentro de un lienzo visual de 32 × 32. Los PNG originales no se recortan ni se alteran, por lo que continúan siendo reutilizables en inventario, paneles y detalles.
 
 ## V-018 — Controles y coordenadas de cámara
 
@@ -1639,6 +1635,12 @@ Durante combate, interacción o selección de habilidad, el clic izquierdo sobre
 El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.
 
 El teclado jugable y la cámara permanecen en componentes especializados. Una futura pantalla de configuración deberá modificar una única asignación central de acciones y teclas para ambos componentes, evitando configuraciones paralelas.
+
+## V-020 — Presentación cenital global de entidades
+
+La perspectiva, el anclaje, el tamaño y la sombra de las entidades pertenecen exclusivamente a Phaser. `Player`, `Enemigo`, `Barril`, `BotinSuelo` y sus fábricas no reciben propiedades como `aparienciaVisual`. El dominio continúa entregando únicamente tipo visual, posición y `recursoVisual`.
+
+`ConfiguracionEntidadesPhaser` define una regla general: centrar el contenido visible, conservar la relación de aspecto, limitar el lienzo a la casilla y dibujar una sombra centrada. Las diferencias de tamaño final deben resolverse primero mediante la composición y el espacio transparente del PNG, no mediante excepciones por nombre de entidad.
 
 ---
 
@@ -1660,7 +1662,7 @@ La referencia P2 aplica las siguientes decisiones concretas:
 - desplazamiento con botón derecho o central;
 - doble clic izquierdo para recentrar;
 - selección táctica con cámara fijada sobre el personaje;
-- entidades apoyadas mediante los límites visibles de sus PNG transparentes;
+- entidades centradas mediante el centro visible de sus PNG transparentes;
 - clic izquierdo reservado a navegación visual durante P2;
 - Canvas 2D conservado como backend predeterminado.
 

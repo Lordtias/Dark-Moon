@@ -124,17 +124,28 @@ export class GestorRecursosPhaser {
 function crearInformacionRecurso({ claveTextura, imagen }) {
   const ancho = Number(imagen.naturalWidth || imagen.width || 0);
   const alto = Number(imagen.naturalHeight || imagen.height || 0);
+  const anchoSeguro = Math.max(1, ancho);
+  const altoSeguro = Math.max(1, alto);
   const limitesVisibles = analizarLimitesVisibles(imagen, ancho, alto);
+  const anclajeBase = Object.freeze({
+    x: limitesVisibles.centroX / anchoSeguro,
+    y: limitesVisibles.baseY / altoSeguro,
+  });
+  const anclajeCentro = Object.freeze({
+    x: limitesVisibles.centroX / anchoSeguro,
+    y: limitesVisibles.centroY / altoSeguro,
+  });
 
   return Object.freeze({
     claveTextura,
     ancho,
     alto,
     limitesVisibles,
-    anclaje: Object.freeze({
-      x: limitesVisibles.centroX / ancho,
-      y: limitesVisibles.baseY / alto,
-    }),
+
+    // Se conserva el nombre histórico para cualquier consumidor heredado.
+    anclaje: anclajeBase,
+    anclajeBase,
+    anclajeCentro,
   });
 }
 
@@ -227,6 +238,7 @@ function crearLimites({ minimoX, minimoY, maximoX, maximoY }) {
     ancho: anchoVisible,
     alto: altoVisible,
     centroX: minimoX + anchoVisible / 2,
+    centroY: minimoY + altoVisible / 2,
     baseY: maximoY + 1,
   });
 }

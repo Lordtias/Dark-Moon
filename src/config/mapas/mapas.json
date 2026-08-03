@@ -29,7 +29,16 @@
               "interior": "assets/imagenes/mundo/alcantarilla/muros/muro_interior.png"
             },
             "estrategiaBase": "masa",
+            "recurso": "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
+            "recursos": [
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_02.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_03.png",
+              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_04.png"
+            ],
             "borde": {
+              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/borde_pared_humeda.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/alcantarilla/cenital/esquina_interior_pared_humeda.png",
               "color": "#7f8f86",
               "colorLuz": "#b7c1ba",
               "colorSombra": "#24322d",
@@ -37,36 +46,24 @@
               "grosorLuz": 1,
               "opacidad": 0.94,
               "opacidadLuz": 0.68,
-              "opacidadSombra": 0.34,
-              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/borde_pared_humeda.png",
-              "recursoEsquinaInterior": "assets/imagenes/mundo/alcantarilla/cenital/esquina_interior_pared_humeda.png"
+              "opacidadSombra": 0.34
             },
             "sombraContacto": {
               "habilitada": true,
+              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/sombra_contacto_pared.png",
               "color": "#06100c",
               "grosor": 4,
               "margen": 2,
               "opacidad": 0.18,
               "opacidadSecundaria": 0.08,
-              "opacidadEsquina": 0.22,
-              "recurso": "assets/imagenes/mundo/alcantarilla/cenital/sombra_contacto_pared.png"
-            },
-            "recursos": [
-              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
-              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_02.png",
-              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_03.png",
-              "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_04.png"
-            ]
-          },
-          "grilla": {
-            "opacidadSuelo": 0.2,
-            "opacidadPared": 0.07
+              "opacidadEsquina": 0.22
+            }
           },
           "decoracion": {
-            "densidad": 0.18,
+            "densidad": 0.16,
             "colorHumedad": "#2f7568",
-            "colorReflejo": "#9bcfc1",
-            "colorMetal": "#46514c",
+            "colorReflejo": "#8ec9b9",
+            "colorMetal": "#45504b",
             "colorOxido": "#9a6338",
             "colorEscombro": "#858d7f",
             "colorMancha": "#172a23"
@@ -75,6 +72,10 @@
             "color": "#06100c",
             "opacidadMuros": 0.34,
             "opacidadEntidades": 0.42
+          },
+          "grilla": {
+            "opacidadSuelo": 0.2,
+            "opacidadPared": 0.08
           },
           "iluminacion": {
             "colorAmbiente": "#27483f",
@@ -169,7 +170,71 @@
       "apariencia": {
         "colorSuelo": "#302f3b",
         "colorPared": "#686879",
-        "colorGrilla": "#1e1d27"
+        "colorGrilla": "#1e1d27",
+        "phaser": {
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/cementerio/cenital/suelo_funebre_01.png",
+              "assets/imagenes/mundo/cementerio/cenital/suelo_funebre_02.png"
+            ]
+          },
+          "pared": {
+            "estrategiaBase": "masa",
+            "recurso": "assets/imagenes/mundo/cementerio/cenital/masa_pared_01.png",
+            "recursos": [
+              "assets/imagenes/mundo/cementerio/cenital/masa_pared_01.png",
+              "assets/imagenes/mundo/cementerio/cenital/masa_pared_02.png",
+              "assets/imagenes/mundo/cementerio/cenital/masa_pared_03.png",
+              "assets/imagenes/mundo/cementerio/cenital/masa_pared_04.png"
+            ],
+            "borde": {
+              "recurso": "assets/imagenes/mundo/cementerio/cenital/borde_pared.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/cementerio/cenital/esquina_interior_pared.png",
+              "color": "#8f90a0",
+              "colorLuz": "#b8bbca",
+              "colorSombra": "#41424c",
+              "grosor": 5,
+              "grosorLuz": 1,
+              "opacidad": 0.94,
+              "opacidadLuz": 0.65,
+              "opacidadSombra": 0.3
+            },
+            "sombraContacto": {
+              "habilitada": true,
+              "recurso": "assets/imagenes/mundo/cementerio/cenital/sombra_contacto_pared.png",
+              "color": "#12131a",
+              "grosor": 4,
+              "margen": 2,
+              "opacidad": 0.18,
+              "opacidadSecundaria": 0.08,
+              "opacidadEsquina": 0.22
+            }
+          },
+          "decoracion": {
+            "densidad": 0.08,
+            "colorHumedad": "#49526d",
+            "colorReflejo": "#949fba",
+            "colorMetal": "#5f636f",
+            "colorOxido": "#7f6459",
+            "colorEscombro": "#888795",
+            "colorMancha": "#211f2f"
+          },
+          "sombras": {
+            "color": "#07080b",
+            "opacidadMuros": 0.3,
+            "opacidadEntidades": 0.38
+          },
+          "grilla": {
+            "opacidadSuelo": 0.16,
+            "opacidadPared": 0.06
+          },
+          "iluminacion": {
+            "colorAmbiente": "#3c3d52",
+            "colorSombraAmbiente": "#0a0b10",
+            "colorJugador": "#e6d9a7",
+            "intensidad": 0.08
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -276,7 +341,71 @@
       "apariencia": {
         "colorSuelo": "#3c332b",
         "colorPared": "#796650",
-        "colorGrilla": "#241e19"
+        "colorGrilla": "#241e19",
+        "phaser": {
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/casa_guerrero/cenital/suelo_sala_01.png",
+              "assets/imagenes/mundo/casa_guerrero/cenital/suelo_sala_02.png"
+            ]
+          },
+          "pared": {
+            "estrategiaBase": "masa",
+            "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_01.png",
+            "recursos": [
+              "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_01.png",
+              "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_02.png",
+              "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_03.png",
+              "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_04.png"
+            ],
+            "borde": {
+              "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/borde_pared.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/casa_guerrero/cenital/esquina_interior_pared.png",
+              "color": "#aa8d67",
+              "colorLuz": "#d0ba97",
+              "colorSombra": "#58462f",
+              "grosor": 5,
+              "grosorLuz": 1,
+              "opacidad": 0.94,
+              "opacidadLuz": 0.68,
+              "opacidadSombra": 0.3
+            },
+            "sombraContacto": {
+              "habilitada": true,
+              "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/sombra_contacto_pared.png",
+              "color": "#110b07",
+              "grosor": 4,
+              "margen": 2,
+              "opacidad": 0.16,
+              "opacidadSecundaria": 0.07,
+              "opacidadEsquina": 0.2
+            }
+          },
+          "decoracion": {
+            "densidad": 0.05,
+            "colorHumedad": "#5a452f",
+            "colorReflejo": "#cab291",
+            "colorMetal": "#716658",
+            "colorOxido": "#985f39",
+            "colorEscombro": "#8e7f6c",
+            "colorMancha": "#2d2116"
+          },
+          "sombras": {
+            "color": "#090604",
+            "opacidadMuros": 0.28,
+            "opacidadEntidades": 0.36
+          },
+          "grilla": {
+            "opacidadSuelo": 0.12,
+            "opacidadPared": 0.06
+          },
+          "iluminacion": {
+            "colorAmbiente": "#604528",
+            "colorSombraAmbiente": "#120b06",
+            "colorJugador": "#f0d088",
+            "intensidad": 0.07
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -377,7 +506,71 @@
       "apariencia": {
         "colorSuelo": "#363942",
         "colorPared": "#737985",
-        "colorGrilla": "#202229"
+        "colorGrilla": "#202229",
+        "phaser": {
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/suelo_fortaleza_01.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/suelo_fortaleza_02.png"
+            ]
+          },
+          "pared": {
+            "estrategiaBase": "masa",
+            "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_01.png",
+            "recursos": [
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_01.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_02.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_03.png",
+              "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_04.png"
+            ],
+            "borde": {
+              "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/borde_pared.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/fortaleza_abandonada/cenital/esquina_interior_pared.png",
+              "color": "#858893",
+              "colorLuz": "#b2b5bd",
+              "colorSombra": "#343740",
+              "grosor": 5,
+              "grosorLuz": 1,
+              "opacidad": 0.95,
+              "opacidadLuz": 0.66,
+              "opacidadSombra": 0.34
+            },
+            "sombraContacto": {
+              "habilitada": true,
+              "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/sombra_contacto_pared.png",
+              "color": "#090b10",
+              "grosor": 4,
+              "margen": 2,
+              "opacidad": 0.18,
+              "opacidadSecundaria": 0.08,
+              "opacidadEsquina": 0.22
+            }
+          },
+          "decoracion": {
+            "densidad": 0.09,
+            "colorHumedad": "#40454b",
+            "colorReflejo": "#9ba4ab",
+            "colorMetal": "#55595f",
+            "colorOxido": "#835d42",
+            "colorEscombro": "#7f8086",
+            "colorMancha": "#171a1f"
+          },
+          "sombras": {
+            "color": "#05070a",
+            "opacidadMuros": 0.34,
+            "opacidadEntidades": 0.4
+          },
+          "grilla": {
+            "opacidadSuelo": 0.16,
+            "opacidadPared": 0.07
+          },
+          "iluminacion": {
+            "colorAmbiente": "#40444f",
+            "colorSombraAmbiente": "#090c12",
+            "colorJugador": "#e4c67d",
+            "intensidad": 0.08
+          }
+        }
       },
       "dimensiones": {
         "ancho": {
@@ -478,7 +671,71 @@
       "apariencia": {
         "colorSuelo": "#403129",
         "colorPared": "#8a674e",
-        "colorGrilla": "#261b17"
+        "colorGrilla": "#261b17",
+        "phaser": {
+          "suelo": {
+            "recursos": [
+              "assets/imagenes/mundo/sala_guerra/cenital/suelo_guerra_01.png",
+              "assets/imagenes/mundo/sala_guerra/cenital/suelo_guerra_02.png"
+            ]
+          },
+          "pared": {
+            "estrategiaBase": "masa",
+            "recurso": "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_01.png",
+            "recursos": [
+              "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_01.png",
+              "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_02.png",
+              "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_03.png",
+              "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_04.png"
+            ],
+            "borde": {
+              "recurso": "assets/imagenes/mundo/sala_guerra/cenital/borde_pared.png",
+              "recursoEsquinaInterior": "assets/imagenes/mundo/sala_guerra/cenital/esquina_interior_pared.png",
+              "color": "#a39278",
+              "colorLuz": "#d0c2ac",
+              "colorSombra": "#514539",
+              "grosor": 5,
+              "grosorLuz": 1,
+              "opacidad": 0.95,
+              "opacidadLuz": 0.68,
+              "opacidadSombra": 0.34
+            },
+            "sombraContacto": {
+              "habilitada": true,
+              "recurso": "assets/imagenes/mundo/sala_guerra/cenital/sombra_contacto_pared.png",
+              "color": "#110d09",
+              "grosor": 4,
+              "margen": 2,
+              "opacidad": 0.18,
+              "opacidadSecundaria": 0.08,
+              "opacidadEsquina": 0.22
+            }
+          },
+          "decoracion": {
+            "densidad": 0.06,
+            "colorHumedad": "#5a5044",
+            "colorReflejo": "#c6baa5",
+            "colorMetal": "#6f685b",
+            "colorOxido": "#8a5c39",
+            "colorEscombro": "#998d7a",
+            "colorMancha": "#282119"
+          },
+          "sombras": {
+            "color": "#070503",
+            "opacidadMuros": 0.32,
+            "opacidadEntidades": 0.38
+          },
+          "grilla": {
+            "opacidadSuelo": 0.14,
+            "opacidadPared": 0.06
+          },
+          "iluminacion": {
+            "colorAmbiente": "#5b4a32",
+            "colorSombraAmbiente": "#110c08",
+            "colorJugador": "#efcf81",
+            "intensidad": 0.08
+          }
+        }
       },
       "dimensiones": {
         "ancho": {

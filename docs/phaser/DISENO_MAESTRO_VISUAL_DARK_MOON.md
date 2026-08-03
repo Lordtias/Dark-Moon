@@ -1711,3 +1711,13 @@ La meta es:
 Toda decisión visual futura debe responder primero:
 
 > ¿Mejora la comprensión, la atmósfera o la satisfacción del jugador sin romper la lectura táctica?
+
+## V-021 — Terrenos por símbolo y familias visuales de bioma
+
+Phaser no debe asumir un único suelo por mapa. La ciudad usa varios símbolos lógicos (`.`, `,`, `=` y `:`) y cada uno puede apuntar a una familia visual propia sin alterar caminabilidad ni la matriz canónica. P5.3 extiende esta regla a todos los biomas mediante una resolución gráfica de terrenos por símbolo y una configuración visual por mapa.
+
+Cada bioma debe disponer de una familia coherente de recursos ambientales: variaciones de piso, masas continuas de pared, borde expuesto, esquina interior y sombra de contacto. El borde y la sombra pertenecen al lenguaje del bioma, no a una implementación fija de Alcantarilla.
+
+## V-022 — Secuencia de cierre visual de P5
+
+P5.3 cubre únicamente el mundo ambiental y la expansión de biomas. Los PNG cenitales definitivos de jugador, enemigos, barril, botín y NPC pueden incorporarse en un commit posterior (`P5.3Especial`) sin volver a tocar el dominio. P5.4 será la validación integral del corte visual de todo P5: terrenos, entidades, props, transiciones, cámara, combate, habilidades y regresión Canvas 2D.

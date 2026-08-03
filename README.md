@@ -1574,6 +1574,8 @@ El modo `?render=phaser` utiliza actualmente:
 
 Los PNG cenitales definitivos de jugador, enemigos, barril y botín todavía deben reemplazarse o incorporarse por sus rutas existentes. P5.2 prepara únicamente el comportamiento técnico; no crea assets ni agrega `aparienciaVisual` al dominio.
 
+P5.3 amplía el mismo enfoque al resto del mundo: Phaser ahora puede resolver suelos por símbolo de casilla, por lo que la ciudad soporta adoquín, césped, madera y tierra dentro del mismo mapa, y cada bioma dispone de su propia familia de pisos, masas de pared, bordes, esquinas internas y sombras de contacto. Los PNG cenitales definitivos de entidades quedarán para el commit posterior `P5.3Especial` y su validación integral corresponderá a P5.4.
+
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
 
 ### Lo que Phaser no debe contener

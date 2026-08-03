@@ -14,6 +14,12 @@ import {
   resolverCasillaSueloAutotiling,
 } from "../mapas/ResolutorAutotilingParedes.js";
 import {
+  crearPredicadoParedTerrenos,
+  normalizarConfiguracionTerrenosMapa,
+  obtenerRutasRecursosTerreno,
+  resolverCasillaTerreno,
+} from "../mapas/ResolutorTerrenosMapa.js";
+import {
   calcularPresentacionEntidadPhaser,
   CONFIGURACION_ENTIDADES_PHASER,
   obtenerEstiloRespaldoEntidadPhaser,
@@ -110,12 +116,16 @@ export class CompositorMundoPhaser {
   }
 
   precargarRecursos(escenaDarkMoon) {
-    const aparienciaPhaser = escenaDarkMoon.mapa.apariencia?.phaser ?? {};
+    const apariencia = escenaDarkMoon.mapa.apariencia ?? {};
+    const aparienciaPhaser = apariencia.phaser ?? {};
     const configuracionPared = normalizarConfiguracionAutotilingPared(
       aparienciaPhaser.pared,
     );
+    const configuracionTerrenos = normalizarConfiguracionTerrenosMapa(
+      apariencia,
+    );
     const rutas = [
-      ...(aparienciaPhaser.suelo?.recursos ?? []),
+      ...obtenerRutasRecursosTerreno(configuracionTerrenos),
       ...obtenerRutasRecursosPared(configuracionPared),
       ...(escenaDarkMoon.entidades ?? []).map(
         (entidad) => entidad.recursoVisual,
@@ -133,9 +143,10 @@ export class CompositorMundoPhaser {
     const mapa = this.escenaDarkMoon.mapa.casillas;
     const apariencia = this.escenaDarkMoon.mapa.apariencia ?? {};
     const aparienciaPhaser = apariencia.phaser ?? {};
-    const rutasSuelo = normalizarListaRutas(
-      aparienciaPhaser.suelo?.recursos,
+    const configuracionTerrenos = normalizarConfiguracionTerrenosMapa(
+      apariencia,
     );
+    const esParedTerreno = crearPredicadoParedTerrenos(configuracionTerrenos);
     const configuracionPared = normalizarConfiguracionAutotilingPared(
       aparienciaPhaser.pared,
     );
@@ -161,7 +172,14 @@ export class CompositorMundoPhaser {
 
     for (let y = 0; y < this.geometria.filas; y++) {
       for (let x = 0; x < this.geometria.columnas; x++) {
-        const esPared = mapa[y][x] === "#";
+        const simboloCasilla = mapa[y][x];
+        const resolucionTerreno = resolverCasillaTerreno({
+          configuracion: configuracionTerrenos,
+          simbolo: simboloCasilla,
+          x,
+          y,
+        });
+        const esPared = resolucionTerreno.esPared;
         const pixelX =
           this.geometria.origenX + x * TAMANO_CASILLA_REFERENCIA;
         const pixelY =
@@ -172,11 +190,12 @@ export class CompositorMundoPhaser {
               x,
               y,
               configuracion: configuracionPared,
+              esPared: esParedTerreno,
             })
           : null;
         const ruta = esPared
           ? resolucionPared.recursoBase
-          : elegirRutaDeterminista(rutasSuelo, x, y);
+          : resolucionTerreno.rutaBase;
         const claveTextura = esPared
           ? this.gestorRecursos.obtener(ruta) ??
             this.gestorRecursos.obtener(configuracionPared.recurso)
@@ -198,7 +217,7 @@ export class CompositorMundoPhaser {
           imagen.setAlpha(esPared ? 0.98 : 1);
           this.capaTerreno.add(imagen);
         } else {
-          respaldos.fillStyle(esPared ? colorPared : colorSuelo, 1);
+          respaldos.fillStyle(resolucionTerreno.color ?? (esPared ? colorPared : colorSuelo), 1);
           respaldos.fillRect(
             pixelX,
             pixelY,
@@ -234,6 +253,7 @@ export class CompositorMundoPhaser {
           x,
           y,
           configuracion: configuracionPared,
+          esPared: esParedTerreno,
         });
         this.dibujarSombraContactoSuelo({
           graficos: sombrasContacto,
@@ -1139,25 +1159,10 @@ function convertirColor(valor, respaldo) {
   return Number.parseInt(valor.slice(1), 16);
 }
 
-function elegirRutaDeterminista(rutas, x, y) {
-  if (rutas.length === 0) return null;
-  const hash = obtenerHashCasilla(x, y);
-  return rutas[hash % rutas.length];
-}
-
 function obtenerHashCasilla(x, y) {
   return Math.abs(
     Math.imul(x + 17, 73856093) ^ Math.imul(y + 31, 19349663),
   );
-}
-
-function normalizarListaRutas(rutas) {
-  if (!Array.isArray(rutas)) return [];
-  return rutas.map(normalizarRuta).filter(Boolean);
-}
-
-function normalizarRuta(ruta) {
-  return typeof ruta === "string" && ruta.trim() !== "" ? ruta.trim() : null;
 }
 
 function compararEntidades(a, b) {

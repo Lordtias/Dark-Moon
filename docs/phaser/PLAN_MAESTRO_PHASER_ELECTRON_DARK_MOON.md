@@ -860,12 +860,19 @@ P5.1 no cierra P5 completa. Su resultado debe aprobar primero el lenguaje visual
 
 P5.2 prepara el contrato técnico para recibir los assets cenitales definitivos. Los recursos heredados pueden verse transitoriamente distintos porque Phaser ya aplica la colocación cenital global, pero la lógica jugable y Canvas 2D permanecen sin cambios.
 
-#### P5.3 — Expansión a todos los mapas y cierre de P5
+#### P5.3 — Expansión ambiental a todos los mapas
 
-- incorporar los assets cenitales definitivos;
-- configurar el resto de biomas mediante el autotiling reusable;
-- validar ciudad, mapas normales y mapas especiales;
-- comprobar entidades, props, transiciones, cámara, combate, habilidades, guardado y regresión Canvas 2D;
+- incorporar soporte Phaser para múltiples símbolos de terreno dentro de un mismo mapa;
+- configurar ciudad, mapas normales y mapas especiales mediante el mismo autotiling reusable;
+- agregar recursos ambientales propios para cada bioma: pisos, masas de pared, bordes, esquinas internas y sombras de contacto;
+- validar terreno, transiciones, cámara, selección, guardado y regresión Canvas 2D;
+- dejar los PNG cenitales definitivos de entidades para el commit posterior `P5.3Especial`.
+
+#### P5.4 — Validación integral y cierre de P5
+
+- integrar y revisar los PNG cenitales definitivos de jugador, enemigos, barril, botín y NPC;
+- comprobar centrado, tamaño, transparencia y lectura táctica de todos los recursos;
+- validar ciudad, mapas normales, mapas especiales, jefe, props, transiciones, cámara, combate, habilidades, guardado y regresión Canvas 2D;
 - cerrar P5 completa sin cambiar resultados canónicos.
 
 ### No incluye
@@ -883,11 +890,15 @@ Alcantarilla muestra piso y paredes cenitales continuas, bordes correctos según
 
 ### Criterio de cierre de P5.2
 
-Phaser centra entidades por el centro visible del PNG, conserva su relación de aspecto, calcula sombras cenitales y mantiene `recursoVisual` como único dato visual del dominio. No se modifican clases jugables, persistencia ni Canvas 2D. Los PNG definitivos quedan pendientes para P5.3.
+Phaser centra entidades por el centro visible del PNG, conserva su relación de aspecto, calcula sombras cenitales y mantiene `recursoVisual` como único dato visual del dominio. No se modifican clases jugables, persistencia ni Canvas 2D. Los PNG definitivos quedan pendientes para `P5.3Especial` y su revisión global para P5.4.
+
+### Criterio de cierre de P5.3
+
+Todos los mapas existentes cuentan con configuración ambiental Phaser, la ciudad puede resolver varios suelos por símbolo de casilla y cada bioma dispone de su propio piso, masa de pared, borde y sombra de contacto sin alterar generación, conectividad ni reglas canónicas.
 
 ### Criterio de cierre de P5 completa
 
-Todos los mapas existentes pueden jugarse con Phaser sin cambiar sus resultados.
+Todos los mapas existentes pueden jugarse con Phaser sin cambiar sus resultados y con los PNG cenitales definitivos de entidades ya validados.
 
 ---
 

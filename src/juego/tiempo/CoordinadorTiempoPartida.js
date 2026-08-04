@@ -1,5 +1,6 @@
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
+import { asociarEjecucionTemporalAEventos } from "../acciones/EventosAccion.js";
 import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
 import {
@@ -364,15 +365,13 @@ export class CoordinadorTiempoPartida {
       mensaje: resultado.mensaje,
       tipoAccion,
       costoBase,
+      eventos: resultado.eventos ?? [],
     });
     return {
       ...resultado,
       ...resultadoTemporal,
       exito: true,
-      eventos: [
-        ...(resultado.eventos ?? []),
-        ...(resultadoTemporal.eventos ?? []),
-      ],
+      eventos: resultadoTemporal.eventos ?? [],
     };
   }
   sincronizarEnemigosConAgenda() {
@@ -643,15 +642,22 @@ export class CoordinadorTiempoPartida {
           this.notificarMovimientoActor(movimiento),
       });
       acumulado.mensajes.push(...resultadoEnemigo.mensajes);
-      acumulado.eventos.push(...(resultadoEnemigo.eventos ?? []));
-      this.extraerEventosCombateEn(acumulado);
+      let eventosAccionEnemigo = resultadoEnemigo.eventos ?? [];
       if (enemigo.estaVivo) {
-        this.sistemaTiempo.registrarAccion({
+        const ejecucionTemporal = this.sistemaTiempo.registrarAccion({
           actor: enemigo,
           tipoAccion: resultadoEnemigo.tipoAccion,
           costoBase: resultadoEnemigo.costoBase,
         });
-      } else {
+        eventosAccionEnemigo = asociarEjecucionTemporalAEventos({
+          eventos: eventosAccionEnemigo,
+          actor: enemigo,
+          ejecucionTemporal,
+        });
+      }
+      acumulado.eventos.push(...eventosAccionEnemigo);
+      this.extraerEventosCombateEn(acumulado);
+      if (!enemigo.estaVivo) {
         this.eliminarActor(enemigo, {
           motivoCombate: "enemigo_derrotado",
         });
@@ -702,10 +708,15 @@ export class CoordinadorTiempoPartida {
     if (actorActual !== this.jugador) {
       throw new Error("El jugador intentó actuar fuera de su turno temporal.");
     }
-    this.sistemaTiempo.registrarAccion({
+    const ejecucionTemporal = this.sistemaTiempo.registrarAccion({
       actor: this.jugador,
       tipoAccion,
       costoBase,
+    });
+    const eventosAccionJugador = asociarEjecucionTemporalAEventos({
+      eventos,
+      actor: this.jugador,
+      ejecucionTemporal,
     });
     const resultadoTemporal = this.procesarHastaTurnoJugador();
     const mensajes = [mensaje, ...resultadoTemporal.mensajes];
@@ -720,7 +731,7 @@ export class CoordinadorTiempoPartida {
       mensaje: mensajes.filter(Boolean).join("\n"),
       turnoConsumido: true,
       redibujar: true,
-      eventos: [...eventos, ...resultadoTemporal.eventos],
+      eventos: [...eventosAccionJugador, ...resultadoTemporal.eventos],
     };
   }
 

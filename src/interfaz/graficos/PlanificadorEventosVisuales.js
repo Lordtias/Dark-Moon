@@ -2,6 +2,7 @@ import {
   TIPOS_EVENTO_ACCION,
 } from "../../juego/acciones/EventosAccion.js";
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
+import { crearPlanRitmoVisualAtaque } from "./PlanificadorRitmoVisual.js";
 import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
 
 export const TIPOS_EVENTO_VISUAL = Object.freeze({
@@ -61,6 +62,7 @@ function agregarMovimiento(plan, evento, entidadesPorId) {
       tipoEntidad: entidadVisual?.tipo ?? null,
       origen: copiarPosicion(evento.origen),
       destino: copiarPosicion(evento.destino),
+      ejecucionTemporal: evento.ejecucionTemporal ?? null,
     }),
   );
 }
@@ -74,6 +76,11 @@ function agregarAtaque(plan, evento, entidadesPorId) {
   if (!idAtacante || !evento.resultado) {
     return;
   }
+
+  const ritmoVisual = crearPlanRitmoVisualAtaque({
+    configuracionAtaque: evento.configuracionAtaque,
+    ejecucionTemporal: evento.ejecucionTemporal,
+  });
 
   plan.push(
     Object.freeze({
@@ -91,6 +98,8 @@ function agregarAtaque(plan, evento, entidadesPorId) {
         ? copiarPosicion(evento.posicionObjetivo)
         : null,
       configuracionAtaque: evento.configuracionAtaque ?? null,
+      ejecucionTemporal: evento.ejecucionTemporal ?? null,
+      ritmoVisual,
       estadoObjetivoFinal: evento.estadoObjetivoFinal ?? null,
       resultado: evento.resultado,
     }),

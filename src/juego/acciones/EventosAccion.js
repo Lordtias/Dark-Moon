@@ -61,8 +61,81 @@ export function crearEventoAtaqueResuelto({
       ? copiarPosicion(posicionFinalObjetivo)
       : null,
     configuracionAtaque: copiarConfiguracionAtaque(configuracionAtaque),
+    ejecucionTemporal: null,
     estadoObjetivoFinal,
     resultado: copiarResultadoAtaque(resultado, estadoObjetivoFinal),
+  });
+}
+
+export function asociarEjecucionTemporalAEventos({
+  eventos = [],
+  actor,
+  ejecucionTemporal,
+} = {}) {
+  if (!Array.isArray(eventos)) {
+    throw new Error("La asociación temporal necesita una lista de eventos.");
+  }
+  if (!actor || typeof actor !== "object") {
+    throw new Error("La asociación temporal necesita un actor válido.");
+  }
+  if (
+    !ejecucionTemporal ||
+    typeof ejecucionTemporal !== "object" ||
+    ejecucionTemporal.actor !== actor
+  ) {
+    throw new Error(
+      "La ejecución temporal debe pertenecer al actor de la acción.",
+    );
+  }
+
+  const copiaEjecucion = copiarEjecucionTemporal(ejecucionTemporal);
+
+  return eventos.map((evento) => {
+    if (obtenerActorPrincipalEvento(evento) !== actor) {
+      return evento;
+    }
+
+    return Object.freeze({
+      ...evento,
+      ejecucionTemporal: copiaEjecucion,
+    });
+  });
+}
+
+function obtenerActorPrincipalEvento(evento) {
+  switch (evento?.tipo) {
+    case TIPOS_EVENTO_ACCION.ENTIDAD_MOVIDA:
+      return evento.entidad ?? null;
+    case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
+      return evento.atacante ?? null;
+    default:
+      return evento?.actor ?? null;
+  }
+}
+
+function copiarEjecucionTemporal(ejecucionTemporal) {
+  const tipoAccion = normalizarTexto(ejecucionTemporal.tipoAccion);
+  const costoBase = normalizarEnteroPositivo(ejecucionTemporal.costoBase);
+  const costoFinal = normalizarEnteroPositivo(ejecucionTemporal.costoFinal);
+  const inicioAccion = normalizarEnteroNoNegativo(
+    ejecucionTemporal.inicioAccion,
+  );
+  const proximoTurno = normalizarEnteroNoNegativo(
+    ejecucionTemporal.proximoTurno,
+  );
+
+  if (tipoAccion === null || costoBase === null || costoFinal === null) {
+    throw new Error(
+      "La ejecución temporal necesita tipo de acción y costos válidos.",
+    );
+  }
+
+  return Object.freeze({
+    tipoAccion,
+    costoBase,
+    costoFinal,
+    inicioAccion,
+    proximoTurno,
   });
 }
 
@@ -149,6 +222,8 @@ function copiarConfiguracionAtaque(configuracion) {
           nombreFuente:
             typeof fuente?.nombre === "string" ? fuente.nombre : null,
           mano: typeof fuente?.mano === "string" ? fuente.mano : null,
+          familiaObjeto: normalizarTexto(fuente?.objeto?.familiaObjeto),
+          esAtaqueNatural: fuente?.objeto === null,
           tipoAtaque: normalizarTexto(propiedadesFuente.tipoAtaque),
           patronAtaque: normalizarTexto(propiedadesFuente.patronAtaque),
           alcance: normalizarEnteroPositivo(propiedadesFuente.alcance),

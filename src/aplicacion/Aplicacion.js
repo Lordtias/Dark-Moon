@@ -8,11 +8,13 @@ import {
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
+  cargarPerfilesAtaquePorFamilia,
 } from "../juego/configuracion/CargadorConfiguracion.js";
 import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
 import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
 import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
+import { configurarPerfilesAtaquePorFamilia } from "../interfaz/graficos/ContextoPerfilesAtaquePorFamilia.js";
 import { ControladorPartida } from "./ControladorPartida.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
@@ -32,6 +34,7 @@ export class Aplicacion {
     this.configuracionCiudad = null;
     this.configuracionComercio = null;
     this.configuracionProgresoMagico = null;
+    this.configuracionPresentacionCombate = null;
   }
 
   async iniciar() {
@@ -72,6 +75,7 @@ export class Aplicacion {
       configuracionCiudad,
       configuracionComercio,
       configuracionProgresoMagico,
+      perfilesAtaquePorFamilia,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
@@ -81,12 +85,18 @@ export class Aplicacion {
       cargarConfiguracionCiudad(),
       cargarConfiguracionComercio(),
       cargarYConfigurarProgresoMagico(),
+      cargarPerfilesAtaquePorFamilia(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
     this.configuracionObjetos =
       validarCatalogoCatalizadores(configuracionObjetos);
+    this.configuracionPresentacionCombate =
+      configurarPerfilesAtaquePorFamilia({
+        configuracion: perfilesAtaquePorFamilia,
+        configuracionObjetos: this.configuracionObjetos,
+      });
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
     this.configuracionMapas = configuracionMapas;
     this.configuracionCiudad = configuracionCiudad;

@@ -35,6 +35,9 @@ const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
 
 const RUTA_CONFIGURACION_COMERCIO = "./src/config/comercio/Comercio.json";
 
+const RUTA_PERFILES_ATAQUE_POR_FAMILIA =
+  "./src/config/presentacion/PerfilesAtaquePorFamilia.json";
+
 // Catálogos que describen rarezas y afijos.
 //
 // Se cargan separados de las plantillas de objetos porque:
@@ -223,6 +226,13 @@ export async function cargarConfiguracionComercio() {
   );
 
   return validarConfiguracionComercio(configuracion);
+}
+
+export function cargarPerfilesAtaquePorFamilia() {
+  return cargarArchivoJson(
+    RUTA_PERFILES_ATAQUE_POR_FAMILIA,
+    "los perfiles de ataque por familia",
+  );
 }
 
 // Une los catálogos conservando el formato

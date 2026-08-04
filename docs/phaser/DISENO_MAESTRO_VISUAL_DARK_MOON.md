@@ -1761,3 +1761,15 @@ El lenguaje visual inicial es:
 La barra de Vida de enemigos debe descender durante cada golpe utilizando únicamente la Vida anterior y posterior derivadas del resultado canónico. La barra del jugador dentro de los paneles HTML continúa mostrando el estado final inmediato hasta la coordinación completa de P6.4.
 
 Los textos y símbolos deben conservar lectura a zoom mínimo, tener duración limitada y evitar que varios resultados se superpongan exactamente. Los efectos reducidos pueden omitir marcas decorativas, pero deben conservar las palabras y números necesarios para comprender el resultado.
+
+## V-027 — Ritmo autoritativo y perfiles por familia
+
+La velocidad percibida de cualquier ataque debe derivarse del `costoFinal` que `SistemaTiempo` ya registró para esa acción. Phaser no consulta nuevamente factores del combatiente, no reconstruye el coste de cada arma y no mantiene ecuaciones separadas para ataques simples, duales, naturales o a distancia.
+
+La única conversión de presentación transforma el coste final canónico en una duración visual total con límites de legibilidad. Las secuencias distribuyen esa duración mediante proporciones configurables: `simple`, `dual`, `estocada` y `proyectil`. Una secuencia dual obtiene su pausa entre manos como una fase de la misma duración total, no mediante una segunda fórmula.
+
+`src/config/presentacion/PerfilesAtaquePorFamilia.json` es el catálogo canónico de presentación ofensiva. Su sección `familias` se conecta exclusivamente con `Armas.json.familiaObjeto`. Cada perfil define forma, tamaño, sentido, escala, amplitud y avance visual, además de campos reservados para futuros identificadores de sonido. No define daño, alcance, coste, factores de velocidad ni reglas jugables.
+
+Los enemigos siguen el mismo contrato que el jugador. Un enemigo equipado utiliza el perfil completo de cada objeto y, si realiza un ataque dual, la misma secuencia y el mismo ritmo canónico. Un enemigo sin arma utiliza el fallback `ataque_natural`; nunca se selecciona una animación por nombre visible del enemigo.
+
+La validación de arranque debe rechazar familias de armas sin perfil y perfiles que no estén conectados con ninguna familia real. El fallback de familia desconocida existe para proteger la ejecución, pero no debe ocultar una configuración incompleta durante el arranque.

@@ -5,7 +5,7 @@ Plan: Integración progresiva de Phaser, beta y Electron
 Etapa: P6.2A — Resultados visuales del combate  
 Base usada: `687ef42d363c308063ef5ab5f0d0b3ae8f425211`  
 Rama: `main`  
-Estado: Implementada y validada técnicamente; pendiente de prueba manual y commit por el usuario
+Estado: Cerrada, validada manualmente y publicada
 
 ---
 
@@ -678,16 +678,16 @@ ETAPA CERRADA:
 P6.2A — Resultados visuales del combate
 
 ESTADO:
-Pausada hasta validación manual y commit
+Cerrada
 
 COMMIT BASE:
 687ef42d363c308063ef5ab5f0d0b3ae8f425211
 
 HEAD FINAL VERIFICADO:
-687ef42d363c308063ef5ab5f0d0b3ae8f425211
+cc88ed0b5c347e10cd665dcebefe6fb667cf54cb
 
 GIT STATUS FINAL:
-Implementación y documentación de P6.2A presentes sin commit. Completar con el estado exacto después de la validación final.
+Commit confirmado y publicado. La siguiente etapa debe verificar nuevamente el ZIP completo.
 
 DOCUMENTO DE ENTREGA:
 docs/phaser/entregas/ENTREGA_P6_2_A.md
@@ -720,30 +720,29 @@ PRUEBAS CLAVE SUPERADAS:
 - cancelación segura del feedback;
 - 172 JavaScript, 21 JSON y 381 imports relativos validados;
 - recursos principales servidos por HTTP 200;
-- prueba manual interactiva pendiente.
+- prueba manual interactiva superada.
 
 PROBLEMAS O RIESGOS PENDIENTES:
-- prueba manual interactiva;
 - panel HTML del jugador muestra la Vida final inmediatamente;
 - pulso ofensivo todavía provisional;
 - Chromium headless puede no completar el arranque en el entorno de trabajo.
 
 DECISIONES APROBADAS:
-- P6.2 se divide en P6.2A, P6.2B y P6.2C con commit propio;
+- P6.2 continúa mediante P6.2B.1, P6.2B.2, P6.2C y P6.2D con commit propio;
 - daño se muestra por golpe sin total duplicado;
 - fallo, bloqueo y crítico tienen señales diferenciadas;
 - ataques básicos de varitas se tratarán en P6.2C;
 - P6.1 se corrige documentalmente dentro de P6.2A.
 
 DECISIONES QUE SIGUEN ABIERTAS:
-- ajustes de tamaño, duración y posición después de la prueba manual;
-- ritmo físico final de cuerpo a cuerpo en P6.2B.
+- ritmo físico final de cuerpo a cuerpo en P6.2B.2;
+- proyectiles en P6.2C y consumibles en P6.2D.
 
 SIGUIENTE ETAPA RECOMENDADA:
-P6.2B — Ataques cuerpo a cuerpo
+P6.2B.1 — Contrato temporal final y perfiles por familia
 
 OBJETIVO DE LA SIGUIENTE ETAPA:
-Reemplazar el pulso provisional por preparación, avance, impacto y retorno para ataques adyacentes, lineales y duales, sin modificar posiciones lógicas.
+Transmitir el costo final realmente registrado y configurar secuencias y perfiles visuales conectados por familiaObjeto, sin cambiar todavía las animaciones definitivas.
 
 PRIMEROS ARCHIVOS A REVISAR:
 - src/juego/acciones/EventosAccion.js

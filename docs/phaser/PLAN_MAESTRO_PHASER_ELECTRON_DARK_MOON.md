@@ -992,12 +992,14 @@ Los movimientos del jugador y los enemigos se reproducen en orden sobre identida
 P6.2 se divide en cierres independientes con commit propio:
 
 1. `P6.2A` — resultados visuales del combate;
-2. `P6.2B` — ataques cuerpo a cuerpo;
-3. `P6.2C` — proyectiles y cierre de P6.2.
+2. `P6.2B.1` — contrato temporal final y perfiles por familia;
+3. `P6.2B.2` — animaciones cuerpo a cuerpo por familia;
+4. `P6.2C` — arcos, varitas y proyectiles;
+5. `P6.2D` — consumibles, recuperación visual y cierre de P6.2.
 
 #### P6.2A — Resultados visuales del combate
 
-Estado: implementada y validada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `cc88ed0b5c347e10cd665dcebefe6fb667cf54cb`.
 
 P6.2A amplía el evento `ataque_resuelto` sin modificar `SistemaCombate`:
 
@@ -1017,6 +1019,28 @@ Los paneles HTML continúan mostrando inmediatamente el estado canónico final. 
 ### Criterio de cierre de P6.2A
 
 Daño, fallo, bloqueo y crítico son distinguibles para ataques del jugador y enemigos; los golpes duales se muestran individualmente y solamente cuando ocurrieron; la barra de Vida enemiga desciende golpe por golpe; los ataques a casillas vacías no generan feedback falso; el sistema canónico, la agenda temporal, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin cambios de reglas.
+
+#### P6.2B.1 — Contrato temporal final y perfiles por familia
+
+Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+
+P6.2B.1 establece la infraestructura canónica que utilizarán todas las animaciones de ataque:
+
+- `SistemaTiempo` continúa siendo el único sistema que calcula `costoFinal`;
+- `CoordinadorTiempoPartida` conserva el resultado exacto de `registrarAccion()` y lo asocia con los eventos pertenecientes al actor;
+- jugador y enemigos utilizan el mismo flujo, incluso cuando un enemigo equipa una o dos armas;
+- `ataque_resuelto` copia `familiaObjeto` por fuente y distingue el fallback `ataque_natural`;
+- `PlanificadorRitmoVisual` convierte una sola vez `costoFinal` en duración visual total;
+- las fases se distribuyen mediante proporciones configurables que siempre suman uno;
+- `PerfilesAtaquePorFamilia.json` une las familias de `Armas.json` con forma, tamaño, sentido, avance visual y futuros identificadores de sonido;
+- las familias no incluyen multiplicadores de velocidad ni ecuaciones temporales;
+- el arranque valida que todas las familias de armas tengan un perfil y que no existan perfiles desconectados;
+- el mismo catálogo ya contiene las secuencias `simple`, `dual`, `estocada` y `proyectil`;
+- las animaciones definitivas no cambian todavía y quedan para P6.2B.2 y P6.2C.
+
+### Criterio de cierre de P6.2B.1
+
+Cada ataque del jugador o enemigo conserva el `costoFinal` realmente registrado; el plan visual obtiene una duración y fases coherentes sin recalcular factores; todas las familias de `Armas.json` están conectadas con un perfil; ataque natural y familia desconocida disponen de fallback; no cambian combate, agenda, persistencia, Canvas 2D ni Phaser 4.2.1.
 
 ### Criterio de cierre de P6 completa
 

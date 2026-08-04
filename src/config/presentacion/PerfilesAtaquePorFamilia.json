@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "ritmoVisual": {
+    "milisegundosPorUnidadTemporal": 4,
+    "duracionMinimaMs": 220,
+    "duracionMaximaMs": 720
+  },
+  "secuencias": {
+    "simple": {
+      "preparacion": 0.2,
+      "accion": 0.45,
+      "retorno": 0.35
+    },
+    "dual": {
+      "preparacion": 0.15,
+      "golpePrincipal": 0.28,
+      "pausaEntreManos": 0.09,
+      "golpeSecundario": 0.28,
+      "retorno": 0.2
+    },
+    "estocada": {
+      "preparacion": 0.2,
+      "avance": 0.25,
+      "estocada": 0.3,
+      "retorno": 0.25
+    },
+    "proyectil": {
+      "preparacion": 0.25,
+      "lanzamiento": 0.15,
+      "trayectoria": 0.4,
+      "retorno": 0.2
+    }
+  },
+  "familias": {
+    "daga": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "corte",
+        "tamano": "corto",
+        "sentido": "horario",
+        "escala": 0.55,
+        "amplitudGrados": 55,
+        "avanceCasilla": 0.24
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "espada": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "corte",
+        "tamano": "medio",
+        "sentido": "horario",
+        "escala": 0.82,
+        "amplitudGrados": 85,
+        "avanceCasilla": 0.3
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "hacha": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "corte",
+        "tamano": "medio",
+        "sentido": "antihorario",
+        "escala": 0.88,
+        "amplitudGrados": 75,
+        "avanceCasilla": 0.3
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "mandoble": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "corte",
+        "tamano": "grande",
+        "sentido": "horario",
+        "escala": 1.25,
+        "amplitudGrados": 120,
+        "avanceCasilla": 0.34
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "baston": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "golpe",
+        "tamano": "grande",
+        "sentido": "frontal",
+        "escala": 1.1,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0.32
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "lanza": {
+      "secuencia": "estocada",
+      "animacion": {
+        "tipo": "estocada",
+        "tamano": "lineal",
+        "sentido": "frontal",
+        "escala": 1,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0.18
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "arco": {
+      "secuencia": "proyectil",
+      "animacion": {
+        "tipo": "flecha",
+        "tamano": "medio",
+        "sentido": "frontal",
+        "escala": 1,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "varita": {
+      "secuencia": "proyectil",
+      "animacion": {
+        "tipo": "proyectil_elemental",
+        "tamano": "medio",
+        "sentido": "frontal",
+        "escala": 1,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    }
+  },
+  "fallbacks": {
+    "ataque_natural": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "golpe",
+        "tamano": "corto",
+        "sentido": "frontal",
+        "escala": 0.65,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0.27
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    },
+    "familia_desconocida": {
+      "secuencia": "simple",
+      "animacion": {
+        "tipo": "golpe",
+        "tamano": "medio",
+        "sentido": "frontal",
+        "escala": 0.8,
+        "amplitudGrados": 0,
+        "avanceCasilla": 0.28
+      },
+      "sonido": {
+        "preparacion": null,
+        "ataque": null,
+        "impacto": null
+      }
+    }
+  }
+}

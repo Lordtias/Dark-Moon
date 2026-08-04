@@ -129,6 +129,44 @@ export class CompositorMundoPhaser {
     return true;
   }
 
+  actualizarHostilidadEntidad(idVisual, estadoHostilidad) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (
+      !nodo?.contenedor ||
+      nodo.entidad?.tipo !== TIPOS_ENTIDAD_VISUAL.ENEMIGO ||
+      !Object.values(ESTADOS_HOSTILIDAD_VISUAL).includes(estadoHostilidad)
+    ) {
+      return false;
+    }
+
+    if (estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO) {
+      if (!nodo.indicadorAgresividad) {
+        nodo.indicadorAgresividad = this.agregarAgresividad(nodo.contenedor);
+      }
+    } else if (nodo.indicadorAgresividad) {
+      nodo.indicadorAgresividad.destroy?.();
+      nodo.indicadorAgresividad = null;
+    }
+
+    nodo.entidad = {
+      ...nodo.entidad,
+      estadoHostilidad,
+    };
+    return true;
+  }
+
+  retirarEntidadVisual(idVisual) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (!nodo) {
+      return false;
+    }
+
+    nodo.contenedor?.destroy?.(true);
+    nodo.sombra?.destroy?.();
+    this.nodosEntidades.delete(idVisual);
+    return true;
+  }
+
   agregarEfectoTemporal(objetoVisual) {
     if (!objetoVisual || !this.capaEfectos) {
       return false;
@@ -876,12 +914,11 @@ export class CompositorMundoPhaser {
         });
       }
 
-      if (
+      const indicadorAgresividad =
         entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
         entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
-      ) {
-        this.agregarAgresividad(contenedor);
-      }
+          ? this.agregarAgresividad(contenedor)
+          : null;
 
       const barraVida =
         entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
@@ -896,6 +933,7 @@ export class CompositorMundoPhaser {
           entidad,
           contenedor,
           barraVida,
+          indicadorAgresividad,
         });
       }
     }
@@ -959,24 +997,30 @@ export class CompositorMundoPhaser {
   }
 
   agregarAgresividad(contenedor) {
-    const centroX = TAMANO_CASILLA_REFERENCIA / 2 - 6;
-    const centroY = -TAMANO_CASILLA_REFERENCIA / 2 + 9;
+    const configuracion =
+      CONFIGURACION_ENTIDADES_PHASER.indicadorAgresividad;
+    const indicador = this.escena.add.container(
+      configuracion.desplazamientoX,
+      configuracion.desplazamientoY,
+    );
     const graficos = this.escena.add.graphics();
     graficos.fillStyle(0x37080d, 0.95);
-    graficos.fillCircle(centroX, centroY, 6);
-    graficos.lineStyle(2, 0xff3f4d, 1);
-    graficos.strokeCircle(centroX, centroY, 6);
+    graficos.fillCircle(0, 0, configuracion.radio);
+    graficos.lineStyle(configuracion.grosorBorde, 0xff3f4d, 1);
+    graficos.strokeCircle(0, 0, configuracion.radio);
 
     const texto = this.escena.add
-      .text(centroX, centroY, "!", {
+      .text(0, 0, "!", {
         color: "#ffffff",
         fontFamily: "monospace",
-        fontSize: "10px",
+        fontSize: configuracion.tamanoTexto,
         fontStyle: "bold",
       })
       .setOrigin(0.5);
 
-    contenedor.add([graficos, texto]);
+    indicador.add([graficos, texto]);
+    contenedor.add(indicador);
+    return indicador;
   }
 
   agregarBarraVida(contenedor, entidad) {

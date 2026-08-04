@@ -6,6 +6,12 @@
 export const TIPOS_EVENTO_ACCION = Object.freeze({
   ENTIDAD_MOVIDA: "entidad_movida",
   ATAQUE_RESUELTO: "ataque_resuelto",
+  HOSTILIDAD_CAMBIADA: "hostilidad_cambiada",
+});
+
+export const ESTADOS_HOSTILIDAD_ACCION = Object.freeze({
+  PASIVO: "pasivo",
+  AGRESIVO: "agresivo",
 });
 
 export function crearEventoEntidadMovida({
@@ -67,6 +73,30 @@ export function crearEventoAtaqueResuelto({
   });
 }
 
+export function crearEventoHostilidadCambiada({
+  enemigo,
+  estadoAnterior,
+  estadoActual,
+  motivo = null,
+} = {}) {
+  validarEntidad(enemigo, "enemigo con cambio de hostilidad");
+  validarEstadoHostilidad(estadoAnterior, "anterior");
+  validarEstadoHostilidad(estadoActual, "actual");
+
+  if (estadoAnterior === estadoActual) {
+    throw new Error("El cambio de hostilidad necesita estados diferentes.");
+  }
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA,
+    enemigo,
+    estadoAnterior,
+    estadoActual,
+    motivo: normalizarTexto(motivo),
+    ejecucionTemporal: null,
+  });
+}
+
 export function asociarEjecucionTemporalAEventos({
   eventos = [],
   actor,
@@ -108,8 +138,17 @@ function obtenerActorPrincipalEvento(evento) {
       return evento.entidad ?? null;
     case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
       return evento.atacante ?? null;
+    case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
+      return evento.enemigo ?? null;
     default:
       return evento?.actor ?? null;
+  }
+}
+
+function validarEstadoHostilidad(estado, descripcion) {
+  const estadosValidos = Object.values(ESTADOS_HOSTILIDAD_ACCION);
+  if (!estadosValidos.includes(estado)) {
+    throw new Error(`El estado de hostilidad ${descripcion} no es válido.`);
   }
 }
 

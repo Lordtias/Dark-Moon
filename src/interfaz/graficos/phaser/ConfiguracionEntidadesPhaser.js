@@ -18,6 +18,13 @@ export const CONFIGURACION_ENTIDADES_PHASER = Object.freeze({
     altoMinimo: 4,
     altoMaximo: Math.round(TAMANO_CASILLA_REFERENCIA * 0.48),
   }),
+  indicadorAgresividad: Object.freeze({
+    desplazamientoX: TAMANO_CASILLA_REFERENCIA / 2 - 5,
+    desplazamientoY: -TAMANO_CASILLA_REFERENCIA / 2 + 10,
+    radio: 4,
+    grosorBorde: 1,
+    tamanoTexto: "8px",
+  }),
   respaldo: Object.freeze({
     tamano: 24,
   }),

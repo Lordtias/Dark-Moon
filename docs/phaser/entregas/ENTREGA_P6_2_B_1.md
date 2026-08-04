@@ -3,7 +3,7 @@
 Plan: Integración progresiva de Phaser, beta y Electron de Dark Moon  
 Etapa: P6.2B.1  
 Commit base: `cc88ed0b5c347e10cd665dcebefe6fb667cf54cb`  
-Estado: Implementada y validada técnicamente; pendiente de prueba manual y commit por el usuario
+Estado: Cerrada, validada manualmente y publicada en `d4a3b4f9e38b0f68da7c0b74ecd4a0f88c29b158`
 
 ## 1. Conclusión sencilla
 
@@ -30,7 +30,8 @@ Mantener esta infraestructura como base de P6.2B.2, P6.2C y etapas visuales post
 - rama: `main`;
 - HEAD: `cc88ed0b5c347e10cd665dcebefe6fb667cf54cb`;
 - estado inicial: limpio y alineado con `origin/main`;
-- commit y push: no realizados.
+- commit final confirmado: `d4a3b4f9e38b0f68da7c0b74ecd4a0f88c29b158`;
+- estado publicado: confirmado en `main`.
 
 ## 3. Alcance implementado
 

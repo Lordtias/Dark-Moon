@@ -2,6 +2,8 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   crearEventoAtaqueResuelto,
   crearEventoEntidadMovida,
+  crearEventoHostilidadCambiada,
+  ESTADOS_HOSTILIDAD_ACCION,
 } from "../acciones/EventosAccion.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
@@ -29,6 +31,7 @@ function actualizarAgresividad({
   retirarParticipanteCombate,
 }) {
   const mensajes = [];
+  const eventos = [];
   const distancia = calcularDistanciaCuadricula(enemigo, jugador);
   const { tipoAgresividad, percepcion } = enemigo.configuracionIA;
   const lineaVision = evaluarLineaVision({
@@ -45,17 +48,34 @@ function actualizarAgresividad({
     enemigo.activarAgresividad();
     registrarParticipanteCombate(enemigo, "deteccion_con_persecucion");
     mensajes.push(`${enemigo.nombre} te ha detectado.`);
+    eventos.push(
+      crearEventoHostilidadCambiada({
+        enemigo,
+        estadoAnterior: ESTADOS_HOSTILIDAD_ACCION.PASIVO,
+        estadoActual: ESTADOS_HOSTILIDAD_ACCION.AGRESIVO,
+        motivo: "deteccion_con_persecucion",
+      }),
+    );
   }
 
   if (enemigo.estaAgresivo && distancia > enemigo.rangoPersecucion) {
     enemigo.desactivarAgresividad();
     retirarParticipanteCombate(enemigo, "perdida_de_persecucion");
     mensajes.push(`${enemigo.nombre} dejó de perseguirte.`);
+    eventos.push(
+      crearEventoHostilidadCambiada({
+        enemigo,
+        estadoAnterior: ESTADOS_HOSTILIDAD_ACCION.AGRESIVO,
+        estadoActual: ESTADOS_HOSTILIDAD_ACCION.PASIVO,
+        motivo: "perdida_de_persecucion",
+      }),
+    );
   }
 
   return {
     distancia,
     mensajes,
+    eventos,
   };
 }
 
@@ -210,6 +230,7 @@ export function procesarAccionEnemigo({
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
       mensajes,
+      eventos: resultadoAgresividad.eventos,
     });
   }
 
@@ -227,6 +248,7 @@ export function procesarAccionEnemigo({
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
       mensajes,
+      eventos: resultadoAgresividad.eventos,
     });
   }
 
@@ -252,6 +274,7 @@ export function procesarAccionEnemigo({
       costoBase: costoAtaque,
       mensajes,
       eventos: [
+        ...resultadoAgresividad.eventos,
         crearEventoAtaqueResuelto({
           atacante: enemigo,
           objetivo: jugador,
@@ -268,6 +291,7 @@ export function procesarAccionEnemigo({
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
       mensajes,
+      eventos: resultadoAgresividad.eventos,
     });
   }
 
@@ -291,6 +315,7 @@ export function procesarAccionEnemigo({
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
       mensajes,
       eventos: [
+        ...resultadoAgresividad.eventos,
         crearEventoEntidadMovida({
           entidad: enemigo,
           origen: resultadoMovimiento.origen,
@@ -305,5 +330,6 @@ export function procesarAccionEnemigo({
     tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
     costoBase: COSTOS_TEMPORALES_BASE.espera,
     mensajes,
+    eventos: resultadoAgresividad.eventos,
   });
 }

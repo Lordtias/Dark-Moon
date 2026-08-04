@@ -1,6 +1,10 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
-import { crearEventoAtaqueResuelto } from "../acciones/EventosAccion.js";
+import {
+  crearEventoAtaqueResuelto,
+  crearEventoHostilidadCambiada,
+  ESTADOS_HOSTILIDAD_ACCION,
+} from "../acciones/EventosAccion.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
@@ -326,6 +330,9 @@ export class SistemaCombateJugador {
       };
     }
 
+    const enemigoProvocado =
+      objetivo instanceof Enemigo && objetivo.estaAgresivo !== true;
+
     if (objetivo instanceof Enemigo) {
       this.registrarParticipanteCombate(objetivo, "intento_hostil_jugador");
       objetivo.activarAgresividad();
@@ -340,6 +347,17 @@ export class SistemaCombateJugador {
         configuracionAtaque,
       }),
     ];
+
+    if (enemigoProvocado && objetivo.estaDestruido !== true) {
+      eventos.push(
+        crearEventoHostilidadCambiada({
+          enemigo: objetivo,
+          estadoAnterior: ESTADOS_HOSTILIDAD_ACCION.PASIVO,
+          estadoActual: ESTADOS_HOSTILIDAD_ACCION.AGRESIVO,
+          motivo: "intento_hostil_jugador",
+        }),
+      );
+    }
 
     if (!objetivo.estaDestruido) {
       return {

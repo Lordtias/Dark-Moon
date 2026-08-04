@@ -727,9 +727,18 @@ export class SistemaEfectosTemporales {
       bloqueo: { activo: false, mitigacion: 0 },
     });
 
+    const vidaAntes = Number.isFinite(efecto.objetivo?.vidaActual)
+      ? Math.max(0, efecto.objetivo.vidaActual)
+      : null;
+    const vidaMaxima = Number.isFinite(efecto.objetivo?.vidaMaxima)
+      ? Math.max(0, efecto.objetivo.vidaMaxima)
+      : null;
     const danioAplicado = efecto.objetivo.recibirDanio(
       paquete.danioCalculado,
     );
+    const vidaDespues = Number.isFinite(efecto.objetivo?.vidaActual)
+      ? Math.max(0, efecto.objetivo.vidaActual)
+      : null;
 
     resultado.eventos.push(
       this.crearEventoDominio("efecto_tick", efecto, {
@@ -742,6 +751,9 @@ export class SistemaEfectosTemporales {
         danioBruto: paquete.danioBruto,
         desgloseDanio: paquete.desgloseDanio,
         componentesDanio: paquete.componentes,
+        vidaAntes,
+        vidaDespues,
+        vidaMaxima,
       }),
     );
 

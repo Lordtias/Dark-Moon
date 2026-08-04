@@ -48,11 +48,6 @@ export const CONFIGURACION_EFECTOS_COMBATE_PHASER = Object.freeze({
     escalaInicial: 0.72,
     escalaFinal: 1.2,
   }),
-  critico: Object.freeze({
-    duracionMs: 250,
-    escalaInicial: 0.65,
-    escalaFinal: 1.35,
-  }),
   barraVida: Object.freeze({
     duracionMs: 180,
   }),

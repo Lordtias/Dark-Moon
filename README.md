@@ -1566,7 +1566,7 @@ El modo `?render=phaser` utiliza actualmente:
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
 - `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
-- `EventosAccion` para conservar movimientos y ataques ya resueltos sin repetir reglas;
+- `EventosAccion` para conservar movimientos, ataques y cambios de hostilidad ya resueltos sin repetir reglas;
 - `PlanificadorEventosVisuales` para reemplazar referencias del dominio por identidades visuales en memoria;
 - `ReproductorEventosVisualesPhaser` para interpolar desplazamientos y reproducir las acciones enemigas en el orden canónico;
 - recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`, incluida la familia cenital de `cenital/`;
@@ -1588,6 +1588,8 @@ P6.1 incorpora el primer contrato de presentación temporal. Cada movimiento con
 P6.2A amplía ese contrato para conservar la configuración visual y el resultado individual de cada golpe. Phaser muestra números de daño por golpe, `FALLO`, `BLOQUEO` y `CRÍTICO`, y reduce progresivamente la barra de Vida de los enemigos sin recalcular combate. Los ataques duales no muestran un total duplicado y una casilla vacía no genera un objetivo o resultado ficticio. El pulso ofensivo de P6.1 continúa siendo provisional hasta incorporar cuerpo a cuerpo en P6.2B y proyectiles en P6.2C.
 
 P6.2B.1 conecta cada acción con el `costoFinal` que ya registró `SistemaTiempo`. `CoordinadorTiempoPartida` asocia ese resultado temporal con los eventos del mismo actor y `PlanificadorRitmoVisual` realiza una única conversión de presentación desde unidades temporales a milisegundos. Las proporciones de preparación, acción, pausa y retorno se alojan en `PerfilesAtaquePorFamilia.json`; las familias solamente definen forma, tamaño, sentido y futuros IDs de sonido. Ninguna familia recalcula velocidad ni incorpora multiplicadores temporales propios.
+
+P6.2B.2 consume esos perfiles para reemplazar el pulso provisional por preparación, avance, corte, golpe contundente o estocada y retorno. Daga, espada, hacha, mandoble, bastón, lanza y ataque natural comparten la misma arquitectura para jugador y enemigos; las dos manos conservan su familia y la pausa proporcional de la secuencia dual. El bastón usa una estrella contundente grande con centro grueso y los críticos intensifican el efecto propio del arma sin agregar una estrella independiente. Los cambios de hostilidad se representan como eventos ordenados: el indicador `!` aparece antes de un avance agresivo, desaparece antes de una acción pasiva y aparece después del ataque con el que el jugador provoca a un enemigo. El indicador también se redujo para no cubrir la barra de Vida. Las derrotas directas o periódicas retiran la entidad antes de continuar con la siguiente acción; la aparición inmediata del botín queda para P6.4.
 
 La cola dispone de velocidades internas `normal`, `rapida` y `muy-rapida`, aceleración automática cuando se acumulan eventos y una opción de efectos reducidos. P6.1 prepara estas opciones como contrato programático; la pantalla de configuración para el jugador pertenece a una etapa posterior.
 

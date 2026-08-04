@@ -81,32 +81,6 @@ export class CreadorEfectosCombatePhaser {
     return grafico;
   }
 
-  crearMarcaCritico({ centro, indiceGolpe = 0 } = {}) {
-    if (!esCentroValido(centro)) return null;
-
-    const grafico = this.escena.add.graphics({
-      x: centro.x - 10,
-      y: centro.y - 8 - indiceGolpe * 3,
-    });
-    grafico.lineStyle(2, 0xffdf77, 0.95);
-    grafico.beginPath?.();
-    for (let indice = 0; indice < 8; indice += 1) {
-      const angulo = -Math.PI / 2 + (Math.PI * 2 * indice) / 8;
-      const radio = indice % 2 === 0 ? 8 : 3;
-      const x = Math.cos(angulo) * radio;
-      const y = Math.sin(angulo) * radio;
-      if (indice === 0) grafico.moveTo?.(x, y);
-      else grafico.lineTo?.(x, y);
-    }
-    grafico.closePath?.();
-    grafico.strokePath?.();
-    grafico.setScale?.(
-      CONFIGURACION_EFECTOS_COMBATE_PHASER.critico.escalaInicial,
-    );
-    this.compositor.agregarEfectoTemporal(grafico);
-    return grafico;
-  }
-
   crearMarcaImpacto({ centro, critico = false } = {}) {
     if (!esCentroValido(centro)) return null;
 
@@ -126,6 +100,187 @@ export class CreadorEfectosCombatePhaser {
     this.compositor.agregarEfectoTemporal(marca);
     return marca;
   }
+  crearEfectoAtaqueCuerpoACuerpo({
+    centroAtacante,
+    centroObjetivo,
+    animacion,
+    mano = null,
+    critico = false,
+  } = {}) {
+    if (
+      !esCentroValido(centroAtacante) ||
+      !esCentroValido(centroObjetivo) ||
+      !animacion
+    ) {
+      return null;
+    }
+
+    const tipo = animacion.tipo ?? "golpe";
+    if (tipo === "estocada") {
+      return this.crearEstocada({
+        centroAtacante,
+        centroObjetivo,
+        animacion,
+        critico,
+      });
+    }
+
+    if (tipo === "corte") {
+      return this.crearCorte({
+        centroAtacante,
+        centroObjetivo,
+        animacion,
+        mano,
+        critico,
+      });
+    }
+
+    return this.crearGolpeContundente({
+      centroAtacante,
+      centroObjetivo,
+      animacion,
+      critico,
+    });
+  }
+
+  crearCorte({
+    centroAtacante,
+    centroObjetivo,
+    animacion,
+    mano,
+    critico = false,
+  }) {
+    const anguloAtaque = Math.atan2(
+      centroObjetivo.y - centroAtacante.y,
+      centroObjetivo.x - centroAtacante.x,
+    );
+    const desviacionMano = mano === "secundaria" ? -0.18 : 0.18;
+    const sentido = animacion.sentido === "antihorario" ? -1 : 1;
+    const factorCritico = critico ? 1.22 : 1;
+    const amplitud =
+      ((Number(animacion.amplitudGrados) || 75) * factorCritico * Math.PI) /
+      180;
+    const radio = Math.max(
+      5,
+      10 * (Number(animacion.escala) || 1) * factorCritico,
+    );
+    const centroAngulo = anguloAtaque + Math.PI / 2 + desviacionMano;
+    const inicio = centroAngulo - (amplitud / 2) * sentido;
+    const fin = centroAngulo + (amplitud / 2) * sentido;
+    const grafico = this.escena.add.graphics({
+      x: centroObjetivo.x,
+      y: centroObjetivo.y,
+    });
+    const grosorBase = animacion.tamano === "grande" ? 3 : 2;
+    const grosor = grosorBase + (critico ? 2 : 0);
+    grafico.lineStyle(grosor, critico ? 0xffdf72 : 0xfff1c2, 0.98);
+    grafico.beginPath?.();
+    grafico.arc?.(0, 0, radio, inicio, fin, sentido < 0);
+    grafico.strokePath?.();
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
+  crearGolpeContundente({
+    centroAtacante,
+    centroObjetivo,
+    animacion,
+    critico = false,
+  }) {
+    const grafico = this.escena.add.graphics({
+      x: centroObjetivo.x,
+      y: centroObjetivo.y,
+    });
+    const escala = Number(animacion.escala) || 1;
+    const factorCritico = critico ? 1.28 : 1;
+    const radio = Math.max(5, 9 * escala * factorCritico);
+    const color = critico ? 0xffd862 : 0xffe5a7;
+    const grosor = (animacion.tamano === "grande" ? 3 : 2) +
+      (critico ? 2 : 0);
+
+    if (animacion.tamano === "grande") {
+      const puntas = 8;
+      const radioInterior = radio * 0.43;
+      grafico.lineStyle(grosor, color, 0.98);
+      grafico.beginPath?.();
+      for (let indice = 0; indice < puntas * 2; indice += 1) {
+        const angulo = -Math.PI / 2 + (Math.PI * indice) / puntas;
+        const radioActual = indice % 2 === 0 ? radio : radioInterior;
+        const x = Math.cos(angulo) * radioActual;
+        const y = Math.sin(angulo) * radioActual;
+        if (indice === 0) grafico.moveTo?.(x, y);
+        else grafico.lineTo?.(x, y);
+      }
+      grafico.closePath?.();
+      grafico.strokePath?.();
+      grafico.fillStyle(critico ? 0xffef9c : 0xfff1c2, 0.95);
+      grafico.fillCircle?.(0, 0, Math.max(4, radio * 0.34));
+    } else {
+      const angulo = Math.atan2(
+        centroObjetivo.y - centroAtacante.y,
+        centroObjetivo.x - centroAtacante.x,
+      );
+      grafico.lineStyle(grosor, color, 0.94);
+      grafico.strokeCircle?.(0, 0, radio);
+      grafico.lineBetween?.(
+        -Math.cos(angulo) * radio,
+        -Math.sin(angulo) * radio,
+        Math.cos(angulo) * radio,
+        Math.sin(angulo) * radio,
+      );
+      grafico.fillStyle(color, 0.9);
+      grafico.fillCircle?.(0, 0, critico ? 4 : 3);
+    }
+
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
+  crearEstocada({
+    centroAtacante,
+    centroObjetivo,
+    animacion,
+    critico = false,
+  }) {
+    const grafico = this.escena.add.graphics({
+      x: centroAtacante.x,
+      y: centroAtacante.y,
+    });
+    const dx = centroObjetivo.x - centroAtacante.x;
+    const dy = centroObjetivo.y - centroAtacante.y;
+    const longitud = Math.hypot(dx, dy) || 1;
+    const ux = dx / longitud;
+    const uy = dy / longitud;
+    const offsetInicio = 5;
+    const offsetFin = 2;
+    const inicioX = ux * offsetInicio;
+    const inicioY = uy * offsetInicio;
+    const finX = dx - ux * offsetFin;
+    const finY = dy - uy * offsetFin;
+    const factorCritico = critico ? 1.24 : 1;
+    const punta = 4 * (Number(animacion.escala) || 1) * factorCritico;
+    grafico.lineStyle(
+      critico ? 4 : 2,
+      critico ? 0xffdf72 : 0xfff1c2,
+      0.98,
+    );
+    grafico.lineBetween?.(inicioX, inicioY, finX, finY);
+    grafico.lineBetween?.(
+      finX,
+      finY,
+      finX - ux * punta - uy * punta,
+      finY - uy * punta + ux * punta,
+    );
+    grafico.lineBetween?.(
+      finX,
+      finY,
+      finX - ux * punta + uy * punta,
+      finY - uy * punta - ux * punta,
+    );
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
 }
 
 function esCentroValido(centro) {

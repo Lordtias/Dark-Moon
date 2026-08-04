@@ -952,7 +952,7 @@ P6 se cierra mediante subetapas independientes, cada una con validación, docume
 1. `P6.1` — contrato visual, movimiento interpolado y secuenciación enemiga;
 2. `P6.2` — combate físico, proyectiles y feedback de impacto;
 3. `P6.3` — habilidades, estados y zonas;
-4. `P6.4` — muerte, botín, regresión y cierre general.
+4. `P6.4` — muerte, botín, regresión y cierre general. P6.4 debe hacer aparecer visualmente el botín inmediatamente después de la desaparición del derrotado, no al terminar toda la ronda.
 
 Una subetapa puede dividirse nuevamente cuando el ajuste visual lo requiera. No se avanza a la siguiente hasta confirmar el commit de la anterior.
 
@@ -1022,7 +1022,7 @@ Daño, fallo, bloqueo y crítico son distinguibles para ataques del jugador y en
 
 #### P6.2B.1 — Contrato temporal final y perfiles por familia
 
-Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `d4a3b4f9e38b0f68da7c0b74ecd4a0f88c29b158`.
 
 P6.2B.1 establece la infraestructura canónica que utilizarán todas las animaciones de ataque:
 
@@ -1041,6 +1041,29 @@ P6.2B.1 establece la infraestructura canónica que utilizarán todas las animaci
 ### Criterio de cierre de P6.2B.1
 
 Cada ataque del jugador o enemigo conserva el `costoFinal` realmente registrado; el plan visual obtiene una duración y fases coherentes sin recalcular factores; todas las familias de `Armas.json` están conectadas con un perfil; ataque natural y familia desconocida disponen de fallback; no cambian combate, agenda, persistencia, Canvas 2D ni Phaser 4.2.1.
+
+#### P6.2B.2 — Animaciones cuerpo a cuerpo por familia
+
+Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+
+P6.2B.2 consume el ritmo y los perfiles de P6.2B.1:
+
+- reemplaza el pulso provisional por preparación, avance, efecto ofensivo y retorno;
+- daga usa corte corto; espada, corte medio; hacha, corte medio inverso; mandoble, corte amplio; bastón, estrella contundente grande con centro grueso; lanza, estocada lineal;
+- ataque natural utiliza un fallback genérico sin condiciones por nombre de enemigo;
+- doble arma conserva la familia de cada mano y utiliza la pausa de la secuencia dual;
+- sprite y sombra se animan juntos y vuelven a la casilla canónica;
+- los resultados de P6.2A conservan daño y palabras, pero un crítico intensifica el efecto propio del arma sin agregar una estrella independiente;
+- `hostilidad_cambiada` ordena la aparición o retirada del indicador antes de movimiento o espera;
+- provocar a un enemigo con un ataque conserva el orden ataque, resultado y cambio de hostilidad;
+- el indicador de agresión se reduce y deja de obstruir la barra de Vida;
+- una entidad derrotada se retira visualmente después de su acción y antes de continuar con otros combatientes;
+- el daño periódico conserva Vida anterior y posterior para actualizar barra y derrota sin recalcular el efecto;
+- la aparición inmediata y animada del botín queda reservada para P6.4.
+
+### Criterio de cierre de P6.2B.2
+
+Cada familia cuerpo a cuerpo tiene una lectura reconocible; las fases respetan el `costoFinal`; doble arma conserva orden y familias; el crítico refuerza el efecto propio sin símbolo duplicado; el indicador de agresión aparece o desaparece en el momento correcto; una derrota directa o periódica se refleja antes de la acción siguiente; cancelar una cola restaura posiciones; no cambian combate, IA decisoria, tiempo, persistencia, Canvas 2D ni Phaser 4.2.1.
 
 ### Criterio de cierre de P6 completa
 

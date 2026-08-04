@@ -3,11 +3,17 @@ import {
 } from "../../juego/acciones/EventosAccion.js";
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
 import { crearPlanRitmoVisualAtaque } from "./PlanificadorRitmoVisual.js";
-import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
+import {
+  ESTADOS_HOSTILIDAD_VISUAL,
+  TIPOS_ENTIDAD_VISUAL,
+} from "./TiposEscena.js";
 
 export const TIPOS_EVENTO_VISUAL = Object.freeze({
   MOVIMIENTO_ENTIDAD: "movimiento_entidad",
   ATAQUE_RESUELTO: "ataque_resuelto",
+  CAMBIO_HOSTILIDAD: "cambio_hostilidad",
+  DANIO_PERIODICO: "danio_periodico",
+  ENTIDAD_DERROTADA: "entidad_derrotada",
 });
 
 // Convierte referencias del dominio en un plan neutral basado en IDs visuales.
@@ -37,6 +43,20 @@ export function crearPlanEventosVisuales({
 
       case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
         agregarAtaque(plan, evento, entidadesPorId);
+        break;
+
+      case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
+        agregarCambioHostilidad(plan, evento, entidadesPorId);
+        break;
+
+      case "danio_periodico_aplicado":
+        agregarDanioPeriodico(plan, evento, entidadesPorId);
+        break;
+
+      case "combatiente_derrotado":
+        agregarEntidadDerrotada(plan, evento.objetivo, entidadesPorId, {
+          motivo: "efecto_periodico",
+        });
         break;
 
       default:
@@ -104,6 +124,102 @@ function agregarAtaque(plan, evento, entidadesPorId) {
       resultado: evento.resultado,
     }),
   );
+
+  if (evento.resultado.objetivoDestruido === true && idObjetivo) {
+    agregarEntidadDerrotada(plan, evento.objetivo, entidadesPorId, {
+      motivo: "ataque_directo",
+    });
+  }
+}
+
+function agregarDanioPeriodico(plan, evento, entidadesPorId) {
+  const idObjetivo = obtenerIdSeguro(evento.objetivo);
+  const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
+  const danio = normalizarNumeroNoNegativo(evento.danio);
+  const vidaAntes = normalizarNumeroNoNegativo(evento.vidaAntes);
+  const vidaDespues = normalizarNumeroNoNegativo(evento.vidaDespues);
+  const vidaMaxima = normalizarNumeroPositivo(evento.vidaMaxima);
+
+  if (!idObjetivo || danio <= 0) {
+    return;
+  }
+
+  plan.push(
+    Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.DANIO_PERIODICO,
+      idObjetivo,
+      tipoObjetivo: objetivoVisual?.tipo ?? null,
+      posicionObjetivo: objetivoVisual && esPosicion(objetivoVisual)
+        ? copiarPosicion(objetivoVisual)
+        : null,
+      danio,
+      vidaAntes,
+      vidaDespues,
+      vidaMaxima,
+      idDefinicion: evento.idDefinicion ?? null,
+      nombreEfecto: evento.nombreEfecto ?? null,
+    }),
+  );
+}
+
+function agregarEntidadDerrotada(
+  plan,
+  entidad,
+  entidadesPorId,
+  { motivo = null } = {},
+) {
+  const idEntidad = obtenerIdSeguro(entidad);
+  const entidadVisual = entidadesPorId.get(idEntidad) ?? null;
+
+  if (!idEntidad) {
+    return;
+  }
+
+  const ultimo = plan.at(-1);
+  if (
+    ultimo?.tipo === TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA &&
+    ultimo.idEntidad === idEntidad
+  ) {
+    return;
+  }
+
+  plan.push(
+    Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
+      idEntidad,
+      tipoEntidad: entidadVisual?.tipo ?? null,
+      posicion: entidadVisual && esPosicion(entidadVisual)
+        ? copiarPosicion(entidadVisual)
+        : null,
+      motivo,
+    }),
+  );
+}
+
+function agregarCambioHostilidad(plan, evento, entidadesPorId) {
+  const idEntidad = obtenerIdSeguro(evento.enemigo);
+  const entidadVisual = entidadesPorId.get(idEntidad) ?? null;
+  const estadosValidos = Object.values(ESTADOS_HOSTILIDAD_VISUAL);
+
+  if (
+    !idEntidad ||
+    entidadVisual?.tipo !== TIPOS_ENTIDAD_VISUAL.ENEMIGO ||
+    !estadosValidos.includes(evento.estadoAnterior) ||
+    !estadosValidos.includes(evento.estadoActual)
+  ) {
+    return;
+  }
+
+  plan.push(
+    Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.CAMBIO_HOSTILIDAD,
+      idEntidad,
+      estadoAnterior: evento.estadoAnterior,
+      estadoActual: evento.estadoActual,
+      motivo: evento.motivo ?? null,
+      ejecucionTemporal: evento.ejecucionTemporal ?? null,
+    }),
+  );
 }
 
 function combinarEntidadesEscenas(...escenas) {
@@ -124,6 +240,16 @@ function obtenerIdSeguro(entidad) {
   return entidad && typeof entidad === "object"
     ? obtenerIdVisualEntidad(entidad)
     : null;
+}
+
+function normalizarNumeroNoNegativo(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? Math.max(0, numero) : 0;
+}
+
+function normalizarNumeroPositivo(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) && numero > 0 ? numero : null;
 }
 
 function esPosicion(posicion) {

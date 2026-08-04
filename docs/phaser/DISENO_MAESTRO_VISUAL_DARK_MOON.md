@@ -1773,3 +1773,33 @@ La única conversión de presentación transforma el coste final canónico en un
 Los enemigos siguen el mismo contrato que el jugador. Un enemigo equipado utiliza el perfil completo de cada objeto y, si realiza un ataque dual, la misma secuencia y el mismo ritmo canónico. Un enemigo sin arma utiliza el fallback `ataque_natural`; nunca se selecciona una animación por nombre visible del enemigo.
 
 La validación de arranque debe rechazar familias de armas sin perfil y perfiles que no estén conectados con ninguna familia real. El fallback de familia desconocida existe para proteger la ejecución, pero no debe ocultar una configuración incompleta durante el arranque.
+
+
+## V-028 — Cuerpo a cuerpo por familia y hostilidad secuenciada
+
+Los ataques cuerpo a cuerpo deben consumir el perfil asociado a `familiaObjeto` y las fases temporales derivadas del `costoFinal`. La forma visual no altera velocidad ni resultado:
+
+- daga: corte corto;
+- espada: corte medio;
+- hacha: corte medio en sentido contrario;
+- mandoble: corte grande;
+- bastón: estrella de impacto grande, de ocho puntas y centro circular grueso;
+- lanza: estocada lineal;
+- ataque natural: golpe genérico.
+
+La secuencia visual es preparación, avance o estocada, resultado y retorno. En doble arma, cada mano utiliza su propio perfil y la pausa proviene de la fase `pausaEntreManos` de la duración total canónica. El atacante nunca cambia su casilla lógica y su sombra acompaña todos los desplazamientos. Los ataques con perfil propio utilizan su efecto específico sin superponer la antigua marca genérica; la estocada de lanza se construye con origen local en el atacante y dirección hacia el objetivo.
+
+Un crítico no agrega un símbolo independiente. Intensifica el efecto propio de la familia aumentando temporalmente grosor, amplitud, brillo y expansión, mientras conserva el número de daño y la palabra `CRÍTICO`. El bastón normal utiliza una estrella contundente grande con centro grueso; su versión crítica refuerza esa misma estrella en lugar de superponer otra marca.
+
+La hostilidad también debe respetar el orden real de los hechos. Cuando un enemigo detecta al jugador, el indicador aparece antes de avanzar o atacar. Cuando pierde la persecución, desaparece antes de esperar. Cuando el jugador provoca a un enemigo pasivo, el ataque y su resultado se muestran antes de activar el indicador. Este cambio se transmite mediante `hostilidad_cambiada`, no se deduce comparando escenas.
+
+El indicador agresivo de Phaser utiliza un círculo de 8 px de diámetro y texto de 8 px, colocado por debajo de la barra de Vida para mantener su legibilidad.
+
+
+## V-029 — Actualización visual incremental de Vida y derrota
+
+La escena neutral final continúa siendo la reconciliación autoritativa del mapa, pero los cambios relevantes deben representarse en el punto exacto de la cola donde ocurrieron. Un ataque que derrota a una entidad produce `ataque_resuelto` seguido de `entidad_derrotada`; el reproductor termina el impacto, lleva la barra a cero, retira el nodo visual y recién entonces continúa con la siguiente acción.
+
+Los eventos canónicos `danio_periodico_aplicado` conservan `vidaAntes`, `vidaDespues` y `vidaMaxima` calculadas por el dominio. Phaser puede actualizar la barra, mostrar el daño y reaccionar sin recalcular veneno, quemadura, resistencias ni frecuencia. Si el dominio emite `combatiente_derrotado`, la entidad se retira antes del evento siguiente.
+
+La desaparición inmediata no crea ni anima botín. P6.4 debe representar la muerte completa y hacer aparecer el botín inmediatamente después de la derrota, sin esperar al final de las demás acciones y sin duplicar la recompensa cuando se aplique la escena final.

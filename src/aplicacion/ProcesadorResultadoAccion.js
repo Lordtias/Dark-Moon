@@ -46,7 +46,9 @@ export function aplicarResultadoAccion({
   // También redibujamos acciones sin coste temporal que modifican
   // selectores, ventanas o estados visuales.
   if (resultadoNormalizado.turnoConsumido || resultadoNormalizado.redibujar) {
-    renderizador.dibujarJuego(juego);
+    renderizador.dibujarJuego(juego, {
+      eventos: resultadoNormalizado.eventos,
+    });
   }
 
   // La comprobación se realiza después del redibujado para que los paneles

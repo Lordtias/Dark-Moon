@@ -1532,10 +1532,14 @@ Puntero del mapa Phaser ───────────┘           ↓
                                             Juego
                                               ↓
                                       ResultadoAccion
-                                              ↓
-                                       escena neutral
+                                  ┌───────────┴───────────┐
+                             estado final          eventos ordenados
+                                  └───────────┬───────────┘
+                                      escena neutral
                                         ┌─────┴─────┐
                                    Canvas 2D     Phaser
+                                                    ↓
+                                      cola visual no autoritativa
 ```
 
 El teclado jugable permanece centralizado en `ControladorTeclado`. Phaser conserva por separado únicamente los controles visuales de cámara. Una futura pantalla de configuración podrá alimentar ambos componentes desde una sola configuración de acciones y teclas, sin convertirlos en dos fuentes de verdad.
@@ -1558,10 +1562,13 @@ El modo `?render=phaser` utiliza actualmente:
 
 - `GestorRecursosPhaser` para cargar imágenes locales y calcular los límites alfa, la base y el centro visible de cada PNG;
 - `ConfiguracionEntidadesPhaser` como única fuente de presentación cenital de entidades dentro de Phaser;
-- `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades e iluminación;
+- `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades, iluminación ambiental y efectos temporales;
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
 - `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
+- `EventosAccion` para conservar movimientos y ataques ya resueltos sin repetir reglas;
+- `PlanificadorEventosVisuales` para reemplazar referencias del dominio por identidades visuales en memoria;
+- `ReproductorEventosVisualesPhaser` para interpolar desplazamientos y reproducir las acciones enemigas en el orden canónico;
 - recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`, incluida la familia cenital de `cenital/`;
 - `AnalizadorVecindadTerreno` y `ResolutorAutotilingParedes` como contrato genérico de ocho vecinos para muros y suelos;
 - paredes representadas como una masa continua, con bordes expuestos y esquinas interiores definidos por la configuración del bioma;
@@ -1575,6 +1582,10 @@ El modo `?render=phaser` utiliza actualmente:
 P5.2 dejó preparado el soporte técnico global de entidades sin agregar `aparienciaVisual` al dominio. P5.3 amplió el mismo enfoque al resto del mundo: Phaser resuelve suelos por símbolo de casilla, la ciudad distingue adoquín, césped, madera y tierra, y cada bioma dispone de su propia familia de pisos, masas de pared, bordes, esquinas internas y sombras de contacto.
 
 P5.4 cierra técnicamente la etapa P5. Los PNG activos de Guerrero, Rogue y Mago fueron auditados en dimensiones, transparencia, centro visible, escala, sombra y lectura sobre todos los biomas. El resto de enemigos, destructibles, botín, portales y NPC continúa como arte provisional, pero todas sus rutas existen y el contrato gráfico ya permite reemplazarlos sin modificar `Player`, `Enemigo`, fábricas, combate o persistencia. La sustitución artística pendiente no bloquea P6.
+
+P6.1 incorpora el primer contrato de presentación temporal. Cada movimiento conserva origen, destino y entidad; cada ataque conserva atacante, objetivo y el resultado ya calculado. Phaser transforma esos hechos en una cola visual, interpola jugador y enemigos junto con sus sombras, acelera recorridos largos y separa las acciones ofensivas enemigas mediante una señal breve y una pausa. Los impactos con daño generan una reacción visual genérica tanto sobre el jugador como sobre los enemigos. La Vida, los turnos y el orden continúan resolviéndose inmediatamente en el dominio; la duración visual nunca decide resultados.
+
+La cola dispone de velocidades internas `normal`, `rapida` y `muy-rapida`, aceleración automática cuando se acumulan eventos y una opción de efectos reducidos. P6.1 prepara estas opciones como contrato programático; la pantalla de configuración para el jugador pertenece a una etapa posterior.
 
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
 

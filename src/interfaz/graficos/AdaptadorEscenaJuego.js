@@ -5,6 +5,27 @@ import {
   TIPOS_ENTIDAD_VISUAL,
 } from "./TiposEscena.js";
 
+const IDS_VISUALES_ENTIDADES = new WeakMap();
+let siguienteIdVisualEntidad = 1;
+
+// La identidad visual vive únicamente en memoria. No modifica las entidades,
+// no se persiste y permite relacionar una secuencia de escenas con los eventos
+// que describen sus movimientos y acciones.
+export function obtenerIdVisualEntidad(entidad) {
+  if (!entidad || typeof entidad !== "object") {
+    throw new Error("La identidad visual necesita una entidad válida.");
+  }
+
+  if (!IDS_VISUALES_ENTIDADES.has(entidad)) {
+    IDS_VISUALES_ENTIDADES.set(
+      entidad,
+      `entidad-visual-${siguienteIdVisualEntidad++}`,
+    );
+  }
+
+  return IDS_VISUALES_ENTIDADES.get(entidad);
+}
+
 // Convierte el estado completo de Juego
 // en una escena gráfica sencilla.
 //
@@ -242,6 +263,7 @@ function crearEntidadVisual(entidad, tipo) {
   const estaViva = entidad.estaVivo !== false && entidad.estaDestruido !== true;
 
   return {
+    idVisual: obtenerIdVisualEntidad(entidad),
     tipo,
     nombre: entidad.nombre,
     x: entidad.x,

@@ -13,9 +13,8 @@
 // Centralizar esta estructura evita que cada sistema construya
 // resultados ligeramente diferentes.
 //
-// La propiedad "eventos" todavía no participa de la interfaz,
-// pero queda preparada para que Phaser pueda reproducir:
-// movimientos, ataques, daño, muertes y aparición de botín.
+// La propiedad "eventos" conserva hechos ya resueltos para que una capa
+// visual pueda reproducirlos sin volver a calcular reglas del juego.
 export function crearResultadoAccion({
   exito = true,
   mensaje = null,
@@ -77,7 +76,7 @@ export function normalizarResultadoAccion(resultado) {
     // Una acción no solicita redibujado salvo que lo indique.
     redibujar: resultado.redibujar ?? false,
 
-    // Los eventos se incorporarán gradualmente.
+    // Los sistemas incorporan eventos gradualmente según su alcance visual.
     eventos: resultado.eventos ?? [],
   });
 }
@@ -100,15 +99,15 @@ function validarMensaje(mensaje) {
   }
 }
 
-// Cada evento futuro deberá incluir un tipo.
+// Cada evento debe incluir un tipo.
 //
 // Ejemplo:
 //
 // {
 //   tipo: "entidad_movida",
 //   entidad: jugador,
-//   desde: { x: 3, y: 4 },
-//   hasta: { x: 4, y: 4 }
+//   origen: { x: 3, y: 4 },
+//   destino: { x: 4, y: 4 }
 // }
 function validarEventos(eventos) {
   if (!Array.isArray(eventos)) {

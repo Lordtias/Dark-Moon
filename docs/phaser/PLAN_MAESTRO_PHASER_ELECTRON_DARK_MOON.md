@@ -945,7 +945,49 @@ Convertir el combate funcional existente en una experiencia visual más clara y 
 
 La animación no debe alterar el resultado del combate ni convertirse en el temporizador real del sistema lógico.
 
-### Criterio de cierre
+### División aprobada de P6
+
+P6 se cierra mediante subetapas independientes, cada una con validación, documento de entrega y commit propio:
+
+1. `P6.1` — contrato visual, movimiento interpolado y secuenciación enemiga;
+2. `P6.2` — combate físico, proyectiles y feedback de impacto;
+3. `P6.3` — habilidades, estados y zonas;
+4. `P6.4` — muerte, botín, regresión y cierre general.
+
+Una subetapa puede dividirse nuevamente cuando el ajuste visual lo requiera. No se avanza a la siguiente hasta confirmar el commit de la anterior.
+
+### P6.1 — Contrato visual, movimiento y secuenciación enemiga
+
+Estado técnico: implementada y validada; pendiente de commit por el usuario.
+
+P6.1 incorpora:
+
+- eventos estructurados para movimiento y ataque ya resueltos;
+- identidad visual estable y exclusivamente en memoria para cada entidad;
+- conversión de referencias del dominio a un plan visual neutral;
+- cola Phaser ordenada que nunca modifica el estado jugable;
+- interpolación de jugador y enemigos entre casillas;
+- aceleración progresiva de recorridos consecutivos del jugador;
+- desplazamiento conjunto de sprite y sombra;
+- seguimiento de cámara durante el movimiento interpolado del jugador;
+- señal y pausa separadas para cada ataque enemigo;
+- reacción genérica de impacto sobre jugador y enemigos cuando existe daño real;
+- retiro del aura luminosa fija alrededor del jugador;
+- velocidades `normal`, `rapida` y `muy-rapida`;
+- aceleración automática de colas extensas;
+- efectos reducidos;
+- cancelación segura al cambiar de mapa o destruir la escena;
+- Canvas 2D conservado como representación inmediata del estado final.
+
+La señal ofensiva de P6.1 no es todavía la animación final del ataque. La reacción genérica de daño solo confirma visualmente que una entidad fue alcanzada. P6.2 deberá agregar preparación, desplazamiento corporal, proyectil, evasión, bloqueo, crítico, variantes de impacto y números sin cambiar este contrato.
+
+Los paneles HTML continúan actualizando el estado final inmediatamente. La sincronización expresiva de Vida, daño y muerte con cada impacto pertenece a P6.2 y P6.4; el dominio ya queda resuelto y no espera a la cola visual.
+
+### Criterio de cierre de P6.1
+
+Los movimientos del jugador y los enemigos se reproducen en orden sobre identidades visuales estables; los recorridos largos recuperan ritmo sin omitir casillas; varios ataques enemigos se distinguen mediante una secuencia visual; jugador y enemigos reaccionan ante daño real; cancelar la cola no deja esperas pendientes; el resultado canónico, el sistema temporal, la persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
+
+### Criterio de cierre de P6 completa
 
 Se valida el flujo completo desde seleccionar una acción hasta muerte, recompensa y actualización visual.
 

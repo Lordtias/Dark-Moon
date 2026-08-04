@@ -1,6 +1,7 @@
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
 
 import { crearEscenaJuego } from "./graficos/AdaptadorEscenaJuego.js";
+import { crearPlanEventosVisuales } from "./graficos/PlanificadorEventosVisuales.js";
 
 const MAXIMO_MENSAJES_REGISTRO = 120;
 
@@ -71,6 +72,11 @@ export class Renderizador {
     // La selección de habilidades es una capa visual del renderizador y no
     // modifica la instancia de Juego ni el contrato del backend Canvas.
     this.estadoVisualHabilidad = crearEstadoVisualHabilidad();
+
+    // Conserva la última escena neutral creada. Phaser puede utilizarla como
+    // punto de partida visual, mientras Canvas 2D continúa redibujando el
+    // estado final de forma inmediata.
+    this.ultimaEscenaMapa = null;
   }
 
   // Permite que el controlador configure
@@ -81,6 +87,14 @@ export class Renderizador {
       columnas,
       filas,
     });
+  }
+
+  configurarAnimacionesMapa(configuracion = {}) {
+    if (typeof this.renderizadorMapa.configurarAnimaciones !== "function") {
+      return null;
+    }
+
+    return this.renderizadorMapa.configurarAnimaciones(configuracion);
   }
 
   conectarEntradaMapa(alEjecutarComando = null) {
@@ -113,7 +127,7 @@ export class Renderizador {
 
   // Actualiza toda la representación
   // visible de la partida.
-  dibujarJuego(juego) {
+  dibujarJuego(juego, { eventos = [] } = {}) {
     this.nombreJugador = juego.player.nombre;
 
     // Convertimos Juego en una escena plana
@@ -122,7 +136,18 @@ export class Renderizador {
       habilidad: this.estadoVisualHabilidad,
     });
 
-    this.renderizadorMapa.dibujar(escena);
+    const eventosVisuales = crearPlanEventosVisuales({
+      eventos,
+      escenaAnterior: this.ultimaEscenaMapa,
+      escenaFinal: escena,
+    });
+
+    this.renderizadorMapa.dibujar(escena, {
+      escenaAnterior: this.ultimaEscenaMapa,
+      eventosVisuales,
+    });
+
+    this.ultimaEscenaMapa = escena;
 
     // Los paneles HTML continúan siendo
     // independientes del backend del mapa.

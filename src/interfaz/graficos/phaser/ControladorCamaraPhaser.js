@@ -147,6 +147,21 @@ export class ControladorCamaraPhaser {
     }
   }
 
+  actualizarPosicionVisualJugador(posicionMundo) {
+    if (
+      !Number.isFinite(posicionMundo?.x) ||
+      !Number.isFinite(posicionMundo?.y) ||
+      (!this.siguiendoJugador && !this.seleccionActiva)
+    ) {
+      return false;
+    }
+
+    this.camara.centerOn(posicionMundo.x, posicionMundo.y);
+    this.aplicarLimitesDesplazamiento();
+    this.actualizarCasillaPunteroConocido();
+    return true;
+  }
+
   actualizarSeleccionActiva(activa) {
     const valorNuevo = activa === true;
     const cambio = valorNuevo !== this.seleccionActiva;

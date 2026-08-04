@@ -54,6 +54,7 @@ export class CompositorMundoPhaser {
     this.geometria = null;
     this.firmaTerreno = null;
     this.casillaPuntero = null;
+    this.nodosEntidades = new Map();
 
     this.capaFondo = escena.add.container(0, 0).setDepth(0);
     this.capaTerreno = escena.add.container(0, 0).setDepth(10);
@@ -63,6 +64,7 @@ export class CompositorMundoPhaser {
     this.capaSeleccion = escena.add.container(0, 0).setDepth(50);
     this.capaEntidades = escena.add.container(0, 0).setDepth(60);
     this.capaIluminacion = escena.add.container(0, 0).setDepth(70);
+    this.capaEfectos = escena.add.container(0, 0).setDepth(80);
   }
 
   actualizar(escenaDarkMoon) {
@@ -95,6 +97,45 @@ export class CompositorMundoPhaser {
       ...this.geometria,
       identificadorMapa: crearIdentificadorTerreno(firmaNueva),
     };
+  }
+
+  obtenerNodoEntidad(idVisual) {
+    return typeof idVisual === "string"
+      ? this.nodosEntidades.get(idVisual) ?? null
+      : null;
+  }
+
+  obtenerCentroCasilla(casilla) {
+    const posicion = this.obtenerPosicionCasilla(casilla);
+    return posicion ? obtenerCentroEntidad(posicion) : null;
+  }
+
+  posicionarNodoEntidad(idVisual, centro) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (!nodo || !Number.isFinite(centro?.x) || !Number.isFinite(centro?.y)) {
+      return false;
+    }
+
+    if (nodo.contenedor) {
+      nodo.contenedor.x = centro.x;
+      nodo.contenedor.y = centro.y;
+    }
+
+    if (nodo.sombra) {
+      nodo.sombra.x = centro.x;
+      nodo.sombra.y = centro.y;
+    }
+
+    return true;
+  }
+
+  agregarEfectoTemporal(objetoVisual) {
+    if (!objetoVisual || !this.capaEfectos) {
+      return false;
+    }
+
+    this.capaEfectos.add(objetoVisual);
+    return true;
   }
 
   invalidarTerreno() {
@@ -665,40 +706,45 @@ export class CompositorMundoPhaser {
 
   dibujarSombrasEntidades() {
     this.capaSombras.removeAll(true);
+    this.capaEntidades.removeAll(true);
+    this.nodosEntidades.clear();
 
     const aparienciaPhaser =
       this.escenaDarkMoon?.mapa?.apariencia?.phaser ?? {};
     const configuracionSombras = normalizarConfiguracionSombras(
       aparienciaPhaser.sombras,
     );
-    const graficos = this.escena.add.graphics();
 
     for (const entidad of this.escenaDarkMoon?.entidades ?? []) {
       const posicion = this.obtenerPosicionCasilla(entidad);
       if (!posicion) continue;
 
+      const idVisual =
+        typeof entidad.idVisual === "string" ? entidad.idVisual : null;
       const centro = obtenerCentroEntidad(posicion);
       const metricas = this.obtenerMetricasVisualesEntidad(entidad);
-      const sombraX = centro.x + metricas.desplazamientoSombraX;
-      const sombraY = centro.y + metricas.desplazamientoSombraY;
       const opacidad =
         entidad.estaViva === false
           ? configuracionSombras.opacidadEntidades * 0.45
           : configuracionSombras.opacidadEntidades;
+      const sombra = this.escena.add.graphics({
+        x: centro.x,
+        y: centro.y,
+      });
 
-      graficos.fillStyle(configuracionSombras.color, opacidad);
-      graficos.fillEllipse(
-        sombraX,
-        sombraY,
+      sombra.fillStyle(configuracionSombras.color, opacidad);
+      sombra.fillEllipse(
+        metricas.desplazamientoSombraX,
+        metricas.desplazamientoSombraY,
         metricas.sombraAncho,
         metricas.sombraAlto,
       );
 
       if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR) {
-        graficos.lineStyle(2, 0xf1d579, 0.62);
-        graficos.strokeEllipse(
-          sombraX,
-          sombraY,
+        sombra.lineStyle(2, 0xf1d579, 0.62);
+        sombra.strokeEllipse(
+          metricas.desplazamientoSombraX,
+          metricas.desplazamientoSombraY,
           metricas.sombraAncho + 4,
           metricas.sombraAlto + 3,
         );
@@ -706,17 +752,24 @@ export class CompositorMundoPhaser {
         entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
         entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
       ) {
-        graficos.lineStyle(1, 0xf06b64, 0.48);
-        graficos.strokeEllipse(
-          sombraX,
-          sombraY,
+        sombra.lineStyle(1, 0xf06b64, 0.48);
+        sombra.strokeEllipse(
+          metricas.desplazamientoSombraX,
+          metricas.desplazamientoSombraY,
           metricas.sombraAncho + 2,
           metricas.sombraAlto + 2,
         );
       }
-    }
 
-    this.capaSombras.add(graficos);
+      this.capaSombras.add(sombra);
+      if (idVisual) {
+        this.nodosEntidades.set(idVisual, {
+          entidad,
+          sombra,
+          contenedor: null,
+        });
+      }
+    }
   }
 
   dibujarSeleccion() {
@@ -771,8 +824,6 @@ export class CompositorMundoPhaser {
   }
 
   dibujarEntidades() {
-    this.capaEntidades.removeAll(true);
-
     const entidades = [...(this.escenaDarkMoon?.entidades ?? [])].sort(
       compararEntidades,
     );
@@ -781,15 +832,18 @@ export class CompositorMundoPhaser {
       const posicion = this.obtenerPosicionCasilla(entidad);
       if (!posicion) continue;
 
+      const idVisual =
+        typeof entidad.idVisual === "string" ? entidad.idVisual : null;
       const estilo = obtenerEstiloRespaldoEntidadPhaser(entidad.tipo);
       const centro = obtenerCentroEntidad(posicion);
       const metricas = this.obtenerMetricasVisualesEntidad(entidad);
       const informacionRecurso = metricas.informacionRecurso;
+      const contenedor = this.escena.add.container(centro.x, centro.y);
 
       if (informacionRecurso) {
         const imagen = this.escena.add.image(
-          centro.x,
-          centro.y,
+          0,
+          0,
           informacionRecurso.claveTextura,
         );
         imagen.setOrigin(metricas.anclaje.x, metricas.anclaje.y);
@@ -799,13 +853,12 @@ export class CompositorMundoPhaser {
             ? CONFIGURACION_ENTIDADES_PHASER.opacidadEntidadMuerta
             : 1,
         );
-        this.capaEntidades.add(imagen);
+        contenedor.add(imagen);
       } else {
-        this.dibujarRespaldoEntidad({
+        this.agregarRespaldoEntidad({
+          contenedor,
           entidad,
           estilo,
-          centroX: centro.x,
-          centroY: centro.y,
         });
       }
 
@@ -813,11 +866,21 @@ export class CompositorMundoPhaser {
         entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
         entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
       ) {
-        this.dibujarAgresividad(posicion);
+        this.agregarAgresividad(contenedor);
       }
 
       if (entidad.mostrarBarraVida) {
-        this.dibujarBarraVida(entidad, posicion);
+        this.agregarBarraVida(contenedor, entidad);
+      }
+
+      this.capaEntidades.add(contenedor);
+      if (idVisual) {
+        const nodoExistente = this.nodosEntidades.get(idVisual) ?? {};
+        this.nodosEntidades.set(idVisual, {
+          ...nodoExistente,
+          entidad,
+          contenedor,
+        });
       }
     }
   }
@@ -850,48 +913,25 @@ export class CompositorMundoPhaser {
       this.geometria.altoMapa,
     );
 
-    for (const entidad of this.escenaDarkMoon.entidades ?? []) {
-      if (entidad.tipo !== TIPOS_ENTIDAD_VISUAL.JUGADOR) {
-        continue;
-      }
-
-      const posicion = this.obtenerPosicionCasilla(entidad);
-      if (!posicion) continue;
-
-      const centroX = posicion.x + TAMANO_CASILLA_REFERENCIA / 2;
-      const centroY = posicion.y + TAMANO_CASILLA_REFERENCIA / 2;
-      const radio = 30;
-      const opacidad = 0.025;
-
-      graficos.fillStyle(configuracion.colorJugador, opacidad);
-      graficos.fillCircle(centroX, centroY, radio);
-      graficos.fillStyle(configuracion.colorJugador, opacidad * 1.8);
-      graficos.fillCircle(centroX, centroY, Math.round(radio * 0.55));
-    }
 
     this.capaIluminacion.add(graficos);
   }
 
-  dibujarRespaldoEntidad({ entidad, estilo, centroX, centroY }) {
+  agregarRespaldoEntidad({ contenedor, entidad, estilo }) {
     const tamano = CONFIGURACION_ENTIDADES_PHASER.respaldo.tamano;
     const graficos = this.escena.add.graphics();
     graficos.fillStyle(estilo.fondo, 0.94);
-    graficos.fillRect(
-      centroX - tamano / 2,
-      centroY - tamano / 2,
-      tamano,
-      tamano,
-    );
+    graficos.fillRect(-tamano / 2, -tamano / 2, tamano, tamano);
     graficos.lineStyle(2, estilo.borde, 1);
     graficos.strokeRect(
-      centroX - tamano / 2 + 0.5,
-      centroY - tamano / 2 + 0.5,
+      -tamano / 2 + 0.5,
+      -tamano / 2 + 0.5,
       tamano - 1,
       tamano - 1,
     );
 
     const texto = this.escena.add
-      .text(centroX, centroY, entidad.simbolo ?? "?", {
+      .text(0, 0, entidad.simbolo ?? "?", {
         color: estilo.texto,
         fontFamily: "monospace",
         fontSize: "16px",
@@ -899,18 +939,17 @@ export class CompositorMundoPhaser {
       })
       .setOrigin(0.5);
 
-    this.capaEntidades.add([graficos, texto]);
+    contenedor.add([graficos, texto]);
   }
 
-  dibujarAgresividad(posicion) {
-    const centroX = posicion.x + TAMANO_CASILLA_REFERENCIA - 6;
-    const centroY = posicion.y + 9;
+  agregarAgresividad(contenedor) {
+    const centroX = TAMANO_CASILLA_REFERENCIA / 2 - 6;
+    const centroY = -TAMANO_CASILLA_REFERENCIA / 2 + 9;
     const graficos = this.escena.add.graphics();
     graficos.fillStyle(0x37080d, 0.95);
     graficos.fillCircle(centroX, centroY, 6);
     graficos.lineStyle(2, 0xff3f4d, 1);
     graficos.strokeCircle(centroX, centroY, 6);
-    this.capaEntidades.add(graficos);
 
     const texto = this.escena.add
       .text(centroX, centroY, "!", {
@@ -920,10 +959,11 @@ export class CompositorMundoPhaser {
         fontStyle: "bold",
       })
       .setOrigin(0.5);
-    this.capaEntidades.add(texto);
+
+    contenedor.add([graficos, texto]);
   }
 
-  dibujarBarraVida(entidad, posicion) {
+  agregarBarraVida(contenedor, entidad) {
     const porcentaje = Math.max(
       0,
       Math.min(1, entidad.vidaActual / entidad.vidaMaxima),
@@ -936,16 +976,13 @@ export class CompositorMundoPhaser {
           ? 0xe4c44e
           : 0x55cf72;
     const graficos = this.escena.add.graphics();
+    const x = -TAMANO_CASILLA_REFERENCIA / 2 + 3;
+    const y = -TAMANO_CASILLA_REFERENCIA / 2 + 2;
     graficos.fillStyle(0x0a0a0c, 0.9);
-    graficos.fillRect(posicion.x + 3, posicion.y + 2, ancho, 4);
+    graficos.fillRect(x, y, ancho, 4);
     graficos.fillStyle(color, 1);
-    graficos.fillRect(
-      posicion.x + 4,
-      posicion.y + 3,
-      Math.max(0, (ancho - 2) * porcentaje),
-      2,
-    );
-    this.capaEntidades.add(graficos);
+    graficos.fillRect(x + 1, y + 1, Math.max(0, (ancho - 2) * porcentaje), 2);
+    contenedor.add(graficos);
   }
 
   dibujarRellenoCasilla(graficos, casilla, estilo) {
@@ -1067,6 +1104,8 @@ export class CompositorMundoPhaser {
     this.capaSeleccion.destroy(true);
     this.capaEntidades.destroy(true);
     this.capaIluminacion.destroy(true);
+    this.capaEfectos.destroy(true);
+    this.nodosEntidades.clear();
     this.escenaDarkMoon = null;
     this.escena = null;
     this.gestorRecursos = null;

@@ -1597,7 +1597,7 @@ El corte Phaser se compone en este orden: fondo, terreno, decoración baja, zona
 
 ## V-012 — Sombra e iluminación del mundo
 
-Las sombras de entidades son suaves, centradas y se dimensionan a partir del contenido alfa visible del PNG. Las paredes cenitales pueden proyectar una sombra de contacto corta y configurable sobre el piso adyacente; esa sombra deriva de la misma vecindad del muro, no modifica iluminación jugable y puede desactivarse por bioma. La iluminación utiliza una base fría verdosa y un apoyo cálido muy suave alrededor del jugador. Los interactuables no reciben un aura permanente porque deben integrarse naturalmente con el mapa. Ninguna luz o sombra debe ocultar cuadrícula, objetivos o casillas seleccionadas.
+Las sombras de entidades son suaves, centradas y se dimensionan a partir del contenido alfa visible del PNG. Las paredes cenitales pueden proyectar una sombra de contacto corta y configurable sobre el piso adyacente; esa sombra deriva de la misma vecindad del muro, no modifica iluminación jugable y puede desactivarse por bioma. La iluminación utiliza una base fría verdosa sin un círculo luminoso permanente alrededor del jugador. Los interactuables tampoco reciben un aura permanente porque deben integrarse naturalmente con el mapa. Ninguna luz o sombra debe ocultar cuadrícula, objetivos o casillas seleccionadas.
 
 ## V-013 — Ventanas de poca altura
 
@@ -1727,3 +1727,19 @@ P5.3 cubre el mundo ambiental y la expansión de biomas. `P5.3Especial` incorpor
 Una etapa visual puede cerrarse técnicamente aunque parte del arte siga siendo provisional, siempre que la sustitución futura no requiera cambiar dominio, reglas o contratos. En P5 los jugadores son los recursos definitivos auditados. Enemigos, barril, botín, portales, puerta y NPC conservan temporalmente sus PNG anteriores.
 
 La condición para reemplazar esos recursos es mantener las rutas activas o actualizar exclusivamente la configuración que contiene `recursoVisual`. Phaser continuará calculando límites alfa, centro visible, escala y sombra de forma general. No deben agregarse excepciones por nombre de entidad para compensar un PNG mal compuesto.
+
+## V-024 — Identidad visual y cola no autoritativa
+
+Cada entidad conserva una identidad visual estable solamente durante la sesión. Esa identidad no modifica `Player`, `Enemigo`, destructibles o interactuables, no se serializa y no forma parte de la persistencia. Su función es relacionar la misma entidad entre escenas neutrales consecutivas.
+
+Phaser puede conservar temporalmente la escena anterior, reproducir un plan de eventos y finalmente sincronizarse con la escena final. La cola visual no calcula impacto, daño, movimiento permitido, muerte, experiencia, botín ni tiempo. Un cambio de mapa, cierre de escena o acumulación excesiva puede cancelar o acelerar presentación secundaria, pero nunca descartar el último estado canónico.
+
+## V-025 — Ritmo secuencial de enemigos
+
+Cuando varios enemigos actúan dentro de una misma resolución temporal, sus acciones ofensivas deben presentarse una por una y en el orden canónico. P6.1 utiliza una señal corporal breve de aproximadamente 320 ms y una separación base de 130 ms por ataque en velocidad normal. Las colas extensas se aceleran progresivamente para conservar legibilidad sin volver lento el combate.
+
+Los recorridos consecutivos del jugador reducen progresivamente su duración por casilla y usan transición continua para evitar que una ráfaga de teclas deje al sprite atrasado respecto del estado canónico. Una acción ofensiva u otro evento relevante corta esa racha y conserva el orden visual.
+
+Cuando un ataque impacta y causa daño real, P6.1 muestra una reacción genérica sobre el objetivo: retroceso mínimo, destello y marca breve de golpe. Se aplica tanto al jugador como a los enemigos. No representa todavía bloqueo, crítico, evasión, tipo de arma o elemento.
+
+P6.1 no intenta representar todavía el arma, el proyectil o el impacto definitivo. P6.2 sustituirá la señal provisional por animaciones de combate completas y reutilizará el mismo orden. Incluso entonces, la duración será exclusivamente visual y no determinará el turno de ningún actor.

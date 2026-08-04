@@ -4,6 +4,9 @@ import { ControladorCamaraPhaser } from "./ControladorCamaraPhaser.js";
 import { ControladorEntradaJugablePhaser } from "./ControladorEntradaJugablePhaser.js";
 import { ConversorCoordenadasPhaser } from "./ConversorCoordenadasPhaser.js";
 import { GestorRecursosPhaser } from "./GestorRecursosPhaser.js";
+import {
+  ReproductorEventosVisualesPhaser,
+} from "./ReproductorEventosVisualesPhaser.js";
 
 // La clase se crea después de cargar Phaser para no introducir una dependencia
 // global durante el arranque del modo Canvas 2D.
@@ -23,6 +26,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.compositor = null;
       this.controladorCamara = null;
       this.controladorEntradaJugable = null;
+      this.reproductorEventosVisuales = null;
       this.alEjecutarComando = null;
       this.textoAyuda = null;
       this.redibujoPendiente = false;
@@ -54,6 +58,16 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         conversorCoordenadas: this.conversorCoordenadas,
         alCambiar: (estado) => this.actualizarTextoAyuda(estado),
       });
+
+      this.reproductorEventosVisuales =
+        new ReproductorEventosVisualesPhaser({
+          escena: this,
+          compositor: this.compositor,
+          alAplicarEscena: (escenaFinal) =>
+            this.aplicarEscenaInmediata(escenaFinal),
+          alMoverJugadorVisual: (posicion) =>
+            this.controladorCamara?.actualizarPosicionVisualJugador(posicion),
+        });
 
       this.textoAyuda = this.add
         .text(14, 14, "", {
@@ -89,7 +103,36 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.redibujar();
     }
 
-    actualizarEscena(escena) {
+    actualizarEscena(escena, { eventosVisuales = [] } = {}) {
+      if (!escena) {
+        this.reproductorEventosVisuales?.cancelar();
+        this.escenaDarkMoon = null;
+        return;
+      }
+
+      const mismoMapa = pertenecenAlMismoMapa(this.escenaDarkMoon, escena);
+      const puedeAnimar =
+        mismoMapa &&
+        this.escenaDarkMoon !== null &&
+        this.reproductorEventosVisuales !== null;
+
+      if (!puedeAnimar) {
+        this.reproductorEventosVisuales?.cancelar();
+        this.aplicarEscenaInmediata(escena);
+        return;
+      }
+
+      this.reproductorEventosVisuales.encolar({
+        escenaFinal: escena,
+        eventosVisuales,
+      });
+    }
+
+    configurarAnimaciones(configuracion = {}) {
+      return this.reproductorEventosVisuales?.configurar(configuracion) ?? null;
+    }
+
+    aplicarEscenaInmediata(escena) {
       this.escenaDarkMoon = escena ?? null;
       this.redibujar();
     }
@@ -147,7 +190,11 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
     }
 
     solicitarRedibujo() {
-      if (this.redibujoPendiente || this.destruida) {
+      if (
+        this.redibujoPendiente ||
+        this.destruida ||
+        this.reproductorEventosVisuales?.estaActivo()
+      ) {
         return;
       }
 
@@ -184,11 +231,13 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
 
       this.destruida = true;
       this.controladorEntradaJugable?.destruir();
+      this.reproductorEventosVisuales?.destruir();
       this.controladorCamara?.destruir();
       this.compositor?.destruir();
       this.conversorCoordenadas?.destruir();
       this.gestorRecursos?.destruir();
       this.controladorEntradaJugable = null;
+      this.reproductorEventosVisuales = null;
       this.controladorCamara = null;
       this.alEjecutarComando = null;
       this.compositor = null;
@@ -198,4 +247,12 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       this.escenaDarkMoon = null;
     }
   };
+}
+
+function pertenecenAlMismoMapa(escenaAnterior, escenaFinal) {
+  return Boolean(
+    escenaAnterior?.mapa?.casillas &&
+      escenaFinal?.mapa?.casillas &&
+      escenaAnterior.mapa.casillas === escenaFinal.mapa.casillas,
+  );
 }

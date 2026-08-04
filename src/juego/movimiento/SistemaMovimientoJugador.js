@@ -1,4 +1,5 @@
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
+import { crearEventoEntidadMovida } from "../acciones/EventosAccion.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 import {
   COSTOS_TEMPORALES_BASE,
@@ -183,7 +184,14 @@ export class SistemaMovimientoJugador {
         .join("\n"),
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
-      eventos: resultadoZona?.eventos ?? [],
+      eventos: [
+        crearEventoEntidadMovida({
+          entidad: this.jugador,
+          origen,
+          destino: { x: nuevaX, y: nuevaY },
+        }),
+        ...(resultadoZona?.eventos ?? []),
+      ],
     });
   }
 }

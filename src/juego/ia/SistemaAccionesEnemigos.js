@@ -1,4 +1,8 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
+import {
+  crearEventoAtaqueResuelto,
+  crearEventoEntidadMovida,
+} from "../acciones/EventosAccion.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
   calcularDistanciaCuadricula,
@@ -246,6 +250,13 @@ export function procesarAccionEnemigo({
       tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
       costoBase: costoAtaque,
       mensajes,
+      eventos: [
+        crearEventoAtaqueResuelto({
+          atacante: enemigo,
+          objetivo: jugador,
+          resultado: resultadoAtaque,
+        }),
+      ],
     });
   }
 
@@ -277,7 +288,14 @@ export function procesarAccionEnemigo({
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
       mensajes,
-      eventos: resultadoZona?.eventos ?? [],
+      eventos: [
+        crearEventoEntidadMovida({
+          entidad: enemigo,
+          origen: resultadoMovimiento.origen,
+          destino: resultadoMovimiento.destino,
+        }),
+        ...(resultadoZona?.eventos ?? []),
+      ],
     });
   }
 

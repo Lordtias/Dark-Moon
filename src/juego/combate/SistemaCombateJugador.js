@@ -1,5 +1,6 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
+import { crearEventoAtaqueResuelto } from "../acciones/EventosAccion.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
@@ -10,6 +11,21 @@ import {
 import {
   seleccionarObjetivoPrioritario,
 } from "./SelectorObjetivoPrioritario.js";
+
+function crearResultadoAtaqueCasillaVacia({ jugador, posicionObjetivo }) {
+  const resultadoAtaque = jugador.atacarCasillaVacia();
+
+  return {
+    mensaje: resultadoAtaque.mensaje,
+    eventos: [
+      crearEventoAtaqueResuelto({
+        atacante: jugador,
+        posicionObjetivo,
+        resultado: resultadoAtaque,
+      }),
+    ],
+  };
+}
 
 // Administra el combate iniciado por el jugador.
 export class SistemaCombateJugador {
@@ -288,29 +304,60 @@ export class SistemaCombateJugador {
     return this.resolutorDerrotasJugador.resolverPendientes();
   }
 
+  // Conserva el contrato histórico utilizado por Juego.atacarObjetivo():
+  // ejecutar el ataque y devolver solamente su mensaje.
+  atacarObjetivo(objetivo) {
+    return this.resolverAtaqueObjetivo(objetivo).mensaje;
+  }
+
   // El registro de hostilidad ocurre solamente después de que el motor haya
   // confirmado y consumido los recursos del ataque. Un fallo de impacto sigue
   // siendo un intento hostil válido.
-  atacarObjetivo(objetivo) {
-    const resultado = this.jugador.atacar(objetivo);
-    if (resultado.ataqueNoDisponible) return resultado.mensaje;
+  resolverAtaqueObjetivo(objetivo) {
+    const resultadoAtaque = this.jugador.atacar(objetivo);
+
+    if (resultadoAtaque.ataqueNoDisponible) {
+      return {
+        mensaje: resultadoAtaque.mensaje,
+        eventos: [],
+      };
+    }
 
     if (objetivo instanceof Enemigo) {
       this.registrarParticipanteCombate(objetivo, "intento_hostil_jugador");
       objetivo.activarAgresividad();
     }
 
-    const mensajes = [resultado.mensaje];
-    if (!objetivo.estaDestruido) return mensajes.filter(Boolean).join("\n");
+    const mensajes = [resultadoAtaque.mensaje];
+    const eventos = [
+      crearEventoAtaqueResuelto({
+        atacante: this.jugador,
+        objetivo,
+        resultado: resultadoAtaque,
+      }),
+    ];
+
+    if (!objetivo.estaDestruido) {
+      return {
+        mensaje: mensajes.filter(Boolean).join("\n"),
+        eventos,
+      };
+    }
 
     if (!(objetivo instanceof Enemigo)) {
       mensajes.push(`${objetivo.nombre} fue destruido.`);
-      return mensajes.filter(Boolean).join("\n");
+      return {
+        mensaje: mensajes.filter(Boolean).join("\n"),
+        eventos,
+      };
     }
 
     const derrota = this.resolutorDerrotasJugador.resolverObjetivo(objetivo);
     mensajes.push(derrota.mensaje);
-    return mensajes.filter(Boolean).join("\n");
+    return {
+      mensaje: mensajes.filter(Boolean).join("\n"),
+      eventos,
+    };
   }
 
   confirmarAtaque() {
@@ -342,14 +389,18 @@ export class SistemaCombateJugador {
     const usaRespaldo = this.jugador.ataqueNaturalForzado === true;
 
     try {
-      const mensaje = objetivo
-        ? this.atacarObjetivo(objetivo)
-        : this.jugador.atacarCasillaVacia().mensaje;
+      const resultadoAtaque = objetivo
+        ? this.resolverAtaqueObjetivo(objetivo)
+        : crearResultadoAtaqueCasillaVacia({
+            jugador: this.jugador,
+            posicionObjetivo: { x, y },
+          });
       this.limpiarSelector();
       return this.finalizarAccionJugador({
-        mensaje,
+        mensaje: resultadoAtaque.mensaje,
         tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
         costoBase: costoAtaque,
+        eventos: resultadoAtaque.eventos,
       });
     } finally {
       if (usaRespaldo) this.jugador.ataqueNaturalForzado = false;

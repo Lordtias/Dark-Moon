@@ -34,6 +34,7 @@ export class RenderizadorPhaser {
     this.idReintentoAjusteEscala = null;
     this.reintentosAjusteEscala = 0;
     this.ultimoTamanoHost = Object.freeze({ ancho: 0, alto: 0 });
+    this.configuracionAnimaciones = Object.freeze({});
 
     this.prepararContenedor();
 
@@ -41,6 +42,7 @@ export class RenderizadorPhaser {
       Phaser,
       alPreparar: (escenaPhaser) => {
         this.escenaPhaser = escenaPhaser;
+        this.escenaPhaser.configurarAnimaciones(this.configuracionAnimaciones);
         this.sincronizarEscena();
       },
     });
@@ -87,13 +89,28 @@ export class RenderizadorPhaser {
     this.escenaPhaser?.configurarDimensionesMapa(this.dimensionesMapa);
   }
 
-  dibujar(escena) {
+  dibujar(escena, { eventosVisuales = [] } = {}) {
     if (!escena?.mapa || !Array.isArray(escena?.entidades)) {
       throw new Error("RenderizadorPhaser necesita una escena visual válida.");
     }
 
     this.ultimaEscena = escena;
-    this.escenaPhaser?.actualizarEscena(escena);
+    this.escenaPhaser?.actualizarEscena(escena, { eventosVisuales });
+  }
+
+  configurarAnimaciones(configuracion = {}) {
+    if (!configuracion || typeof configuracion !== "object") {
+      throw new Error("La configuración de animaciones debe ser un objeto.");
+    }
+
+    this.configuracionAnimaciones = Object.freeze({
+      ...this.configuracionAnimaciones,
+      ...configuracion,
+    });
+
+    return this.escenaPhaser?.configurarAnimaciones(
+      this.configuracionAnimaciones,
+    ) ?? this.configuracionAnimaciones;
   }
 
   conectarEntradaJugable(alEjecutarComando = null) {
@@ -135,6 +152,8 @@ export class RenderizadorPhaser {
     this.escenaPhaser.establecerManejadorEntradaJugable(
       this.alEjecutarComando,
     );
+
+    this.escenaPhaser.configurarAnimaciones(this.configuracionAnimaciones);
 
     if (this.ultimaEscena) {
       this.escenaPhaser.actualizarEscena(this.ultimaEscena);

@@ -1632,6 +1632,8 @@ Las traducciones entre pantalla, mundo y casilla pertenecen a un conversor únic
 
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre el mapa Phaser señala una casilla y mueve el selector canónico. La acción continúa confirmándose mediante `F` o `R`; seleccionar no consume turno ni ejecuta automáticamente ataques, habilidades o interacciones.
 
+Al confirmar un ataque, la selección táctica debe retirarse antes del primer movimiento, impacto, texto o efecto de combate. El selector representa la fase de apuntado y no debe permanecer superpuesto durante la resolución visual de una acción ya confirmada.
+
 El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.
 
 El teclado jugable y la cámara permanecen en componentes especializados. Una futura pantalla de configuración deberá modificar una única asignación central de acciones y teclas para ambos componentes, evitando configuraciones paralelas.
@@ -1743,3 +1745,19 @@ Los recorridos consecutivos del jugador reducen progresivamente su duración por
 Cuando un ataque impacta y causa daño real, P6.1 muestra una reacción genérica sobre el objetivo: retroceso mínimo, destello y marca breve de golpe. Se aplica tanto al jugador como a los enemigos. No representa todavía bloqueo, crítico, evasión, tipo de arma o elemento.
 
 P6.1 no intenta representar todavía el arma, el proyectil o el impacto definitivo. P6.2 sustituirá la señal provisional por animaciones de combate completas y reutilizará el mismo orden. Incluso entonces, la duración será exclusivamente visual y no determinará el turno de ningún actor.
+
+## V-026 — Feedback de combate por golpe
+
+P6.2A separa visualmente los resultados ya calculados de cada golpe. El mapa Phaser no debe mostrar un único total cuando el ataque dual produjo dos resultados: cada mano conserva su daño, fallo, bloqueo y crítico en el orden canónico. Si el primer golpe destruye al objetivo, no se representa un segundo golpe inexistente.
+
+El lenguaje visual inicial es:
+
+- daño: número flotante y reacción de impacto;
+- fallo: desplazamiento lateral breve y texto `FALLO`, sin marca de impacto ni número cero;
+- bloqueo: escudo procedural y texto `BLOQUEO`; si queda daño real, también aparece el número aplicado;
+- crítico: impacto algo más intenso, marca breve y texto `CRÍTICO`;
+- casilla vacía: preparación ofensiva sin objetivo ni feedback falso.
+
+La barra de Vida de enemigos debe descender durante cada golpe utilizando únicamente la Vida anterior y posterior derivadas del resultado canónico. La barra del jugador dentro de los paneles HTML continúa mostrando el estado final inmediato hasta la coordinación completa de P6.4.
+
+Los textos y símbolos deben conservar lectura a zoom mínimo, tener duración limitada y evitar que varios resultados se superpongan exactamente. Los efectos reducidos pueden omitir marcas decorativas, pero deben conservar las palabras y números necesarios para comprender el resultado.

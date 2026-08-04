@@ -239,6 +239,7 @@ export function procesarAccionEnemigo({
   if (evaluacionAtaque.puedeAtacar) {
     registrarParticipanteCombate(enemigo, "intento_hostil_enemigo");
     const costoAtaque = enemigo.costoAtaqueActual;
+    const configuracionAtaque = enemigo.configuracionAtaqueActual;
     const resultadoAtaque = enemigo.atacar(jugador);
     mensajes.push(resultadoAtaque.mensaje);
 
@@ -255,6 +256,7 @@ export function procesarAccionEnemigo({
           atacante: enemigo,
           objetivo: jugador,
           resultado: resultadoAtaque,
+          configuracionAtaque,
         }),
       ],
     });

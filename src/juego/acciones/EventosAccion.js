@@ -30,6 +30,7 @@ export function crearEventoAtaqueResuelto({
   objetivo = null,
   posicionObjetivo = null,
   resultado,
+  configuracionAtaque = null,
 } = {}) {
   validarEntidad(atacante, "atacante");
 
@@ -49,6 +50,7 @@ export function crearEventoAtaqueResuelto({
     (objetivo && Number.isInteger(objetivo.x) && Number.isInteger(objetivo.y)
       ? { x: objetivo.x, y: objetivo.y }
       : null);
+  const estadoObjetivoFinal = copiarEstadoObjetivoFinal(objetivo);
 
   return Object.freeze({
     tipo: TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO,
@@ -58,11 +60,15 @@ export function crearEventoAtaqueResuelto({
     posicionObjetivo: posicionFinalObjetivo
       ? copiarPosicion(posicionFinalObjetivo)
       : null,
-    resultado: copiarResultadoAtaque(resultado),
+    configuracionAtaque: copiarConfiguracionAtaque(configuracionAtaque),
+    estadoObjetivoFinal,
+    resultado: copiarResultadoAtaque(resultado, estadoObjetivoFinal),
   });
 }
 
-function copiarResultadoAtaque(resultado) {
+function copiarResultadoAtaque(resultado, estadoObjetivoFinal) {
+  const golpes = copiarGolpes(resultado.golpes, estadoObjetivoFinal);
+
   return Object.freeze({
     impacto: resultado.impacto === true,
     bloqueado: resultado.bloqueado === true,
@@ -74,28 +80,120 @@ function copiarResultadoAtaque(resultado) {
       resultado.golpesProgramados,
     ),
     golpesRealizados: normalizarEnteroNoNegativo(resultado.golpesRealizados),
-    golpes: copiarGolpes(resultado.golpes),
+    golpes,
   });
 }
 
-function copiarGolpes(golpes) {
+function copiarGolpes(golpes, estadoObjetivoFinal) {
   if (!Array.isArray(golpes)) {
     return Object.freeze([]);
   }
 
-  return Object.freeze(
-    golpes.map((golpe) =>
-      Object.freeze({
-        nombreFuente:
-          typeof golpe?.nombreFuente === "string" ? golpe.nombreFuente : null,
-        mano: typeof golpe?.mano === "string" ? golpe.mano : null,
-        impacto: golpe?.impacto === true,
-        bloqueado: golpe?.bloqueado === true,
-        critico: golpe?.critico === true,
-        danio: normalizarNumeroNoNegativo(golpe?.danio),
-      }),
-    ),
+  const golpesNormalizados = golpes.map((golpe) => ({
+    nombreFuente:
+      typeof golpe?.nombreFuente === "string" ? golpe.nombreFuente : null,
+    mano: typeof golpe?.mano === "string" ? golpe.mano : null,
+    impacto: golpe?.impacto === true,
+    bloqueado: golpe?.bloqueado === true,
+    critico: golpe?.critico === true,
+    danio: normalizarNumeroNoNegativo(golpe?.danio),
+  }));
+
+  const vidaFinal = estadoObjetivoFinal?.vidaActual;
+  const vidaMaxima = estadoObjetivoFinal?.vidaMaxima;
+  const puedeReconstruirVida =
+    Number.isFinite(vidaFinal) && Number.isFinite(vidaMaxima) && vidaMaxima > 0;
+  const danioTotal = golpesNormalizados.reduce(
+    (total, golpe) => total + golpe.danio,
+    0,
   );
+  const vidaInicial = puedeReconstruirVida
+    ? Math.min(vidaMaxima, Math.max(0, vidaFinal + danioTotal))
+    : null;
+  let danioAcumulado = 0;
+
+  return Object.freeze(
+    golpesNormalizados.map((golpe) => {
+      const vidaObjetivoAntes = puedeReconstruirVida
+        ? Math.max(0, vidaInicial - danioAcumulado)
+        : null;
+      danioAcumulado += golpe.danio;
+      const vidaObjetivoDespues = puedeReconstruirVida
+        ? Math.max(0, vidaInicial - danioAcumulado)
+        : null;
+
+      return Object.freeze({
+        ...golpe,
+        vidaObjetivoAntes,
+        vidaObjetivoDespues,
+        vidaObjetivoMaxima: puedeReconstruirVida ? vidaMaxima : null,
+      });
+    }),
+  );
+}
+
+function copiarConfiguracionAtaque(configuracion) {
+  if (
+    !configuracion ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion)
+  ) {
+    return null;
+  }
+
+  const propiedades = configuracion.propiedadesControladoras ?? {};
+  const fuentes = Array.isArray(configuracion.fuentesDanio)
+    ? configuracion.fuentesDanio.map((fuente) => {
+        const propiedadesFuente = fuente?.propiedades ?? {};
+        return Object.freeze({
+          nombreFuente:
+            typeof fuente?.nombre === "string" ? fuente.nombre : null,
+          mano: typeof fuente?.mano === "string" ? fuente.mano : null,
+          tipoAtaque: normalizarTexto(propiedadesFuente.tipoAtaque),
+          patronAtaque: normalizarTexto(propiedadesFuente.patronAtaque),
+          alcance: normalizarEnteroPositivo(propiedadesFuente.alcance),
+          tipoMunicion: normalizarTexto(propiedadesFuente.tipoMunicion),
+          elementoAtaqueBasico: normalizarTexto(
+            propiedadesFuente.elementoAtaqueBasico,
+          ),
+        });
+      })
+    : [];
+
+  return Object.freeze({
+    origen: normalizarTexto(configuracion.origen),
+    tipoAtaque: normalizarTexto(propiedades.tipoAtaque),
+    patronAtaque: normalizarTexto(propiedades.patronAtaque),
+    alcance: normalizarEnteroPositivo(propiedades.alcance),
+    tipoMunicion: normalizarTexto(configuracion.tipoMunicion),
+    esAtaqueDual: configuracion.esAtaqueDual === true,
+    cantidadGolpes: normalizarEnteroNoNegativo(configuracion.cantidadGolpes),
+    fuentes: Object.freeze(fuentes),
+  });
+}
+
+function copiarEstadoObjetivoFinal(objetivo) {
+  if (!objetivo || typeof objetivo !== "object") {
+    return null;
+  }
+
+  const vidaActual = Number.isFinite(objetivo.vidaActual)
+    ? Math.max(0, objetivo.vidaActual)
+    : null;
+  const vidaMaxima = Number.isFinite(objetivo.vidaMaxima)
+    ? Math.max(0, objetivo.vidaMaxima)
+    : null;
+
+  if (vidaActual === null && vidaMaxima === null) {
+    return null;
+  }
+
+  return Object.freeze({
+    vidaActual,
+    vidaMaxima,
+    destruido:
+      objetivo.estaDestruido === true || objetivo.estaVivo === false,
+  });
 }
 
 function copiarPosicion(posicion) {
@@ -116,10 +214,20 @@ function validarPosicion(posicion, descripcion) {
   }
 }
 
+function normalizarTexto(valor) {
+  return typeof valor === "string" && valor.trim() !== ""
+    ? valor
+    : null;
+}
+
 function normalizarNumeroNoNegativo(valor) {
   return Number.isFinite(valor) ? Math.max(0, valor) : 0;
 }
 
 function normalizarEnteroNoNegativo(valor) {
   return Number.isInteger(valor) ? Math.max(0, valor) : 0;
+}
+
+function normalizarEnteroPositivo(valor) {
+  return Number.isInteger(valor) && valor > 0 ? valor : null;
 }

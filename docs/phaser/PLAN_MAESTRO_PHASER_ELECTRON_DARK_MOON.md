@@ -958,7 +958,7 @@ Una subetapa puede dividirse nuevamente cuando el ajuste visual lo requiera. No 
 
 ### P6.1 — Contrato visual, movimiento y secuenciación enemiga
 
-Estado técnico: implementada y validada; pendiente de commit por el usuario.
+Estado: cerrada, validada manualmente y publicada en `687ef42d363c308063ef5ab5f0d0b3ae8f425211`.
 
 P6.1 incorpora:
 
@@ -986,6 +986,37 @@ Los paneles HTML continúan actualizando el estado final inmediatamente. La sinc
 ### Criterio de cierre de P6.1
 
 Los movimientos del jugador y los enemigos se reproducen en orden sobre identidades visuales estables; los recorridos largos recuperan ritmo sin omitir casillas; varios ataques enemigos se distinguen mediante una secuencia visual; jugador y enemigos reaccionan ante daño real; cancelar la cola no deja esperas pendientes; el resultado canónico, el sistema temporal, la persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
+
+### P6.2 — Combate físico, proyectiles y feedback de impacto
+
+P6.2 se divide en cierres independientes con commit propio:
+
+1. `P6.2A` — resultados visuales del combate;
+2. `P6.2B` — ataques cuerpo a cuerpo;
+3. `P6.2C` — proyectiles y cierre de P6.2.
+
+#### P6.2A — Resultados visuales del combate
+
+Estado: implementada y validada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.2A amplía el evento `ataque_resuelto` sin modificar `SistemaCombate`:
+
+- copia el tipo, patrón, alcance, munición y fuentes del ataque antes de ejecutarlo;
+- conserva daño, fallo, bloqueo y crítico por cada golpe realmente realizado;
+- reconstruye la Vida anterior y posterior de cada golpe usando el daño canónico aplicado y la Vida final del objetivo;
+- muestra un número independiente por golpe, sin duplicarlo con un total adicional;
+- representa el fallo mediante desplazamiento lateral y texto `FALLO`;
+- representa el bloqueo mediante señal de escudo y texto `BLOQUEO`;
+- representa el crítico mediante marca y texto `CRÍTICO`;
+- actualiza progresivamente la barra de Vida de enemigos durante la secuencia;
+- conserva el pulso ofensivo provisional de P6.1 hasta P6.2B y P6.2C;
+- no inventa objetivo, fallo ni daño cuando se ataca una casilla vacía.
+
+Los paneles HTML continúan mostrando inmediatamente el estado canónico final. P6.2A sincroniza exclusivamente el feedback dentro del mapa Phaser. La coordinación completa del panel del jugador con muerte y derrota permanece en P6.4.
+
+### Criterio de cierre de P6.2A
+
+Daño, fallo, bloqueo y crítico son distinguibles para ataques del jugador y enemigos; los golpes duales se muestran individualmente y solamente cuando ocurrieron; la barra de Vida enemiga desciende golpe por golpe; los ataques a casillas vacías no generan feedback falso; el sistema canónico, la agenda temporal, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin cambios de reglas.
 
 ### Criterio de cierre de P6 completa
 

@@ -142,6 +142,19 @@ export class CompositorMundoPhaser {
     this.firmaTerreno = null;
   }
 
+  ocultarSeleccionTemporal() {
+    if (!this.capaSeleccion) {
+      return false;
+    }
+
+    // Al confirmar una acción, el selector táctico pertenece al estado previo.
+    // Se retira antes de reproducir el ataque para que no permanezca superpuesto
+    // sobre el objetivo durante el feedback visual. La escena final autoritativa
+    // volverá a dibujar la selección únicamente si todavía corresponde.
+    this.capaSeleccion.removeAll(true);
+    return true;
+  }
+
   establecerCasillaPuntero(casilla) {
     const normalizada = normalizarCasilla(casilla, this.geometria);
 
@@ -767,6 +780,7 @@ export class CompositorMundoPhaser {
           entidad,
           sombra,
           contenedor: null,
+          barraVida: null,
         });
       }
     }
@@ -869,9 +883,10 @@ export class CompositorMundoPhaser {
         this.agregarAgresividad(contenedor);
       }
 
-      if (entidad.mostrarBarraVida) {
-        this.agregarBarraVida(contenedor, entidad);
-      }
+      const barraVida =
+        entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
+          ? this.agregarBarraVida(contenedor, entidad)
+          : null;
 
       this.capaEntidades.add(contenedor);
       if (idVisual) {
@@ -880,6 +895,7 @@ export class CompositorMundoPhaser {
           ...nodoExistente,
           entidad,
           contenedor,
+          barraVida,
         });
       }
     }
@@ -964,9 +980,51 @@ export class CompositorMundoPhaser {
   }
 
   agregarBarraVida(contenedor, entidad) {
+    const graficos = this.escena.add.graphics();
+    const barra = { graficos };
+    contenedor.add(graficos);
+    this.actualizarGraficosBarraVida(barra, {
+      vidaActual: entidad.vidaActual,
+      vidaMaxima: entidad.vidaMaxima,
+      visible: entidad.mostrarBarraVida === true,
+    });
+    return barra;
+  }
+
+  actualizarBarraVidaEntidad(
+    idVisual,
+    { vidaActual, vidaMaxima, mostrarAunqueCero = true } = {},
+  ) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (
+      !nodo?.barraVida ||
+      nodo.entidad?.tipo !== TIPOS_ENTIDAD_VISUAL.ENEMIGO ||
+      !Number.isFinite(vidaActual) ||
+      !Number.isFinite(vidaMaxima) ||
+      vidaMaxima <= 0
+    ) {
+      return false;
+    }
+
+    this.actualizarGraficosBarraVida(nodo.barraVida, {
+      vidaActual,
+      vidaMaxima,
+      visible:
+        vidaActual < vidaMaxima && (mostrarAunqueCero || vidaActual > 0),
+    });
+    return true;
+  }
+
+  actualizarGraficosBarraVida(
+    barra,
+    { vidaActual, vidaMaxima, visible = true } = {},
+  ) {
+    const graficos = barra?.graficos;
+    if (!graficos) return;
+
     const porcentaje = Math.max(
       0,
-      Math.min(1, entidad.vidaActual / entidad.vidaMaxima),
+      Math.min(1, Number(vidaActual) / Number(vidaMaxima)),
     );
     const ancho = TAMANO_CASILLA_REFERENCIA - 6;
     const color =
@@ -975,14 +1033,15 @@ export class CompositorMundoPhaser {
         : porcentaje <= 0.5
           ? 0xe4c44e
           : 0x55cf72;
-    const graficos = this.escena.add.graphics();
     const x = -TAMANO_CASILLA_REFERENCIA / 2 + 3;
     const y = -TAMANO_CASILLA_REFERENCIA / 2 + 2;
+
+    graficos.clear?.();
     graficos.fillStyle(0x0a0a0c, 0.9);
     graficos.fillRect(x, y, ancho, 4);
     graficos.fillStyle(color, 1);
     graficos.fillRect(x + 1, y + 1, Math.max(0, (ancho - 2) * porcentaje), 2);
-    contenedor.add(graficos);
+    graficos.setVisible?.(visible === true);
   }
 
   dibujarRellenoCasilla(graficos, casilla, estilo) {

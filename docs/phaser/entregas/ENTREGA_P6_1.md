@@ -5,7 +5,7 @@ Plan: Integración progresiva de Phaser, beta y Electron
 Etapa: P6.1 — Contrato visual, movimiento y secuenciación enemiga  
 Base usada: `bfd2d1c92d3690241707d5c284808be40437f866`  
 Rama: `main`  
-Estado: Implementada y validada técnicamente; pendiente de prueba manual y commit por el usuario
+Estado: Cerrada, validada manualmente y publicada
 
 ---
 
@@ -52,7 +52,7 @@ Canvas 2D continúa dibujando inmediatamente el estado final y no depende de la 
 
 ### Decisión o acción siguiente
 
-Realizar la prueba manual indicada en este documento. Si el resultado es correcto, aplicar el commit propuesto y proporcionar su SHA antes de analizar P6.2.
+P6.1 fue validada manualmente por el usuario, cerrada y publicada en el commit `687ef42d363c308063ef5ab5f0d0b3ae8f425211`. La siguiente etapa aprobada es P6.2A — Resultados visuales del combate.
 
 ---
 
@@ -673,7 +673,7 @@ Estos casos se documentan para no presentar como exitosos comandos que inicialme
 
 ---
 
-## 16. Pruebas manuales obligatorias antes del commit
+## 16. Pruebas manuales de cierre
 
 ### Prueba A — Movimiento del jugador
 
@@ -700,7 +700,7 @@ Resultado esperado:
 - la cámara sigue al jugador sin salto final;
 - la posición lógica y el alcance no cambian.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba B — Movimiento enemigo
 
@@ -716,7 +716,7 @@ Resultado esperado:
 - ningún enemigo atraviesa casillas nuevas;
 - no cambia la búsqueda de caminos.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba C — Varios enemigos atacando
 
@@ -735,7 +735,7 @@ Resultado esperado:
 - no se agregan ataques ni daño;
 - la cola no se vuelve excesivamente lenta.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba C2 — Jugador golpeando enemigos
 
@@ -750,7 +750,7 @@ Resultado esperado:
 - un fallo o daño cero no muestra una reacción de daño falsa;
 - el enemigo termina exactamente en su casilla lógica.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba D — Acciones rápidas
 
@@ -767,7 +767,7 @@ Resultado esperado:
 - siempre termina en la posición real más reciente;
 - no se bloquea el control lógico.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba E — Cambio de mapa durante cola
 
@@ -783,7 +783,7 @@ Resultado esperado:
 - el mapa nuevo aparece en su estado canónico;
 - no hay errores de consola.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ### Prueba F — Canvas 2D
 
@@ -799,7 +799,7 @@ Resultado esperado:
 - ninguna dependencia de Phaser;
 - sin errores de consola.
 
-Estado: **Pendiente**.
+Estado: **Aprobada por el usuario durante la validación manual previa al commit**.
 
 ---
 
@@ -815,14 +815,14 @@ Estado: **Pendiente**.
 - GitHub Pages no requiere un proceso de build adicional.
 
 Estado técnico: compatible.  
-Validación interactiva completa: pendiente.
+Validación interactiva externa: aprobada por el usuario antes del cierre.
 
 ### Canvas 2D
 
 - no se modificó su implementación;
 - recibe la escena final como antes;
 - ignora las opciones adicionales de dibujo de JavaScript;
-- fue validado a nivel de contrato neutral, pero requiere regresión manual.
+- fue validado a nivel de contrato neutral y aceptado dentro de la prueba manual de cierre.
 
 ### Electron
 
@@ -843,7 +843,6 @@ No corresponde a P6.1. No se agregaron Node.js, preload, IPC ni empaquetado.
 
 ### Pendientes deliberados
 
-- prueba visual real por el usuario;
 - animaciones completas de ataques en P6.2;
 - sincronización de feedback de Vida y daño en P6.2;
 - muerte y botín en P6.4;
@@ -873,7 +872,7 @@ Correcciones aplicadas antes del commit:
 - marca de golpe procedural, sin imágenes ni dependencias nuevas;
 - conservación del ritmo secuencial y la pausa exclusiva entre ataques enemigos.
 
-Estas correcciones siguen perteneciendo al alcance de P6.1 y se integran antes de su primer commit.
+Estas correcciones pertenecen al alcance final de P6.1 y quedaron incluidas en el commit de cierre `687ef42d363c308063ef5ab5f0d0b3ae8f425211`.
 
 ---
 
@@ -885,49 +884,57 @@ Estas correcciones siguen perteneciendo al alcance de P6.1 y se integran antes d
 | No crear `.mjs` en el repositorio | Correcto |
 | No instalar dependencias | Correcto |
 | No modificar GitHub | Correcto |
-| No realizar commit | Correcto |
+| No realizar commit por el asistente | Correcto; el usuario realizó posteriormente el commit de cierre |
 | No realizar push | Correcto |
 | No duplicar combate | Correcto |
 | No usar duración como tiempo real | Correcto |
 | No modificar persistencia | Correcto |
-| No romper Canvas deliberadamente | Correcto; pendiente prueba manual |
-| No avanzar a P6.2 | Correcto |
+| No romper Canvas deliberadamente | Correcto; aceptado dentro de la validación manual de cierre |
+| No avanzar automáticamente a P6.2 | Correcto |
 
 ---
 
-## 20. Estado Git final previo al commit
+## 20. Estado Git final confirmado
 
-Commit base y HEAD todavía verificado:
+Commit de cierre y HEAD verificado:
 
 ```text
-bfd2d1c92d3690241707d5c284808be40437f866
+687ef42d363c308063ef5ab5f0d0b3ae8f425211
 ```
 
-El árbol de trabajo contiene únicamente la implementación y documentación de P6.1. No se realizó commit.
+Estado confirmado sobre el ZIP posterior al commit:
 
-Comando de comprobación:
-
-```bash
-git -C /mnt/data/p6_work/Dark-Moon \
-  -c core.autocrlf=true status --short --branch
+```text
+## main...origin/main
 ```
+
+La copia local, `origin/main` y el estado publicado en GitHub coinciden. El commit fue realizado y publicado por el usuario; el asistente no ejecutó commit ni push.
 
 ---
 
-## 21. Conventional Commit propuesto
+## 21. Conventional Commit confirmado
 
 ```text
-feat(phaser): interpolar movimiento y secuenciar acciones enemigas
+feat(phaser): completar movimiento y secuenciación visual de combate
 
-- incorporar eventos canónicos para movimientos y ataques ya resueltos;
+- incorporar eventos estructurados para movimientos y ataques ya resueltos;
 - mantener identidades visuales estables sin modificar ni persistir entidades;
-- convertir resultados del dominio en un plan neutral para los renderizadores;
-- interpolar jugador y enemigos junto con sus sombras y seguimiento de cámara;
-- reproducir los ataques enemigos en orden mediante una cola visual configurable;
-- acelerar colas extensas y cancelar tweens o esperas de forma segura;
-- conservar Phaser 4.2.1, Canvas 2D, tiempo, combate y persistencia sin reglas duplicadas;
-- validar sintaxis, JSON, imports, contratos reales, compositor y carga HTTP;
+- interpolar el movimiento del jugador y enemigos junto con sus sombras;
+- acelerar automáticamente las ráfagas de desplazamientos consecutivos del jugador;
+- reproducir en orden los ataques de varios enemigos con pausas visuales legibles;
+- agregar retroceso, destello y marca de impacto sobre jugador y enemigos dañados;
+- evitar reacciones visuales falsas en ataques fallidos o con daño cero;
+- retirar el aura luminosa desfasada del jugador y conservar la iluminación ambiental;
+- cancelar animaciones y esperas de forma segura durante cambios de estado;
+- conservar combate, IA, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 sin reglas duplicadas;
+- validar sintaxis, JSON, imports, eventos reales, colas visuales y recursos web;
 - actualizar README, Plan Maestro, Diseño Maestro y entrega P6.1.
+```
+
+Commit confirmado:
+
+```text
+687ef42d363c308063ef5ab5f0d0b3ae8f425211
 ```
 
 ---
@@ -943,16 +950,16 @@ ETAPA CERRADA:
 P6.1 — Contrato visual, movimiento y secuenciación enemiga
 
 ESTADO:
-Pausada
+Cerrada
 
 COMMIT BASE:
 bfd2d1c92d3690241707d5c284808be40437f866
 
 HEAD FINAL VERIFICADO:
-bfd2d1c92d3690241707d5c284808be40437f866
+687ef42d363c308063ef5ab5f0d0b3ae8f425211
 
 GIT STATUS FINAL:
-Implementación y documentación de P6.1 presentes sin commit. Rama main alineada con origin/main en el commit base; árbol de trabajo modificado exclusivamente por P6.1.
+Rama main limpia y alineada con origin/main en `687ef42d363c308063ef5ab5f0d0b3ae8f425211`. Commit publicado y verificado en GitHub.
 
 DOCUMENTO DE ENTREGA:
 docs/phaser/entregas/ENTREGA_P6_1.md
@@ -986,8 +993,7 @@ PRUEBAS CLAVE SUPERADAS:
 - recursos principales servidos por HTTP 200.
 
 PROBLEMAS O RIESGOS PENDIENTES:
-- prueba manual interactiva de movimiento, varios enemigos, zoom, cambio de mapa y Canvas 2D;
-- Chromium headless del entorno no completó el arranque;
+- Chromium headless del entorno no completó el arranque; la validación manual externa fue aprobada por el usuario;
 - los paneles HTML muestran el estado final antes de terminar la cola visual;
 - la señal ofensiva y la reacción genérica son provisionales y deben especializarse en P6.2.
 
@@ -1005,10 +1011,10 @@ DECISIONES QUE SIGUEN ABIERTAS:
 - ubicación futura de los controles visibles de velocidad y efectos reducidos.
 
 SIGUIENTE ETAPA RECOMENDADA:
-P6.2 — Combate físico, proyectiles y feedback de impacto
+P6.2A — Resultados visuales del combate
 
 OBJETIVO DE LA SIGUIENTE ETAPA:
-Representar ataques cuerpo a cuerpo y a distancia mediante preparación, trayectoria, impacto, evasión, bloqueo, crítico y daño visual, reutilizando el resultado canónico y la cola de P6.1.
+Conservar por golpe el resultado canónico y representar daño, fallo, bloqueo, crítico y descenso visual de Vida sin incorporar todavía embestidas definitivas ni proyectiles.
 
 PRIMEROS ARCHIVOS A REVISAR:
 - src/juego/combate/SistemaCombate.js
@@ -1026,19 +1032,22 @@ NO MODIFICAR SIN NUEVA APROBACIÓN:
 - Canvas 2D como alternativa operativa.
 
 CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
-Los ataques físicos del jugador y enemigos muestran preparación y resultado en orden; los ataques a distancia tienen trayectoria; impacto, evasión, bloqueo, crítico y daño son legibles; ningún efecto visual recalcula o retrasa el sistema temporal; Canvas 2D y persistencia continúan sin cambios canónicos.
+Daño, fallo, bloqueo y crítico son distinguibles por golpe; doble arma muestra solo golpes realizados y sin total duplicado; la barra enemiga desciende en orden; casillas vacías no generan feedback falso; ninguna presentación recalcula combate o tiempo; Canvas 2D y persistencia continúan sin cambios canónicos.
 
 CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
-feat(phaser): interpolar movimiento y secuenciar acciones enemigas
+feat(phaser): completar movimiento y secuenciación visual de combate
 
-- incorporar eventos canónicos para movimientos y ataques ya resueltos;
+- incorporar eventos estructurados para movimientos y ataques ya resueltos;
 - mantener identidades visuales estables sin modificar ni persistir entidades;
-- convertir resultados del dominio en un plan neutral para los renderizadores;
-- interpolar jugador y enemigos junto con sus sombras y seguimiento de cámara;
-- reproducir los ataques enemigos en orden mediante una cola visual configurable;
-- acelerar colas extensas y cancelar tweens o esperas de forma segura;
-- conservar Phaser 4.2.1, Canvas 2D, tiempo, combate y persistencia sin reglas duplicadas;
-- validar sintaxis, JSON, imports, contratos reales, compositor y carga HTTP;
+- interpolar el movimiento del jugador y enemigos junto con sus sombras;
+- acelerar automáticamente las ráfagas de desplazamientos consecutivos del jugador;
+- reproducir en orden los ataques de varios enemigos con pausas visuales legibles;
+- agregar retroceso, destello y marca de impacto sobre jugador y enemigos dañados;
+- evitar reacciones visuales falsas en ataques fallidos o con daño cero;
+- retirar el aura luminosa desfasada del jugador y conservar la iluminación ambiental;
+- cancelar animaciones y esperas de forma segura durante cambios de estado;
+- conservar combate, IA, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 sin reglas duplicadas;
+- validar sintaxis, JSON, imports, eventos reales, colas visuales y recursos web;
 - actualizar README, Plan Maestro, Diseño Maestro y entrega P6.1.
 
 ----------------- FIN DEL ENLACE -----------------

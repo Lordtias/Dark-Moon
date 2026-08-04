@@ -90,6 +90,8 @@ function agregarAtaque(plan, evento, entidadesPorId) {
       posicionObjetivo: esPosicion(evento.posicionObjetivo)
         ? copiarPosicion(evento.posicionObjetivo)
         : null,
+      configuracionAtaque: evento.configuracionAtaque ?? null,
+      estadoObjetivoFinal: evento.estadoObjetivoFinal ?? null,
       resultado: evento.resultado,
     }),
   );

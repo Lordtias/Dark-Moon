@@ -7,6 +7,11 @@ import {
   CONFIGURACION_ANIMACIONES_PHASER,
   normalizarVelocidadAnimacionPhaser,
 } from "./ConfiguracionAnimacionesPhaser.js";
+import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
+import {
+  CONFIGURACION_EFECTOS_COMBATE_PHASER,
+  TIPOS_FEEDBACK_COMBATE,
+} from "./ConfiguracionEfectosCombatePhaser.js";
 
 // Reproduce hechos ya resueltos. La cola jamás modifica el estado del juego ni
 // decide el orden temporal: solamente conserva el orden recibido.
@@ -38,6 +43,10 @@ export class ReproductorEventosVisualesPhaser {
     this.compositor = compositor;
     this.alAplicarEscena = alAplicarEscena;
     this.alMoverJugadorVisual = alMoverJugadorVisual;
+    this.creadorEfectos = new CreadorEfectosCombatePhaser({
+      escena,
+      compositor,
+    });
     this.cola = [];
     this.reproduciendo = false;
     this.destruido = false;
@@ -121,6 +130,7 @@ export class ReproductorEventosVisualesPhaser {
     this.compositor = null;
     this.alAplicarEscena = null;
     this.alMoverJugadorVisual = null;
+    this.creadorEfectos = null;
   }
 
   async iniciarProcesamiento() {
@@ -258,6 +268,69 @@ export class ReproductorEventosVisualesPhaser {
   }
 
   async reproducirAtaqueResuelto(evento, version) {
+    // La selección corresponde al momento de apuntar, no al de resolver el
+    // ataque. Se oculta antes de cualquier pulso, impacto o texto para que la
+    // acción confirmada se lea limpia y en el orden esperado.
+    this.compositor.ocultarSeleccionTemporal?.();
+
+    const golpes = this.obtenerGolpesVisuales(evento);
+
+    for (let indice = 0; indice < golpes.length; indice += 1) {
+      if (version !== this.versionCancelacion || this.destruido) return;
+      await this.reproducirGolpe(evento, golpes[indice], indice, version);
+
+      if (indice < golpes.length - 1) {
+        await this.esperar(
+          this.calcularDuracion(
+            CONFIGURACION_EFECTOS_COMBATE_PHASER.golpe.pausaEntreGolpesMs,
+          ),
+          version,
+        );
+      }
+    }
+
+    if (evento.esAtaqueEnemigo) {
+      await this.esperar(
+        this.calcularDuracion(
+          CONFIGURACION_ANIMACIONES_PHASER.pausaEntreAtaquesEnemigosMs,
+        ),
+        version,
+      );
+    }
+  }
+
+  obtenerGolpesVisuales(evento) {
+    const golpes = evento?.resultado?.golpes;
+    if (Array.isArray(golpes) && golpes.length > 0) {
+      return golpes;
+    }
+
+    const golpesRealizados = evento?.resultado?.golpesRealizados;
+    if (
+      evento?.idObjetivo &&
+      golpesRealizados === undefined &&
+      evento?.resultado
+    ) {
+      return [
+        Object.freeze({
+          mano: null,
+          impacto: evento.resultado.impacto === true,
+          bloqueado: evento.resultado.bloqueado === true,
+          critico: evento.resultado.critico === true,
+          danio: Number(evento.resultado.danio) || 0,
+          vidaObjetivoAntes: null,
+          vidaObjetivoDespues: evento.estadoObjetivoFinal?.vidaActual ?? null,
+          vidaObjetivoMaxima: evento.estadoObjetivoFinal?.vidaMaxima ?? null,
+        }),
+      ];
+    }
+
+    // Un ataque a casilla vacía conserva preparación, pero no inventa fallo,
+    // objetivo ni daño.
+    return [null];
+  }
+
+  async reproducirGolpe(evento, golpe, indiceGolpe, version) {
     const nodoAtacante = this.compositor.obtenerNodoEntidad(evento.idAtacante);
     const duracion = this.calcularDuracion(
       CONFIGURACION_ANIMACIONES_PHASER.senalAtaqueMs,
@@ -291,46 +364,127 @@ export class ReproductorEventosVisualesPhaser {
           duration: mitad,
           ease: "Sine.easeIn",
         }, version),
-        this.debeMostrarImpacto(evento)
-          ? this.reproducirImpactoObjetivo(evento, version)
+        golpe
+          ? this.reproducirResultadoGolpe(
+              evento,
+              golpe,
+              indiceGolpe,
+              version,
+            )
           : Promise.resolve(),
       ]);
 
       nodoAtacante.contenedor.scaleX = escalaXInicial;
       nodoAtacante.contenedor.scaleY = escalaYInicial;
       nodoAtacante.contenedor.y = yInicial;
-    } else {
-      await Promise.all([
-        this.esperar(duracion, version),
-        this.debeMostrarImpacto(evento)
-          ? this.reproducirImpactoObjetivo(evento, version)
-          : Promise.resolve(),
-      ]);
-    }
-
-    if (evento.esAtaqueEnemigo) {
-      await this.esperar(
-        this.calcularDuracion(
-          CONFIGURACION_ANIMACIONES_PHASER.pausaEntreAtaquesEnemigosMs,
-        ),
-        version,
-      );
-    }
-  }
-
-  debeMostrarImpacto(evento) {
-    return Boolean(
-      evento?.idObjetivo &&
-      evento.resultado?.impacto === true &&
-      Number(evento.resultado?.danio) > 0,
-    );
-  }
-
-  async reproducirImpactoObjetivo(evento, version) {
-    const nodoObjetivo = this.compositor.obtenerNodoEntidad(evento.idObjetivo);
-    if (!nodoObjetivo?.contenedor) {
       return;
     }
+
+    await Promise.all([
+      this.esperar(duracion, version),
+      golpe
+        ? this.reproducirResultadoGolpe(evento, golpe, indiceGolpe, version)
+        : Promise.resolve(),
+    ]);
+  }
+
+  async reproducirResultadoGolpe(evento, golpe, indiceGolpe, version) {
+    if (!evento.idObjetivo) return;
+
+    if (golpe.impacto !== true) {
+      await Promise.all([
+        this.reproducirFalloObjetivo(evento, version),
+        this.reproducirTextoResultado({
+          evento,
+          texto: "FALLO",
+          tipo: TIPOS_FEEDBACK_COMBATE.FALLO,
+          indiceGolpe,
+          version,
+        }),
+      ]);
+      return;
+    }
+
+    const promesas = [];
+    const danio = Math.max(0, Number(golpe.danio) || 0);
+
+    if (danio > 0) {
+      promesas.push(
+        this.reproducirImpactoObjetivo(evento, golpe, version),
+        this.reproducirTextoResultado({
+          evento,
+          texto: `${formatearDanio(danio)}`,
+          tipo: TIPOS_FEEDBACK_COMBATE.DANIO,
+          indiceGolpe,
+          version,
+        }),
+        this.reproducirCambioVida(evento, golpe, version),
+      );
+    }
+
+    if (golpe.bloqueado === true) {
+      promesas.push(
+        this.reproducirBloqueo(evento, indiceGolpe, version),
+        this.reproducirTextoResultado({
+          evento,
+          texto: "BLOQUEO",
+          tipo: TIPOS_FEEDBACK_COMBATE.BLOQUEO,
+          indiceGolpe,
+          desplazamientoY: 8,
+          version,
+        }),
+      );
+    }
+
+    if (golpe.critico === true) {
+      promesas.push(
+        this.reproducirCritico(evento, indiceGolpe, version),
+        this.reproducirTextoResultado({
+          evento,
+          texto: "CRÍTICO",
+          tipo: TIPOS_FEEDBACK_COMBATE.CRITICO,
+          indiceGolpe,
+          desplazamientoY: -8,
+          version,
+        }),
+      );
+    }
+
+    await Promise.all(promesas);
+  }
+
+  async reproducirFalloObjetivo(evento, version) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idObjetivo);
+    if (!nodo?.contenedor || this.efectosReducidos) return;
+
+    const contenedor = nodo.contenedor;
+    const posicionInicial = { x: contenedor.x, y: contenedor.y };
+    const direccion = normalizarDireccionImpacto({
+      origen: evento.origenAtacante,
+      destino: evento.posicionObjetivo,
+    });
+    const lateral = { x: -direccion.y, y: direccion.x };
+    const desplazamiento =
+      CONFIGURACION_EFECTOS_COMBATE_PHASER.esquiva.desplazamientoPx;
+
+    await this.crearTween({
+      targets: contenedor,
+      x: posicionInicial.x + lateral.x * desplazamiento,
+      y: posicionInicial.y + lateral.y * desplazamiento,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.esquiva.duracionMs,
+      ),
+      yoyo: true,
+      ease: "Sine.easeOut",
+    }, version);
+
+    contenedor.x = posicionInicial.x;
+    contenedor.y = posicionInicial.y;
+  }
+
+  async reproducirImpactoObjetivo(evento, golpe, version) {
+    const nodoObjetivo = this.compositor.obtenerNodoEntidad(evento.idObjetivo);
+    if (!nodoObjetivo?.contenedor) return;
 
     const contenedor = nodoObjetivo.contenedor;
     const posicionInicial = {
@@ -345,20 +499,36 @@ export class ReproductorEventosVisualesPhaser {
     const duracion = this.calcularDuracion(
       CONFIGURACION_ANIMACIONES_PHASER.impactoObjetivoMs,
     );
+    const factorCritico = golpe.critico === true
+      ? CONFIGURACION_EFECTOS_COMBATE_PHASER.golpe.impactoCriticoEscala
+      : 1;
     const marca = this.efectosReducidos
       ? null
-      : this.crearMarcaImpacto(posicionInicial);
+      : this.creadorEfectos?.crearMarcaImpacto({
+          centro: posicionInicial,
+          critico: golpe.critico === true,
+        });
+
+    if (marca) {
+      marca.setScale?.(
+        CONFIGURACION_ANIMACIONES_PHASER.escalaMarcaImpactoInicial,
+      );
+    }
 
     const promesas = [
       this.crearTween({
         targets: contenedor,
         x:
           posicionInicial.x +
-          direccion.x * CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx,
+          direccion.x *
+            CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx *
+            factorCritico,
         y:
           posicionInicial.y +
-          direccion.y * CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx,
-        alpha: this.efectosReducidos ? 0.72 : 0.52,
+          direccion.y *
+            CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx *
+            factorCritico,
+        alpha: this.efectosReducidos ? 0.72 : golpe.critico ? 0.4 : 0.52,
         duration: Math.max(1, Math.round(duracion / 2)),
         yoyo: true,
         ease: "Quad.easeOut",
@@ -386,25 +556,140 @@ export class ReproductorEventosVisualesPhaser {
     marca?.destroy?.();
   }
 
-  crearMarcaImpacto(posicion) {
-    const marca = this.escena.add.graphics({
-      x: posicion.x,
-      y: posicion.y,
+  async reproducirBloqueo(evento, indiceGolpe, version) {
+    if (this.efectosReducidos) return;
+    const centro = this.obtenerCentroObjetivo(evento);
+    const escudo = this.creadorEfectos?.crearEscudoBloqueo({
+      centro,
+      indiceGolpe,
     });
-    marca.setScale?.(
-      CONFIGURACION_ANIMACIONES_PHASER.escalaMarcaImpactoInicial,
+    if (!escudo) return;
+
+    await this.crearTween({
+      targets: escudo,
+      scaleX: CONFIGURACION_EFECTOS_COMBATE_PHASER.bloqueo.escalaFinal,
+      scaleY: CONFIGURACION_EFECTOS_COMBATE_PHASER.bloqueo.escalaFinal,
+      alpha: 0,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.bloqueo.duracionMs,
+      ),
+      ease: "Quad.easeOut",
+    }, version);
+    escudo.destroy?.();
+  }
+
+  async reproducirCritico(evento, indiceGolpe, version) {
+    if (this.efectosReducidos) return;
+    const centro = this.obtenerCentroObjetivo(evento);
+    const marca = this.creadorEfectos?.crearMarcaCritico({
+      centro,
+      indiceGolpe,
+    });
+    if (!marca) return;
+
+    await this.crearTween({
+      targets: marca,
+      scaleX: CONFIGURACION_EFECTOS_COMBATE_PHASER.critico.escalaFinal,
+      scaleY: CONFIGURACION_EFECTOS_COMBATE_PHASER.critico.escalaFinal,
+      angle: 35,
+      alpha: 0,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.critico.duracionMs,
+      ),
+      ease: "Quad.easeOut",
+    }, version);
+    marca.destroy?.();
+  }
+
+  async reproducirTextoResultado({
+    evento,
+    texto,
+    tipo,
+    indiceGolpe,
+    desplazamientoY = 0,
+    version,
+  } = {}) {
+    const centro = this.obtenerCentroObjetivo(evento);
+    const objeto = this.creadorEfectos?.crearTextoFlotante({
+      centro,
+      texto,
+      tipo,
+      indiceGolpe,
+      desplazamientoY,
+    });
+    if (!objeto) return;
+
+    const duracion = this.calcularDuracion(
+      CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.duracionMs,
     );
-    marca.lineStyle(2, 0xfff0b8, 0.95);
-    marca.beginPath?.();
-    marca.moveTo?.(-7, -5);
-    marca.lineTo?.(7, 5);
-    marca.moveTo?.(6, -7);
-    marca.lineTo?.(-5, 7);
-    marca.strokePath?.();
-    marca.fillStyle(0xffffff, 0.82);
-    marca.fillCircle(0, 0, 3);
-    this.compositor.agregarEfectoTemporal(marca);
-    return marca;
+    const yInicial = objeto.y;
+
+    await this.crearTween({
+      targets: objeto,
+      y:
+        yInicial - CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.elevacionPx,
+      scaleX: CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.escalaFinal,
+      scaleY: CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.escalaFinal,
+      alpha: 0,
+      duration: duracion,
+      ease: "Quad.easeOut",
+    }, version);
+    objeto.destroy?.();
+  }
+
+  async reproducirCambioVida(evento, golpe, version) {
+    const vidaAntes = Number(golpe.vidaObjetivoAntes);
+    const vidaDespues = Number(golpe.vidaObjetivoDespues);
+    const vidaMaxima = Number(golpe.vidaObjetivoMaxima);
+
+    if (
+      !Number.isFinite(vidaAntes) ||
+      !Number.isFinite(vidaDespues) ||
+      !Number.isFinite(vidaMaxima) ||
+      vidaMaxima <= 0 ||
+      vidaAntes === vidaDespues
+    ) {
+      return;
+    }
+
+    const estado = { vida: vidaAntes };
+    const actualizable = this.compositor.actualizarBarraVidaEntidad(
+      evento.idObjetivo,
+      {
+        vidaActual: vidaAntes,
+        vidaMaxima,
+      },
+    );
+    if (!actualizable) return;
+
+    await this.crearTween({
+      targets: estado,
+      vida: vidaDespues,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.barraVida.duracionMs,
+      ),
+      ease: "Linear",
+      onUpdate: () => {
+        this.compositor.actualizarBarraVidaEntidad(evento.idObjetivo, {
+          vidaActual: estado.vida,
+          vidaMaxima,
+        });
+      },
+    }, version);
+
+    this.compositor.actualizarBarraVidaEntidad(evento.idObjetivo, {
+      vidaActual: vidaDespues,
+      vidaMaxima,
+    });
+  }
+
+  obtenerCentroObjetivo(evento) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idObjetivo);
+    if (nodo?.contenedor) {
+      return { x: nodo.contenedor.x, y: nodo.contenedor.y };
+    }
+
+    return this.compositor.obtenerCentroCasilla(evento.posicionObjetivo);
   }
 
   calcularDuracion(duracionBase) {
@@ -478,4 +763,8 @@ function normalizarDireccionImpacto({ origen, destino } = {}) {
     x: diferenciaX / longitud,
     y: diferenciaY / longitud,
   });
+}
+
+function formatearDanio(valor) {
+  return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
 }

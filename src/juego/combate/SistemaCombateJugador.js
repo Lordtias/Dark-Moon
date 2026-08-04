@@ -13,6 +13,7 @@ import {
 } from "./SelectorObjetivoPrioritario.js";
 
 function crearResultadoAtaqueCasillaVacia({ jugador, posicionObjetivo }) {
+  const configuracionAtaque = jugador.configuracionAtaqueActual;
   const resultadoAtaque = jugador.atacarCasillaVacia();
 
   return {
@@ -22,6 +23,7 @@ function crearResultadoAtaqueCasillaVacia({ jugador, posicionObjetivo }) {
         atacante: jugador,
         posicionObjetivo,
         resultado: resultadoAtaque,
+        configuracionAtaque,
       }),
     ],
   };
@@ -314,6 +316,7 @@ export class SistemaCombateJugador {
   // confirmado y consumido los recursos del ataque. Un fallo de impacto sigue
   // siendo un intento hostil válido.
   resolverAtaqueObjetivo(objetivo) {
+    const configuracionAtaque = this.jugador.configuracionAtaqueActual;
     const resultadoAtaque = this.jugador.atacar(objetivo);
 
     if (resultadoAtaque.ataqueNoDisponible) {
@@ -334,6 +337,7 @@ export class SistemaCombateJugador {
         atacante: this.jugador,
         objetivo,
         resultado: resultadoAtaque,
+        configuracionAtaque,
       }),
     ];
 

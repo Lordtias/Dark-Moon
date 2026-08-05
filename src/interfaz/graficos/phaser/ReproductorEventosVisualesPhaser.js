@@ -14,6 +14,9 @@ import {
 import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
 import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
 import {
+  CreadorProyectilesElementalesPhaser,
+} from "./CreadorProyectilesElementalesPhaser.js";
+import {
   ANCLAJES_RECURSO,
   CreadorRecursosAtaquePhaser,
 } from "./CreadorRecursosAtaquePhaser.js";
@@ -57,6 +60,8 @@ export class ReproductorEventosVisualesPhaser {
       escena,
       compositor,
     });
+    this.creadorProyectilesElementales =
+      new CreadorProyectilesElementalesPhaser({ escena, compositor });
     this.creadorRecursosAtaque = new CreadorRecursosAtaquePhaser({
       escena,
       compositor,
@@ -146,6 +151,7 @@ export class ReproductorEventosVisualesPhaser {
     this.alAplicarEscena = null;
     this.alMoverJugadorVisual = null;
     this.creadorEfectos = null;
+    this.creadorProyectilesElementales = null;
     this.creadorRecursosAtaque = null;
   }
 
@@ -306,7 +312,9 @@ export class ReproductorEventosVisualesPhaser {
     this.compositor.ocultarSeleccionTemporal?.();
 
     const golpes = this.obtenerGolpesVisuales(evento);
-    if (this.esAtaqueArco(evento) && evento.ritmoVisual) {
+    if (this.esAtaqueVarita(evento) && evento.ritmoVisual) {
+      await this.reproducirAtaqueVarita(evento, golpes, version);
+    } else if (this.esAtaqueArco(evento) && evento.ritmoVisual) {
       await this.reproducirAtaqueArco(evento, golpes, version);
     } else if (this.esAtaqueCuerpoACuerpo(evento) && evento.ritmoVisual) {
       await this.reproducirAtaqueCuerpoACuerpo(evento, golpes, version);
@@ -338,6 +346,17 @@ export class ReproductorEventosVisualesPhaser {
     return fuentes.length === 1 &&
       fuentes[0]?.familiaObjeto === "arco" &&
       fuentes[0]?.tipoAtaque === "distancia";
+  }
+
+  esAtaqueVarita(evento) {
+    const fuentes = evento?.configuracionAtaque?.fuentes ?? [];
+    return fuentes.length > 0 &&
+      fuentes.every(
+        (fuente) =>
+          fuente?.familiaObjeto === "varita" &&
+          fuente?.tipoAtaque === "distancia" &&
+          typeof fuente?.elementoAtaqueBasico === "string",
+      );
   }
 
   async reproducirAtaqueProvisional(evento, golpes, version) {
@@ -522,6 +541,212 @@ export class ReproductorEventosVisualesPhaser {
     ]);
 
     this.compositor.posicionarNodoEntidad(evento.idAtacante, centroBase);
+  }
+
+  async reproducirAtaqueVarita(evento, golpes, version) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idAtacante);
+    const centroBase = nodo?.contenedor
+      ? { x: nodo.contenedor.x, y: nodo.contenedor.y }
+      : this.compositor.obtenerCentroCasilla(evento.origenAtacante);
+    const centroObjetivo = this.compositor.obtenerCentroCasilla(
+      evento.posicionObjetivo,
+    );
+    const disparos = this.obtenerDisparosVarita(evento, golpes);
+
+    if (
+      !nodo?.contenedor ||
+      !centroBase ||
+      !centroObjetivo ||
+      disparos.length === 0
+    ) {
+      await this.reproducirAtaqueProvisional(evento, golpes, version);
+      return;
+    }
+
+    const fases = evento.ritmoVisual?.fases ?? {};
+    const fuentesCanalizacion = (evento?.configuracionAtaque?.fuentes ?? [])
+      .filter((fuente) => fuente?.familiaObjeto === "varita");
+    const direccion = normalizarDireccionImpacto({
+      origen: centroBase,
+      destino: centroObjetivo,
+    });
+    const lateral = { x: -direccion.y, y: direccion.x };
+    const canalizacion = this.efectosReducidos
+      ? null
+      : this.creadorProyectilesElementales?.crearCanalizacion({
+          centro: centroBase,
+          elementos: fuentesCanalizacion.map(
+            (fuente) => fuente.elementoAtaqueBasico,
+          ),
+          criticos: fuentesCanalizacion.map((fuente) =>
+            disparos.some(
+              (disparo) =>
+                disparo.fuente.mano === fuente.mano &&
+                disparo.golpe?.critico === true,
+            ),
+          ),
+        });
+    const duracionPreparacion = this.calcularDuracion(
+      fases.preparacion ?? CONFIGURACION_ANIMACIONES_PHASER.senalAtaqueMs,
+    );
+
+    if (canalizacion) {
+      canalizacion.setScale?.(0.65);
+      await this.crearTween({
+        targets: canalizacion,
+        scaleX: 1.16,
+        scaleY: 1.16,
+        alpha: 0.9,
+        angle: disparos.length > 1 ? 35 : 18,
+        duration: duracionPreparacion,
+        ease: "Sine.easeOut",
+      }, version);
+      canalizacion.destroy?.();
+    } else {
+      await this.esperar(duracionPreparacion, version);
+    }
+
+    for (let indice = 0; indice < disparos.length; indice += 1) {
+      if (version !== this.versionCancelacion || this.destruido) break;
+      const disparo = disparos[indice];
+      const esSecundaria = disparo.fuente.mano === "secundaria";
+      const signoLateral = esSecundaria ? -1 : 1;
+      const origenProyectil = {
+        x: centroBase.x + lateral.x * signoLateral * 3,
+        y: centroBase.y + lateral.y * signoLateral * 3,
+      };
+      const golpe = disparo.golpe;
+      const destinoProyectil =
+        golpe?.impacto === false && evento.idObjetivo
+          ? {
+              x:
+                centroObjetivo.x +
+                lateral.x * signoLateral * 10 +
+                direccion.x * 4,
+              y:
+                centroObjetivo.y +
+                lateral.y * signoLateral * 10 +
+                direccion.y * 4,
+            }
+          : centroObjetivo;
+      const angulo = Math.atan2(
+        destinoProyectil.y - origenProyectil.y,
+        destinoProyectil.x - origenProyectil.x,
+      );
+      const esDual = evento.ritmoVisual.secuencia === "proyectil_dual";
+      const idLanzamiento = esDual
+        ? esSecundaria
+          ? "lanzamientoSecundaria"
+          : "lanzamientoPrincipal"
+        : "lanzamiento";
+      const idTrayectoria = esDual
+        ? esSecundaria
+          ? "trayectoriaSecundaria"
+          : "trayectoriaPrincipal"
+        : "trayectoria";
+      const duracionLanzamiento = this.calcularDuracion(
+        fases[idLanzamiento] ?? 1,
+      );
+      const duracionTrayectoria = this.calcularDuracion(
+        fases[idTrayectoria] ?? 1,
+      );
+      const proyectil = this.efectosReducidos
+        ? null
+        : this.creadorProyectilesElementales?.crearProyectil({
+            elemento: disparo.fuente.elementoAtaqueBasico,
+            centro: origenProyectil,
+            destino: destinoProyectil,
+            anguloRad: angulo,
+            critico: golpe?.critico === true,
+            mano: disparo.fuente.mano,
+          });
+
+      const esDescargaRayo = disparo.fuente.elementoAtaqueBasico === "rayo";
+      if (proyectil) {
+        proyectil.setScale?.(0.72);
+        await this.crearTween({
+          targets: proyectil,
+          x: esDescargaRayo ? origenProyectil.x : origenProyectil.x + direccion.x * 5,
+          y: esDescargaRayo ? origenProyectil.y : origenProyectil.y + direccion.y * 5,
+          scaleX: golpe?.critico === true ? 1.18 : 1,
+          scaleY: golpe?.critico === true ? 1.18 : 1,
+          alpha: 1,
+          duration: duracionLanzamiento,
+          ease: "Quad.easeOut",
+        }, version);
+        await this.crearTween({
+          targets: proyectil,
+          x: esDescargaRayo ? origenProyectil.x : destinoProyectil.x,
+          y: esDescargaRayo ? origenProyectil.y : destinoProyectil.y,
+          alpha: golpe?.impacto === false ? 0.42 : 1,
+          duration: duracionTrayectoria,
+          ease: esDescargaRayo ? "Sine.easeOut" : "Linear",
+        }, version);
+      } else {
+        await this.esperar(duracionLanzamiento + duracionTrayectoria, version);
+      }
+
+      if (version !== this.versionCancelacion || this.destruido) {
+        proyectil?.destroy?.();
+        break;
+      }
+
+      const impacto =
+        golpe?.impacto === true && evento.idObjetivo && !this.efectosReducidos
+          ? this.creadorProyectilesElementales?.crearImpacto({
+              elemento: disparo.fuente.elementoAtaqueBasico,
+              centro: centroObjetivo,
+              critico: golpe?.critico === true,
+            })
+          : null;
+      proyectil?.destroy?.();
+
+      await Promise.all([
+        golpe
+          ? this.reproducirResultadoGolpe(evento, golpe, indice, version, {
+              esperarDecorativos: false,
+            })
+          : Promise.resolve(),
+        this.animarEfectoAtaque(
+          impacto,
+          Math.max(1, Math.round(duracionTrayectoria * 0.72)),
+          version,
+          { critico: golpe?.critico === true },
+        ),
+      ]);
+
+      if (indice < disparos.length - 1) {
+        await this.esperar(
+          this.calcularDuracion(fases.pausaEntreManos ?? 1),
+          version,
+        );
+      }
+    }
+
+    await this.esperar(
+      this.calcularDuracion(fases.retorno ?? 1),
+      version,
+    );
+    this.compositor.posicionarNodoEntidad(evento.idAtacante, centroBase);
+  }
+
+  obtenerDisparosVarita(evento, golpes) {
+    const fuentes = (evento?.configuracionAtaque?.fuentes ?? []).filter(
+      (fuente) => fuente?.familiaObjeto === "varita",
+    );
+
+    if (!evento.idObjetivo) {
+      return fuentes.map((fuente) => Object.freeze({ fuente, golpe: null }));
+    }
+
+    const golpesValidos = (Array.isArray(golpes) ? golpes : []).filter(Boolean);
+    return golpesValidos.map((golpe, indice) => {
+      const fuente =
+        fuentes.find((actual) => golpe?.mano && actual?.mano === golpe.mano) ??
+        fuentes[indice] ??
+        fuentes[0];
+      return Object.freeze({ fuente, golpe });
+    }).filter((disparo) => disparo.fuente);
   }
 
   async reproducirAtaqueCuerpoACuerpo(evento, golpes, version) {
@@ -1147,7 +1372,7 @@ export class ReproductorEventosVisualesPhaser {
   }
 
   debeUsarMarcaImpactoGenerica(evento) {
-    if (this.esAtaqueArco(evento)) return false;
+    if (this.esAtaqueArco(evento) || this.esAtaqueVarita(evento)) return false;
     if (!this.esAtaqueCuerpoACuerpo(evento)) return true;
 
     const fuentes = evento?.configuracionAtaque?.fuentes ?? [];

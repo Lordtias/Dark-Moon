@@ -1816,3 +1816,12 @@ La lanza utiliza el recurso exacto de la fuente equipada. Su imagen mantiene un 
 `CreadorRecursosAtaquePhaser` es un componente genérico de presentación temporal: resuelve una textura desde una ruta, crea el sprite, aplica origen, rotación, escala, brillo y destrucción segura. P6.2C.1 lo utiliza para flechas y lanzas; su contrato permite reutilizarlo más adelante para armas o equipamiento visible, pero no asume montaje permanente ni reglas de equipamiento.
 
 La selección automática de ataque físico mantiene la prioridad: enemigo atacable, luego destructible atacable, luego casilla inicial. Un destructible solo puede ser elegido cuando no existe ningún enemigo que cumpla todas las reglas reales de patrón, alcance y línea de visión.
+
+
+### Proyectiles básicos de varita
+
+Los ataques básicos de varita se representan mediante formas procedurales modestas y distintas por identidad, no solo por color: fuego usa un orbe irregular con brasas; frío, un fragmento angular; rayo, un núcleo con ramificaciones; veneno, una gota viscosa con gotas secundarias. Estas formas no sustituyen ni anticipan las habilidades de P6.3.
+
+Una varita utiliza la secuencia `proyectil`. Dos varitas utilizan `proyectil_dual`: preparación compartida, lanzamiento y trayectoria principal, pausa proporcional, lanzamiento y trayectoria secundaria y retorno. La secuencia distribuye una única duración procedente de `costoFinal`; no recalcula velocidad por elemento, tier, distancia ni mano. Cada proyectil conserva el elemento y resultado de su fuente. Si el primer golpe destruye al objetivo, no se representa una segunda descarga; en una casilla vacía se representan ambas fuentes sin daño ni fallo ficticios.
+
+`CreadorProyectilesElementalesPhaser` interpreta exclusivamente perfiles visuales de fuego, frío, rayo y veneno. No conoce daño, Maná, resistencias, inventario, habilidades o nombres de armas. El crítico aumenta escala, brillo, ramificaciones o salpicadura de la misma forma elemental, manteniendo la palabra `CRÍTICO` y el daño sin agregar una marca independiente.

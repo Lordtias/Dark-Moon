@@ -55,6 +55,20 @@ export function obtenerSecuenciaAtaque(idSecuencia) {
   return secuencia;
 }
 
+
+export function obtenerPerfilProyectilElemental(elemento) {
+  const configuracion = obtenerPerfilesAtaquePorFamilia();
+  const perfil = configuracion.proyectilesElementales?.[elemento];
+
+  if (!perfil) {
+    throw new Error(
+      `El proyectil elemental "${elemento}" no está configurado.`,
+    );
+  }
+
+  return perfil;
+}
+
 export function obtenerConfiguracionRitmoVisual() {
   return obtenerPerfilesAtaquePorFamilia().ritmoVisual;
 }

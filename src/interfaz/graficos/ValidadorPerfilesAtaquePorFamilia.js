@@ -4,6 +4,7 @@ const SECUENCIAS_OBLIGATORIAS = Object.freeze([
   "dual",
   "estocada",
   "proyectil",
+  "proyectil_dual",
 ]);
 const FALLBACKS_OBLIGATORIOS = Object.freeze([
   "ataque_natural",
@@ -42,6 +43,10 @@ export function validarPerfilesAtaquePorFamilia({
     descripcion: "los fallbacks de ataque",
   });
   validarFallbacksObligatorios(configuracion.fallbacks);
+  validarProyectilesElementales({
+    proyectiles: configuracion.proyectilesElementales,
+    configuracionObjetos,
+  });
   validarConexionFamilias({
     familiasConfiguradas: configuracion.familias,
     configuracionObjetos,
@@ -212,6 +217,66 @@ function validarFallbacksObligatorios(fallbacks) {
   for (const idFallback of FALLBACKS_OBLIGATORIOS) {
     if (!Object.hasOwn(fallbacks, idFallback)) {
       throw new Error(`Falta el fallback de ataque "${idFallback}".`);
+    }
+  }
+}
+
+function validarProyectilesElementales({
+  proyectiles,
+  configuracionObjetos,
+}) {
+  validarObjetoPlano(proyectiles, "los proyectiles elementales");
+  const elementosObligatorios = ["fuego", "frio", "rayo", "veneno"];
+
+  for (const elemento of elementosObligatorios) {
+    if (!Object.hasOwn(proyectiles, elemento)) {
+      throw new Error(
+        `Falta el perfil del proyectil elemental "${elemento}".`,
+      );
+    }
+  }
+
+  for (const [elemento, perfil] of Object.entries(proyectiles)) {
+    if (!elementosObligatorios.includes(elemento)) {
+      throw new Error(
+        `El proyectil elemental "${elemento}" no corresponde a un elemento soportado.`,
+      );
+    }
+    validarObjetoPlano(perfil, `el proyectil elemental "${elemento}"`);
+    validarTextoNoVacio(perfil.forma, `forma de "${elemento}"`);
+    validarTextoNoVacio(perfil.estela, `estela de "${elemento}"`);
+    validarTextoNoVacio(
+      perfil.colorPrincipal,
+      `colorPrincipal de "${elemento}"`,
+    );
+    validarTextoNoVacio(
+      perfil.colorSecundario,
+      `colorSecundario de "${elemento}"`,
+    );
+    validarNumeroPositivo(perfil.escala, `escala de "${elemento}"`);
+    validarNumeroPositivo(
+      perfil.tamanoVisualPx,
+      `tamanoVisualPx de "${elemento}"`,
+    );
+  }
+
+  for (const [idObjeto, plantilla] of Object.entries(configuracionObjetos)) {
+    if (
+      plantilla?.tipo !== "arma" ||
+      plantilla?.familiaObjeto !== "varita"
+    ) {
+      continue;
+    }
+
+    const elemento = plantilla.propiedades?.elementoAtaqueBasico;
+    validarTextoNoVacio(
+      elemento,
+      `elementoAtaqueBasico de la varita "${idObjeto}"`,
+    );
+    if (!Object.hasOwn(proyectiles, elemento)) {
+      throw new Error(
+        `La varita "${idObjeto}" usa el elemento "${elemento}" sin perfil visual.`,
+      );
     }
   }
 }

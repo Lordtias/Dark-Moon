@@ -29,6 +29,15 @@
       "lanzamiento": 0.15,
       "trayectoria": 0.25,
       "retorno": 0.2
+    },
+    "proyectil_dual": {
+      "preparacion": 0.3,
+      "lanzamientoPrincipal": 0.08,
+      "trayectoriaPrincipal": 0.13,
+      "pausaEntreManos": 0.08,
+      "lanzamientoSecundaria": 0.08,
+      "trayectoriaSecundaria": 0.13,
+      "retorno": 0.2
     }
   },
   "familias": {
@@ -197,6 +206,40 @@
         "ataque": null,
         "impacto": null
       }
+    }
+  },
+  "proyectilesElementales": {
+    "fuego": {
+      "forma": "orbe_brasas",
+      "escala": 1.0,
+      "tamanoVisualPx": 12,
+      "colorPrincipal": "#ff7a32",
+      "colorSecundario": "#ffd36a",
+      "estela": "brasas"
+    },
+    "frio": {
+      "forma": "fragmento_cristal",
+      "escala": 1.0,
+      "tamanoVisualPx": 13,
+      "colorPrincipal": "#7fddff",
+      "colorSecundario": "#ecfbff",
+      "estela": "lineal"
+    },
+    "rayo": {
+      "forma": "rayo_zigzag",
+      "escala": 1.0,
+      "tamanoVisualPx": 12,
+      "colorPrincipal": "#bb74ff",
+      "colorSecundario": "#ffffff",
+      "estela": "ramificada"
+    },
+    "veneno": {
+      "forma": "gota_toxica",
+      "escala": 1.0,
+      "tamanoVisualPx": 12,
+      "colorPrincipal": "#8ee83f",
+      "colorSecundario": "#d8ff77",
+      "estela": "gotas"
     }
   }
 }

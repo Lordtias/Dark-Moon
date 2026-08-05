@@ -49,6 +49,10 @@ export function convertirCostoFinalADuracionVisual(costoFinal) {
 }
 
 function resolverIdSecuencia(configuracionAtaque) {
+  if (esAtaqueDualDeVaritas(configuracionAtaque)) {
+    return "proyectil_dual";
+  }
+
   if (configuracionAtaque?.esAtaqueDual === true) {
     return "dual";
   }
@@ -60,6 +64,13 @@ function resolverIdSecuencia(configuracionAtaque) {
   });
 
   return perfil.secuencia;
+}
+
+function esAtaqueDualDeVaritas(configuracionAtaque) {
+  const fuentes = configuracionAtaque?.fuentes ?? [];
+  return configuracionAtaque?.esAtaqueDual === true &&
+    fuentes.length === 2 &&
+    fuentes.every((fuente) => fuente?.familiaObjeto === "varita");
 }
 
 function distribuirDuracionPorFases({

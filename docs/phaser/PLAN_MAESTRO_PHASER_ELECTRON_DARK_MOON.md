@@ -1068,7 +1068,7 @@ Cada familia cuerpo a cuerpo tiene una lectura reconocible; las fases respetan e
 
 #### P6.2C.1 — Motor de proyectiles, arcos y lanza con recurso visual
 
-Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `1a3c4f4aa9585e32d5b0d3448af569d746f05a88`.
 
 P6.2C.1 extiende el contrato visual sin transferir reglas del dominio a Phaser:
 
@@ -1089,6 +1089,30 @@ P6.2C.1 extiende el contrato visual sin transferir reglas del dominio a Phaser:
 ### Criterio de cierre de P6.2C.1
 
 La imagen del proyectil coincide con la munición realmente consumida; flechas cardinales y diagonales nacen en el atacante y llegan a la casilla seleccionada; fallo, crítico, bloqueo, casilla vacía y muerte conservan el resultado canónico; la lanza exacta se muestra sin adelantar al combatiente y con origen visual coherente para alcance uno y dos; enemigos equipados reutilizan el mismo flujo; el selector no elige destructibles mientras exista un enemigo atacable; cancelación, cambio de mapa, tiempo, combate, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
+
+#### P6.2C.2 — Varitas elementales y doble varita
+
+Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+
+P6.2C.2 consume los elementos y resultados por fuente que ya transporta el ataque canónico:
+
+- fuego utiliza un orbe irregular con cola breve de brasas;
+- frío utiliza un fragmento angular con estela lineal;
+- rayo utiliza un núcleo violeta-blanco con ramificaciones;
+- veneno utiliza una gota viscosa con gotas secundarias;
+- una varita conserva la secuencia `proyectil` de P6.2C.1;
+- dos varitas utilizan `proyectil_dual` con preparación compartida, disparo principal, pausa, disparo secundario y retorno;
+- la duración total continúa derivando del único `costoFinal` canónico;
+- cada mano conserva elemento, impacto, fallo, bloqueo, crítico, daño y Vida posterior;
+- una casilla vacía reproduce ambas fuentes sin inventar resultados;
+- si el primer golpe destruye al objetivo, el segundo proyectil no se reproduce;
+- el crítico intensifica la forma elemental propia y conserva texto y daño sin símbolo independiente;
+- `CreadorProyectilesElementalesPhaser` solo interpreta perfiles visuales y no conoce Maná, daño, resistencias, inventario ni habilidades;
+- las habilidades, áreas y estados elementales completos permanecen reservados para P6.3.
+
+### Criterio de cierre de P6.2C.2
+
+Los cuatro elementos se distinguen por forma y color; varita simple y doble varita respetan el orden real de fuentes y resultados; combinaciones de elementos diferentes se leen por separado; casilla vacía reproduce las fuentes configuradas sin feedback falso; muerte con el primer golpe no genera un segundo disparo; fallo, bloqueo y crítico conservan el resultado canónico; arco, lanza, cuerpo a cuerpo, Maná, combate, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
 
 ### Criterio de cierre de P6 completa
 

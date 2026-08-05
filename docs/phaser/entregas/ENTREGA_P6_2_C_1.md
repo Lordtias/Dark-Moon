@@ -3,7 +3,7 @@
 Plan: Integración progresiva de Phaser, beta y Electron de Dark Moon  
 Etapa: P6.2C.1  
 Commit base: `9979c9fe30710bfcbcb055f277b237533de9c701`  
-Estado: Implementada y validada técnicamente; pendiente de prueba manual y commit por el usuario
+Estado: Cerrada, validada manualmente y publicada en `1a3c4f4aa9585e32d5b0d3448af569d746f05a88`
 
 ## 1. Conclusión sencilla
 
@@ -205,3 +205,8 @@ Estado: 17 archivos modificados y 2 agregados
 Commit: no realizado
 Push: no realizado
 ```
+
+
+## 18. Cierre confirmado
+
+P6.2C.1 fue validada manualmente y publicada por el usuario en `1a3c4f4aa9585e32d5b0d3448af569d746f05a88`. P6.2C.2 parte de ese ZIP y SHA como fuente de verdad.

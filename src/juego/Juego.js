@@ -443,13 +443,14 @@ export class Juego {
     }
 
     const derrotas = this.sistemaCombateJugador.resolverDerrotasPendientes();
-    if (!derrotas.mensaje) {
+    if (!derrotas.mensaje && (derrotas.eventos?.length ?? 0) === 0) {
       return resultado;
     }
 
     return {
       ...resultado,
       mensaje: [resultado.mensaje, derrotas.mensaje].filter(Boolean).join("\n"),
+      eventos: [...(resultado.eventos ?? []), ...(derrotas.eventos ?? [])],
       redibujar: true,
     };
   }
@@ -475,12 +476,13 @@ export class Juego {
   } = {}) {
     const resultadoConDerrotasInmediatas = this.incorporarDerrotasPendientes({
       mensaje,
+      eventos,
     });
     const resultadoTemporal = this.coordinadorTiempo.finalizarAccionJugador({
       mensaje: resultadoConDerrotasInmediatas.mensaje,
       tipoAccion,
       costoBase,
-      eventos,
+      eventos: resultadoConDerrotasInmediatas.eventos ?? [],
     });
 
     return this.incorporarDerrotasPendientes(resultadoTemporal);

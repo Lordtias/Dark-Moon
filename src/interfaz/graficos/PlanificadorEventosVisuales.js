@@ -2,7 +2,10 @@ import {
   TIPOS_EVENTO_ACCION,
 } from "../../juego/acciones/EventosAccion.js";
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
-import { crearPlanRitmoVisualAtaque } from "./PlanificadorRitmoVisual.js";
+import {
+  crearPlanRitmoVisualAtaque,
+  crearPlanRitmoVisualConsumo,
+} from "./PlanificadorRitmoVisual.js";
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
   TIPOS_ENTIDAD_VISUAL,
@@ -14,6 +17,8 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   CAMBIO_HOSTILIDAD: "cambio_hostilidad",
   DANIO_PERIODICO: "danio_periodico",
   ENTIDAD_DERROTADA: "entidad_derrotada",
+  RECURSOS_RECUPERADOS: "recursos_recuperados",
+  NIVEL_AUMENTADO: "nivel_aumentado",
 });
 
 // Convierte referencias del dominio en un plan neutral basado en IDs visuales.
@@ -47,6 +52,14 @@ export function crearPlanEventosVisuales({
 
       case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
         agregarCambioHostilidad(plan, evento, entidadesPorId);
+        break;
+
+      case TIPOS_EVENTO_ACCION.RECURSOS_RECUPERADOS:
+        agregarRecursosRecuperados(plan, evento, entidadesPorId);
+        break;
+
+      case TIPOS_EVENTO_ACCION.NIVEL_AUMENTADO:
+        agregarNivelAumentado(plan, evento, entidadesPorId);
         break;
 
       case "danio_periodico_aplicado":
@@ -194,6 +207,48 @@ function agregarEntidadDerrotada(
       motivo,
     }),
   );
+}
+
+function agregarRecursosRecuperados(plan, evento, entidadesPorId) {
+  const idObjetivo = obtenerIdSeguro(evento.objetivo);
+  const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
+  if (!idObjetivo || !Array.isArray(evento.recursos) || evento.recursos.length === 0) {
+    return;
+  }
+
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.RECURSOS_RECUPERADOS,
+    idObjetivo,
+    tipoObjetivo: objetivoVisual?.tipo ?? null,
+    posicionObjetivo: objetivoVisual && esPosicion(objetivoVisual)
+      ? copiarPosicion(objetivoVisual)
+      : null,
+    origen: evento.origen ?? "desconocido",
+    fuente: evento.fuente ?? null,
+    recursos: Object.freeze(evento.recursos.map((recurso) => Object.freeze({ ...recurso }))),
+    ejecucionTemporal: evento.ejecucionTemporal ?? null,
+    ritmoVisual: crearPlanRitmoVisualConsumo({
+      ejecucionTemporal: evento.ejecucionTemporal,
+    }),
+  }));
+}
+
+function agregarNivelAumentado(plan, evento, entidadesPorId) {
+  const idJugador = obtenerIdSeguro(evento.jugador);
+  const jugadorVisual = entidadesPorId.get(idJugador) ?? null;
+  if (!idJugador || !Number.isInteger(evento.nivelActual)) return;
+
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.NIVEL_AUMENTADO,
+    idJugador,
+    tipoEntidad: jugadorVisual?.tipo ?? null,
+    posicion: jugadorVisual && esPosicion(jugadorVisual)
+      ? copiarPosicion(jugadorVisual)
+      : null,
+    nivelAnterior: evento.nivelAnterior,
+    nivelActual: evento.nivelActual,
+    nivelesGanados: evento.nivelesGanados,
+  }));
 }
 
 function agregarCambioHostilidad(plan, evento, entidadesPorId) {

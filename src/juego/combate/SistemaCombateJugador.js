@@ -393,6 +393,7 @@ export class SistemaCombateJugador {
 
     const derrota = this.resolutorDerrotasJugador.resolverObjetivo(objetivo);
     mensajes.push(derrota.mensaje);
+    eventos.push(...(derrota.eventos ?? []));
     return {
       mensaje: mensajes.filter(Boolean).join("\n"),
       eventos,

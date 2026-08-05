@@ -1,3 +1,4 @@
+import { crearEventoNivelAumentado } from "../acciones/EventosAccion.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
 import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
@@ -11,6 +12,7 @@ function crearResultadoSinProcesar(objetivo = null) {
     resultadoBotin: null,
     recompensaExperiencia: null,
     progresion: null,
+    eventos: [],
   };
 }
 
@@ -95,6 +97,7 @@ export class ResolutorDerrotasJugador {
         nivelJugador: this.jugador.nivel,
         nivelEnemigo: objetivo.nivel,
       });
+      const nivelAnterior = this.jugador.nivel;
       const progresion = this.jugador.ganarExperiencia(
         recompensaExperiencia.experienciaFinal,
       );
@@ -119,6 +122,15 @@ export class ResolutorDerrotasJugador {
         );
       }
 
+      const eventos = progresion.nivelesGanados > 0
+        ? [crearEventoNivelAumentado({
+            jugador: this.jugador,
+            nivelAnterior,
+            nivelActual: progresion.nivelActual,
+            nivelesGanados: progresion.nivelesGanados,
+          })]
+        : [];
+
       return {
         procesada: true,
         objetivo,
@@ -126,6 +138,7 @@ export class ResolutorDerrotasJugador {
         resultadoBotin,
         recompensaExperiencia,
         progresion,
+        eventos,
       };
     } catch (error) {
       // Una falla real no debe dejar la derrota marcada como recompensada.
@@ -153,6 +166,7 @@ export class ResolutorDerrotasJugador {
       mensajes,
       mensaje: mensajes.join("\n"),
       resultados,
+      eventos: resultados.flatMap((resultado) => resultado.eventos ?? []),
     };
   }
 }

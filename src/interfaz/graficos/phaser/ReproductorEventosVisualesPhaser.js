@@ -13,13 +13,17 @@ import {
 } from "./ConfiguracionAnimacionesPhaser.js";
 import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
 import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
+import { CreadorEfectosRecuperacionPhaser } from "./CreadorEfectosRecuperacionPhaser.js";
+import {
+  CONFIGURACION_EFECTOS_RECUPERACION_PHASER,
+} from "./ConfiguracionEfectosRecuperacionPhaser.js";
 import {
   CreadorProyectilesElementalesPhaser,
 } from "./CreadorProyectilesElementalesPhaser.js";
 import {
   ANCLAJES_RECURSO,
-  CreadorRecursosAtaquePhaser,
-} from "./CreadorRecursosAtaquePhaser.js";
+  CreadorRecursosVisualesPhaser,
+} from "./CreadorRecursosVisualesPhaser.js";
 import {
   CONFIGURACION_EFECTOS_COMBATE_PHASER,
   TIPOS_FEEDBACK_COMBATE,
@@ -60,9 +64,13 @@ export class ReproductorEventosVisualesPhaser {
       escena,
       compositor,
     });
+    this.creadorEfectosRecuperacion = new CreadorEfectosRecuperacionPhaser({
+      escena,
+      compositor,
+    });
     this.creadorProyectilesElementales =
       new CreadorProyectilesElementalesPhaser({ escena, compositor });
-    this.creadorRecursosAtaque = new CreadorRecursosAtaquePhaser({
+    this.creadorRecursosVisuales = new CreadorRecursosVisualesPhaser({
       escena,
       compositor,
       gestorRecursos,
@@ -151,8 +159,9 @@ export class ReproductorEventosVisualesPhaser {
     this.alAplicarEscena = null;
     this.alMoverJugadorVisual = null;
     this.creadorEfectos = null;
+    this.creadorEfectosRecuperacion = null;
     this.creadorProyectilesElementales = null;
-    this.creadorRecursosAtaque = null;
+    this.creadorRecursosVisuales = null;
   }
 
   async iniciarProcesamiento() {
@@ -189,6 +198,10 @@ export class ReproductorEventosVisualesPhaser {
         await this.reproducirDanioPeriodico(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA) {
         await this.reproducirEntidadDerrotada(evento, version);
+      } else if (evento.tipo === TIPOS_EVENTO_VISUAL.RECURSOS_RECUPERADOS) {
+        await this.reproducirRecursosRecuperados(evento, version);
+      } else if (evento.tipo === TIPOS_EVENTO_VISUAL.NIVEL_AUMENTADO) {
+        await this.reproducirNivelAumentado(evento, version);
       }
     }
 
@@ -438,7 +451,7 @@ export class ReproductorEventosVisualesPhaser {
     const angulo = Math.atan2(direccion.y, direccion.x);
     const proyectil = this.efectosReducidos
       ? null
-      : await this.creadorRecursosAtaque?.crearSpriteTemporal({
+      : await this.creadorRecursosVisuales?.crearSpriteTemporal({
           recursoVisual: municion.recursoVisual,
           centro: centroBase,
           longitudVisiblePx: Number(perfil?.animacion?.tamanoVisualPx) || 24,
@@ -971,7 +984,7 @@ export class ReproductorEventosVisualesPhaser {
     const lanza =
       this.efectosReducidos || !recursoVisual
         ? null
-        : await this.creadorRecursosAtaque?.crearSpriteTemporal({
+        : await this.creadorRecursosVisuales?.crearSpriteTemporal({
             recursoVisual,
             centro: origenVisual,
             longitudVisiblePx: longitudVisual,
@@ -1562,6 +1575,214 @@ export class ReproductorEventosVisualesPhaser {
       vidaActual: vidaDespues,
       vidaMaxima,
     });
+  }
+
+  async reproducirRecursosRecuperados(evento, version) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idObjetivo);
+    const centro = nodo?.contenedor
+      ? { x: nodo.contenedor.x, y: nodo.contenedor.y }
+      : this.compositor.obtenerCentroCasilla(evento.posicionObjetivo);
+    if (!centro || !Array.isArray(evento.recursos) || evento.recursos.length === 0) {
+      return;
+    }
+
+    const fases = evento.ritmoVisual?.fases ?? {};
+    const duracionPreparacion = this.calcularDuracion(
+      fases.preparacion ?? 60,
+    );
+    const duracionUso = this.calcularDuracion(fases.uso ?? 60);
+    const duracionResultado = this.calcularDuracion(
+      (fases.recuperacion ?? 120) + (fases.retorno ?? 45),
+    );
+
+    await this.esperar(duracionPreparacion, version);
+    if (version !== this.versionCancelacion || this.destruido) return;
+
+    const configuracionRecurso =
+      CONFIGURACION_EFECTOS_RECUPERACION_PHASER.recursoVisual;
+    const sprite = evento.fuente?.recursoVisual
+      ? await this.creadorRecursosVisuales?.crearSpriteTemporal({
+          recursoVisual: evento.fuente.recursoVisual,
+          centro: {
+            x: centro.x + configuracionRecurso.desplazamientoX,
+            y: centro.y + configuracionRecurso.desplazamientoY,
+          },
+          longitudVisiblePx: configuracionRecurso.longitudVisiblePx,
+          anclaje: ANCLAJES_RECURSO.CENTRO,
+          alpha: 0.2,
+        })
+      : null;
+
+    const escalaSpriteX = sprite?.scaleX ?? 1;
+    const escalaSpriteY = sprite?.scaleY ?? 1;
+    if (sprite) {
+      sprite.scaleX = escalaSpriteX * 0.72;
+      sprite.scaleY = escalaSpriteY * 0.72;
+      await this.crearTween({
+        targets: sprite,
+        scaleX: escalaSpriteX * 1.05,
+        scaleY: escalaSpriteY * 1.05,
+        alpha: 1,
+        y: sprite.y - 3,
+        duration: duracionUso,
+        ease: "Sine.easeOut",
+      }, version);
+    } else {
+      await this.esperar(duracionUso, version);
+    }
+
+    if (version !== this.versionCancelacion || this.destruido) {
+      sprite?.destroy?.();
+      return;
+    }
+
+    const efecto = this.creadorEfectosRecuperacion?.crearRecuperacion({
+      centro,
+      recursos: evento.recursos,
+      reducido: this.efectosReducidos,
+    });
+    if (efecto) {
+      void this.animarRecuperacionFija(efecto, centro, version).catch(() => {});
+    }
+    void this.reproducirAumentoVidaExplicito(evento, version).catch(() => {});
+
+    if (sprite) {
+      await this.crearTween({
+        targets: sprite,
+        alpha: 0,
+        scaleX: escalaSpriteX * 0.82,
+        scaleY: escalaSpriteY * 0.82,
+        duration: Math.max(1, duracionResultado),
+        ease: "Sine.easeIn",
+      }, version);
+      sprite.destroy?.();
+    } else {
+      await this.esperar(Math.max(1, duracionResultado), version);
+    }
+  }
+
+  async animarRecuperacionFija(efecto, centro, version) {
+    const configuracion =
+      CONFIGURACION_EFECTOS_RECUPERACION_PHASER.recuperacion;
+
+    await this.crearTween({
+      targets: efecto,
+      scaleX: configuracion.escalaVisible,
+      scaleY: configuracion.escalaVisible,
+      alpha: 1,
+      duration: configuracion.entradaMs,
+      ease: "Sine.easeOut",
+    }, version);
+
+    if (version !== this.versionCancelacion || this.destruido) {
+      efecto.destroy?.(true);
+      return;
+    }
+
+    await this.esperar(configuracion.permanenciaMs, version);
+    await this.crearTween({
+      targets: efecto,
+      scaleX: configuracion.escalaFinal,
+      scaleY: configuracion.escalaFinal,
+      alpha: 0,
+      y: centro.y - configuracion.elevacionSalidaPx,
+      duration: configuracion.salidaMs,
+      ease: "Quad.easeOut",
+    }, version);
+    efecto.destroy?.(true);
+  }
+
+  async reproducirAumentoVidaExplicito(evento, version) {
+    const vida = evento.recursos.find((recurso) => recurso.recurso === "vida");
+    if (!vida) return;
+    const valorAntes = Number(vida.valorAntes);
+    const valorDespues = Number(vida.valorDespues);
+    const valorMaximo = Number(vida.valorMaximo);
+    if (
+      !Number.isFinite(valorAntes) ||
+      !Number.isFinite(valorDespues) ||
+      !Number.isFinite(valorMaximo) ||
+      valorMaximo <= 0 ||
+      valorDespues <= valorAntes
+    ) {
+      return;
+    }
+
+    const estado = { vida: valorAntes };
+    const actualizable = this.compositor.actualizarBarraVidaEntidad(
+      evento.idObjetivo,
+      { vidaActual: valorAntes, vidaMaxima: valorMaximo },
+    );
+    if (!actualizable) return;
+
+    await this.crearTween({
+      targets: estado,
+      vida: valorDespues,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.barraVida.duracionMs,
+      ),
+      ease: "Linear",
+      onUpdate: () => {
+        this.compositor.actualizarBarraVidaEntidad(evento.idObjetivo, {
+          vidaActual: estado.vida,
+          vidaMaxima: valorMaximo,
+        });
+      },
+    }, version);
+    this.compositor.actualizarBarraVidaEntidad(evento.idObjetivo, {
+      vidaActual: valorDespues,
+      vidaMaxima: valorMaximo,
+    });
+  }
+
+  async reproducirNivelAumentado(evento, version) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idJugador);
+    const centro = nodo?.contenedor
+      ? { x: nodo.contenedor.x, y: nodo.contenedor.y }
+      : this.compositor.obtenerCentroCasilla(evento.posicion);
+    if (!centro) return;
+
+    const efecto = this.creadorEfectosRecuperacion?.crearHolyBless({
+      centro,
+      nivelActual: evento.nivelActual,
+      reducido: this.efectosReducidos,
+    });
+    if (!efecto) return;
+
+    const configuracion =
+      CONFIGURACION_EFECTOS_RECUPERACION_PHASER.nivel;
+    await this.crearTween({
+      targets: efecto,
+      scaleX: configuracion.escalaVisible,
+      scaleY: configuracion.escalaVisible,
+      alpha: 1,
+      duration: configuracion.entradaMs,
+      ease: "Sine.easeOut",
+    }, version);
+
+    if (version !== this.versionCancelacion || this.destruido) {
+      efecto.destroy?.(true);
+      return;
+    }
+
+    void this.finalizarHolyBless(efecto, centro, version).catch(() => {});
+  }
+
+  async finalizarHolyBless(efecto, centro, version) {
+    const configuracion =
+      CONFIGURACION_EFECTOS_RECUPERACION_PHASER.nivel;
+
+    await this.esperar(configuracion.permanenciaMs, version);
+    await this.crearTween({
+      targets: efecto,
+      scaleX: configuracion.escalaFinal,
+      scaleY: configuracion.escalaFinal,
+      alpha: 0,
+      y: centro.y - configuracion.elevacionSalidaPx,
+      duration: configuracion.salidaMs,
+      ease: "Sine.easeOut",
+    }, version);
+    efecto.destroy?.(true);
   }
 
   obtenerCentroObjetivo(evento) {

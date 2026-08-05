@@ -7,6 +7,8 @@ export const TIPOS_EVENTO_ACCION = Object.freeze({
   ENTIDAD_MOVIDA: "entidad_movida",
   ATAQUE_RESUELTO: "ataque_resuelto",
   HOSTILIDAD_CAMBIADA: "hostilidad_cambiada",
+  RECURSOS_RECUPERADOS: "recursos_recuperados",
+  NIVEL_AUMENTADO: "nivel_aumentado",
 });
 
 export const ESTADOS_HOSTILIDAD_ACCION = Object.freeze({
@@ -70,6 +72,59 @@ export function crearEventoAtaqueResuelto({
     ejecucionTemporal: null,
     estadoObjetivoFinal,
     resultado: copiarResultadoAtaque(resultado, estadoObjetivoFinal),
+  });
+}
+
+export function crearEventoRecursosRecuperados({
+  objetivo,
+  origen = "consumible",
+  fuente = null,
+  recursos = [],
+} = {}) {
+  validarEntidad(objetivo, "con recursos recuperados");
+  if (!Array.isArray(recursos) || recursos.length === 0) {
+    throw new Error("La recuperación necesita al menos un recurso aplicado.");
+  }
+
+  const recursosNormalizados = recursos
+    .map((recurso) => copiarRecursoRecuperado(recurso))
+    .filter(Boolean);
+  if (recursosNormalizados.length === 0) {
+    throw new Error("La recuperación necesita cantidades aplicadas válidas.");
+  }
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_ACCION.RECURSOS_RECUPERADOS,
+    actor: objetivo,
+    objetivo,
+    origen: normalizarTexto(origen) ?? "desconocido",
+    fuente: copiarDescriptorVisualObjeto(fuente),
+    recursos: Object.freeze(recursosNormalizados),
+    ejecucionTemporal: null,
+  });
+}
+
+export function crearEventoNivelAumentado({
+  jugador,
+  nivelAnterior,
+  nivelActual,
+  nivelesGanados = 1,
+} = {}) {
+  validarEntidad(jugador, "que aumentó de nivel");
+  const anterior = normalizarEnteroPositivo(nivelAnterior);
+  const actual = normalizarEnteroPositivo(nivelActual);
+  const cantidad = normalizarEnteroPositivo(nivelesGanados);
+  if (anterior === null || actual === null || cantidad === null || actual <= anterior) {
+    throw new Error("El evento de nivel necesita niveles válidos y crecientes.");
+  }
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_ACCION.NIVEL_AUMENTADO,
+    jugador,
+    nivelAnterior: anterior,
+    nivelActual: actual,
+    nivelesGanados: cantidad,
+    ejecucionTemporal: null,
   });
 }
 
@@ -140,6 +195,8 @@ function obtenerActorPrincipalEvento(evento) {
       return evento.atacante ?? null;
     case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
       return evento.enemigo ?? null;
+    case TIPOS_EVENTO_ACCION.RECURSOS_RECUPERADOS:
+      return evento.actor ?? evento.objetivo ?? null;
     default:
       return evento?.actor ?? null;
   }
@@ -304,6 +361,42 @@ function copiarDescriptorRecursoObjeto(descriptor) {
     idObjeto,
     tipoMunicion: normalizarTexto(descriptor.tipoMunicion),
     recursoVisual,
+  });
+}
+
+function copiarDescriptorVisualObjeto(descriptor) {
+  if (!descriptor || typeof descriptor !== "object" || Array.isArray(descriptor)) {
+    return null;
+  }
+  const idObjeto = normalizarTexto(descriptor.idObjeto ?? descriptor.id);
+  const recursoVisual = normalizarTexto(descriptor.recursoVisual);
+  if (idObjeto === null || recursoVisual === null) return null;
+  return Object.freeze({
+    idObjeto,
+    nombre: normalizarTexto(descriptor.nombre),
+    recursoVisual,
+  });
+}
+
+function copiarRecursoRecuperado(recurso) {
+  if (!recurso || typeof recurso !== "object" || Array.isArray(recurso)) {
+    return null;
+  }
+  const idRecurso = normalizarTexto(recurso.recurso);
+  const cantidadAplicada = normalizarNumeroNoNegativo(recurso.cantidadAplicada);
+  const valorAntes = normalizarNumeroNoNegativo(recurso.valorAntes);
+  const valorDespues = normalizarNumeroNoNegativo(recurso.valorDespues);
+  const valorMaximo = normalizarNumeroNoNegativo(recurso.valorMaximo);
+  if (idRecurso === null || cantidadAplicada <= 0 || valorMaximo <= 0) {
+    return null;
+  }
+  return Object.freeze({
+    recurso: idRecurso,
+    cantidadAplicada,
+    valorAntes,
+    valorDespues,
+    valorMaximo,
+    proporcionRecuperada: Math.min(1, cantidadAplicada / valorMaximo),
   });
 }
 

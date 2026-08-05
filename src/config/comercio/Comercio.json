@@ -22,6 +22,10 @@
             "cantidad": 5
           },
           {
+            "id": "pocion_mana",
+            "cantidad": 5
+          },
+          {
             "id": "flecha_madera",
             "cantidad": 50
           }

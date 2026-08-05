@@ -1813,15 +1813,49 @@ Las flechas y armas lineales usan como convención un PNG horizontal con la punt
 
 La lanza utiliza el recurso exacto de la fuente equipada. Su imagen mantiene un largo visual equivalente a dos casillas y el cuerpo del atacante no avanza. Para un objetivo a una casilla, el sprite se centra sobre el atacante; para un objetivo a dos casillas, se centra en la casilla intermedia de la dirección del ataque. En diagonal, la longitud visual se ajusta a la distancia geométrica entre centros sin alterar el alcance lógico.
 
-`CreadorRecursosAtaquePhaser` es un componente genérico de presentación temporal: resuelve una textura desde una ruta, crea el sprite, aplica origen, rotación, escala, brillo y destrucción segura. P6.2C.1 lo utiliza para flechas y lanzas; su contrato permite reutilizarlo más adelante para armas o equipamiento visible, pero no asume montaje permanente ni reglas de equipamiento.
+`CreadorRecursosVisualesPhaser` es un componente genérico de presentación temporal: resuelve una textura desde una ruta, crea el sprite, aplica origen, rotación, escala, brillo y destrucción segura. P6.2C.1 lo utiliza para flechas y lanzas, y P6.2D para consumibles; su contrato permite reutilizarlo más adelante para armas o equipamiento visible, pero no asume montaje permanente ni reglas de equipamiento.
 
 La selección automática de ataque físico mantiene la prioridad: enemigo atacable, luego destructible atacable, luego casilla inicial. Un destructible solo puede ser elegido cuando no existe ningún enemigo que cumpla todas las reglas reales de patrón, alcance y línea de visión.
 
 
 ### Proyectiles básicos de varita
 
-Los ataques básicos de varita se representan mediante formas procedurales modestas y distintas por identidad, no solo por color: fuego usa un orbe irregular con brasas; frío, un fragmento angular; rayo, un núcleo con ramificaciones; veneno, una gota viscosa con gotas secundarias. Estas formas no sustituyen ni anticipan las habilidades de P6.3.
+Los ataques básicos de varita se representan mediante formas procedurales modestas y distintas por identidad, no solo por color: fuego usa un orbe irregular con brasas; frío, un fragmento angular; rayo, una descarga fina en zig-zag; veneno, una gota tóxica alargada con salpicadura viscosa. Estas formas no sustituyen ni anticipan las habilidades de P6.3.
 
 Una varita utiliza la secuencia `proyectil`. Dos varitas utilizan `proyectil_dual`: preparación compartida, lanzamiento y trayectoria principal, pausa proporcional, lanzamiento y trayectoria secundaria y retorno. La secuencia distribuye una única duración procedente de `costoFinal`; no recalcula velocidad por elemento, tier, distancia ni mano. Cada proyectil conserva el elemento y resultado de su fuente. Si el primer golpe destruye al objetivo, no se representa una segunda descarga; en una casilla vacía se representan ambas fuentes sin daño ni fallo ficticios.
 
 `CreadorProyectilesElementalesPhaser` interpreta exclusivamente perfiles visuales de fuego, frío, rayo y veneno. No conoce daño, Maná, resistencias, inventario, habilidades o nombres de armas. El crítico aumenta escala, brillo, ramificaciones o salpicadura de la misma forma elemental, manteniendo la palabra `CRÍTICO` y el daño sin agregar una marca independiente.
+
+
+## V-031 — Recuperación explícita y subida de nivel
+
+Las recuperaciones explícitas deben representar el resultado real ya aplicado. `recursos_recuperados` conserva el origen, el objeto o fuente visual, la cantidad aplicada y los valores anterior, posterior y máximo. El consumo utiliza la ejecución temporal canónica basada en `factorTiempo` y `factorConsumo`; la presentación no vuelve a calcular duración jugable.
+
+Vida utiliza rojo como color dominante, formas ascendentes y texto con la cantidad. Maná utiliza azul-violeta y un movimiento circular distinto. El icono exacto del consumible aparece brevemente mediante `CreadorRecursosVisualesPhaser`. Una recuperación explícita de un enemigo debe actualizar su barra en el punto correspondiente de la cola. La regeneración pasiva no produce partículas, texto ni aura.
+
+La subida de nivel utiliza un holy bless tenue mediante un aura blanca vertical tipo energía/ki, con núcleo luminoso suave, destellos ascendentes y texto del nivel final. No utiliza un aro o círculo como la recuperación, no consume tiempo y no debe confundirse con crítico, curación o habilidad ofensiva.
+
+Lythra debe recibir una presentación mágica propia en P6.3, no una animación de bebida. Las habilidades, estados y zonas que permanezcan activos durante varios turnos deberán conservar una representación visual durante toda su duración, con aparición, estado sostenido y retirada sincronizados con sus eventos canónicos.
+
+### Separación entre tiempo de consumo y legibilidad del resultado
+
+La imagen del consumible representa la acción del combatiente y, por tanto, su aparición y retirada se ajustan al `costoFinal` canónico del consumo. El texto de recuperación y las partículas o auras representan el resultado para el jugador: utilizan una duración fija de entrada, lectura y salida, pueden continuar en paralelo con la acción visual siguiente y no se comprimen por `factorConsumo`, velocidad de animación ni cantidad de eventos pendientes.
+
+La subida de nivel es un acontecimiento meta sin coste temporal. Su holy bless blanco utiliza una duración fija y apreciable, con aparición, permanencia y salida diferenciadas. Solo la aparición breve espera dentro de la cola visual; permanencia y salida continúan en paralelo para evitar una pausa que parezca lag. El evento `nivel_aumentado` debe conservarse junto con los eventos de la derrota tanto en muertes directas como en derrotas pendientes; nunca debe reducirse solamente al mensaje textual de progresión.
+
+
+- **Subida de nivel:** se representa como un aura blanca suave tipo energía/ki alrededor del jugador, con destellos verticales y texto `NIVEL N`. Solo la entrada bloquea brevemente la cola; la permanencia y salida continúan en paralelo para evitar sensación de traba.
+
+
+### Estado de cierre visual de P6.2
+
+P6.2 queda cerrada y validada manualmente. Sus contratos finales de presentación son:
+
+- ataques y proyectiles distribuyen una única duración derivada del tiempo canónico;
+- la forma de una familia nunca modifica la velocidad jugable;
+- la imagen de un consumible sigue el `costoFinal` de consumo;
+- el texto y los efectos de recuperación usan una duración fija para asegurar lectura;
+- la regeneración pasiva no genera feedback visual;
+- la subida de nivel utiliza un aura blanca vertical tipo energía/ki, diferente de los aros de recuperación;
+- la permanencia y salida del aura de nivel no detienen el combate visual;
+- habilidades, zonas y estados persistentes deberán mantener su representación durante toda su duración en P6.3.

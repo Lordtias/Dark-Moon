@@ -4,12 +4,13 @@ const ANCLAJES_RECURSO = Object.freeze({
 });
 
 // Crea sprites temporales desde rutas ya resueltas por el dominio. No conoce
-// armas, municiones ni equipamiento y puede reutilizarse para futuras capas.
-export class CreadorRecursosAtaquePhaser {
+// armas, municiones, consumibles ni equipamiento y puede reutilizarse para
+// cualquier representación visual temporal basada en un recurso.
+export class CreadorRecursosVisualesPhaser {
   constructor({ escena, compositor, gestorRecursos } = {}) {
     if (!escena?.add?.image || !compositor || !gestorRecursos) {
       throw new Error(
-        "El creador de recursos de ataque necesita escena, compositor y recursos.",
+        "El creador de recursos visuales necesita escena, compositor y recursos.",
       );
     }
     this.escena = escena;

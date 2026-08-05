@@ -1082,7 +1082,7 @@ P6.2C.1 extiende el contrato visual sin transferir reglas del dominio a Phaser:
 - cada fuente de arma conserva también `idObjeto` y `recursoVisual`;
 - la lanza y la lanza reforzada utilizan el PNG exacto del arma equipada;
 - la imagen de lanza conserva un largo visual de dos casillas y el combatiente no avanza: a alcance uno se centra sobre el atacante y a alcance dos sobre la casilla intermedia;
-- `CreadorRecursosAtaquePhaser` resuelve sprites temporales desde recursos y queda preparado para reutilizarse con armas o equipamiento visible futuro, sin implementarlo todavía;
+- `CreadorRecursosVisualesPhaser` resuelve sprites temporales desde recursos y queda preparado para reutilizarse con armas o equipamiento visible futuro, sin implementarlo todavía;
 - el selector automático prioriza enemigos atacables y solo selecciona destructibles cuando no existe ninguno dentro de las reglas del ataque;
 - Canvas 2D conserva la representación inmediata y no incorpora estas animaciones.
 
@@ -1092,14 +1092,14 @@ La imagen del proyectil coincide con la munición realmente consumida; flechas c
 
 #### P6.2C.2 — Varitas elementales y doble varita
 
-Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `6a660e3d59af0bd22ee6073cabf56af1442d404c`.
 
 P6.2C.2 consume los elementos y resultados por fuente que ya transporta el ataque canónico:
 
 - fuego utiliza un orbe irregular con cola breve de brasas;
 - frío utiliza un fragmento angular con estela lineal;
-- rayo utiliza un núcleo violeta-blanco con ramificaciones;
-- veneno utiliza una gota viscosa con gotas secundarias;
+- rayo utiliza una descarga fina en zig-zag, más gruesa y luminosa en crítico;
+- veneno utiliza una gota tóxica alargada con salpicadura viscosa;
 - una varita conserva la secuencia `proyectil` de P6.2C.1;
 - dos varitas utilizan `proyectil_dual` con preparación compartida, disparo principal, pausa, disparo secundario y retorno;
 - la duración total continúa derivando del único `costoFinal` canónico;
@@ -1114,9 +1114,31 @@ P6.2C.2 consume los elementos y resultados por fuente que ya transporta el ataqu
 
 Los cuatro elementos se distinguen por forma y color; varita simple y doble varita respetan el orden real de fuentes y resultados; combinaciones de elementos diferentes se leen por separado; casilla vacía reproduce las fuentes configuradas sin feedback falso; muerte con el primer golpe no genera un segundo disparo; fallo, bloqueo y crítico conservan el resultado canónico; arco, lanza, cuerpo a cuerpo, Maná, combate, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
 
+#### P6.2D — Consumibles, recuperación y cierre de P6.2
+
+Estado: cerrada y validada manualmente; SHA final pendiente de registrar después del commit del usuario.
+
+P6.2D incorpora `recursos_recuperados` para recuperaciones explícitas. El dominio conserva el objeto exacto, recurso, cantidad aplicada y valores anterior, posterior y máximo. La ejecución de consumo recibe el `costoFinal` canónico calculado con `factorTiempo` y `factorConsumo`; Phaser distribuye esa duración en preparación 20 %, uso 20 %, recuperación 45 % y retorno 15 %.
+
+- Vida utiliza rojo dominante y texto `+N VIDA`;
+- Maná utiliza azul-violeta y texto `+N MANÁ`;
+- el PNG exacto del consumible se muestra mediante `CreadorRecursosVisualesPhaser`;
+- se incorpora `pocion_mana` con recuperación provisional de 10 y stock fijo en Edran;
+- una recuperación explícita futura de un enemigo podrá elevar su barra inmediatamente;
+- la regeneración pasiva no genera eventos visuales;
+- `nivel_aumentado` se conserva desde la derrota hasta presentación y produce un aura blanca tipo energía/ki sin consumir tiempo; solo su entrada breve bloquea la cola, mientras permanencia y salida continúan en paralelo;
+- Lythra y las recuperaciones mágicas quedan reservadas para P6.3;
+- los efectos persistentes de habilidades y estados deberán representarse durante toda su duración en P6.3.
+
+### Criterio de cierre de P6.2D
+
+Las pociones muestran el recurso y la cantidad realmente recuperados; no se consumen cuando no producen efecto; la imagen del consumible deriva del `costoFinal`, mientras texto, partículas y aura usan una duración fija y legible; Vida y Maná se distinguen; el icono corresponde al objeto real; la poción de Maná se compra y consume; `nivel_aumentado` llega a Phaser y se representa una sola vez mediante un aura blanca tipo energía/ki no bloqueante después de su entrada; regeneración pasiva y Lythra no reciben efectos incorrectos; cuerpo a cuerpo, arcos, lanzas, varitas, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
+
 ### Criterio de cierre de P6 completa
 
-Se valida el flujo completo desde seleccionar una acción hasta muerte, recompensa y actualización visual.
+Estado: cerrada y validada manualmente. SHA final pendiente de registrar después del commit de P6.2D.
+
+Se validó el flujo completo desde seleccionar una acción hasta muerte, recompensa, recuperación explícita, subida de nivel y actualización visual.
 
 ---
 

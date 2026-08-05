@@ -99,7 +99,7 @@ Un enemigo fuera de línea de visión o patrón no bloquea un destructible váli
 ## 8. Archivos agregados
 
 ```text
-src/interfaz/graficos/phaser/CreadorRecursosAtaquePhaser.js
+src/interfaz/graficos/phaser/CreadorRecursosVisualesPhaser.js
 docs/phaser/entregas/ENTREGA_P6_2_C_1.md
 ```
 
@@ -166,7 +166,7 @@ La prueba automatizada valida contrato, orden y geometría, pero no reemplaza la
 
 ## 14. Enlace para la siguiente etapa
 
-La siguiente etapa recomendada es P6.2C.2: proyectiles elementales de varitas y doble varita. Debe reutilizar `CreadorRecursosAtaquePhaser`, el `costoFinal`, los golpes canónicos y los datos elementales ya existentes, sin modificar daño, Maná ni reglas de doble arma.
+La siguiente etapa recomendada es P6.2C.2: proyectiles elementales de varitas y doble varita. Debe reutilizar `CreadorRecursosVisualesPhaser`, el `costoFinal`, los golpes canónicos y los datos elementales ya existentes, sin modificar daño, Maná ni reglas de doble arma.
 
 ## 15. Validaciones técnicas realizadas
 

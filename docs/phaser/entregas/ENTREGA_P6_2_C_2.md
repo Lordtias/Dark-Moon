@@ -215,13 +215,7 @@ La siguiente etapa recomendada es P6.2D: consumibles, recuperación visual gené
 ## 17. Estado Git de la copia entregada
 
 ```text
-Ruta: /mnt/data/p6_2c2_work/Dark-Moon
-.git: presente
-Rama: main
-HEAD base: 1a3c4f4aa9585e32d5b0d3448af569d746f05a88
-Estado: 9 archivos modificados y 2 agregados
-Commit: no realizado
-Push: no realizado
+Cierre confirmado por el usuario: `6a660e3d59af0bd22ee6073cabf56af1442d404c`.
 ```
 
 ## Ajuste de validación posterior

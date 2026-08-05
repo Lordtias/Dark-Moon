@@ -29,6 +29,31 @@ export function crearPlanRitmoVisualAtaque({
   });
 }
 
+
+const PROPORCIONES_CONSUMO = Object.freeze({
+  preparacion: 0.2,
+  uso: 0.2,
+  recuperacion: 0.45,
+  retorno: 0.15,
+});
+
+export function crearPlanRitmoVisualConsumo({ ejecucionTemporal } = {}) {
+  const costoFinal = ejecucionTemporal?.costoFinal;
+  if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
+    return null;
+  }
+  const duracionTotalMs = convertirCostoFinalADuracionVisual(costoFinal);
+  return Object.freeze({
+    costoFinal,
+    duracionTotalMs,
+    secuencia: "consumo",
+    fases: distribuirDuracionPorFases({
+      duracionTotalMs,
+      proporciones: PROPORCIONES_CONSUMO,
+    }),
+  });
+}
+
 export function convertirCostoFinalADuracionVisual(costoFinal) {
   if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
     throw new Error(

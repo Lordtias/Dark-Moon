@@ -1,3 +1,4 @@
+import { crearEventoRecursosRecuperados } from "../acciones/EventosAccion.js";
 // Tipos de efectos que actualmente pueden
 // aplicar los objetos consumibles.
 //
@@ -215,9 +216,39 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     };
   }
 
+  const estadoAntes = {
+    vida: { actual: player.vidaActual, maxima: player.vidaMaxima },
+    mana: { actual: player.manaActual, maxima: player.manaMaximo },
+  };
   const efectosAplicados = evaluaciones
     .filter((evaluacion) => evaluacion.cantidadAplicable > 0)
     .map((evaluacion) => aplicarEfectoConsumible(player, evaluacion));
+  const recursosRecuperados = efectosAplicados
+    .filter((efecto) => efecto.cantidadAplicada > 0)
+    .map((efecto) => {
+      const esVida = efecto.tipo === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_VIDA;
+      const estado = esVida ? estadoAntes.vida : estadoAntes.mana;
+      const valorDespues = esVida ? player.vidaActual : player.manaActual;
+      return {
+        recurso: esVida ? "vida" : "mana",
+        cantidadAplicada: efecto.cantidadAplicada,
+        valorAntes: estado.actual,
+        valorDespues,
+        valorMaximo: estado.maxima,
+      };
+    });
+  const eventos = recursosRecuperados.length > 0
+    ? [crearEventoRecursosRecuperados({
+        objetivo: player,
+        origen: "consumible",
+        fuente: {
+          idObjeto: objeto.id,
+          nombre: objeto.nombre,
+          recursoVisual: objeto.recursoVisual,
+        },
+        recursos: recursosRecuperados,
+      })]
+    : [];
 
   const efectosMensaje = crearMensajeEfectos(efectosAplicados);
 
@@ -231,6 +262,7 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     consumible: objeto,
     cantidadConsumida: 1,
     efectosAplicados,
+    eventos,
 
     // Juego utilizará este valor como
     // coste temporal base del consumo.

@@ -19,5 +19,26 @@
         }
       ]
     }
+  },
+  "pocion_mana": {
+    "nombre": "Poción de Maná",
+    "tipo": "consumible",
+    "descripcion": "Una pequeña poción que recupera una cantidad significativa de Maná.",
+    "recursoVisual": "assets/imagenes/objetos/pocion_mana.png",
+    "valorBase": 20,
+    "pesoUnitario": 0.25,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 5,
+    "ranurasCompatibles": [],
+    "propiedades": {
+      "costoConsumo": 100,
+      "efectos": [
+        {
+          "tipo": "recuperarMana",
+          "cantidad": 10
+        }
+      ]
+    }
   }
 }

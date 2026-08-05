@@ -314,6 +314,7 @@ export function consumirRecursosAtaque(combatiente) {
   const resultadoBase = {
     consumida: false,
     restante: requisitos.cantidadMunicion,
+    municionUtilizada: null,
     manaConsumido: 0,
     manaRestante: combatiente.manaActual,
     requisitos,
@@ -339,18 +340,27 @@ export function consumirRecursosAtaque(combatiente) {
   }
 
   let municionConsumida = false;
+  let municionUtilizada = null;
   if (configuracion.requiereQuiver) {
-    municionConsumida =
-      configuracion.quiver.contenedorObjetos.consumirCantidadObjeto(
-        (objeto) =>
-          objeto.esMunicion &&
-          objeto.propiedades.tipoMunicion === configuracion.tipoMunicion,
-        1,
-      );
+    const contenedorMunicion = configuracion.quiver.contenedorObjetos;
+    const objetoMunicion = contenedorMunicion.buscarPrimerObjeto(
+      (objeto) =>
+        objeto.esMunicion &&
+        objeto.propiedades.tipoMunicion === configuracion.tipoMunicion,
+    );
+
+    if (!objetoMunicion) {
+      combatiente.manaActual = manaAnterior;
+      throw new Error("No fue posible localizar la munición del ataque.");
+    }
+
+    municionUtilizada = crearDescriptorRecursoMunicion(objetoMunicion);
+    municionConsumida = contenedorMunicion.consumirCantidadObjeto(
+      (objeto) => objeto === objetoMunicion,
+      1,
+    );
 
     if (!municionConsumida) {
-      // La operación completa se revierte si un recurso previamente validado
-      // cambia antes de consumirse.
       combatiente.manaActual = manaAnterior;
       throw new Error("No fue posible consumir los recursos del ataque.");
     }
@@ -361,10 +371,20 @@ export function consumirRecursosAtaque(combatiente) {
     restante: configuracion.requiereQuiver
       ? contarMunicionCompatible(configuracion)
       : null,
+    municionUtilizada,
     manaConsumido: costoMana,
     manaRestante: combatiente.manaActual,
     requisitos,
   };
+}
+
+function crearDescriptorRecursoMunicion(objeto) {
+  if (!objeto?.esMunicion) return null;
+  return Object.freeze({
+    idObjeto: objeto.id,
+    tipoMunicion: objeto.propiedades?.tipoMunicion ?? null,
+    recursoVisual: objeto.recursoVisual ?? null,
+  });
 }
 
 function obtenerArmaEnRanura(combatiente, nombreRanura) {

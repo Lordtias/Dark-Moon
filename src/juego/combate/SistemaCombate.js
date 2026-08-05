@@ -568,6 +568,7 @@ export function resolverAtaqueSinObjetivo({ atacante } = {}) {
     impacto: false,
     danio: 0,
     municionRestante: resultadoMunicion.restante,
+    municionUtilizada: resultadoMunicion.municionUtilizada,
     mensaje: [mensajeBase, textoMunicion].filter(Boolean).join(" "),
   };
 }
@@ -719,6 +720,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
     probabilidadImpacto: primerGolpe?.probabilidadImpacto ?? 0,
     tiradaImpacto: primerGolpe?.tiradaImpacto ?? null,
     municionRestante: resultadoMunicion.restante,
+    municionUtilizada: resultadoMunicion.municionUtilizada,
     esAtaqueDual: configuracionDanio.esAtaqueDual,
     golpesProgramados: cantidadProgramada,
     golpesRealizados: resultadosGolpes.length,

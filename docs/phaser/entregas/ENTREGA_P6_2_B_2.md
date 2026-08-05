@@ -3,7 +3,7 @@
 Plan: Integración progresiva de Phaser, beta y Electron de Dark Moon  
 Etapa: P6.2B.2  
 Commit base: `d4a3b4f9e38b0f68da7c0b74ecd4a0f88c29b158`  
-Estado: Implementada y validada técnicamente; pendiente de prueba manual y commit por el usuario
+Estado: Cerrada, validada manualmente y publicada en `9979c9fe30710bfcbcb055f277b237533de9c701`
 
 ## 1. Conclusión sencilla
 
@@ -344,3 +344,13 @@ La validación manual posterior aprobó los siguientes ajustes dentro de P6.2B.2
 - la aparición inmediata y animada del botín queda para P6.4, donde deberá seguir a la muerte sin esperar al final de la ronda.
 
 La escena final continúa reconciliando el estado completo, pero ya no es necesario esperar hasta ella para ocultar un enemigo derrotado.
+
+## 21. Cierre confirmado
+
+P6.2B.2 fue validada manualmente y publicada por el usuario en:
+
+```text
+9979c9fe30710bfcbcb055f277b237533de9c701
+```
+
+P6.2C.1 toma ese commit y el ZIP correspondiente como base de verdad.

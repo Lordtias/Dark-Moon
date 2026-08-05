@@ -63,6 +63,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         new ReproductorEventosVisualesPhaser({
           escena: this,
           compositor: this.compositor,
+          gestorRecursos: this.gestorRecursos,
           alAplicarEscena: (escenaFinal) =>
             this.aplicarEscenaInmediata(escenaFinal),
           alMoverJugadorVisual: (posicion) =>

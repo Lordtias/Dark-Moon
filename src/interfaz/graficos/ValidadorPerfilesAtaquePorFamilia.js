@@ -151,6 +151,44 @@ function validarAnimacion(animacion, idPerfil) {
     1,
     `animacion.avanceCasilla de "${idPerfil}"`,
   );
+  if (animacion.tamanoVisualPx !== undefined) {
+    validarNumeroPositivo(
+      animacion.tamanoVisualPx,
+      `animacion.tamanoVisualPx de "${idPerfil}"`,
+    );
+  }
+  if (animacion.longitudVisualCasillas !== undefined) {
+    validarNumeroPositivo(
+      animacion.longitudVisualCasillas,
+      `animacion.longitudVisualCasillas de "${idPerfil}"`,
+    );
+  }
+  if (animacion.orientacionBaseGrados !== undefined) {
+    validarNumeroFinito(
+      animacion.orientacionBaseGrados,
+      `animacion.orientacionBaseGrados de "${idPerfil}"`,
+    );
+  }
+  if (animacion.tipo === "flecha") {
+    validarNumeroPositivo(
+      animacion.tamanoVisualPx,
+      `animacion.tamanoVisualPx de "${idPerfil}"`,
+    );
+    validarNumeroFinito(
+      animacion.orientacionBaseGrados,
+      `animacion.orientacionBaseGrados de "${idPerfil}"`,
+    );
+  }
+  if (animacion.tipo === "estocada_recurso") {
+    validarNumeroPositivo(
+      animacion.longitudVisualCasillas,
+      `animacion.longitudVisualCasillas de "${idPerfil}"`,
+    );
+    validarNumeroFinito(
+      animacion.orientacionBaseGrados,
+      `animacion.orientacionBaseGrados de "${idPerfil}"`,
+    );
+  }
 }
 
 function validarSonido(sonido, idPerfil) {
@@ -227,6 +265,12 @@ function validarObjetoPlano(valor, descripcion) {
 function validarTextoNoVacio(valor, descripcion) {
   if (typeof valor !== "string" || valor.trim() === "") {
     throw new Error(`${descripcion} debe ser un texto no vacío.`);
+  }
+}
+
+function validarNumeroFinito(valor, descripcion) {
+  if (!Number.isFinite(valor)) {
+    throw new Error(`${descripcion} debe ser un número finito.`);
   }
 }
 

@@ -46,6 +46,16 @@ export class GestorRecursosPhaser {
       : null;
   }
 
+  async obtenerInformacionAsync(ruta) {
+    const rutaNormalizada = normalizarRuta(ruta);
+    if (!rutaNormalizada || this.destruido) return null;
+    let recurso = this.recursos.get(rutaNormalizada);
+    if (!recurso) recurso = this.iniciarCarga(rutaNormalizada);
+    if (recurso.estado === ESTADOS_RECURSO.LISTO) return recurso.informacion;
+    if (recurso.estado === ESTADOS_RECURSO.ERROR) return null;
+    return recurso.promesa;
+  }
+
   precargar(rutas) {
     for (const ruta of rutas ?? []) {
       this.obtenerInformacion(ruta);
@@ -55,11 +65,15 @@ export class GestorRecursosPhaser {
   iniciarCarga(ruta) {
     const claveTextura = crearClaveTextura(ruta);
     const imagen = new Image();
+    let resolverCarga = null;
+    const promesa = new Promise((resolver) => { resolverCarga = resolver; });
     const recurso = {
       claveTextura,
       imagen,
       informacion: null,
       estado: ESTADOS_RECURSO.CARGANDO,
+      promesa,
+      resolverCarga,
     };
 
     this.recursos.set(ruta, recurso);
@@ -80,6 +94,8 @@ export class GestorRecursosPhaser {
           imagen,
         });
         recurso.estado = ESTADOS_RECURSO.LISTO;
+        recurso.resolverCarga?.(recurso.informacion);
+        recurso.resolverCarga = null;
         this.alActualizar?.({ ruta, cargada: true });
       },
       { once: true },
@@ -93,6 +109,8 @@ export class GestorRecursosPhaser {
         }
 
         recurso.estado = ESTADOS_RECURSO.ERROR;
+        recurso.resolverCarga?.(null);
+        recurso.resolverCarga = null;
         console.warn(`[Phaser] No se pudo cargar la imagen "${ruta}".`);
         this.alActualizar?.({ ruta, cargada: false });
       },
@@ -110,6 +128,8 @@ export class GestorRecursosPhaser {
     this.destruido = true;
 
     for (const recurso of this.recursos.values()) {
+      recurso.resolverCarga?.(null);
+      recurso.resolverCarga = null;
       if (recurso.estado === ESTADOS_RECURSO.LISTO) {
         this.escena.textures.remove(recurso.claveTextura);
       }

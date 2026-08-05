@@ -25,9 +25,9 @@
       "retorno": 0.25
     },
     "proyectil": {
-      "preparacion": 0.25,
+      "preparacion": 0.4,
       "lanzamiento": 0.15,
-      "trayectoria": 0.4,
+      "trayectoria": 0.25,
       "retorno": 0.2
     }
   },
@@ -115,12 +115,14 @@
     "lanza": {
       "secuencia": "estocada",
       "animacion": {
-        "tipo": "estocada",
+        "tipo": "estocada_recurso",
         "tamano": "lineal",
         "sentido": "frontal",
         "escala": 1,
         "amplitudGrados": 0,
-        "avanceCasilla": 0.18
+        "avanceCasilla": 0,
+        "longitudVisualCasillas": 2,
+        "orientacionBaseGrados": 0
       },
       "sonido": {
         "preparacion": null,
@@ -136,7 +138,9 @@
         "sentido": "frontal",
         "escala": 1,
         "amplitudGrados": 0,
-        "avanceCasilla": 0
+        "avanceCasilla": 0,
+        "tamanoVisualPx": 24,
+        "orientacionBaseGrados": 0
       },
       "sonido": {
         "preparacion": null,

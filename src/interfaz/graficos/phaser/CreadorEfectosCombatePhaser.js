@@ -100,6 +100,28 @@ export class CreadorEfectosCombatePhaser {
     this.compositor.agregarEfectoTemporal(marca);
     return marca;
   }
+  crearImpactoProyectil({ centro, critico = false } = {}) {
+    if (!esCentroValido(centro)) return null;
+    const grafico = this.escena.add.graphics({ x: centro.x, y: centro.y });
+    const radio = critico ? 8 : 6;
+    const color = critico ? 0xffdf72 : 0xfff1c2;
+    grafico.lineStyle(critico ? 3 : 2, color, 0.96);
+    for (let indice = 0; indice < 4; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / 4 + Math.PI / 4;
+      const interior = radio * 0.35;
+      grafico.lineBetween?.(
+        Math.cos(angulo) * interior,
+        Math.sin(angulo) * interior,
+        Math.cos(angulo) * radio,
+        Math.sin(angulo) * radio,
+      );
+    }
+    grafico.fillStyle(color, 0.86);
+    grafico.fillCircle?.(0, 0, critico ? 3 : 2);
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
   crearEfectoAtaqueCuerpoACuerpo({
     centroAtacante,
     centroObjetivo,

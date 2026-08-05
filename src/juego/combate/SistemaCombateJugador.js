@@ -1,3 +1,4 @@
+import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
@@ -160,6 +161,18 @@ export class SistemaCombateJugador {
     });
   }
 
+  obtenerDestructiblePrioritario() {
+    return seleccionarObjetivoPrioritario({
+      origen: this.jugador,
+      objetivos: this.objetivos,
+      esObjetivoValido: (objetivo) =>
+        objetivo instanceof Destructible &&
+        !(objetivo instanceof Enemigo) &&
+        objetivo.estaDestruido !== true &&
+        this.esCasillaAtacable(objetivo.x, objetivo.y),
+    });
+  }
+
   obtenerCasillaInicial() {
     const direcciones = [
       this.ultimaDireccion,
@@ -188,6 +201,10 @@ export class SistemaCombateJugador {
     const enemigoPrioritario = this.obtenerEnemigoPrioritario();
     if (enemigoPrioritario) {
       return { x: enemigoPrioritario.x, y: enemigoPrioritario.y };
+    }
+    const destructiblePrioritario = this.obtenerDestructiblePrioritario();
+    if (destructiblePrioritario) {
+      return { x: destructiblePrioritario.x, y: destructiblePrioritario.y };
     }
     return this.obtenerCasillaInicial();
   }

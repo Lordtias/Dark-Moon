@@ -192,6 +192,7 @@ function copiarResultadoAtaque(resultado, estadoObjetivoFinal) {
       resultado.golpesProgramados,
     ),
     golpesRealizados: normalizarEnteroNoNegativo(resultado.golpesRealizados),
+    municionUtilizada: copiarDescriptorRecursoObjeto(resultado.municionUtilizada),
     golpes,
   });
 }
@@ -261,6 +262,8 @@ function copiarConfiguracionAtaque(configuracion) {
           nombreFuente:
             typeof fuente?.nombre === "string" ? fuente.nombre : null,
           mano: typeof fuente?.mano === "string" ? fuente.mano : null,
+          idObjeto: normalizarTexto(fuente?.objeto?.id),
+          recursoVisual: normalizarTexto(fuente?.objeto?.recursoVisual),
           familiaObjeto: normalizarTexto(fuente?.objeto?.familiaObjeto),
           esAtaqueNatural: fuente?.objeto === null,
           tipoAtaque: normalizarTexto(propiedadesFuente.tipoAtaque),
@@ -283,6 +286,24 @@ function copiarConfiguracionAtaque(configuracion) {
     esAtaqueDual: configuracion.esAtaqueDual === true,
     cantidadGolpes: normalizarEnteroNoNegativo(configuracion.cantidadGolpes),
     fuentes: Object.freeze(fuentes),
+  });
+}
+
+function copiarDescriptorRecursoObjeto(descriptor) {
+  if (
+    !descriptor ||
+    typeof descriptor !== "object" ||
+    Array.isArray(descriptor)
+  ) {
+    return null;
+  }
+  const idObjeto = normalizarTexto(descriptor.idObjeto);
+  const recursoVisual = normalizarTexto(descriptor.recursoVisual);
+  if (idObjeto === null || recursoVisual === null) return null;
+  return Object.freeze({
+    idObjeto,
+    tipoMunicion: normalizarTexto(descriptor.tipoMunicion),
+    recursoVisual,
   });
 }
 

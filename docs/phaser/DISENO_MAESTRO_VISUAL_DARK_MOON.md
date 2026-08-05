@@ -1803,3 +1803,16 @@ La escena neutral final continúa siendo la reconciliación autoritativa del map
 Los eventos canónicos `danio_periodico_aplicado` conservan `vidaAntes`, `vidaDespues` y `vidaMaxima` calculadas por el dominio. Phaser puede actualizar la barra, mostrar el daño y reaccionar sin recalcular veneno, quemadura, resistencias ni frecuencia. Si el dominio emite `combatiente_derrotado`, la entidad se retira antes del evento siguiente.
 
 La desaparición inmediata no crea ni anima botín. P6.4 debe representar la muerte completa y hacer aparecer el botín inmediatamente después de la derrota, sin esperar al final de las demás acciones y sin duplicar la recompensa cuando se aplique la escena final.
+
+
+## V-030 — Recursos visuales exactos para proyectiles y estocadas
+
+La presentación debe representar el objeto realmente utilizado, no una imagen fija asociada a la familia. Al consumir munición, el dominio conserva una descripción inmutable con `idObjeto`, `tipoMunicion` y `recursoVisual`. El evento visual transporta esos datos y Phaser utiliza la ruta ya resuelta; no consulta `Municiones.json`, no reconstruye el carcaj y no decide qué flecha correspondía.
+
+Las flechas y armas lineales usan como convención un PNG horizontal con la punta hacia la derecha. Phaser rota el sprite hacia el objetivo. La secuencia de arco reparte la duración canónica en preparación 40 %, lanzamiento 15 %, trayectoria 25 % y retorno 20 %. El viaje es visual y no recalcula alcance, trayectoria válida, colisión, munición ni precisión.
+
+La lanza utiliza el recurso exacto de la fuente equipada. Su imagen mantiene un largo visual equivalente a dos casillas y el cuerpo del atacante no avanza. Para un objetivo a una casilla, el sprite se centra sobre el atacante; para un objetivo a dos casillas, se centra en la casilla intermedia de la dirección del ataque. En diagonal, la longitud visual se ajusta a la distancia geométrica entre centros sin alterar el alcance lógico.
+
+`CreadorRecursosAtaquePhaser` es un componente genérico de presentación temporal: resuelve una textura desde una ruta, crea el sprite, aplica origen, rotación, escala, brillo y destrucción segura. P6.2C.1 lo utiliza para flechas y lanzas; su contrato permite reutilizarlo más adelante para armas o equipamiento visible, pero no asume montaje permanente ni reglas de equipamiento.
+
+La selección automática de ataque físico mantiene la prioridad: enemigo atacable, luego destructible atacable, luego casilla inicial. Un destructible solo puede ser elegido cuando no existe ningún enemigo que cumpla todas las reglas reales de patrón, alcance y línea de visión.

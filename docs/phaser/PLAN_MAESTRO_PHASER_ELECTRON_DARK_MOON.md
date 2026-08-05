@@ -994,8 +994,9 @@ P6.2 se divide en cierres independientes con commit propio:
 1. `P6.2A` — resultados visuales del combate;
 2. `P6.2B.1` — contrato temporal final y perfiles por familia;
 3. `P6.2B.2` — animaciones cuerpo a cuerpo por familia;
-4. `P6.2C` — arcos, varitas y proyectiles;
-5. `P6.2D` — consumibles, recuperación visual y cierre de P6.2.
+4. `P6.2C.1` — motor de proyectiles, arcos y lanza con recurso visual;
+5. `P6.2C.2` — varitas elementales y doble varita;
+6. `P6.2D` — consumibles, recuperación visual y cierre de P6.2.
 
 #### P6.2A — Resultados visuales del combate
 
@@ -1044,7 +1045,7 @@ Cada ataque del jugador o enemigo conserva el `costoFinal` realmente registrado;
 
 #### P6.2B.2 — Animaciones cuerpo a cuerpo por familia
 
-Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `9979c9fe30710bfcbcb055f277b237533de9c701`.
 
 P6.2B.2 consume el ritmo y los perfiles de P6.2B.1:
 
@@ -1064,6 +1065,30 @@ P6.2B.2 consume el ritmo y los perfiles de P6.2B.1:
 ### Criterio de cierre de P6.2B.2
 
 Cada familia cuerpo a cuerpo tiene una lectura reconocible; las fases respetan el `costoFinal`; doble arma conserva orden y familias; el crítico refuerza el efecto propio sin símbolo duplicado; el indicador de agresión aparece o desaparece en el momento correcto; una derrota directa o periódica se refleja antes de la acción siguiente; cancelar una cola restaura posiciones; no cambian combate, IA decisoria, tiempo, persistencia, Canvas 2D ni Phaser 4.2.1.
+
+#### P6.2C.1 — Motor de proyectiles, arcos y lanza con recurso visual
+
+Estado: implementada y validada técnicamente; pendiente de prueba manual y commit del usuario.
+
+P6.2C.1 extiende el contrato visual sin transferir reglas del dominio a Phaser:
+
+- el consumo de munición conserva una descripción inmutable de la pila exacta utilizada con `idObjeto`, `tipoMunicion` y `recursoVisual`;
+- `SistemaCombate`, `EventosAccion` y el plan visual transportan esa descripción sin volver a buscar la munición;
+- Phaser utiliza directamente la ruta recibida y no consulta `Municiones.json`;
+- todas las municiones con una imagen propia pueden representarse sin condiciones por ID;
+- la secuencia `proyectil` distribuye la duración total en preparación 40 %, lanzamiento 15 %, trayectoria 25 % y retorno 20 %;
+- el arco utiliza el PNG horizontal de la flecha consumida, lo rota hacia la casilla objetivo y representa impacto, fallo, bloqueo, crítico o casilla vacía según el resultado ya resuelto;
+- el crítico intensifica la propia flecha y su impacto sin agregar una marca independiente;
+- cada fuente de arma conserva también `idObjeto` y `recursoVisual`;
+- la lanza y la lanza reforzada utilizan el PNG exacto del arma equipada;
+- la imagen de lanza conserva un largo visual de dos casillas y el combatiente no avanza: a alcance uno se centra sobre el atacante y a alcance dos sobre la casilla intermedia;
+- `CreadorRecursosAtaquePhaser` resuelve sprites temporales desde recursos y queda preparado para reutilizarse con armas o equipamiento visible futuro, sin implementarlo todavía;
+- el selector automático prioriza enemigos atacables y solo selecciona destructibles cuando no existe ninguno dentro de las reglas del ataque;
+- Canvas 2D conserva la representación inmediata y no incorpora estas animaciones.
+
+### Criterio de cierre de P6.2C.1
+
+La imagen del proyectil coincide con la munición realmente consumida; flechas cardinales y diagonales nacen en el atacante y llegan a la casilla seleccionada; fallo, crítico, bloqueo, casilla vacía y muerte conservan el resultado canónico; la lanza exacta se muestra sin adelantar al combatiente y con origen visual coherente para alcance uno y dos; enemigos equipados reutilizan el mismo flujo; el selector no elige destructibles mientras exista un enemigo atacable; cancelación, cambio de mapa, tiempo, combate, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
 
 ### Criterio de cierre de P6 completa
 

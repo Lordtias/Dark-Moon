@@ -1,5 +1,9 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
+  crearEventoHabilidadResuelta,
+  TIPOS_ACTOR_HABILIDAD,
+} from "../acciones/EventosAccion.js";
+import {
   seleccionarObjetivoPrioritario,
 } from "../combate/SelectorObjetivoPrioritario.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
@@ -328,6 +332,48 @@ export class SistemaHabilidadesJugador {
       const cantidadImpactos = impactos.filter((item) => item.impacto).length;
       const cantidadCriticos = impactos.filter((item) => item.critico).length;
       const efectos = impactos.flatMap((item) => item.efectos ?? []);
+      const eventosEfectos = efectos.flatMap((efecto) => efecto.eventos ?? []);
+      const impactosResultado = impactos.map((impacto) => ({
+        ...impacto,
+        efectos: (impacto.efectos ?? []).map(
+          ({ eventos: _eventos, ...efecto }) => efecto,
+        ),
+      }));
+      const efectosResultado = impactosResultado.flatMap(
+        (impacto) => impacto.efectos ?? [],
+      );
+      const impactosEvento = impactos.map((impacto, indice) => ({
+        ...impacto,
+        objetivoEntidad: plan.creaZonaTemporal
+          ? resultadoZona?.impactos?.[indice]?.objetivo ?? null
+          : plan.objetivos[indice]?.objetivo ?? null,
+        posicionObjetivo: impacto.objetivo ?? null,
+      }));
+      const eventoHabilidad = crearEventoHabilidadResuelta({
+        actor: this.jugador,
+        tipoActor: TIPOS_ACTOR_HABILIDAD.JUGADOR,
+        habilidad: {
+          ...plan.habilidad,
+          formaImpacto: plan.gradoConfig.formaImpacto ?? null,
+          zonaTemporal: plan.gradoConfig.zonaTemporal ?? null,
+        },
+        grado: plan.grado,
+        posicionObjetivo: plan.centro,
+        casillasAfectadas: plan.casillasAfectadas,
+        recorrido: plan.recorrido,
+        impactos: impactosEvento,
+        recursosActor: [
+          {
+            recurso: "mana",
+            valorAntes: manaAntes,
+            valorDespues: manaDespues,
+            cantidadReal: manaConsumido,
+            valorMaximo: leerManaMaximo(this.jugador),
+            tipoCambio: "consumo",
+          },
+        ],
+        zonaTemporal: resultadoZona?.zona ?? null,
+      });
       const mensaje = plan.creaZonaTemporal
         ? crearMensajeCreacionZona({
             nombreHabilidad: plan.habilidad.nombre,
@@ -358,13 +404,17 @@ export class SistemaHabilidadesJugador {
         cantidadObjetivos: impactos.length,
         cantidadImpactos,
         cantidadCriticos,
-        impactos,
-        danio: impactos.find((item) => item.danio)?.danio ?? null,
-        efectos,
+        impactos: impactosResultado,
+        danio: impactosResultado.find((item) => item.danio)?.danio ?? null,
+        efectos: efectosResultado,
         zonaTemporal: resultadoZona?.zona ?? null,
         zonaCreada: resultadoZona?.creada === true,
         zonaRenovada: resultadoZona?.renovada === true,
-        eventos: resultadoZona?.eventos ?? [],
+        eventos: [
+          eventoHabilidad,
+          ...eventosEfectos,
+          ...(resultadoZona?.eventos ?? []),
+        ],
       };
       const resultadoTemporal = finalizarTiempo(this.juego, {
         resultado: resultadoBase,
@@ -504,6 +554,7 @@ export class SistemaHabilidadesJugador {
       x: vistaPrevia.centro.x,
       y: vistaPrevia.centro.y,
       nombre: habilidad.nombre,
+      idMaestria: habilidad.maestria,
       tipoObjetivo: habilidad.ejecucion.tipoObjetivo,
       costoMana: gradoConfig.costoMana,
       costoTemporalBase: gradoConfig.costoTemporalBase,
@@ -681,7 +732,9 @@ export class SistemaHabilidadesJugador {
         objetivos,
         contextoPotencia,
         creaZonaTemporal,
+        centro: copiarCasilla(vistaPrevia.centro),
         casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
+        recorrido: vistaPrevia.recorrido.map((paso) => ({ ...paso })),
         costoMana: gradoConfig.costoMana,
         costoTemporal: gradoConfig.costoTemporalBase,
       };
@@ -981,6 +1034,17 @@ function leerManaActual(jugador) {
     jugador?.recursos?.manaActual ??
     jugador?.recursos?.mana;
   return Number.isFinite(valor) ? valor : 0;
+}
+
+function leerManaMaximo(jugador) {
+  const valor =
+    jugador?.manaMaxima ??
+    jugador?.manaMaximo ??
+    jugador?.manaMax ??
+    jugador?.recursos?.manaMaxima ??
+    jugador?.recursos?.manaMaximo ??
+    jugador?.recursos?.manaMax;
+  return Number.isFinite(valor) ? Math.max(0, valor) : null;
 }
 
 function consumirMana(jugador, cantidad) {

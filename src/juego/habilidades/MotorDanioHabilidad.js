@@ -64,6 +64,8 @@ export function resolverImpactoHabilidad({
   }
 
   const estadisticasLanzador = obtenerEstadisticas(lanzador);
+  const vidaObjetivoAntes = leerVidaActual(objetivo);
+  const vidaObjetivoMaxima = leerVidaMaxima(objetivo);
   const probabilidadImpacto = resolverImpacto
     ? obtenerProbabilidadImpacto(lanzador, objetivo)
     : 100;
@@ -86,6 +88,9 @@ export function resolverImpactoHabilidad({
     probabilidadCritico,
     tiradaCritico,
     objetivoDerrotado: estaDerrotado(objetivo),
+    vidaObjetivoAntes,
+    vidaObjetivoDespues: leerVidaActual(objetivo),
+    vidaObjetivoMaxima,
   };
 }
 
@@ -102,6 +107,8 @@ export function resolverDanioHabilidad({
 } = {}) {
   validarEntradaDanio({ lanzador, objetivo, componentesConfigurados });
 
+  const vidaObjetivoAntes = leerVidaActual(objetivo);
+  const vidaObjetivoMaxima = leerVidaMaxima(objetivo);
   const estadisticasLanzador = obtenerEstadisticas(lanzador);
   const estadisticasObjetivo = obtenerEstadisticas(objetivo);
   const probabilidadImpacto = resolverImpacto
@@ -126,6 +133,8 @@ export function resolverDanioHabilidad({
       tiradaImpacto,
       multiplicadorAtributos,
       contextoPotencia: contextoPotenciaCalculado,
+      vidaObjetivoAntes,
+      vidaObjetivoMaxima,
     });
   }
 
@@ -192,6 +201,9 @@ export function resolverDanioHabilidad({
       ? danioAplicado
       : resolucion.danioCalculado,
     objetivoDerrotado: estaDerrotado(objetivo),
+    vidaObjetivoAntes,
+    vidaObjetivoDespues: leerVidaActual(objetivo),
+    vidaObjetivoMaxima,
   };
 }
 
@@ -275,6 +287,8 @@ function crearResultadoFallo({
   tiradaImpacto,
   multiplicadorAtributos,
   contextoPotencia,
+  vidaObjetivoAntes,
+  vidaObjetivoMaxima,
 }) {
   return {
     idEjecucion,
@@ -302,6 +316,9 @@ function crearResultadoFallo({
     danioFinal: 0,
     danio: 0,
     objetivoDerrotado: false,
+    vidaObjetivoAntes,
+    vidaObjetivoDespues: vidaObjetivoAntes,
+    vidaObjetivoMaxima,
   };
 }
 
@@ -408,6 +425,16 @@ function normalizarSecuenciaTiradas(valor, descripcion) {
     }
     return tirada;
   });
+}
+
+function leerVidaActual(objetivo) {
+  const valor = objetivo?.vidaActual ?? objetivo?.vida;
+  return Number.isFinite(valor) ? Math.max(0, valor) : null;
+}
+
+function leerVidaMaxima(objetivo) {
+  const valor = objetivo?.vidaMaxima ?? objetivo?.vidaMax;
+  return Number.isFinite(valor) ? Math.max(0, valor) : null;
 }
 
 function estaDerrotado(objetivo) {

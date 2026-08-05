@@ -13,6 +13,7 @@ import {
 } from "./ConfiguracionAnimacionesPhaser.js";
 import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
 import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
+import { CreadorEfectosHabilidadesPhaser } from "./CreadorEfectosHabilidadesPhaser.js";
 import { CreadorEfectosRecuperacionPhaser } from "./CreadorEfectosRecuperacionPhaser.js";
 import {
   CONFIGURACION_EFECTOS_RECUPERACION_PHASER,
@@ -61,6 +62,10 @@ export class ReproductorEventosVisualesPhaser {
     this.alAplicarEscena = alAplicarEscena;
     this.alMoverJugadorVisual = alMoverJugadorVisual;
     this.creadorEfectos = new CreadorEfectosCombatePhaser({
+      escena,
+      compositor,
+    });
+    this.creadorEfectosHabilidades = new CreadorEfectosHabilidadesPhaser({
       escena,
       compositor,
     });
@@ -144,6 +149,7 @@ export class ReproductorEventosVisualesPhaser {
     this.temporizadoresActivos.clear();
 
     this.reproduciendo = false;
+    this.compositor?.limpiarEfectosTemporales?.();
 
     if (aplicarUltimaEscena && ultimaEscena) {
       this.alAplicarEscena(ultimaEscena);
@@ -159,6 +165,7 @@ export class ReproductorEventosVisualesPhaser {
     this.alAplicarEscena = null;
     this.alMoverJugadorVisual = null;
     this.creadorEfectos = null;
+    this.creadorEfectosHabilidades = null;
     this.creadorEfectosRecuperacion = null;
     this.creadorProyectilesElementales = null;
     this.creadorRecursosVisuales = null;
@@ -192,6 +199,8 @@ export class ReproductorEventosVisualesPhaser {
         await this.reproducirMovimiento(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ATAQUE_RESUELTO) {
         await this.reproducirAtaqueResuelto(evento, version);
+      } else if (evento.tipo === TIPOS_EVENTO_VISUAL.HABILIDAD_RESUELTA) {
+        await this.reproducirHabilidadResuelta(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.CAMBIO_HOSTILIDAD) {
         this.reproducirCambioHostilidad(evento);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.DANIO_PERIODICO) {
@@ -319,6 +328,268 @@ export class ReproductorEventosVisualesPhaser {
     }
 
     return cantidad;
+  }
+
+  async reproducirHabilidadResuelta(evento, version) {
+    this.compositor.ocultarSeleccionTemporal?.();
+
+    if (
+      evento?.perfilVisual?.nivelVisual !== "basica" ||
+      evento?.ritmoVisual?.secuencia !== "proyectil_basico"
+    ) {
+      return;
+    }
+
+    const impacto = evento.impactos?.[0] ?? null;
+    const centroActor = this.obtenerCentroActorHabilidad(evento);
+    const centroObjetivo = this.obtenerCentroImpactoHabilidad(evento, impacto);
+    if (!centroActor || !centroObjetivo) {
+      if (impacto) {
+        await this.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      }
+      return;
+    }
+
+    const perfil = evento.perfilVisual;
+    const grado = evento.habilidad?.grado ?? 1;
+    const fases = evento.ritmoVisual?.fases ?? {};
+    const nodoActor = this.compositor.obtenerNodoEntidad(evento.idActor);
+    const contenedorActor = nodoActor?.contenedor ?? null;
+    const escalaActorX = contenedorActor?.scaleX ?? 1;
+    const escalaActorY = contenedorActor?.scaleY ?? 1;
+    const conjuracion = this.efectosReducidos
+      ? null
+      : this.creadorEfectosHabilidades?.crearConjuracion({
+          centro: centroActor,
+          perfil,
+          grado,
+        });
+
+    const duracionPreparacion = this.calcularDuracion(fases.preparacion ?? 1);
+    const preparaciones = [];
+    if (conjuracion) {
+      preparaciones.push(this.crearTween({
+        targets: conjuracion,
+        alpha: 0.92,
+        scaleX: 1,
+        scaleY: 1,
+        angle: perfil.movimiento === "nervioso" ? 18 : 8,
+        duration: duracionPreparacion,
+        ease: "Sine.easeOut",
+      }, version));
+    }
+    if (contenedorActor && !this.efectosReducidos) {
+      preparaciones.push(this.crearTween({
+        targets: contenedorActor,
+        scaleX: escalaActorX * 1.06,
+        scaleY: escalaActorY * 1.06,
+        duration: duracionPreparacion,
+        ease: "Sine.easeOut",
+      }, version));
+    }
+    if (preparaciones.length > 0) await Promise.all(preparaciones);
+    else await this.esperar(duracionPreparacion, version);
+
+    if (version !== this.versionCancelacion || this.destruido) return;
+
+    const angulo = Math.atan2(
+      centroObjetivo.y - centroActor.y,
+      centroObjetivo.x - centroActor.x,
+    );
+    const proyectil = this.efectosReducidos
+      ? null
+      : this.creadorEfectosHabilidades?.crearProyectil({
+          centro: centroActor,
+          destino: centroObjetivo,
+          perfil,
+          grado,
+          anguloRad: angulo,
+          critico: impacto?.critico === true,
+        });
+    if (proyectil) {
+      proyectil.setAlpha?.(0.15);
+      proyectil.setScale?.(0.58);
+    }
+
+    const duracionManifestacion = this.calcularDuracion(
+      fases.manifestacion ?? 1,
+    );
+    if (proyectil) {
+      await this.crearTween({
+        targets: proyectil,
+        alpha: 1,
+        scaleX: 1,
+        scaleY: 1,
+        duration: duracionManifestacion,
+        ease: "Quad.easeOut",
+      }, version);
+    } else {
+      await this.esperar(duracionManifestacion, version);
+    }
+
+    if (version !== this.versionCancelacion || this.destruido) {
+      proyectil?.destroy?.();
+      conjuracion?.destroy?.();
+      return;
+    }
+
+    const duracionTrayectoria = this.calcularDuracion(fases.trayectoria ?? 1);
+    const esDescargaAnclada = perfil.movimiento === "descarga_anclada";
+    const estela = this.efectosReducidos
+      ? null
+      : this.creadorEfectosHabilidades?.crearEstela({
+          origen: centroActor,
+          destino: centroObjetivo,
+          perfil,
+          grado,
+        });
+    const animacionesTrayectoria = [];
+    if (proyectil) {
+      animacionesTrayectoria.push(this.crearTween({
+        targets: proyectil,
+        x: esDescargaAnclada ? centroActor.x : centroObjetivo.x,
+        y: esDescargaAnclada ? centroActor.y : centroObjetivo.y,
+        angle: esDescargaAnclada
+          ? proyectil.angle ?? 0
+          : perfil.movimiento === "nervioso"
+            ? (proyectil.angle ?? 0) + 36
+            : (proyectil.angle ?? 0) + 8,
+        alpha: esDescargaAnclada
+          ? impacto?.impacto === false
+            ? 0.42
+            : 1
+          : 1,
+        duration: duracionTrayectoria,
+        ease: resolverEaseHabilidad(perfil.movimiento),
+      }, version));
+    }
+    if (estela) {
+      animacionesTrayectoria.push(this.crearTween({
+        targets: estela,
+        alpha: 0,
+        duration: duracionTrayectoria,
+        ease: "Sine.easeIn",
+      }, version));
+    }
+    if (animacionesTrayectoria.length > 0) {
+      await Promise.all(animacionesTrayectoria);
+    } else {
+      await this.esperar(duracionTrayectoria, version);
+    }
+    proyectil?.destroy?.();
+    estela?.destroy?.();
+
+    if (version !== this.versionCancelacion || this.destruido) {
+      conjuracion?.destroy?.();
+      return;
+    }
+
+    const duracionImpacto = this.calcularDuracion(fases.impacto ?? 1);
+    const efectoImpacto =
+      impacto?.impacto === true && !this.efectosReducidos
+        ? this.creadorEfectosHabilidades?.crearImpacto({
+            centro: centroObjetivo,
+            perfil,
+            grado,
+            critico: impacto.critico === true,
+          })
+        : null;
+    const promesasImpacto = [];
+    if (efectoImpacto) {
+      promesasImpacto.push(
+        this.crearTween({
+          targets: efectoImpacto,
+          alpha: 0,
+          scaleX: 1.45,
+          scaleY: 1.45,
+          duration: duracionImpacto,
+          ease: "Quad.easeOut",
+        }, version).then(() => efectoImpacto.destroy?.()),
+      );
+    }
+    if (impacto) {
+      promesasImpacto.push(
+        this.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+      );
+    }
+    if (promesasImpacto.length > 0) await Promise.all(promesasImpacto);
+    else await this.esperar(duracionImpacto, version);
+
+    const duracionRetorno = this.calcularDuracion(fases.retorno ?? 1);
+    const retornos = [];
+    if (conjuracion) {
+      retornos.push(this.crearTween({
+        targets: conjuracion,
+        alpha: 0,
+        scaleX: 1.25,
+        scaleY: 1.25,
+        duration: duracionRetorno,
+        ease: "Sine.easeIn",
+      }, version).then(() => conjuracion.destroy?.()));
+    }
+    if (contenedorActor) {
+      retornos.push(this.crearTween({
+        targets: contenedorActor,
+        scaleX: escalaActorX,
+        scaleY: escalaActorY,
+        duration: duracionRetorno,
+        ease: "Sine.easeInOut",
+      }, version));
+    }
+    if (retornos.length > 0) await Promise.all(retornos);
+    else await this.esperar(duracionRetorno, version);
+
+    if (contenedorActor) {
+      contenedorActor.scaleX = escalaActorX;
+      contenedorActor.scaleY = escalaActorY;
+    }
+  }
+
+  obtenerCentroActorHabilidad(evento) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idActor);
+    if (nodo?.contenedor) {
+      return { x: nodo.contenedor.x, y: nodo.contenedor.y };
+    }
+    return this.compositor.obtenerCentroCasilla(evento.origenActor);
+  }
+
+  obtenerCentroImpactoHabilidad(evento, impacto) {
+    const nodo = impacto?.idObjetivo
+      ? this.compositor.obtenerNodoEntidad(impacto.idObjetivo)
+      : null;
+    if (nodo?.contenedor) {
+      return { x: nodo.contenedor.x, y: nodo.contenedor.y };
+    }
+    return this.compositor.obtenerCentroCasilla(
+      impacto?.posicionObjetivo ?? evento.posicionObjetivo,
+    );
+  }
+
+  reproducirResultadoImpactoHabilidad(evento, impacto, version) {
+    const eventoResultado = {
+      ...evento,
+      esHabilidad: true,
+      idAtacante: evento.idActor,
+      idObjetivo: impacto.idObjetivo,
+      origenAtacante: evento.origenActor,
+      posicionObjetivo: impacto.posicionObjetivo ?? evento.posicionObjetivo,
+    };
+    const golpe = {
+      impacto: impacto.impacto === true,
+      bloqueado: false,
+      critico: impacto.critico === true,
+      danio: Math.max(0, Number(impacto.danio?.cantidad) || 0),
+      vidaObjetivoAntes: impacto.danio?.vidaObjetivoAntes ?? null,
+      vidaObjetivoDespues: impacto.danio?.vidaObjetivoDespues ?? null,
+      vidaObjetivoMaxima: impacto.danio?.vidaObjetivoMaxima ?? null,
+    };
+    return this.reproducirResultadoGolpe(
+      eventoResultado,
+      golpe,
+      impacto.orden ?? 0,
+      version,
+      { esperarDecorativos: false },
+    );
   }
 
   async reproducirAtaqueResuelto(evento, version) {
@@ -668,39 +939,64 @@ export class ReproductorEventosVisualesPhaser {
         : this.creadorProyectilesElementales?.crearProyectil({
             elemento: disparo.fuente.elementoAtaqueBasico,
             centro: origenProyectil,
-            destino: destinoProyectil,
             anguloRad: angulo,
             critico: golpe?.critico === true,
             mano: disparo.fuente.mano,
           });
 
-      const esDescargaRayo = disparo.fuente.elementoAtaqueBasico === "rayo";
       if (proyectil) {
         proyectil.setScale?.(0.72);
         await this.crearTween({
           targets: proyectil,
-          x: esDescargaRayo ? origenProyectil.x : origenProyectil.x + direccion.x * 5,
-          y: esDescargaRayo ? origenProyectil.y : origenProyectil.y + direccion.y * 5,
+          x: origenProyectil.x + direccion.x * 5,
+          y: origenProyectil.y + direccion.y * 5,
           scaleX: golpe?.critico === true ? 1.18 : 1,
           scaleY: golpe?.critico === true ? 1.18 : 1,
           alpha: 1,
           duration: duracionLanzamiento,
           ease: "Quad.easeOut",
         }, version);
-        await this.crearTween({
+      } else {
+        await this.esperar(duracionLanzamiento, version);
+      }
+
+      const estela = this.efectosReducidos
+        ? null
+        : this.creadorProyectilesElementales?.crearEstela({
+            elemento: disparo.fuente.elementoAtaqueBasico,
+            origen: origenProyectil,
+            destino: destinoProyectil,
+            critico: golpe?.critico === true,
+            mano: disparo.fuente.mano,
+          });
+      const animacionesTrayectoria = [];
+      if (proyectil) {
+        animacionesTrayectoria.push(this.crearTween({
           targets: proyectil,
-          x: esDescargaRayo ? origenProyectil.x : destinoProyectil.x,
-          y: esDescargaRayo ? origenProyectil.y : destinoProyectil.y,
+          x: destinoProyectil.x,
+          y: destinoProyectil.y,
           alpha: golpe?.impacto === false ? 0.42 : 1,
           duration: duracionTrayectoria,
-          ease: esDescargaRayo ? "Sine.easeOut" : "Linear",
-        }, version);
+          ease: "Quad.easeInOut",
+        }, version));
+      }
+      if (estela) {
+        animacionesTrayectoria.push(this.crearTween({
+          targets: estela,
+          alpha: 0,
+          duration: duracionTrayectoria,
+          ease: "Sine.easeIn",
+        }, version));
+      }
+      if (animacionesTrayectoria.length > 0) {
+        await Promise.all(animacionesTrayectoria);
       } else {
-        await this.esperar(duracionLanzamiento + duracionTrayectoria, version);
+        await this.esperar(duracionTrayectoria, version);
       }
 
       if (version !== this.versionCancelacion || this.destruido) {
         proyectil?.destroy?.();
+        estela?.destroy?.();
         break;
       }
 
@@ -713,6 +1009,7 @@ export class ReproductorEventosVisualesPhaser {
             })
           : null;
       proyectil?.destroy?.();
+      estela?.destroy?.();
 
       await Promise.all([
         golpe
@@ -1385,6 +1682,7 @@ export class ReproductorEventosVisualesPhaser {
   }
 
   debeUsarMarcaImpactoGenerica(evento) {
+    if (evento?.esHabilidad === true) return false;
     if (this.esAtaqueArco(evento) || this.esAtaqueVarita(evento)) return false;
     if (!this.esAtaqueCuerpoACuerpo(evento)) return true;
 
@@ -1849,6 +2147,21 @@ export class ReproductorEventosVisualesPhaser {
       espera.temporizador = this.escena.time.delayedCall(duracion, finalizar);
       this.temporizadoresActivos.add(espera);
     });
+  }
+}
+
+function resolverEaseHabilidad(movimiento) {
+  switch (movimiento) {
+    case "flotante":
+      return "Sine.easeInOut";
+    case "nervioso":
+      return "Quad.easeInOut";
+    case "descarga_anclada":
+      return "Sine.easeOut";
+    case "punzante":
+      return "Cubic.easeIn";
+    default:
+      return "Linear";
   }
 }
 

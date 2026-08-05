@@ -6,9 +6,16 @@
 export const TIPOS_EVENTO_ACCION = Object.freeze({
   ENTIDAD_MOVIDA: "entidad_movida",
   ATAQUE_RESUELTO: "ataque_resuelto",
+  HABILIDAD_RESUELTA: "habilidad_resuelta",
   HOSTILIDAD_CAMBIADA: "hostilidad_cambiada",
   RECURSOS_RECUPERADOS: "recursos_recuperados",
   NIVEL_AUMENTADO: "nivel_aumentado",
+});
+
+export const TIPOS_ACTOR_HABILIDAD = Object.freeze({
+  JUGADOR: "jugador",
+  ENEMIGO: "enemigo",
+  NPC: "npc",
 });
 
 export const ESTADOS_HOSTILIDAD_ACCION = Object.freeze({
@@ -72,6 +79,70 @@ export function crearEventoAtaqueResuelto({
     ejecucionTemporal: null,
     estadoObjetivoFinal,
     resultado: copiarResultadoAtaque(resultado, estadoObjetivoFinal),
+  });
+}
+
+export function crearEventoHabilidadResuelta({
+  actor,
+  tipoActor,
+  habilidad,
+  grado,
+  origenActor = null,
+  posicionObjetivo = null,
+  casillasAfectadas = [],
+  recorrido = [],
+  impactos = [],
+  recursosActor = [],
+  zonaTemporal = null,
+} = {}) {
+  validarEntidad(actor, "ejecutora de la habilidad");
+  if (!Object.values(TIPOS_ACTOR_HABILIDAD).includes(tipoActor)) {
+    throw new Error("El evento de habilidad necesita un tipo de actor válido.");
+  }
+  if (!habilidad || typeof habilidad !== "object" || Array.isArray(habilidad)) {
+    throw new Error("El evento de habilidad necesita una habilidad válida.");
+  }
+  const idHabilidad = normalizarTexto(habilidad.id);
+  const nombreHabilidad = normalizarTexto(habilidad.nombre);
+  const idMaestria = normalizarTexto(habilidad.maestria);
+  const gradoNormalizado = normalizarEnteroPositivo(grado);
+  if (idHabilidad === null || nombreHabilidad === null || gradoNormalizado === null) {
+    throw new Error("La habilidad resuelta necesita ID, nombre y grado válidos.");
+  }
+
+  const origen = origenActor ?? actor;
+  validarPosicion(origen, "posición de origen de la habilidad");
+  if (posicionObjetivo !== null) {
+    validarPosicion(posicionObjetivo, "posición objetivo de la habilidad");
+  }
+  if (!Array.isArray(impactos)) {
+    throw new Error("Los impactos de habilidad deben ser una lista.");
+  }
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_ACCION.HABILIDAD_RESUELTA,
+    actor,
+    tipoActor,
+    origenActor: copiarPosicion(origen),
+    posicionObjetivo: posicionObjetivo
+      ? copiarPosicion(posicionObjetivo)
+      : null,
+    habilidad: Object.freeze({
+      id: idHabilidad,
+      nombre: nombreHabilidad,
+      maestria: idMaestria,
+      grado: gradoNormalizado,
+      tipoObjetivo: normalizarTexto(habilidad.ejecucion?.tipoObjetivo),
+      patronAtaque: normalizarTexto(habilidad.ejecucion?.patronAtaque),
+      formaImpacto: copiarValorSimple(habilidad.formaImpacto ?? null),
+      zonaTemporal: copiarValorSimple(habilidad.zonaTemporal ?? null),
+    }),
+    casillasAfectadas: copiarListaPosiciones(casillasAfectadas),
+    recorrido: copiarRecorridoHabilidad(recorrido),
+    impactos: copiarImpactosHabilidad(impactos),
+    recursosActor: copiarCambiosRecursos(recursosActor),
+    zonaTemporal: copiarZonaTemporalHabilidad(zonaTemporal),
+    ejecucionTemporal: null,
   });
 }
 
@@ -193,6 +264,8 @@ function obtenerActorPrincipalEvento(evento) {
       return evento.entidad ?? null;
     case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
       return evento.atacante ?? null;
+    case TIPOS_EVENTO_ACCION.HABILIDAD_RESUELTA:
+      return evento.actor ?? null;
     case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
       return evento.enemigo ?? null;
     case TIPOS_EVENTO_ACCION.RECURSOS_RECUPERADOS:
@@ -299,6 +372,141 @@ function copiarGolpes(golpes, estadoObjetivoFinal) {
         vidaObjetivoMaxima: puedeReconstruirVida ? vidaMaxima : null,
       });
     }),
+  );
+}
+
+function copiarImpactosHabilidad(impactos) {
+  return Object.freeze(
+    impactos.map((impacto, indice) => {
+      const objetivo = impacto?.objetivoEntidad ?? null;
+      if (objetivo !== null) {
+        validarEntidad(objetivo, `objetivo del impacto ${indice + 1}`);
+      }
+      const posicion = impacto?.posicionObjetivo ?? impacto?.objetivo ?? objetivo;
+      const danio = impacto?.danio;
+      const vidaAntes = normalizarNumeroOpcional(
+        danio?.vidaObjetivoAntes ?? impacto?.vidaObjetivoAntes,
+      );
+      const vidaDespues = normalizarNumeroOpcional(
+        danio?.vidaObjetivoDespues ?? impacto?.vidaObjetivoDespues,
+      );
+      const vidaMaxima = normalizarNumeroOpcional(
+        danio?.vidaObjetivoMaxima ?? impacto?.vidaObjetivoMaxima,
+      );
+
+      return Object.freeze({
+        objetivo,
+        posicionObjetivo: posicion && Number.isInteger(posicion.x) && Number.isInteger(posicion.y)
+          ? copiarPosicion(posicion)
+          : null,
+        orden: normalizarEnteroNoNegativo(impacto?.orden),
+        multiplicadorDanio: Number.isFinite(impacto?.multiplicadorDanio)
+          ? impacto.multiplicadorDanio
+          : 1,
+        impacto: impacto?.impacto === true,
+        critico: impacto?.critico === true,
+        objetivoDerrotado: impacto?.objetivoDerrotado === true,
+        danio: Object.freeze({
+          cantidad: normalizarNumeroNoNegativo(
+            danio?.danio ?? danio?.danioFinal ?? impacto?.cantidadDanio,
+          ),
+          vidaObjetivoAntes: vidaAntes,
+          vidaObjetivoDespues: vidaDespues,
+          vidaObjetivoMaxima: vidaMaxima,
+          componentes: copiarValorSimple(
+            danio?.componentesDanio ?? danio?.componentes ?? [],
+          ),
+        }),
+        efectos: copiarValorSimple(
+          Array.isArray(impacto?.efectos)
+            ? impacto.efectos.map(({ eventos: _eventos, ...efecto }) => efecto)
+            : [],
+        ),
+        recursosObjetivo: copiarCambiosRecursos(
+          impacto?.recursosObjetivo ?? [],
+        ),
+      });
+    }),
+  );
+}
+
+function copiarListaPosiciones(lista) {
+  if (!Array.isArray(lista)) {
+    throw new Error("Las casillas de habilidad deben ser una lista.");
+  }
+  return Object.freeze(
+    lista.map((posicion, indice) => {
+      validarPosicion(posicion, `casilla afectada ${indice + 1}`);
+      return copiarPosicion(posicion);
+    }),
+  );
+}
+
+function copiarRecorridoHabilidad(lista) {
+  if (!Array.isArray(lista)) {
+    throw new Error("El recorrido de habilidad debe ser una lista.");
+  }
+  return Object.freeze(
+    lista.map((paso, indice) => {
+      validarPosicion(paso, `paso de recorrido ${indice + 1}`);
+      return Object.freeze({
+        x: paso.x,
+        y: paso.y,
+        orden: normalizarEnteroNoNegativo(paso.orden ?? indice),
+      });
+    }),
+  );
+}
+
+function copiarZonaTemporalHabilidad(zona) {
+  if (zona === null || zona === undefined) return null;
+  if (typeof zona !== "object" || Array.isArray(zona)) {
+    throw new Error("La zona producida por una habilidad debe ser un objeto válido.");
+  }
+
+  return Object.freeze({
+    id: normalizarTexto(zona.id),
+    idHabilidad: normalizarTexto(zona.idHabilidad),
+    nombre: normalizarTexto(zona.nombre),
+    grado: normalizarEnteroPositivo(zona.grado),
+    casillas: copiarListaPosiciones(zona.casillas ?? []),
+    apariencia: normalizarTexto(zona.apariencia),
+    creadaEn: normalizarNumeroOpcional(zona.creadaEn),
+    venceEn: normalizarNumeroOpcional(zona.venceEn),
+    proximaActivacion: normalizarNumeroOpcional(zona.proximaActivacion),
+  });
+}
+
+function copiarCambiosRecursos(recursos) {
+  if (!Array.isArray(recursos)) {
+    throw new Error("Los cambios de recursos deben ser una lista.");
+  }
+  return Object.freeze(
+    recursos.map((recurso) => Object.freeze({
+      recurso: normalizarTexto(recurso?.recurso) ?? "desconocido",
+      valorAntes: normalizarNumeroNoNegativo(recurso?.valorAntes),
+      valorDespues: normalizarNumeroNoNegativo(recurso?.valorDespues),
+      valorMaximo: normalizarNumeroOpcional(recurso?.valorMaximo),
+      cantidadReal: normalizarNumeroNoNegativo(
+        recurso?.cantidadReal ?? recurso?.cantidadAplicada ?? recurso?.cantidad,
+      ),
+      tipoCambio: normalizarTexto(recurso?.tipoCambio) ?? "desconocido",
+    })),
+  );
+}
+
+function copiarValorSimple(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) {
+    return Object.freeze(valor.map((item) => copiarValorSimple(item)));
+  }
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(valor).map(([clave, contenido]) => [
+        clave,
+        copiarValorSimple(contenido),
+      ]),
+    ),
   );
 }
 
@@ -450,6 +658,10 @@ function normalizarTexto(valor) {
 
 function normalizarNumeroNoNegativo(valor) {
   return Number.isFinite(valor) ? Math.max(0, valor) : 0;
+}
+
+function normalizarNumeroOpcional(valor) {
+  return Number.isFinite(valor) ? Math.max(0, valor) : null;
 }
 
 function normalizarEnteroNoNegativo(valor) {

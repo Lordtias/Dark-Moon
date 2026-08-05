@@ -218,8 +218,26 @@ function crearEstadoVisualHabilidad(estado = null) {
         })
       : null;
 
+  const habilidad = selectorValido
+    ? Object.freeze({
+        id: typeof selector.idHabilidad === "string" ? selector.idHabilidad : null,
+        nombre: typeof selector.nombre === "string" ? selector.nombre : null,
+        maestria: typeof selector.idMaestria === "string"
+          ? selector.idMaestria
+          : typeof selector.maestria === "string"
+            ? selector.maestria
+            : null,
+        grado: Number.isInteger(selector.grado) ? selector.grado : null,
+        tipoObjetivo:
+          typeof selector.tipoObjetivo === "string" ? selector.tipoObjetivo : null,
+        formaImpacto: congelarValorSimple(selector.formaImpacto),
+        zonaTemporal: congelarValorSimple(selector.zonaTemporal),
+      })
+    : null;
+
   return Object.freeze({
     activo: estado?.activo === true,
+    habilidad,
     selector: selectorValido,
     casillasSeleccionables: congelarListaPosiciones(
       selector?.casillasSeleccionables,
@@ -228,6 +246,21 @@ function crearEstadoVisualHabilidad(estado = null) {
     objetivosAfectados: congelarListaObjetivos(selector?.objetivosAfectados),
     recorrido: congelarListaRecorrido(selector?.recorrido),
   });
+}
+
+function congelarValorSimple(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) {
+    return Object.freeze(valor.map((item) => congelarValorSimple(item)));
+  }
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(valor).map(([clave, contenido]) => [
+        clave,
+        congelarValorSimple(contenido),
+      ]),
+    ),
+  );
 }
 
 function congelarListaPosiciones(lista) {

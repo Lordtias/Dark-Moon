@@ -131,6 +131,7 @@ export function aplicarEfectosHabilidad({
       potenciaHabilidad: preparada.potenciaHabilidad,
       definicion: resumirDefinicion(definicion),
       resultado: resumirResultado(resultado),
+      eventos: Array.isArray(resultado?.eventos) ? [...resultado.eventos] : [],
     };
   });
 }

@@ -17,7 +17,6 @@ export class CreadorProyectilesElementalesPhaser {
   crearProyectil({
     elemento,
     centro,
-    destino = null,
     anguloRad = 0,
     critico = false,
     mano = null,
@@ -40,14 +39,38 @@ export class CreadorProyectilesElementalesPhaser {
       tamano,
       critico,
       signoMano,
-      centro,
-      destino,
+      textura: perfil.textura,
     });
 
-    if (perfil.forma !== "rayo_zigzag") {
-      grafico.setRotation?.(anguloRad);
-    }
+    grafico.setRotation?.(anguloRad);
     grafico.setAlpha?.(critico ? 1 : 0.92);
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
+  crearEstela({
+    elemento,
+    origen,
+    destino,
+    critico = false,
+    mano = null,
+  } = {}) {
+    if (!esCentroValido(origen) || !esCentroValido(destino)) return null;
+
+    const perfil = obtenerPerfilProyectilElemental(elemento);
+    if (perfil.estela !== "arcos_breves") return null;
+
+    const grafico = this.escena.add.graphics();
+    dibujarEstelaChispa({
+      grafico,
+      origen,
+      destino,
+      principal: convertirColor(perfil.colorPrincipal),
+      secundario: convertirColor(perfil.colorSecundario),
+      escala: (Number(perfil.escala) || 1) * (critico ? 1.2 : 1),
+      signoMano: mano === "secundaria" ? -1 : 1,
+    });
+    grafico.setAlpha?.(critico ? 0.78 : 0.58);
     this.compositor.agregarEfectoTemporal(grafico);
     return grafico;
   }
@@ -91,7 +114,7 @@ export class CreadorProyectilesElementalesPhaser {
 
     dibujarImpacto({
       grafico,
-      forma: perfil.forma,
+      impacto: perfil.impacto ?? perfil.forma,
       principal,
       secundario,
       tamano,
@@ -111,8 +134,7 @@ function dibujarProyectil({
   tamano,
   critico,
   signoMano,
-  centro,
-  destino,
+  textura,
 }) {
   const mitad = tamano / 2;
   const grosor = critico ? 3 : 2;
@@ -132,48 +154,34 @@ function dibujarProyectil({
     return;
   }
 
-  if (forma === "rayo_zigzag") {
-    const dx = Number.isFinite(destino?.x) ? destino.x - centro.x : tamano * 1.6;
-    const dy = Number.isFinite(destino?.y) ? destino.y - centro.y : 0;
-    const longitud = Math.max(12, Math.hypot(dx, dy));
-    const ux = longitud > 0 ? dx / longitud : 1;
-    const uy = longitud > 0 ? dy / longitud : 0;
-    const px = -uy;
-    const py = ux;
-    const amplitud = critico ? 2.4 : 1.6;
-    const segmentos = 6;
-    grafico.lineStyle?.(critico ? 3 : 2, principal, 0.96);
+
+  if (forma === "chispa_ramificada") {
+    grafico.lineStyle?.(grosor, principal, 0.98);
     grafico.beginPath?.();
-    for (let indice = 0; indice <= segmentos; indice += 1) {
-      const t = indice / segmentos;
-      const baseX = dx * t;
-      const baseY = dy * t;
-      const offset = indice === 0 || indice === segmentos
-        ? 0
-        : ((indice % 2 === 0 ? -1 : 1) * amplitud * (1 + (critico ? 0.12 : 0)));
-      const x = baseX + px * offset;
-      const y = baseY + py * offset;
-      if (indice === 0) {
-        grafico.moveTo?.(x, y);
-      } else {
-        grafico.lineTo?.(x, y);
-      }
-    }
+    grafico.moveTo?.(-mitad, 0);
+    grafico.lineTo?.(-mitad * 0.35, -mitad * 0.34);
+    grafico.lineTo?.(-mitad * 0.05, mitad * 0.16);
+    grafico.lineTo?.(mitad * 0.28, -mitad * 0.28);
+    grafico.lineTo?.(mitad, 0);
     grafico.strokePath?.();
-    if (critico) {
-      grafico.lineStyle?.(1.5, secundario, 0.78);
-      grafico.beginPath?.();
-      for (let indice = 0; indice <= segmentos; indice += 1) {
-        const t = indice / segmentos;
-        const baseX = dx * t;
-        const baseY = dy * t;
-        const offset = indice === 0 || indice === segmentos ? 0 : ((indice % 2 === 0 ? 1 : -1) * amplitud * 0.65);
-        const x = baseX + px * offset;
-        const y = baseY + py * offset;
-        if (indice === 0) grafico.moveTo?.(x, y);
-        else grafico.lineTo?.(x, y);
-      }
-      grafico.strokePath?.();
+    grafico.lineStyle?.(1.2, secundario, 0.86);
+    grafico.lineBetween?.(
+      -mitad * 0.08,
+      mitad * 0.12,
+      mitad * 0.18,
+      mitad * 0.48,
+    );
+
+    if (textura === "descarga_pulsante") {
+      grafico.fillStyle?.(secundario, 0.92);
+      grafico.fillCircle?.(0, 0, Math.max(1, tamano * 0.08));
+      grafico.lineStyle?.(1, secundario, 0.72);
+      grafico.lineBetween?.(
+        -mitad * 0.12,
+        -mitad * 0.34,
+        mitad * 0.12,
+        mitad * 0.34,
+      );
     }
     return;
   }
@@ -207,7 +215,7 @@ function dibujarProyectil({
 
 function dibujarImpacto({
   grafico,
-  forma,
+  impacto,
   principal,
   secundario,
   tamano,
@@ -216,7 +224,7 @@ function dibujarImpacto({
   const radio = tamano * 0.55;
   const grosor = critico ? 3 : 2;
 
-  if (forma === "fragmento_cristal") {
+  if (impacto === "fragmento_cristal") {
     grafico.lineStyle?.(grosor, secundario, 0.95);
     for (let indice = 0; indice < 6; indice += 1) {
       const angulo = (Math.PI * 2 * indice) / 6;
@@ -230,28 +238,27 @@ function dibujarImpacto({
     return;
   }
 
-  if (forma === "rayo_zigzag") {
-    grafico.lineStyle?.(grosor, principal, 0.95);
-    for (let indice = 0; indice < 4; indice += 1) {
-      const angulo = (Math.PI * 2 * indice) / 4;
+
+  if (impacto === "descarga_cruzada") {
+    grafico.lineStyle?.(grosor, principal, 0.98);
+    for (let indice = 0; indice < 5; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / 5;
       const x = Math.cos(angulo) * radio;
       const y = Math.sin(angulo) * radio;
       grafico.beginPath?.();
       grafico.moveTo?.(0, 0);
-      grafico.lineTo?.(x * 0.35, y * 0.35);
-      grafico.lineTo?.(x * 0.6 - y * 0.14, y * 0.6 + x * 0.14);
+      grafico.lineTo?.(x * 0.42, y * 0.42);
+      grafico.lineTo?.(
+        x * 0.68 - y * 0.12,
+        y * 0.68 + x * 0.12,
+      );
       grafico.lineTo?.(x, y);
       grafico.strokePath?.();
-    }
-    if (critico) {
-      grafico.lineStyle?.(1.5, secundario, 0.82);
-      grafico.lineBetween?.(-radio * 0.8, 0, radio * 0.8, 0);
-      grafico.lineBetween?.(0, -radio * 0.8, 0, radio * 0.8);
     }
     return;
   }
 
-  if (forma === "gota_toxica") {
+  if (impacto === "gota_toxica") {
     grafico.fillStyle?.(principal, 0.74);
     grafico.beginPath?.();
     grafico.moveTo?.(radio * 0.48, 0);
@@ -284,6 +291,44 @@ function dibujarImpacto({
       Math.sin(angulo) * radio * 1.18,
     );
   }
+}
+
+
+function dibujarEstelaChispa({
+  grafico,
+  origen,
+  destino,
+  principal,
+  secundario,
+  escala,
+  signoMano,
+}) {
+  const dx = destino.x - origen.x;
+  const dy = destino.y - origen.y;
+  const longitud = Math.hypot(dx, dy) || 1;
+  const perpendicular = { x: -dy / longitud, y: dx / longitud };
+
+  grafico.lineStyle?.(Math.max(1, 1.4 * escala), principal, 0.72);
+  grafico.beginPath?.();
+  grafico.moveTo?.(origen.x, origen.y);
+  for (let paso = 1; paso <= 6; paso += 1) {
+    const t = paso / 6;
+    const alternancia = paso % 2 === 0 ? -1 : 1;
+    const desvio = alternancia * signoMano * 3.2 * escala;
+    grafico.lineTo?.(
+      origen.x + dx * t + perpendicular.x * desvio,
+      origen.y + dy * t + perpendicular.y * desvio,
+    );
+  }
+  grafico.strokePath?.();
+
+  grafico.lineStyle?.(1, secundario, 0.46);
+  grafico.lineBetween?.(
+    origen.x + dx * 0.28,
+    origen.y + dy * 0.28,
+    origen.x + dx * 0.36 + perpendicular.x * signoMano * 4 * escala,
+    origen.y + dy * 0.36 + perpendicular.y * signoMano * 4 * escala,
+  );
 }
 
 function convertirColor(valor) {

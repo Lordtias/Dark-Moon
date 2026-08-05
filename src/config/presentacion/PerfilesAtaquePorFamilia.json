@@ -226,12 +226,14 @@
       "estela": "lineal"
     },
     "rayo": {
-      "forma": "rayo_zigzag",
+      "forma": "chispa_ramificada",
       "escala": 1.0,
       "tamanoVisualPx": 12,
       "colorPrincipal": "#bb74ff",
       "colorSecundario": "#ffffff",
-      "estela": "ramificada"
+      "estela": "arcos_breves",
+      "textura": "descarga_pulsante",
+      "impacto": "descarga_cruzada"
     },
     "veneno": {
       "forma": "gota_toxica",

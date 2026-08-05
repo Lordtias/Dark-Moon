@@ -245,6 +245,14 @@ function validarProyectilesElementales({
     validarObjetoPlano(perfil, `el proyectil elemental "${elemento}"`);
     validarTextoNoVacio(perfil.forma, `forma de "${elemento}"`);
     validarTextoNoVacio(perfil.estela, `estela de "${elemento}"`);
+    for (const campoOpcional of ["textura", "impacto"]) {
+      if (Object.hasOwn(perfil, campoOpcional)) {
+        validarTextoNoVacio(
+          perfil[campoOpcional],
+          `${campoOpcional} de "${elemento}"`,
+        );
+      }
+    }
     validarTextoNoVacio(
       perfil.colorPrincipal,
       `colorPrincipal de "${elemento}"`,

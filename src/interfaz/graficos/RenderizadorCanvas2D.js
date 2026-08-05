@@ -267,22 +267,35 @@ export class RenderizadorCanvas2D {
       this.dibujarRangoCombate(
         escena.combate.casillasAtacables,
         escena.combate.modo,
+        escena.combate.habilidad,
       );
     }
 
     if (escena.combate.modo === "habilidad") {
-      this.dibujarAreaHabilidad(escena.combate.casillasAfectadas);
-      this.dibujarRecorridoHabilidad(escena.combate.recorrido);
+      this.dibujarAreaHabilidad(
+        escena.combate.casillasAfectadas,
+        escena.combate.habilidad,
+      );
+      this.dibujarRecorridoHabilidad(
+        escena.combate.recorrido,
+        escena.combate.habilidad,
+      );
     }
 
     this.dibujarEntidades(escena.entidades);
 
     if (escena.combate.modo === "habilidad") {
-      this.dibujarObjetivosHabilidad(escena.combate.objetivosAfectados);
+      this.dibujarObjetivosHabilidad(
+        escena.combate.objetivosAfectados,
+        escena.combate.habilidad,
+      );
     }
 
     if (escena.combate.activo && escena.combate.selector) {
-      this.dibujarSelectorCombate(escena.combate.selector);
+      this.dibujarSelectorCombate(
+        escena.combate.selector,
+        escena.combate.habilidad,
+      );
     }
   }
 
@@ -797,8 +810,9 @@ export class RenderizadorCanvas2D {
 
   // Resalta las casillas válidas de ataque
   // sin ocultar excesivamente el terreno.
-  dibujarRangoCombate(casillas, modo = "combate") {
+  dibujarRangoCombate(casillas, modo = "combate", habilidad = null) {
     const esHabilidad = modo === "habilidad";
+    const estiloHabilidad = obtenerEstiloSeleccionHabilidad(habilidad?.maestria);
     for (const casilla of casillas) {
       const pixelX = casilla.x * this.tileSize;
 
@@ -807,7 +821,7 @@ export class RenderizadorCanvas2D {
       this.context.save();
 
       this.context.fillStyle = esHabilidad
-        ? "rgba(85, 120, 235, 0.10)"
+        ? estiloHabilidad.rangoFondo
         : "rgba(220, 55, 55, 0.13)";
 
       this.context.fillRect(
@@ -818,7 +832,7 @@ export class RenderizadorCanvas2D {
       );
 
       this.context.strokeStyle = esHabilidad
-        ? "rgba(125, 165, 255, 0.26)"
+        ? estiloHabilidad.rangoBorde
         : "rgba(255, 110, 110, 0.28)";
 
       this.context.lineWidth = 1;
@@ -835,20 +849,21 @@ export class RenderizadorCanvas2D {
   }
 
   // Destaca la forma que será afectada al confirmar la habilidad.
-  dibujarAreaHabilidad(casillas) {
+  dibujarAreaHabilidad(casillas, habilidad = null) {
+    const estilo = obtenerEstiloSeleccionHabilidad(habilidad?.maestria);
     for (const casilla of casillas ?? []) {
       const pixelX = casilla.x * this.tileSize;
       const pixelY = casilla.y * this.tileSize;
 
       this.context.save();
-      this.context.fillStyle = "rgba(170, 80, 230, 0.18)";
+      this.context.fillStyle = estilo.areaFondo;
       this.context.fillRect(
         pixelX + 2,
         pixelY + 2,
         this.tileSize - 4,
         this.tileSize - 4,
       );
-      this.context.strokeStyle = "rgba(225, 155, 255, 0.48)";
+      this.context.strokeStyle = estilo.areaBorde;
       this.context.lineWidth = 1;
       this.context.strokeRect(
         pixelX + 2.5,
@@ -861,12 +876,13 @@ export class RenderizadorCanvas2D {
   }
 
   // Une visualmente los saltos de una forma de impacto en cadena.
-  dibujarRecorridoHabilidad(recorrido) {
+  dibujarRecorridoHabilidad(recorrido, habilidad = null) {
     if (!Array.isArray(recorrido) || recorrido.length < 2) return;
 
     const pasos = [...recorrido].sort((a, b) => a.orden - b.orden);
+    const estilo = obtenerEstiloSeleccionHabilidad(habilidad?.maestria);
     this.context.save();
-    this.context.strokeStyle = "rgba(185, 220, 255, 0.88)";
+    this.context.strokeStyle = estilo.recorrido;
     this.context.lineWidth = Math.max(2, Math.floor(this.tileSize * 0.08));
     this.context.lineJoin = "round";
     this.context.lineCap = "round";
@@ -884,7 +900,8 @@ export class RenderizadorCanvas2D {
   }
 
   // Marca los objetivos que recibirán daño o efectos y su orden de cadena.
-  dibujarObjetivosHabilidad(objetivos) {
+  dibujarObjetivosHabilidad(objetivos, habilidad = null) {
+    const estilo = obtenerEstiloSeleccionHabilidad(habilidad?.maestria);
     for (const objetivo of objetivos ?? []) {
       const pixelX = objetivo.x * this.tileSize;
       const pixelY = objetivo.y * this.tileSize;
@@ -892,7 +909,7 @@ export class RenderizadorCanvas2D {
       const tamanoMarca = Math.max(10, Math.floor(this.tileSize * 0.34));
 
       this.context.save();
-      this.context.strokeStyle = "rgba(245, 225, 255, 0.95)";
+      this.context.strokeStyle = estilo.objetivoBorde;
       this.context.lineWidth = 2;
       this.context.strokeRect(
         pixelX + margen + 0.5,
@@ -901,7 +918,7 @@ export class RenderizadorCanvas2D {
         this.tileSize - margen * 2 - 1,
       );
 
-      this.context.fillStyle = "rgba(80, 35, 110, 0.94)";
+      this.context.fillStyle = estilo.objetivoFondo;
       this.context.fillRect(
         pixelX + this.tileSize - tamanoMarca - 2,
         pixelY + 2,
@@ -1281,15 +1298,24 @@ export class RenderizadorCanvas2D {
   // Dibuja el selector mediante esquinas,
   // evitando cubrir por completo a la entidad
   // o casilla seleccionada.
-  dibujarSelectorCombate(selector) {
+  dibujarSelectorCombate(selector, habilidad = null) {
     const pixelX = selector.x * this.tileSize;
 
     const pixelY = selector.y * this.tileSize;
 
-    const color = selector.esValido ? "#ffe66d" : "#ff705c";
+    const estiloHabilidad = obtenerEstiloSeleccionHabilidad(
+      habilidad?.maestria,
+    );
+    const color = selector.esValido
+      ? habilidad
+        ? estiloHabilidad.selector
+        : "#ffe66d"
+      : "#ff705c";
 
     const colorFondo = selector.esValido
-      ? "rgba(255, 230, 90, 0.10)"
+      ? habilidad
+        ? estiloHabilidad.selectorFondo
+        : "rgba(255, 230, 90, 0.10)"
       : "rgba(255, 100, 70, 0.10)";
 
     const margen = 2;
@@ -1431,6 +1457,66 @@ function obtenerEstiloZonaTemporal(apariencia) {
 // a un número utilizable en los cálculos.
 //
 // Los valores vacíos o inválidos se consideran 0.
+function obtenerEstiloSeleccionHabilidad(maestria) {
+  const estilos = {
+    fuego: {
+      rangoFondo: "rgba(255, 95, 45, 0.10)",
+      rangoBorde: "rgba(255, 150, 85, 0.30)",
+      areaFondo: "rgba(255, 75, 35, 0.19)",
+      areaBorde: "rgba(255, 195, 95, 0.56)",
+      recorrido: "rgba(255, 170, 90, 0.90)",
+      objetivoBorde: "rgba(255, 225, 170, 0.96)",
+      objetivoFondo: "rgba(120, 40, 20, 0.94)",
+      selector: "#ffbd62",
+      selectorFondo: "rgba(255, 110, 45, 0.12)",
+    },
+    frio: {
+      rangoFondo: "rgba(80, 190, 255, 0.10)",
+      rangoBorde: "rgba(145, 225, 255, 0.30)",
+      areaFondo: "rgba(80, 190, 255, 0.18)",
+      areaBorde: "rgba(205, 248, 255, 0.56)",
+      recorrido: "rgba(175, 235, 255, 0.90)",
+      objetivoBorde: "rgba(225, 251, 255, 0.96)",
+      objetivoFondo: "rgba(25, 75, 110, 0.94)",
+      selector: "#9be8ff",
+      selectorFondo: "rgba(90, 205, 255, 0.12)",
+    },
+    rayo: {
+      rangoFondo: "rgba(175, 85, 255, 0.10)",
+      rangoBorde: "rgba(210, 155, 255, 0.30)",
+      areaFondo: "rgba(170, 75, 235, 0.18)",
+      areaBorde: "rgba(235, 190, 255, 0.56)",
+      recorrido: "rgba(210, 170, 255, 0.92)",
+      objetivoBorde: "rgba(245, 225, 255, 0.96)",
+      objetivoFondo: "rgba(75, 30, 105, 0.94)",
+      selector: "#d7a3ff",
+      selectorFondo: "rgba(180, 90, 255, 0.12)",
+    },
+    veneno: {
+      rangoFondo: "rgba(100, 215, 55, 0.10)",
+      rangoBorde: "rgba(170, 245, 95, 0.30)",
+      areaFondo: "rgba(95, 205, 50, 0.18)",
+      areaBorde: "rgba(205, 255, 125, 0.56)",
+      recorrido: "rgba(185, 245, 105, 0.90)",
+      objetivoBorde: "rgba(225, 255, 175, 0.96)",
+      objetivoFondo: "rgba(45, 95, 25, 0.94)",
+      selector: "#b8ef70",
+      selectorFondo: "rgba(105, 220, 55, 0.12)",
+    },
+  };
+  return estilos[maestria] ?? {
+    rangoFondo: "rgba(85, 120, 235, 0.10)",
+    rangoBorde: "rgba(125, 165, 255, 0.26)",
+    areaFondo: "rgba(170, 80, 230, 0.18)",
+    areaBorde: "rgba(225, 155, 255, 0.48)",
+    recorrido: "rgba(185, 220, 255, 0.88)",
+    objetivoBorde: "rgba(245, 225, 255, 0.95)",
+    objetivoFondo: "rgba(80, 35, 110, 0.94)",
+    selector: "#ffe66d",
+    selectorFondo: "rgba(255, 230, 90, 0.10)",
+  };
+}
+
 function convertirPixeles(valor) {
   const numero = Number.parseFloat(valor);
 

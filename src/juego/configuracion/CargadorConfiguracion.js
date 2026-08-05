@@ -38,6 +38,9 @@ const RUTA_CONFIGURACION_COMERCIO = "./src/config/comercio/Comercio.json";
 const RUTA_PERFILES_ATAQUE_POR_FAMILIA =
   "./src/config/presentacion/PerfilesAtaquePorFamilia.json";
 
+const RUTA_PERFILES_HABILIDADES_VISUALES =
+  "./src/config/presentacion/PerfilesHabilidadesVisuales.json";
+
 // Catálogos que describen rarezas y afijos.
 //
 // Se cargan separados de las plantillas de objetos porque:
@@ -232,6 +235,13 @@ export function cargarPerfilesAtaquePorFamilia() {
   return cargarArchivoJson(
     RUTA_PERFILES_ATAQUE_POR_FAMILIA,
     "los perfiles de ataque por familia",
+  );
+}
+
+export function cargarPerfilesHabilidadesVisuales() {
+  return cargarArchivoJson(
+    RUTA_PERFILES_HABILIDADES_VISUALES,
+    "los perfiles visuales de habilidades",
   );
 }
 

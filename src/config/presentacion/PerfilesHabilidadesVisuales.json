@@ -1,0 +1,310 @@
+{
+  "version": 1,
+  "secuencias": {
+    "proyectil_basico": {
+      "preparacion": 0.2,
+      "manifestacion": 0.16,
+      "trayectoria": 0.38,
+      "impacto": 0.16,
+      "retorno": 0.1
+    },
+    "area_conjurada": {
+      "preparacion": 0.2,
+      "manifestacion": 0.18,
+      "expansion": 0.3,
+      "impacto": 0.22,
+      "retorno": 0.1
+    },
+    "linea_conjurada": {
+      "preparacion": 0.2,
+      "manifestacion": 0.16,
+      "recorrido": 0.34,
+      "impacto": 0.2,
+      "retorno": 0.1
+    },
+    "cadena_conjurada": {
+      "preparacion": 0.18,
+      "manifestacion": 0.14,
+      "saltos": 0.42,
+      "impacto": 0.16,
+      "retorno": 0.1
+    },
+    "zona_conjurada": {
+      "preparacion": 0.2,
+      "manifestacion": 0.2,
+      "despliegue": 0.3,
+      "activacion": 0.2,
+      "retorno": 0.1
+    }
+  },
+  "habilidades": {
+    "ascua": {
+      "nivelVisual": "basica",
+      "secuencia": "proyectil_basico",
+      "forma": "brasa_concentrada",
+      "movimiento": "flotante",
+      "textura": "llama_irregular",
+      "estela": "brasas_ascendentes",
+      "impacto": "estallido_calido",
+      "colorPrincipal": "#ff6b2c",
+      "colorSecundario": "#ffd36a",
+      "tamanoVisualPx": 15,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "esquirla_hielo": {
+      "nivelVisual": "basica",
+      "secuencia": "proyectil_basico",
+      "forma": "esquirla_alargada",
+      "movimiento": "recto",
+      "textura": "cristal_facetado",
+      "estela": "polvo_helado",
+      "impacto": "fractura_radial",
+      "colorPrincipal": "#6fd7ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 17,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "chispa": {
+      "nivelVisual": "basica",
+      "secuencia": "proyectil_basico",
+      "forma": "rayo_zigzag",
+      "movimiento": "descarga_anclada",
+      "textura": "descarga_lineal",
+      "estela": "ramificada",
+      "impacto": "descarga_zigzag",
+      "colorPrincipal": "#b95cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 16,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "aguijon_toxico": {
+      "nivelVisual": "basica",
+      "secuencia": "proyectil_basico",
+      "forma": "aguijon_viscoso",
+      "movimiento": "punzante",
+      "textura": "toxina_densa",
+      "estela": "gotas_toxicas",
+      "impacto": "salpicadura_punzante",
+      "colorPrincipal": "#75df37",
+      "colorSecundario": "#dfff78",
+      "tamanoVisualPx": 16,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "explosion_ignea": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "nucleo_igneo",
+      "movimiento": "expansivo",
+      "textura": "llama_detonante",
+      "estela": "brasas_circulares",
+      "impacto": "explosion_radial",
+      "colorPrincipal": "#ff5428",
+      "colorSecundario": "#ffd45f",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.12,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "nova_escarcha": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "anillo_helado",
+      "movimiento": "expansivo",
+      "textura": "cristales_radiales",
+      "estela": "escarcha",
+      "impacto": "onda_fracturada",
+      "colorPrincipal": "#70d8ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.12,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "cadena_rayos": {
+      "nivelVisual": "intermedia",
+      "secuencia": "cadena_conjurada",
+      "forma": "arco_encadenado",
+      "movimiento": "saltos",
+      "textura": "ramas_electricas",
+      "estela": "resplandor_intermitente",
+      "impacto": "descarga_ramificada",
+      "colorPrincipal": "#b55cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 18,
+      "escalaPorGrado": [
+        1,
+        1.12,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "nube_toxica": {
+      "nivelVisual": "intermedia",
+      "secuencia": "zona_conjurada",
+      "forma": "nube_baja",
+      "movimiento": "ondulante",
+      "textura": "vapores_densos",
+      "estela": "burbujas_toxicas",
+      "impacto": "pulso_corrosivo",
+      "colorPrincipal": "#65d936",
+      "colorSecundario": "#d9ff73",
+      "tamanoVisualPx": 24,
+      "escalaPorGrado": [
+        1,
+        1.12,
+        1.24
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "incinerar": {
+      "nivelVisual": "avanzada",
+      "secuencia": "linea_conjurada",
+      "forma": "linea_de_fuego",
+      "movimiento": "barrido_lineal",
+      "textura": "llamas_superpuestas",
+      "estela": "suelo_ardiente",
+      "impacto": "combustion",
+      "colorPrincipal": "#ff4826",
+      "colorSecundario": "#ffd256",
+      "tamanoVisualPx": 24,
+      "escalaPorGrado": [
+        1,
+        1.14,
+        1.28
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "prision_glacial": {
+      "nivelVisual": "avanzada",
+      "secuencia": "area_conjurada",
+      "forma": "prision_cristalina",
+      "movimiento": "cierre_vertical",
+      "textura": "placas_de_hielo",
+      "estela": "niebla_fria",
+      "impacto": "encierro_cristalino",
+      "colorPrincipal": "#65d5ff",
+      "colorSecundario": "#f3fdff",
+      "tamanoVisualPx": 24,
+      "escalaPorGrado": [
+        1,
+        1.14,
+        1.28
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "descarga_fulminante": {
+      "nivelVisual": "avanzada",
+      "secuencia": "linea_conjurada",
+      "forma": "rayo_lineal",
+      "movimiento": "instantaneo",
+      "textura": "descarga_gruesa",
+      "estela": "ramas_residuales",
+      "impacto": "fulminacion",
+      "colorPrincipal": "#a94cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 24,
+      "escalaPorGrado": [
+        1,
+        1.14,
+        1.28
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    },
+    "plaga_corrosiva": {
+      "nivelVisual": "avanzada",
+      "secuencia": "proyectil_basico",
+      "forma": "masa_corrosiva",
+      "movimiento": "pesado",
+      "textura": "toxina_burbujeante",
+      "estela": "gotas_corrosivas",
+      "impacto": "corrosion_expansiva",
+      "colorPrincipal": "#58ce31",
+      "colorSecundario": "#d7ff69",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.14,
+        1.28
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
 # PLAN MAESTRO — INTEGRACIÓN PROGRESIVA DE PHASER, BETA Y ELECTRON
 
-Proyecto: Dark Moon  
-Repositorio: https://github.com/Lordtias/Dark-Moon.git  
-Rama principal: main  
+Proyecto: Dark Moon
+Repositorio: https://github.com/Lordtias/Dark-Moon.git
+Rama principal: main
 Versión del documento: 1.7
-Fecha inicial: 30 de julio de 2026  
+Fecha inicial: 30 de julio de 2026
 Última actualización: 31 de julio de 2026
 Etapa operativa actual: P4 — Entrada e intenciones jugables desde Phaser
 
@@ -1098,7 +1098,7 @@ P6.2C.2 consume los elementos y resultados por fuente que ya transporta el ataqu
 
 - fuego utiliza un orbe irregular con cola breve de brasas;
 - frío utiliza un fragmento angular con estela lineal;
-- rayo utiliza una descarga fina en zig-zag, más gruesa y luminosa en crítico;
+- en el cierre original de P6.2C.2, rayo utilizaba una descarga fina en zig-zag; el ajuste aprobado de P6.3A trasladó esa descarga a Chispa y dejó para la varita una chispa compacta ramificada con estela nerviosa e impacto cruzado;
 - veneno utiliza una gota tóxica alargada con salpicadura viscosa;
 - una varita conserva la secuencia `proyectil` de P6.2C.1;
 - dos varitas utilizan `proyectil_dual` con preparación compartida, disparo principal, pausa, disparo secundario y retorno;
@@ -1116,7 +1116,7 @@ Los cuatro elementos se distinguen por forma y color; varita simple y doble vari
 
 #### P6.2D — Consumibles, recuperación y cierre de P6.2
 
-Estado: cerrada y validada manualmente; SHA final pendiente de registrar después del commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `046a1d5391800ea827bdc71613eed5776d6f4dab`.
 
 P6.2D incorpora `recursos_recuperados` para recuperaciones explícitas. El dominio conserva el objeto exacto, recurso, cantidad aplicada y valores anterior, posterior y máximo. La ejecución de consumo recibe el `costoFinal` canónico calculado con `factorTiempo` y `factorConsumo`; Phaser distribuye esa duración en preparación 20 %, uso 20 %, recuperación 45 % y retorno 15 %.
 
@@ -1134,11 +1134,47 @@ P6.2D incorpora `recursos_recuperados` para recuperaciones explícitas. El domin
 
 Las pociones muestran el recurso y la cantidad realmente recuperados; no se consumen cuando no producen efecto; la imagen del consumible deriva del `costoFinal`, mientras texto, partículas y aura usan una duración fija y legible; Vida y Maná se distinguen; el icono corresponde al objeto real; la poción de Maná se compra y consume; `nivel_aumentado` llega a Phaser y se representa una sola vez mediante un aura blanca tipo energía/ki no bloqueante después de su entrada; regeneración pasiva y Lythra no reciben efectos incorrectos; cuerpo a cuerpo, arcos, lanzas, varitas, tiempo, persistencia, Canvas 2D y Phaser 4.2.1 permanecen sin reglas duplicadas.
 
+### P6.3 — Habilidades, estados y zonas
+
+P6.3 se divide en entregas independientes:
+
+1. `P6.3A` — contratos universales y habilidades básicas;
+2. `P6.3B` — análisis y diseño específico de estados temporales, con posible división posterior entre contratos persistentes y reglas de renovación, acumulación, ticks y limpieza;
+3. `P6.3C.1` — habilidades intermedias de área y cadena;
+4. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
+5. `P6.3D` — habilidades avanzadas;
+6. `P6.3E` — habilidades canónicas de NPC para Lythra;
+7. `P6.3F` — regresión, documentación y cierre general de P6.3.
+
+#### P6.3A — Contratos universales y habilidades básicas
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+P6.3A incorpora `habilidad_resuelta` como contrato neutral para ejecutores de tipo jugador, enemigo o NPC. La implementación inicial conecta únicamente las cuatro habilidades básicas del jugador; no agrega IA ni contenido enemigo o de NPC.
+
+- el evento conserva origen, habilidad, maestría, grado, selección, casillas, recorrido, impactos, Vida anterior y posterior, cambios de recursos del ejecutor y de cada objetivo, efectos, zona y ejecución temporal;
+- `MotorDanioHabilidad` conserva los valores exactos de Vida alrededor de cada impacto;
+- los eventos canónicos producidos por efectos dejan de perderse antes de la cola visual;
+- `PerfilesHabilidadesVisuales.json` conecta y valida las doce habilidades reales sin incluir velocidad jugable;
+- Ascua, Esquirla de hielo, Chispa y Aguijón tóxico se diferencian por forma, textura, movimiento, estela, impacto, ritmo y color;
+- Chispa usa una descarga completa anclada en zig-zag; la varita eléctrica usa una chispa compacta ramificada con estela nerviosa e impacto cruzado;
+- el intercambio de ambos efectos es únicamente de presentación y elimina la bifurcación especial antigua de la varita;
+- la selección táctica conserva la maestría y se distingue elementalmente en Canvas 2D y Phaser;
+- la duración total parte del `costoFinal` ya registrado por `SistemaTiempo`;
+- cancelación y cambio de mapa eliminan recursos transitorios;
+- las habilidades intermedias y avanzadas ya pueden emitir el contrato, pero su reproducción especializada queda para las siguientes entregas.
+
+Los contratos aceptan futuras habilidades de enemigos y NPC. La IA enemiga continuará pendiente de hitos posteriores. Lythra deberá usar habilidades canónicas de NPC no aprendibles por el jugador, con presentación mágica propia y sin reutilizar la animación de beber.
+
+### Criterio de cierre de P6.3A
+
+Las cuatro habilidades básicas se reproducen en orden y se distinguen sin depender solamente del color; daño, fallo, crítico, Vida y derrota coinciden con los resultados canónicos; el ritmo visual deriva del `costoFinal`; los eventos de efectos no se pierden; jugador, enemigo y NPC comparten contrato; cancelación y cambio de mapa no dejan residuos; Canvas 2D, Maná, progresión, tiempo, persistencia y Phaser 4.2.1 permanecen sin reglas duplicadas.
+
 ### Criterio de cierre de P6 completa
 
-Estado: cerrada y validada manualmente. SHA final pendiente de registrar después del commit de P6.2D.
+Estado: en progreso. P6.1 y P6.2 están cerradas; P6.3 y P6.4 permanecen pendientes.
 
-Se validó el flujo completo desde seleccionar una acción hasta muerte, recompensa, recuperación explícita, subida de nivel y actualización visual.
+El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 
 ---
 
@@ -1497,7 +1533,7 @@ Registrar aquí los cambios importantes.
 
 ## Decisión D-001
 
-Fecha: 30 de julio de 2026  
+Fecha: 30 de julio de 2026
 Estado: vigente
 
 Se adopta una estrategia híbrida:
@@ -1510,28 +1546,28 @@ Se adopta una estrategia híbrida:
 
 ## Decisión D-002
 
-Fecha: 30 de julio de 2026  
+Fecha: 30 de julio de 2026
 Estado: vigente
 
 Se agrega E0 inmediatamente después de P1 para reducir el riesgo de descubrir tarde problemas de empaquetado.
 
 ## Decisión D-003
 
-Fecha: 30 de julio de 2026  
+Fecha: 30 de julio de 2026
 Estado: vigente
 
 La cámara deberá permitir mapas mayores que la pantalla, desplazamiento y zoom.
 
 ## Decisión D-004
 
-Fecha: 30 de julio de 2026  
+Fecha: 30 de julio de 2026
 Estado: vigente
 
 El teclado será el control principal. El ratón se utilizará para inspección, selección, modales, menús y cámara.
 
 ## Decisión D-005
 
-Fecha: 30 de julio de 2026  
+Fecha: 30 de julio de 2026
 Estado: vigente
 
 El estilo visual objetivo será fantasía medieval 2D ilustrada, estilizada y luminosa, con lectura táctica por casillas.

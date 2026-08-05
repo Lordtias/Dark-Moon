@@ -3,6 +3,9 @@ import {
   obtenerPerfilAtaque,
   obtenerSecuenciaAtaque,
 } from "./ContextoPerfilesAtaquePorFamilia.js";
+import {
+  obtenerSecuenciaHabilidadVisual,
+} from "./ContextoPerfilesHabilidadesVisuales.js";
 
 export function crearPlanRitmoVisualAtaque({
   configuracionAtaque,
@@ -29,6 +32,31 @@ export function crearPlanRitmoVisualAtaque({
   });
 }
 
+
+export function crearPlanRitmoVisualHabilidad({
+  perfilVisual,
+  ejecucionTemporal,
+} = {}) {
+  const costoFinal = ejecucionTemporal?.costoFinal;
+  if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
+    return null;
+  }
+  const idSecuencia = perfilVisual?.secuencia;
+  if (typeof idSecuencia !== "string" || idSecuencia === "") {
+    throw new Error("La habilidad necesita una secuencia visual válida.");
+  }
+  const proporciones = obtenerSecuenciaHabilidadVisual(idSecuencia);
+  const duracionTotalMs = convertirCostoFinalADuracionVisual(costoFinal);
+  return Object.freeze({
+    costoFinal,
+    duracionTotalMs,
+    secuencia: idSecuencia,
+    fases: distribuirDuracionPorFases({
+      duracionTotalMs,
+      proporciones,
+    }),
+  });
+}
 
 const PROPORCIONES_CONSUMO = Object.freeze({
   preparacion: 0.2,

@@ -73,6 +73,9 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
 
     combate: {
       activo: selectorMapaActivo,
+      habilidad: habilidadActiva
+        ? copiarDescriptorHabilidadVisual(habilidad.habilidad)
+        : null,
       modo: combateActivo
         ? "combate"
         : interaccionActiva
@@ -222,6 +225,30 @@ function crearSelectorHabilidadVisual(habilidad) {
     y: selector.y,
     esValido: selector.puedeEjecutar === true,
   };
+}
+
+function copiarDescriptorHabilidadVisual(habilidad) {
+  if (!habilidad || typeof habilidad !== "object") return null;
+  return {
+    id: habilidad.id ?? null,
+    nombre: habilidad.nombre ?? null,
+    maestria: habilidad.maestria ?? null,
+    grado: habilidad.grado ?? null,
+    tipoObjetivo: habilidad.tipoObjetivo ?? null,
+    formaImpacto: copiarValorSimple(habilidad.formaImpacto),
+    zonaTemporal: copiarValorSimple(habilidad.zonaTemporal),
+  };
+}
+
+function copiarValorSimple(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) return valor.map(copiarValorSimple);
+  return Object.fromEntries(
+    Object.entries(valor).map(([clave, contenido]) => [
+      clave,
+      copiarValorSimple(contenido),
+    ]),
+  );
 }
 
 function copiarPosiciones(lista) {

@@ -1,7 +1,7 @@
 # ENTREGA P6.2D — CONSUMIBLES, RECUPERACIÓN Y CIERRE DE P6.2
 
-Estado: cerrada y validada manualmente; commit final y SHA pendientes de registrar.  
-Etapa: P6.2D  
+Estado: cerrada, validada manualmente y publicada en `046a1d5391800ea827bdc71613eed5776d6f4dab`.
+Etapa: P6.2D
 Base obligatoria: `6a660e3d59af0bd22ee6073cabf56af1442d404c`
 
 ## 1. Objetivo
@@ -119,13 +119,13 @@ La etapa siguiente recomendada es P6.3: habilidades, estados, zonas y efectos vi
 
 Base de implementación: `6a660e3d59af0bd22ee6073cabf56af1442d404c`.
 
-La implementación y la validación manual están cerradas. El usuario realizará el commit y el push. Después deberá reemplazarse el siguiente campo en esta entrega y en el Plan Maestro:
+La implementación, la validación manual y el registro del commit están cerrados.
 
 ```text
-SHA final P6.2D / cierre P6.2: PENDIENTE_DE_REGISTRAR
+SHA final P6.2D / cierre P6.2: 046a1d5391800ea827bdc71613eed5776d6f4dab
 ```
 
-No se realizó commit ni push desde la entrega asistida.
+El commit y el push fueron realizados posteriormente por el usuario; no se modificó GitHub durante P6.3A.
 
 ## Ajuste de validación posterior
 

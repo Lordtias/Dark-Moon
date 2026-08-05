@@ -1,8 +1,8 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
-Proyecto: Dark Moon  
+Proyecto: Dark Moon
 Versión del documento: 1.2
-Fecha inicial: 30 de julio de 2026  
+Fecha inicial: 30 de julio de 2026
 Última actualización: 31 de julio de 2026
 Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
 
@@ -1820,7 +1820,7 @@ La selección automática de ataque físico mantiene la prioridad: enemigo ataca
 
 ### Proyectiles básicos de varita
 
-Los ataques básicos de varita se representan mediante formas procedurales modestas y distintas por identidad, no solo por color: fuego usa un orbe irregular con brasas; frío, un fragmento angular; rayo, una descarga fina en zig-zag; veneno, una gota tóxica alargada con salpicadura viscosa. Estas formas no sustituyen ni anticipan las habilidades de P6.3.
+Los ataques básicos de varita se representan mediante formas procedurales modestas y distintas por identidad, no solo por color: fuego usa un orbe irregular con brasas; frío, un fragmento angular; rayo, una chispa compacta ramificada que viaja con una estela nerviosa y termina en un impacto cruzado; veneno, una gota tóxica alargada con salpicadura viscosa. La habilidad Chispa se distingue de la varita eléctrica mediante una descarga completa anclada al ejecutor que conecta origen y objetivo en zig-zag. Este intercambio es exclusivamente visual.
 
 Una varita utiliza la secuencia `proyectil`. Dos varitas utilizan `proyectil_dual`: preparación compartida, lanzamiento y trayectoria principal, pausa proporcional, lanzamiento y trayectoria secundaria y retorno. La secuencia distribuye una única duración procedente de `costoFinal`; no recalcula velocidad por elemento, tier, distancia ni mano. Cada proyectil conserva el elemento y resultado de su fuente. Si el primer golpe destruye al objetivo, no se representa una segunda descarga; en una casilla vacía se representan ambas fuentes sin daño ni fallo ficticios.
 
@@ -1836,6 +1836,28 @@ Vida utiliza rojo como color dominante, formas ascendentes y texto con la cantid
 La subida de nivel utiliza un holy bless tenue mediante un aura blanca vertical tipo energía/ki, con núcleo luminoso suave, destellos ascendentes y texto del nivel final. No utiliza un aro o círculo como la recuperación, no consume tiempo y no debe confundirse con crítico, curación o habilidad ofensiva.
 
 Lythra debe recibir una presentación mágica propia en P6.3, no una animación de bebida. Las habilidades, estados y zonas que permanezcan activos durante varios turnos deberán conservar una representación visual durante toda su duración, con aparición, estado sostenido y retirada sincronizados con sus eventos canónicos.
+
+
+## V-032 — Contrato universal y lectura elemental de habilidades
+
+Una habilidad visual parte de `habilidad_resuelta`, nunca del nombre mostrado ni de una consulta posterior al catálogo. El evento identifica al ejecutor como jugador, enemigo o NPC y conserva origen, habilidad, grado, selección, geometría, recorrido, impactos, cambios de recursos del ejecutor y de cada objetivo, efectos, zona y ejecución temporal. Phaser sustituye las referencias por IDs visuales y no decide objetivos, daño, resistencias, duración, acumulación o derrota.
+
+El tipo de ejecutor no determina una arquitectura gráfica distinta. Jugador, enemigo y NPC comparten las mismas fases; el perfil de la habilidad decide su lectura. P6.3A conecta solo habilidades del jugador, pero el contrato debe permitir que una IA futura ordene habilidades enemigas y que un NPC produzca curaciones o auras sin crear otro sistema de presentación.
+
+Las habilidades básicas siguen preparación, manifestación, trayectoria, impacto y retorno. La duración total procede de `costoFinal`; el perfil distribuye esa duración y nunca incluye un multiplicador de velocidad. Los cuatro elementos no pueden diferenciarse solo por color:
+
+- fuego: masa irregular, textura de llama, brasas ascendentes y expansión cálida;
+- frío: silueta angular, facetas, polvo helado y fractura rígida;
+- rayo: línea ramificada, pulso, estela quebrada y ritmo nervioso;
+- veneno: forma viscosa, burbujas, gotas y salpicadura pesada.
+
+`CreadorEfectosHabilidadesPhaser` construye formas transitorias y las registra en la capa de efectos. Cancelar la cola, destruir la escena o cambiar de mapa debe destruir conjuración, proyectil, estela e impacto. La escena final continúa siendo la reconciliación autoritativa.
+
+La selección neutral conserva ID, maestría, grado, forma y zona. Canvas 2D y Phaser pueden colorear rango, área, recorrido, objetivos y selector por elemento, pero alcance, línea de visión, centro, validez y orden permanecen definidos por `GeometriaHabilidades`.
+
+Los estados temporales no se resuelven dentro de esta primera entrega. P6.3B debe analizar por separado aparición, permanencia, renovación, acumulación, ticks, resistencia, inmunidad, retirada, muerte, cambio de mapa y coexistencia de varios estados antes de implementar su presentación persistente.
+
+Lythra debe ejecutar habilidades canónicas de NPC que no aparezcan en aprendizaje ni barra del jugador. Curación y restauración de Maná reutilizarán `habilidad_resuelta`, `recursosObjetivo` con valores anterior, posterior, máximo y cantidad real, y actualización de barras, pero tendrán perfil mágico propio, no consumirán objetos y no mostrarán el gesto de beber.
 
 ### Separación entre tiempo de consumo y legibilidad del resultado
 

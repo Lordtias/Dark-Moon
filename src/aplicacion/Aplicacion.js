@@ -9,12 +9,17 @@ import {
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
   cargarPerfilesAtaquePorFamilia,
+  cargarPerfilesHabilidadesVisuales,
 } from "../juego/configuracion/CargadorConfiguracion.js";
-import { cargarYConfigurarProgresoMagico } from "../juego/maestrias/ContextoProgresoMagico.js";
+import {
+  cargarYConfigurarProgresoMagico,
+  obtenerConfiguracionEjecucionHabilidades,
+} from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
 import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
 import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
 import { configurarPerfilesAtaquePorFamilia } from "../interfaz/graficos/ContextoPerfilesAtaquePorFamilia.js";
+import { configurarPerfilesHabilidadesVisuales } from "../interfaz/graficos/ContextoPerfilesHabilidadesVisuales.js";
 import { ControladorPartida } from "./ControladorPartida.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
@@ -35,6 +40,7 @@ export class Aplicacion {
     this.configuracionComercio = null;
     this.configuracionProgresoMagico = null;
     this.configuracionPresentacionCombate = null;
+    this.configuracionPresentacionHabilidades = null;
   }
 
   async iniciar() {
@@ -76,6 +82,7 @@ export class Aplicacion {
       configuracionComercio,
       configuracionProgresoMagico,
       perfilesAtaquePorFamilia,
+      perfilesHabilidadesVisuales,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
@@ -86,6 +93,7 @@ export class Aplicacion {
       cargarConfiguracionComercio(),
       cargarYConfigurarProgresoMagico(),
       cargarPerfilesAtaquePorFamilia(),
+      cargarPerfilesHabilidadesVisuales(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -96,6 +104,11 @@ export class Aplicacion {
       configurarPerfilesAtaquePorFamilia({
         configuracion: perfilesAtaquePorFamilia,
         configuracionObjetos: this.configuracionObjetos,
+      });
+    this.configuracionPresentacionHabilidades =
+      configurarPerfilesHabilidadesVisuales({
+        configuracion: perfilesHabilidadesVisuales,
+        configuracionHabilidades: obtenerConfiguracionEjecucionHabilidades(),
       });
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
     this.configuracionMapas = configuracionMapas;

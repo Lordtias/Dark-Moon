@@ -2,9 +2,11 @@ import {
   TIPOS_EVENTO_ACCION,
 } from "../../juego/acciones/EventosAccion.js";
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
+import { obtenerPerfilHabilidadVisual } from "./ContextoPerfilesHabilidadesVisuales.js";
 import {
   crearPlanRitmoVisualAtaque,
   crearPlanRitmoVisualConsumo,
+  crearPlanRitmoVisualHabilidad,
 } from "./PlanificadorRitmoVisual.js";
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
@@ -14,6 +16,7 @@ import {
 export const TIPOS_EVENTO_VISUAL = Object.freeze({
   MOVIMIENTO_ENTIDAD: "movimiento_entidad",
   ATAQUE_RESUELTO: "ataque_resuelto",
+  HABILIDAD_RESUELTA: "habilidad_resuelta",
   CAMBIO_HOSTILIDAD: "cambio_hostilidad",
   DANIO_PERIODICO: "danio_periodico",
   ENTIDAD_DERROTADA: "entidad_derrotada",
@@ -48,6 +51,10 @@ export function crearPlanEventosVisuales({
 
       case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
         agregarAtaque(plan, evento, entidadesPorId);
+        break;
+
+      case TIPOS_EVENTO_ACCION.HABILIDAD_RESUELTA:
+        agregarHabilidad(plan, evento, entidadesPorId);
         break;
 
       case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
@@ -142,6 +149,78 @@ function agregarAtaque(plan, evento, entidadesPorId) {
     agregarEntidadDerrotada(plan, evento.objetivo, entidadesPorId, {
       motivo: "ataque_directo",
     });
+  }
+}
+
+function agregarHabilidad(plan, evento, entidadesPorId) {
+  const idActor = obtenerIdSeguro(evento.actor);
+  const actorVisual = entidadesPorId.get(idActor) ?? null;
+  const idHabilidad = evento.habilidad?.id;
+  if (!idActor || typeof idHabilidad !== "string") {
+    return;
+  }
+
+  const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
+  const ritmoVisual = crearPlanRitmoVisualHabilidad({
+    perfilVisual,
+    ejecucionTemporal: evento.ejecucionTemporal,
+  });
+  const impactos = Object.freeze(
+    (evento.impactos ?? []).map((impacto) => {
+      const idObjetivo = obtenerIdSeguro(impacto.objetivo);
+      const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
+      return Object.freeze({
+        idObjetivo,
+        tipoObjetivo: objetivoVisual?.tipo ?? null,
+        posicionObjetivo: esPosicion(impacto.posicionObjetivo)
+          ? copiarPosicion(impacto.posicionObjetivo)
+          : objetivoVisual && esPosicion(objetivoVisual)
+            ? copiarPosicion(objetivoVisual)
+            : null,
+        orden: Number.isInteger(impacto.orden) ? impacto.orden : 0,
+        multiplicadorDanio: Number.isFinite(impacto.multiplicadorDanio)
+          ? impacto.multiplicadorDanio
+          : 1,
+        impacto: impacto.impacto === true,
+        critico: impacto.critico === true,
+        objetivoDerrotado: impacto.objetivoDerrotado === true,
+        danio: impacto.danio ?? null,
+        efectos: impacto.efectos ?? Object.freeze([]),
+        recursosObjetivo: impacto.recursosObjetivo ?? Object.freeze([]),
+      });
+    }),
+  );
+
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.HABILIDAD_RESUELTA,
+    idActor,
+    tipoActor: actorVisual?.tipo ?? null,
+    tipoActorCanonico: evento.tipoActor ?? null,
+    origenActor: esPosicion(evento.origenActor)
+      ? copiarPosicion(evento.origenActor)
+      : actorVisual && esPosicion(actorVisual)
+        ? copiarPosicion(actorVisual)
+        : null,
+    posicionObjetivo: esPosicion(evento.posicionObjetivo)
+      ? copiarPosicion(evento.posicionObjetivo)
+      : impactos[0]?.posicionObjetivo ?? null,
+    habilidad: evento.habilidad,
+    casillasAfectadas: evento.casillasAfectadas ?? Object.freeze([]),
+    recorrido: evento.recorrido ?? Object.freeze([]),
+    impactos,
+    recursosActor: evento.recursosActor ?? Object.freeze([]),
+    zonaTemporal: evento.zonaTemporal ?? null,
+    perfilVisual,
+    ejecucionTemporal: evento.ejecucionTemporal ?? null,
+    ritmoVisual,
+  }));
+
+  for (const impacto of evento.impactos ?? []) {
+    if (impacto.objetivoDerrotado === true && impacto.objetivo) {
+      agregarEntidadDerrotada(plan, impacto.objetivo, entidadesPorId, {
+        motivo: "habilidad_directa",
+      });
+    }
   }
 }
 

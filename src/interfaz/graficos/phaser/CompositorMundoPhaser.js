@@ -176,6 +176,14 @@ export class CompositorMundoPhaser {
     return true;
   }
 
+  limpiarEfectosTemporales() {
+    if (!this.capaEfectos) {
+      return false;
+    }
+    this.capaEfectos.removeAll(true);
+    return true;
+  }
+
   invalidarTerreno() {
     this.firmaTerreno = null;
   }
@@ -834,11 +842,14 @@ export class CompositorMundoPhaser {
     const combate = this.escenaDarkMoon.combate ?? {};
     const graficos = this.escena.add.graphics();
     const esHabilidad = combate.modo === "habilidad";
+    const estiloHabilidad = obtenerEstiloSeleccionHabilidadPhaser(
+      combate.habilidad?.maestria,
+    );
 
     for (const casilla of combate.casillasAtacables ?? []) {
       this.dibujarRellenoCasilla(graficos, casilla, {
-        relleno: esHabilidad ? 0x5578eb : 0xdc3737,
-        borde: esHabilidad ? 0x7da5ff : 0xff6e6e,
+        relleno: esHabilidad ? estiloHabilidad.rangoRelleno : 0xdc3737,
+        borde: esHabilidad ? estiloHabilidad.rangoBorde : 0xff6e6e,
         alphaRelleno: 0.1,
         alphaBorde: 0.28,
         margen: 1,
@@ -847,15 +858,19 @@ export class CompositorMundoPhaser {
 
     for (const casilla of combate.casillasAfectadas ?? []) {
       this.dibujarRellenoCasilla(graficos, casilla, {
-        relleno: 0xaa50e6,
-        borde: 0xe19bff,
+        relleno: estiloHabilidad.areaRelleno,
+        borde: estiloHabilidad.areaBorde,
         alphaRelleno: 0.18,
         alphaBorde: 0.48,
         margen: 2,
       });
     }
 
-    this.dibujarRecorrido(graficos, combate.recorrido);
+    this.dibujarRecorrido(
+      graficos,
+      combate.recorrido,
+      esHabilidad ? estiloHabilidad : null,
+    );
 
     if (this.casillaPuntero) {
       this.dibujarRellenoCasilla(graficos, this.casillaPuntero, {
@@ -868,11 +883,18 @@ export class CompositorMundoPhaser {
     }
 
     if (combate.selector) {
-      this.dibujarSelectorEsquinas(graficos, combate.selector);
+      this.dibujarSelectorEsquinas(
+        graficos,
+        combate.selector,
+        esHabilidad ? estiloHabilidad : null,
+      );
     }
 
     this.capaSeleccion.add(graficos);
-    this.dibujarObjetivosHabilidad(combate.objetivosAfectados);
+    this.dibujarObjetivosHabilidad(
+      combate.objetivosAfectados,
+      esHabilidad ? estiloHabilidad : null,
+    );
   }
 
   dibujarEntidades() {
@@ -1109,12 +1131,12 @@ export class CompositorMundoPhaser {
     );
   }
 
-  dibujarSelectorEsquinas(graficos, selector) {
+  dibujarSelectorEsquinas(graficos, selector, estiloHabilidad = null) {
     const posicion = this.obtenerPosicionCasilla(selector);
     if (!posicion) return;
 
     const color = selector.esValido
-      ? COLOR_SELECTOR_VALIDO
+      ? estiloHabilidad?.selector ?? COLOR_SELECTOR_VALIDO
       : COLOR_SELECTOR_INVALIDO;
     const margen = 3;
     const longitud = 8;
@@ -1141,11 +1163,15 @@ export class CompositorMundoPhaser {
     graficos.lineBetween(x1, y1, x1, y1 - longitud);
   }
 
-  dibujarRecorrido(graficos, recorrido) {
+  dibujarRecorrido(graficos, recorrido, estiloHabilidad = null) {
     if (!Array.isArray(recorrido) || recorrido.length < 2) return;
 
     const pasos = [...recorrido].sort((a, b) => a.orden - b.orden);
-    graficos.lineStyle(3, 0xb9dcff, 0.88);
+    graficos.lineStyle(
+      3,
+      estiloHabilidad?.recorrido ?? 0xb9dcff,
+      0.88,
+    );
     graficos.beginPath();
 
     pasos.forEach((paso, indice) => {
@@ -1160,13 +1186,17 @@ export class CompositorMundoPhaser {
     graficos.strokePath();
   }
 
-  dibujarObjetivosHabilidad(objetivos) {
+  dibujarObjetivosHabilidad(objetivos, estiloHabilidad = null) {
     for (const objetivo of objetivos ?? []) {
       const posicion = this.obtenerPosicionCasilla(objetivo);
       if (!posicion) continue;
 
       const graficos = this.escena.add.graphics();
-      graficos.lineStyle(2, 0xf5e1ff, 0.95);
+      graficos.lineStyle(
+        2,
+        estiloHabilidad?.objetivoBorde ?? 0xf5e1ff,
+        0.95,
+      );
       graficos.strokeRect(
         posicion.x + 5.5,
         posicion.y + 5.5,
@@ -1182,7 +1212,7 @@ export class CompositorMundoPhaser {
           String((objetivo.orden ?? 0) + 1),
           {
             color: "#ffffff",
-            backgroundColor: "#50236e",
+            backgroundColor: estiloHabilidad?.objetivoFondoCss ?? "#50236e",
             fontFamily: "monospace",
             fontSize: "9px",
             fontStyle: "bold",
@@ -1275,6 +1305,61 @@ function validarEscena(escena) {
   if (!Array.isArray(escena.entidades)) {
     throw new Error("El compositor Phaser necesita entidades visuales.");
   }
+}
+
+function obtenerEstiloSeleccionHabilidadPhaser(maestria) {
+  const estilos = {
+    fuego: {
+      rangoRelleno: 0xff642f,
+      rangoBorde: 0xffa25d,
+      areaRelleno: 0xff4f28,
+      areaBorde: 0xffc363,
+      recorrido: 0xffae64,
+      objetivoBorde: 0xffe4ad,
+      objetivoFondoCss: "#782b18",
+      selector: 0xffbd62,
+    },
+    frio: {
+      rangoRelleno: 0x51bff3,
+      rangoBorde: 0x9fe6ff,
+      areaRelleno: 0x54c5f5,
+      areaBorde: 0xd4f7ff,
+      recorrido: 0xb6ecff,
+      objetivoBorde: 0xe8fbff,
+      objetivoFondoCss: "#205f82",
+      selector: 0x9be8ff,
+    },
+    rayo: {
+      rangoRelleno: 0xad58f4,
+      rangoBorde: 0xd59bff,
+      areaRelleno: 0xaa50e6,
+      areaBorde: 0xe6b8ff,
+      recorrido: 0xd6aaff,
+      objetivoBorde: 0xf3deff,
+      objetivoFondoCss: "#522375",
+      selector: 0xd7a3ff,
+    },
+    veneno: {
+      rangoRelleno: 0x68d63d,
+      rangoBorde: 0xaaf064,
+      areaRelleno: 0x62ce38,
+      areaBorde: 0xcfff83,
+      recorrido: 0xb8ef70,
+      objetivoBorde: 0xe0ffb3,
+      objetivoFondoCss: "#35651f",
+      selector: 0xb8ef70,
+    },
+  };
+  return estilos[maestria] ?? {
+    rangoRelleno: 0x5578eb,
+    rangoBorde: 0x7da5ff,
+    areaRelleno: 0xaa50e6,
+    areaBorde: 0xe19bff,
+    recorrido: 0xb9dcff,
+    objetivoBorde: 0xf5e1ff,
+    objetivoFondoCss: "#50236e",
+    selector: COLOR_SELECTOR_VALIDO,
+  };
 }
 
 function normalizarCasilla(casilla, geometria) {

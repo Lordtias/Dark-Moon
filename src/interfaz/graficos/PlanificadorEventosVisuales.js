@@ -254,7 +254,10 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
 
   const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
   const zonaTemporalVisual = normalizarZonaTemporalVisual(evento.zonaTemporal);
-  const esCadenaVisual = perfilVisual?.secuencia === "cadena_conjurada";
+  const integraDerrotasVisuales = [
+    "cadena_conjurada",
+    "linea_conjurada",
+  ].includes(perfilVisual?.secuencia);
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
     ejecucionTemporal: evento.ejecucionTemporal,
@@ -287,7 +290,9 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
         critico: impacto.critico === true,
         objetivoDerrotado: impacto.objetivoDerrotado === true,
         derrotaVisual:
-          esCadenaVisual && impacto.objetivoDerrotado === true && idObjetivo
+          integraDerrotasVisuales &&
+          impacto.objetivoDerrotado === true &&
+          idObjetivo
             ? Object.freeze({
                 tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
                 idEntidad: idObjetivo,
@@ -344,7 +349,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     ritmoVisual,
   }));
 
-  if (!esCadenaVisual) {
+  if (!integraDerrotasVisuales) {
     for (const impacto of evento.impactos ?? []) {
       if (impacto.objetivoDerrotado === true && impacto.objetivo) {
         agregarEntidadDerrotada(plan, impacto.objetivo, entidadesPorId, {

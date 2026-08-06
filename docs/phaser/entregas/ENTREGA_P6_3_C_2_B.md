@@ -4,6 +4,7 @@ Fecha: 2026-08-06
 Etapa: P6.3C.2B  
 Base obligatoria: `4c124b9b45489dba723f9a70848c59d316229e0c`  
 Rama esperada: `main`
+Estado: validada manualmente y cerrada en `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`
 
 ## 1. Objetivo
 
@@ -177,4 +178,4 @@ feat(phaser): completar activaciones visuales de zonas
 
 ## 17. Próximo paso
 
-Después de validar y commitear esta entrega, continuar con **P6.3D — Habilidades avanzadas**.
+P6.3C.2B fue validada manualmente y cerrada en `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`. La siguiente entrega es **P6.3D.1 — Incinerar y Descarga fulminante**.

@@ -1145,9 +1145,11 @@ P6.3 se divide en entregas independientes:
 5. `P6.3C.1B` — Cadena de rayos;
 6. `P6.3C.2A` — representación persistente de zonas temporales;
 7. `P6.3C.2B` — activaciones y ciclo completo de zonas temporales;
-8. `P6.3D` — habilidades avanzadas;
-9. `P6.3E` — habilidades canónicas de NPC para Lythra;
-10. `P6.3F` — regresión, documentación y cierre general de P6.3;
+8. `P6.3D.1` — Incinerar y Descarga fulminante;
+9. `P6.3D.2` — Plaga corrosiva;
+10. `P6.3D.3` — Prisión glacial y diseño específico de Congelamiento;
+11. `P6.3E` — habilidades canónicas de NPC para Lythra;
+12. `P6.3F` — regresión, documentación y cierre general de P6.3;
 
 
 #### P6.3A — Contratos universales y habilidades básicas
@@ -1264,7 +1266,7 @@ Nube tóxica ocupa visualmente todas sus casillas canónicas y no atraviesa pare
 
 #### P6.3C.2B — Activaciones y ciclo completo de zonas temporales
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: validada manualmente y cerrada en `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`.
 
 - cada activación conserva un `idEjecucion` propio, objetivo, posición, daño, Vida, efectos y derrota;
 - los eventos derivados de efectos se propagan después de la activación correspondiente;
@@ -1281,13 +1283,34 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 
 Creación, entrada e intervalo se distinguen visualmente; el pulso global existe incluso sin objetivos; daño, fallo, crítico, estado y derrota coinciden con el dominio y no se duplican; entrar activa solo al cruzar desde fuera; cancelación, vencimiento y cambio de mapa no dejan residuos; Canvas 2D permanece funcional; duración, intervalos, objetivos y efectos continúan fuera de Phaser.
 
+#### P6.3D.1 — Incinerar y Descarga fulminante
+
+Estado: implementada con validaciones técnicas completas; validación visual manual y commit pendientes.
+
+- las seis configuraciones lineales declaran `detener_en_obstaculo`;
+- `ResolucionEspacialHabilidades` construye una línea discreta que pasa por la selección, continúa hasta la longitud configurada y se detiene en la primera pared;
+- vista previa, objetivos, daño y presentación utilizan el mismo recorrido ordenado;
+- el objetivo seleccionado fija la dirección, pero no recibe énfasis visual artificial;
+- `PatronesVisualesHabilidades` exige recorrido ordenado, impacto por casilla y rastro temporal para el patrón `linea`;
+- `CreadorLineasHabilidadesPhaser` genera carga, tramos, marcas de suelo e impactos sin consultar reglas jugables;
+- Incinerar muestra fuego y brasas en cada casilla canónica;
+- Descarga fulminante muestra una descarga gruesa y ramificada en cada tramo;
+- daño, fallo, crítico, Quemadura, Aturdimiento y derrota se reproducen al alcanzar el objetivo;
+- una derrota lineal queda integrada en su impacto y no se duplica al final;
+- Canvas 2D conserva la vista previa y recorrido neutral;
+- Prisión glacial y Congelamiento quedan excluidos hasta realizar un análisis específico previo a P6.3D.3.
+
+### Criterio de cierre de P6.3D.1
+
+Incinerar y Descarga fulminante pasan por la casilla seleccionada, atraviesan entidades y se detienen ante paredes; cada casilla vacía u ocupada muestra su identidad elemental; los objetivos se resuelven en orden sin énfasis primario artificial; daño, fallo, crítico, estado y derrota aparecen sobre la entidad correcta; cancelación y cambio de mapa no dejan residuos; Phaser no calcula dirección, colisiones, daño, duración ni estados.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B y P6.3C.2A están cerradas; P6.3C.2B queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A y P6.3C.2B están cerradas; P6.3D.1 queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

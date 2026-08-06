@@ -99,6 +99,75 @@ export function resolverRecorridoCadenaConObstaculos({
   return seleccionados;
 }
 
+// Construye una línea discreta que parte del lanzador, pasa por la casilla
+// seleccionada y continúa hasta la longitud configurada. El eje se detiene en
+// el primer obstáculo; las casillas laterales bloqueadas se excluyen sin hacer
+// que el resto del eje atraviese paredes.
+export function resolverLineaHastaObstaculo({
+  mapa,
+  origen,
+  destino,
+  longitud,
+  ancho = 1,
+  politicaObstaculos = POLITICAS_OBSTACULOS_HABILIDAD.DETENER_EN_OBSTACULO,
+} = {}) {
+  validarMapa(mapa);
+  validarPosicion(origen, "origen de la línea");
+  validarPosicion(destino, "destino de la línea");
+  if (!Number.isInteger(longitud) || longitud <= 0) {
+    throw new Error("La línea de habilidad necesita una longitud positiva.");
+  }
+  if (!Number.isInteger(ancho) || ancho <= 0) {
+    throw new Error("La línea de habilidad necesita un ancho positivo.");
+  }
+  validarPolitica(politicaObstaculos);
+
+  const diferencia = {
+    x: destino.x - origen.x,
+    y: destino.y - origen.y,
+  };
+  const distancia = Math.max(Math.abs(diferencia.x), Math.abs(diferencia.y));
+  if (distancia === 0) return [];
+
+  const direccion = {
+    x: diferencia.x / distancia,
+    y: diferencia.y / distancia,
+  };
+  const perpendicular = { x: -direccion.y, y: direccion.x };
+  const offsets = crearOffsetsCentrados(ancho);
+  const casillas = [];
+  const claves = new Set();
+
+  for (let avance = 1; avance <= longitud; avance += 1) {
+    const eje = {
+      x: Math.round(origen.x + direccion.x * avance),
+      y: Math.round(origen.y + direccion.y * avance),
+    };
+
+    if (!esCasillaSuelo(mapa, eje.x, eje.y)) break;
+    if (
+      politicaObstaculos !== POLITICAS_OBSTACULOS_HABILIDAD.IGNORAR &&
+      !evaluarLineaVision({ mapa, origen, destino: eje }).despejada
+    ) {
+      break;
+    }
+
+    for (const offset of offsets) {
+      const casilla = {
+        x: Math.round(eje.x + perpendicular.x * offset),
+        y: Math.round(eje.y + perpendicular.y * offset),
+      };
+      if (!esCasillaSuelo(mapa, casilla.x, casilla.y)) continue;
+      const clave = `${casilla.x}:${casilla.y}`;
+      if (claves.has(clave)) continue;
+      claves.add(clave);
+      casillas.push({ ...casilla, orden: avance - 1 });
+    }
+  }
+
+  return casillas.sort((a, b) => a.orden - b.orden || compararCasillas(a, b));
+}
+
 export function esCasillaAlcanzablePorPolitica({
   mapa,
   origen,
@@ -149,6 +218,11 @@ function validarPosicion(posicion, descripcion) {
   if (!Number.isInteger(posicion?.x) || !Number.isInteger(posicion?.y)) {
     throw new Error(`Se necesita una posición entera válida para ${descripcion}.`);
   }
+}
+
+function crearOffsetsCentrados(cantidad) {
+  const inicio = -Math.floor((cantidad - 1) / 2);
+  return Array.from({ length: cantidad }, (_, indice) => inicio + indice);
 }
 
 function esCasillaSuelo(mapa, x, y) {

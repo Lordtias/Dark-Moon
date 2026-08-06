@@ -153,7 +153,8 @@
               "tipo": "linea",
               "longitud": 5,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {
@@ -181,7 +182,8 @@
               "tipo": "linea",
               "longitud": 6,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {
@@ -209,7 +211,8 @@
               "tipo": "linea",
               "longitud": 7,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {
@@ -734,7 +737,8 @@
               "tipo": "linea",
               "longitud": 5,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {
@@ -759,7 +763,8 @@
               "tipo": "linea",
               "longitud": 6,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {
@@ -784,7 +789,8 @@
               "tipo": "linea",
               "longitud": 7,
               "ancho": 1,
-              "orientacion": "hacia_objetivo"
+              "orientacion": "hacia_objetivo",
+              "politicaObstaculos": "detener_en_obstaculo"
             },
             "danio": [
               {

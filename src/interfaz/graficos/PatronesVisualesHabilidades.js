@@ -50,7 +50,11 @@ const CONTRATOS = Object.freeze({
   [PATRONES_VISUALES_HABILIDAD.LINEA]: Object.freeze({
     representaTodasLasCasillas: true,
     agrupaPorAnillos: false,
-    admiteObjetivoPrimario: true,
+    admiteObjetivoPrimario: false,
+    usaRecorridoOrdenado: true,
+    reproduceImpactosPorCasilla: true,
+    conservaRastro: true,
+    enfatizaObjetivoPrimario: false,
     persistente: false,
   }),
 });

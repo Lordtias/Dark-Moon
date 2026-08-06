@@ -2,6 +2,7 @@ import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import {
   POLITICAS_OBSTACULOS_HABILIDAD,
   resolverCasillasRadioConObstaculos,
+  resolverLineaHastaObstaculo,
   resolverRecorridoCadenaConObstaculos,
 } from "./ResolucionEspacialHabilidades.js";
 
@@ -273,8 +274,8 @@ function resolverFormaImpacto({
         }),
       });
     case TIPOS_FORMA_IMPACTO.LINEA:
-      return resolverPorCasillas({
-        centro,
+      return resolverLinea({
+        jugador,
         objetivos,
         casillasAfectadas: crearCasillasFormaImpacto({
           mapa,
@@ -282,7 +283,6 @@ function resolverFormaImpacto({
           centro,
           formaImpacto,
         }),
-        crearRecorrido: true,
       });
     case TIPOS_FORMA_IMPACTO.CADENA:
       return resolverCadena({
@@ -360,20 +360,16 @@ function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
       }
     }
   } else {
-    const offsetsAncho = crearOffsetsCentrados(ancho);
-    for (let avance = 1; avance <= longitud; avance += 1) {
-      const eje = {
-        x: jugador.x + direccion.x * avance,
-        y: jugador.y + direccion.y * avance,
-      };
-      if (!esCasillaSuelo(mapa, eje.x, eje.y)) break;
-      for (const grosor of offsetsAncho) {
-        agregarCasillaSiSuelo(casillas, mapa, {
-          x: eje.x + perpendicular.x * grosor,
-          y: eje.y + perpendicular.y * grosor,
-        });
-      }
-    }
+    return resolverLineaHastaObstaculo({
+      mapa,
+      origen: jugador,
+      destino: centro,
+      longitud,
+      ancho,
+      politicaObstaculos:
+        formaImpacto.politicaObstaculos ??
+        POLITICAS_OBSTACULOS_HABILIDAD.DETENER_EN_OBSTACULO,
+    });
   }
 
   return [...casillas.values()].sort((a, b) => {
@@ -381,6 +377,36 @@ function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
     const db = distanciaCuadricula(jugador, b);
     return da - db || compararCasillas(a, b);
   });
+}
+
+function resolverLinea({ jugador, objetivos, casillasAfectadas }) {
+  const ordenPorCasilla = new Map(
+    casillasAfectadas.map((casilla, indice) => [
+      crearClaveCasilla(casilla),
+      Number.isInteger(casilla.orden) ? casilla.orden : indice,
+    ]),
+  );
+  const clavesAfectadas = new Set(ordenPorCasilla.keys());
+  const objetivosAfectados = objetivos
+    .filter((objetivo) => clavesAfectadas.has(crearClaveCasilla(objetivo)))
+    .sort((a, b) => {
+      const orden =
+        ordenPorCasilla.get(crearClaveCasilla(a)) -
+        ordenPorCasilla.get(crearClaveCasilla(b));
+      return orden || compararCasillas(a, b);
+    })
+    .map((objetivo, indice) => crearObjetivoAfectado(objetivo, indice, 1));
+
+  return {
+    casillasAfectadas: casillasAfectadas.map(({ x, y }) => ({ x, y })),
+    objetivosAfectados,
+    recorrido: casillasAfectadas.map(({ x, y, orden }, indice) => ({
+      x,
+      y,
+      orden: Number.isInteger(orden) ? orden : indice,
+      distancia: distanciaCuadricula(jugador, { x, y }),
+    })),
+  };
 }
 
 function resolverCadena({ mapa, objetivoPrimario, objetivos, formaImpacto }) {

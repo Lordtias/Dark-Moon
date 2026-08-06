@@ -254,11 +254,17 @@ function normalizarFormaImpacto({
         `La orientación "${orientacion}" de "${idHabilidad}" grado ${grado} no es válida.`,
       );
     }
+    const politicaObstaculos = normalizarId(
+      definicion.politicaObstaculos ??
+        POLITICAS_OBSTACULOS_HABILIDAD.DETENER_EN_OBSTACULO,
+    );
+    validarPoliticaObstaculosHabilidad(politicaObstaculos);
     return {
       tipo,
       longitud: definicion.longitud,
       ancho,
       orientacion,
+      politicaObstaculos,
     };
   }
 

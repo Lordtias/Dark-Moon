@@ -1143,10 +1143,11 @@ P6.3 se divide en entregas independientes:
 3. `P6.3B.2` — renovaciones, intensificación, acumulación, ticks y coexistencia avanzada;
 4. `P6.3C.1A` — habilidades intermedias de área;
 5. `P6.3C.1B` — Cadena de rayos;
-6. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
-7. `P6.3D` — habilidades avanzadas;
-8. `P6.3E` — habilidades canónicas de NPC para Lythra;
-9. `P6.3F` — regresión, documentación y cierre general de P6.3;
+6. `P6.3C.2A` — representación persistente de zonas temporales;
+7. `P6.3C.2B` — activaciones y ciclo completo de zonas temporales;
+8. `P6.3D` — habilidades avanzadas;
+9. `P6.3E` — habilidades canónicas de NPC para Lythra;
+10. `P6.3F` — regresión, documentación y cierre general de P6.3;
 
 
 #### P6.3A — Contratos universales y habilidades básicas
@@ -1227,7 +1228,7 @@ Explosión ígnea y Nova de escarcha se reproducen por anillos y muestran un efe
 
 #### P6.3C.1B — Cadena de rayos
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: validada manualmente y cerrada en `e2e2b859f2e3e25989a73ab057b5f11195e32a0e`.
 
 - los tres grados declaran `vision_entre_saltos`;
 - `ResolucionEspacialHabilidades` elige el recorrido visible, excluye visitados y conserva un desempate estable;
@@ -1242,13 +1243,32 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 
 La cadena respeta alcance y línea de visión en cada tramo; no repite objetivos; el recorrido visual coincide con el canónico; cada salto parte del actor o del objetivo anterior; fallo, crítico, estado y derrota aparecen sobre el objetivo correcto; una muerte intermedia no corta artificialmente la presentación; cancelación y mapa no dejan residuos; Phaser no selecciona candidatos ni recalcula daño.
 
+#### P6.3C.2A — Representación persistente de zonas temporales
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- `PerfilesZonasTemporalesVisuales.json` define apariencias reutilizables sin duración, daño o activadores;
+- la escena neutral transporta identidad, casillas, tiempos y perfil visual resuelto;
+- creación, renovación y vencimiento se convierten en eventos visuales neutrales;
+- Phaser conserva una instancia por `zonaId`, reconcilia la escena autoritativa y destruye movimientos ambientales con la zona;
+- Nube tóxica dibuja vapor, manchas y burbujas en todas las casillas canónicas;
+- renovar conserva el mismo objeto y agrega una oleada transitoria;
+- vencer disipa y elimina el objeto;
+- zonas diferentes pueden coexistir y superponerse sin que Phaser decida la política jugable;
+- Canvas 2D conserva una representación simplificada y pulsos de ciclo;
+- `zona_conjurada` representa el despliegue y la activación inicial ya resuelta; entrada e intervalos se completan en P6.3C.2B.
+
+### Criterio de cierre de P6.3C.2A
+
+Nube tóxica ocupa visualmente todas sus casillas canónicas y no atraviesa paredes; la persistencia depende de `zonaId`; renovar no duplica; vencer, cancelar o cambiar de mapa no deja objetos ni movimientos ambientales huérfanos; zonas distintas pueden coexistir; Canvas 2D permanece operativo; Phaser no calcula duración, intervalos, objetivos, daño o superposición.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2 y P6.3C.1A están cerradas; P6.3C.1B queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A y P6.3C.1B están cerradas; P6.3C.2A queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

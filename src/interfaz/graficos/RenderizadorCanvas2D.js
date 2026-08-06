@@ -100,6 +100,7 @@ export class RenderizadorCanvas2D {
 
     this.feedbackEstadosTemporales = [];
     this.pulsosEstadosTemporales = [];
+    this.pulsosZonasTemporales = [];
     this.temporizadorFeedbackEstados = null;
 
     // La carga y caché quedan aisladas dentro
@@ -258,6 +259,7 @@ export class RenderizadorCanvas2D {
 
     this.feedbackEstadosTemporales = [];
     this.pulsosEstadosTemporales = [];
+    this.pulsosZonasTemporales = [];
 
     this.ultimaEscena = null;
   }
@@ -279,6 +281,7 @@ export class RenderizadorCanvas2D {
     this.dibujarMapa(escena.mapa);
 
     this.dibujarZonasTemporales(escena.zonasTemporales);
+    this.dibujarPulsosZonasTemporales();
 
     if (escena.combate.activo) {
       this.dibujarRangoCombate(
@@ -337,6 +340,15 @@ export class RenderizadorCanvas2D {
       .map((evento) => crearPulsoEstadoCanvas(evento))
       .filter(Boolean);
 
+    const tiposZona = new Set([
+      TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA,
+      TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA,
+      TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA,
+    ]);
+    this.pulsosZonasTemporales = eventosVisuales
+      .filter((evento) => tiposZona.has(evento?.tipo) && evento?.zona)
+      .map((evento) => ({ tipo: evento.tipo, zona: evento.zona }));
+
     if (this.temporizadorFeedbackEstados !== null) {
       clearTimeout(this.temporizadorFeedbackEstados);
       this.temporizadorFeedbackEstados = null;
@@ -344,13 +356,15 @@ export class RenderizadorCanvas2D {
 
     if (
       this.feedbackEstadosTemporales.length === 0 &&
-      this.pulsosEstadosTemporales.length === 0
+      this.pulsosEstadosTemporales.length === 0 &&
+      this.pulsosZonasTemporales.length === 0
     ) return;
 
     this.temporizadorFeedbackEstados = setTimeout(() => {
       this.temporizadorFeedbackEstados = null;
       this.feedbackEstadosTemporales = [];
       this.pulsosEstadosTemporales = [];
+      this.pulsosZonasTemporales = [];
       if (this.ultimaEscena) {
         this.dibujar(this.ultimaEscena);
       }
@@ -888,46 +902,103 @@ export class RenderizadorCanvas2D {
   }
 
   dibujarZonaTemporal(zona) {
+    const perfil = zona?.perfilVisual ?? null;
     const estilo = obtenerEstiloZonaTemporal(zona?.apariencia);
+    const colorPrincipal = perfil?.colorPrincipal ?? estilo.borde;
+    const colorSecundario = perfil?.colorSecundario ?? estilo.detalle;
+    const opacidad = Number.isFinite(perfil?.opacidadBase)
+      ? perfil.opacidadBase
+      : 0.42;
+    const densidad = Number.isInteger(perfil?.densidad)
+      ? perfil.densidad
+      : 3;
 
     for (const casilla of zona?.casillas ?? []) {
       const pixelX = casilla.x * this.tileSize;
       const pixelY = casilla.y * this.tileSize;
+      const centroX = pixelX + this.tileSize / 2;
+      const centroY = pixelY + this.tileSize / 2;
       const hash = obtenerHashCasilla(casilla.x, casilla.y);
-      const margen = Math.max(2, Math.floor(this.tileSize * 0.08));
 
       this.context.save();
-      this.context.fillStyle = estilo.relleno;
-      this.context.fillRect(
-        pixelX + margen,
-        pixelY + margen,
-        this.tileSize - margen * 2,
-        this.tileSize - margen * 2,
+      this.context.globalAlpha = Math.min(0.72, opacidad);
+      this.context.fillStyle = colorPrincipal;
+      this.context.beginPath();
+      this.context.ellipse(
+        centroX,
+        centroY + this.tileSize * 0.18,
+        this.tileSize * 0.38,
+        this.tileSize * 0.2,
+        0,
+        0,
+        Math.PI * 2,
       );
-
-      this.context.strokeStyle = estilo.borde;
-      this.context.lineWidth = 1;
-      this.context.strokeRect(
-        pixelX + margen + 0.5,
-        pixelY + margen + 0.5,
-        this.tileSize - margen * 2 - 1,
-        this.tileSize - margen * 2 - 1,
+      this.context.fill();
+      this.context.beginPath();
+      this.context.ellipse(
+        centroX - this.tileSize * 0.18,
+        centroY - this.tileSize * 0.02,
+        this.tileSize * 0.24,
+        this.tileSize * 0.18,
+        0,
+        0,
+        Math.PI * 2,
       );
+      this.context.ellipse(
+        centroX + this.tileSize * 0.16,
+        centroY - this.tileSize * 0.08,
+        this.tileSize * 0.28,
+        this.tileSize * 0.2,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      this.context.fill();
 
-      // Marcas deterministas para que la zona siga siendo reconocible sin
-      // animaciones ni recursos gráficos específicos.
-      const cantidad = 2 + (hash % 3);
-      this.context.fillStyle = estilo.detalle;
-      for (let indice = 0; indice < cantidad; indice++) {
-        const espacio = Math.max(1, this.tileSize - margen * 2 - 4);
-        const detalleX =
-          pixelX + margen + 2 + ((hash >>> (indice * 5)) % espacio);
-        const detalleY =
-          pixelY + margen + 2 + ((hash >>> (indice * 7 + 2)) % espacio);
-        const tamano = indice % 2 === 0 ? 2 : 1;
-        this.context.fillRect(detalleX, detalleY, tamano, tamano);
+      this.context.globalAlpha = Math.min(0.9, opacidad + 0.24);
+      this.context.fillStyle = colorSecundario;
+      for (let indice = 0; indice < densidad; indice += 1) {
+        const espacio = Math.max(4, this.tileSize - 8);
+        const x = pixelX + 4 + ((hash >>> (indice * 4)) % espacio);
+        const y = pixelY + 4 + ((hash >>> (indice * 6 + 3)) % espacio);
+        const radio = Math.max(1, Math.round(this.tileSize * (0.035 + (indice % 2) * 0.015)));
+        this.context.beginPath();
+        this.context.arc(x, y, radio, 0, Math.PI * 2);
+        this.context.fill();
       }
+      this.context.restore();
+    }
+  }
 
+  dibujarPulsosZonasTemporales() {
+    for (const pulso of this.pulsosZonasTemporales) {
+      const zona = pulso.zona;
+      const perfil = zona?.perfilVisual ?? null;
+      const color = perfil?.colorSecundario ?? "#e4ffd1";
+      const esVencimiento =
+        pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA;
+      const esRenovacion =
+        pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA;
+
+      this.context.save();
+      this.context.strokeStyle = color;
+      this.context.lineWidth = esRenovacion ? 3 : 2;
+      this.context.globalAlpha = esVencimiento ? 0.34 : 0.72;
+      for (const casilla of zona?.casillas ?? []) {
+        const centroX = casilla.x * this.tileSize + this.tileSize / 2;
+        const centroY = casilla.y * this.tileSize + this.tileSize / 2;
+        this.context.beginPath();
+        this.context.ellipse(
+          centroX,
+          centroY,
+          this.tileSize * (esVencimiento ? 0.32 : 0.42),
+          this.tileSize * (esVencimiento ? 0.2 : 0.28),
+          0,
+          0,
+          Math.PI * 2,
+        );
+        this.context.stroke();
+      }
       this.context.restore();
     }
   }

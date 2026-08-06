@@ -433,8 +433,12 @@ function resumirZona(zona) {
     grado: zona.grado,
     casillas: zona.casillas.map(copiarCasilla),
     apariencia: zona.configuracion.apariencia,
+    grupoSuperposicion: zona.configuracion.grupoSuperposicion,
+    politicaSuperposicion: zona.configuracion.politicaSuperposicion,
+    activadores: [...zona.configuracion.activadores],
     creadaEn: zona.creadaEn,
     venceEn: zona.venceEn,
+    duracion: zona.configuracion.duracion,
     proximaActivacion: zona.proximaActivacion,
   };
 }
@@ -446,6 +450,7 @@ function crearEvento(tipo, zona, instante) {
     idHabilidad: zona.idHabilidad,
     nombre: zona.nombre,
     instante,
+    zona: resumirZona(zona),
   };
 }
 

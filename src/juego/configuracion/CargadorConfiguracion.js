@@ -44,6 +44,9 @@ const RUTA_PERFILES_HABILIDADES_VISUALES =
 const RUTA_PERFILES_ESTADOS_TEMPORALES_VISUALES =
   "./src/config/presentacion/PerfilesEstadosTemporalesVisuales.json";
 
+const RUTA_PERFILES_ZONAS_TEMPORALES_VISUALES =
+  "./src/config/presentacion/PerfilesZonasTemporalesVisuales.json";
+
 // Catálogos que describen rarezas y afijos.
 //
 // Se cargan separados de las plantillas de objetos porque:
@@ -252,6 +255,13 @@ export function cargarPerfilesEstadosTemporalesVisuales() {
   return cargarArchivoJson(
     RUTA_PERFILES_ESTADOS_TEMPORALES_VISUALES,
     "los perfiles visuales de estados temporales",
+  );
+}
+
+export function cargarPerfilesZonasTemporalesVisuales() {
+  return cargarArchivoJson(
+    RUTA_PERFILES_ZONAS_TEMPORALES_VISUALES,
+    "los perfiles visuales de zonas temporales",
   );
 }
 

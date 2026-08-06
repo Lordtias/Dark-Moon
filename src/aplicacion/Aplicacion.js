@@ -11,6 +11,7 @@ import {
   cargarPerfilesAtaquePorFamilia,
   cargarPerfilesHabilidadesVisuales,
   cargarPerfilesEstadosTemporalesVisuales,
+  cargarPerfilesZonasTemporalesVisuales,
 } from "../juego/configuracion/CargadorConfiguracion.js";
 import {
   cargarYConfigurarProgresoMagico,
@@ -22,6 +23,7 @@ import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/Pers
 import { configurarPerfilesAtaquePorFamilia } from "../interfaz/graficos/ContextoPerfilesAtaquePorFamilia.js";
 import { configurarPerfilesHabilidadesVisuales } from "../interfaz/graficos/ContextoPerfilesHabilidadesVisuales.js";
 import { configurarPerfilesEstadosTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesEstadosTemporalesVisuales.js";
+import { configurarPerfilesZonasTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesZonasTemporalesVisuales.js";
 import { ControladorPartida } from "./ControladorPartida.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
@@ -44,6 +46,7 @@ export class Aplicacion {
     this.configuracionPresentacionCombate = null;
     this.configuracionPresentacionHabilidades = null;
     this.configuracionPresentacionEstadosTemporales = null;
+    this.configuracionPresentacionZonasTemporales = null;
   }
 
   async iniciar() {
@@ -87,6 +90,7 @@ export class Aplicacion {
       perfilesAtaquePorFamilia,
       perfilesHabilidadesVisuales,
       perfilesEstadosTemporalesVisuales,
+      perfilesZonasTemporalesVisuales,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
@@ -99,6 +103,7 @@ export class Aplicacion {
       cargarPerfilesAtaquePorFamilia(),
       cargarPerfilesHabilidadesVisuales(),
       cargarPerfilesEstadosTemporalesVisuales(),
+      cargarPerfilesZonasTemporalesVisuales(),
     ]);
 
     this.configuracionPersonaje = configuracionPersonaje;
@@ -121,6 +126,10 @@ export class Aplicacion {
       configurarPerfilesEstadosTemporalesVisuales({
         configuracion: perfilesEstadosTemporalesVisuales,
         configuracionEfectos: configuracionEjecucionHabilidades,
+      });
+    this.configuracionPresentacionZonasTemporales =
+      configurarPerfilesZonasTemporalesVisuales({
+        configuracion: perfilesZonasTemporalesVisuales,
       });
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
     this.configuracionMapas = configuracionMapas;

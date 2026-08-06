@@ -1,5 +1,6 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { obtenerPerfilEstadoTemporalVisual } from "./ContextoPerfilesEstadosTemporalesVisuales.js";
+import { obtenerPerfilZonaTemporalVisual } from "./ContextoPerfilesZonasTemporalesVisuales.js";
 
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
@@ -266,16 +267,28 @@ function copiarObjetivosHabilidad(lista) {
 function copiarZonasTemporales(lista) {
   if (!Array.isArray(lista)) return [];
 
-  return lista.map((zona) => ({
-    id: zona.id,
-    nombre: zona.nombre,
-    apariencia: zona.apariencia ?? "generica",
-    creadaEn: zona.creadaEn,
-    venceEn: zona.venceEn,
-    proximaActivacionEn: zona.proximaActivacion,
-    tiempoRestante: zona.tiempoRestante,
-    casillas: copiarPosiciones(zona.casillas),
-  }));
+  return lista.map((zona) => {
+    const apariencia = zona.apariencia ?? "generica";
+    return {
+      id: zona.id,
+      idHabilidad: zona.idHabilidad ?? null,
+      nombre: zona.nombre,
+      grado: Number.isInteger(zona.grado) ? zona.grado : 1,
+      apariencia,
+      grupoSuperposicion: zona.grupoSuperposicion ?? null,
+      politicaSuperposicion: zona.politicaSuperposicion ?? null,
+      activadores: Array.isArray(zona.activadores)
+        ? [...zona.activadores]
+        : [],
+      creadaEn: zona.creadaEn,
+      venceEn: zona.venceEn,
+      duracion: zona.duracion ?? null,
+      proximaActivacionEn: zona.proximaActivacion,
+      tiempoRestante: zona.tiempoRestante,
+      casillas: copiarPosiciones(zona.casillas),
+      perfilVisual: obtenerPerfilZonaTemporalVisual(apariencia),
+    };
+  });
 }
 
 // Convierte una entidad del dominio

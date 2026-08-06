@@ -20,6 +20,7 @@ import {
   resolverCasillaTerreno,
 } from "../mapas/ResolutorTerrenosMapa.js";
 import { CreadorEstadosTemporalesPhaser } from "./CreadorEstadosTemporalesPhaser.js";
+import { CreadorZonasTemporalesPhaser } from "./CreadorZonasTemporalesPhaser.js";
 import {
   calcularPresentacionEntidadPhaser,
   CONFIGURACION_ENTIDADES_PHASER,
@@ -56,6 +57,7 @@ export class CompositorMundoPhaser {
     this.firmaTerreno = null;
     this.casillaPuntero = null;
     this.nodosEntidades = new Map();
+    this.zonasTemporalesVisuales = new Map();
 
     this.capaFondo = escena.add.container(0, 0).setDepth(0);
     this.capaTerreno = escena.add.container(0, 0).setDepth(10);
@@ -67,6 +69,10 @@ export class CompositorMundoPhaser {
     this.capaIluminacion = escena.add.container(0, 0).setDepth(70);
     this.capaEfectos = escena.add.container(0, 0).setDepth(80);
     this.creadorEstadosTemporales = new CreadorEstadosTemporalesPhaser({
+      escena,
+      compositor: this,
+    });
+    this.creadorZonasTemporales = new CreadorZonasTemporalesPhaser({
       escena,
       compositor: this,
     });
@@ -258,6 +264,67 @@ export class CompositorMundoPhaser {
       this.establecerEfectoTemporalEntidad(idVisual, efecto);
     }
     return true;
+  }
+
+  obtenerZonaTemporalVisual(idZona) {
+    return typeof idZona === "string"
+      ? this.zonasTemporalesVisuales.get(idZona) ?? null
+      : null;
+  }
+
+  establecerZonaTemporal(zona) {
+    if (!zona || typeof zona.id !== "string" || !zona.perfilVisual) {
+      return null;
+    }
+
+    const existente = this.obtenerZonaTemporalVisual(zona.id);
+    if (existente) {
+      const actualizada = this.creadorZonasTemporales?.actualizarPersistente({
+        objeto: existente,
+        zona,
+      });
+      if (actualizada) {
+        existente.alpha = 1;
+        return existente;
+      }
+      this.retirarZonaTemporal(zona.id);
+    }
+
+    const objeto = this.creadorZonasTemporales?.crearPersistente({ zona });
+    if (!objeto) return null;
+    this.capaZonas.add(objeto);
+    this.zonasTemporalesVisuales.set(zona.id, objeto);
+    return objeto;
+  }
+
+  retirarZonaTemporal(idZona) {
+    const objeto = this.obtenerZonaTemporalVisual(idZona);
+    if (!objeto) return false;
+    this.creadorZonasTemporales?.destruirPersistente(objeto);
+    this.zonasTemporalesVisuales.delete(idZona);
+    return true;
+  }
+
+  reconciliarZonasTemporales(zonas = []) {
+    const esperadas = new Map(
+      (Array.isArray(zonas) ? zonas : [])
+        .filter((zona) => typeof zona?.id === "string" && zona.id !== "")
+        .map((zona) => [zona.id, zona]),
+    );
+
+    for (const idZona of [...this.zonasTemporalesVisuales.keys()]) {
+      if (!esperadas.has(idZona)) this.retirarZonaTemporal(idZona);
+    }
+    for (const zona of esperadas.values()) {
+      this.establecerZonaTemporal(zona);
+    }
+    return true;
+  }
+
+  reconciliarZonasTemporalesDesdeEscenaActual() {
+    return this.reconciliarZonasTemporales(
+      this.escenaDarkMoon?.zonasTemporales ?? [],
+    );
   }
 
   invalidarTerreno() {
@@ -809,34 +876,9 @@ export class CompositorMundoPhaser {
   }
 
   dibujarZonas() {
-    this.capaZonas.removeAll(true);
-    const graficos = this.escena.add.graphics();
-
-    for (const zona of this.escenaDarkMoon?.zonasTemporales ?? []) {
-      const estilo = obtenerEstiloZona(zona.apariencia);
-
-      for (const casilla of zona.casillas ?? []) {
-        const posicion = this.obtenerPosicionCasilla(casilla);
-        if (!posicion) continue;
-
-        graficos.fillStyle(estilo.relleno, 0.22);
-        graficos.fillRect(
-          posicion.x + 3,
-          posicion.y + 3,
-          TAMANO_CASILLA_REFERENCIA - 6,
-          TAMANO_CASILLA_REFERENCIA - 6,
-        );
-        graficos.lineStyle(1, estilo.borde, 0.65);
-        graficos.strokeRect(
-          posicion.x + 3.5,
-          posicion.y + 3.5,
-          TAMANO_CASILLA_REFERENCIA - 7,
-          TAMANO_CASILLA_REFERENCIA - 7,
-        );
-      }
-    }
-
-    this.capaZonas.add(graficos);
+    this.reconciliarZonasTemporales(
+      this.escenaDarkMoon?.zonasTemporales ?? [],
+    );
   }
 
   dibujarSombrasEntidades() {
@@ -1326,6 +1368,9 @@ export class CompositorMundoPhaser {
   }
 
   destruir() {
+    for (const idZona of [...this.zonasTemporalesVisuales.keys()]) {
+      this.retirarZonaTemporal(idZona);
+    }
     this.capaFondo.destroy(true);
     this.capaTerreno.destroy(true);
     this.capaDecoracion.destroy(true);
@@ -1336,7 +1381,9 @@ export class CompositorMundoPhaser {
     this.capaIluminacion.destroy(true);
     this.capaEfectos.destroy(true);
     this.nodosEntidades.clear();
+    this.zonasTemporalesVisuales.clear();
     this.creadorEstadosTemporales = null;
+    this.creadorZonasTemporales = null;
     this.escenaDarkMoon = null;
     this.escena = null;
     this.gestorRecursos = null;
@@ -1522,21 +1569,6 @@ function prioridadEntidad(tipo) {
       return 3;
     default:
       return 4;
-  }
-}
-
-function obtenerEstiloZona(apariencia) {
-  switch (apariencia) {
-    case "fuego":
-      return { relleno: 0xf06b35, borde: 0xffbd72 };
-    case "frio":
-      return { relleno: 0x58a7e8, borde: 0xc2ecff };
-    case "rayo":
-      return { relleno: 0x8b67e8, borde: 0xe0d2ff };
-    case "veneno":
-      return { relleno: 0x56a75a, borde: 0xb7ef89 };
-    default:
-      return { relleno: 0x8f78b8, borde: 0xd8c9ef };
   }
 }
 

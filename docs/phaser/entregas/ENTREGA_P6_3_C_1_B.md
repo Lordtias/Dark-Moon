@@ -133,7 +133,7 @@ La misma arquitectura podrá reutilizarse en futuras cadenas ofensivas, curacion
 - `git diff --check` con la política de finales de línea del repositorio;
 - integridad del ZIP completo e incremental.
 
-## 14. Pruebas manuales sugeridas
+## 14. Pruebas manuales ejecutadas para el cierre
 
 1. Cadena grado 1 con dos objetivos visibles.
 2. Cadena grado 2 y 3 con tres y cuatro objetivos.
@@ -149,20 +149,26 @@ La misma arquitectura podrá reutilizarse en futuras cadenas ofensivas, curacion
 12. Cambio de mapa sin recursos visuales huérfanos.
 13. Canvas 2D sin regresiones jugables.
 
-## 15. Estado Git esperado al entregar
+## 15. Cierre manual registrado
+
+P6.3C.1B fue validada manualmente y cerrada en:
+
+`e2e2b859f2e3e25989a73ab057b5f11195e32a0e`
+
+## 16. Estado Git esperado al entregar
 
 - Rama: `main`.
-- HEAD base: `8bf47e50eb70ebc552649716a61eb5bbef829f5d`.
-- Commit realizado: no.
-- Push realizado: no.
-- GitHub remoto modificado: no.
+- HEAD de cierre: `e2e2b859f2e3e25989a73ab057b5f11195e32a0e`.
+- Commit realizado: sí.
+- Push realizado: según el flujo del usuario.
+- GitHub remoto modificado: según el flujo del usuario.
 
-## 16. Conventional Commit propuesto
+## 17. Conventional Commit propuesto
 
 ```text
 feat(phaser): representar cadena de rayos por saltos
 ```
 
-## 17. Próximo paso
+## 18. Próximo paso
 
-Después de la validación manual y el commit, continuar con **P6.3C.2 — Nube tóxica y ciclo visual de zonas temporales**.
+Después del cierre de P6.3C.1B, continuar con **P6.3C.2A — Representación persistente de zonas temporales**.

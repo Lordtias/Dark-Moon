@@ -4,6 +4,9 @@ import {
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
 import { obtenerPerfilHabilidadVisual } from "./ContextoPerfilesHabilidadesVisuales.js";
 import {
+  obtenerPerfilZonaTemporalVisual,
+} from "./ContextoPerfilesZonasTemporalesVisuales.js";
+import {
   obtenerFeedbackEfectoNoAplicado,
   obtenerPerfilEstadoTemporalVisual,
 } from "./ContextoPerfilesEstadosTemporalesVisuales.js";
@@ -42,6 +45,9 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   EFECTO_TEMPORAL_NO_APLICADO: "efecto_temporal_no_aplicado",
   EFECTO_TEMPORAL_TICK: "efecto_temporal_tick",
   EFECTO_TEMPORAL_RETIRADO: "efecto_temporal_retirado",
+  ZONA_TEMPORAL_CREADA: "zona_temporal_creada",
+  ZONA_TEMPORAL_RENOVADA: "zona_temporal_renovada",
+  ZONA_TEMPORAL_VENCIDA: "zona_temporal_vencida",
 });
 
 // Convierte referencias del dominio en un plan neutral basado en IDs visuales.
@@ -131,6 +137,18 @@ export function crearPlanEventosVisuales({
         });
         break;
 
+      case "zona_temporal_creada":
+        agregarZonaTemporal(plan, evento, TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA);
+        break;
+
+      case "zona_temporal_renovada":
+        agregarZonaTemporal(plan, evento, TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA);
+        break;
+
+      case "zona_temporal_vencida":
+        agregarZonaTemporal(plan, evento, TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA);
+        break;
+
       default:
         break;
     }
@@ -216,6 +234,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
   }
 
   const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
+  const zonaTemporalVisual = normalizarZonaTemporalVisual(evento.zonaTemporal);
   const esCadenaVisual = perfilVisual?.secuencia === "cadena_conjurada";
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
@@ -298,7 +317,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     recorrido: evento.recorrido ?? Object.freeze([]),
     impactos,
     recursosActor: evento.recursosActor ?? Object.freeze([]),
-    zonaTemporal: evento.zonaTemporal ?? null,
+    zonaTemporal: zonaTemporalVisual,
     perfilVisual,
     idEjecucion: evento.idEjecucion ?? null,
     ejecucionTemporal: evento.ejecucionTemporal ?? null,
@@ -314,6 +333,55 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
       }
     }
   }
+}
+
+function agregarZonaTemporal(plan, evento, tipoVisual) {
+  const zona = normalizarZonaTemporalVisual(evento?.zona);
+  if (!zona) return;
+  plan.push(Object.freeze({
+    tipo: tipoVisual,
+    zona,
+    instante: Number.isFinite(evento.instante) ? evento.instante : null,
+  }));
+}
+
+function normalizarZonaTemporalVisual(zona) {
+  if (
+    !zona ||
+    typeof zona.id !== "string" ||
+    zona.id.trim() === "" ||
+    !Array.isArray(zona.casillas)
+  ) {
+    return null;
+  }
+  const apariencia = normalizarTextoSimple(zona.apariencia) ?? "generica";
+  const casillas = zona.casillas
+    .filter(esPosicion)
+    .map(copiarPosicion);
+  if (casillas.length === 0) return null;
+
+  return Object.freeze({
+    id: zona.id.trim(),
+    idHabilidad: normalizarTextoSimple(zona.idHabilidad),
+    nombre: normalizarTextoSimple(zona.nombre) ?? "Zona temporal",
+    grado: Number.isInteger(zona.grado) ? zona.grado : 1,
+    apariencia,
+    grupoSuperposicion: normalizarTextoSimple(zona.grupoSuperposicion),
+    politicaSuperposicion: normalizarTextoSimple(zona.politicaSuperposicion),
+    activadores: Object.freeze(
+      Array.isArray(zona.activadores)
+        ? zona.activadores.filter((item) => typeof item === "string")
+        : [],
+    ),
+    creadaEn: Number.isFinite(zona.creadaEn) ? zona.creadaEn : null,
+    venceEn: Number.isFinite(zona.venceEn) ? zona.venceEn : null,
+    duracion: Number.isFinite(zona.duracion) ? zona.duracion : null,
+    proximaActivacionEn: Number.isFinite(zona.proximaActivacion)
+      ? zona.proximaActivacion
+      : null,
+    casillas: Object.freeze(casillas),
+    perfilVisual: obtenerPerfilZonaTemporalVisual(apariencia),
+  });
 }
 
 function agregarEfectoTemporalAplicado(plan, evento, entidadesPorId) {

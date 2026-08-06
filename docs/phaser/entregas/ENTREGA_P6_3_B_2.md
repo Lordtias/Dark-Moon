@@ -128,7 +128,7 @@ No se modificaron:
 - revisión dirigida de referencias nuevas;
 - integridad del ZIP completo e incremental.
 
-## 13. Pruebas manuales pendientes
+## 13. Pruebas manuales ejecutadas para el cierre
 
 1. Aplicar Envenenamiento y esperar un tick.
 2. Confirmar que las burbujas aparecen antes del daño.
@@ -141,20 +141,27 @@ No se modificaron:
 9. Cancelar una cola durante un tick.
 10. Verificar Canvas 2D.
 
-## 14. Estado Git esperado al entregar
+## 14. Cierre manual registrado
+
+P6.3B.2 fue validada manualmente y cerrada en:
+
+`ec5933cd5090042f1be6511cbd5ad12ac5a65be3`
+
+## 15. Estado Git esperado al entregar
 
 - Rama: `main`.
 - HEAD base: `0c61b97269509d8be8ac35c2e5af78c3a84800ba`.
-- Commit realizado: no.
-- Push realizado: no.
+- Commit realizado: sí.
+- SHA de cierre: `ec5933cd5090042f1be6511cbd5ad12ac5a65be3`.
+- Push realizado: según flujo del usuario.
 - GitHub remoto modificado: no.
 
-## 15. Conventional Commit propuesto
+## 16. Conventional Commit propuesto
 
 ```text
 feat(phaser): completar ciclos visuales de estados temporales
 ```
 
-## 16. Próximo paso
+## 17. Próximo paso
 
-Después de la validación manual y el commit, continuar con P6.3C.1: habilidades intermedias de área y cadena.
+Después del cierre de P6.3B.2, continuar con P6.3C.1A: habilidades intermedias de área.

@@ -59,7 +59,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "estallido_calido",
+      "efectoObjetivoPrimario": "estallido_calido"
     },
     "esquirla_hielo": {
       "nivelVisual": "basica",
@@ -82,7 +87,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "fractura_radial",
+      "efectoObjetivoPrimario": "fractura_radial"
     },
     "chispa": {
       "nivelVisual": "basica",
@@ -105,7 +115,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "descarga_zigzag",
+      "efectoObjetivoPrimario": "descarga_zigzag"
     },
     "aguijon_toxico": {
       "nivelVisual": "basica",
@@ -128,7 +143,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "salpicadura_punzante",
+      "efectoObjetivoPrimario": "salpicadura_punzante"
     },
     "explosion_ignea": {
       "nivelVisual": "intermedia",
@@ -150,7 +170,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "seleccion",
+      "efectoCasilla": "brote_fuego",
+      "efectoObjetivo": "explosion_radial",
+      "efectoObjetivoPrimario": "explosion_central"
     },
     "nova_escarcha": {
       "nivelVisual": "intermedia",
@@ -172,7 +197,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "fractura_hielo",
+      "efectoObjetivo": "onda_helada",
+      "efectoObjetivoPrimario": null
     },
     "cadena_rayos": {
       "nivelVisual": "intermedia",
@@ -194,7 +224,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "cadena",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "descarga_ramificada",
+      "efectoObjetivoPrimario": "descarga_primaria"
     },
     "nube_toxica": {
       "nivelVisual": "intermedia",
@@ -216,7 +251,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "zona_persistente",
+      "centroVisual": "seleccion",
+      "efectoCasilla": "nube_baja",
+      "efectoObjetivo": "pulso_corrosivo",
+      "efectoObjetivoPrimario": null
     },
     "incinerar": {
       "nivelVisual": "avanzada",
@@ -238,7 +278,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "linea",
+      "centroVisual": "actor",
+      "efectoCasilla": "llamas_superpuestas",
+      "efectoObjetivo": "combustion",
+      "efectoObjetivoPrimario": null
     },
     "prision_glacial": {
       "nivelVisual": "avanzada",
@@ -260,7 +305,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "seleccion",
+      "efectoCasilla": "encierro_cristalino",
+      "efectoObjetivo": "encierro_cristalino",
+      "efectoObjetivoPrimario": null
     },
     "descarga_fulminante": {
       "nivelVisual": "avanzada",
@@ -282,7 +332,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "linea",
+      "centroVisual": "actor",
+      "efectoCasilla": "descarga_gruesa",
+      "efectoObjetivo": "fulminacion",
+      "efectoObjetivoPrimario": null
     },
     "plaga_corrosiva": {
       "nivelVisual": "avanzada",
@@ -304,7 +359,12 @@
         "preparacion": null,
         "lanzamiento": null,
         "impacto": null
-      }
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "corrosion_expansiva",
+      "efectoObjetivoPrimario": "corrosion_expansiva"
     }
   }
 }

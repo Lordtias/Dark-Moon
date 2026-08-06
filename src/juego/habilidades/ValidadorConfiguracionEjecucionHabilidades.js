@@ -11,6 +11,10 @@ import {
   ORIENTACIONES_LINEA,
   TIPOS_FORMA_IMPACTO,
 } from "./GeometriaHabilidades.js";
+import {
+  POLITICAS_OBSTACULOS_HABILIDAD,
+  validarPoliticaObstaculosHabilidad,
+} from "./ResolucionEspacialHabilidades.js";
 
 const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio"]);
 const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
@@ -189,7 +193,12 @@ function normalizarFormaImpacto({
       definicion.radio,
       `el radio de "${idHabilidad}" grado ${grado}`,
     );
-    return { tipo, radio: definicion.radio };
+    const politicaObstaculos = normalizarId(
+      definicion.politicaObstaculos ??
+        POLITICAS_OBSTACULOS_HABILIDAD.VISION_DESDE_CENTRO,
+    );
+    validarPoliticaObstaculosHabilidad(politicaObstaculos);
+    return { tipo, radio: definicion.radio, politicaObstaculos };
   }
 
   if (tipo === TIPOS_FORMA_IMPACTO.CADENA) {
@@ -216,11 +225,17 @@ function normalizarFormaImpacto({
         `El factor de daño por salto de "${idHabilidad}" grado ${grado} no puede superar 1.`,
       );
     }
+    const politicaObstaculos = normalizarId(
+      definicion.politicaObstaculos ??
+        POLITICAS_OBSTACULOS_HABILIDAD.IGNORAR,
+    );
+    validarPoliticaObstaculosHabilidad(politicaObstaculos);
     return {
       tipo,
       maximoObjetivos: definicion.maximoObjetivos,
       alcanceSalto: definicion.alcanceSalto,
       factorDanioPorSalto,
+      politicaObstaculos,
     };
   }
 

@@ -18,6 +18,16 @@ import {
   TIPOS_ENTIDAD_VISUAL,
 } from "./TiposEscena.js";
 
+const TIPOS_EVENTO_EFECTO_CORRELACIONABLE = new Set([
+  "efecto_aplicado",
+  "efecto_renovado",
+  "efecto_intensificado",
+  "efecto_acumulado",
+  "efecto_resistido",
+  "efecto_inmune",
+  "efecto_rechazado",
+]);
+
 export const TIPOS_EVENTO_VISUAL = Object.freeze({
   MOVIMIENTO_ENTIDAD: "movimiento_entidad",
   ATAQUE_RESUELTO: "ataque_resuelto",
@@ -48,8 +58,11 @@ export function crearPlanEventosVisuales({
 
   const entidadesPorId = combinarEntidadesEscenas(escenaAnterior, escenaFinal);
   const plan = [];
+  const indicesConsumidos = new Set();
 
-  for (const evento of eventos) {
+  for (let indice = 0; indice < eventos.length; indice += 1) {
+    if (indicesConsumidos.has(indice)) continue;
+    const evento = eventos[indice];
     if (!evento || typeof evento !== "object") {
       continue;
     }
@@ -64,7 +77,11 @@ export function crearPlanEventosVisuales({
         break;
 
       case TIPOS_EVENTO_ACCION.HABILIDAD_RESUELTA:
-        agregarHabilidad(plan, evento, entidadesPorId);
+        agregarHabilidad(plan, evento, entidadesPorId, {
+          eventos,
+          indiceActual: indice,
+          indicesConsumidos,
+        });
         break;
 
       case TIPOS_EVENTO_ACCION.HOSTILIDAD_CAMBIADA:
@@ -190,7 +207,7 @@ function agregarAtaque(plan, evento, entidadesPorId) {
   }
 }
 
-function agregarHabilidad(plan, evento, entidadesPorId) {
+function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
   const idActor = obtenerIdSeguro(evento.actor);
   const actorVisual = entidadesPorId.get(idActor) ?? null;
   const idHabilidad = evento.habilidad?.id;
@@ -202,6 +219,13 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
     ejecucionTemporal: evento.ejecucionTemporal,
+  });
+  const eventosCorrelacionados = correlacionarEventosEfectosHabilidad({
+    eventoHabilidad: evento,
+    entidadesPorId,
+    eventos: contexto.eventos ?? [],
+    indiceActual: contexto.indiceActual ?? -1,
+    indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
   });
   const impactos = Object.freeze(
     (evento.impactos ?? []).map((impacto) => {
@@ -225,9 +249,15 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
         danio: impacto.danio ?? null,
         efectos: impacto.efectos ?? Object.freeze([]),
         recursosObjetivo: impacto.recursosObjetivo ?? Object.freeze([]),
+        eventosEfectos: Object.freeze(
+          [...(eventosCorrelacionados.get(idObjetivo) ?? [])],
+        ),
       });
     }),
   );
+
+  const idObjetivoPrimario = obtenerIdSeguro(evento.objetivoPrimario);
+  const objetivoPrimarioVisual = entidadesPorId.get(idObjetivoPrimario) ?? null;
 
   plan.push(Object.freeze({
     tipo: TIPOS_EVENTO_VISUAL.HABILIDAD_RESUELTA,
@@ -242,6 +272,12 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
     posicionObjetivo: esPosicion(evento.posicionObjetivo)
       ? copiarPosicion(evento.posicionObjetivo)
       : impactos[0]?.posicionObjetivo ?? null,
+    idObjetivoPrimario,
+    posicionObjetivoPrimario: esPosicion(evento.posicionObjetivoPrimario)
+      ? copiarPosicion(evento.posicionObjetivoPrimario)
+      : objetivoPrimarioVisual && esPosicion(objetivoPrimarioVisual)
+        ? copiarPosicion(objetivoPrimarioVisual)
+        : null,
     habilidad: evento.habilidad,
     casillasAfectadas: evento.casillasAfectadas ?? Object.freeze([]),
     recorrido: evento.recorrido ?? Object.freeze([]),
@@ -249,6 +285,7 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
     recursosActor: evento.recursosActor ?? Object.freeze([]),
     zonaTemporal: evento.zonaTemporal ?? null,
     perfilVisual,
+    idEjecucion: evento.idEjecucion ?? null,
     ejecucionTemporal: evento.ejecucionTemporal ?? null,
     ritmoVisual,
   }));
@@ -263,66 +300,146 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
 }
 
 function agregarEfectoTemporalAplicado(plan, evento, entidadesPorId) {
-  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
-  if (!normalizado) return;
-  plan.push(Object.freeze({
-    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO,
-    ...normalizado,
-    operacion: "aplicado",
-  }));
+  const visual = crearEventoVisualEfectoTemporal({ evento, entidadesPorId });
+  if (visual) plan.push(visual);
 }
 
 function agregarEfectoTemporalActualizado(plan, evento, entidadesPorId) {
-  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
-  if (!normalizado) return;
-  plan.push(Object.freeze({
-    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
-    ...normalizado,
-    operacion: evento.tipo.replace("efecto_", ""),
-    alcanzoMaximo: evento.alcanzoMaximo === true,
-  }));
+  const visual = crearEventoVisualEfectoTemporal({ evento, entidadesPorId });
+  if (visual) plan.push(visual);
 }
 
 function agregarEfectoTemporalNoAplicado(plan, evento, entidadesPorId) {
-  if (evento.tipo === "efecto_rechazado" && evento.motivo !== "duplicado") {
-    return;
-  }
-  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
-  if (!normalizado) return;
-  const motivo = resolverMotivoNoAplicado(evento);
-  plan.push(Object.freeze({
-    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_NO_APLICADO,
-    ...normalizado,
-    operacion: "no_aplicado",
-    motivo,
-    feedback: obtenerFeedbackEfectoNoAplicado(motivo),
-    resistencia: Number.isFinite(evento.resistencia) ? evento.resistencia : null,
-    probabilidadFinal: Number.isFinite(evento.probabilidadFinal)
-      ? evento.probabilidadFinal
-      : null,
-  }));
+  const visual = crearEventoVisualEfectoTemporal({ evento, entidadesPorId });
+  if (visual) plan.push(visual);
 }
 
 function agregarEfectoTemporalTick(plan, evento, entidadesPorId) {
-  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
-  if (!normalizado) return;
-  plan.push(Object.freeze({
-    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_TICK,
-    ...normalizado,
-    operacion: "tick",
-    instante: Number.isFinite(evento.instante) ? evento.instante : null,
-  }));
+  const visual = crearEventoVisualEfectoTemporal({ evento, entidadesPorId });
+  if (visual) plan.push(visual);
 }
 
 function agregarEfectoTemporalRetirado(plan, evento, entidadesPorId) {
+  const visual = crearEventoVisualEfectoTemporal({ evento, entidadesPorId });
+  if (visual) plan.push(visual);
+}
+
+function correlacionarEventosEfectosHabilidad({
+  eventoHabilidad,
+  entidadesPorId,
+  eventos = [],
+  indiceActual = -1,
+  indicesConsumidos = new Set(),
+} = {}) {
+  const idEjecucion = normalizarTextoSimple(eventoHabilidad?.idEjecucion);
+  const correlacionados = new Map();
+  if (!idEjecucion || !Array.isArray(eventos)) return correlacionados;
+
+  for (let indice = indiceActual + 1; indice < eventos.length; indice += 1) {
+    if (indicesConsumidos.has(indice)) continue;
+    const candidato = eventos[indice];
+    if (!candidato || typeof candidato !== "object") continue;
+    if (!TIPOS_EVENTO_EFECTO_CORRELACIONABLE.has(candidato.tipo)) continue;
+    if (obtenerIdEjecucionAsociada(candidato) !== idEjecucion) continue;
+
+    const visual = crearEventoVisualEfectoTemporal({
+      evento: candidato,
+      entidadesPorId,
+    });
+    if (!visual?.idObjetivo) continue;
+
+    indicesConsumidos.add(indice);
+    const lista = correlacionados.get(visual.idObjetivo) ?? [];
+    lista.push(visual);
+    correlacionados.set(visual.idObjetivo, lista);
+  }
+
+  return correlacionados;
+}
+
+function crearEventoVisualEfectoTemporal({ evento, entidadesPorId } = {}) {
+  if (evento?.tipo === "efecto_rechazado" && evento.motivo !== "duplicado") {
+    return null;
+  }
+
   const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
-  if (!normalizado) return;
-  plan.push(Object.freeze({
-    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO,
-    ...normalizado,
-    operacion: evento.tipo === "efecto_vencido" ? "vencido" : "retirado",
-    motivo: evento.motivo ?? (evento.tipo === "efecto_vencido" ? "vencimiento" : null),
-  }));
+  if (!normalizado) return null;
+
+  if (evento.tipo === "efecto_aplicado") {
+    return Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO,
+      ...normalizado,
+      operacion: "aplicado",
+    });
+  }
+
+  if (["efecto_renovado", "efecto_intensificado", "efecto_acumulado"].includes(evento.tipo)) {
+    return Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
+      ...normalizado,
+      operacion: evento.tipo.replace("efecto_", ""),
+      alcanzoMaximo: evento.alcanzoMaximo === true,
+    });
+  }
+
+  if (["efecto_resistido", "efecto_inmune", "efecto_rechazado"].includes(evento.tipo)) {
+    const motivo = resolverMotivoNoAplicado(evento);
+    return Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_NO_APLICADO,
+      ...normalizado,
+      operacion: "no_aplicado",
+      motivo,
+      feedback: obtenerFeedbackEfectoNoAplicado(motivo),
+      resistencia: Number.isFinite(evento.resistencia) ? evento.resistencia : null,
+      probabilidadFinal: Number.isFinite(evento.probabilidadFinal)
+        ? evento.probabilidadFinal
+        : null,
+    });
+  }
+
+  if (evento.tipo === "efecto_tick") {
+    return Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_TICK,
+      ...normalizado,
+      operacion: "tick",
+      instante: Number.isFinite(evento.instante) ? evento.instante : null,
+    });
+  }
+
+  if (["efecto_vencido", "efecto_retirado"].includes(evento.tipo)) {
+    return Object.freeze({
+      tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO,
+      ...normalizado,
+      operacion: evento.tipo === "efecto_vencido" ? "vencido" : "retirado",
+      motivo: evento.motivo ?? (evento.tipo === "efecto_vencido" ? "vencimiento" : null),
+    });
+  }
+
+  return null;
+}
+
+function obtenerIdEjecucionAsociada(evento) {
+  const directo = normalizarTextoSimple(evento?.idEjecucion);
+  if (directo) return directo;
+  const fuente = normalizarTextoSimple(evento?.definicion?.fuente?.id ?? evento?.fuente?.id);
+  if (fuente) return fuente;
+  const etiquetas = [
+    ...(Array.isArray(evento?.definicion?.etiquetas) ? evento.definicion.etiquetas : []),
+    ...(Array.isArray(evento?.etiquetas) ? evento.etiquetas : []),
+  ];
+  for (const etiqueta of etiquetas) {
+    if (typeof etiqueta !== "string") continue;
+    if (etiqueta.startsWith("ejecucion:")) {
+      return normalizarTextoSimple(etiqueta.slice("ejecucion:".length));
+    }
+  }
+  return null;
+}
+
+function normalizarTextoSimple(valor) {
+  if (typeof valor !== "string") return null;
+  const limpio = valor.trim();
+  return limpio === "" ? null : limpio;
 }
 
 function normalizarEventoEfectoTemporal(evento, entidadesPorId) {

@@ -84,7 +84,8 @@
             "alcance": 4,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -100,7 +101,8 @@
             "alcance": 5,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -116,7 +118,8 @@
             "alcance": 5,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 2
+              "radio": 2,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -352,7 +355,8 @@
             "alcance": 1,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -378,7 +382,8 @@
             "alcance": 1,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -404,7 +409,8 @@
             "alcance": 1,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 2
+              "radio": 2,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [
               {
@@ -918,7 +924,8 @@
             "alcance": 4,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [],
             "efectos": [
@@ -935,7 +942,11 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -950,7 +961,8 @@
             "alcance": 5,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 1
+              "radio": 1,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [],
             "efectos": [
@@ -967,7 +979,11 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -982,7 +998,8 @@
             "alcance": 5,
             "formaImpacto": {
               "tipo": "radio",
-              "radio": 2
+              "radio": 2,
+              "politicaObstaculos": "vision_desde_centro"
             },
             "danio": [],
             "efectos": [
@@ -999,7 +1016,11 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",

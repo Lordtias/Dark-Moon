@@ -1,3 +1,5 @@
+import { validarPerfilPatronVisualHabilidad } from "./PatronesVisualesHabilidades.js";
+
 const VERSION_SOPORTADA = 1;
 const FASES_SONIDO = Object.freeze([
   "preparacion",
@@ -111,6 +113,7 @@ function validarPerfiles({ perfiles, secuencias }) {
     );
     validarEscalas(perfil.escalaPorGrado, idHabilidad);
     validarSonido(perfil.sonido, idHabilidad);
+    validarPerfilPatronVisualHabilidad(perfil, idHabilidad);
   }
 }
 

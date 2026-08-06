@@ -1141,11 +1141,13 @@ P6.3 se divide en entregas independientes:
 1. `P6.3A` — contratos universales y habilidades básicas;
 2. `P6.3B.1` — contratos y representación persistente de estados temporales;
 3. `P6.3B.2` — renovaciones, intensificación, acumulación, ticks y coexistencia avanzada;
-4. `P6.3C.1` — habilidades intermedias de área y cadena;
-5. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
-6. `P6.3D` — habilidades avanzadas;
-7. `P6.3E` — habilidades canónicas de NPC para Lythra;
-8. `P6.3F` — regresión, documentación y cierre general de P6.3.
+4. `P6.3C.1A` — habilidades intermedias de área;
+5. `P6.3C.1B` — Cadena de rayos;
+6. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
+7. `P6.3D` — habilidades avanzadas;
+8. `P6.3E` — habilidades canónicas de NPC para Lythra;
+9. `P6.3F` — regresión, documentación y cierre general de P6.3;
+
 
 #### P6.3A — Contratos universales y habilidades básicas
 
@@ -1190,7 +1192,7 @@ Estado: cerrada, validada manualmente y publicada en `0c61b97269509d8be8ac35c2e5
 
 #### P6.3B.2 — Ciclos visuales, intensidad y coexistencia
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: validada manualmente y cerrada en `ec5933cd5090042f1be6511cbd5ad12ac5a65be3`.
 
 - `efecto_tick` se transporta como evento visual neutral antes de `danio_periodico`;
 - Veneno utiliza un pulso de burbujas y Quemadura una llamarada ascendente, sin recalcular daño ni intervalos;
@@ -1204,13 +1206,32 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 
 Ticks temáticos preceden al daño canónico; renovar no duplica ni parpadea la instancia; intensidad o cantidad se leen mediante densidad y `×N`; varios estados coexisten; muerte, mapa y cancelación no dejan objetos huérfanos; Canvas 2D y Phaser no contienen reglas de daño, duración o acumulación.
 
+#### P6.3C.1A — Habilidades intermedias de área
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- `habilidad_resuelta` agrega `idEjecucion` para correlacionar eventos derivados y conserva el objetivo primario solamente cuando la selección contiene una entidad;
+- `ResolucionEspacialHabilidades` centraliza políticas de obstáculos y reutiliza la línea de visión canónica de combate;
+- las formas de radio usan `vision_desde_centro`, de modo que paredes y esquinas recortan vista previa, objetivos, daño y casillas visuales con una única resolución;
+- `PatronesVisualesHabilidades` centraliza los patrones de presentación reutilizables sin contener geometría jugable;
+- los eventos de estados temporales producidos por Explosión ígnea o Nova de escarcha se adjuntan al impacto correcto y no se reproducen dos veces;
+- Phaser incorpora la secuencia `area_conjurada` con preparación, manifestación, expansión por anillos, impacto y retorno;
+- cada casilla canónica recibe fuego o fractura de hielo aunque no contenga una entidad;
+- Explosión ígnea siempre crea el núcleo en la casilla seleccionada; el impacto grande solo se usa si existe un objetivo primario real;
+- Nova de escarcha nace en el jugador y sincroniza daño y Ralentización por objetivo;
+- Canvas 2D continúa como respaldo funcional sin reglas nuevas.
+
+### Criterio de cierre de P6.3C.1A
+
+Explosión ígnea y Nova de escarcha se reproducen por anillos y muestran un efecto temático en cada casilla canónica, esté vacía u ocupada; las paredes recortan la vista previa y el daño mediante la resolución espacial compartida; el centro visual coincide con la selección o el actor según el patrón; solamente una entidad seleccionada explícitamente recibe énfasis primario; daño, crítico, fallo, derrota y estados aparecen sobre el objetivo correcto; cancelar la cola no deja restos; Canvas 2D y Phaser no recalculan geometría, colisiones, daño ni duración.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A y P6.3B.1 están cerradas; P6.3B.2 está implementada y pendiente de validación manual; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1 y P6.3B.2 están cerradas; P6.3C.1A queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

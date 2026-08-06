@@ -359,9 +359,11 @@ export class SistemaHabilidadesJugador {
         },
         grado: plan.grado,
         posicionObjetivo: plan.centro,
+        objetivoPrimario: plan.objetivoPrimario,
         casillasAfectadas: plan.casillasAfectadas,
         recorrido: plan.recorrido,
         impactos: impactosEvento,
+        idEjecucion,
         recursosActor: [
           {
             recurso: "mana",
@@ -733,6 +735,7 @@ export class SistemaHabilidadesJugador {
         contextoPotencia,
         creaZonaTemporal,
         centro: copiarCasilla(vistaPrevia.centro),
+        objetivoPrimario: vistaPrevia.objetivoPrimario ?? null,
         casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
         recorrido: vistaPrevia.recorrido.map((paso) => ({ ...paso })),
         costoMana: gradoConfig.costoMana,

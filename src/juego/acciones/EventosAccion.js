@@ -89,11 +89,13 @@ export function crearEventoHabilidadResuelta({
   grado,
   origenActor = null,
   posicionObjetivo = null,
+  objetivoPrimario = null,
   casillasAfectadas = [],
   recorrido = [],
   impactos = [],
   recursosActor = [],
   zonaTemporal = null,
+  idEjecucion = null,
 } = {}) {
   validarEntidad(actor, "ejecutora de la habilidad");
   if (!Object.values(TIPOS_ACTOR_HABILIDAD).includes(tipoActor)) {
@@ -115,6 +117,9 @@ export function crearEventoHabilidadResuelta({
   if (posicionObjetivo !== null) {
     validarPosicion(posicionObjetivo, "posición objetivo de la habilidad");
   }
+  if (objetivoPrimario !== null) {
+    validarEntidad(objetivoPrimario, "objetivo primario de la habilidad");
+  }
   if (!Array.isArray(impactos)) {
     throw new Error("Los impactos de habilidad deben ser una lista.");
   }
@@ -126,6 +131,10 @@ export function crearEventoHabilidadResuelta({
     origenActor: copiarPosicion(origen),
     posicionObjetivo: posicionObjetivo
       ? copiarPosicion(posicionObjetivo)
+      : null,
+    objetivoPrimario,
+    posicionObjetivoPrimario: objetivoPrimario
+      ? copiarPosicion(objetivoPrimario)
       : null,
     habilidad: Object.freeze({
       id: idHabilidad,
@@ -142,6 +151,7 @@ export function crearEventoHabilidadResuelta({
     impactos: copiarImpactosHabilidad(impactos),
     recursosActor: copiarCambiosRecursos(recursosActor),
     zonaTemporal: copiarZonaTemporalHabilidad(zonaTemporal),
+    idEjecucion: normalizarTexto(idEjecucion),
     ejecucionTemporal: null,
   });
 }

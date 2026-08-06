@@ -1,4 +1,9 @@
 import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
+import {
+  POLITICAS_OBSTACULOS_HABILIDAD,
+  filtrarDestinosVisibles,
+  resolverCasillasRadioConObstaculos,
+} from "./ResolucionEspacialHabilidades.js";
 
 export const TIPOS_FORMA_IMPACTO = Object.freeze({
   INDIVIDUAL: "individual",
@@ -229,7 +234,14 @@ export function crearCasillasFormaImpacto({
 
   switch (formaImpacto.tipo) {
     case TIPOS_FORMA_IMPACTO.RADIO:
-      return crearCasillasRadio({ mapa, centro, radio: formaImpacto.radio });
+      return resolverCasillasRadioConObstaculos({
+        mapa,
+        centro,
+        radio: formaImpacto.radio,
+        politicaObstaculos:
+          formaImpacto.politicaObstaculos ??
+          POLITICAS_OBSTACULOS_HABILIDAD.VISION_DESDE_CENTRO,
+      });
     case TIPOS_FORMA_IMPACTO.LINEA:
       return crearCasillasLinea({ mapa, jugador, centro, formaImpacto });
     case TIPOS_FORMA_IMPACTO.INDIVIDUAL:
@@ -274,6 +286,7 @@ function resolverFormaImpacto({
       });
     case TIPOS_FORMA_IMPACTO.CADENA:
       return resolverCadena({
+        mapa,
         objetivoPrimario,
         objetivos,
         formaImpacto,
@@ -323,18 +336,6 @@ function resolverPorCasillas({
   };
 }
 
-function crearCasillasRadio({ mapa, centro, radio }) {
-  const casillas = [];
-  for (let y = centro.y - radio; y <= centro.y + radio; y += 1) {
-    for (let x = centro.x - radio; x <= centro.x + radio; x += 1) {
-      if (!esCasillaSuelo(mapa, x, y)) continue;
-      if (distanciaCuadricula(centro, { x, y }) > radio) continue;
-      casillas.push({ x, y });
-    }
-  }
-  return casillas.sort(compararCasillas);
-}
-
 function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
   const direccion = normalizarDireccion({
     x: centro.x - jugador.x,
@@ -382,7 +383,7 @@ function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
   });
 }
 
-function resolverCadena({ objetivoPrimario, objetivos, formaImpacto }) {
+function resolverCadena({ mapa, objetivoPrimario, objetivos, formaImpacto }) {
   if (!objetivoPrimario) {
     return { casillasAfectadas: [], objetivosAfectados: [], recorrido: [] };
   }
@@ -392,12 +393,22 @@ function resolverCadena({ objetivoPrimario, objetivos, formaImpacto }) {
 
   while (seleccionados.length < formaImpacto.maximoObjetivos) {
     const actual = seleccionados[seleccionados.length - 1];
-    const siguiente = objetivos
-      .filter(
-        (objetivo) =>
-          !visitados.has(objetivo) &&
-          distanciaCuadricula(actual, objetivo) <= formaImpacto.alcanceSalto,
-      )
+    const candidatosPorDistancia = objetivos.filter(
+      (objetivo) =>
+        !visitados.has(objetivo) &&
+        distanciaCuadricula(actual, objetivo) <= formaImpacto.alcanceSalto,
+    );
+    const candidatos =
+      formaImpacto.politicaObstaculos ===
+      POLITICAS_OBSTACULOS_HABILIDAD.VISION_ENTRE_SALTOS
+        ? filtrarDestinosVisibles({
+            mapa,
+            origen: actual,
+            destinos: candidatosPorDistancia,
+            politicaObstaculos: formaImpacto.politicaObstaculos,
+          })
+        : candidatosPorDistancia;
+    const siguiente = candidatos
       .sort((a, b) => {
         const diferenciaDistancia =
           distanciaCuadricula(actual, a) - distanciaCuadricula(actual, b);

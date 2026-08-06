@@ -1,4 +1,4 @@
-const VERSION_SOPORTADA = 1;
+const VERSION_SOPORTADA = 2;
 const CANALES_VALIDOS = Object.freeze([
   "pies",
   "laterales",

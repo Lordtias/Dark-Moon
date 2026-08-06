@@ -5,8 +5,8 @@ import { CONFIGURACION_EFECTOS_TEMPORALES } from "../../config/ConfiguracionEfec
 export const TIPOS_EFECTO_TEMPORAL = Object.freeze({
   DANIO_PERIODICO: "danio_periodico",
   MODIFICADOR_FACTOR: "modificador_factor",
-  INMOVILIZACION: "inmovilizacion",
-  ATURDIMIENTO: "aturdimiento",
+  BLOQUEO_TOTAL: "bloqueo_total",
+  BLOQUEO_HABILIDADES: "bloqueo_habilidades",
 });
 export const TIPOS_EFECTO_TEMPORAL_VALIDOS = Object.freeze(
   Object.values(TIPOS_EFECTO_TEMPORAL),
@@ -201,8 +201,8 @@ function normalizarValorSegunTipo({
         componentesDanio: null,
       };
 
-    case TIPOS_EFECTO_TEMPORAL.INMOVILIZACION:
-    case TIPOS_EFECTO_TEMPORAL.ATURDIMIENTO:
+    case TIPOS_EFECTO_TEMPORAL.BLOQUEO_TOTAL:
+    case TIPOS_EFECTO_TEMPORAL.BLOQUEO_HABILIDADES:
       return {
         valor: Number.isFinite(valor) && valor > 0 ? valor : 1,
         tipoDanio: null,
@@ -369,6 +369,9 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     inmunidadId: normalizarTextoOpcional(definicion.inmunidadId),
     eliminarAlAdquirirInmunidad:
       definicion.eliminarAlAdquirirInmunidad === true,
+    eliminaEfectosAlAplicarse: normalizarEtiquetas(
+      definicion.eliminaEfectosAlAplicarse,
+    ),
     etiquetas: normalizarEtiquetas(definicion.etiquetas),
     beneficioso: definicion.beneficioso === true,
   });

@@ -1295,7 +1295,22 @@ export class RenderizadorCanvas2D {
       this.context.fillStyle = principal;
       this.context.lineWidth = Math.max(1, Math.floor(this.tileSize / 24));
 
-      if (perfil.canal === "pies") {
+      if (perfil.forma === "escarcha_inmovilizante") {
+        const y = centroY + radio * 0.72;
+        this.context.beginPath();
+        this.context.moveTo(centroX - radio, y);
+        this.context.lineTo(centroX - radio * 0.56, centroY + radio * 0.14);
+        this.context.lineTo(centroX - radio * 0.34, centroY - radio * 0.58);
+        this.context.moveTo(centroX + radio, y);
+        this.context.lineTo(centroX + radio * 0.54, centroY + radio * 0.12);
+        this.context.lineTo(centroX + radio * 0.32, centroY - radio * 0.54);
+        this.context.stroke();
+        this.context.strokeStyle = secundario;
+        this.context.beginPath();
+        this.context.moveTo(centroX - radio * 0.72, y + 2);
+        this.context.lineTo(centroX + radio * 0.72, y + 2);
+        this.context.stroke();
+      } else if (perfil.canal === "pies") {
         const y = centroY + radio * 0.78;
         this.context.beginPath();
         this.context.moveTo(centroX - radio, y);

@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -436,13 +436,13 @@
         }
       }
     },
-    "prision_glacial": {
-      "nombre": "Prisión glacial",
+    "rafaga_glacial": {
+      "nombre": "Ráfaga glacial",
       "maestria": "frio",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": "assets/imagenes/habilidades/prision_glacial.png",
-      "descripcion": "Encierra a un enemigo en hielo, causa daño de Frío y puede aplicarle Congelamiento sin renovar el control mientras siga activo.",
+      "icono": "assets/imagenes/habilidades/rafaga_glacial.png",
+      "descripcion": "Lanza una ráfaga intensa de viento helado que causa daño de Frío y tiene 60% de probabilidad base de aplicar Congelamiento.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
         "patronAtaque": "libre",
@@ -463,8 +463,8 @@
               {
                 "efectoId": "congelamiento",
                 "perfilAplicacion": "ignorar_mientras_activo",
-                "probabilidadBase": 100,
-                "duracion": 80
+                "probabilidadBase": 60,
+                "duracion": 200
               }
             ]
           },
@@ -482,8 +482,8 @@
               {
                 "efectoId": "congelamiento",
                 "perfilAplicacion": "ignorar_mientras_activo",
-                "probabilidadBase": 100,
-                "duracion": 90
+                "probabilidadBase": 60,
+                "duracion": 250
               }
             ]
           },
@@ -501,8 +501,8 @@
               {
                 "efectoId": "congelamiento",
                 "perfilAplicacion": "ignorar_mientras_activo",
-                "probabilidadBase": 100,
-                "duracion": 100
+                "probabilidadBase": 60,
+                "duracion": 300
               }
             ]
           }
@@ -951,11 +951,7 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -988,11 +984,7 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1025,11 +1017,7 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",

@@ -874,6 +874,7 @@ export class ReproductorEventosVisualesPhaser {
     const animacionesTrayectoria = [];
     if (proyectil) {
       const esMovimientoPesado = perfil.movimiento === "pesado";
+      const esImpulsoFuerte = perfil.movimiento === "impulso_fuerte";
       animacionesTrayectoria.push(this.crearTween({
         targets: proyectil,
         x: esDescargaAnclada ? centroActor.x : centroObjetivo.x,
@@ -884,9 +885,11 @@ export class ReproductorEventosVisualesPhaser {
             ? (proyectil.angle ?? 0) + 36
             : esMovimientoPesado
               ? (proyectil.angle ?? 0) + 14
-              : (proyectil.angle ?? 0) + 8,
-        scaleX: esMovimientoPesado ? 1.08 : 1,
-        scaleY: esMovimientoPesado ? 0.92 : 1,
+              : esImpulsoFuerte
+                ? proyectil.angle ?? 0
+                : (proyectil.angle ?? 0) + 8,
+        scaleX: esMovimientoPesado ? 1.08 : esImpulsoFuerte ? 1.18 : 1,
+        scaleY: esMovimientoPesado ? 0.92 : esImpulsoFuerte ? 0.86 : 1,
         alpha: esDescargaAnclada
           ? impacto?.impacto === false
             ? 0.42
@@ -3588,6 +3591,8 @@ function resolverEaseHabilidad(movimiento) {
       return "Cubic.easeIn";
     case "pesado":
       return "Sine.easeInOut";
+    case "impulso_fuerte":
+      return "Cubic.easeOut";
     default:
       return "Linear";
   }

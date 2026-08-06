@@ -1000,6 +1000,8 @@ function registrarHostilidad(juego, objetivo) {
 
 function obtenerBloqueoTemporal(juego) {
   const consultas = [
+    () => juego?.obtenerBloqueoHabilidadTemporal?.(),
+    () => juego?.coordinadorTiempo?.obtenerBloqueoHabilidadJugador?.(),
     () => juego?.obtenerBloqueoAccionTemporal?.(),
     () => juego?.coordinadorTiempo?.obtenerBloqueoAccionJugador?.(),
     () => juego?.obtenerBloqueoTemporalJugador?.(),

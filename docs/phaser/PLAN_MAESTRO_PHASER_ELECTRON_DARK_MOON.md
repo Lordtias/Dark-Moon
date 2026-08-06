@@ -1147,7 +1147,7 @@ P6.3 se divide en entregas independientes:
 7. `P6.3C.2B` — activaciones y ciclo completo de zonas temporales;
 8. `P6.3D.1` — Incinerar y Descarga fulminante;
 9. `P6.3D.2` — Plaga corrosiva;
-10. `P6.3D.3` — Prisión glacial y diseño específico de Congelamiento;
+10. `P6.3D.3` — Ráfaga glacial, bloqueo total y contraefectos;
 11. `P6.3E` — habilidades canónicas de NPC para Lythra;
 12. `P6.3F` — regresión, documentación y cierre general de P6.3;
 
@@ -1191,7 +1191,7 @@ Estado: cerrada, validada manualmente y publicada en `0c61b97269509d8be8ac35c2e5
 - la aplicación muestra el nombre del estado; renovación agrega `RENOVADO` e intensificación o acumulación muestran `×N`;
 - Esquirla de hielo usa Ralentización 1.40–1.55 y Nova de escarcha 1.60–1.70;
 - el movimiento visual aplica el factor neutral `costoFinal / costoBase`, sin recalcular la Ralentización en Phaser;
-- el posible rediseño de Congelamiento como inmovilización con invulnerabilidad se reserva para Prisión glacial y las habilidades avanzadas.
+- P6.3D.3 consolida Congelamiento como bloqueo total sin invulnerabilidad y reemplaza Prisión glacial por Ráfaga glacial.
 
 #### P6.3B.2 — Ciclos visuales, intensidad y coexistencia
 
@@ -1298,7 +1298,7 @@ Estado: validada y cerrada en `b88c2c57c30c438d21223c9487ff08629b2ab335`.
 - daño, fallo, crítico, Quemadura, Aturdimiento y derrota se reproducen al alcanzar el objetivo;
 - una derrota lineal queda integrada en su impacto y no se duplica al final;
 - Canvas 2D conserva la vista previa y recorrido neutral;
-- Prisión glacial y Congelamiento quedan excluidos hasta realizar un análisis específico previo a P6.3D.3.
+- la habilidad avanzada de Frío y el rediseño de Congelamiento quedaron reservados hasta el análisis específico de P6.3D.3.
 
 ### Criterio de cierre de P6.3D.1
 
@@ -1318,7 +1318,7 @@ Estado: implementada sobre la base `b88c2c57c30c438d21223c9487ff08629b2ab335`, s
 - la derrota del patrón proyectil se integra en el impacto y no se reproduce de nuevo al final;
 - Canvas 2D mantiene una única instancia y el indicador `×N`;
 - daño, Maná, alcance, duración, probabilidades, máximo y daño periódico permanecen sin cambios;
-- Prisión glacial y Congelamiento permanecen fuera del alcance.
+- la habilidad avanzada de Frío y Congelamiento permanecen fuera del alcance de esta entrega.
 
 ### Criterio de cierre de P6.3D.2
 
@@ -1330,7 +1330,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B y P6.3D.1 están cerradas; P6.3D.2 queda implementada con validaciones técnicas completas y validación visual manual pendiente; P6.3D.3 y las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B, P6.3D.1 y P6.3D.2 están cerradas; P6.3D.2 fue validada y publicada en `f5edc8d61776a21a15e627289faeab20f3e00b7e`. P6.3D.3 queda implementada con validaciones técnicas completas y validación visual manual pendiente; P6.3E y P6.3F permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 
@@ -1958,3 +1958,23 @@ Próxima acción:
 4. transmitir el SHA final mediante el prompt de la siguiente etapa, sin editar este documento para agregarlo.
 
 E0 continúa pausada y no se considera completada.
+
+#### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
+
+Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.3D.3 descarta la entidad física e invulnerable sugerida por el nombre Prisión glacial y la reemplaza por Ráfaga glacial. La habilidad conserva sus valores de daño, Maná, tiempo, alcance y duración, y usa 60 % de probabilidad base de Congelamiento en los tres grados.
+
+- Congelamiento, Aturdimiento y la futura Parálisis comparten `bloqueo_total`;
+- un bloqueo total impide cualquier acción y hace que la agenda temporal saltee al actor hasta el vencimiento;
+- Silencio usa `bloqueo_habilidades` y no bloquea movimiento, ataques normales, objetos o interacciones;
+- ningún control concede inmunidad al daño;
+- daño directo, críticos, efectos periódicos y derrotas continúan normalmente;
+- `eliminaEfectosAlAplicarse` define contraefectos sin condiciones específicas en el código;
+- Quemadura y Congelamiento se cancelan mutuamente después de una aplicación aceptada;
+- resistencia, inmunidad y rechazo por duplicado conservan el efecto activo;
+- Ráfaga glacial se presenta como viento helado fuerte con cristales y un impacto de escarcha, no como pared, bloque, destructible o colisión;
+- los guardados con `prision_glacial` migran a `rafaga_glacial`;
+- Canvas 2D continúa operativo.
+
+Base exacta: `f5edc8d61776a21a15e627289faeab20f3e00b7e`.

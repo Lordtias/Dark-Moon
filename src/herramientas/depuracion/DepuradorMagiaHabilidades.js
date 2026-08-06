@@ -51,7 +51,7 @@ const HABILIDADES_INTERMEDIAS = Object.freeze([
 ]);
 const HABILIDADES_AVANZADAS = Object.freeze([
   "incinerar",
-  "prision_glacial",
+  "rafaga_glacial",
   "descarga_fulminante",
   "plaga_corrosiva",
 ]);
@@ -656,7 +656,7 @@ function validarContratosHabilidades(contexto) {
 
   const contratosAvanzados = {
     incinerar: { objetivo: "enemigo", forma: "linea" },
-    prision_glacial: { objetivo: "enemigo", forma: "individual" },
+    rafaga_glacial: { objetivo: "enemigo", forma: "individual" },
     descarga_fulminante: { objetivo: "enemigo", forma: "linea" },
     plaga_corrosiva: { objetivo: "enemigo", forma: "individual" },
   };
@@ -779,6 +779,35 @@ function validarContratosEfectos(contexto) {
     {
       congelamiento: catalogo.congelamiento?.perfilesAplicacion ?? null,
       aturdimiento: catalogo.aturdimiento?.perfilesAplicacion ?? null,
+    },
+  );
+
+  comprobar(
+    comprobaciones,
+    "Congelamiento, Aturdimiento y Parálisis comparten el bloqueo total",
+    ["congelamiento", "aturdimiento", "paralisis"].every(
+      (id) => catalogo[id]?.tipo === "bloqueo_total",
+    ),
+    {
+      congelamiento: catalogo.congelamiento?.tipo ?? null,
+      aturdimiento: catalogo.aturdimiento?.tipo ?? null,
+      paralisis: catalogo.paralisis?.tipo ?? null,
+    },
+  );
+  comprobar(
+    comprobaciones,
+    "Silencio bloquea solo habilidades",
+    catalogo.silencio?.tipo === "bloqueo_habilidades",
+    catalogo.silencio?.tipo ?? null,
+  );
+  comprobar(
+    comprobaciones,
+    "Quemadura y Congelamiento declaran su contraefecto en el catálogo",
+    catalogo.quemadura?.eliminaEfectosAlAplicarse?.includes("congelamiento") &&
+      catalogo.congelamiento?.eliminaEfectosAlAplicarse?.includes("quemadura"),
+    {
+      quemadura: catalogo.quemadura?.eliminaEfectosAlAplicarse ?? null,
+      congelamiento: catalogo.congelamiento?.eliminaEfectosAlAplicarse ?? null,
     },
   );
 

@@ -270,6 +270,45 @@ function dibujarEstadoPersistente({
     return;
   }
 
+  if (forma === "escarcha_inmovilizante") {
+    grafico.lineStyle?.(2, principal, 0.9);
+    grafico.beginPath?.();
+    grafico.moveTo?.(-radio * 0.92, radio * 0.62);
+    grafico.lineTo?.(-radio * 0.58, radio * 0.2);
+    grafico.lineTo?.(-radio * 0.36, -radio * 0.62);
+    grafico.strokePath?.();
+    grafico.beginPath?.();
+    grafico.moveTo?.(radio * 0.92, radio * 0.62);
+    grafico.lineTo?.(radio * 0.54, radio * 0.16);
+    grafico.lineTo?.(radio * 0.34, -radio * 0.56);
+    grafico.strokePath?.();
+    grafico.lineStyle?.(1, secundario, 0.78);
+    grafico.lineBetween?.(-radio * 0.72, radio * 0.78, radio * 0.72, radio * 0.78);
+    grafico.lineBetween?.(-radio * 0.5, radio * 0.36, -radio * 0.12, radio * 0.72);
+    grafico.lineBetween?.(radio * 0.48, radio * 0.32, radio * 0.1, radio * 0.72);
+    return;
+  }
+
+  if (forma === "anillos_paralisis") {
+    grafico.lineStyle?.(2, principal, 0.9);
+    grafico.strokeEllipse?.(0, -radio * 0.24, radio * 1.7, radio * 0.48);
+    grafico.strokeEllipse?.(0, radio * 0.42, radio * 1.82, radio * 0.42);
+    grafico.lineStyle?.(1, secundario, 0.84);
+    grafico.lineBetween?.(-radio * 0.88, -radio * 0.08, -radio * 0.64, radio * 0.32);
+    grafico.lineBetween?.(radio * 0.88, -radio * 0.08, radio * 0.64, radio * 0.32);
+    return;
+  }
+
+  if (forma === "sello_silencio") {
+    const y = -radio * 1.05;
+    grafico.lineStyle?.(2, principal, 0.9);
+    grafico.strokeCircle?.(0, y, radio * 0.38);
+    grafico.lineStyle?.(1.6, secundario, 0.9);
+    grafico.lineBetween?.(-radio * 0.24, y - radio * 0.24, radio * 0.24, y + radio * 0.24);
+    grafico.lineBetween?.(-radio * 0.24, y + radio * 0.24, radio * 0.24, y - radio * 0.24);
+    return;
+  }
+
   if (forma === "carcasa_fragmentada") {
     grafico.lineStyle?.(2, principal, 0.9);
     grafico.beginPath?.();

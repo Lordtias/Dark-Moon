@@ -285,14 +285,14 @@
       "efectoObjetivo": "combustion",
       "efectoObjetivoPrimario": null
     },
-    "prision_glacial": {
+    "rafaga_glacial": {
       "nivelVisual": "avanzada",
-      "secuencia": "area_conjurada",
-      "forma": "prision_cristalina",
-      "movimiento": "cierre_vertical",
-      "textura": "placas_de_hielo",
-      "estela": "niebla_fria",
-      "impacto": "encierro_cristalino",
+      "secuencia": "proyectil_basico",
+      "forma": "rafaga_glacial",
+      "movimiento": "impulso_fuerte",
+      "textura": "fragmentos_helados",
+      "estela": "cristales_arrastrados",
+      "impacto": "escarcha_fragmentada",
       "colorPrincipal": "#65d5ff",
       "colorSecundario": "#f3fdff",
       "tamanoVisualPx": 24,
@@ -306,10 +306,10 @@
         "lanzamiento": null,
         "impacto": null
       },
-      "patronVisual": "area_instantanea",
-      "centroVisual": "seleccion",
-      "efectoCasilla": "encierro_cristalino",
-      "efectoObjetivo": "encierro_cristalino",
+      "patronVisual": "proyectil",
+      "centroVisual": "actor",
+      "efectoCasilla": null,
+      "efectoObjetivo": "choque_glacial",
       "efectoObjetivoPrimario": null
     },
     "descarga_fulminante": {

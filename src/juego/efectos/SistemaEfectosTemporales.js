@@ -202,6 +202,7 @@ function crearResumenEfecto(efecto) {
     modoResistencia: efecto.modoResistencia,
     inmunidadId: efecto.inmunidadId,
     eliminarAlAdquirirInmunidad: efecto.eliminarAlAdquirirInmunidad,
+    eliminaEfectosAlAplicarse: [...(efecto.eliminaEfectosAlAplicarse ?? [])],
     suspendido: efecto.suspendido,
   };
 }
@@ -250,27 +251,38 @@ export class SistemaEfectosTemporales {
     );
   }
 
-  estaInmovilizado(objetivo) {
-    return this.tieneEfectoTipo(
-      objetivo,
-      TIPOS_EFECTO_TEMPORAL.INMOVILIZACION,
+  obtenerBloqueosTotales(objetivo) {
+    return this.obtenerEfectosObjetivo(objetivo).filter(
+      (efecto) => efecto.tipo === TIPOS_EFECTO_TEMPORAL.BLOQUEO_TOTAL,
     );
   }
 
-  estaAturdido(objetivo) {
-    return this.tieneEfectoTipo(
-      objetivo,
-      TIPOS_EFECTO_TEMPORAL.ATURDIMIENTO,
-    );
+  obtenerBloqueoTotalActivo(objetivo) {
+    return this.obtenerBloqueosTotales(objetivo)
+      .sort((a, b) => (b.venceEn ?? 0) - (a.venceEn ?? 0))[0] ?? null;
   }
 
-  obtenerFinAturdimiento(objetivo) {
-    const vencimientos = this.obtenerEfectosObjetivo(objetivo)
-      .filter((efecto) => efecto.tipo === TIPOS_EFECTO_TEMPORAL.ATURDIMIENTO)
+  estaBajoBloqueoTotal(objetivo) {
+    return this.obtenerBloqueoTotalActivo(objetivo) !== null;
+  }
+
+  obtenerFinBloqueoTotal(objetivo) {
+    const vencimientos = this.obtenerBloqueosTotales(objetivo)
       .map((efecto) => efecto.venceEn)
       .filter(Number.isFinite);
 
     return vencimientos.length > 0 ? Math.max(...vencimientos) : null;
+  }
+
+  obtenerBloqueoHabilidadesActivo(objetivo) {
+    return this.obtenerEfectosObjetivo(objetivo).find(
+      (efecto) =>
+        efecto.tipo === TIPOS_EFECTO_TEMPORAL.BLOQUEO_HABILIDADES,
+    ) ?? null;
+  }
+
+  tieneBloqueoHabilidades(objetivo) {
+    return this.obtenerBloqueoHabilidadesActivo(objetivo) !== null;
   }
 
   aplicar(definicionRecibida, { obtenerTiradaAplicacion: proveedorTirada = null } = {}) {
@@ -362,15 +374,40 @@ export class SistemaEfectosTemporales {
     const clave = crearClaveEfecto(definicion);
     const existente = estado.efectos.get(clave);
 
-    this.objetivosAdministrados.add(definicion.objetivo);
-
     if (existente) {
-      return this.reaplicarEfecto(existente, definicion, tiempoActual, {
-        resistencia,
-        probabilidadFinal,
-        tiradaAplicacion,
-      });
+      const resultadoReaplicacion = this.reaplicarEfecto(
+        existente,
+        definicion,
+        tiempoActual,
+        {
+          resistencia,
+          probabilidadFinal,
+          tiradaAplicacion,
+        },
+      );
+      if (!resultadoReaplicacion.exito) {
+        return resultadoReaplicacion;
+      }
+      const eventosContraefecto = this.retirarContraefectos(
+        definicion.objetivo,
+        definicion,
+        { excluirClave: existente.clave },
+      );
+      resultadoReaplicacion.eventos = [
+        ...eventosContraefecto,
+        ...(resultadoReaplicacion.eventos ?? []),
+      ];
+      resultadoReaplicacion.contraefectosRetirados = eventosContraefecto.map(
+        (evento) => evento.catalogoEfectoId,
+      );
+      return resultadoReaplicacion;
     }
+
+    const eventosContraefecto = this.retirarContraefectos(
+      definicion.objetivo,
+      definicion,
+    );
+    this.objetivosAdministrados.add(definicion.objetivo);
 
     const efecto = {
       id: `efecto-${siguienteIdInstancia++}`,
@@ -400,6 +437,7 @@ export class SistemaEfectosTemporales {
       modoResistencia: definicion.modoResistencia,
       inmunidadId: definicion.inmunidadId,
       eliminarAlAdquirirInmunidad: definicion.eliminarAlAdquirirInmunidad,
+      eliminaEfectosAlAplicarse: [...definicion.eliminaEfectosAlAplicarse],
       intensidad: definicion.intensidadInicial,
       cantidad: 1,
       escalaPorIntensidad:
@@ -440,7 +478,10 @@ export class SistemaEfectosTemporales {
       tiradaAplicacion,
       efecto: crearResumenEfecto(efecto),
       mensaje: `${obtenerNombreObjetivo(efecto.objetivo)} recibió ${efecto.nombreEfecto}.`,
-      eventos: [evento],
+      contraefectosRetirados: eventosContraefecto.map(
+        (eventoRetiro) => eventoRetiro.catalogoEfectoId,
+      ),
+      eventos: [...eventosContraefecto, evento],
     };
   }
 
@@ -544,6 +585,9 @@ export class SistemaEfectosTemporales {
     efecto.inmunidadId = definicion.inmunidadId;
     efecto.eliminarAlAdquirirInmunidad =
       definicion.eliminarAlAdquirirInmunidad;
+    efecto.eliminaEfectosAlAplicarse = [
+      ...definicion.eliminaEfectosAlAplicarse,
+    ];
 
     // Toda reaplicación aceptada renueva la duración. El próximo tick ya
     // programado conserva su cadencia y no se reinicia.
@@ -582,6 +626,47 @@ export class SistemaEfectosTemporales {
         }),
       ],
     };
+  }
+
+  retirarContraefectos(
+    objetivo,
+    definicionNueva,
+    { excluirClave = null } = {},
+  ) {
+    const estado = obtenerEstadoObjetivo(objetivo, false);
+    if (!estado) return [];
+
+    const eliminadosPorNuevo = new Set(
+      definicionNueva.eliminaEfectosAlAplicarse ?? [],
+    );
+    const eventos = [];
+
+    for (const efectoActivo of [...estado.efectos.values()]) {
+      if (efectoActivo.clave === excluirClave) continue;
+      const activoEliminaNuevo =
+        efectoActivo.eliminaEfectosAlAplicarse?.includes(
+          definicionNueva.efectoId,
+        ) === true;
+      if (
+        !eliminadosPorNuevo.has(efectoActivo.efectoId) &&
+        !activoEliminaNuevo
+      ) {
+        continue;
+      }
+
+      const evento = this.retirarEfecto(efectoActivo, {
+        motivo: "contraefecto",
+        datosEvento: {
+          catalogoEfectoCausanteId: definicionNueva.efectoId,
+          nombreEfectoCausante: definicionNueva.nombreEfecto,
+          idDefinicionCausante: definicionNueva.idDefinicion,
+          idEjecucion: definicionNueva.fuente?.id ?? null,
+        },
+      });
+      if (evento) eventos.push(evento);
+    }
+
+    return eventos;
   }
 
   retirarEfectosAhoraInmunes(objetivo) {
@@ -809,6 +894,7 @@ export class SistemaEfectosTemporales {
   retirarEfecto(efecto, {
     motivo = "retirado",
     emitirEventoRetiro = true,
+    datosEvento = {},
   } = {}) {
     const estado = obtenerEstadoObjetivo(efecto.objetivo, false);
     if (!estado || !estado.efectos.has(efecto.clave)) {
@@ -825,7 +911,10 @@ export class SistemaEfectosTemporales {
     }
 
     return emitirEventoRetiro
-      ? this.crearEventoDominio("efecto_retirado", efecto, { motivo })
+      ? this.crearEventoDominio("efecto_retirado", efecto, {
+          motivo,
+          ...datosEvento,
+        })
       : null;
   }
 
@@ -1033,6 +1122,7 @@ export class SistemaEfectosTemporales {
       proximoTick: efecto.proximoTick,
       etiquetas: [...efecto.etiquetas],
       beneficioso: efecto.beneficioso,
+      eliminaEfectosAlAplicarse: [...(efecto.eliminaEfectosAlAplicarse ?? [])],
       ...datos,
     };
   }

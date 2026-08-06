@@ -163,6 +163,38 @@ function dibujarGlifoConjuracion({
     grafico.strokePath?.();
     return;
   }
+  if (forma === "rafaga_glacial") {
+    grafico.lineStyle?.(1.2, secundario, 0.86);
+    const trazos = [
+      { x: -0.56, y: -0.24, largo: 0.32 },
+      { x: -0.34, y: 0.08, largo: 0.26 },
+      { x: -0.08, y: -0.12, largo: 0.28 },
+      { x: 0.2, y: 0.18, largo: 0.24 },
+      { x: 0.46, y: -0.04, largo: 0.3 },
+    ];
+    for (const trazo of trazos) {
+      const x = radio * trazo.x;
+      const y = radio * trazo.y;
+      grafico.lineBetween?.(
+        x - radio * trazo.largo,
+        y,
+        x + radio * trazo.largo * 0.9,
+        y,
+      );
+      dibujarFragmentoHielo({
+        grafico,
+        x,
+        y,
+        largo: radio * 0.34,
+        ancho: radio * 0.12,
+        principal,
+        secundario,
+        alphaRelleno: 0.9,
+        alphaBorde: 0.92,
+      });
+    }
+    return;
+  }
   if (forma === "masa_corrosiva") {
     grafico.fillStyle?.(principal, 0.72);
     grafico.fillCircle?.(-radio * 0.38, radio * 0.16, radio * 0.28);
@@ -217,6 +249,47 @@ function dibujarFormaHabilidad({
     return;
   }
 
+
+  if (forma === "rafaga_glacial") {
+    const largo = tamano * 1.34;
+    const fragmentos = [
+      { x: -0.38, y: -0.34, escala: 0.28 },
+      { x: -0.34, y: 0.3, escala: 0.24 },
+      { x: -0.16, y: -0.08, escala: 0.22 },
+      { x: -0.04, y: 0.18, escala: 0.2 },
+      { x: 0.06, y: -0.24, escala: 0.24 },
+      { x: 0.18, y: 0.04, escala: 0.3 },
+      { x: 0.3, y: -0.14, escala: 0.22 },
+      { x: 0.42, y: 0.22, escala: 0.2 },
+      { x: 0.56, y: -0.02, escala: 0.26 },
+    ];
+    grafico.lineStyle?.(1.15, principal, 0.26);
+    for (const fragmento of fragmentos) {
+      const x = largo * fragmento.x;
+      const y = mitad * 2 * fragmento.y;
+      const cola = largo * (0.4 + fragmento.escala * 0.65);
+      grafico.lineBetween?.(x - cola, y, x - largo * 0.08, y);
+      dibujarFragmentoHielo({
+        grafico,
+        x,
+        y,
+        largo: tamano * fragmento.escala,
+        ancho: tamano * fragmento.escala * 0.34,
+        principal,
+        secundario,
+        alphaRelleno: 0.92,
+        alphaBorde: 0.96,
+      });
+    }
+
+    grafico.lineStyle?.(1.3, secundario, 0.3);
+    grafico.lineBetween?.(-largo * 0.72, 0, largo * 0.72, 0);
+    grafico.lineBetween?.(-largo * 0.58, -mitad * 0.22, largo * 0.54, -mitad * 0.1);
+    grafico.lineBetween?.(-largo * 0.58, mitad * 0.22, largo * 0.54, mitad * 0.1);
+    grafico.fillStyle?.(secundario, 0.74);
+    grafico.fillCircle?.(-largo * 0.62, 0, Math.max(1.2, tamano * 0.08));
+    return;
+  }
 
   if (forma === "rayo_zigzag") {
     const dx = Number.isFinite(destino?.x) ? destino.x - centro.x : tamano * 1.6;
@@ -330,6 +403,28 @@ function dibujarTexturaHabilidad({
     grafico.lineBetween?.(-mitad * 0.3, mitad * 0.18, mitad * 0.28, 0);
     return;
   }
+  if (textura === "viento_helado") {
+    grafico.lineStyle?.(1, secundario, 0.78);
+    for (let indice = -1; indice <= 1; indice += 1) {
+      const y = indice * mitad * 0.42;
+      grafico.lineBetween?.(-mitad * 0.72, y, mitad * 0.74, y * 0.62);
+    }
+    grafico.fillStyle?.(principal, 0.72);
+    grafico.fillCircle?.(-mitad * 0.2, -mitad * 0.48, Math.max(0.8, tamano * 0.045));
+    grafico.fillCircle?.(mitad * 0.28, mitad * 0.42, Math.max(0.8, tamano * 0.04));
+    return;
+  }
+  if (textura === "fragmentos_helados") {
+    grafico.lineStyle?.(1, secundario, 0.48);
+    grafico.lineBetween?.(-mitad * 0.84, 0, -mitad * 0.1, 0);
+    grafico.lineBetween?.(-mitad * 0.62, -mitad * 0.22, mitad * 0.08, -mitad * 0.12);
+    grafico.lineBetween?.(-mitad * 0.62, mitad * 0.22, mitad * 0.08, mitad * 0.12);
+    grafico.fillStyle?.(secundario, 0.7);
+    grafico.fillCircle?.(-mitad * 0.24, -mitad * 0.3, Math.max(0.8, tamano * 0.05));
+    grafico.fillCircle?.(mitad * 0.1, mitad * 0.24, Math.max(0.8, tamano * 0.045));
+    grafico.fillCircle?.(mitad * 0.34, -mitad * 0.18, Math.max(0.8, tamano * 0.04));
+    return;
+  }
   if (textura === "toxina_burbujeante") {
     grafico.lineStyle?.(1.2, secundario, 0.86);
     grafico.strokeCircle?.(
@@ -391,7 +486,18 @@ function dibujarEstelaHabilidad({
     const x = origen.x + dx * t + perpendicular.x * alternancia * 2.2 * escala;
     const y = origen.y + dy * t + perpendicular.y * alternancia * 2.2 * escala;
 
-    if (estela === "polvo_helado") {
+    if (estela === "cristales_arrastrados") {
+      grafico.lineStyle?.(1.2, secundario, 0.82);
+      const radio = (1.8 + (paso % 3) * 0.5) * escala;
+      grafico.lineBetween?.(x - radio, y, x + radio, y);
+      grafico.lineBetween?.(x, y - radio, x, y + radio);
+      grafico.fillStyle?.(principal, 0.58);
+      grafico.fillCircle?.(
+        x - perpendicular.x * radio * 1.5,
+        y - perpendicular.y * radio * 1.5,
+        radio * 0.42,
+      );
+    } else if (estela === "polvo_helado") {
       grafico.lineStyle?.(1, secundario, 0.7);
       const radio = (1.4 + (paso % 3) * 0.45) * escala;
       grafico.lineBetween?.(x - radio, y, x + radio, y);
@@ -430,6 +536,70 @@ function dibujarImpactoHabilidad({
 }) {
   const radio = tamano * 0.58;
   const grosor = critico ? 3 : 2;
+
+  if (impacto === "choque_glacial") {
+    grafico.fillStyle?.(principal, 0.32);
+    grafico.fillCircle?.(0, 0, radio * 0.62);
+    grafico.lineStyle?.(grosor, secundario, 0.94);
+    grafico.strokeCircle?.(0, 0, radio * 0.82);
+    for (let indice = 0; indice < 10; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / 10;
+      const distancia = radio * (indice % 2 === 0 ? 1.1 : 0.86);
+      const x = Math.cos(angulo) * distancia;
+      const y = Math.sin(angulo) * distancia;
+      grafico.lineBetween?.(
+        Math.cos(angulo) * radio * 0.36,
+        Math.sin(angulo) * radio * 0.36,
+        x,
+        y,
+      );
+      if (indice % 2 === 0) {
+        grafico.fillStyle?.(principal, 0.8);
+        grafico.fillCircle?.(x, y, critico ? 2.1 : 1.5);
+      }
+    }
+    grafico.lineStyle?.(1, principal, 0.68);
+    grafico.beginPath?.();
+    grafico.moveTo?.(-radio * 0.92, -radio * 0.22);
+    grafico.lineTo?.(radio * 0.78, radio * 0.18);
+    grafico.strokePath?.();
+    return;
+  }
+
+  if (impacto === "escarcha_fragmentada") {
+    grafico.fillStyle?.(principal, 0.26);
+    grafico.fillCircle?.(0, 0, radio * 0.48);
+    grafico.lineStyle?.(grosor, secundario, 0.9);
+    grafico.strokeCircle?.(0, 0, radio * 0.58);
+    for (let indice = 0; indice < 8; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / 8;
+      const x = Math.cos(angulo) * radio * 0.72;
+      const y = Math.sin(angulo) * radio * 0.72;
+      dibujarFragmentoHielo({
+        grafico,
+        x,
+        y,
+        largo: radio * 0.18,
+        ancho: radio * 0.07,
+        principal,
+        secundario,
+        alphaRelleno: 0.82,
+        alphaBorde: 0.9,
+        rotacionExtra: angulo,
+      });
+      grafico.lineBetween?.(
+        Math.cos(angulo) * radio * 0.2,
+        Math.sin(angulo) * radio * 0.2,
+        Math.cos(angulo) * radio * 0.5,
+        Math.sin(angulo) * radio * 0.5,
+      );
+    }
+    grafico.fillStyle?.(secundario, 0.76);
+    grafico.fillCircle?.(0, 0, Math.max(1.2, radio * 0.13));
+    grafico.fillCircle?.(-radio * 0.18, radio * 0.14, Math.max(0.9, radio * 0.08));
+    grafico.fillCircle?.(radio * 0.2, -radio * 0.12, Math.max(0.9, radio * 0.07));
+    return;
+  }
 
   if (impacto === "corrosion_expansiva") {
     const intensidad = limitarEntero(
@@ -562,6 +732,58 @@ function dibujarImpactoHabilidad({
       Math.sin(angulo) * radio * 1.16,
     );
   }
+}
+
+function dibujarFragmentoHielo({
+  grafico,
+  x = 0,
+  y = 0,
+  largo,
+  ancho,
+  principal,
+  secundario,
+  alphaRelleno = 0.9,
+  alphaBorde = 0.94,
+  rotacionExtra = 0,
+}) {
+  const cos = Math.cos(rotacionExtra);
+  const sin = Math.sin(rotacionExtra);
+  const puntos = [
+    { x: largo, y: 0 },
+    { x: -largo * 0.1, y: ancho },
+    { x: -largo, y: 0 },
+    { x: -largo * 0.1, y: -ancho },
+  ].map((punto) => ({
+    x: x + punto.x * cos - punto.y * sin,
+    y: y + punto.x * sin + punto.y * cos,
+  }));
+
+  grafico.fillStyle?.(principal, alphaRelleno);
+  grafico.lineStyle?.(1.3, secundario, alphaBorde);
+  grafico.beginPath?.();
+  grafico.moveTo?.(puntos[0].x, puntos[0].y);
+  for (let indice = 1; indice < puntos.length; indice += 1) {
+    grafico.lineTo?.(puntos[indice].x, puntos[indice].y);
+  }
+  grafico.closePath?.();
+  grafico.fillPath?.();
+  grafico.strokePath?.();
+
+  const interiorA = {
+    x: x + (largo * 0.2) * cos,
+    y: y + (largo * 0.2) * sin,
+  };
+  const interiorB = {
+    x: x + (-largo * 0.42) * cos - (-ancho * 0.3) * sin,
+    y: y + (-largo * 0.42) * sin + (-ancho * 0.3) * cos,
+  };
+  const interiorC = {
+    x: x + (-largo * 0.42) * cos - (ancho * 0.3) * sin,
+    y: y + (-largo * 0.42) * sin + (ancho * 0.3) * cos,
+  };
+  grafico.lineStyle?.(0.8, secundario, 0.62);
+  grafico.lineBetween?.(interiorB.x, interiorB.y, interiorA.x, interiorA.y);
+  grafico.lineBetween?.(interiorC.x, interiorC.y, interiorA.x, interiorA.y);
 }
 
 function limitarEntero(valor, minimo, maximo) {

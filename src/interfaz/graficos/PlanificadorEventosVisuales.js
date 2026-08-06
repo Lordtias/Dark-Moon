@@ -32,6 +32,7 @@ const TIPOS_EVENTO_EFECTO_CORRELACIONABLE = new Set([
   "efecto_resistido",
   "efecto_inmune",
   "efecto_rechazado",
+  "efecto_retirado",
 ]);
 
 export const TIPOS_EVENTO_VISUAL = Object.freeze({

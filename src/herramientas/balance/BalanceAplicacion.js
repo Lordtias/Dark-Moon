@@ -42,7 +42,7 @@ const elementos = Object.fromEntries(
     "balancePotenciaCuerpo",
     "balanceArquetiposCuerpo",
     "balanceFocoIncinerarCuerpo",
-    "balanceFocoPrisionCuerpo",
+    "balanceFocoRafagaCuerpo",
     "balanceFocoNubeCuerpo",
     "balanceFocoPlagaCuerpo",
     "balanceFocoPotenciaCuerpo",
@@ -210,7 +210,7 @@ function tituloConclusion(id) {
     potencia_habilidad: "Potencia de Habilidad",
     arquetipos: "Comparación de arquetipos",
     foco_incinerar: "Incinerar grado 3",
-    foco_prision: "Prisión glacial",
+    foco_rafaga: "Ráfaga glacial",
     foco_nube: "Nube tóxica",
     foco_plaga: "Plaga corrosiva",
     foco_doble_varita: "Doble varita con afijos máximos",
@@ -495,14 +495,13 @@ function dibujarPruebasFocalizadas(pruebas) {
     crearEtiquetaEstado(fila.estado),
   ]);
 
-  llenar("balanceFocoPrisionCuerpo", pruebas.prisionGlacial.filas, (fila) => [
+  llenar("balanceFocoRafagaCuerpo", pruebas.rafagaGlacial.filas, (fila) => [
     `G${fila.grado}`,
     fila.objetivo,
-    fila.distancia,
     fila.duracion,
     `${formatearNumero(fila.probabilidadCongelar)} %`,
-    formatearNumero(fila.accionesMovimientoEvitadas),
-    fila.detieneAtaqueAdyacente ? "Sí" : "No",
+    formatearNumero(fila.accionesBloqueadasEsperadas),
+    fila.bloqueoTotal ? "Sí" : "No",
     fila.duplicadoRechazado ? "Sí" : "No",
     fila.unaSolaInstancia ? "Sí" : "No",
     fila.criterio,

@@ -183,6 +183,10 @@ export class Juego {
     return this.coordinadorTiempo.obtenerBloqueoAccionJugador();
   }
 
+  obtenerBloqueoHabilidadTemporal() {
+    return this.coordinadorTiempo.obtenerBloqueoHabilidadJugador();
+  }
+
   aplicarEfectoTemporal(definicion) {
     return this.coordinadorTiempo.aplicarEfectoTemporal(definicion);
   }

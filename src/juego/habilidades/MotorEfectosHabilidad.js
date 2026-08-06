@@ -163,6 +163,9 @@ function crearDefinicionCanonica({ efecto, objetivo, idEjecucion }) {
     modoResistencia: efecto.modoResistencia,
     inmunidadId: efecto.inmunidadId,
     eliminarAlAdquirirInmunidad: efecto.eliminarAlAdquirirInmunidad,
+    eliminaEfectosAlAplicarse: [
+      ...(efecto.eliminaEfectosAlAplicarse ?? []),
+    ],
     etiquetas: [
       "habilidad",
       `ejecucion:${idEjecucion}`,
@@ -239,6 +242,9 @@ function resumirDefinicion(definicion) {
     resistenciaId: definicion.resistenciaId,
     modoResistencia: definicion.modoResistencia,
     inmunidadId: definicion.inmunidadId,
+    eliminaEfectosAlAplicarse: [
+      ...(definicion.eliminaEfectosAlAplicarse ?? []),
+    ],
     etiquetas: [...(definicion.etiquetas ?? [])],
     beneficioso: definicion.beneficioso,
   };
@@ -256,6 +262,9 @@ function resumirResultado(resultado) {
     resistencia: resultado?.resistencia ?? null,
     probabilidadFinal: resultado?.probabilidadFinal ?? null,
     tiradaAplicacion: resultado?.tiradaAplicacion ?? null,
+    contraefectosRetirados: [
+      ...(resultado?.contraefectosRetirados ?? []),
+    ],
     efecto: efecto
       ? {
           id: efecto.id,

@@ -264,7 +264,7 @@ export class SistemaTiempo {
     };
   }
 
-  // Permite que el coordinador saltee exactamente el período de aturdimiento
+  // Permite que el coordinador saltee exactamente un período de bloqueo total
   // sin registrar una acción ficticia ni alterar los factores del actor.
   establecerProximoTurno(actor, instante) {
     const registro = this.registros.get(actor);

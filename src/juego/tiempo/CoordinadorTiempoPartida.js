@@ -83,7 +83,7 @@ export class CoordinadorTiempoPartida {
         }),
     });
     this.sistemaTiempo.establecerConsultaDisponibilidadMinima((actor) =>
-      this.sistemaEfectosTemporales.obtenerFinAturdimiento(actor),
+      this.sistemaEfectosTemporales.obtenerFinBloqueoTotal(actor),
     );
     this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
     this.destruido = false;
@@ -162,6 +162,7 @@ export class CoordinadorTiempoPartida {
       definicionEfecto,
       { obtenerTiradaAplicacion },
     );
+    this.eliminarFuentesSegunEventos(resultado.eventos);
 
     if (resultado.exito && resultado.efecto?.id && fuenteCombatiente) {
       this.fuentesCombatientesPorEfecto.set(
@@ -306,42 +307,65 @@ export class CoordinadorTiempoPartida {
   }
 
   obtenerBloqueoAccionJugador() {
-    if (!this.sistemaEfectosTemporales.estaAturdido(this.jugador)) {
-      return null;
-    }
+    const efecto =
+      this.sistemaEfectosTemporales.obtenerBloqueoTotalActivo(this.jugador);
+    if (!efecto) return null;
+
+    const mensajes = {
+      aturdimiento: "Estás aturdido y no podés realizar acciones.",
+      congelamiento: "Estás congelado y no podés realizar acciones.",
+      paralisis: "Estás paralizado y no podés realizar acciones.",
+    };
     return {
       exito: false,
-      mensaje: "Estás aturdido y no podés realizar acciones.",
+      bloqueado: true,
+      motivo: "bloqueo_total",
+      mensaje:
+        mensajes[efecto.efectoId] ??
+        `El efecto ${efecto.nombreEfecto} impide realizar acciones.`,
       turnoConsumido: false,
       redibujar: false,
       eventos: [
         {
-          tipo: "accion_rechazada_por_aturdimiento",
+          tipo: "accion_rechazada_por_bloqueo_total",
           objetivo: this.jugador,
+          catalogoEfectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
         },
       ],
     };
   }
-  obtenerBloqueoMovimientoJugador() {
-    const bloqueoAccion = this.obtenerBloqueoAccionJugador();
-    if (bloqueoAccion) {
-      return bloqueoAccion;
-    }
-    if (!this.sistemaEfectosTemporales.estaInmovilizado(this.jugador)) {
-      return null;
-    }
+
+  obtenerBloqueoHabilidadJugador() {
+    const bloqueoTotal = this.obtenerBloqueoAccionJugador();
+    if (bloqueoTotal) return bloqueoTotal;
+
+    const efecto =
+      this.sistemaEfectosTemporales.obtenerBloqueoHabilidadesActivo(
+        this.jugador,
+      );
+    if (!efecto) return null;
+
     return {
       exito: false,
-      mensaje: "Estás inmovilizado y no podés desplazarte.",
+      bloqueado: true,
+      motivo: "bloqueo_habilidades",
+      mensaje: "Estás silenciado y no podés usar habilidades.",
       turnoConsumido: false,
       redibujar: false,
       eventos: [
         {
-          tipo: "movimiento_rechazado_por_inmovilizacion",
+          tipo: "habilidad_rechazada_por_silencio",
           objetivo: this.jugador,
+          catalogoEfectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
         },
       ],
     };
+  }
+
+  obtenerBloqueoMovimientoJugador() {
+    return this.obtenerBloqueoAccionJugador();
   }
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     if (
@@ -632,8 +656,6 @@ export class CoordinadorTiempoPartida {
         jugador: this.jugador,
         mapa: this.mapa,
         objetivos: this.objetivos,
-        estaInmovilizado: (objetivo) =>
-          this.sistemaEfectosTemporales.estaInmovilizado(objetivo),
         registrarParticipanteCombate: (participante, motivo) =>
           this.registrarParticipanteCombate(participante, motivo),
         retirarParticipanteCombate: (participante, motivo) =>

@@ -4,6 +4,9 @@ export const ORIGENES_PUNTO_HABILIDAD = Object.freeze({
 });
 
 const VERSION_ESTADO_PROGRESO = 1;
+const ALIAS_HABILIDADES_PERSISTIDAS = Object.freeze({
+  rafaga_glacial: "prision_glacial",
+});
 // Fuente única de verdad de la progresión mágica del personaje.
 //
 // Conserva únicamente datos de progresión. No calcula daño, no consume Maná,
@@ -368,7 +371,10 @@ export class ProgresoMagicoJugador {
     for (const [idHabilidad, definicion] of Object.entries(
       this.configuracion.habilidades,
     )) {
-      const grado = estado.gradosHabilidades[idHabilidad];
+      const idAnterior = ALIAS_HABILIDADES_PERSISTIDAS[idHabilidad];
+      const grado =
+        estado.gradosHabilidades[idHabilidad] ??
+        (idAnterior ? estado.gradosHabilidades[idAnterior] : undefined);
       validarEnteroNoNegativo(grado, `El grado guardado de ${idHabilidad}`);
 
       if (grado > definicion.gradoMaximo) {

@@ -978,7 +978,7 @@ function calcularResumenEfectos({ efectos, objetivo, resistenciaEfecto }) {
       danioTotal = danioTick * ticks;
       danioPeriodicoEsperado += danioTotal * (probabilidadFinal / 100);
     } else if (
-      ["control", "inmovilizacion", "aturdimiento"].includes(
+      ["control", "bloqueo_total", "bloqueo_habilidades"].includes(
         definicion.tipo,
       )
     ) {
@@ -1359,7 +1359,7 @@ function crearInformePruebasFocalizadas({
     escenarioPotencia: bastonBaseT2,
     reglas,
   });
-  const prisionGlacial = analizarPrisionGlacialFocalizada({
+  const rafagaGlacial = analizarRafagaGlacialFocalizada({
     configuracionPersonaje,
     configuracionObjetos,
     configuracionEjecucionHabilidades,
@@ -1400,7 +1400,7 @@ function crearInformePruebasFocalizadas({
 
   const conclusiones = crearConclusionesPruebasFocalizadas({
     incinerar,
-    prisionGlacial,
+    rafagaGlacial,
     nubeToxica,
     plagaCorrosiva,
     dobleVarita,
@@ -1414,7 +1414,7 @@ function crearInformePruebasFocalizadas({
       "Revisa las advertencias del análisis general mediante secuencias reales de efectos, zonas, regeneración y Potencia de Habilidad.",
     jefeReferencia: jefe,
     incinerar,
-    prisionGlacial,
+    rafagaGlacial,
     nubeToxica,
     plagaCorrosiva,
     dobleVarita,
@@ -1423,7 +1423,7 @@ function crearInformePruebasFocalizadas({
     resumen: {
       casos: [
         ...incinerar.filas,
-        ...prisionGlacial.filas,
+        ...rafagaGlacial.filas,
         ...nubeToxica.filas,
         ...plagaCorrosiva.filas,
         ...dobleVarita.filas,
@@ -1431,7 +1431,7 @@ function crearInformePruebasFocalizadas({
       ].length,
       ...resumirEstados([
         ...incinerar.filas,
-        ...prisionGlacial.filas,
+        ...rafagaGlacial.filas,
         ...nubeToxica.filas,
         ...plagaCorrosiva.filas,
         ...dobleVarita.filas,
@@ -1589,7 +1589,7 @@ function analizarIncinerarFocalizado({
   };
 }
 
-function analizarPrisionGlacialFocalizada({
+function analizarRafagaGlacialFocalizada({
   configuracionPersonaje,
   configuracionObjetos,
   configuracionEjecucionHabilidades,
@@ -1601,7 +1601,7 @@ function analizarPrisionGlacialFocalizada({
 }) {
   const habilidad = obtenerHabilidadRequerida(
     configuracionEjecucionHabilidades,
-    "prision_glacial",
+    "rafaga_glacial",
   );
   const filas = [];
   const contratos = [];
@@ -1647,37 +1647,29 @@ function analizarPrisionGlacialFocalizada({
         0,
         1,
       );
-      for (const distancia of reglas.distanciasPrision) {
-        const accionesMovimientoEvitadas = distancia > 1
-          ? probabilidadCongelar
-          : 0;
-        const estado = distancia === 1
-          ? ESTADOS.INFORMATIVO
-          : accionesMovimientoEvitadas >= 0.5 && contrato.aprobado
-            ? ESTADOS.CORRECTO
-            : accionesMovimientoEvitadas >= 0.25
-              ? ESTADOS.ADVERTENCIA
-              : ESTADOS.INCORRECTO;
-        filas.push({
-          id: `prision_g${gradoNumero}_${objetivo.id}_d${distancia}`,
-          grado: gradoNumero,
-          objetivo: objetivo.nombre,
-          distancia,
-          duracion: grado.efectos[0].duracion,
-          probabilidadCongelar: redondear(probabilidadCongelar * 100),
-          accionesMovimientoEvitadas: redondear(
-            accionesMovimientoEvitadas,
-          ),
-          detieneAtaqueAdyacente: false,
-          duplicadoRechazado: contrato.duplicadoRechazado,
-          unaSolaInstancia: contrato.maximoInstancias === 1,
-          criterio:
-            distancia === 1
-              ? "Congelamiento inmoviliza, pero no impide atacar si el enemigo ya está adyacente. Se muestra como limitación táctica."
-              : "A distancia 2 o mayor debe evitar aproximadamente un movimiento cuando se aplica. Correcto: 0,5 o más acciones esperadas y una sola instancia sin renovación.",
-          estado,
-        });
-      }
+      const accionesBloqueadasEsperadas =
+        probabilidadCongelar * (grado.efectos[0].duracion / TIEMPO_REFERENCIA);
+      const estado = !contrato.aprobado
+        ? ESTADOS.INCORRECTO
+        : accionesBloqueadasEsperadas >= 0.45
+          ? ESTADOS.CORRECTO
+          : accionesBloqueadasEsperadas >= 0.25
+            ? ESTADOS.ADVERTENCIA
+            : ESTADOS.INFORMATIVO;
+      filas.push({
+        id: `rafaga_g${gradoNumero}_${objetivo.id}`,
+        grado: gradoNumero,
+        objetivo: objetivo.nombre,
+        duracion: grado.efectos[0].duracion,
+        probabilidadCongelar: redondear(probabilidadCongelar * 100),
+        accionesBloqueadasEsperadas: redondear(accionesBloqueadasEsperadas),
+        bloqueoTotal: contrato.bloqueoTotal,
+        duplicadoRechazado: contrato.duplicadoRechazado,
+        unaSolaInstancia: contrato.maximoInstancias === 1,
+        criterio:
+          "Congelamiento debe impedir toda acción durante su duración, conservar una sola instancia y no renovarse al reaplicarse. La resistencia puede reducir la expectativa contra jefes.",
+        estado,
+      });
     }
   }
 
@@ -1685,9 +1677,9 @@ function analizarPrisionGlacialFocalizada({
     filas,
     contratos,
     conclusion:
-      "Prisión glacial no es una habilidad de daño puro. A distancia puede negar aproximadamente un movimiento; adyacente no evita ataques, por lo que su utilidad depende de la posición.",
+      "Ráfaga glacial combina daño moderado con 60% de probabilidad base de Congelamiento. El control ya no depende de la distancia porque bloquea todas las acciones del objetivo.",
     recomendacion:
-      "Mantener el daño y las duraciones actuales. La prueba jugable debe confirmar que el jugador pueda aprovechar ese turno de distancia.",
+      "Mantener daño, Maná y duraciones actuales y validar en juego que la probabilidad del 60% resulte potente sin volver el control demasiado constante.",
   };
 }
 
@@ -2045,7 +2037,7 @@ function analizarManaFocalizado({
 }) {
   const definiciones = [
     { id: "incinerar", grado: 3, lanzamientos: 3 },
-    { id: "prision_glacial", grado: 3, lanzamientos: 3 },
+    { id: "rafaga_glacial", grado: 3, lanzamientos: 3 },
     { id: "plaga_corrosiva", grado: 3, lanzamientos: 3 },
     { id: "nube_toxica", grado: 1, lanzamientos: 1 },
   ];
@@ -2315,7 +2307,7 @@ function probarContratoCongelamiento({
       lanzador: jugador,
       objetivo,
       efectosConfigurados: grado.efectos,
-      idEjecucion: `balance-prision:g${gradoNumero}:${sufijo}`,
+      idEjecucion: `balance-rafaga:g${gradoNumero}:${sufijo}`,
     })[0].definicion;
   const primera = sistema.aplicar(preparar("primera"), {
     obtenerTiradaAplicacion: () => 1,
@@ -2325,10 +2317,10 @@ function probarContratoCongelamiento({
   });
   const maximoInstancias = sistema.obtenerEfectosObjetivo(objetivo).length;
   tiempoActual = grado.efectos[0].duracion - 1;
-  const activoAntesVencer = sistema.estaInmovilizado(objetivo);
+  const activoAntesVencer = sistema.estaBajoBloqueoTotal(objetivo);
   tiempoActual = grado.efectos[0].duracion;
   sistema.procesarEventosEn(tiempoActual);
-  const inactivoAlVencer = !sistema.estaInmovilizado(objetivo);
+  const inactivoAlVencer = !sistema.estaBajoBloqueoTotal(objetivo);
   sistema.destruir();
   return {
     grado: gradoNumero,
@@ -2339,6 +2331,7 @@ function probarContratoCongelamiento({
     maximoInstancias,
     activoAntesVencer,
     inactivoAlVencer,
+    bloqueoTotal: activoAntesVencer,
     aprobado:
       primera.aplicado === true &&
       duplicada.estadoAplicacion === "rechazado_por_politica" &&
@@ -2683,7 +2676,7 @@ function simularManaRotacion({
 
 function crearConclusionesPruebasFocalizadas({
   incinerar,
-  prisionGlacial,
+  rafagaGlacial,
   nubeToxica,
   plagaCorrosiva,
   dobleVarita,
@@ -2701,13 +2694,13 @@ function crearConclusionesPruebasFocalizadas({
         recomendacion: incinerar.recomendacion,
       },
       {
-        id: "foco_prision",
+        id: "foco_rafaga",
         queSeAnalizo:
-          "Prisión glacial G2 y G3 a distintas distancias, incluyendo resistencia de jefe y rechazo de reaplicación.",
+          "Ráfaga glacial G2 y G3, incluyendo su 60% base, resistencia de jefe, bloqueo total y rechazo de reaplicación.",
         porQue:
-          "Su daño parecía bajo, pero Congelamiento puede ganar distancia y tiempo.",
-        conclusion: prisionGlacial.conclusion,
-        recomendacion: prisionGlacial.recomendacion,
+          "Su valor avanzado proviene de combinar daño moderado con la posibilidad de negar completamente una acción.",
+        conclusion: rafagaGlacial.conclusion,
+        recomendacion: rafagaGlacial.recomendacion,
       },
       {
         id: "foco_nube",
@@ -2750,14 +2743,14 @@ function crearConclusionesPruebasFocalizadas({
       aplicarCambiosNumericos: false,
       mantenerValoresActuales: [
         "incinerar",
-        "prision_glacial",
+        "rafaga_glacial",
         "nube_toxica",
         "plaga_corrosiva",
         "potencia_habilidad",
         "mana",
       ],
       pendientePruebaInterfaz: [
-        "aprovechamiento táctico de Congelamiento",
+        "frecuencia y valor táctico del Congelamiento total",
         "alineación real de Incinerar",
         "ocupación real de Nube tóxica",
         "sostenibilidad contra el jefe completo",
@@ -3217,7 +3210,6 @@ function normalizarConfiguracionAnalisis(configuracion = {}) {
       nivelJefeReferencia: 10,
       lanzamientosRotacionAvanzada: 3,
       objetivosGrupoIncinerar: [1, 2, 3],
-      distanciasPrision: [1, 2, 3],
       objetivosNube: [1, 3],
       ventajaMaximaDobleVaritaPorcentaje: 15,
       reservaManaCorrectaMinimaPorcentaje: 40,

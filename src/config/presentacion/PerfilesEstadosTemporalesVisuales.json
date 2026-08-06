@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "estados": {
     "ralentizacion": {
       "forma": "fragmentos_pies",
@@ -30,14 +30,14 @@
       "pulsoTick": "ninguno"
     },
     "congelamiento": {
-      "forma": "carcasa_fragmentada",
+      "forma": "escarcha_inmovilizante",
       "canal": "contorno",
       "movimiento": "rigido",
       "textura": "cristal_angular",
       "colorPrincipal": "#8edcff",
       "colorSecundario": "#e6fbff",
       "tamanoVisualPx": 18,
-      "feedbackAplicacion": "cierre_cristal",
+      "feedbackAplicacion": "rafaga_congelante",
       "textoEstado": "CONGELADO",
       "densidadMaxima": 3,
       "mostrarMultiplicador": true,
@@ -84,6 +84,34 @@
       "densidadMaxima": 3,
       "mostrarMultiplicador": true,
       "pulsoTick": "llamarada_ascendente"
+    },
+    "paralisis": {
+      "forma": "anillos_paralisis",
+      "canal": "laterales",
+      "movimiento": "pulso_interrumpido",
+      "textura": "energia_estatica",
+      "colorPrincipal": "#72f0ff",
+      "colorSecundario": "#f4ffff",
+      "tamanoVisualPx": 15,
+      "feedbackAplicacion": "pulso_paralizante",
+      "textoEstado": "PARALIZADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
+    },
+    "silencio": {
+      "forma": "sello_silencio",
+      "canal": "superior",
+      "movimiento": "pulso_lento",
+      "textura": "runa_apagada",
+      "colorPrincipal": "#9b8fc7",
+      "colorSecundario": "#eeeaff",
+      "tamanoVisualPx": 13,
+      "feedbackAplicacion": "sello_mudo",
+      "textoEstado": "SILENCIADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
     }
   },
   "feedbackNoAplicado": {

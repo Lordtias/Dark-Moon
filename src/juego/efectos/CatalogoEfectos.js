@@ -45,6 +45,22 @@ export function normalizarCatalogoEfectos(configuracion) {
     throw new Error("El catálogo de efectos no puede estar vacío.");
   }
 
+  for (const efecto of Object.values(efectos)) {
+    for (const efectoEliminadoId of efecto.eliminaEfectosAlAplicarse) {
+      if (efectoEliminadoId === efecto.id) {
+        throw new Error(
+          `El efecto "${efecto.id}" no puede eliminarse a sí mismo al aplicarse.`,
+        );
+      }
+      if (!efectos[efectoEliminadoId]) {
+        throw new Error(
+          `El efecto "${efecto.id}" intenta eliminar el efecto desconocido ` +
+            `"${efectoEliminadoId}".`,
+        );
+      }
+    }
+  }
+
   return congelarProfundamente({
     version: configuracion.version,
     efectos,
@@ -108,6 +124,7 @@ export function resolverReferenciaEfecto({
     modoResistencia: efecto.resistencia.modo,
     inmunidadId: efecto.inmunidadId,
     eliminarAlAdquirirInmunidad: efecto.eliminarAlAdquirirInmunidad,
+    eliminaEfectosAlAplicarse: [...efecto.eliminaEfectosAlAplicarse],
     etiquetas: [...efecto.etiquetas, ...normalizarEtiquetas(referencia.etiquetas)],
     beneficioso: efecto.beneficioso,
     ...magnitud,
@@ -200,6 +217,9 @@ function normalizarDefinicionCatalogo({ id, definicion }) {
     inmunidadId,
     eliminarAlAdquirirInmunidad:
       definicion.eliminarAlAdquirirInmunidad === true,
+    eliminaEfectosAlAplicarse: normalizarEtiquetas(
+      definicion.eliminaEfectosAlAplicarse,
+    ),
     perfilesAplicacion,
   };
 }

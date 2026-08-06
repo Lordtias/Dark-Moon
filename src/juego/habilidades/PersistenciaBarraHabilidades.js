@@ -1,6 +1,9 @@
 export const CLAVE_BARRA_HABILIDADES = "dark-moon:barra-habilidades:v1";
 export const VERSION_BARRA_HABILIDADES = 1;
 export const CANTIDAD_RANURAS_BARRA = 10;
+const ALIAS_HABILIDADES_PERSISTIDAS = Object.freeze({
+  prision_glacial: "rafaga_glacial",
+});
 // La barra guarda únicamente accesos rápidos. Los grados, requisitos y puntos
 // continúan perteneciendo exclusivamente a ProgresoMagicoJugador.
 export function guardarConfiguracionBarraHabilidades({
@@ -33,11 +36,11 @@ export function leerConfiguracionBarraHabilidades({
       `La barra guardada no contiene JSON válido. ${error.message}`,
     );
   }
-  validarSnapshot(snapshot);
+  const ranuras = validarSnapshot(snapshot);
   return {
     version: snapshot.version,
     guardadoEn: snapshot.guardadoEn ?? null,
-    ranuras: [...snapshot.ranuras],
+    ranuras,
   };
 }
 export function validarBarraContraJugador({
@@ -110,7 +113,7 @@ function validarSnapshot(snapshot) {
       `La versión ${snapshot.version} de la barra no es compatible con la configuración actual.`,
     );
   }
-  normalizarEstructuraBasica(snapshot.ranuras);
+  return normalizarEstructuraBasica(snapshot.ranuras);
 }
 function normalizarEstructuraBasica(ranuras) {
   if (!Array.isArray(ranuras) || ranuras.length !== CANTIDAD_RANURAS_BARRA) {
@@ -123,7 +126,8 @@ function normalizarEstructuraBasica(ranuras) {
     if (typeof valor !== "string" || valor.trim() === "") {
       throw new Error(`La ranura ${indice + 1} debe contener un ID o null.`);
     }
-    return valor.trim().toLowerCase();
+    const id = valor.trim().toLowerCase();
+    return ALIAS_HABILIDADES_PERSISTIDAS[id] ?? id;
   });
 }
 function validarAlmacenamiento(almacenamiento) {

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "efectos": {
     "ralentizacion": {
       "nombre": "Ralentización",
@@ -51,7 +51,7 @@
     },
     "congelamiento": {
       "nombre": "Congelamiento",
-      "tipo": "inmovilizacion",
+      "tipo": "bloqueo_total",
       "grupoAcumulacion": "congelamiento",
       "etiquetas": [
         "perjudicial",
@@ -72,11 +72,14 @@
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "eliminaEfectosAlAplicarse": [
+        "quemadura"
+      ]
     },
     "aturdimiento": {
       "nombre": "Aturdimiento",
-      "tipo": "aturdimiento",
+      "tipo": "bloqueo_total",
       "grupoAcumulacion": "aturdimiento",
       "etiquetas": [
         "perjudicial",
@@ -151,6 +154,59 @@
       "perfilesAplicacion": {
         "refrescar_mayor_potencia": {
           "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      },
+      "eliminaEfectosAlAplicarse": [
+        "congelamiento"
+      ]
+    },
+    "paralisis": {
+      "nombre": "Parálisis",
+      "tipo": "bloqueo_total",
+      "grupoAcumulacion": "paralisis",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "paralisis"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "ignorar_mientras_activo": {
+          "politicaAcumulacion": "rechazar_duplicado",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "silencio": {
+      "nombre": "Silencio",
+      "tipo": "bloqueo_habilidades",
+      "grupoAcumulacion": "silencio",
+      "etiquetas": [
+        "perjudicial",
+        "control",
+        "silencio"
+      ],
+      "beneficioso": false,
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "ignorar_mientras_activo": {
+          "politicaAcumulacion": "rechazar_duplicado",
           "politicaPotencia": "conservar_mayor",
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1

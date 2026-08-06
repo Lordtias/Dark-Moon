@@ -242,3 +242,12 @@ feat(phaser): representar Plaga corrosiva e intensificar Envenenamiento
 ## 18. Próximo paso
 
 Comenzar un análisis funcional y visual específico con el usuario para **P6.3D.3 — Prisión glacial y rediseño de Congelamiento**. No debe implementarse ni definirse anticipadamente.
+
+
+## 19. Cierre posterior
+
+P6.3D.2 fue validada manualmente por el usuario y commiteada en:
+
+`f5edc8d61776a21a15e627289faeab20f3e00b7e`
+
+Ese commit es la base exacta utilizada para P6.3D.3.

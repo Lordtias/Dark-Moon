@@ -176,14 +176,13 @@ function crearResultadoAccion({
   };
 }
 
-// Inmovilizar solo impide avanzar. Si el objetivo ya está en alcance, el
-// enemigo todavía puede atacarlo mediante las reglas normales.
+// Los bloqueos totales se resuelven en la agenda temporal antes de que la IA
+// reciba un turno. Este módulo procesa únicamente actores disponibles.
 export function procesarAccionEnemigo({
   enemigo,
   jugador,
   mapa,
   objetivos,
-  estaInmovilizado = () => false,
   registrarParticipanteCombate = () => {},
   retirarParticipanteCombate = () => {},
   notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
@@ -193,9 +192,6 @@ export function procesarAccionEnemigo({
   }
   if (!Array.isArray(objetivos)) {
     throw new Error("Los objetivos deben estar dentro de una lista.");
-  }
-  if (typeof estaInmovilizado !== "function") {
-    throw new Error("La consulta de inmovilización debe ser una función.");
   }
   if (typeof registrarParticipanteCombate !== "function") {
     throw new Error("El registro de combate debe ser una función.");
@@ -282,16 +278,6 @@ export function procesarAccionEnemigo({
           configuracionAtaque,
         }),
       ],
-    });
-  }
-
-  if (estaInmovilizado(enemigo)) {
-    mensajes.push(`${enemigo.nombre} está inmovilizado y no puede avanzar.`);
-    return crearResultadoAccion({
-      tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
-      costoBase: COSTOS_TEMPORALES_BASE.espera,
-      mensajes,
-      eventos: resultadoAgresividad.eventos,
     });
   }
 

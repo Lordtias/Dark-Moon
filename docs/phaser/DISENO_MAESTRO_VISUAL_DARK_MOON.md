@@ -1873,7 +1873,7 @@ P6.3D.1 aplica el patrón `linea`. La trayectoria visual nace en el actor y reco
 
 P6.3D.2 reutiliza el patrón `proyectil` para Plaga corrosiva. Debe leerse como una masa tóxica más grande, pesada y viscosa que Aguijón tóxico: cuerpo irregular, núcleo verde con burbujas, pequeñas masas residuales, giro lento, compresión durante el avance y gotas corrosivas amplias. El impacto forma una corrosión expansiva con charco breve, salpicaduras y burbujas. La intensidad canónica aumenta de manera acotada el radio y la densidad de esas marcas; nunca altera la trayectoria ni inventa acumulaciones. Una aplicación resistida o inmune conserva el golpe directo, pero no muestra un aumento de intensidad. Al alcanzar el máximo puede aparecer un anillo exterior breve. La derrota ocurre dentro del impacto del proyectil y no vuelve a reproducirse como evento separado.
 
-Prisión glacial y Congelamiento no deben inferirse desde este patrón. Su comportamiento funcional y visual se analizará específicamente con el usuario antes de P6.3D.3.
+Ráfaga glacial se define en P6.3D.3 como un proyectil ancho de viento helado y cristales. No crea pared, bloque sólido, entidad destructible ni inmunidad.
 
 Lythra debe ejecutar habilidades canónicas de NPC que no aparezcan en aprendizaje ni barra del jugador. Curación y restauración de Maná reutilizarán `habilidad_resuelta`, `recursosObjetivo` con valores anterior, posterior, máximo y cantidad real, y actualización de barras, pero tendrán perfil mágico propio, no consumirán objetos y no mostrarán el gesto de beber.
 
@@ -1910,6 +1910,17 @@ Los estados persistentes pertenecen al contenedor de la entidad y no a la capa g
 
 Cancelar una cola puede interrumpir una aplicación o retirada antes de aplicar la escena final. En ese caso el compositor reconcilia sus estados contra la última escena autoritativa ya dibujada. Cambiar de mapa destruye los contenedores anteriores y reconstruye únicamente los efectos que el dominio haya preservado, como los estados válidos del jugador.
 
-El rediseño futuro de Congelamiento como bloque de hielo que impide acciones y evita daño no pertenece a P6.3B.1; deberá analizarse junto con Prisión glacial y las habilidades avanzadas.
+P6.3D.3 consolida Congelamiento como escarcha inmovilizante de bloqueo total, pero sin inmunidad al daño. La entidad permanece visible y atacable; daño directo y periódico continúan normalmente. La representación no debe sugerir una pared o un bloque con Vida propia.
 
 La duración canónica no se transforma en una cuenta regresiva de milisegundos Phaser. Un estado puede tener movimiento ambiental continuo, pero permanece visible hasta recibir retirada o desaparecer de la escena. P6.3B.2 agrega pulsos de daño periódico, indicadores de intensidad y convivencia avanzada sin alterar esta autoridad.
+
+
+### Ráfaga glacial y controles totales
+
+Ráfaga glacial nace en el ejecutor como una corriente ancha y rápida de viento azulado. Su lectura debe diferenciarse de Esquirla de hielo: no es una pieza sólida y pequeña, sino un frente de aire con cristales arrastrados, compresión longitudinal y un impacto de escarcha expansiva. El perfil utiliza `rafaga_glacial`, `impulso_fuerte`, `viento_helado`, `cristales_arrastrados` y `choque_glacial`.
+
+Cuando Congelamiento se aplica, la presentación persistente usa `escarcha_inmovilizante`: placas finas y cristales alrededor del contorno, dejando visible al actor y su barra. No existe bloque opaco ni carcasa invulnerable. Aturdimiento conserva su identidad eléctrica o contundente; Parálisis usa anillos de control; Silencio usa un sello discreto en la zona superior.
+
+Los contraefectos son hechos del dominio. Si una aplicación aceptada de Quemadura retira Congelamiento, o viceversa, el plan visual reproduce primero `efecto_temporal_retirado` y después `efecto_temporal_aplicado` dentro del mismo impacto. Phaser no compara elementos ni decide incompatibilidades.
+
+Canvas 2D dibuja una marca de escarcha equivalente y sigue siendo funcional sin depender de los recursos Phaser.

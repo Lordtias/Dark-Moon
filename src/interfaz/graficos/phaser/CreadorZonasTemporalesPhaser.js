@@ -88,6 +88,46 @@ export class CreadorZonasTemporalesPhaser {
     });
   }
 
+  crearReaccionLocal({ zona, posicion, tipo = "impacto" } = {}) {
+    if (!esZonaValida(zona) || !esPosicionValida(posicion)) return null;
+    const centro = this.compositor.obtenerCentroCasilla?.(posicion);
+    if (!esCentroValido(centro)) return null;
+
+    const perfil = zona.perfilVisual;
+    const principal = convertirColor(perfil.colorPrincipal);
+    const secundario = convertirColor(perfil.colorSecundario);
+    const detalle = convertirColor(perfil.colorDetalle);
+    const grafico = this.escena.add.graphics({ x: centro.x, y: centro.y });
+    const esEntrada = tipo === "entrada";
+    const radio = esEntrada ? 11 : 13;
+
+    grafico.fillStyle?.(principal, esEntrada ? 0.2 : 0.28);
+    grafico.fillEllipse?.(0, 3, radio * 1.8, radio * 0.92);
+    grafico.lineStyle?.(esEntrada ? 2 : 3, secundario, 0.76);
+    grafico.strokeEllipse?.(0, 1, radio * 1.55, radio * 0.9);
+    grafico.fillStyle?.(secundario, 0.32);
+    grafico.fillCircle?.(-radio * 0.34, -2, radio * 0.28);
+    grafico.fillCircle?.(radio * 0.28, -4, radio * 0.34);
+    grafico.fillStyle?.(detalle, 0.78);
+    const cantidad = Math.max(3, Math.min(7, perfil.densidad + 2));
+    const hash = obtenerHashCasilla(posicion.x, posicion.y, zona.id);
+    for (let indice = 0; indice < cantidad; indice += 1) {
+      const angulo = ((hash + indice * 67) % 360) * (Math.PI / 180);
+      const distancia = 4 + ((hash >>> (indice % 9)) % 8);
+      grafico.fillCircle?.(
+        Math.cos(angulo) * distancia,
+        Math.sin(angulo) * distancia - 3,
+        Math.max(1, perfil.tamanoParticulaPx * (0.58 + (indice % 3) * 0.18)),
+      );
+    }
+
+    grafico.setAlpha?.(esEntrada ? 0.3 : 0.5);
+    grafico.setScale?.(esEntrada ? 0.7 : 0.82);
+    grafico.__tipoEfectoZona = tipo;
+    this.compositor.agregarEfectoTemporal?.(grafico);
+    return grafico;
+  }
+
   crearEfectoTransitorioZona({
     zona,
     tipo,
@@ -278,6 +318,10 @@ function esZonaValida(zona) {
 
 function esCentroValido(centro) {
   return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
+}
+
+function esPosicionValida(posicion) {
+  return Number.isInteger(posicion?.x) && Number.isInteger(posicion?.y);
 }
 
 function convertirColor(valor, fallback = 0xffffff) {

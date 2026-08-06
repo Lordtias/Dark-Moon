@@ -332,7 +332,9 @@ export class SistemaHabilidadesJugador {
       const cantidadImpactos = impactos.filter((item) => item.impacto).length;
       const cantidadCriticos = impactos.filter((item) => item.critico).length;
       const efectos = impactos.flatMap((item) => item.efectos ?? []);
-      const eventosEfectos = efectos.flatMap((efecto) => efecto.eventos ?? []);
+      const eventosEfectos = plan.creaZonaTemporal
+        ? []
+        : efectos.flatMap((efecto) => efecto.eventos ?? []);
       const impactosResultado = impactos.map((impacto) => ({
         ...impacto,
         efectos: (impacto.efectos ?? []).map(
@@ -855,6 +857,7 @@ function validarContratoZonaTemporal({
 function resumirImpactoZona(impacto) {
   const objetivo = impacto.objetivo;
   return {
+    idEjecucion: impacto.idEjecucion ?? null,
     objetivo: {
       nombre: objetivo?.nombre ?? "Objetivo",
       x: objetivo?.x,

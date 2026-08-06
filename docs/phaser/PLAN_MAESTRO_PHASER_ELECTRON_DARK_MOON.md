@@ -1245,7 +1245,7 @@ La cadena respeta alcance y línea de visión en cada tramo; no repite objetivos
 
 #### P6.3C.2A — Representación persistente de zonas temporales
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: validada manualmente y cerrada en `4c124b9b45489dba723f9a70848c59d316229e0c`.
 
 - `PerfilesZonasTemporalesVisuales.json` define apariencias reutilizables sin duración, daño o activadores;
 - la escena neutral transporta identidad, casillas, tiempos y perfil visual resuelto;
@@ -1262,13 +1262,32 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 
 Nube tóxica ocupa visualmente todas sus casillas canónicas y no atraviesa paredes; la persistencia depende de `zonaId`; renovar no duplica; vencer, cancelar o cambiar de mapa no deja objetos ni movimientos ambientales huérfanos; zonas distintas pueden coexistir; Canvas 2D permanece operativo; Phaser no calcula duración, intervalos, objetivos, daño o superposición.
 
+#### P6.3C.2B — Activaciones y ciclo completo de zonas temporales
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- cada activación conserva un `idEjecucion` propio, objetivo, posición, daño, Vida, efectos y derrota;
+- los eventos derivados de efectos se propagan después de la activación correspondiente;
+- `al_crear` se correlaciona con `habilidad_resuelta` y evita duplicados;
+- `al_entrar` reacciona localmente después del movimiento;
+- `por_intervalo` genera un pulso global aunque la zona esté vacía;
+- los ocupantes se reproducen en el orden canónico;
+- Envenenamiento, renovación, resistencia e inmunidad aparecen sobre el objetivo correcto;
+- la derrota se integra dentro de la activación;
+- Canvas 2D consume los mismos eventos neutrales;
+- Phaser no calcula reglas de zona.
+
+### Criterio de cierre de P6.3C.2B
+
+Creación, entrada e intervalo se distinguen visualmente; el pulso global existe incluso sin objetivos; daño, fallo, crítico, estado y derrota coinciden con el dominio y no se duplican; entrar activa solo al cruzar desde fuera; cancelación, vencimiento y cambio de mapa no dejan residuos; Canvas 2D permanece funcional; duración, intervalos, objetivos y efectos continúan fuera de Phaser.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A y P6.3C.1B están cerradas; P6.3C.2A queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B y P6.3C.2A están cerradas; P6.3C.2B queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

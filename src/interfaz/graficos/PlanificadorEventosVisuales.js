@@ -48,6 +48,9 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   ZONA_TEMPORAL_CREADA: "zona_temporal_creada",
   ZONA_TEMPORAL_RENOVADA: "zona_temporal_renovada",
   ZONA_TEMPORAL_VENCIDA: "zona_temporal_vencida",
+  ZONA_TEMPORAL_PULSO: "zona_temporal_pulso",
+  ACTOR_ENTRO_ZONA_TEMPORAL: "actor_entro_zona_temporal",
+  ZONA_TEMPORAL_ACTIVADA: "zona_temporal_activada",
 });
 
 // Convierte referencias del dominio en un plan neutral basado en IDs visuales.
@@ -147,6 +150,22 @@ export function crearPlanEventosVisuales({
 
       case "zona_temporal_vencida":
         agregarZonaTemporal(plan, evento, TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA);
+        break;
+
+      case "zona_temporal_pulso":
+        agregarPulsoZonaTemporal(plan, evento);
+        break;
+
+      case "actor_entro_zona_temporal":
+        agregarEntradaZonaTemporal(plan, evento, entidadesPorId);
+        break;
+
+      case "zona_temporal_activada":
+        agregarActivacionZonaTemporal(plan, evento, entidadesPorId, {
+          eventos,
+          indiceActual: indice,
+          indicesConsumidos,
+        });
         break;
 
       default:
@@ -252,6 +271,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
       const idObjetivo = obtenerIdSeguro(impacto.objetivo);
       const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
       return Object.freeze({
+        idEjecucion: normalizarTextoSimple(impacto.idEjecucion),
         idObjetivo,
         tipoObjetivo: objetivoVisual?.tipo ?? null,
         posicionObjetivo: esPosicion(impacto.posicionObjetivo)
@@ -345,6 +365,147 @@ function agregarZonaTemporal(plan, evento, tipoVisual) {
   }));
 }
 
+function agregarPulsoZonaTemporal(plan, evento) {
+  const zona = normalizarZonaTemporalVisual(evento?.zona);
+  if (!zona) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_PULSO,
+    zona,
+    motivo: normalizarTextoSimple(evento.motivo) ?? "por_intervalo",
+    instante: Number.isFinite(evento.instante) ? evento.instante : null,
+    cantidadObjetivos: Number.isInteger(evento.cantidadObjetivos)
+      ? Math.max(0, evento.cantidadObjetivos)
+      : 0,
+  }));
+}
+
+function agregarEntradaZonaTemporal(plan, evento, entidadesPorId) {
+  const zona = normalizarZonaTemporalVisual(evento?.zona);
+  const idActor = obtenerIdSeguro(evento.actor);
+  const actorVisual = entidadesPorId.get(idActor) ?? null;
+  if (!zona || !idActor) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.ACTOR_ENTRO_ZONA_TEMPORAL,
+    zona,
+    idActor,
+    tipoActor: actorVisual?.tipo ?? null,
+    origen: esPosicion(evento.origen) ? copiarPosicion(evento.origen) : null,
+    destino: esPosicion(evento.destino)
+      ? copiarPosicion(evento.destino)
+      : actorVisual && esPosicion(actorVisual)
+        ? copiarPosicion(actorVisual)
+        : null,
+    instante: Number.isFinite(evento.instante) ? evento.instante : null,
+  }));
+}
+
+function agregarActivacionZonaTemporal(
+  plan,
+  evento,
+  entidadesPorId,
+  contexto = {},
+) {
+  const zona = normalizarZonaTemporalVisual(evento?.zona);
+  const idObjetivo = obtenerIdSeguro(evento.objetivo);
+  const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
+  const posicionObjetivo = esPosicion(evento.posicionObjetivo)
+    ? copiarPosicion(evento.posicionObjetivo)
+    : objetivoVisual && esPosicion(objetivoVisual)
+      ? copiarPosicion(objetivoVisual)
+      : null;
+  const idEjecucion = normalizarTextoSimple(evento.idEjecucion);
+  if (!zona || !idObjetivo || !posicionObjetivo || !idEjecucion) return;
+
+  const eventosEfectos = correlacionarEventosEfectosEjecucion({
+    idEjecucion,
+    entidadesPorId,
+    eventos: contexto.eventos ?? [],
+    indiceActual: contexto.indiceActual ?? -1,
+    indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
+  });
+
+  const derrotaVisual = evento.objetivoDerrotado === true
+    ? Object.freeze({
+        tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
+        idEntidad: idObjetivo,
+        tipoEntidad: objetivoVisual?.tipo ?? null,
+        posicion: posicionObjetivo,
+        motivo: "zona_temporal",
+      })
+    : null;
+
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA,
+    zona,
+    idEjecucion,
+    motivo: normalizarTextoSimple(evento.motivo) ?? "desconocido",
+    instante: Number.isFinite(evento.instante) ? evento.instante : null,
+    idObjetivo,
+    tipoObjetivo: objetivoVisual?.tipo ?? null,
+    posicionObjetivo,
+    impacto: Object.freeze({
+      idEjecucion,
+      idObjetivo,
+      tipoObjetivo: objetivoVisual?.tipo ?? null,
+      posicionObjetivo,
+      orden: 0,
+      multiplicadorDanio: 1,
+      impacto: evento.impacto === true,
+      critico: evento.critico === true,
+      objetivoDerrotado: evento.objetivoDerrotado === true,
+      derrotaVisual,
+      danio: normalizarDanioZona(evento.danio, evento.resolucionImpacto),
+      efectos: Object.freeze(Array.isArray(evento.efectos) ? evento.efectos : []),
+      recursosObjetivo: Object.freeze([]),
+      eventosEfectos: Object.freeze(eventosEfectos),
+    }),
+  }));
+}
+
+function correlacionarEventosEfectosEjecucion({
+  idEjecucion,
+  entidadesPorId,
+  eventos = [],
+  indiceActual = -1,
+  indicesConsumidos = new Set(),
+} = {}) {
+  const resultado = [];
+  for (let indice = indiceActual + 1; indice < eventos.length; indice += 1) {
+    if (indicesConsumidos.has(indice)) continue;
+    const candidato = eventos[indice];
+    if (!candidato || typeof candidato !== "object") continue;
+    if (!TIPOS_EVENTO_EFECTO_CORRELACIONABLE.has(candidato.tipo)) continue;
+    if (obtenerIdEjecucionAsociada(candidato) !== idEjecucion) continue;
+    const visual = crearEventoVisualEfectoTemporal({
+      evento: candidato,
+      entidadesPorId,
+    });
+    if (!visual) continue;
+    indicesConsumidos.add(indice);
+    resultado.push(visual);
+  }
+  return resultado;
+}
+
+function normalizarDanioZona(danio, resolucionImpacto) {
+  const fuente = danio ?? resolucionImpacto ?? {};
+  return Object.freeze({
+    cantidad: normalizarNumeroNoNegativo(
+      fuente.danio ?? fuente.danioFinal ?? 0,
+    ),
+    vidaObjetivoAntes: normalizarNumeroOpcional(fuente.vidaObjetivoAntes),
+    vidaObjetivoDespues: normalizarNumeroOpcional(fuente.vidaObjetivoDespues),
+    vidaObjetivoMaxima: normalizarNumeroOpcional(fuente.vidaObjetivoMaxima),
+    componentes: Object.freeze(
+      Array.isArray(fuente.componentesDanio)
+        ? fuente.componentesDanio.map((item) => Object.freeze({ ...item }))
+        : Array.isArray(fuente.componentes)
+          ? fuente.componentes.map((item) => Object.freeze({ ...item }))
+          : [],
+    ),
+  });
+}
+
 function normalizarZonaTemporalVisual(zona) {
   if (
     !zona ||
@@ -416,16 +577,38 @@ function correlacionarEventosEfectosHabilidad({
   indiceActual = -1,
   indicesConsumidos = new Set(),
 } = {}) {
-  const idEjecucion = normalizarTextoSimple(eventoHabilidad?.idEjecucion);
+  const idsEjecucion = new Set(
+    [
+      eventoHabilidad?.idEjecucion,
+      ...(eventoHabilidad?.impactos ?? []).map((impacto) => impacto?.idEjecucion),
+    ]
+      .map(normalizarTextoSimple)
+      .filter(Boolean),
+  );
   const correlacionados = new Map();
-  if (!idEjecucion || !Array.isArray(eventos)) return correlacionados;
+  if (idsEjecucion.size === 0 || !Array.isArray(eventos)) {
+    return correlacionados;
+  }
+
+  const zonaId = normalizarTextoSimple(eventoHabilidad?.zonaTemporal?.id);
 
   for (let indice = indiceActual + 1; indice < eventos.length; indice += 1) {
     if (indicesConsumidos.has(indice)) continue;
     const candidato = eventos[indice];
     if (!candidato || typeof candidato !== "object") continue;
+
+    if (
+      candidato.tipo === "zona_temporal_activada" &&
+      candidato.motivo === "al_crear" &&
+      idsEjecucion.has(normalizarTextoSimple(candidato.idEjecucion)) &&
+      (!zonaId || candidato.zonaId === zonaId)
+    ) {
+      indicesConsumidos.add(indice);
+      continue;
+    }
+
     if (!TIPOS_EVENTO_EFECTO_CORRELACIONABLE.has(candidato.tipo)) continue;
-    if (obtenerIdEjecucionAsociada(candidato) !== idEjecucion) continue;
+    if (!idsEjecucion.has(obtenerIdEjecucionAsociada(candidato))) continue;
 
     const visual = crearEventoVisualEfectoTemporal({
       evento: candidato,
@@ -737,6 +920,12 @@ function normalizarNumeroNoNegativo(valor) {
 function normalizarNumeroPositivo(valor) {
   const numero = Number(valor);
   return Number.isFinite(numero) && numero > 0 ? numero : null;
+}
+
+function normalizarNumeroOpcional(valor) {
+  if (valor === null || valor === undefined) return null;
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
 }
 
 function esPosicion(posicion) {

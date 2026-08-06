@@ -409,6 +409,7 @@ function copiarImpactosHabilidad(impactos) {
         posicionObjetivo: posicion && Number.isInteger(posicion.x) && Number.isInteger(posicion.y)
           ? copiarPosicion(posicion)
           : null,
+        idEjecucion: normalizarTexto(impacto?.idEjecucion),
         orden: normalizarEnteroNoNegativo(impacto?.orden),
         multiplicadorDanio: Number.isFinite(impacto?.multiplicadorDanio)
           ? impacto.multiplicadorDanio

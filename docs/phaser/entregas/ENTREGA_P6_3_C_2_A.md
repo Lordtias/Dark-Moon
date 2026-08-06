@@ -190,20 +190,27 @@ Esta entrega no completa todavía:
 13. Verificar Canvas 2D.
 14. Confirmar que duración, intervalos y daño no cambiaron.
 
-## 17. Estado Git esperado al entregar
+## 17. Cierre manual registrado
+
+P6.3C.2A fue validada manualmente y cerrada en:
+
+`4c124b9b45489dba723f9a70848c59d316229e0c`
+
+## 18. Estado Git esperado al entregar
 
 - Rama: `main`.
 - HEAD base: `e2e2b859f2e3e25989a73ab057b5f11195e32a0e`.
-- Commit realizado: no.
-- Push realizado: no.
+- Commit realizado: sí.
+- SHA de cierre: `4c124b9b45489dba723f9a70848c59d316229e0c`.
+- Push realizado: según flujo del usuario.
 - GitHub remoto modificado: no.
 
-## 18. Conventional Commit propuesto
+## 19. Conventional Commit propuesto
 
 ```text
 feat(phaser): representar zonas temporales persistentes
 ```
 
-## 19. Próximo paso
+## 20. Próximo paso
 
-Después de validar y commitear, continuar con **P6.3C.2B — Activaciones visuales de zonas temporales**.
+P6.3C.2A está cerrada. Continuar con **P6.3C.2B — Activaciones visuales de zonas temporales**.

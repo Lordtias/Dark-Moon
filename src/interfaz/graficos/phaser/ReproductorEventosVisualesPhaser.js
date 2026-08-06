@@ -267,6 +267,12 @@ export class ReproductorEventosVisualesPhaser {
       await this.reproducirZonaTemporalRenovada(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA) {
       await this.reproducirZonaTemporalVencida(evento, version);
+    } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_PULSO) {
+      await this.reproducirZonaTemporalPulso(evento, version);
+    } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ACTOR_ENTRO_ZONA_TEMPORAL) {
+      await this.reproducirActorEntroZonaTemporal(evento, version);
+    } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA) {
+      await this.reproducirZonaTemporalActivada(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.RECURSOS_RECUPERADOS) {
       await this.reproducirRecursosRecuperados(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.NIVEL_AUMENTADO) {
@@ -334,6 +340,105 @@ export class ReproductorEventosVisualesPhaser {
     }
     if (version === this.versionCancelacion && !this.destruido) {
       this.compositor.retirarZonaTemporal?.(zona.id);
+    }
+  }
+
+  async reproducirZonaTemporalPulso(evento, version) {
+    const zona = evento?.zona;
+    if (!zona) return;
+    const pulso = this.efectosReducidos
+      ? null
+      : this.creadorZonasTemporales?.crearPulsoActivacion({ zona });
+    const duracion = this.calcularDuracion(280);
+    if (pulso) {
+      await this.crearTween({
+        targets: pulso.list ?? pulso,
+        alpha: 0,
+        scaleX: 1.18,
+        scaleY: 1.18,
+        duration: duracion,
+        ease: "Sine.easeOut",
+      }, version);
+      pulso.destroy?.(true);
+    } else {
+      await this.esperar(duracion, version);
+    }
+  }
+
+  async reproducirActorEntroZonaTemporal(evento, version) {
+    const zona = evento?.zona;
+    const posicion = evento?.destino;
+    if (!zona || !posicion) return;
+    const reaccion = this.efectosReducidos
+      ? null
+      : this.creadorZonasTemporales?.crearReaccionLocal({
+          zona,
+          posicion,
+          tipo: "entrada",
+        });
+    const duracion = this.calcularDuracion(180);
+    if (reaccion) {
+      await this.crearTween({
+        targets: reaccion,
+        alpha: 0,
+        scaleX: 1.08,
+        scaleY: 1.08,
+        angle: 14,
+        duration: duracion,
+        ease: "Quad.easeOut",
+      }, version);
+      reaccion.destroy?.();
+    } else {
+      await this.esperar(duracion, version);
+    }
+  }
+
+  async reproducirZonaTemporalActivada(evento, version) {
+    const zona = evento?.zona;
+    const impacto = evento?.impacto;
+    if (!zona || !impacto) return;
+
+    const reaccion = this.efectosReducidos
+      ? null
+      : this.creadorZonasTemporales?.crearReaccionLocal({
+          zona,
+          posicion: impacto.posicionObjetivo,
+          tipo: "impacto",
+        });
+    const duracion = this.calcularDuracion(220);
+    const animaciones = [];
+    if (reaccion) {
+      animaciones.push(this.crearTween({
+        targets: reaccion,
+        alpha: 0,
+        scaleX: 1.28,
+        scaleY: 1.28,
+        duration: duracion,
+        ease: "Quad.easeOut",
+      }, version).then(() => reaccion.destroy?.()));
+    }
+
+    animaciones.push(
+      this.reproducirResultadoImpactoHabilidad(
+        {
+          ...evento,
+          idActor: null,
+          origenActor: impacto.posicionObjetivo,
+          posicionObjetivo: impacto.posicionObjetivo,
+        },
+        impacto,
+        version,
+      ),
+    );
+
+    await Promise.all(animaciones);
+
+    if (
+      impacto.derrotaVisual &&
+      version === this.versionCancelacion &&
+      !this.destruido
+    ) {
+      await this.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
     }
   }
 

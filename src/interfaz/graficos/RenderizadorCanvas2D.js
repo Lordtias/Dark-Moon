@@ -328,7 +328,17 @@ export class RenderizadorCanvas2D {
       TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
     ]);
 
-    this.feedbackEstadosTemporales = eventosVisuales
+    const eventosEstados = eventosVisuales.flatMap((evento) => {
+      const anidadosHabilidad = evento?.tipo === TIPOS_EVENTO_VISUAL.HABILIDAD_RESUELTA
+        ? (evento.impactos ?? []).flatMap((impacto) => impacto.eventosEfectos ?? [])
+        : [];
+      const anidadosZona = evento?.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA
+        ? evento.impacto?.eventosEfectos ?? []
+        : [];
+      return [evento, ...anidadosHabilidad, ...anidadosZona];
+    });
+
+    this.feedbackEstadosTemporales = eventosEstados
       .filter((evento) => tiposValidos.has(evento?.tipo))
       .map((evento) => crearFeedbackEstadoCanvas(evento))
       .filter(Boolean);
@@ -344,10 +354,18 @@ export class RenderizadorCanvas2D {
       TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA,
       TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA,
       TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA,
+      TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_PULSO,
+      TIPOS_EVENTO_VISUAL.ACTOR_ENTRO_ZONA_TEMPORAL,
+      TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA,
     ]);
     this.pulsosZonasTemporales = eventosVisuales
       .filter((evento) => tiposZona.has(evento?.tipo) && evento?.zona)
-      .map((evento) => ({ tipo: evento.tipo, zona: evento.zona }));
+      .map((evento) => ({
+        tipo: evento.tipo,
+        zona: evento.zona,
+        posicion:
+          evento.destino ?? evento.impacto?.posicionObjetivo ?? null,
+      }));
 
     if (this.temporizadorFeedbackEstados !== null) {
       clearTimeout(this.temporizadorFeedbackEstados);
@@ -979,25 +997,57 @@ export class RenderizadorCanvas2D {
         pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_VENCIDA;
       const esRenovacion =
         pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA;
+      const esPulso =
+        pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_PULSO;
+      const esEntrada =
+        pulso.tipo === TIPOS_EVENTO_VISUAL.ACTOR_ENTRO_ZONA_TEMPORAL;
+      const esActivacion =
+        pulso.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA;
+      const casillas = esEntrada || esActivacion
+        ? (pulso.posicion ? [pulso.posicion] : [])
+        : zona?.casillas ?? [];
 
       this.context.save();
       this.context.strokeStyle = color;
-      this.context.lineWidth = esRenovacion ? 3 : 2;
-      this.context.globalAlpha = esVencimiento ? 0.34 : 0.72;
-      for (const casilla of zona?.casillas ?? []) {
+      this.context.lineWidth = esRenovacion || esActivacion ? 3 : 2;
+      this.context.globalAlpha = esVencimiento
+        ? 0.34
+        : esPulso || esActivacion
+          ? 0.86
+          : 0.72;
+      for (const casilla of casillas) {
         const centroX = casilla.x * this.tileSize + this.tileSize / 2;
         const centroY = casilla.y * this.tileSize + this.tileSize / 2;
+        const radioX = this.tileSize * (
+          esVencimiento ? 0.32 : esEntrada ? 0.34 : esActivacion ? 0.48 : 0.42
+        );
+        const radioY = this.tileSize * (
+          esVencimiento ? 0.2 : esEntrada ? 0.24 : esActivacion ? 0.34 : 0.28
+        );
         this.context.beginPath();
         this.context.ellipse(
           centroX,
           centroY,
-          this.tileSize * (esVencimiento ? 0.32 : 0.42),
-          this.tileSize * (esVencimiento ? 0.2 : 0.28),
+          radioX,
+          radioY,
           0,
           0,
           Math.PI * 2,
         );
         this.context.stroke();
+        if (esPulso || esEntrada || esActivacion) {
+          this.context.globalAlpha *= 0.65;
+          this.context.beginPath();
+          this.context.arc(
+            centroX,
+            centroY - this.tileSize * 0.08,
+            this.tileSize * (esActivacion ? 0.18 : 0.13),
+            0,
+            Math.PI * 2,
+          );
+          this.context.stroke();
+          this.context.globalAlpha /= 0.65;
+        }
       }
       this.context.restore();
     }

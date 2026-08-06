@@ -199,11 +199,18 @@ export class SistemaZonasTemporales {
           ACTIVADORES_ZONA_TEMPORAL.POR_INTERVALO,
         )
       ) {
+        const objetivos = this.obtenerOcupantesValidos(zona);
+        acumulado.eventos.push({
+          ...crearEvento("zona_temporal_pulso", zona, instante),
+          motivo: ACTIVADORES_ZONA_TEMPORAL.POR_INTERVALO,
+          cantidadObjetivos: objetivos.length,
+        });
         this.activarZonaSobreOcupantes({
           zona,
           motivo: ACTIVADORES_ZONA_TEMPORAL.POR_INTERVALO,
           instante,
           acumulado,
+          objetivos,
         });
         zona.proximaActivacion = calcularProximaActivacion(zona, instante);
       }
@@ -250,12 +257,24 @@ export class SistemaZonasTemporales {
     return cantidad;
   }
 
-  activarZonaSobreOcupantes({ zona, motivo, instante, acumulado }) {
-    const actores = this.obtenerActores()
+  obtenerOcupantesValidos(zona) {
+    return this.obtenerActores()
       .filter((actor) => actor && typeof actor === "object")
       .filter((actor) => zona.clavesCasillas.has(crearClaveCasilla(actor)))
       .filter((actor) => this.esObjetivoValido({ zona, actor }))
       .sort(compararActores);
+  }
+
+  activarZonaSobreOcupantes({
+    zona,
+    motivo,
+    instante,
+    acumulado,
+    objetivos = null,
+  }) {
+    const actores = Array.isArray(objetivos)
+      ? objetivos
+      : this.obtenerOcupantesValidos(zona);
 
     for (const objetivo of actores) {
       this.activarZonaSobreObjetivo({
@@ -266,6 +285,8 @@ export class SistemaZonasTemporales {
         acumulado,
       });
     }
+
+    return actores.length;
   }
 
   activarZonaSobreObjetivo({ zona, objetivo, motivo, instante, acumulado }) {
@@ -280,14 +301,27 @@ export class SistemaZonasTemporales {
       instante,
     });
     acumulado.impactos.push(impacto);
-    acumulado.eventos.push({
-      ...crearEvento("zona_temporal_activada", zona, instante),
-      motivo,
-      objetivo,
-      impacto: impacto.impacto === true,
-      critico: impacto.critico === true,
-      objetivoDerrotado: impacto.objetivoDerrotado === true,
-    });
+    const eventosEfectos = (impacto.efectos ?? []).flatMap(
+      (efecto) => efecto?.eventos ?? [],
+    );
+    acumulado.eventos.push(
+      {
+        ...crearEvento("zona_temporal_activada", zona, instante),
+        idEjecucion: impacto.idEjecucion,
+        motivo,
+        objetivo,
+        posicionObjetivo: copiarPosicionSegura(objetivo),
+        impacto: impacto.impacto === true,
+        critico: impacto.critico === true,
+        objetivoDerrotado: impacto.objetivoDerrotado === true,
+        danio: copiarSimple(impacto.danio),
+        resolucionImpacto: copiarSimple(impacto.resolucionImpacto),
+        efectos: (impacto.efectos ?? []).map(({ eventos: _eventos, ...efecto }) =>
+          copiarSimple(efecto),
+        ),
+      },
+      ...eventosEfectos,
+    );
     if (impacto.objetivoDerrotado) {
       acumulado.objetivosDerrotados.push(objetivo);
     }
@@ -482,6 +516,13 @@ function crearClaveCasilla({ x, y }) {
 
 function copiarCasilla({ x, y }) {
   return { x, y };
+}
+
+function copiarPosicionSegura(posicion) {
+  if (!Number.isInteger(posicion?.x) || !Number.isInteger(posicion?.y)) {
+    return null;
+  }
+  return { x: posicion.x, y: posicion.y };
 }
 
 function validarPosicion(posicion, descripcion) {

@@ -2,6 +2,7 @@ import {
   ESTADOS_HOSTILIDAD_VISUAL,
   TIPOS_ENTIDAD_VISUAL,
 } from "./TiposEscena.js";
+import { TIPOS_EVENTO_VISUAL } from "./PlanificadorEventosVisuales.js";
 
 import { CargadorImagenes } from "./CargadorImagenes.js";
 
@@ -96,6 +97,9 @@ export class RenderizadorCanvas2D {
     this.ultimaEscena = null;
 
     this.redibujoPendiente = false;
+
+    this.feedbackEstadosTemporales = [];
+    this.temporizadorFeedbackEstados = null;
 
     // La carga y caché quedan aisladas dentro
     // del backend Canvas 2D.
@@ -246,16 +250,27 @@ export class RenderizadorCanvas2D {
 
     this.cargadorImagenes?.destruir();
 
+    if (this.temporizadorFeedbackEstados !== null) {
+      clearTimeout(this.temporizadorFeedbackEstados);
+      this.temporizadorFeedbackEstados = null;
+    }
+
+    this.feedbackEstadosTemporales = [];
+
     this.ultimaEscena = null;
   }
 
   // Dibuja una escena completa.
-  dibujar(escena) {
+  dibujar(escena, { eventosVisuales = null } = {}) {
     validarEscena(escena);
 
     // Guardamos la escena plana, no la instancia
     // completa de Juego.
     this.ultimaEscena = escena;
+
+    if (Array.isArray(eventosVisuales)) {
+      this.actualizarFeedbackEstadosTemporales(eventosVisuales);
+    }
 
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -284,6 +299,8 @@ export class RenderizadorCanvas2D {
 
     this.dibujarEntidades(escena.entidades);
 
+    this.dibujarFeedbackEstadosTemporales(escena.entidades);
+
     if (escena.combate.modo === "habilidad") {
       this.dibujarObjetivosHabilidad(
         escena.combate.objetivosAfectados,
@@ -297,6 +314,59 @@ export class RenderizadorCanvas2D {
         escena.combate.habilidad,
       );
     }
+  }
+
+  actualizarFeedbackEstadosTemporales(eventosVisuales) {
+    const tiposValidos = new Set([
+      TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO,
+      TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
+    ]);
+
+    this.feedbackEstadosTemporales = eventosVisuales
+      .filter((evento) => tiposValidos.has(evento?.tipo))
+      .map((evento) => crearFeedbackEstadoCanvas(evento))
+      .filter(Boolean);
+
+    if (this.temporizadorFeedbackEstados !== null) {
+      clearTimeout(this.temporizadorFeedbackEstados);
+      this.temporizadorFeedbackEstados = null;
+    }
+
+    if (this.feedbackEstadosTemporales.length === 0) return;
+
+    this.temporizadorFeedbackEstados = setTimeout(() => {
+      this.temporizadorFeedbackEstados = null;
+      this.feedbackEstadosTemporales = [];
+      if (this.ultimaEscena) {
+        this.dibujar(this.ultimaEscena);
+      }
+    }, 760);
+  }
+
+  dibujarFeedbackEstadosTemporales(entidades) {
+    if (this.feedbackEstadosTemporales.length === 0) return;
+    const entidadesPorId = new Map(
+      entidades.map((entidad) => [entidad.idVisual, entidad]),
+    );
+
+    this.context.save();
+    this.context.textAlign = "center";
+    this.context.textBaseline = "middle";
+    this.context.font = `bold ${Math.max(11, Math.round(this.tileSize * 0.34))}px monospace`;
+    this.context.lineWidth = Math.max(2, Math.floor(this.tileSize / 12));
+    this.context.strokeStyle = "#11141a";
+
+    for (const feedback of this.feedbackEstadosTemporales) {
+      const entidad = entidadesPorId.get(feedback.idObjetivo);
+      if (!entidad) continue;
+      const x = entidad.x * this.tileSize + this.tileSize / 2;
+      const y = entidad.y * this.tileSize + this.tileSize * 0.05;
+      this.context.strokeText(feedback.texto, x, y);
+      this.context.fillStyle = feedback.color;
+      this.context.fillText(feedback.texto, x, y);
+    }
+
+    this.context.restore();
   }
 
   // Dibuja todas las casillas del mapa.
@@ -999,6 +1069,12 @@ export class RenderizadorCanvas2D {
       });
     }
 
+    this.dibujarEstadosTemporalesEntidad({
+      entidad,
+      centroX,
+      centroY,
+    });
+
     if (
       entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
       entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
@@ -1016,6 +1092,76 @@ export class RenderizadorCanvas2D {
     if (entidad.mostrarBarraVida) {
       this.dibujarBarraVida(entidad, pixelX, pixelY);
     }
+  }
+
+  dibujarEstadosTemporalesEntidad({ entidad, centroX, centroY }) {
+    const efectos = Array.isArray(entidad?.efectosTemporales)
+      ? entidad.efectosTemporales
+      : [];
+    if (efectos.length === 0) return;
+
+    this.context.save();
+    this.context.lineCap = "round";
+    this.context.lineJoin = "round";
+
+    for (const efecto of efectos) {
+      const perfil = efecto?.perfilVisual;
+      if (!perfil) continue;
+      const principal = perfil.colorPrincipal ?? "#ffffff";
+      const secundario = perfil.colorSecundario ?? "#ffffff";
+      const radio = Math.max(5, Math.floor(this.tileSize * 0.26));
+
+      this.context.strokeStyle = principal;
+      this.context.fillStyle = principal;
+      this.context.lineWidth = Math.max(1, Math.floor(this.tileSize / 24));
+
+      if (perfil.canal === "pies") {
+        const y = centroY + radio * 0.78;
+        this.context.beginPath();
+        this.context.moveTo(centroX - radio, y);
+        this.context.lineTo(centroX - radio * 0.25, y - 2);
+        this.context.lineTo(centroX + radio * 0.3, y + 1);
+        this.context.lineTo(centroX + radio, y - 2);
+        this.context.stroke();
+      } else if (perfil.canal === "laterales") {
+        dibujarZigzagCanvas(this.context, centroX - radio, centroY - radio * 0.65, centroX - radio * 0.75, centroY + radio * 0.6);
+        dibujarZigzagCanvas(this.context, centroX + radio * 0.78, centroY - radio * 0.55, centroX + radio, centroY + radio * 0.55);
+      } else if (perfil.canal === "contorno") {
+        this.context.beginPath();
+        this.context.moveTo(centroX - radio, centroY + radio * 0.45);
+        this.context.lineTo(centroX - radio * 0.78, centroY - radio * 0.72);
+        this.context.lineTo(centroX - radio * 0.22, centroY - radio);
+        this.context.moveTo(centroX + radio * 0.25, centroY - radio);
+        this.context.lineTo(centroX + radio * 0.8, centroY - radio * 0.66);
+        this.context.lineTo(centroX + radio, centroY + radio * 0.42);
+        this.context.stroke();
+      } else if (perfil.canal === "superior") {
+        this.context.strokeStyle = secundario;
+        this.context.beginPath();
+        this.context.arc(centroX, centroY - radio * 1.2, radio * 0.32, 0, Math.PI * 2);
+        this.context.stroke();
+        this.context.fillStyle = principal;
+        this.context.fillRect(centroX - 1, centroY - radio * 1.2 - 1, 2, 2);
+      } else if (perfil.canal === "lateral_izquierdo") {
+        this.context.globalAlpha = 0.82;
+        this.context.beginPath();
+        this.context.arc(centroX - radio * 0.9, centroY + radio * 0.4, radio * 0.2, 0, Math.PI * 2);
+        this.context.arc(centroX - radio * 1.05, centroY - radio * 0.1, radio * 0.14, 0, Math.PI * 2);
+        this.context.fill();
+      } else if (perfil.canal === "lateral_derecho") {
+        this.context.fillStyle = principal;
+        this.context.beginPath();
+        this.context.moveTo(centroX + radio * 0.55, centroY + radio * 0.7);
+        this.context.lineTo(centroX + radio, centroY - radio * 0.25);
+        this.context.lineTo(centroX + radio * 0.7, centroY - radio * 0.05);
+        this.context.lineTo(centroX + radio * 0.8, centroY - radio * 0.8);
+        this.context.lineTo(centroX + radio * 0.35, centroY - radio * 0.18);
+        this.context.closePath();
+        this.context.fill();
+      }
+    }
+
+    this.context.restore();
   }
 
   // Conserva una referencia de profundidad
@@ -1399,6 +1545,50 @@ function obtenerHashCasilla(x, y) {
 
 // Comprueba el contrato mínimo
 // de una escena gráfica.
+function dibujarZigzagCanvas(contexto, x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  contexto.beginPath();
+  contexto.moveTo(x1, y1);
+  contexto.lineTo(x1 + dx * 0.35 - 2, y1 + dy * 0.32);
+  contexto.lineTo(x1 + dx * 0.64 + 2, y1 + dy * 0.66);
+  contexto.lineTo(x2, y2);
+  contexto.stroke();
+}
+
+function crearFeedbackEstadoCanvas(evento) {
+  const perfil = evento?.efecto?.perfilVisual;
+  const base = typeof perfil?.textoEstado === "string"
+    ? perfil.textoEstado.trim()
+    : "";
+  if (!base || typeof evento?.idObjetivo !== "string") return null;
+
+  let texto = base;
+  if (evento.operacion === "renovado") {
+    texto = `${base} · RENOVADO`;
+  } else if (
+    evento.operacion === "intensificado" ||
+    evento.operacion === "acumulado"
+  ) {
+    const multiplicador = Math.max(
+      1,
+      Number.isFinite(evento.efecto?.intensidad)
+        ? Math.round(evento.efecto.intensidad)
+        : 1,
+      Number.isFinite(evento.efecto?.cantidad)
+        ? Math.round(evento.efecto.cantidad)
+        : 1,
+    );
+    texto = multiplicador > 1 ? `${base} ×${multiplicador}` : base;
+  }
+
+  return Object.freeze({
+    idObjetivo: evento.idObjetivo,
+    texto,
+    color: perfil.colorSecundario ?? "#ffffff",
+  });
+}
+
 function validarEscena(escena) {
   if (!escena || typeof escena !== "object") {
     throw new Error("RenderizadorCanvas2D necesita una escena válida.");

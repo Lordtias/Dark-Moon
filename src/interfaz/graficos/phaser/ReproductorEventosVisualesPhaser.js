@@ -14,6 +14,7 @@ import {
 import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
 import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
 import { CreadorEfectosHabilidadesPhaser } from "./CreadorEfectosHabilidadesPhaser.js";
+import { CreadorEstadosTemporalesPhaser } from "./CreadorEstadosTemporalesPhaser.js";
 import { CreadorEfectosRecuperacionPhaser } from "./CreadorEfectosRecuperacionPhaser.js";
 import {
   CONFIGURACION_EFECTOS_RECUPERACION_PHASER,
@@ -66,6 +67,10 @@ export class ReproductorEventosVisualesPhaser {
       compositor,
     });
     this.creadorEfectosHabilidades = new CreadorEfectosHabilidadesPhaser({
+      escena,
+      compositor,
+    });
+    this.creadorEstadosTemporales = new CreadorEstadosTemporalesPhaser({
       escena,
       compositor,
     });
@@ -153,6 +158,8 @@ export class ReproductorEventosVisualesPhaser {
 
     if (aplicarUltimaEscena && ultimaEscena) {
       this.alAplicarEscena(ultimaEscena);
+    } else {
+      this.compositor?.reconciliarEfectosTemporalesDesdeEscenaActual?.();
     }
   }
 
@@ -166,6 +173,7 @@ export class ReproductorEventosVisualesPhaser {
     this.alMoverJugadorVisual = null;
     this.creadorEfectos = null;
     this.creadorEfectosHabilidades = null;
+    this.creadorEstadosTemporales = null;
     this.creadorEfectosRecuperacion = null;
     this.creadorProyectilesElementales = null;
     this.creadorRecursosVisuales = null;
@@ -203,6 +211,22 @@ export class ReproductorEventosVisualesPhaser {
         await this.reproducirHabilidadResuelta(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.CAMBIO_HOSTILIDAD) {
         this.reproducirCambioHostilidad(evento);
+      } else if (
+        evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO
+      ) {
+        await this.reproducirEfectoTemporalAplicado(evento, version);
+      } else if (
+        evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO
+      ) {
+        await this.reproducirEfectoTemporalActualizado(evento, version);
+      } else if (
+        evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_NO_APLICADO
+      ) {
+        await this.reproducirEfectoTemporalNoAplicado(evento, version);
+      } else if (
+        evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO
+      ) {
+        await this.reproducirEfectoTemporalRetirado(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.DANIO_PERIODICO) {
         await this.reproducirDanioPeriodico(evento, version);
       } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA) {
@@ -217,6 +241,133 @@ export class ReproductorEventosVisualesPhaser {
     if (version === this.versionCancelacion && !this.destruido) {
       this.alAplicarEscena(actualizacion.escenaFinal);
     }
+  }
+
+  async reproducirEfectoTemporalAplicado(evento, version) {
+    this.compositor.establecerEfectoTemporalEntidad?.(
+      evento.idObjetivo,
+      evento.efecto,
+    );
+    const centro = this.obtenerCentroEventoEfecto(evento);
+    const entrada = this.efectosReducidos
+      ? null
+      : this.creadorEstadosTemporales?.crearEntrada({
+          centro,
+          efecto: evento.efecto,
+        });
+
+    await Promise.all([
+      entrada
+        ? this.animarEntradaEstado(entrada, version)
+        : Promise.resolve(),
+      this.reproducirFeedbackTextoEstado(evento, version),
+    ]);
+  }
+
+  async reproducirEfectoTemporalActualizado(evento, version) {
+    const actualizado = this.compositor.establecerEfectoTemporalEntidad?.(
+      evento.idObjetivo,
+      evento.efecto,
+    ) === true;
+    await this.reproducirFeedbackTextoEstado(evento, version);
+    return actualizado;
+  }
+
+  async animarEntradaEstado(entrada, version) {
+    await this.crearTween({
+      targets: entrada,
+      scaleX: 1.24,
+      scaleY: 1.24,
+      alpha: 0,
+      duration: this.calcularDuracion(220),
+      ease: "Quad.easeOut",
+    }, version);
+    entrada.destroy?.();
+  }
+
+  async reproducirFeedbackTextoEstado(evento, version) {
+    const centro = this.obtenerCentroEventoEfecto(evento);
+    const feedback = this.creadorEstadosTemporales?.crearFeedbackEstado({
+      centro,
+      efecto: evento.efecto,
+      operacion: evento.operacion,
+    });
+    if (!feedback) return;
+    const yInicial = feedback.y;
+
+    await this.crearTween({
+      targets: feedback,
+      y: yInicial - CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.elevacionPx,
+      alpha: 0,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.duracionMs,
+      ),
+      ease: "Quad.easeOut",
+    }, version);
+    feedback.destroy?.();
+  }
+
+  async reproducirEfectoTemporalNoAplicado(evento, version) {
+    if (this.efectosReducidos) return;
+    const centro = this.obtenerCentroEventoEfecto(evento);
+    const feedback = this.creadorEstadosTemporales?.crearNoAplicado({
+      centro,
+      feedback: evento.feedback,
+    });
+    if (!feedback) return;
+    const yInicial = feedback.y;
+
+    await this.crearTween({
+      targets: feedback,
+      y: yInicial - CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.elevacionPx,
+      scaleX: CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.escalaFinal,
+      scaleY: CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.escalaFinal,
+      alpha: 0,
+      duration: this.calcularDuracion(
+        CONFIGURACION_EFECTOS_COMBATE_PHASER.texto.duracionMs,
+      ),
+      ease: "Quad.easeOut",
+    }, version);
+    feedback.destroy?.(true);
+  }
+
+  async reproducirEfectoTemporalRetirado(evento, version) {
+    const nodo = this.compositor.obtenerNodoEntidad?.(evento.idObjetivo);
+    const centro = nodo?.contenedor
+      ? { x: nodo.contenedor.x, y: nodo.contenedor.y }
+      : null;
+
+    this.compositor.retirarEfectoTemporalEntidad?.(
+      evento.idObjetivo,
+      evento.efecto,
+    );
+
+    const salida =
+      this.efectosReducidos || !centro
+        ? null
+        : this.creadorEstadosTemporales?.crearRetirada({
+            centro,
+            efecto: evento.efecto,
+          });
+
+    if (!salida) return;
+    await this.crearTween({
+      targets: salida,
+      scaleX: 1.34,
+      scaleY: 1.34,
+      alpha: 0,
+      duration: this.calcularDuracion(210),
+      ease: "Sine.easeOut",
+    }, version);
+    salida.destroy?.();
+  }
+
+  obtenerCentroEventoEfecto(evento) {
+    const nodo = this.compositor.obtenerNodoEntidad?.(evento.idObjetivo);
+    if (nodo?.contenedor) {
+      return { x: nodo.contenedor.x, y: nodo.contenedor.y };
+    }
+    return this.compositor.obtenerCentroCasilla?.(evento.posicionObjetivo);
   }
 
   reproducirCambioHostilidad(evento) {
@@ -255,8 +406,13 @@ export class ReproductorEventosVisualesPhaser {
       tipoEntidad: evento.tipoEntidad,
       movimientosJugadorPendientes,
     });
+    const factorTemporal = Number.isFinite(evento.ritmoVisual?.factorTemporal)
+      ? evento.ritmoVisual.factorTemporal
+      : 1;
     const duracionBase =
-      duracionBaseMovimiento * Math.max(1, Math.min(Math.SQRT2, distancia));
+      duracionBaseMovimiento *
+      factorTemporal *
+      Math.max(1, Math.min(Math.SQRT2, distancia));
     const duracion = calcularDuracionAnimacionPhaser(duracionBase, {
       velocidad: this.velocidad,
       cantidadPendiente: 0,

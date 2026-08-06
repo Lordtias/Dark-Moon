@@ -259,7 +259,7 @@
                 "probabilidadBase": 100,
                 "duracion": 150,
                 "valor": {
-                  "factorMovimiento": 1.15
+                  "factorMovimiento": 1.4
                 }
               }
             ]
@@ -281,7 +281,7 @@
                 "probabilidadBase": 100,
                 "duracion": 200,
                 "valor": {
-                  "factorMovimiento": 1.2
+                  "factorMovimiento": 1.45
                 }
               }
             ]
@@ -303,7 +303,7 @@
                 "probabilidadBase": 100,
                 "duracion": 250,
                 "valor": {
-                  "factorMovimiento": 1.25
+                  "factorMovimiento": 1.5
                 }
               }
             ]
@@ -325,7 +325,7 @@
                 "probabilidadBase": 100,
                 "duracion": 300,
                 "valor": {
-                  "factorMovimiento": 1.3
+                  "factorMovimiento": 1.55
                 }
               }
             ]
@@ -367,7 +367,7 @@
                 "probabilidadBase": 100,
                 "duracion": 200,
                 "valor": {
-                  "factorMovimiento": 1.2
+                  "factorMovimiento": 1.6
                 }
               }
             ]
@@ -393,7 +393,7 @@
                 "probabilidadBase": 100,
                 "duracion": 250,
                 "valor": {
-                  "factorMovimiento": 1.25
+                  "factorMovimiento": 1.65
                 }
               }
             ]
@@ -419,7 +419,7 @@
                 "probabilidadBase": 100,
                 "duracion": 300,
                 "valor": {
-                  "factorMovimiento": 1.3
+                  "factorMovimiento": 1.7
                 }
               }
             ]

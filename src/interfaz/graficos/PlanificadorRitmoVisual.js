@@ -82,6 +82,25 @@ export function crearPlanRitmoVisualConsumo({ ejecucionTemporal } = {}) {
   });
 }
 
+export function crearPlanRitmoVisualMovimiento({ ejecucionTemporal } = {}) {
+  const costoBase = ejecucionTemporal?.costoBase;
+  const costoFinal = ejecucionTemporal?.costoFinal;
+  if (
+    !Number.isInteger(costoBase) ||
+    costoBase <= 0 ||
+    !Number.isInteger(costoFinal) ||
+    costoFinal <= 0
+  ) {
+    return null;
+  }
+
+  return Object.freeze({
+    costoBase,
+    costoFinal,
+    factorTemporal: costoFinal / costoBase,
+  });
+}
+
 export function convertirCostoFinalADuracionVisual(costoFinal) {
   if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
     throw new Error(

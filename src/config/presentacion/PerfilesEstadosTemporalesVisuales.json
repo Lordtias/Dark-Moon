@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "estados": {
+    "ralentizacion": {
+      "forma": "fragmentos_pies",
+      "canal": "pies",
+      "movimiento": "pulso_lento",
+      "textura": "escarcha_arrastrada",
+      "colorPrincipal": "#71c9f5",
+      "colorSecundario": "#d9f6ff",
+      "tamanoVisualPx": 14,
+      "feedbackAplicacion": "onda_frio",
+      "textoEstado": "RALENTIZADO"
+    },
+    "electrizacion": {
+      "forma": "arcos_laterales",
+      "canal": "laterales",
+      "movimiento": "pulso_irregular",
+      "textura": "descarga_quebrada",
+      "colorPrincipal": "#9f67ff",
+      "colorSecundario": "#f0dcff",
+      "tamanoVisualPx": 15,
+      "feedbackAplicacion": "descarga_breve",
+      "textoEstado": "ELECTRIZADO"
+    },
+    "congelamiento": {
+      "forma": "carcasa_fragmentada",
+      "canal": "contorno",
+      "movimiento": "rigido",
+      "textura": "cristal_angular",
+      "colorPrincipal": "#8edcff",
+      "colorSecundario": "#e6fbff",
+      "tamanoVisualPx": 18,
+      "feedbackAplicacion": "cierre_cristal",
+      "textoEstado": "CONGELADO"
+    },
+    "aturdimiento": {
+      "forma": "runas_superiores",
+      "canal": "superior",
+      "movimiento": "rotacion_interrumpida",
+      "textura": "chispa_mental",
+      "colorPrincipal": "#f4d35e",
+      "colorSecundario": "#fff4b8",
+      "tamanoVisualPx": 13,
+      "feedbackAplicacion": "destello_superior",
+      "textoEstado": "ATURDIDO"
+    },
+    "envenenamiento": {
+      "forma": "burbujas_viscosas",
+      "canal": "lateral_izquierdo",
+      "movimiento": "ascenso_lento",
+      "textura": "toxina_densa",
+      "colorPrincipal": "#62cf45",
+      "colorSecundario": "#c9f57b",
+      "tamanoVisualPx": 14,
+      "feedbackAplicacion": "salpicadura_toxica",
+      "textoEstado": "ENVENENADO"
+    },
+    "quemadura": {
+      "forma": "brasas_laterales",
+      "canal": "lateral_derecho",
+      "movimiento": "ascenso_rapido",
+      "textura": "llama_irregular",
+      "colorPrincipal": "#ff6b35",
+      "colorSecundario": "#ffd166",
+      "tamanoVisualPx": 15,
+      "feedbackAplicacion": "llamarada_breve",
+      "textoEstado": "QUEMADO"
+    }
+  },
+  "feedbackNoAplicado": {
+    "resistencia": {
+      "texto": "RESISTIDO",
+      "forma": "onda_defensiva",
+      "colorPrincipal": "#9dd9f3",
+      "colorSecundario": "#eaf8ff"
+    },
+    "inmunidad": {
+      "texto": "INMUNE",
+      "forma": "sello_cerrado",
+      "colorPrincipal": "#f3e7a2",
+      "colorSecundario": "#fffbe0"
+    },
+    "duplicado": {
+      "texto": "YA ACTIVO",
+      "forma": "pulso_tenue",
+      "colorPrincipal": "#d7d7df",
+      "colorSecundario": "#ffffff"
+    }
+  }
+}

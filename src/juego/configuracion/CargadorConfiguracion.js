@@ -41,6 +41,9 @@ const RUTA_PERFILES_ATAQUE_POR_FAMILIA =
 const RUTA_PERFILES_HABILIDADES_VISUALES =
   "./src/config/presentacion/PerfilesHabilidadesVisuales.json";
 
+const RUTA_PERFILES_ESTADOS_TEMPORALES_VISUALES =
+  "./src/config/presentacion/PerfilesEstadosTemporalesVisuales.json";
+
 // Catálogos que describen rarezas y afijos.
 //
 // Se cargan separados de las plantillas de objetos porque:
@@ -242,6 +245,13 @@ export function cargarPerfilesHabilidadesVisuales() {
   return cargarArchivoJson(
     RUTA_PERFILES_HABILIDADES_VISUALES,
     "los perfiles visuales de habilidades",
+  );
+}
+
+export function cargarPerfilesEstadosTemporalesVisuales() {
+  return cargarArchivoJson(
+    RUTA_PERFILES_ESTADOS_TEMPORALES_VISUALES,
+    "los perfiles visuales de estados temporales",
   );
 }
 

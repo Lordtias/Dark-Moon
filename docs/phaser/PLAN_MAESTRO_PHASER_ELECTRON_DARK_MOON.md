@@ -1139,16 +1139,17 @@ Las pociones muestran el recurso y la cantidad realmente recuperados; no se cons
 P6.3 se divide en entregas independientes:
 
 1. `P6.3A` — contratos universales y habilidades básicas;
-2. `P6.3B` — análisis y diseño específico de estados temporales, con posible división posterior entre contratos persistentes y reglas de renovación, acumulación, ticks y limpieza;
-3. `P6.3C.1` — habilidades intermedias de área y cadena;
-4. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
-5. `P6.3D` — habilidades avanzadas;
-6. `P6.3E` — habilidades canónicas de NPC para Lythra;
-7. `P6.3F` — regresión, documentación y cierre general de P6.3.
+2. `P6.3B.1` — contratos y representación persistente de estados temporales;
+3. `P6.3B.2` — renovaciones, intensificación, acumulación, ticks y coexistencia avanzada;
+4. `P6.3C.1` — habilidades intermedias de área y cadena;
+5. `P6.3C.2` — Nube tóxica y ciclo visual de zonas temporales;
+6. `P6.3D` — habilidades avanzadas;
+7. `P6.3E` — habilidades canónicas de NPC para Lythra;
+8. `P6.3F` — regresión, documentación y cierre general de P6.3.
 
 #### P6.3A — Contratos universales y habilidades básicas
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: cerrada, validada manualmente y publicada en `113130c8b0d6cc1d4e79a07709d7e814ab25d87d`.
 
 P6.3A incorpora `habilidad_resuelta` como contrato neutral para ejecutores de tipo jugador, enemigo o NPC. La implementación inicial conecta únicamente las cuatro habilidades básicas del jugador; no agrega IA ni contenido enemigo o de NPC.
 
@@ -1170,9 +1171,32 @@ Los contratos aceptan futuras habilidades de enemigos y NPC. La IA enemiga conti
 
 Las cuatro habilidades básicas se reproducen en orden y se distinguen sin depender solamente del color; daño, fallo, crítico, Vida y derrota coinciden con los resultados canónicos; el ritmo visual deriva del `costoFinal`; los eventos de efectos no se pierden; jugador, enemigo y NPC comparten contrato; cancelación y cambio de mapa no dejan residuos; Canvas 2D, Maná, progresión, tiempo, persistencia y Phaser 4.2.1 permanecen sin reglas duplicadas.
 
+#### P6.3B.1 — Contratos y representación persistente
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- `PerfilesEstadosTemporalesVisuales.json` conecta exactamente los seis efectos canónicos y define forma, canal espacial, textura, movimiento y colores sin incluir duración jugable;
+- cada entidad neutral transporta sus efectos activos con ID de instancia, catálogo, intensidad, cantidad, máximos y tiempos canónicos;
+- Phaser adjunta los estados persistentes al contenedor del actor, por lo que siguen su movimiento y se destruyen con la entidad;
+- Canvas 2D muestra marcas estáticas simples para conservar compatibilidad funcional;
+- aplicación, actualización, resistencia, inmunidad, duplicado, vencimiento y retirada se convierten en eventos visuales neutrales;
+- la cancelación de la cola reconcilia los estados contra la escena autoritativa anterior y la aplicación de la escena final reconstruye el estado real;
+- muerte y cambio de mapa no necesitan inventar eventos de retirada para cada estado, porque destruir o reconstruir la entidad elimina representaciones huérfanas;
+- ninguna resistencia, inmunidad, duración, intensidad, acumulación, factor temporal o daño periódico se calcula dentro de Phaser.
+- la aplicación muestra el nombre del estado; renovación agrega `RENOVADO` e intensificación o acumulación muestran `×N`;
+- Esquirla de hielo usa Ralentización 1.40–1.55 y Nova de escarcha 1.60–1.70;
+- el movimiento visual aplica el factor neutral `costoFinal / costoBase`, sin recalcular la Ralentización en Phaser;
+- el posible rediseño de Congelamiento como inmovilización con invulnerabilidad se reserva para Prisión glacial y las habilidades avanzadas.
+
+P6.3B.2 queda responsable de pulsos especializados de Veneno y Quemadura, indicadores de intensidad o cantidad, renovación visible, acumulación, convivencia avanzada y regresiones combinadas.
+
+### Criterio de cierre de P6.3B.1
+
+Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
+
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1 y P6.2 están cerradas; P6.3 y P6.4 permanecen pendientes.
+Estado: en progreso. P6.1, P6.2 y P6.3A están cerradas; P6.3B.1 está implementada y pendiente de validación manual; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

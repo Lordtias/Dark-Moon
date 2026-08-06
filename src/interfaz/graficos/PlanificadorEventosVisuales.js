@@ -4,9 +4,14 @@ import {
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
 import { obtenerPerfilHabilidadVisual } from "./ContextoPerfilesHabilidadesVisuales.js";
 import {
+  obtenerFeedbackEfectoNoAplicado,
+  obtenerPerfilEstadoTemporalVisual,
+} from "./ContextoPerfilesEstadosTemporalesVisuales.js";
+import {
   crearPlanRitmoVisualAtaque,
   crearPlanRitmoVisualConsumo,
   crearPlanRitmoVisualHabilidad,
+  crearPlanRitmoVisualMovimiento,
 } from "./PlanificadorRitmoVisual.js";
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
@@ -22,6 +27,10 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   ENTIDAD_DERROTADA: "entidad_derrotada",
   RECURSOS_RECUPERADOS: "recursos_recuperados",
   NIVEL_AUMENTADO: "nivel_aumentado",
+  EFECTO_TEMPORAL_APLICADO: "efecto_temporal_aplicado",
+  EFECTO_TEMPORAL_ACTUALIZADO: "efecto_temporal_actualizado",
+  EFECTO_TEMPORAL_NO_APLICADO: "efecto_temporal_no_aplicado",
+  EFECTO_TEMPORAL_RETIRADO: "efecto_temporal_retirado",
 });
 
 // Convierte referencias del dominio en un plan neutral basado en IDs visuales.
@@ -69,6 +78,27 @@ export function crearPlanEventosVisuales({
         agregarNivelAumentado(plan, evento, entidadesPorId);
         break;
 
+      case "efecto_aplicado":
+        agregarEfectoTemporalAplicado(plan, evento, entidadesPorId);
+        break;
+
+      case "efecto_renovado":
+      case "efecto_intensificado":
+      case "efecto_acumulado":
+        agregarEfectoTemporalActualizado(plan, evento, entidadesPorId);
+        break;
+
+      case "efecto_resistido":
+      case "efecto_inmune":
+      case "efecto_rechazado":
+        agregarEfectoTemporalNoAplicado(plan, evento, entidadesPorId);
+        break;
+
+      case "efecto_vencido":
+      case "efecto_retirado":
+        agregarEfectoTemporalRetirado(plan, evento, entidadesPorId);
+        break;
+
       case "danio_periodico_aplicado":
         agregarDanioPeriodico(plan, evento, entidadesPorId);
         break;
@@ -103,6 +133,9 @@ function agregarMovimiento(plan, evento, entidadesPorId) {
       origen: copiarPosicion(evento.origen),
       destino: copiarPosicion(evento.destino),
       ejecucionTemporal: evento.ejecucionTemporal ?? null,
+      ritmoVisual: crearPlanRitmoVisualMovimiento({
+        ejecucionTemporal: evento.ejecucionTemporal,
+      }),
     }),
   );
 }
@@ -222,6 +255,108 @@ function agregarHabilidad(plan, evento, entidadesPorId) {
       });
     }
   }
+}
+
+function agregarEfectoTemporalAplicado(plan, evento, entidadesPorId) {
+  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
+  if (!normalizado) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO,
+    ...normalizado,
+    operacion: "aplicado",
+  }));
+}
+
+function agregarEfectoTemporalActualizado(plan, evento, entidadesPorId) {
+  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
+  if (!normalizado) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
+    ...normalizado,
+    operacion: evento.tipo.replace("efecto_", ""),
+    alcanzoMaximo: evento.alcanzoMaximo === true,
+  }));
+}
+
+function agregarEfectoTemporalNoAplicado(plan, evento, entidadesPorId) {
+  if (evento.tipo === "efecto_rechazado" && evento.motivo !== "duplicado") {
+    return;
+  }
+  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
+  if (!normalizado) return;
+  const motivo = resolverMotivoNoAplicado(evento);
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_NO_APLICADO,
+    ...normalizado,
+    operacion: "no_aplicado",
+    motivo,
+    feedback: obtenerFeedbackEfectoNoAplicado(motivo),
+    resistencia: Number.isFinite(evento.resistencia) ? evento.resistencia : null,
+    probabilidadFinal: Number.isFinite(evento.probabilidadFinal)
+      ? evento.probabilidadFinal
+      : null,
+  }));
+}
+
+function agregarEfectoTemporalRetirado(plan, evento, entidadesPorId) {
+  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
+  if (!normalizado) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO,
+    ...normalizado,
+    operacion: evento.tipo === "efecto_vencido" ? "vencido" : "retirado",
+    motivo: evento.motivo ?? (evento.tipo === "efecto_vencido" ? "vencimiento" : null),
+  }));
+}
+
+function normalizarEventoEfectoTemporal(evento, entidadesPorId) {
+  const definicion = evento.definicion ?? null;
+  const objetivo = evento.objetivo ?? definicion?.objetivo ?? null;
+  const idObjetivo = obtenerIdSeguro(objetivo);
+  const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
+  const catalogoEfectoId =
+    evento.catalogoEfectoId ?? definicion?.efectoId ?? null;
+
+  if (!idObjetivo || typeof catalogoEfectoId !== "string") return null;
+
+  return Object.freeze({
+    idObjetivo,
+    tipoObjetivo: objetivoVisual?.tipo ?? null,
+    posicionObjetivo: objetivoVisual && esPosicion(objetivoVisual)
+      ? copiarPosicion(objetivoVisual)
+      : null,
+    efecto: Object.freeze({
+      id: evento.catalogoEfectoId ? evento.efectoId ?? null : null,
+      catalogoEfectoId,
+      nombre: evento.nombreEfecto ?? definicion?.nombreEfecto ?? catalogoEfectoId,
+      tipo: evento.tipoEfecto ?? definicion?.tipo ?? null,
+      perfilAplicacion:
+        evento.perfilAplicacion ?? definicion?.perfilAplicacion ?? null,
+      intensidad: Number.isFinite(evento.intensidad)
+        ? evento.intensidad
+        : Number.isFinite(definicion?.intensidadInicial)
+          ? definicion.intensidadInicial
+          : 1,
+      cantidad: Number.isFinite(evento.cantidad) ? evento.cantidad : 1,
+      maximo: Number.isFinite(evento.maximo)
+        ? evento.maximo
+        : Number.isFinite(definicion?.maximo)
+          ? definicion.maximo
+          : 1,
+      aplicadoEn: Number.isFinite(evento.aplicadoEn) ? evento.aplicadoEn : null,
+      venceEn: Number.isFinite(evento.venceEn) ? evento.venceEn : null,
+      proximoTick: Number.isFinite(evento.proximoTick) ? evento.proximoTick : null,
+      beneficioso: evento.beneficioso === true || definicion?.beneficioso === true,
+      perfilVisual: obtenerPerfilEstadoTemporalVisual(catalogoEfectoId),
+    }),
+  });
+}
+
+function resolverMotivoNoAplicado(evento) {
+  if (evento.tipo === "efecto_resistido") return "resistencia";
+  if (evento.tipo === "efecto_inmune") return "inmunidad";
+  if (evento.motivo === "duplicado") return "duplicado";
+  return "duplicado";
 }
 
 function agregarDanioPeriodico(plan, evento, entidadesPorId) {

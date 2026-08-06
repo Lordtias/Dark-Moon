@@ -19,6 +19,7 @@ import {
   obtenerRutasRecursosTerreno,
   resolverCasillaTerreno,
 } from "../mapas/ResolutorTerrenosMapa.js";
+import { CreadorEstadosTemporalesPhaser } from "./CreadorEstadosTemporalesPhaser.js";
 import {
   calcularPresentacionEntidadPhaser,
   CONFIGURACION_ENTIDADES_PHASER,
@@ -65,6 +66,10 @@ export class CompositorMundoPhaser {
     this.capaEntidades = escena.add.container(0, 0).setDepth(60);
     this.capaIluminacion = escena.add.container(0, 0).setDepth(70);
     this.capaEfectos = escena.add.container(0, 0).setDepth(80);
+    this.creadorEstadosTemporales = new CreadorEstadosTemporalesPhaser({
+      escena,
+      compositor: this,
+    });
   }
 
   actualizar(escenaDarkMoon) {
@@ -181,6 +186,70 @@ export class CompositorMundoPhaser {
       return false;
     }
     this.capaEfectos.removeAll(true);
+    return true;
+  }
+
+
+  establecerEfectoTemporalEntidad(idVisual, efecto) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (!nodo?.contenedor || !efecto?.perfilVisual) return false;
+
+    if (!(nodo.estadosTemporales instanceof Map)) {
+      nodo.estadosTemporales = new Map();
+    }
+    const clave = obtenerClaveEstadoTemporal(efecto);
+    if (!clave) return false;
+
+    nodo.estadosTemporales.get(clave)?.destroy?.(true);
+    const objeto = this.creadorEstadosTemporales.crearPersistente({ efecto });
+    if (!objeto) return false;
+    nodo.contenedor.add(objeto);
+    nodo.estadosTemporales.set(clave, objeto);
+    return true;
+  }
+
+  retirarEfectoTemporalEntidad(idVisual, efecto) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    const clave = obtenerClaveEstadoTemporal(efecto);
+    if (!nodo?.estadosTemporales || !clave) return false;
+    const objeto = nodo.estadosTemporales.get(clave);
+    if (!objeto) return false;
+    objeto.destroy?.(true);
+    nodo.estadosTemporales.delete(clave);
+    return true;
+  }
+
+  reconciliarEfectosTemporalesDesdeEscenaActual() {
+    for (const [idVisual, nodo] of this.nodosEntidades.entries()) {
+      this.reconciliarEfectosTemporalesEntidad(
+        idVisual,
+        nodo.entidad?.efectosTemporales ?? [],
+      );
+    }
+  }
+
+  reconciliarEfectosTemporalesEntidad(idVisual, efectos = []) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    if (!nodo?.contenedor) return false;
+    if (!(nodo.estadosTemporales instanceof Map)) {
+      nodo.estadosTemporales = new Map();
+    }
+
+    const esperados = new Map(
+      (Array.isArray(efectos) ? efectos : [])
+        .map((efecto) => [obtenerClaveEstadoTemporal(efecto), efecto])
+        .filter(([clave]) => Boolean(clave)),
+    );
+
+    for (const [clave, objeto] of nodo.estadosTemporales.entries()) {
+      if (!esperados.has(clave)) {
+        objeto.destroy?.(true);
+        nodo.estadosTemporales.delete(clave);
+      }
+    }
+    for (const efecto of esperados.values()) {
+      this.establecerEfectoTemporalEntidad(idVisual, efecto);
+    }
     return true;
   }
 
@@ -947,6 +1016,11 @@ export class CompositorMundoPhaser {
           ? this.agregarBarraVida(contenedor, entidad)
           : null;
 
+      const estadosTemporales = this.agregarEstadosTemporales(
+        contenedor,
+        entidad.efectosTemporales,
+      );
+
       this.capaEntidades.add(contenedor);
       if (idVisual) {
         const nodoExistente = this.nodosEntidades.get(idVisual) ?? {};
@@ -956,9 +1030,25 @@ export class CompositorMundoPhaser {
           contenedor,
           barraVida,
           indicadorAgresividad,
+          estadosTemporales,
         });
       }
     }
+  }
+
+  agregarEstadosTemporales(contenedor, efectos = []) {
+    const objetos = new Map();
+    if (!contenedor || !Array.isArray(efectos)) return objetos;
+
+    for (const efecto of efectos) {
+      const clave = obtenerClaveEstadoTemporal(efecto);
+      if (!clave || !efecto?.perfilVisual) continue;
+      const objeto = this.creadorEstadosTemporales.crearPersistente({ efecto });
+      if (!objeto) continue;
+      contenedor.add(objeto);
+      objetos.set(clave, objeto);
+    }
+    return objetos;
   }
 
   obtenerMetricasVisualesEntidad(entidad) {
@@ -1239,11 +1329,24 @@ export class CompositorMundoPhaser {
     this.capaIluminacion.destroy(true);
     this.capaEfectos.destroy(true);
     this.nodosEntidades.clear();
+    this.creadorEstadosTemporales = null;
     this.escenaDarkMoon = null;
     this.escena = null;
     this.gestorRecursos = null;
     this.conversorCoordenadas = null;
   }
+}
+
+function obtenerClaveEstadoTemporal(efecto) {
+  if (!efecto || typeof efecto !== "object") return null;
+  if (typeof efecto.id === "string" && efecto.id !== "") return efecto.id;
+  if (
+    typeof efecto.catalogoEfectoId === "string" &&
+    efecto.catalogoEfectoId !== ""
+  ) {
+    return `catalogo:${efecto.catalogoEfectoId}`;
+  }
+  return null;
 }
 
 function obtenerCentroEntidad(posicion) {

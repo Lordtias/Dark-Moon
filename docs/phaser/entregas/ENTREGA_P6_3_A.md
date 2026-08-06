@@ -245,3 +245,11 @@ feat(phaser): representar habilidades basicas con contratos universales
 ## 15. Próximo paso
 
 Después de la validación y commit de P6.3A, la etapa recomendada es `P6.3B`: análisis específico de estados y efectos temporales antes de implementar su representación persistente.
+
+## 16. Cierre posterior confirmado
+
+El usuario confirmó que las pruebas manuales fueron correctas y publicó P6.3A en:
+
+`113130c8b0d6cc1d4e79a07709d7e814ab25d87d`
+
+Este SHA constituye la base obligatoria de P6.3B.1.

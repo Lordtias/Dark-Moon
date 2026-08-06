@@ -1855,7 +1855,7 @@ Las habilidades básicas siguen preparación, manifestación, trayectoria, impac
 
 La selección neutral conserva ID, maestría, grado, forma y zona. Canvas 2D y Phaser pueden colorear rango, área, recorrido, objetivos y selector por elemento, pero alcance, línea de visión, centro, validez y orden permanecen definidos por `GeometriaHabilidades`.
 
-Los estados temporales no se resuelven dentro de esta primera entrega. P6.3B debe analizar por separado aparición, permanencia, renovación, acumulación, ticks, resistencia, inmunidad, retirada, muerte, cambio de mapa y coexistencia de varios estados antes de implementar su presentación persistente.
+P6.3B.1 incorpora una primera representación persistente de estados. La escena neutral conserva las instancias activas y el perfil visual resuelto; Phaser no cuenta segundos ni interpreta duración, sino que mantiene el objeto hasta que un evento o la escena autoritativa lo retire. Los estados se adjuntan al contenedor de la entidad y utilizan canales espaciales distintos: pies para Ralentización, laterales para Electrización, contorno para Congelamiento, parte superior para Aturdimiento, lateral izquierdo para Envenenamiento y lateral derecho para Quemadura. La entrada se refuerza con texto explícito: `RALENTIZADO`, `ELECTRIZADO`, `CONGELADO`, `ATURDIDO`, `ENVENENADO` o `QUEMADO`; una renovación muestra `· RENOVADO` y una intensificación o acumulación muestra `×N`. Canvas 2D presenta el mismo feedback textual de forma breve. El movimiento interpolado representa el factor temporal resuelto mediante `costoFinal / costoBase`, de modo que una Ralentización también se lee en la velocidad del paso y no solo en la frecuencia de turnos. P6.3B.2 resolverá pulsos de ticks, densidad y convivencia visual avanzada.
 
 Lythra debe ejecutar habilidades canónicas de NPC que no aparezcan en aprendizaje ni barra del jugador. Curación y restauración de Maná reutilizarán `habilidad_resuelta`, `recursosObjetivo` con valores anterior, posterior, máximo y cantidad real, y actualización de barras, pero tendrán perfil mágico propio, no consumirán objetos y no mostrarán el gesto de beber.
 
@@ -1881,3 +1881,17 @@ P6.2 queda cerrada y validada manualmente. Sus contratos finales de presentació
 - la subida de nivel utiliza un aura blanca vertical tipo energía/ki, diferente de los aros de recuperación;
 - la permanencia y salida del aura de nivel no detienen el combate visual;
 - habilidades, zonas y estados persistentes deberán mantener su representación durante toda su duración en P6.3.
+
+## V-033 — Estados temporales persistentes y reconciliación
+
+Un estado visual nunca determina si el efecto existe. `SistemaEfectosTemporales` conserva la instancia, intensidad, cantidad, vencimiento y próximo tick; la escena neutral copia solamente la información necesaria y adjunta un perfil de presentación validado contra `Efectos.json`.
+
+Los eventos se normalizan en aplicación, actualización, no aplicación y retirada. Resistencia, inmunidad y duplicado generan feedback transitorio, pero nunca crean un objeto persistente. Una renovación o intensificación actualiza la misma instancia visual; no crea calendarios gráficos independientes.
+
+Los estados persistentes pertenecen al contenedor de la entidad y no a la capa general de proyectiles. Por eso acompañan movimiento interpolado, desaparecen al retirar la entidad y se reconstruyen al aplicar una escena nueva. La limpieza de proyectiles, textos o partículas no debe destruir estados que continúan activos.
+
+Cancelar una cola puede interrumpir una aplicación o retirada antes de aplicar la escena final. En ese caso el compositor reconcilia sus estados contra la última escena autoritativa ya dibujada. Cambiar de mapa destruye los contenedores anteriores y reconstruye únicamente los efectos que el dominio haya preservado, como los estados válidos del jugador.
+
+El rediseño futuro de Congelamiento como bloque de hielo que impide acciones y evita daño no pertenece a P6.3B.1; deberá analizarse junto con Prisión glacial y las habilidades avanzadas.
+
+La duración canónica no se transforma en una cuenta regresiva de milisegundos Phaser. Un estado puede tener movimiento ambiental continuo, pero permanece visible hasta recibir retirada o desaparecer de la escena. P6.3B.1 usa formas sostenidas simples; P6.3B.2 agregará pulsos de daño periódico, indicadores de intensidad y convivencia avanzada sin alterar esta autoridad.

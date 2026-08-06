@@ -1023,9 +1023,16 @@ export class SistemaEfectosTemporales {
       tipoEfecto: efecto.tipo,
       fuente: { ...efecto.fuente },
       objetivo: efecto.objetivo,
+      perfilAplicacion: efecto.perfilAplicacion,
+      politicaAcumulacion: efecto.politicaAcumulacion,
+      maximo: efecto.maximo,
       intensidad: efecto.intensidad,
       cantidad: efecto.cantidad,
+      aplicadoEn: efecto.aplicadoEn,
       venceEn: efecto.venceEn,
+      proximoTick: efecto.proximoTick,
+      etiquetas: [...efecto.etiquetas],
+      beneficioso: efecto.beneficioso,
       ...datos,
     };
   }

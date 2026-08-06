@@ -1,4 +1,5 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
+import { obtenerPerfilEstadoTemporalVisual } from "./ContextoPerfilesEstadosTemporalesVisuales.js";
 
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
@@ -111,7 +112,7 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
     // visible cuando comparte una casilla con botín.
     entidades: [
       ...juego.interactuables.map((interactuable) =>
-        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE),
+        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE, juego),
       ),
 
       ...juego.objetivos
@@ -122,10 +123,11 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
             objetivo instanceof Enemigo
               ? TIPOS_ENTIDAD_VISUAL.ENEMIGO
               : TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE,
+            juego,
           ),
         ),
 
-      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR),
+      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR, juego),
     ],
   };
 }
@@ -278,7 +280,7 @@ function copiarZonasTemporales(lista) {
 
 // Convierte una entidad del dominio
 // en un objeto plano para representación.
-function crearEntidadVisual(entidad, tipo) {
+function crearEntidadVisual(entidad, tipo, juego) {
   const vidaActual = Number.isFinite(entidad.vidaActual)
     ? entidad.vidaActual
     : null;
@@ -323,5 +325,33 @@ function crearEntidadVisual(entidad, tipo) {
       vidaActual < vidaMaxima,
 
     recursoVisual: entidad.recursoVisual ?? null,
+    efectosTemporales: crearEfectosTemporalesVisuales(juego, entidad),
   };
+}
+
+function crearEfectosTemporalesVisuales(juego, entidad) {
+  if (typeof juego?.obtenerEfectosTemporales !== "function") return [];
+
+  const efectos = juego.obtenerEfectosTemporales(entidad);
+  if (!Array.isArray(efectos)) return [];
+
+  return efectos.map((efecto) => {
+    const catalogoEfectoId = efecto.efectoId ?? null;
+    return {
+      id: efecto.id ?? null,
+      catalogoEfectoId,
+      nombre: efecto.nombreEfecto ?? catalogoEfectoId,
+      tipo: efecto.tipo ?? null,
+      perfilAplicacion: efecto.perfilAplicacion ?? null,
+      intensidad: Number.isFinite(efecto.intensidad) ? efecto.intensidad : 1,
+      cantidad: Number.isFinite(efecto.cantidad) ? efecto.cantidad : 1,
+      maximo: Number.isFinite(efecto.maximo) ? efecto.maximo : 1,
+      aplicadoEn: Number.isFinite(efecto.aplicadoEn) ? efecto.aplicadoEn : null,
+      venceEn: Number.isFinite(efecto.venceEn) ? efecto.venceEn : null,
+      proximoTick: Number.isFinite(efecto.proximoTick) ? efecto.proximoTick : null,
+      beneficioso: efecto.beneficioso === true,
+      suspendido: efecto.suspendido === true,
+      perfilVisual: obtenerPerfilEstadoTemporalVisual(catalogoEfectoId),
+    };
+  });
 }

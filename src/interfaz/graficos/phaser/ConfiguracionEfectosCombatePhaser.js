@@ -7,7 +7,7 @@ export const TIPOS_FEEDBACK_COMBATE = Object.freeze({
 
 export const CONFIGURACION_EFECTOS_COMBATE_PHASER = Object.freeze({
   texto: Object.freeze({
-    duracionMs: 420,
+    duracionMs: 500,
     elevacionPx: 15,
     separacionGolpePx: 7,
     escalaInicial: 0.82,
@@ -16,22 +16,22 @@ export const CONFIGURACION_EFECTOS_COMBATE_PHASER = Object.freeze({
       [TIPOS_FEEDBACK_COMBATE.DANIO]: Object.freeze({
         color: "#fff2d2",
         borde: "#581c16",
-        tamano: "13px",
+        tamano: "11px",
       }),
       [TIPOS_FEEDBACK_COMBATE.FALLO]: Object.freeze({
         color: "#d9eef7",
         borde: "#183a49",
-        tamano: "10px",
+        tamano: "11px",
       }),
       [TIPOS_FEEDBACK_COMBATE.BLOQUEO]: Object.freeze({
         color: "#dce8f1",
         borde: "#263847",
-        tamano: "9px",
+        tamano: "11px",
       }),
       [TIPOS_FEEDBACK_COMBATE.CRITICO]: Object.freeze({
         color: "#ffe08a",
         borde: "#6f2d18",
-        tamano: "9px",
+        tamano: "11px",
       }),
     }),
   }),

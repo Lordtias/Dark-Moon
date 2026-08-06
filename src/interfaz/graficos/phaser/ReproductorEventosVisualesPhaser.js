@@ -224,6 +224,10 @@ export class ReproductorEventosVisualesPhaser {
       ) {
         await this.reproducirEfectoTemporalNoAplicado(evento, version);
       } else if (
+        evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_TICK
+      ) {
+        await this.reproducirEfectoTemporalTick(evento, version);
+      } else if (
         evento.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO
       ) {
         await this.reproducirEfectoTemporalRetirado(evento, version);
@@ -269,8 +273,54 @@ export class ReproductorEventosVisualesPhaser {
       evento.idObjetivo,
       evento.efecto,
     ) === true;
-    await this.reproducirFeedbackTextoEstado(evento, version);
+    const centro = this.obtenerCentroEventoEfecto(evento);
+    const pulso =
+      actualizado && !this.efectosReducidos
+        ? this.creadorEstadosTemporales?.crearPulsoActualizacion({
+            centro,
+            efecto: evento.efecto,
+          })
+        : null;
+
+    await Promise.all([
+      this.reproducirFeedbackTextoEstado(evento, version),
+      pulso ? this.animarPulsoEstado(pulso, version) : Promise.resolve(),
+    ]);
     return actualizado;
+  }
+
+  async reproducirEfectoTemporalTick(evento, version) {
+    if (this.efectosReducidos) return;
+    const centro = this.obtenerCentroEventoEfecto(evento);
+    const pulso = this.creadorEstadosTemporales?.crearPulsoTick({
+      centro,
+      efecto: evento.efecto,
+    });
+    if (!pulso) return;
+
+    const yInicial = pulso.y;
+    await this.crearTween({
+      targets: pulso,
+      y: yInicial - 8,
+      scaleX: 1.24,
+      scaleY: 1.24,
+      alpha: 0,
+      duration: this.calcularDuracion(260),
+      ease: "Sine.easeOut",
+    }, version);
+    pulso.destroy?.(true);
+  }
+
+  async animarPulsoEstado(pulso, version) {
+    await this.crearTween({
+      targets: pulso,
+      scaleX: 1.28,
+      scaleY: 1.28,
+      alpha: 0,
+      duration: this.calcularDuracion(230),
+      ease: "Quad.easeOut",
+    }, version);
+    pulso.destroy?.();
   }
 
   async animarEntradaEstado(entrada, version) {

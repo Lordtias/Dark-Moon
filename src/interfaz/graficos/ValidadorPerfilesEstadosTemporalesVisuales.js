@@ -52,6 +52,7 @@ function validarPerfiles(perfiles) {
       "textura",
       "feedbackAplicacion",
       "textoEstado",
+      "pulsoTick",
     ]) {
       validarTextoNoVacio(perfil[campo], `${campo} de "${idEfecto}"`);
     }
@@ -70,6 +71,15 @@ function validarPerfiles(perfiles) {
       perfil.tamanoVisualPx,
       `tamanoVisualPx de "${idEfecto}"`,
     );
+    validarEnteroPositivo(
+      perfil.densidadMaxima,
+      `densidadMaxima de "${idEfecto}"`,
+    );
+    if (typeof perfil.mostrarMultiplicador !== "boolean") {
+      throw new Error(
+        `mostrarMultiplicador de "${idEfecto}" debe ser booleano.`,
+      );
+    }
   }
 }
 
@@ -120,6 +130,12 @@ function validarObjetoPlano(valor, descripcion) {
 function validarTextoNoVacio(valor, descripcion) {
   if (typeof valor !== "string" || valor.trim() === "") {
     throw new Error(`${descripcion} debe ser un texto no vacío.`);
+  }
+}
+
+function validarEnteroPositivo(valor, descripcion) {
+  if (!Number.isInteger(valor) || valor <= 0) {
+    throw new Error(`${descripcion} debe ser un entero mayor que 0.`);
   }
 }
 

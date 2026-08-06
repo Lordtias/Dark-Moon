@@ -30,6 +30,7 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   EFECTO_TEMPORAL_APLICADO: "efecto_temporal_aplicado",
   EFECTO_TEMPORAL_ACTUALIZADO: "efecto_temporal_actualizado",
   EFECTO_TEMPORAL_NO_APLICADO: "efecto_temporal_no_aplicado",
+  EFECTO_TEMPORAL_TICK: "efecto_temporal_tick",
   EFECTO_TEMPORAL_RETIRADO: "efecto_temporal_retirado",
 });
 
@@ -97,6 +98,10 @@ export function crearPlanEventosVisuales({
       case "efecto_vencido":
       case "efecto_retirado":
         agregarEfectoTemporalRetirado(plan, evento, entidadesPorId);
+        break;
+
+      case "efecto_tick":
+        agregarEfectoTemporalTick(plan, evento, entidadesPorId);
         break;
 
       case "danio_periodico_aplicado":
@@ -295,6 +300,17 @@ function agregarEfectoTemporalNoAplicado(plan, evento, entidadesPorId) {
     probabilidadFinal: Number.isFinite(evento.probabilidadFinal)
       ? evento.probabilidadFinal
       : null,
+  }));
+}
+
+function agregarEfectoTemporalTick(plan, evento, entidadesPorId) {
+  const normalizado = normalizarEventoEfectoTemporal(evento, entidadesPorId);
+  if (!normalizado) return;
+  plan.push(Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_TICK,
+    ...normalizado,
+    operacion: "tick",
+    instante: Number.isFinite(evento.instante) ? evento.instante : null,
   }));
 }
 

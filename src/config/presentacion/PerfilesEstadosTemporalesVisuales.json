@@ -10,7 +10,10 @@
       "colorSecundario": "#d9f6ff",
       "tamanoVisualPx": 14,
       "feedbackAplicacion": "onda_frio",
-      "textoEstado": "RALENTIZADO"
+      "textoEstado": "RALENTIZADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
     },
     "electrizacion": {
       "forma": "arcos_laterales",
@@ -21,7 +24,10 @@
       "colorSecundario": "#f0dcff",
       "tamanoVisualPx": 15,
       "feedbackAplicacion": "descarga_breve",
-      "textoEstado": "ELECTRIZADO"
+      "textoEstado": "ELECTRIZADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
     },
     "congelamiento": {
       "forma": "carcasa_fragmentada",
@@ -32,7 +38,10 @@
       "colorSecundario": "#e6fbff",
       "tamanoVisualPx": 18,
       "feedbackAplicacion": "cierre_cristal",
-      "textoEstado": "CONGELADO"
+      "textoEstado": "CONGELADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
     },
     "aturdimiento": {
       "forma": "runas_superiores",
@@ -43,7 +52,10 @@
       "colorSecundario": "#fff4b8",
       "tamanoVisualPx": 13,
       "feedbackAplicacion": "destello_superior",
-      "textoEstado": "ATURDIDO"
+      "textoEstado": "ATURDIDO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "ninguno"
     },
     "envenenamiento": {
       "forma": "burbujas_viscosas",
@@ -54,7 +66,10 @@
       "colorSecundario": "#c9f57b",
       "tamanoVisualPx": 14,
       "feedbackAplicacion": "salpicadura_toxica",
-      "textoEstado": "ENVENENADO"
+      "textoEstado": "ENVENENADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "burbuja_estallido"
     },
     "quemadura": {
       "forma": "brasas_laterales",
@@ -65,7 +80,10 @@
       "colorSecundario": "#ffd166",
       "tamanoVisualPx": 15,
       "feedbackAplicacion": "llamarada_breve",
-      "textoEstado": "QUEMADO"
+      "textoEstado": "QUEMADO",
+      "densidadMaxima": 3,
+      "mostrarMultiplicador": true,
+      "pulsoTick": "llamarada_ascendente"
     }
   },
   "feedbackNoAplicado": {

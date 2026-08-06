@@ -23,20 +23,119 @@ export class CreadorEstadosTemporalesPhaser {
 
     const contenedor = this.escena.add.container(0, 0);
     const grafico = this.escena.add.graphics();
+    const indicador = this.escena.add
+      .text(0, -12, "", {
+        color: perfil.colorSecundario,
+        fontFamily: "monospace",
+        fontSize: "8px",
+        fontStyle: "bold",
+        stroke: "#11141a",
+        strokeThickness: 2,
+      })
+      .setOrigin?.(0.5);
+
+    contenedor.add([grafico, indicador]);
+    contenedor.__estadoTemporal = { grafico, indicador };
+    this.actualizarPersistente({ objeto: contenedor, efecto });
+    contenedor.setAlpha?.(0.92);
+    contenedor.setName?.(`estado-temporal:${efecto.id ?? efecto.catalogoEfectoId}`);
+    return contenedor;
+  }
+
+  actualizarPersistente({ objeto, efecto } = {}) {
+    const perfil = efecto?.perfilVisual;
+    const referencias = objeto?.__estadoTemporal;
+    if (!perfil || !referencias?.grafico) return false;
+
     const principal = convertirColor(perfil.colorPrincipal);
     const secundario = convertirColor(perfil.colorSecundario);
     const tamano = Number(perfil.tamanoVisualPx) || 14;
+    const nivel = resolverNivelVisual(efecto, perfil);
 
+    referencias.grafico.clear?.();
     dibujarEstadoPersistente({
-      grafico,
+      grafico: referencias.grafico,
       forma: perfil.forma,
       principal,
       secundario,
       tamano,
+      nivel,
     });
+
+    const multiplicador = resolverMultiplicadorVisible(efecto, perfil);
+    if (referencias.indicador) {
+      referencias.indicador.setText?.(
+        multiplicador > 1 ? `×${multiplicador}` : "",
+      );
+      referencias.indicador.setVisible?.(multiplicador > 1);
+      referencias.indicador.setColor?.(perfil.colorSecundario);
+      const posicion = resolverPosicionIndicador(perfil.canal);
+      referencias.indicador.setPosition?.(posicion.x, posicion.y);
+    }
+
+    objeto.__efectoTemporal = efecto;
+    objeto.setAlpha?.(Math.min(1, 0.84 + nivel * 0.05));
+    return true;
+  }
+
+  crearPulsoActualizacion({ centro, efecto } = {}) {
+    const perfil = efecto?.perfilVisual;
+    if (!esCentroValido(centro) || !perfil) return null;
+    const grafico = this.escena.add.graphics({ x: centro.x, y: centro.y });
+    const principal = convertirColor(perfil.colorPrincipal);
+    const secundario = convertirColor(perfil.colorSecundario);
+    const radio = Math.max(7, (Number(perfil.tamanoVisualPx) || 14) * 0.58);
+    const nivel = resolverNivelVisual(efecto, perfil);
+
+    grafico.lineStyle?.(2 + Math.min(1, nivel - 1), principal, 0.9);
+    grafico.strokeCircle?.(0, 0, radio);
+    grafico.lineStyle?.(1, secundario, 0.72);
+    grafico.strokeCircle?.(0, 0, radio * 0.62);
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
+  crearPulsoTick({ centro, efecto } = {}) {
+    const perfil = efecto?.perfilVisual;
+    if (!esCentroValido(centro) || !perfil || perfil.pulsoTick === "ninguno") {
+      return null;
+    }
+
+    const contenedor = this.escena.add.container(centro.x, centro.y);
+    const grafico = this.escena.add.graphics();
+    const principal = convertirColor(perfil.colorPrincipal);
+    const secundario = convertirColor(perfil.colorSecundario);
+    const nivel = resolverNivelVisual(efecto, perfil);
+
+    if (perfil.pulsoTick === "burbuja_estallido") {
+      const cantidad = 2 + nivel;
+      grafico.fillStyle?.(principal, 0.76);
+      grafico.lineStyle?.(1, secundario, 0.9);
+      for (let indice = 0; indice < cantidad; indice += 1) {
+        const x = -8 + indice * (16 / Math.max(1, cantidad - 1));
+        const y = 5 - (indice % 2) * 6;
+        const radio = 2 + (indice % 2);
+        grafico.fillCircle?.(x, y, radio);
+        grafico.strokeCircle?.(x, y, radio + 1);
+      }
+    } else {
+      grafico.fillStyle?.(principal, 0.88);
+      grafico.beginPath?.();
+      grafico.moveTo?.(-7, 8);
+      grafico.lineTo?.(-2, -8 - nivel * 2);
+      grafico.lineTo?.(1, -2);
+      grafico.lineTo?.(5, -11 - nivel);
+      grafico.lineTo?.(8, 8);
+      grafico.closePath?.();
+      grafico.fillPath?.();
+      grafico.fillStyle?.(secundario, 0.9);
+      grafico.fillCircle?.(1, 2, 2 + nivel * 0.3);
+    }
+
     contenedor.add(grafico);
-    contenedor.setAlpha?.(0.92);
-    contenedor.setName?.(`estado-temporal:${efecto.id ?? efecto.catalogoEfectoId}`);
+    contenedor.setScale?.(0.78);
+    contenedor.setAlpha?.(0.96);
+    this.compositor.agregarEfectoTemporal(contenedor);
     return contenedor;
   }
 
@@ -147,6 +246,7 @@ function dibujarEstadoPersistente({
   principal,
   secundario,
   tamano,
+  nivel = 1,
 }) {
   const radio = tamano / 2;
 
@@ -200,13 +300,21 @@ function dibujarEstadoPersistente({
   }
 
   if (forma === "burbujas_viscosas") {
-    grafico.fillStyle?.(principal, 0.78);
-    grafico.fillCircle?.(-radio * 0.72, radio * 0.34, radio * 0.22);
-    grafico.fillCircle?.(-radio * 0.94, -radio * 0.16, radio * 0.15);
-    grafico.fillCircle?.(-radio * 0.58, -radio * 0.62, radio * 0.11);
+    const posiciones = [
+      [-0.72, 0.34, 0.22],
+      [-0.94, -0.16, 0.15],
+      [-0.58, -0.62, 0.11],
+      [-1.08, 0.58, 0.12],
+      [-0.42, 0.02, 0.1],
+      [-0.82, -0.88, 0.09],
+    ];
+    const cantidad = Math.min(posiciones.length, 2 + nivel * 2);
+    grafico.fillStyle?.(principal, Math.min(0.92, 0.7 + nivel * 0.07));
     grafico.lineStyle?.(1, secundario, 0.8);
-    grafico.strokeCircle?.(-radio * 0.72, radio * 0.34, radio * 0.22);
-    grafico.strokeCircle?.(-radio * 0.94, -radio * 0.16, radio * 0.15);
+    for (const [x, y, tamanoBurbuja] of posiciones.slice(0, cantidad)) {
+      grafico.fillCircle?.(radio * x, radio * y, radio * tamanoBurbuja);
+      grafico.strokeCircle?.(radio * x, radio * y, radio * tamanoBurbuja);
+    }
     return;
   }
 
@@ -223,6 +331,15 @@ function dibujarEstadoPersistente({
   grafico.fillStyle?.(secundario, 0.9);
   grafico.fillCircle?.(radio * 0.9, radio * 0.48, 1.4);
   grafico.fillCircle?.(radio * 0.58, -radio * 0.72, 1.1);
+  if (nivel >= 2) {
+    grafico.fillCircle?.(radio * 1.02, -radio * 0.12, 1.2);
+    grafico.lineStyle?.(1.5, secundario, 0.78);
+    grafico.lineBetween?.(radio * 0.92, radio * 0.34, radio * 1.08, -radio * 0.42);
+  }
+  if (nivel >= 3) {
+    grafico.fillCircle?.(radio * 0.42, radio * 0.18, 1.3);
+    grafico.lineBetween?.(radio * 0.46, radio * 0.42, radio * 0.32, -radio * 0.68);
+  }
 }
 
 function dibujarZigzag(grafico, x1, y1, x2, y2) {
@@ -265,6 +382,34 @@ function dibujarFeedbackNoAplicado({
   grafico.strokePath?.();
   grafico.fillStyle?.(secundario, 0.86);
   grafico.fillCircle?.(0, 0, 2);
+}
+
+function resolverNivelVisual(efecto, perfil) {
+  const maximo = Number.isInteger(perfil?.densidadMaxima)
+    ? Math.max(1, perfil.densidadMaxima)
+    : 3;
+  return Math.min(maximo, resolverMultiplicadorBase(efecto));
+}
+
+function resolverMultiplicadorVisible(efecto, perfil) {
+  if (perfil?.mostrarMultiplicador !== true) return 1;
+  return resolverNivelVisual(efecto, perfil);
+}
+
+function resolverMultiplicadorBase(efecto) {
+  return Math.max(
+    1,
+    Number.isFinite(efecto?.intensidad) ? Math.round(efecto.intensidad) : 1,
+    Number.isFinite(efecto?.cantidad) ? Math.round(efecto.cantidad) : 1,
+  );
+}
+
+function resolverPosicionIndicador(canal) {
+  if (canal === "lateral_izquierdo") return { x: -11, y: -10 };
+  if (canal === "lateral_derecho") return { x: 11, y: -10 };
+  if (canal === "superior") return { x: 10, y: -13 };
+  if (canal === "pies") return { x: 10, y: 8 };
+  return { x: 10, y: -10 };
 }
 
 function convertirColor(color) {

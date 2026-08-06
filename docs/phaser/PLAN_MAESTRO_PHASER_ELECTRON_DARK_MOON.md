@@ -1173,7 +1173,7 @@ Las cuatro habilidades básicas se reproducen en orden y se distinguen sin depen
 
 #### P6.3B.1 — Contratos y representación persistente
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: cerrada, validada manualmente y publicada en `0c61b97269509d8be8ac35c2e5af78c3a84800ba`.
 
 - `PerfilesEstadosTemporalesVisuales.json` conecta exactamente los seis efectos canónicos y define forma, canal espacial, textura, movimiento y colores sin incluir duración jugable;
 - cada entidad neutral transporta sus efectos activos con ID de instancia, catálogo, intensidad, cantidad, máximos y tiempos canónicos;
@@ -1188,7 +1188,21 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 - el movimiento visual aplica el factor neutral `costoFinal / costoBase`, sin recalcular la Ralentización en Phaser;
 - el posible rediseño de Congelamiento como inmovilización con invulnerabilidad se reserva para Prisión glacial y las habilidades avanzadas.
 
-P6.3B.2 queda responsable de pulsos especializados de Veneno y Quemadura, indicadores de intensidad o cantidad, renovación visible, acumulación, convivencia avanzada y regresiones combinadas.
+#### P6.3B.2 — Ciclos visuales, intensidad y coexistencia
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- `efecto_tick` se transporta como evento visual neutral antes de `danio_periodico`;
+- Veneno utiliza un pulso de burbujas y Quemadura una llamarada ascendente, sin recalcular daño ni intervalos;
+- renovación, intensificación y acumulación actualizan la misma instancia persistente y agregan un pulso transitorio;
+- intensidad y cantidad aumentan densidad hasta un máximo visual de tres niveles y muestran `×N`;
+- Canvas 2D conserva pulsos y multiplicadores equivalentes;
+- los seis canales espaciales se compactan cuando coexisten muchos estados, sin ocultar el sprite;
+- cancelación, muerte y cambio de mapa continúan reconciliándose contra la escena autoritativa.
+
+### Criterio de cierre de P6.3B.2
+
+Ticks temáticos preceden al daño canónico; renovar no duplica ni parpadea la instancia; intensidad o cantidad se leen mediante densidad y `×N`; varios estados coexisten; muerte, mapa y cancelación no dejan objetos huérfanos; Canvas 2D y Phaser no contienen reglas de daño, duración o acumulación.
 
 ### Criterio de cierre de P6.3B.1
 
@@ -1196,7 +1210,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2 y P6.3A están cerradas; P6.3B.1 está implementada y pendiente de validación manual; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A y P6.3B.1 están cerradas; P6.3B.2 está implementada y pendiente de validación manual; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

@@ -200,7 +200,14 @@ export class CompositorMundoPhaser {
     const clave = obtenerClaveEstadoTemporal(efecto);
     if (!clave) return false;
 
-    nodo.estadosTemporales.get(clave)?.destroy?.(true);
+    const existente = nodo.estadosTemporales.get(clave) ?? null;
+    if (existente) {
+      return this.creadorEstadosTemporales.actualizarPersistente({
+        objeto: existente,
+        efecto,
+      });
+    }
+
     const objeto = this.creadorEstadosTemporales.crearPersistente({ efecto });
     if (!objeto) return false;
     nodo.contenedor.add(objeto);

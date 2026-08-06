@@ -200,9 +200,9 @@ avanzadas.
 
 No se agregaron dependencias, `.mjs`, `node:test` ni archivos `.patch`.
 
-## 12. Pruebas manuales pendientes
+## 12. Pruebas manuales realizadas
 
-No se afirma validación visual real en navegador. El usuario debe verificar:
+El usuario ejecutó las pruebas manuales en navegador y confirmó el funcionamiento correcto de P6.3B.1. Se validaron la representación persistente, los textos de aplicación y renovación, la Ralentización reforzada, el movimiento visual asociado al costo canónico y la legibilidad uniforme del feedback flotante. Se conserva la lista siguiente como registro de cobertura:
 
 1. Esquirla de hielo muestra `RALENTIZADO`, aplica el factor 1.40 y la marca sigue al enemigo.
 2. Chispa aplica Electrización y conserva la lectura violeta quebrada.
@@ -257,3 +257,9 @@ Después de validar y publicar P6.3B.1, analizar e implementar P6.3B.2 para:
 
 Se unifico el tamaño y la duración de los textos flotantes de feedback para mejorar la lectura en Phaser y Canvas 2D. `FALLO`, `CRÍTICO`, `BLOQUEO`, nombres de estados y feedback de no aplicación ahora comparten un tamaño base mayor y una permanencia visual levemente superior, manteniendo sus colores y estilos originales.
 
+
+## 17. Estado de cierre
+
+P6.3B.1 queda cerrada y validada manualmente en `0c61b97269509d8be8ac35c2e5af78c3a84800ba`.
+
+La subetapa incorporó la representación persistente de los seis estados canónicos, feedback textual de aplicación y actualización, reconciliación visual, Ralentización reforzada y unificación de tamaño y duración de los textos flotantes.

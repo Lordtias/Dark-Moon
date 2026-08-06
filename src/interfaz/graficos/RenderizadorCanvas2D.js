@@ -99,6 +99,7 @@ export class RenderizadorCanvas2D {
     this.redibujoPendiente = false;
 
     this.feedbackEstadosTemporales = [];
+    this.pulsosEstadosTemporales = [];
     this.temporizadorFeedbackEstados = null;
 
     // La carga y caché quedan aisladas dentro
@@ -256,6 +257,7 @@ export class RenderizadorCanvas2D {
     }
 
     this.feedbackEstadosTemporales = [];
+    this.pulsosEstadosTemporales = [];
 
     this.ultimaEscena = null;
   }
@@ -299,6 +301,7 @@ export class RenderizadorCanvas2D {
 
     this.dibujarEntidades(escena.entidades);
 
+    this.dibujarPulsosEstadosTemporales(escena.entidades);
     this.dibujarFeedbackEstadosTemporales(escena.entidades);
 
     if (escena.combate.modo === "habilidad") {
@@ -327,20 +330,71 @@ export class RenderizadorCanvas2D {
       .map((evento) => crearFeedbackEstadoCanvas(evento))
       .filter(Boolean);
 
+    this.pulsosEstadosTemporales = eventosVisuales
+      .filter(
+        (evento) => evento?.tipo === TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_TICK,
+      )
+      .map((evento) => crearPulsoEstadoCanvas(evento))
+      .filter(Boolean);
+
     if (this.temporizadorFeedbackEstados !== null) {
       clearTimeout(this.temporizadorFeedbackEstados);
       this.temporizadorFeedbackEstados = null;
     }
 
-    if (this.feedbackEstadosTemporales.length === 0) return;
+    if (
+      this.feedbackEstadosTemporales.length === 0 &&
+      this.pulsosEstadosTemporales.length === 0
+    ) return;
 
     this.temporizadorFeedbackEstados = setTimeout(() => {
       this.temporizadorFeedbackEstados = null;
       this.feedbackEstadosTemporales = [];
+      this.pulsosEstadosTemporales = [];
       if (this.ultimaEscena) {
         this.dibujar(this.ultimaEscena);
       }
     }, 760);
+  }
+
+  dibujarPulsosEstadosTemporales(entidades) {
+    if (this.pulsosEstadosTemporales.length === 0) return;
+    const entidadesPorId = new Map(
+      entidades.map((entidad) => [entidad.idVisual, entidad]),
+    );
+
+    this.context.save();
+    this.context.lineWidth = Math.max(1, Math.floor(this.tileSize / 20));
+    for (const pulso of this.pulsosEstadosTemporales) {
+      const entidad = entidadesPorId.get(pulso.idObjetivo);
+      if (!entidad) continue;
+      const centroX = entidad.x * this.tileSize + this.tileSize / 2;
+      const centroY = entidad.y * this.tileSize + this.tileSize / 2;
+      const radio = Math.max(5, Math.floor(this.tileSize * 0.22));
+      this.context.strokeStyle = pulso.colorSecundario;
+      this.context.fillStyle = pulso.colorPrincipal;
+
+      if (pulso.forma === "burbuja_estallido") {
+        for (let indice = 0; indice < 3; indice += 1) {
+          const x = centroX - radio + indice * radio;
+          const y = centroY + 4 - (indice % 2) * 7;
+          this.context.beginPath();
+          this.context.arc(x, y, 2 + indice % 2, 0, Math.PI * 2);
+          this.context.fill();
+          this.context.stroke();
+        }
+      } else if (pulso.forma === "llamarada_ascendente") {
+        this.context.beginPath();
+        this.context.moveTo(centroX - 6, centroY + 8);
+        this.context.lineTo(centroX - 1, centroY - 9);
+        this.context.lineTo(centroX + 2, centroY - 2);
+        this.context.lineTo(centroX + 6, centroY - 11);
+        this.context.lineTo(centroX + 8, centroY + 8);
+        this.context.closePath();
+        this.context.fill();
+      }
+    }
+    this.context.restore();
   }
 
   dibujarFeedbackEstadosTemporales(entidades) {
@@ -1109,7 +1163,12 @@ export class RenderizadorCanvas2D {
       if (!perfil) continue;
       const principal = perfil.colorPrincipal ?? "#ffffff";
       const secundario = perfil.colorSecundario ?? "#ffffff";
-      const radio = Math.max(5, Math.floor(this.tileSize * 0.26));
+      const factorCompactacion = efectos.length >= 4 ? 0.88 : 1;
+      const nivelVisual = resolverMultiplicadorEstadoCanvas(efecto, perfil);
+      const radio = Math.max(
+        5,
+        Math.floor(this.tileSize * 0.26 * factorCompactacion),
+      );
 
       this.context.strokeStyle = principal;
       this.context.fillStyle = principal;
@@ -1143,10 +1202,26 @@ export class RenderizadorCanvas2D {
         this.context.fillStyle = principal;
         this.context.fillRect(centroX - 1, centroY - radio * 1.2 - 1, 2, 2);
       } else if (perfil.canal === "lateral_izquierdo") {
-        this.context.globalAlpha = 0.82;
+        const burbujas = [
+          [-0.9, 0.4, 0.2],
+          [-1.05, -0.1, 0.14],
+          [-0.72, -0.55, 0.11],
+          [-1.12, 0.68, 0.1],
+          [-0.52, 0.05, 0.09],
+          [-0.84, -0.82, 0.08],
+        ];
+        this.context.globalAlpha = Math.min(0.94, 0.72 + nivelVisual * 0.07);
         this.context.beginPath();
-        this.context.arc(centroX - radio * 0.9, centroY + radio * 0.4, radio * 0.2, 0, Math.PI * 2);
-        this.context.arc(centroX - radio * 1.05, centroY - radio * 0.1, radio * 0.14, 0, Math.PI * 2);
+        for (const [x, y, escala] of burbujas.slice(0, 2 + nivelVisual * 2)) {
+          this.context.moveTo(centroX + radio * x + radio * escala, centroY + radio * y);
+          this.context.arc(
+            centroX + radio * x,
+            centroY + radio * y,
+            radio * escala,
+            0,
+            Math.PI * 2,
+          );
+        }
         this.context.fill();
       } else if (perfil.canal === "lateral_derecho") {
         this.context.fillStyle = principal;
@@ -1158,6 +1233,36 @@ export class RenderizadorCanvas2D {
         this.context.lineTo(centroX + radio * 0.35, centroY - radio * 0.18);
         this.context.closePath();
         this.context.fill();
+        if (nivelVisual >= 2) {
+          this.context.strokeStyle = secundario;
+          this.context.beginPath();
+          this.context.moveTo(centroX + radio * 0.92, centroY + radio * 0.32);
+          this.context.lineTo(centroX + radio * 1.08, centroY - radio * 0.45);
+          this.context.stroke();
+        }
+        if (nivelVisual >= 3) {
+          this.context.beginPath();
+          this.context.moveTo(centroX + radio * 0.46, centroY + radio * 0.4);
+          this.context.lineTo(centroX + radio * 0.32, centroY - radio * 0.68);
+          this.context.stroke();
+        }
+      }
+      const multiplicador = nivelVisual;
+      if (multiplicador > 1) {
+        const posicion = resolverPosicionMultiplicadorCanvas({
+          canal: perfil.canal,
+          centroX,
+          centroY,
+          radio,
+        });
+        this.context.font = `bold ${Math.max(8, Math.floor(this.tileSize * 0.22))}px monospace`;
+        this.context.textAlign = "center";
+        this.context.textBaseline = "middle";
+        this.context.lineWidth = 2;
+        this.context.strokeStyle = "#11141a";
+        this.context.strokeText(`×${multiplicador}`, posicion.x, posicion.y);
+        this.context.fillStyle = secundario;
+        this.context.fillText(`×${multiplicador}`, posicion.x, posicion.y);
       }
     }
 
@@ -1554,6 +1659,51 @@ function dibujarZigzagCanvas(contexto, x1, y1, x2, y2) {
   contexto.lineTo(x1 + dx * 0.64 + 2, y1 + dy * 0.66);
   contexto.lineTo(x2, y2);
   contexto.stroke();
+}
+
+function crearPulsoEstadoCanvas(evento) {
+  const perfil = evento?.efecto?.perfilVisual;
+  if (
+    typeof evento?.idObjetivo !== "string" ||
+    !perfil ||
+    perfil.pulsoTick === "ninguno"
+  ) {
+    return null;
+  }
+  return Object.freeze({
+    idObjetivo: evento.idObjetivo,
+    forma: perfil.pulsoTick,
+    colorPrincipal: perfil.colorPrincipal ?? "#ffffff",
+    colorSecundario: perfil.colorSecundario ?? "#ffffff",
+  });
+}
+
+function resolverMultiplicadorEstadoCanvas(efecto, perfil) {
+  if (perfil?.mostrarMultiplicador !== true) return 1;
+  const maximo = Number.isInteger(perfil.densidadMaxima)
+    ? Math.max(1, perfil.densidadMaxima)
+    : 3;
+  return Math.min(
+    maximo,
+    Math.max(
+      1,
+      Number.isFinite(efecto?.intensidad) ? Math.round(efecto.intensidad) : 1,
+      Number.isFinite(efecto?.cantidad) ? Math.round(efecto.cantidad) : 1,
+    ),
+  );
+}
+
+function resolverPosicionMultiplicadorCanvas({ canal, centroX, centroY, radio }) {
+  if (canal === "lateral_izquierdo") {
+    return { x: centroX - radio * 1.15, y: centroY - radio * 0.92 };
+  }
+  if (canal === "lateral_derecho") {
+    return { x: centroX + radio * 1.15, y: centroY - radio * 0.92 };
+  }
+  if (canal === "pies") {
+    return { x: centroX + radio, y: centroY + radio };
+  }
+  return { x: centroX + radio, y: centroY - radio };
 }
 
 function crearFeedbackEstadoCanvas(evento) {

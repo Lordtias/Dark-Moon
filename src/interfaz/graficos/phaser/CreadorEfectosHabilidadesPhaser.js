@@ -107,7 +107,13 @@ export class CreadorEfectosHabilidadesPhaser {
     return grafico;
   }
 
-  crearImpacto({ centro, perfil, grado = 1, critico = false } = {}) {
+  crearImpacto({
+    centro,
+    perfil,
+    grado = 1,
+    critico = false,
+    intensidadVisual = null,
+  } = {}) {
     if (!esCentroValido(centro) || !perfil) return null;
     const principal = convertirColor(perfil.colorPrincipal);
     const secundario = convertirColor(perfil.colorSecundario);
@@ -125,6 +131,7 @@ export class CreadorEfectosHabilidadesPhaser {
       secundario,
       tamano,
       critico,
+      intensidadVisual,
     });
     grafico.setAlpha?.(0.96);
     grafico.setScale?.(0.62);
@@ -154,6 +161,14 @@ function dibujarGlifoConjuracion({
     grafico.lineTo?.(radio * 0.08, 0);
     grafico.lineTo?.(radio * 0.68, radio * 0.2);
     grafico.strokePath?.();
+    return;
+  }
+  if (forma === "masa_corrosiva") {
+    grafico.fillStyle?.(principal, 0.72);
+    grafico.fillCircle?.(-radio * 0.38, radio * 0.16, radio * 0.28);
+    grafico.fillCircle?.(radio * 0.24, -radio * 0.24, radio * 0.2);
+    grafico.lineStyle?.(1.2, secundario, 0.82);
+    grafico.strokeCircle?.(radio * 0.08, radio * 0.08, radio * 0.24);
     return;
   }
   if (forma === "aguijon_viscoso") {
@@ -252,6 +267,22 @@ function dibujarFormaHabilidad({
     return;
   }
 
+  if (forma === "masa_corrosiva") {
+    grafico.fillStyle?.(principal, 0.94);
+    grafico.fillCircle?.(mitad * 0.08, 0, mitad * 0.72);
+    grafico.fillCircle?.(-mitad * 0.48, mitad * 0.25, mitad * 0.42);
+    grafico.fillCircle?.(-mitad * 0.52, -mitad * 0.26, mitad * 0.36);
+    grafico.fillCircle?.(mitad * 0.38, -mitad * 0.2, mitad * 0.3);
+    grafico.fillStyle?.(secundario, 0.72);
+    grafico.fillCircle?.(mitad * 0.16, -mitad * 0.12, mitad * 0.24);
+    grafico.lineStyle?.(grosor, secundario, 0.82);
+    grafico.strokeCircle?.(mitad * 0.06, 0, mitad * 0.7);
+    grafico.fillStyle?.(principal, 0.66);
+    grafico.fillCircle?.(-mitad * 1.08, mitad * 0.42, mitad * 0.16);
+    grafico.fillCircle?.(-mitad * 1.26, -mitad * 0.18, mitad * 0.11);
+    return;
+  }
+
   if (forma === "aguijon_viscoso") {
     grafico.fillStyle?.(principal, 0.9);
     grafico.lineStyle?.(grosor, secundario, 0.88);
@@ -299,6 +330,31 @@ function dibujarTexturaHabilidad({
     grafico.lineBetween?.(-mitad * 0.3, mitad * 0.18, mitad * 0.28, 0);
     return;
   }
+  if (textura === "toxina_burbujeante") {
+    grafico.lineStyle?.(1.2, secundario, 0.86);
+    grafico.strokeCircle?.(
+      -mitad * 0.24,
+      -mitad * 0.18,
+      Math.max(1.2, tamano * 0.09),
+    );
+    grafico.strokeCircle?.(
+      mitad * 0.18,
+      mitad * 0.12,
+      Math.max(1, tamano * 0.07),
+    );
+    grafico.strokeCircle?.(
+      -mitad * 0.02,
+      mitad * 0.34,
+      Math.max(0.8, tamano * 0.055),
+    );
+    grafico.fillStyle?.(secundario, 0.7);
+    grafico.fillCircle?.(
+      mitad * 0.32,
+      -mitad * 0.2,
+      Math.max(0.8, tamano * 0.05),
+    );
+    return;
+  }
   if (textura === "toxina_densa") {
     grafico.fillStyle?.(secundario, 0.66);
     grafico.fillCircle?.(-mitad * 0.38, -mitad * 0.12, Math.max(1, tamano * 0.07));
@@ -340,6 +396,19 @@ function dibujarEstelaHabilidad({
       const radio = (1.4 + (paso % 3) * 0.45) * escala;
       grafico.lineBetween?.(x - radio, y, x + radio, y);
       grafico.lineBetween?.(x, y - radio, x, y + radio);
+    } else if (estela === "gotas_corrosivas") {
+      const radio = (1.7 + (paso % 3) * 0.55) * escala;
+      grafico.fillStyle?.(paso % 2 === 0 ? secundario : principal, 0.74);
+      grafico.fillCircle?.(x, y + (paso % 3) * 1.2, radio);
+      grafico.lineStyle?.(0.8, secundario, 0.48);
+      grafico.strokeCircle?.(x, y + (paso % 3) * 1.2, radio * 1.28);
+      if (paso % 2 === 1) {
+        grafico.fillCircle?.(
+          x - perpendicular.x * radio * 1.5,
+          y - perpendicular.y * radio * 1.5,
+          radio * 0.46,
+        );
+      }
     } else if (estela === "gotas_toxicas") {
       grafico.fillStyle?.(paso % 2 === 0 ? secundario : principal, 0.64);
       grafico.fillCircle?.(x, y + paso % 3, (1.2 + (paso % 2) * 0.6) * escala);
@@ -357,9 +426,73 @@ function dibujarImpactoHabilidad({
   secundario,
   tamano,
   critico,
+  intensidadVisual = null,
 }) {
   const radio = tamano * 0.58;
   const grosor = critico ? 3 : 2;
+
+  if (impacto === "corrosion_expansiva") {
+    const intensidad = limitarEntero(
+      intensidadVisual?.intensidad,
+      1,
+      Math.max(1, Number(intensidadVisual?.maximo) || 1),
+    );
+    const maximo = Math.max(intensidad, Number(intensidadVisual?.maximo) || 1);
+    const progreso = maximo > 1 ? (intensidad - 1) / (maximo - 1) : 0;
+    const radioCorrosion = radio * (1 + progreso * 0.2);
+    const cantidadSalpicaduras = 7 + intensidad * 2;
+    const cantidadBurbujas = 2 + intensidad * 2;
+
+    grafico.fillStyle?.(principal, 0.5 + progreso * 0.12);
+    grafico.fillCircle?.(0, 0, radioCorrosion * 0.62);
+    grafico.fillCircle?.(
+      -radioCorrosion * 0.34,
+      radioCorrosion * 0.18,
+      radioCorrosion * 0.32,
+    );
+    grafico.fillCircle?.(
+      radioCorrosion * 0.3,
+      -radioCorrosion * 0.22,
+      radioCorrosion * 0.28,
+    );
+    grafico.lineStyle?.(grosor, secundario, 0.9);
+    grafico.strokeCircle?.(0, 0, radioCorrosion * 0.88);
+
+    for (let indice = 0; indice < cantidadSalpicaduras; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / cantidadSalpicaduras;
+      const alternancia = indice % 3;
+      const distancia = radioCorrosion * (0.82 + alternancia * 0.18);
+      const radioGota =
+        (1.25 + (indice % 2) * 0.55) * (1 + progreso * 0.28);
+      grafico.fillStyle?.(
+        indice % 2 === 0 ? principal : secundario,
+        0.76,
+      );
+      grafico.fillCircle?.(
+        Math.cos(angulo) * distancia,
+        Math.sin(angulo) * distancia,
+        radioGota,
+      );
+    }
+
+    grafico.lineStyle?.(1.1, secundario, 0.78);
+    for (let indice = 0; indice < cantidadBurbujas; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / cantidadBurbujas + 0.35;
+      const distancia = radioCorrosion * (0.18 + (indice % 3) * 0.16);
+      const radioBurbuja = 1.1 + (indice % 2) * 0.65 + progreso * 0.5;
+      grafico.strokeCircle?.(
+        Math.cos(angulo) * distancia,
+        Math.sin(angulo) * distancia,
+        radioBurbuja,
+      );
+    }
+
+    if (intensidadVisual?.alcanzoMaximo === true) {
+      grafico.lineStyle?.(1.4, secundario, 0.68);
+      grafico.strokeCircle?.(0, 0, radioCorrosion * 1.2);
+    }
+    return;
+  }
 
   if (impacto === "fractura_radial") {
     grafico.lineStyle?.(grosor, secundario, 0.96);
@@ -429,6 +562,12 @@ function dibujarImpactoHabilidad({
       Math.sin(angulo) * radio * 1.16,
     );
   }
+}
+
+function limitarEntero(valor, minimo, maximo) {
+  const numero = Number(valor);
+  if (!Number.isFinite(numero)) return minimo;
+  return Math.max(minimo, Math.min(maximo, Math.round(numero)));
 }
 
 function obtenerEscalaGrado(perfil, grado) {

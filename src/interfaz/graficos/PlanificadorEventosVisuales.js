@@ -4,6 +4,9 @@ import {
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
 import { obtenerPerfilHabilidadVisual } from "./ContextoPerfilesHabilidadesVisuales.js";
 import {
+  PATRONES_VISUALES_HABILIDAD,
+} from "./PatronesVisualesHabilidades.js";
+import {
   obtenerPerfilZonaTemporalVisual,
 } from "./ContextoPerfilesZonasTemporalesVisuales.js";
 import {
@@ -255,9 +258,10 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
   const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
   const zonaTemporalVisual = normalizarZonaTemporalVisual(evento.zonaTemporal);
   const integraDerrotasVisuales = [
-    "cadena_conjurada",
-    "linea_conjurada",
-  ].includes(perfilVisual?.secuencia);
+    PATRONES_VISUALES_HABILIDAD.PROYECTIL,
+    PATRONES_VISUALES_HABILIDAD.CADENA,
+    PATRONES_VISUALES_HABILIDAD.LINEA,
+  ].includes(perfilVisual?.patronVisual);
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
     ejecucionTemporal: evento.ejecucionTemporal,

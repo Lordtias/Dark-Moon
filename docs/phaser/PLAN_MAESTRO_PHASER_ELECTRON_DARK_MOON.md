@@ -1285,7 +1285,7 @@ Creación, entrada e intervalo se distinguen visualmente; el pulso global existe
 
 #### P6.3D.1 — Incinerar y Descarga fulminante
 
-Estado: implementada con validaciones técnicas completas; validación visual manual y commit pendientes.
+Estado: validada y cerrada en `b88c2c57c30c438d21223c9487ff08629b2ab335`.
 
 - las seis configuraciones lineales declaran `detener_en_obstaculo`;
 - `ResolucionEspacialHabilidades` construye una línea discreta que pasa por la selección, continúa hasta la longitud configurada y se detiene en la primera pared;
@@ -1304,13 +1304,33 @@ Estado: implementada con validaciones técnicas completas; validación visual ma
 
 Incinerar y Descarga fulminante pasan por la casilla seleccionada, atraviesan entidades y se detienen ante paredes; cada casilla vacía u ocupada muestra su identidad elemental; los objetivos se resuelven en orden sin énfasis primario artificial; daño, fallo, crítico, estado y derrota aparecen sobre la entidad correcta; cancelación y cambio de mapa no dejan residuos; Phaser no calcula dirección, colisiones, daño, duración ni estados.
 
+#### P6.3D.2 — Plaga corrosiva
+
+Estado: implementada sobre la base `b88c2c57c30c438d21223c9487ff08629b2ab335`, sin commit y con validación visual manual pendiente.
+
+- el patrón `proyectil` se despacha por contrato reutilizable y no por nivel visual básico;
+- Plaga conserva `proyectil_basico`, pero utiliza masa corrosiva, textura burbujeante, gotas corrosivas, movimiento pesado e impacto expansivo;
+- Aguijón tóxico mantiene su lectura pequeña y punzante;
+- aplicación, renovación e intensificación llegan correlacionadas al impacto mediante `idEjecucion`;
+- intensidad y máximo provienen del evento canónico de Envenenamiento;
+- la intensidad solo modifica densidad, radio y cantidad de marcas visuales;
+- resistencia e inmunidad no generan una intensificación inexistente;
+- la derrota del patrón proyectil se integra en el impacto y no se reproduce de nuevo al final;
+- Canvas 2D mantiene una única instancia y el indicador `×N`;
+- daño, Maná, alcance, duración, probabilidades, máximo y daño periódico permanecen sin cambios;
+- Prisión glacial y Congelamiento permanecen fuera del alcance.
+
+### Criterio de cierre de P6.3D.2
+
+Plaga corrosiva se diferencia claramente de Aguijón tóxico por tamaño, peso, textura, estela e impacto; las intensidades 1, 2 y 3 reflejan únicamente los datos canónicos; aplicación, renovación, resistencia, inmunidad, fallo, crítico y derrota aparecen en el orden correcto; no existen duplicaciones de estado, daño o muerte; cancelación y cambio de mapa no dejan residuos; Canvas 2D permanece funcional; Phaser no calcula reglas de Envenenamiento.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A y P6.3C.2B están cerradas; P6.3D.1 queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B y P6.3D.1 están cerradas; P6.3D.2 queda implementada con validaciones técnicas completas y validación visual manual pendiente; P6.3D.3 y las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

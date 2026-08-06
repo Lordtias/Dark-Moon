@@ -759,10 +759,13 @@ export class ReproductorEventosVisualesPhaser {
       return;
     }
 
-    if (
-      evento?.perfilVisual?.nivelVisual !== "basica" ||
-      evento?.ritmoVisual?.secuencia !== "proyectil_basico"
-    ) {
+    const perfil = evento?.perfilVisual;
+    if (!perfil || evento?.ritmoVisual?.secuencia !== "proyectil_basico") {
+      return;
+    }
+
+    const contratoVisual = resolverContratoPatronVisualHabilidad(perfil);
+    if (contratoVisual.patronVisual !== PATRONES_VISUALES_HABILIDAD.PROYECTIL) {
       return;
     }
 
@@ -776,7 +779,6 @@ export class ReproductorEventosVisualesPhaser {
       return;
     }
 
-    const perfil = evento.perfilVisual;
     const grado = evento.habilidad?.grado ?? 1;
     const fases = evento.ritmoVisual?.fases ?? {};
     const nodoActor = this.compositor.obtenerNodoEntidad(evento.idActor);
@@ -871,6 +873,7 @@ export class ReproductorEventosVisualesPhaser {
         });
     const animacionesTrayectoria = [];
     if (proyectil) {
+      const esMovimientoPesado = perfil.movimiento === "pesado";
       animacionesTrayectoria.push(this.crearTween({
         targets: proyectil,
         x: esDescargaAnclada ? centroActor.x : centroObjetivo.x,
@@ -879,7 +882,11 @@ export class ReproductorEventosVisualesPhaser {
           ? proyectil.angle ?? 0
           : perfil.movimiento === "nervioso"
             ? (proyectil.angle ?? 0) + 36
-            : (proyectil.angle ?? 0) + 8,
+            : esMovimientoPesado
+              ? (proyectil.angle ?? 0) + 14
+              : (proyectil.angle ?? 0) + 8,
+        scaleX: esMovimientoPesado ? 1.08 : 1,
+        scaleY: esMovimientoPesado ? 0.92 : 1,
         alpha: esDescargaAnclada
           ? impacto?.impacto === false
             ? 0.42
@@ -911,6 +918,9 @@ export class ReproductorEventosVisualesPhaser {
     }
 
     const duracionImpacto = this.calcularDuracion(fases.impacto ?? 1);
+    const intensidadVisual = perfil.impacto === "corrosion_expansiva"
+      ? obtenerIntensidadEnvenenamientoImpacto(impacto)
+      : null;
     const efectoImpacto =
       impacto?.impacto === true && !this.efectosReducidos
         ? this.creadorEfectosHabilidades?.crearImpacto({
@@ -918,6 +928,7 @@ export class ReproductorEventosVisualesPhaser {
             perfil,
             grado,
             critico: impacto.critico === true,
+            intensidadVisual,
           })
         : null;
     const promesasImpacto = [];
@@ -3575,9 +3586,32 @@ function resolverEaseHabilidad(movimiento) {
       return "Sine.easeOut";
     case "punzante":
       return "Cubic.easeIn";
+    case "pesado":
+      return "Sine.easeInOut";
     default:
       return "Linear";
   }
+}
+
+function obtenerIntensidadEnvenenamientoImpacto(impacto) {
+  const eventoEstado = (impacto?.eventosEfectos ?? []).find(
+    (evento) =>
+      [
+        TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_APLICADO,
+        TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_ACTUALIZADO,
+      ].includes(evento?.tipo) &&
+      evento?.efecto?.catalogoEfectoId === "envenenamiento" &&
+      Number.isFinite(evento?.efecto?.intensidad),
+  );
+
+  if (!eventoEstado) return null;
+
+  return Object.freeze({
+    intensidad: Math.max(1, Number(eventoEstado.efecto.intensidad) || 1),
+    maximo: Math.max(1, Number(eventoEstado.efecto.maximo) || 1),
+    operacion: eventoEstado.operacion ?? null,
+    alcanzoMaximo: eventoEstado.alcanzoMaximo === true,
+  });
 }
 
 function normalizarDireccionImpacto({ origen, destino } = {}) {

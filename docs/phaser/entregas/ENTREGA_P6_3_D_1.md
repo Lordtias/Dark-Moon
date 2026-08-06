@@ -1,9 +1,11 @@
 # ENTREGA P6.3D.1 — HABILIDADES AVANZADAS LINEALES
 
-Fecha: 2026-08-06  
-Etapa: P6.3D.1  
-Base obligatoria: `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`  
-Rama esperada: `main`
+Fecha: 2026-08-06
+Etapa: P6.3D.1
+Base de implementación: `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`
+Commit de cierre P6.3D.1: `b88c2c57c30c438d21223c9487ff08629b2ab335`
+Rama validada: `main`
+Estado: validada y commiteada
 
 ## 1. Objetivo
 
@@ -186,13 +188,14 @@ Prisión glacial y el rediseño de Congelamiento requieren un análisis específ
 12. Cancelar durante el recorrido y cambiar de mapa.
 13. Revisar la vista previa en Canvas 2D.
 
-## 17. Estado Git esperado al entregar
+## 17. Cierre Git verificado
 
 - Rama: `main`.
-- HEAD base: `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`.
-- Commit realizado: no.
-- Push realizado: no.
-- GitHub remoto modificado: no.
+- Base utilizada para implementar: `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`.
+- Commit validado de P6.3D.1: `b88c2c57c30c438d21223c9487ff08629b2ab335`.
+- Relación incluida con `origin/main`: mismo SHA, 0 adelante y 0 atrás.
+- El ZIP recibido para P6.3D.2 contiene `.git` y conserva este HEAD.
+- Las marcas iniciales de archivos modificados fueron comprobadas como diferencias exclusivas CRLF/LF, sin cambios reales de contenido.
 
 ## 18. Conventional Commit propuesto
 
@@ -202,4 +205,4 @@ feat(phaser): representar habilidades avanzadas lineales
 
 ## 19. Próximo paso
 
-Después de validar y commitear esta entrega, analizar e implementar **P6.3D.2 — Plaga corrosiva**. P6.3D.3 permanecerá pendiente de un análisis específico de Prisión glacial y Congelamiento.
+P6.3D.2 toma como base exacta el commit `b88c2c57c30c438d21223c9487ff08629b2ab335` para representar **Plaga corrosiva** y su intensificación canónica de Envenenamiento. P6.3D.3 permanece pendiente de un análisis específico con el usuario sobre Prisión glacial y Congelamiento.

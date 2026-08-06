@@ -631,7 +631,8 @@
               "tipo": "cadena",
               "maximoObjetivos": 2,
               "alcanceSalto": 2,
-              "factorDanioPorSalto": 0.85
+              "factorDanioPorSalto": 0.85,
+              "politicaObstaculos": "vision_entre_saltos"
             },
             "danio": [
               {
@@ -659,7 +660,8 @@
               "tipo": "cadena",
               "maximoObjetivos": 3,
               "alcanceSalto": 2,
-              "factorDanioPorSalto": 0.85
+              "factorDanioPorSalto": 0.85,
+              "politicaObstaculos": "vision_entre_saltos"
             },
             "danio": [
               {
@@ -687,7 +689,8 @@
               "tipo": "cadena",
               "maximoObjetivos": 4,
               "alcanceSalto": 3,
-              "factorDanioPorSalto": 0.8
+              "factorDanioPorSalto": 0.8,
+              "politicaObstaculos": "vision_entre_saltos"
             },
             "danio": [
               {

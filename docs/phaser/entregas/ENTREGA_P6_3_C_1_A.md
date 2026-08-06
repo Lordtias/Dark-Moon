@@ -131,7 +131,7 @@ Ejemplo esperado para Nova:
 - comprobación de que la casilla posterior al muro queda excluida y las visibles se conservan;
 - comprobación del transporte de objetivo primario explícito.
 
-## 11. Pruebas manuales sugeridas
+## 11. Pruebas manuales realizadas para el cierre
 
 1. Lanzar Explosión ígnea sobre una casilla vacía con enemigos dentro del radio.
 2. Confirmar que el núcleo permanece en la casilla seleccionada y todos los enemigos reciben pulsos normales.
@@ -145,20 +145,27 @@ Ejemplo esperado para Nova:
 10. Cancelar una cola durante la expansión y comprobar limpieza.
 11. Verificar que Canvas 2D sigue funcionando sin regresión jugable.
 
-## 12. Estado Git esperado al entregar
+## 12. Cierre manual registrado
+
+P6.3C.1A fue validada manualmente y cerrada en:
+
+`8bf47e50eb70ebc552649716a61eb5bbef829f5d`
+
+## 13. Estado Git esperado al entregar
 
 - Rama: `main`.
 - HEAD base: `ec5933cd5090042f1be6511cbd5ad12ac5a65be3`.
-- Commit realizado: no.
-- Push realizado: no.
+- Commit realizado: sí.
+- SHA de cierre: `8bf47e50eb70ebc552649716a61eb5bbef829f5d`.
+- Push realizado: según flujo del usuario.
 - GitHub remoto modificado: no.
 
-## 13. Conventional Commit propuesto
+## 14. Conventional Commit propuesto
 
 ```text
 feat(phaser): representar habilidades intermedias de area
 ```
 
-## 14. Próximo paso
+## 15. Próximo paso
 
-Después de validar manualmente esta entrega, continuar con **P6.3C.1B — Cadena de rayos**.
+P6.3C.1A queda cerrada. La siguiente subetapa es **P6.3C.1B — Cadena de rayos**.

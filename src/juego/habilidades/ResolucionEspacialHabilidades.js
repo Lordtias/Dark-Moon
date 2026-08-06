@@ -44,28 +44,59 @@ export function resolverCasillasRadioConObstaculos({
   return casillas.sort(compararCasillas);
 }
 
-export function filtrarDestinosVisibles({
+export function resolverRecorridoCadenaConObstaculos({
   mapa,
-  origen,
-  destinos = [],
+  objetivoPrimario,
+  objetivos = [],
+  maximoObjetivos,
+  alcanceSalto,
   politicaObstaculos = POLITICAS_OBSTACULOS_HABILIDAD.VISION_ENTRE_SALTOS,
 } = {}) {
   validarMapa(mapa);
-  validarPosicion(origen, "origen de visibilidad");
-  if (!Array.isArray(destinos)) {
-    throw new Error("Los destinos visibles deben estar dentro de una lista.");
+  validarPosicion(objetivoPrimario, "objetivo primario de la cadena");
+  if (!Array.isArray(objetivos)) {
+    throw new Error("Los objetivos de cadena deben estar dentro de una lista.");
+  }
+  if (!Number.isInteger(maximoObjetivos) || maximoObjetivos <= 0) {
+    throw new Error("La cadena necesita un máximo de objetivos positivo.");
+  }
+  if (!Number.isInteger(alcanceSalto) || alcanceSalto <= 0) {
+    throw new Error("La cadena necesita un alcance de salto positivo.");
   }
   validarPolitica(politicaObstaculos);
 
-  return destinos.filter((destino) => {
-    validarPosicion(destino, "destino de visibilidad");
-    return esCasillaAlcanzablePorPolitica({
-      mapa,
-      origen,
-      destino,
-      politicaObstaculos,
-    });
-  });
+  const seleccionados = [objetivoPrimario];
+  const visitados = new Set([objetivoPrimario]);
+
+  while (seleccionados.length < maximoObjetivos) {
+    const actual = seleccionados.at(-1);
+    const siguiente = objetivos
+      .filter((objetivo) => {
+        if (visitados.has(objetivo)) return false;
+        validarPosicion(objetivo, "candidato de cadena");
+        if (calcularDistanciaCuadricula(actual, objetivo) > alcanceSalto) {
+          return false;
+        }
+        return esCasillaAlcanzablePorPolitica({
+          mapa,
+          origen: actual,
+          destino: objetivo,
+          politicaObstaculos,
+        });
+      })
+      .sort((a, b) => {
+        const distancia =
+          calcularDistanciaCuadricula(actual, a) -
+          calcularDistanciaCuadricula(actual, b);
+        return distancia || compararCasillas(a, b);
+      })[0];
+
+    if (!siguiente) break;
+    seleccionados.push(siguiente);
+    visitados.add(siguiente);
+  }
+
+  return seleccionados;
 }
 
 export function esCasillaAlcanzablePorPolitica({

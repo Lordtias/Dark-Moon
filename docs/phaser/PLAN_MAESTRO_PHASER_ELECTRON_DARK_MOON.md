@@ -1208,7 +1208,7 @@ Ticks temáticos preceden al daño canónico; renovar no duplica ni parpadea la 
 
 #### P6.3C.1A — Habilidades intermedias de área
 
-Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+Estado: cerrada y validada manualmente en `8bf47e50eb70ebc552649716a61eb5bbef829f5d`.
 
 - `habilidad_resuelta` agrega `idEjecucion` para correlacionar eventos derivados y conserva el objetivo primario solamente cuando la selección contiene una entidad;
 - `ResolucionEspacialHabilidades` centraliza políticas de obstáculos y reutiliza la línea de visión canónica de combate;
@@ -1225,13 +1225,30 @@ Estado: implementación y validaciones técnicas completadas; validación visual
 
 Explosión ígnea y Nova de escarcha se reproducen por anillos y muestran un efecto temático en cada casilla canónica, esté vacía u ocupada; las paredes recortan la vista previa y el daño mediante la resolución espacial compartida; el centro visual coincide con la selección o el actor según el patrón; solamente una entidad seleccionada explícitamente recibe énfasis primario; daño, crítico, fallo, derrota y estados aparecen sobre el objetivo correcto; cancelar la cola no deja restos; Canvas 2D y Phaser no recalculan geometría, colisiones, daño ni duración.
 
+#### P6.3C.1B — Cadena de rayos
+
+Estado: implementación y validaciones técnicas completadas; validación visual manual y commit pendientes.
+
+- los tres grados declaran `vision_entre_saltos`;
+- `ResolucionEspacialHabilidades` elige el recorrido visible, excluye visitados y conserva un desempate estable;
+- `GeometriaHabilidades` agrega orden y multiplicador de daño sobre el recorrido ya resuelto;
+- `PatronesVisualesHabilidades` define recorrido secuencial, objetivo primario, persistencia breve e intensidad mínima de lectura;
+- `CreadorCadenasHabilidadesPhaser` construye carga, arcos, núcleos e impactos sin consultar reglas;
+- daño, fallo, crítico, Electrización y derrota se reproducen dentro del salto correspondiente;
+- una entidad derrotada desaparece antes del siguiente arco y la posición congelada conserva la continuidad;
+- Canvas 2D permanece operativo y el dominio conserva daño, alcance, paredes, objetivos y tiempo.
+
+### Criterio de cierre de P6.3C.1B
+
+La cadena respeta alcance y línea de visión en cada tramo; no repite objetivos; el recorrido visual coincide con el canónico; cada salto parte del actor o del objetivo anterior; fallo, crítico, estado y derrota aparecen sobre el objetivo correcto; una muerte intermedia no corta artificialmente la presentación; cancelación y mapa no dejan residuos; Phaser no selecciona candidatos ni recalcula daño.
+
 ### Criterio de cierre de P6.3B.1
 
 Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden a aplicación y retirada, muestran resistencia e inmunidad sin crear persistencia, desaparecen con muerte o mapa, se restauran correctamente tras cancelar una cola y no modifican ninguna regla canónica.
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1 y P6.3B.2 están cerradas; P6.3C.1A queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2 y P6.3C.1A están cerradas; P6.3C.1B queda implementada con validaciones técnicas completas y la validación manual pendiente; las etapas posteriores permanecen pendientes.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 

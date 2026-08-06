@@ -20,6 +20,7 @@ import { TAMANO_CASILLA_REFERENCIA } from "./ConfiguracionPhaser.js";
 import { CreadorEfectosCombatePhaser } from "./CreadorEfectosCombatePhaser.js";
 import { CreadorEfectosHabilidadesPhaser } from "./CreadorEfectosHabilidadesPhaser.js";
 import { CreadorAreasHabilidadesPhaser } from "./CreadorAreasHabilidadesPhaser.js";
+import { CreadorCadenasHabilidadesPhaser } from "./CreadorCadenasHabilidadesPhaser.js";
 import { CreadorEstadosTemporalesPhaser } from "./CreadorEstadosTemporalesPhaser.js";
 import { CreadorEfectosRecuperacionPhaser } from "./CreadorEfectosRecuperacionPhaser.js";
 import {
@@ -77,6 +78,10 @@ export class ReproductorEventosVisualesPhaser {
       compositor,
     });
     this.creadorAreasHabilidades = new CreadorAreasHabilidadesPhaser({
+      escena,
+      compositor,
+    });
+    this.creadorCadenasHabilidades = new CreadorCadenasHabilidadesPhaser({
       escena,
       compositor,
     });
@@ -184,6 +189,7 @@ export class ReproductorEventosVisualesPhaser {
     this.creadorEfectos = null;
     this.creadorEfectosHabilidades = null;
     this.creadorAreasHabilidades = null;
+    this.creadorCadenasHabilidades = null;
     this.creadorEstadosTemporales = null;
     this.creadorEfectosRecuperacion = null;
     this.creadorProyectilesElementales = null;
@@ -552,6 +558,11 @@ export class ReproductorEventosVisualesPhaser {
       return;
     }
 
+    if (evento?.ritmoVisual?.secuencia === "cadena_conjurada") {
+      await this.reproducirHabilidadCadena(evento, version);
+      return;
+    }
+
     if (
       evento?.perfilVisual?.nivelVisual !== "basica" ||
       evento?.ritmoVisual?.secuencia !== "proyectil_basico"
@@ -745,6 +756,270 @@ export class ReproductorEventosVisualesPhaser {
         duration: duracionRetorno,
         ease: "Sine.easeIn",
       }, version).then(() => conjuracion.destroy?.()));
+    }
+    if (contenedorActor) {
+      retornos.push(this.crearTween({
+        targets: contenedorActor,
+        scaleX: escalaActorX,
+        scaleY: escalaActorY,
+        duration: duracionRetorno,
+        ease: "Sine.easeInOut",
+      }, version));
+    }
+    if (retornos.length > 0) await Promise.all(retornos);
+    else await this.esperar(duracionRetorno, version);
+
+    if (contenedorActor) {
+      contenedorActor.scaleX = escalaActorX;
+      contenedorActor.scaleY = escalaActorY;
+    }
+  }
+
+  async reproducirHabilidadCadena(evento, version) {
+    const perfil = evento?.perfilVisual;
+    if (!perfil || perfil.nivelVisual !== "intermedia") return;
+
+    const contratoVisual = resolverContratoPatronVisualHabilidad(perfil);
+    if (
+      contratoVisual.patronVisual !== PATRONES_VISUALES_HABILIDAD.CADENA ||
+      contratoVisual.usaRecorridoOrdenado !== true ||
+      contratoVisual.reproduceImpactosSecuencialmente !== true
+    ) {
+      return;
+    }
+
+    const impactos = [...(evento.impactos ?? [])].sort(
+      (a, b) => (a.orden ?? 0) - (b.orden ?? 0),
+    );
+    if (impactos.length === 0) return;
+
+    const centroActor = this.obtenerCentroActorHabilidad(evento);
+    if (!centroActor) {
+      for (const impacto of impactos) {
+        await this.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      }
+      return;
+    }
+
+    const grado = evento.habilidad?.grado ?? 1;
+    const fases = evento.ritmoVisual?.fases ?? {};
+    const nodoActor = this.compositor.obtenerNodoEntidad(evento.idActor);
+    const contenedorActor = nodoActor?.contenedor ?? null;
+    const escalaActorX = contenedorActor?.scaleX ?? 1;
+    const escalaActorY = contenedorActor?.scaleY ?? 1;
+    const conjuracion = this.efectosReducidos
+      ? null
+      : this.creadorEfectosHabilidades?.crearConjuracion({
+          centro: centroActor,
+          perfil,
+          grado,
+        });
+    const carga = this.efectosReducidos
+      ? null
+      : this.creadorCadenasHabilidades?.crearCarga({
+          centro: centroActor,
+          perfil,
+          grado,
+        });
+
+    const duracionPreparacion = this.calcularDuracion(fases.preparacion ?? 1);
+    const preparaciones = [];
+    if (conjuracion) {
+      preparaciones.push(this.crearTween({
+        targets: conjuracion,
+        alpha: 0.94,
+        scaleX: 1.08,
+        scaleY: 1.08,
+        angle: 24,
+        duration: duracionPreparacion,
+        ease: "Sine.easeOut",
+      }, version));
+    }
+    if (contenedorActor && !this.efectosReducidos) {
+      preparaciones.push(this.crearTween({
+        targets: contenedorActor,
+        scaleX: escalaActorX * 1.05,
+        scaleY: escalaActorY * 1.05,
+        duration: duracionPreparacion,
+        ease: "Sine.easeOut",
+      }, version));
+    }
+    if (preparaciones.length > 0) await Promise.all(preparaciones);
+    else await this.esperar(duracionPreparacion, version);
+
+    if (version !== this.versionCancelacion || this.destruido) return;
+
+    const duracionManifestacion = this.calcularDuracion(
+      fases.manifestacion ?? 1,
+    );
+    if (carga) {
+      await this.crearTween({
+        targets: carga,
+        alpha: 1,
+        scaleX: 1.18,
+        scaleY: 1.18,
+        angle: 36,
+        duration: duracionManifestacion,
+        ease: "Quad.easeOut",
+      }, version);
+    } else {
+      await this.esperar(duracionManifestacion, version);
+    }
+
+    if (version !== this.versionCancelacion || this.destruido) return;
+
+    const duracionSaltos = this.calcularDuracion(fases.saltos ?? 1);
+    const duracionImpactos = this.calcularDuracion(fases.impacto ?? 1);
+    const duracionSalto = Math.max(55, Math.round(duracionSaltos / impactos.length));
+    const duracionImpacto = Math.max(45, Math.round(duracionImpactos / impactos.length));
+    const tramosPersistentes = [];
+    let origenSalto = centroActor;
+
+    for (let indice = 0; indice < impactos.length; indice += 1) {
+      if (version !== this.versionCancelacion || this.destruido) break;
+      const impacto = impactos[indice];
+      const destinoSalto = this.obtenerCentroImpactoHabilidad(evento, impacto);
+      if (!destinoSalto) {
+        await this.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+        origenSalto = this.compositor.obtenerCentroCasilla(
+          impacto.posicionObjetivo,
+        ) ?? origenSalto;
+        continue;
+      }
+
+      const esPrimario =
+        contratoVisual.enfatizaObjetivoPrimario === true &&
+        indice === 0 &&
+        Boolean(evento.idObjetivoPrimario) &&
+        impacto.idObjetivo === evento.idObjetivoPrimario;
+      const multiplicadorVisual = Math.max(
+        contratoVisual.intensidadVisualMinima ?? 0.52,
+        Number.isFinite(impacto.multiplicadorDanio)
+          ? impacto.multiplicadorDanio
+          : 1,
+      );
+      const arco = this.efectosReducidos
+        ? null
+        : this.creadorCadenasHabilidades?.crearArco({
+            origen: origenSalto,
+            destino: destinoSalto,
+            perfil,
+            grado,
+            multiplicadorVisual,
+            critico: impacto.critico === true,
+            primario: esPrimario,
+            indiceSalto: indice,
+          });
+      const nucleo = this.efectosReducidos
+        ? null
+        : this.creadorCadenasHabilidades?.crearNucleoSalto({
+            origen: origenSalto,
+            perfil,
+            grado,
+            primario: esPrimario,
+          });
+
+      const desplazamientos = [];
+      if (arco) {
+        desplazamientos.push(this.crearTween({
+          targets: arco,
+          alpha: esPrimario ? 1 : 0.88,
+          duration: duracionSalto,
+          ease: "Sine.easeOut",
+        }, version));
+      }
+      if (nucleo) {
+        desplazamientos.push(this.crearTween({
+          targets: nucleo,
+          x: destinoSalto.x,
+          y: destinoSalto.y,
+          alpha: 1,
+          scaleX: esPrimario ? 1.18 : 1,
+          scaleY: esPrimario ? 1.18 : 1,
+          duration: duracionSalto,
+          ease: "Quad.easeInOut",
+        }, version));
+      }
+      if (contratoVisual.conservaTramosAnteriores === true) {
+        for (const tramoAnterior of tramosPersistentes) {
+          desplazamientos.push(this.crearTween({
+            targets: tramoAnterior,
+            alpha: contratoVisual.opacidadTramosAnteriores ?? 0.28,
+            duration: duracionSalto,
+            ease: "Sine.easeInOut",
+          }, version));
+        }
+      }
+      if (desplazamientos.length > 0) await Promise.all(desplazamientos);
+      else await this.esperar(duracionSalto, version);
+      nucleo?.destroy?.();
+
+      if (version !== this.versionCancelacion || this.destruido) break;
+
+      const descarga = this.efectosReducidos
+        ? null
+        : this.creadorCadenasHabilidades?.crearImpacto({
+            centro: destinoSalto,
+            perfil,
+            grado,
+            multiplicadorVisual,
+            critico: impacto.critico === true,
+            primario: esPrimario,
+            indiceSalto: indice,
+          });
+      const reacciones = [
+        this.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+      ];
+      if (descarga) {
+        reacciones.push(this.crearTween({
+          targets: descarga,
+          alpha: 0,
+          scaleX: esPrimario ? 1.58 : 1.38,
+          scaleY: esPrimario ? 1.58 : 1.38,
+          duration: duracionImpacto,
+          ease: "Quad.easeOut",
+        }, version).then(() => descarga.destroy?.()));
+      }
+      await Promise.all(reacciones);
+      if (version !== this.versionCancelacion || this.destruido) {
+        arco?.destroy?.();
+        return;
+      }
+
+      if (arco) {
+        arco.alpha = indice === impactos.length - 1
+          ? contratoVisual.opacidadUltimoTramo ?? 0.72
+          : Math.max(
+              contratoVisual.opacidadTramosAnteriores ?? 0.28,
+              0.38,
+            );
+        tramosPersistentes.push(arco);
+      }
+      origenSalto = this.compositor.obtenerCentroCasilla(
+        impacto.posicionObjetivo,
+      ) ?? destinoSalto;
+    }
+
+    const duracionRetorno = this.calcularDuracion(fases.retorno ?? 1);
+    const retornos = [];
+    for (const tramo of tramosPersistentes) {
+      retornos.push(this.crearTween({
+        targets: tramo,
+        alpha: 0,
+        duration: duracionRetorno,
+        ease: "Sine.easeIn",
+      }, version).then(() => tramo.destroy?.()));
+    }
+    for (const recurso of [carga, conjuracion]) {
+      if (!recurso) continue;
+      retornos.push(this.crearTween({
+        targets: recurso,
+        alpha: 0,
+        scaleX: 1.3,
+        scaleY: 1.3,
+        duration: duracionRetorno,
+        ease: "Sine.easeIn",
+      }, version).then(() => recurso.destroy?.()));
     }
     if (contenedorActor) {
       retornos.push(this.crearTween({
@@ -1088,6 +1363,10 @@ export class ReproductorEventosVisualesPhaser {
     for (const eventoEfecto of impacto.eventosEfectos ?? []) {
       if (version !== this.versionCancelacion || this.destruido) return;
       await this.reproducirEventoVisual(eventoEfecto, version);
+    }
+
+    if (impacto.derrotaVisual) {
+      await this.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
     }
   }
 

@@ -32,6 +32,13 @@ const CONTRATOS = Object.freeze({
     representaTodasLasCasillas: false,
     agrupaPorAnillos: false,
     admiteObjetivoPrimario: true,
+    usaRecorridoOrdenado: true,
+    reproduceImpactosSecuencialmente: true,
+    conservaTramosAnteriores: true,
+    enfatizaObjetivoPrimario: true,
+    intensidadVisualMinima: 0.52,
+    opacidadTramosAnteriores: 0.28,
+    opacidadUltimoTramo: 0.72,
     persistente: false,
   }),
   [PATRONES_VISUALES_HABILIDAD.ZONA_PERSISTENTE]: Object.freeze({

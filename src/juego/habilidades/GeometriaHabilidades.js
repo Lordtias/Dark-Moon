@@ -1,8 +1,8 @@
 import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import {
   POLITICAS_OBSTACULOS_HABILIDAD,
-  filtrarDestinosVisibles,
   resolverCasillasRadioConObstaculos,
+  resolverRecorridoCadenaConObstaculos,
 } from "./ResolucionEspacialHabilidades.js";
 
 export const TIPOS_FORMA_IMPACTO = Object.freeze({
@@ -388,37 +388,16 @@ function resolverCadena({ mapa, objetivoPrimario, objetivos, formaImpacto }) {
     return { casillasAfectadas: [], objetivosAfectados: [], recorrido: [] };
   }
 
-  const seleccionados = [objetivoPrimario];
-  const visitados = new Set([objetivoPrimario]);
-
-  while (seleccionados.length < formaImpacto.maximoObjetivos) {
-    const actual = seleccionados[seleccionados.length - 1];
-    const candidatosPorDistancia = objetivos.filter(
-      (objetivo) =>
-        !visitados.has(objetivo) &&
-        distanciaCuadricula(actual, objetivo) <= formaImpacto.alcanceSalto,
-    );
-    const candidatos =
-      formaImpacto.politicaObstaculos ===
-      POLITICAS_OBSTACULOS_HABILIDAD.VISION_ENTRE_SALTOS
-        ? filtrarDestinosVisibles({
-            mapa,
-            origen: actual,
-            destinos: candidatosPorDistancia,
-            politicaObstaculos: formaImpacto.politicaObstaculos,
-          })
-        : candidatosPorDistancia;
-    const siguiente = candidatos
-      .sort((a, b) => {
-        const diferenciaDistancia =
-          distanciaCuadricula(actual, a) - distanciaCuadricula(actual, b);
-        return diferenciaDistancia || compararCasillas(a, b);
-      })[0];
-
-    if (!siguiente) break;
-    seleccionados.push(siguiente);
-    visitados.add(siguiente);
-  }
+  const seleccionados = resolverRecorridoCadenaConObstaculos({
+    mapa,
+    objetivoPrimario,
+    objetivos,
+    maximoObjetivos: formaImpacto.maximoObjetivos,
+    alcanceSalto: formaImpacto.alcanceSalto,
+    politicaObstaculos:
+      formaImpacto.politicaObstaculos ??
+      POLITICAS_OBSTACULOS_HABILIDAD.VISION_ENTRE_SALTOS,
+  });
 
   const objetivosAfectados = seleccionados.map((objetivo, orden) =>
     crearObjetivoAfectado(

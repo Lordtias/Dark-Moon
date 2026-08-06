@@ -216,6 +216,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
   }
 
   const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
+  const esCadenaVisual = perfilVisual?.secuencia === "cadena_conjurada";
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
     ejecucionTemporal: evento.ejecucionTemporal,
@@ -246,6 +247,20 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
         impacto: impacto.impacto === true,
         critico: impacto.critico === true,
         objetivoDerrotado: impacto.objetivoDerrotado === true,
+        derrotaVisual:
+          esCadenaVisual && impacto.objetivoDerrotado === true && idObjetivo
+            ? Object.freeze({
+                tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
+                idEntidad: idObjetivo,
+                tipoEntidad: objetivoVisual?.tipo ?? null,
+                posicion: esPosicion(impacto.posicionObjetivo)
+                  ? copiarPosicion(impacto.posicionObjetivo)
+                  : objetivoVisual && esPosicion(objetivoVisual)
+                    ? copiarPosicion(objetivoVisual)
+                    : null,
+                motivo: "habilidad_directa",
+              })
+            : null,
         danio: impacto.danio ?? null,
         efectos: impacto.efectos ?? Object.freeze([]),
         recursosObjetivo: impacto.recursosObjetivo ?? Object.freeze([]),
@@ -290,11 +305,13 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     ritmoVisual,
   }));
 
-  for (const impacto of evento.impactos ?? []) {
-    if (impacto.objetivoDerrotado === true && impacto.objetivo) {
-      agregarEntidadDerrotada(plan, impacto.objetivo, entidadesPorId, {
-        motivo: "habilidad_directa",
-      });
+  if (!esCadenaVisual) {
+    for (const impacto of evento.impactos ?? []) {
+      if (impacto.objetivoDerrotado === true && impacto.objetivo) {
+        agregarEntidadDerrotada(plan, impacto.objetivo, entidadesPorId, {
+          motivo: "habilidad_directa",
+        });
+      }
     }
   }
 }

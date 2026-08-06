@@ -227,7 +227,7 @@ function normalizarFormaImpacto({
     }
     const politicaObstaculos = normalizarId(
       definicion.politicaObstaculos ??
-        POLITICAS_OBSTACULOS_HABILIDAD.IGNORAR,
+        POLITICAS_OBSTACULOS_HABILIDAD.VISION_ENTRE_SALTOS,
     );
     validarPoliticaObstaculosHabilidad(politicaObstaculos);
     return {

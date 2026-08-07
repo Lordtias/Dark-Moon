@@ -4,7 +4,7 @@ Fecha: 2026-08-06
 Etapa: P6.4B  
 Base exacta: `bea2da38aad72f27a4bad4e7d491524a51289446`  
 Rama: `main`  
-Commit realizado: no
+Commit final: `c48335220712a8bff1d3907176f8ea1b7fac75ad`
 
 ## 1. Objetivo
 
@@ -20,7 +20,7 @@ P6.4A queda registrada como validada manualmente y cerrada en ese SHA.
 
 No se encontró ningún defecto funcional nuevo de P6. Por lo tanto, conforme al alcance aprobado, P6.4B no modifica código de producción ni configuración jugable. Los únicos cambios corresponden a documentación de cierre y a este documento de entrega.
 
-P6 queda técnicamente listo para cierre, pero no se declara todavía validado de forma definitiva: la última regresión visual/jugable en navegador corresponde al usuario.
+La regresión visual/jugable final fue aprobada por el usuario y P6.4B se publicó en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. Con ese commit P6 queda formalmente cerrada y validada.
 
 ## 4. Cobertura transversal
 
@@ -104,7 +104,7 @@ Una batería adicional de módulos reales confirmó:
 6. Ráfaga glacial conserva 60 % de Congelamiento y duraciones 200/250/300;
 7. Congelamiento continúa declarado como `bloqueo_total`;
 8. `SistemaTiempo` respeta una disponibilidad mínima de bloqueo antes de devolver el actor a la agenda;
-9. Canvas 2D continúa siendo el backend predeterminado, `?render=phaser` selecciona Phaser y un valor inválido vuelve a Canvas 2D;
+9. al cierre de P6, Canvas 2D continuaba siendo el backend predeterminado y `?render=phaser` seleccionaba Phaser; P7.1 modifica deliberadamente ese criterio de entrada sin alterar los contratos de P6;
 10. el modal de derrota no se presenta mientras exista una promesa visual Phaser pendiente y se presenta al resolverse esa espera.
 
 ## 7. Muerte y botín
@@ -121,11 +121,7 @@ P6.4A conserva el contrato final:
 
 ## 8. Canvas 2D y selección de backend
 
-`SelectorRenderizador` mantiene:
-
-- ausencia de parámetro: `canvas2d`;
-- `?render=phaser`: `phaser`;
-- valor desconocido: fallback `canvas2d`.
+El cierre de P6 verificó el selector vigente en ese momento: ausencia de parámetro en Canvas 2D y Phaser optativo. P7.1 cambia posteriormente el backend predeterminado de la beta a Phaser, manteniendo `?render=canvas2d` como respaldo explícito.
 
 Canvas 2D sigue existiendo como backend completo e independiente de Phaser. La espera de presentación usada por el modal de derrota es opcional; un backend que no tenga espera conserva respuesta inmediata.
 
@@ -289,3 +285,8 @@ docs(phaser): cerrar P6 tras regresión integral
 - documentar la matriz final de regresión de P6
 - preparar la transición hacia P7
 ```
+
+
+## 16. Cierre posterior
+
+Pruebas manuales aprobadas. Commit final: `c48335220712a8bff1d3907176f8ea1b7fac75ad`. Con este SHA P6 queda cerrada y la etapa operativa siguiente pasa a P7.1 — entrada de beta y continuidad.

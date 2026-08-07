@@ -7,6 +7,7 @@ import {
 } from "./src/interfaz/graficos/SelectorRenderizador.js";
 import { cargarPhaser } from "./src/interfaz/graficos/phaser/CargadorPhaser.js";
 import { crearDepuradorMagiaHabilidades } from "./src/herramientas/depuracion/DepuradorMagiaHabilidades.js";
+import { VERSION_APLICACION } from "./src/config/VersionAplicacion.js";
 
 iniciarDarkMoon();
 
@@ -31,6 +32,7 @@ async function iniciarDarkMoon() {
     // validaciones manuales. La lógica real continúa dentro de los módulos de
     // dominio, independientemente del backend visual elegido.
     globalThis.darkMoonAplicacion = aplicacion;
+    globalThis.darkMoonVersion = VERSION_APLICACION;
     globalThis.darkMoonRenderizador = Object.freeze({
       tipo: tipoRenderizador,
       phaser: Phaser?.VERSION ?? null,

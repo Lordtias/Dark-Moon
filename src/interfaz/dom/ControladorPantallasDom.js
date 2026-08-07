@@ -10,8 +10,10 @@ export class ControladorPantallasDom {
     pantallaCreacion,
     contenedorJuego,
     botonNuevoJuego,
+    botonContinuar,
     botonConfiguracion,
     botonVolverMenuPrincipal,
+    mensajeMenuPrincipal,
   } = {}) {
     // Guardamos y validamos todos los elementos
     // necesarios para cambiar entre pantallas.
@@ -45,6 +47,11 @@ export class ControladorPantallasDom {
       "botón de nuevo juego",
     );
 
+    this.botonContinuar = this.validarElemento(
+      botonContinuar,
+      "botón para continuar",
+    );
+
     this.botonConfiguracion = this.validarElemento(
       botonConfiguracion,
       "botón de configuración",
@@ -54,6 +61,14 @@ export class ControladorPantallasDom {
       botonVolverMenuPrincipal,
       "botón para volver al menú",
     );
+
+    this.mensajeMenuPrincipal = this.validarElemento(
+      mensajeMenuPrincipal,
+      "mensaje del menú principal",
+    );
+
+    this.alSolicitarNuevoJuego = null;
+    this.alSolicitarContinuar = null;
   }
 
   // Comprueba que el elemento exista en el HTML.
@@ -67,9 +82,36 @@ export class ControladorPantallasDom {
 
   // Conecta los botones del menú con
   // los cambios de pantalla correspondientes.
-  configurarEventos() {
+  configurarEventos({
+    alSolicitarNuevoJuego = null,
+    alSolicitarContinuar = null,
+  } = {}) {
+    this.alSolicitarNuevoJuego =
+      typeof alSolicitarNuevoJuego === "function"
+        ? alSolicitarNuevoJuego
+        : null;
+    this.alSolicitarContinuar =
+      typeof alSolicitarContinuar === "function"
+        ? alSolicitarContinuar
+        : null;
+
     this.botonNuevoJuego.addEventListener("click", () => {
+      if (
+        this.alSolicitarNuevoJuego &&
+        this.alSolicitarNuevoJuego() === false
+      ) {
+        return;
+      }
+
       this.mostrarCreacionPersonaje();
+    });
+
+    this.botonContinuar.addEventListener("click", () => {
+      if (!this.alSolicitarContinuar || this.botonContinuar.disabled) {
+        return;
+      }
+
+      this.alSolicitarContinuar();
     });
 
     this.botonConfiguracion.addEventListener("click", () => {
@@ -81,39 +123,52 @@ export class ControladorPantallasDom {
     });
   }
 
+  configurarContinuar({
+    habilitado,
+    mensaje = "",
+    titulo = "",
+    error = false,
+  } = {}) {
+    this.botonContinuar.disabled = habilitado !== true;
+    this.botonContinuar.title = typeof titulo === "string" ? titulo : "";
+    this.mostrarMensajeMenu(mensaje, { error });
+  }
+
+  mostrarMensajeMenu(mensaje = "", { error = false } = {}) {
+    this.mensajeMenuPrincipal.textContent = mensaje;
+    this.mensajeMenuPrincipal.classList.toggle("mensaje-menu--error", error);
+  }
+
   // Oculta el menú y muestra
   // la creación del personaje.
   mostrarCreacionPersonaje() {
     this.pantallaMenuPrincipal.classList.add("oculto");
-
     this.pantallaCreacion.classList.remove("oculto");
 
     // Dejamos el menú en su estado inicial
     // por si el jugador vuelve más adelante.
     this.panelConfiguracionMenu.classList.add("oculto");
-
     this.contenedorBotonesMenuPrincipal.classList.remove("oculto");
   }
 
   // Muestra las opciones principales del menú.
   mostrarMenuPrincipal() {
+    this.pantallaMenuPrincipal.classList.remove("oculto");
     this.panelConfiguracionMenu.classList.add("oculto");
-
     this.contenedorBotonesMenuPrincipal.classList.remove("oculto");
   }
 
   // Muestra el panel temporal de configuración.
   mostrarConfiguracion() {
     this.contenedorBotonesMenuPrincipal.classList.add("oculto");
-
     this.panelConfiguracionMenu.classList.remove("oculto");
   }
 
-  // Oculta la creación del personaje
-  // y muestra la pantalla de la partida.
+  // Oculta las pantallas de entrada y muestra la partida. Continuar puede
+  // llegar aquí directamente desde el menú principal, sin pasar por creación.
   mostrarPartida() {
+    this.pantallaMenuPrincipal.classList.add("oculto");
     this.pantallaCreacion.classList.add("oculto");
-
     this.contenedorJuego.classList.remove("oculto");
   }
 }

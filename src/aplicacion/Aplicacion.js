@@ -19,13 +19,18 @@ import {
   obtenerConfiguracionEjecucionHabilidades,
 } from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
-import { eliminarGuardadoJugador } from "../partida/PersistenciaJugador.js";
+import {
+  crearJugadorDesdeGuardado,
+  eliminarGuardadoJugador,
+  existeGuardadoJugador,
+} from "../partida/PersistenciaJugador.js";
 import { eliminarConfiguracionBarraHabilidades } from "../juego/habilidades/PersistenciaBarraHabilidades.js";
 import { configurarPerfilesAtaquePorFamilia } from "../interfaz/graficos/ContextoPerfilesAtaquePorFamilia.js";
 import { configurarPerfilesHabilidadesVisuales } from "../interfaz/graficos/ContextoPerfilesHabilidadesVisuales.js";
 import { configurarPerfilesEstadosTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesEstadosTemporalesVisuales.js";
 import { configurarPerfilesZonasTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesZonasTemporalesVisuales.js";
 import { ControladorPartida } from "./ControladorPartida.js";
+import { VERSION_APLICACION } from "../config/VersionAplicacion.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
 export class Aplicacion {
@@ -49,13 +54,20 @@ export class Aplicacion {
     this.configuracionPresentacionHabilidades = null;
     this.configuracionPresentacionEstadosTemporales = null;
     this.configuracionPresentacionZonasTemporales = null;
+    this.guardadoPresente = false;
+    this.guardadoValido = false;
   }
 
   async iniciar() {
     try {
       this.crearControladores();
-      this.controladorPantallas.configurarEventos();
+      this.presentacion.mostrarVersionAplicacion(VERSION_APLICACION);
+      this.controladorPantallas.configurarEventos({
+        alSolicitarNuevoJuego: () => this.confirmarInicioNuevaPartida(),
+        alSolicitarContinuar: () => this.continuarPartida(),
+      });
       await this.cargarConfiguraciones();
+      this.actualizarDisponibilidadContinuar();
       this.crearMenuCreacionPersonaje();
     } catch (error) {
       this.presentacion.mostrarErrorInicio(error);
@@ -150,6 +162,116 @@ export class Aplicacion {
     this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
 
+  confirmarInicioNuevaPartida() {
+    if (!this.guardadoPresente) {
+      return true;
+    }
+
+    return this.presentacion.confirmarReemplazoGuardado();
+  }
+
+  actualizarDisponibilidadContinuar() {
+    try {
+      this.guardadoPresente = existeGuardadoJugador();
+    } catch (error) {
+      this.guardadoPresente = false;
+      this.guardadoValido = false;
+      console.warn("No se pudo consultar el guardado durable:", error);
+      this.controladorPantallas.configurarContinuar({
+        habilitado: false,
+        mensaje: "No se pudo acceder al guardado del navegador.",
+        error: true,
+      });
+      return false;
+    }
+
+    if (!this.guardadoPresente) {
+      this.guardadoValido = false;
+      this.controladorPantallas.configurarContinuar({
+        habilitado: false,
+        mensaje: "",
+      });
+      return false;
+    }
+
+    try {
+      const jugador = this.crearJugadorDesdeGuardadoActual();
+      this.guardadoValido = jugador !== null;
+      this.controladorPantallas.configurarContinuar({
+        habilitado: this.guardadoValido,
+        mensaje: "",
+        titulo: this.guardadoValido
+          ? `Continuar como ${jugador.nombre} (nivel ${jugador.nivel})`
+          : "",
+      });
+      return this.guardadoValido;
+    } catch (error) {
+      this.guardadoValido = false;
+      console.warn("El guardado durable no pudo validarse:", error);
+      this.controladorPantallas.configurarContinuar({
+        habilitado: false,
+        mensaje:
+          "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        error: true,
+      });
+      return false;
+    }
+  }
+
+  crearJugadorDesdeGuardadoActual() {
+    return crearJugadorDesdeGuardado({
+      configuracionPersonaje: this.configuracionPersonaje,
+      configuracionObjetos: this.configuracionObjetos,
+    });
+  }
+
+  continuarPartida() {
+    if (!this.guardadoValido || this.controladorPartida.partidaIniciada) {
+      return false;
+    }
+
+    try {
+      const jugadorRestaurado = this.crearJugadorDesdeGuardadoActual();
+      if (!jugadorRestaurado) {
+        this.guardadoPresente = false;
+        this.guardadoValido = false;
+        this.controladorPantallas.configurarContinuar({
+          habilitado: false,
+          mensaje: "No existe una partida guardada para continuar.",
+        });
+        return false;
+      }
+
+      return this.controladorPartida.iniciar({
+        jugadorRestaurado,
+        ...this.obtenerConfiguracionInicioPartida(),
+      });
+    } catch (error) {
+      this.guardadoValido = false;
+      console.error("No se pudo continuar la partida guardada:", error);
+      this.controladorPantallas.configurarContinuar({
+        habilitado: false,
+        mensaje:
+          "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        error: true,
+      });
+      return false;
+    }
+  }
+
+  obtenerConfiguracionInicioPartida() {
+    return {
+      configuracionPersonaje: this.configuracionPersonaje,
+      configuracionEnemigos: this.configuracionEnemigos,
+      configuracionObjetos: this.configuracionObjetos,
+      configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
+      configuracionMapas: this.configuracionMapas,
+      configuracionCiudad: this.configuracionCiudad,
+      configuracionComercio: this.configuracionComercio,
+      configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
+    };
+  }
+
   crearMenuCreacionPersonaje() {
     this.menuCreacionPersonaje =
       this.presentacion.crearMenuCreacionPersonaje({
@@ -158,9 +280,9 @@ export class Aplicacion {
         configuracionGeneracionObjetos:
           this.configuracionGeneracionObjetos,
         alConfirmar: (datosPersonaje) => {
-          // Confirmar una creación representa una nueva partida. El
-          // guardado roguelike anterior y la configuración de accesos rápidos
-          // no deben heredarse al nuevo personaje.
+          // Entrar a creación ya requirió confirmación si existía progreso.
+          // El guardado solo se elimina al comenzar efectivamente la nueva
+          // aventura, por lo que cancelar/reload antes de este punto lo conserva.
           try {
             eliminarGuardadoJugador();
           } catch (error) {
@@ -173,17 +295,12 @@ export class Aplicacion {
             console.warn("No se pudo limpiar la barra anterior:", error);
           }
 
-          this.controladorPartida.iniciar({
+          this.guardadoPresente = false;
+          this.guardadoValido = false;
+
+          return this.controladorPartida.iniciar({
             datosPersonaje,
-            configuracionPersonaje: this.configuracionPersonaje,
-            configuracionEnemigos: this.configuracionEnemigos,
-            configuracionObjetos: this.configuracionObjetos,
-            configuracionGeneracionObjetos:
-              this.configuracionGeneracionObjetos,
-            configuracionMapas: this.configuracionMapas,
-            configuracionCiudad: this.configuracionCiudad,
-            configuracionComercio: this.configuracionComercio,
-            configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
+            ...this.obtenerConfiguracionInicioPartida(),
           });
         },
       });
@@ -193,6 +310,8 @@ export class Aplicacion {
 function validarPresentacion(presentacion) {
   const metodosObligatorios = [
     "crearControladorPantallas",
+    "mostrarVersionAplicacion",
+    "confirmarReemplazoGuardado",
     "crearMenuCreacionPersonaje",
     "crearInterfazPartida",
     "crearPresentacionMapaActivo",

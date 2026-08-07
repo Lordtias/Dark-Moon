@@ -7,7 +7,8 @@ const TIPOS_ADMITIDOS = new Set([
 ]);
 
 // Resuelve el backend visual sin mezclar esta decisión con la lógica del juego.
-// La ausencia del parámetro mantiene Canvas 2D como modo seguro y conocido.
+// Para la beta web, la ausencia del parámetro utiliza Phaser. Canvas 2D
+// continúa disponible explícitamente mediante ?render=canvas2d.
 export function resolverTipoRenderizador({
   busqueda = globalThis.location?.search ?? "",
   advertir = (...argumentos) => console.warn(...argumentos),
@@ -16,7 +17,7 @@ export function resolverTipoRenderizador({
   const valorSolicitado = parametros.get("render")?.trim().toLowerCase();
 
   if (!valorSolicitado) {
-    return TIPO_RENDERIZADOR_CANVAS_2D;
+    return TIPO_RENDERIZADOR_PHASER;
   }
 
   if (TIPOS_ADMITIDOS.has(valorSolicitado)) {
@@ -25,10 +26,10 @@ export function resolverTipoRenderizador({
 
   advertir(
     `Renderizador "${valorSolicitado}" no reconocido. ` +
-      `Se utilizará "${TIPO_RENDERIZADOR_CANVAS_2D}".`,
+      `Se utilizará "${TIPO_RENDERIZADOR_PHASER}".`,
   );
 
-  return TIPO_RENDERIZADOR_CANVAS_2D;
+  return TIPO_RENDERIZADOR_PHASER;
 }
 
 export function utilizaPhaser(tipoRenderizador) {

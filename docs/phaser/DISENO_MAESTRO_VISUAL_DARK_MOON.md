@@ -1957,6 +1957,19 @@ La muerte y el botín conservan una continuidad única: el derrotado desaparece 
 
 Los estados persistentes continúan unidos al actor; las zonas pertenecen a su `zonaId`; las partículas, textos, proyectiles y representaciones anticipadas de botín son transitorias. Cancelar una cola o cambiar de mapa debe destruir lo transitorio y reconstruir únicamente lo que exista en la escena final canónica.
 
-Canvas 2D continúa siendo el respaldo funcional y el backend predeterminado. Phaser puede interpolar, animar, pulir, sincronizar y esperar su propia presentación, pero no puede decidir daño, críticos, fallos, objetivos, paredes, duración, resistencias, inmunidades, muerte, botín, experiencia o coste temporal. La auditoría final de P6.4B mantiene esa frontera.
+P6.4B cierra la frontera arquitectónica: Phaser puede interpolar, animar, pulir, sincronizar y esperar su propia presentación, pero no puede decidir daño, críticos, fallos, objetivos, paredes, duración, resistencias, inmunidades, muerte, botín, experiencia o coste temporal. Canvas 2D permanece como respaldo funcional. Desde P7.1 Phaser pasa a ser el backend predeterminado de la beta web, sin cambiar esta autoridad.
 
-P6 solo debe considerarse visualmente cerrada después de la validación manual final de ritmo, legibilidad, cancelación, cambios de mapa, muerte, botín y modal de derrota en navegador.
+P6 fue validada manualmente y cerrada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. La frontera visual resultante sirve como base estable para P7.
+
+
+### P7.1 — Entrada visual de beta y continuidad
+
+La beta web debe abrir directamente con Phaser para que un tester vea la presentación integrada de P6 sin conocer parámetros de desarrollo. Canvas 2D conserva su valor como respaldo técnico mediante `?render=canvas2d`, pero no debe ser el camino accidental de un usuario normal.
+
+El menú principal mantiene la composición existente y suma **Continuar** entre Nueva partida y Configuración. El botón deshabilitado debe leerse como una opción no disponible, no como un error. Cuando un guardado no puede validarse, el menú muestra un mensaje breve y legible sin bloquear Nueva partida ni borrar datos automáticamente. La versión `0.7.0-beta.1` aparece de forma discreta cerca del título para poder identificar capturas y reportes.
+
+Continuar no intenta representar una transición desde la mazmorra anterior: la sesión reaparece en la ciudad con el personaje durable reconstruido. Esta decisión debe sentirse como una entrada segura a la sesión y no como una reanudación visual de una escena inexistente.
+
+### P7.3 — Regla visual bilingüe prevista
+
+La internacionalización se realizará después de P7.2. El selector **ES / EN** debe estar disponible en una esquina de la pantalla principal para que el usuario pueda cambiar idioma antes de navegar la interfaz. Solo cambia el texto presentado. Código, IDs, nombres técnicos y contratos canónicos permanecen en español. La traducción no debe duplicar layouts ni crear variantes funcionales por idioma; ambas lenguas comparten exactamente la misma estructura visual y reglas.

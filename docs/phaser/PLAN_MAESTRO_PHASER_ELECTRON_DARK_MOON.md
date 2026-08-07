@@ -1330,9 +1330,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2 y P6.3 están cerradas. P6.3F fue validada manualmente y publicada en `2ef2697ae2de753c305dac00082199c2e6505e63`; con ese SHA queda cerrado el bloque completo de habilidades, estados, zonas y habilidades NPC. La etapa operativa siguiente es P6.4, dedicada a muerte, aparición inmediata de botín y regresión final de P6.
-
-El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
+Estado: **cerrada y validada**. P6.1, P6.2, P6.3 y P6.4 quedaron completadas. P6.4B fue validada manualmente y publicada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. Con ese SHA queda cerrado el hito completo de integración visual Phaser: movimiento, combate, habilidades, estados, zonas, recuperación NPC, muerte y botín mantienen autoridad jugable fuera de Phaser y Canvas 2D continúa como respaldo funcional.
 
 ---
 
@@ -1340,32 +1338,61 @@ El cierre general requiere completar habilidades, estados, zonas, muerte, aparic
 
 ### Objetivo
 
-Preparar una versión presentable para amigos y testers mediante GitHub Pages.
+Preparar una versión presentable para amigos y testers mediante GitHub Pages, manteniendo la frontera definida al cerrar P6: mundo y combate en Phaser, interfaces densas en HTML/CSS y reglas jugables fuera de la presentación.
 
-### Alcance mínimo
+### P7.1 — Entrada de beta y continuidad
 
-- integración visual coherente;
-- pantalla inicial;
-- creación de personaje;
-- selección de mapa;
-- mapa Phaser;
-- paneles HTML/CSS;
-- jerarquía visual;
-- tooltips;
-- configuración;
-- zoom;
-- volumen;
+- Phaser pasa a ser el backend visual predeterminado;
+- `?render=canvas2d` conserva Canvas 2D como respaldo explícito;
+- el menú incorpora **Continuar** solo cuando existe un guardado durable válido;
+- Continuar reconstruye el personaje y reanuda desde la ciudad, sin persistir la expedición activa;
+- los guardados inválidos no bloquean el menú ni se eliminan automáticamente;
+- una partida nueva pide confirmación antes de reemplazar progreso existente;
+- la versión visible se centraliza y comienza en `0.7.0-beta.1`.
+
+### P7.2 — Configuración real
+
 - velocidad de animaciones;
-- pantalla completa web si corresponde;
-- número de versión;
-- instrucciones breves;
-- método de feedback;
+- efectos reducidos;
+- zoom;
+- pantalla completa web;
+- persistencia de preferencias;
+- restauración de valores predeterminados.
+
+No se mostrará un control de volumen mientras Dark Moon no tenga un sistema de audio real.
+
+### P7.3 — Internacionalización y centralización de textos
+
+- centralizar textos y mensajes presentados al usuario;
+- incorporar Español e Inglés;
+- agregar un selector discreto **ES / EN** en una esquina de la pantalla principal junto a Nueva partida, Continuar y Configuración;
+- reflejar la misma preferencia en Configuración;
+- persistir el idioma elegido;
+- aplicar la traducción a menús, HUD, inventario, equipamiento, habilidades, comercio, Lythra, mensajes de combate, errores y ayuda.
+
+Regla canónica de internacionalización: **solo cambia el texto presentado al usuario**. Código, nombres técnicos, claves jugables e IDs continúan en español (`rafaga_glacial`, `congelamiento`, `curacion_lunar`, etc.). No se traducen identificadores internos ni se duplican catálogos jugables por idioma.
+
+### P7.4 — Experiencia de tester
+
+- instrucciones breves y ayuda consultable;
+- revisión de tooltips y jerarquía visual;
+- eliminación de textos o elementos temporales de desarrollo;
 - diagnóstico copiable;
-- eliminación de elementos temporales.
+- plantilla simple para reportar qué ocurrió, qué se esperaba y qué se estaba haciendo.
+
+### P7.5 — Candidato beta web
+
+- recorrido completo desde navegador limpio;
+- Nuevo Juego y Continuar;
+- combate, botín, equipo, habilidades y ciudad;
+- recarga del navegador y persistencia durable;
+- revisión de rutas relativas y compatibilidad con GitHub Pages;
+- Phaser predeterminado y Canvas 2D de respaldo;
+- regresión final y cierre de P7.
 
 ### Criterio de cierre
 
-Una persona sin conocimiento previo puede crear personaje, jugar, combatir, obtener botín, equiparse, usar habilidades, guardar y continuar.
+Una persona sin conocimiento previo puede crear personaje, jugar, combatir, obtener botín, equiparse, usar habilidades, guardar, cerrar el navegador, volver y continuar. Puede comprender la interfaz en Español o Inglés y obtener información suficiente para reportar un problema de la beta.
 
 ### Punto de decisión B — Cierre inicial de Phaser
 
@@ -1944,19 +1971,20 @@ El Documento Maestro no mantendrá una tabla histórica de estados ni identifica
 
 # 17. Etapa operativa actual
 
-## P6.4B — Regresión integral y cierre general de P6
+## P7.1 — Entrada de beta y continuidad
 
-Estado: **Implementada técnicamente; pendiente de validación manual y commit del usuario**.
+Estado: **implementada técnicamente; pendiente de validación manual y commit del usuario**.
 
-P6.4A fue validada manualmente y cerrada en `bea2da38aad72f27a4bad4e7d491524a51289446`. P6.4B no incorpora contenido nuevo: verifica de forma transversal movimiento, tiempo, combate, consumibles, habilidades, estados, zonas, Lythra, muerte, botín, persistencia, Canvas 2D y Phaser.
+P6 fue validada manualmente y cerrada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. P7.1 inicia el candidato visual para beta web sin agregar reglas jugables. Phaser pasa a ser el backend predeterminado, Canvas 2D queda como respaldo explícito, el menú incorpora Continuar con validación de guardado y la versión visible se centraliza en `0.7.0-beta.1`.
 
-Próxima acción:
+Continuar restaura únicamente el estado durable del personaje y siempre comienza una sesión nueva desde la ciudad. La expedición interrumpida, posiciones, enemigos, botín en suelo, agenda y efectos temporales activos continúan fuera del snapshot. Un guardado inválido deshabilita Continuar sin eliminarse y un personaje nuevo exige confirmación antes de reemplazar un guardado existente.
 
-1. realizar la matriz manual final indicada en `docs/phaser/entregas/ENTREGA_P6_4_B.md`;
-2. corregir únicamente defectos reales de P6 que aparezcan en esa validación;
-3. marcar P6 como cerrada solamente después de la aprobación manual;
-4. registrar el SHA final de P6.4B en el prompt de continuidad;
-5. continuar con P7 — candidato visual para beta web.
+Plan posterior aprobado:
+
+1. P7.2 — configuración real;
+2. P7.3 — internacionalización Español/Inglés y centralización de textos, traduciendo solo presentación y manteniendo código/IDs en español;
+3. P7.4 — experiencia de tester;
+4. P7.5 — candidato beta web y regresión final.
 
 #### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
 
@@ -2033,7 +2061,7 @@ La derrota del jugador agrega un contrato de espera exclusivamente visual: Phase
 
 #### P6.4B — Regresión integral y cierre general de P6
 
-Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada y validada manualmente en `c48335220712a8bff1d3907176f8ea1b7fac75ad`.
 
 P6.4B recorre el hito completo sin agregar contenido ni balance. La regresión automática confirma 12 habilidades del jugador, 40 grados, 2 habilidades NPC, 8 efectos temporales, 14 perfiles visuales de habilidad, 8 perfiles de estados y 5 familias de zonas. El analizador real conserva 0 resultados incorrectos en habilidades, pruebas focalizadas, efectos y regresión general.
 
@@ -2048,4 +2076,4 @@ P6.4B recorre el hito completo sin agregar contenido ni balance. La regresión a
 - persistencia no conserva IDs, tweens ni colas puramente visuales;
 - los recursos principales responden correctamente servidos por HTTP local.
 
-La validación visual interactiva final sigue siendo manual. Tras su aprobación y commit, P6 puede declararse cerrada y la continuación prevista es P7 — candidato visual para beta web.
+La validación visual interactiva final fue aprobada por el usuario. Con el commit `c48335220712a8bff1d3907176f8ea1b7fac75ad`, P6 queda cerrada y la continuación operativa es P7.1 — entrada de beta y continuidad.

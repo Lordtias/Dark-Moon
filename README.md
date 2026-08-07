@@ -28,12 +28,12 @@ La versión actual incluye:
 - doce habilidades jugables;
 - efectos temporales, resistencias e inmunidades;
 - zonas temporales persistentes dentro del mapa activo;
-- interfaz HTML con backend Canvas 2D y un corte visual Phaser seleccionable;
+- interfaz HTML con Phaser como backend visual predeterminado y Canvas 2D como respaldo explícito;
 - persistencia durable del jugador y de la barra de habilidades;
 - depurador accesible desde la consola;
 - balanceador independiente en `balance.html`.
 
-No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Canvas 2D continúa siendo el modo operativo predeterminado. Phaser 4.2.1 está incorporado localmente como backend técnico opcional y no se carga cuando se utiliza Canvas 2D.
+No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Desde P7.1, Phaser 4.2.1 es el backend visual predeterminado de la beta web. Canvas 2D continúa operativo como respaldo explícito y no carga Phaser cuando se solicita `?render=canvas2d`.
 
 ---
 
@@ -53,25 +53,25 @@ En Windows también puede funcionar:
 python -m http.server 8000
 ```
 
-Abrir en el navegador con Canvas 2D, que continúa siendo el modo predeterminado:
+Abrir en el navegador con Phaser, que es el backend predeterminado de la beta web:
 
 ```text
 http://localhost:8000/index.html
 ```
 
-Corte visual Phaser:
+Phaser también puede solicitarse de forma explícita:
 
 ```text
 http://localhost:8000/index.html?render=phaser
 ```
 
-También puede solicitarse Canvas 2D de forma explícita:
+Canvas 2D permanece disponible como respaldo explícito:
 
 ```text
 http://localhost:8000/index.html?render=canvas2d
 ```
 
-Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN y solamente cuando se solicita `?render=phaser`. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. En Phaser, `I`, `J`, `K` y `L` desplazan únicamente la cámara; `+` y `-` cambian el zoom; `H` vuelve al personaje y reactiva el seguimiento. La rueda también cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el desplazamiento manual. Los controles de cámara se ignoran mientras se escribe en un campo editable.
+Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN, cuando el backend seleccionado es Phaser. `?render=canvas2d` evita su carga. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. En Phaser, `I`, `J`, `K` y `L` desplazan únicamente la cámara; `+` y `-` cambian el zoom; `H` vuelve al personaje y reactiva el seguimiento. La rueda también cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el desplazamiento manual. Los controles de cámara se ignoran mientras se escribe en un campo editable.
 
 Balanceador:
 
@@ -1208,7 +1208,7 @@ El proyecto posee funciones para:
 - reconstruir un `Player` real;
 - restaurar inventario y equipamiento.
 
-Sin embargo, el menú principal todavía no ofrece una opción funcional de **Continuar partida**. Crear un personaje nuevo elimina el guardado anterior. La reconstrucción desde guardado está disponible desde el código y el depurador, pero todavía no está integrada como flujo de usuario.
+Desde P7.1 el menú principal ofrece **Continuar** cuando existe un guardado durable válido. Continuar reconstruye el personaje y comienza una nueva sesión segura desde la ciudad; no restaura posición, enemigos, botín de suelo, agenda temporal ni la expedición interrumpida. Un guardado inválido deshabilita Continuar sin borrarse automáticamente. Crear un personaje nuevo solicita confirmación antes de reemplazar un guardado existente y solo lo elimina al confirmar la nueva aventura.
 
 No debe modificarse una clave, versión, ID de profesión, ID de objeto, ID de afijo o estructura persistida sin revisar la compatibilidad.
 
@@ -1523,7 +1523,7 @@ Los métodos que alteran Maná, enemigos, resistencias, inmunidades o tiradas es
 
 ## 24. Integración actual con Phaser
 
-Phaser está incorporado como backend visual opcional del mapa y no reemplaza las reglas del juego. Canvas 2D continúa siendo el backend predeterminado.
+Phaser está incorporado como backend visual del mapa y no reemplaza las reglas del juego. Desde P7.1 es el backend predeterminado de la beta web; Canvas 2D continúa operativo mediante `?render=canvas2d`.
 
 Arquitectura vigente:
 
@@ -1564,7 +1564,7 @@ El teclado jugable permanece centralizado en `ControladorTeclado`. Phaser conser
 
 ### Estado del corte visual
 
-El modo `?render=phaser` utiliza actualmente:
+El backend Phaser, predeterminado sin parámetro o seleccionable con `?render=phaser`, utiliza actualmente:
 
 - `GestorRecursosPhaser` para cargar imágenes locales y calcular los límites alfa, la base y el centro visible de cada PNG;
 - `ConfiguracionEntidadesPhaser` como única fuente de presentación cenital de entidades dentro de Phaser;
@@ -1906,3 +1906,10 @@ Los contratos de P6.4A mantienen el orden ataque/impacto → derrota → botín.
 La auditoría de dependencias confirma que los módulos de `src/interfaz/graficos/phaser/` no importan motores de daño, efectos, botín, XP, alcance o resistencias. La persistencia tampoco contiene IDs, tweens o colas puramente visuales. Phaser responde a la pregunta «cómo representar el resultado» y no a «qué resultado debe ocurrir».
 
 P6.4B queda técnicamente lista para validación manual final. P6 se declarará cerrada y validada únicamente después de esa aprobación y del commit correspondiente. La continuación prevista es P7 — candidato visual para beta web.
+
+
+### P7.1 — Entrada de beta y continuidad
+
+P7.1 abre el hito de candidato visual para beta web. La versión visible se centraliza en `src/config/VersionAplicacion.js` como `0.7.0-beta.1`; Phaser pasa a ser el backend predeterminado, mientras Canvas 2D queda disponible mediante `?render=canvas2d`. El menú incorpora **Continuar**, habilitado únicamente cuando el guardado durable puede validarse y reconstruirse con los catálogos actuales. Continuar conserva personaje, nivel, XP, atributos, recursos, oro, inventario, equipamiento y progreso mágico, pero inicia en la ciudad y no intenta reanudar una expedición interrumpida. Los guardados dañados no se borran automáticamente y una partida nueva exige confirmación antes de reemplazar progreso existente.
+
+La internacionalización no forma parte de P7.1. El plan incorpora P7.3 como etapa específica bilingüe Español/Inglés: únicamente se traducirá el texto presentado al usuario; código, nombres técnicos e IDs canónicos permanecerán en español.

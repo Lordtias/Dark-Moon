@@ -1260,3 +1260,25 @@ main {
     min-height: 390px;
   }
 }
+
+/* =========================================================
+   P7.1 — ENTRADA DE BETA Y CONTINUIDAD
+   ========================================================= */
+.version-menu-principal {
+  margin: -18px 0 24px;
+  font-size: 13px;
+  color: rgba(216, 220, 255, 0.78);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+.mensaje-menu-principal {
+  width: min(520px, 100%);
+  min-height: 20px;
+  margin: 18px 0 0;
+  color: #d8dcff;
+  line-height: 1.4;
+}
+
+.mensaje-menu--error {
+  color: #ffb0b0;
+}

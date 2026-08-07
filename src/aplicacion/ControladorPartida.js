@@ -88,7 +88,8 @@ export class ControladorPartida {
   }
 
   iniciar({
-    datosPersonaje,
+    datosPersonaje = null,
+    jugadorRestaurado = null,
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
@@ -102,12 +103,15 @@ export class ControladorPartida {
       return false;
     }
 
+    const esContinuacion = jugadorRestaurado !== null;
     const parametrosPrueba = leerParametrosPruebaMapa();
-    const jugador = crearJugadorInicial({
-      datosPersonaje,
-      configuracionPersonaje,
-      configuracionObjetos,
-    });
+    const jugador = esContinuacion
+      ? validarJugadorRestaurado(jugadorRestaurado)
+      : crearJugadorInicial({
+          datosPersonaje,
+          configuracionPersonaje,
+          configuracionObjetos,
+        });
 
     this.estadoPartida = new EstadoPartida({
       jugador,
@@ -145,7 +149,11 @@ export class ControladorPartida {
     this.partidaIniciada = true;
     this.controladorPantallas.mostrarPartida();
 
-    if (parametrosPrueba.activo) {
+    // Continuar siempre reconstruye una sesión segura desde la ciudad. La
+    // expedición interrumpida no forma parte del guardado durable. Los
+    // parámetros de prueba siguen disponibles únicamente al iniciar un
+    // personaje nuevo.
+    if (!esContinuacion && parametrosPrueba.activo) {
       this.iniciarNuevaExpedicion({
         semillaMapa: parametrosPrueba.semillaMapa,
         idMapaForzado: parametrosPrueba.idMapaForzado,
@@ -160,7 +168,7 @@ export class ControladorPartida {
     } else {
       this.iniciarCiudad({
         puntoEntrada: "inicioPartida",
-        esInicioPartida: true,
+        esInicioPartida: !esContinuacion,
       });
     }
 
@@ -602,6 +610,19 @@ export class ControladorPartida {
     console.groupEnd();
   }
 
+}
+
+function validarJugadorRestaurado(jugador) {
+  if (
+    !jugador ||
+    typeof jugador !== "object" ||
+    typeof jugador.nombre !== "string" ||
+    !Number.isInteger(jugador.nivel)
+  ) {
+    throw new Error("No se puede continuar con un jugador restaurado inválido.");
+  }
+
+  return jugador;
 }
 
 function crearContextoHabilidadParaComando({

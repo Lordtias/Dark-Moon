@@ -78,6 +78,17 @@ export function guardarJugadorDurable({
   };
 }
 
+export function existeGuardadoJugador({
+  almacenamiento = globalThis.localStorage,
+} = {}) {
+  if (!almacenamiento) {
+    return false;
+  }
+
+  validarAlmacenamiento(almacenamiento);
+  return almacenamiento.getItem(CLAVE_GUARDADO_JUGADOR) !== null;
+}
+
 export function leerSnapshotJugador({
   almacenamiento = globalThis.localStorage,
 } = {}) {

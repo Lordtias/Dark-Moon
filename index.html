@@ -28,6 +28,9 @@
         <div class="menu-principal-capa">
           <h1 class="titulo-menu-principal">Dark Moon</h1>
           <p class="subtitulo-menu-principal">---</p>
+          <p class="version-menu-principal">
+            Beta <span id="appVersion">...</span>
+          </p>
           <p
             id="startupError"
             class="mensaje-creacion"
@@ -45,6 +48,15 @@
             </button>
 
             <button
+              id="continueGameButton"
+              class="boton-menu-principal"
+              type="button"
+              disabled
+            >
+              Continuar
+            </button>
+
+            <button
               id="settingsButton"
               class="boton-menu-principal"
               type="button"
@@ -52,6 +64,13 @@
               Configuración
             </button>
           </div>
+
+          <p
+            id="mainMenuMessage"
+            class="mensaje-menu-principal"
+            role="status"
+            aria-live="polite"
+          ></p>
 
           <div id="settingsPlaceholder" class="panel-configuracion-menu oculto">
             <h2>Configuración</h2>

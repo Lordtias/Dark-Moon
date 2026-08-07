@@ -1947,3 +1947,16 @@ La aparición de botín debe leerse como consecuencia inmediata de una derrota. 
 Una pila nueva utiliza una entrada corta desde 60 % de escala y alpha cero, supera levemente el tamaño final y se asienta en 100 %. Si la casilla ya contenía una pila, no aparece una segunda bolsa: el objeto visual existente realiza un pulso breve y la escena final reconcilia la instancia actualizada. Las habilidades secuenciales deben conservar este orden dentro del propio impacto; por ejemplo, si un salto de Cadena de rayos mata, la bolsa aparece antes del salto siguiente.
 
 No se introducen cadáveres persistentes. La desaparición del derrotado continúa siendo breve y limpia, de modo que la misma casilla queda disponible visualmente para el botín. El modal de derrota del jugador no debe cubrir prematuramente la animación Phaser: la capa de aplicación puede esperar la inactividad de la presentación sin hacer que el dominio espere ni trasladar reglas de muerte a Phaser. Canvas 2D conserva notificación inmediata.
+
+
+### P6.4B — Regresión visual transversal y frontera de cierre de P6
+
+P6.4B no introduce una familia estética nueva. Su función es comprobar que las capas construidas durante P6 pueden convivir sin que la presentación altere el estado jugable. Movimiento, ataques físicos, proyectiles, consumibles, habilidades, estados, zonas, recuperaciones, derrotas y botín deben mantener el orden canónico que entrega el plan visual.
+
+La muerte y el botín conservan una continuidad única: el derrotado desaparece y la recompensa ya resuelta aparece inmediatamente después. En cadenas, líneas, áreas o zonas esa recompensa pertenece al impacto concreto que produjo la derrota. Una reconciliación posterior con la escena autoritativa no debe crear una segunda bolsa.
+
+Los estados persistentes continúan unidos al actor; las zonas pertenecen a su `zonaId`; las partículas, textos, proyectiles y representaciones anticipadas de botín son transitorias. Cancelar una cola o cambiar de mapa debe destruir lo transitorio y reconstruir únicamente lo que exista en la escena final canónica.
+
+Canvas 2D continúa siendo el respaldo funcional y el backend predeterminado. Phaser puede interpolar, animar, pulir, sincronizar y esperar su propia presentación, pero no puede decidir daño, críticos, fallos, objetivos, paredes, duración, resistencias, inmunidades, muerte, botín, experiencia o coste temporal. La auditoría final de P6.4B mantiene esa frontera.
+
+P6 solo debe considerarse visualmente cerrada después de la validación manual final de ritmo, legibilidad, cancelación, cambios de mapa, muerte, botín y modal de derrota en navegador.

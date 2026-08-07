@@ -155,7 +155,7 @@ La textura puede necesitar una carga asíncrona la primera vez que aparece una b
 
 ## 13. Próximo paso
 
-Si P6.4A supera la validación manual y se commitea, continuar con **P6.4B — regresión integral y cierre general de P6**.
+Cierre posterior: la validación manual de P6.4A fue correcta y el commit final es `bea2da38aad72f27a4bad4e7d491524a51289446`. P6.4A queda cerrada. La continuación es **P6.4B — regresión integral y cierre general de P6**.
 
 ## 14. Commit propuesto
 

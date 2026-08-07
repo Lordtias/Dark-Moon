@@ -1893,3 +1893,16 @@ P6.3 quedó cerrada y validada manualmente en `2ef2697ae2de753c305dac00082199c2e
 En ataques simples la secuencia visual es impacto → derrota → botín. En habilidades con impactos internos, incluidas cadenas, líneas, áreas y zonas temporales, la recompensa queda asociada al impacto que produjo la muerte para no retrasarse hasta el cierre de la habilidad. Una pila nueva entra con un `pop` breve; una pila ya existente pulsa y continúa como una única entidad. Si la tabla no genera objetos no existe evento de botín ni animación falsa. La escena final continúa siendo autoritativa y reconcilia la entidad sin duplicarla.
 
 La derrota del jugador también coordina presentación y aplicación: Canvas 2D puede notificar el modal inmediatamente, mientras Phaser espera a que finalice su cola visual pendiente antes de abrir `ModalDerrota`. Esta espera pertenece exclusivamente a presentación; el jugador ya está derrotado en el dominio y ninguna regla jugable depende de la animación.
+
+
+### P6.4B — Regresión integral y cierre general de P6
+
+P6.4A fue validada manualmente y cerrada en `bea2da38aad72f27a4bad4e7d491524a51289446`. P6.4B no agrega mecánicas ni balance: ejecuta la regresión transversal de P6 para confirmar que movimiento, tiempo, combate físico, consumibles, las doce habilidades del jugador, las dos habilidades NPC de Lythra, estados, zonas, muerte y botín continúan compartiendo una única autoridad jugable fuera de Phaser.
+
+La regresión automatizada confirma 12 habilidades y 40 grados, 2 habilidades NPC, 8 efectos temporales, 14 perfiles visuales de habilidad, 8 perfiles de estado y 5 perfiles de zona. El analizador conserva 0 resultados incorrectos en habilidades, pruebas focalizadas, efectos y regresión general. Ráfaga glacial mantiene 60 % de Congelamiento y duraciones 200/250/300; el bloqueo total continúa dependiendo del sistema temporal y no concede inmunidad al daño.
+
+Los contratos de P6.4A mantienen el orden ataque/impacto → derrota → botín. En habilidades secuenciales el botín queda dentro del impacto que produjo la muerte y no reaparece como evento tardío. La derrota del jugador sigue siendo lógica e inmediata, pero el modal puede esperar la finalización de la presentación Phaser. Canvas 2D continúa siendo el backend seguro por defecto y `?render=phaser` selecciona Phaser sin cambiar reglas del dominio.
+
+La auditoría de dependencias confirma que los módulos de `src/interfaz/graficos/phaser/` no importan motores de daño, efectos, botín, XP, alcance o resistencias. La persistencia tampoco contiene IDs, tweens o colas puramente visuales. Phaser responde a la pregunta «cómo representar el resultado» y no a «qué resultado debe ocurrir».
+
+P6.4B queda técnicamente lista para validación manual final. P6 se declarará cerrada y validada únicamente después de esa aprobación y del commit correspondiente. La continuación prevista es P7 — candidato visual para beta web.

@@ -1944,20 +1944,19 @@ El Documento Maestro no mantendrá una tabla histórica de estados ni identifica
 
 # 17. Etapa operativa actual
 
-## P4 — Entrada e intenciones jugables desde Phaser
+## P6.4B — Regresión integral y cierre general de P6
 
-Estado: **En validación manual**.
+Estado: **Implementada técnicamente; pendiente de validación manual y commit del usuario**.
 
-La implementación permite seleccionar casillas con clic en combate, interacción y habilidades, conserva la confirmación mediante `F` o `R`, evita la doble captura DOM/Phaser y mantiene Canvas 2D sin cambios de reglas.
+P6.4A fue validada manualmente y cerrada en `bea2da38aad72f27a4bad4e7d491524a51289446`. P6.4B no incorpora contenido nuevo: verifica de forma transversal movimiento, tiempo, combate, consumibles, habilidades, estados, zonas, Lythra, muerte, botín, persistencia, Canvas 2D y Phaser.
 
 Próxima acción:
 
-1. realizar la validación manual indicada en `docs/phaser/entregas/ENTREGA_P4.md`;
-2. corregir cualquier incidencia real encontrada;
-3. marcar P4 como cerrada solamente después de esa aprobación;
-4. transmitir el SHA final mediante el prompt de la siguiente etapa, sin editar este documento para agregarlo.
-
-E0 continúa pausada y no se considera completada.
+1. realizar la matriz manual final indicada en `docs/phaser/entregas/ENTREGA_P6_4_B.md`;
+2. corregir únicamente defectos reales de P6 que aparezcan en esa validación;
+3. marcar P6 como cerrada solamente después de la aprobación manual;
+4. registrar el SHA final de P6.4B en el prompt de continuidad;
+5. continuar con P7 — candidato visual para beta web.
 
 #### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
 
@@ -2025,8 +2024,28 @@ La regresión integral quedó aprobada por el usuario. Con este SHA, P6.3 se con
 
 #### P6.4A — Muerte y aparición inmediata de botín
 
-Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada y validada manualmente en `bea2da38aad72f27a4bad4e7d491524a51289446`.
 
 P6.4A incorpora `botin_generado` como hecho canónico de una recompensa ya resuelta. Phaser no calcula tablas ni probabilidades: el planificador asocia el botín con la derrota exacta y lo reproduce inmediatamente después de retirar al derrotado. Las pilas nuevas aparecen con una entrada breve; las pilas existentes se actualizan mediante pulso sin crear una segunda bolsa. La correlación se integra también dentro de impactos de habilidades y zonas para que una cadena o línea no retrase el botín hasta el final de la habilidad.
 
 La derrota del jugador agrega un contrato de espera exclusivamente visual: Phaser puede terminar la cola pendiente antes de presentar el modal, mientras Canvas 2D conserva respuesta inmediata. La próxima subetapa prevista, tras validación de P6.4A, es P6.4B — regresión y cierre general de P6.
+
+
+#### P6.4B — Regresión integral y cierre general de P6
+
+Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.4B recorre el hito completo sin agregar contenido ni balance. La regresión automática confirma 12 habilidades del jugador, 40 grados, 2 habilidades NPC, 8 efectos temporales, 14 perfiles visuales de habilidad, 8 perfiles de estados y 5 familias de zonas. El analizador real conserva 0 resultados incorrectos en habilidades, pruebas focalizadas, efectos y regresión general.
+
+- movimiento y tiempo continúan usando eventos y costes canónicos;
+- ataque directo conserva ataque → derrota → botín;
+- habilidades secuenciales integran derrota y botín dentro del impacto correspondiente;
+- daño periódico conserva derrota → botín;
+- Lythra mantiene `tipoActor: npc`, `recursosObjetivo` y duración exclusivamente visual;
+- Ráfaga glacial conserva 60 % y Congelamiento 200/250/300;
+- Canvas 2D sigue siendo el backend predeterminado y Phaser permanece optativo;
+- la auditoría de imports del backend Phaser no detecta dependencia directa de motores de daño, efectos, botín, XP, línea de visión, resistencias o inmunidades;
+- persistencia no conserva IDs, tweens ni colas puramente visuales;
+- los recursos principales responden correctamente servidos por HTTP local.
+
+La validación visual interactiva final sigue siendo manual. Tras su aprobación y commit, P6 puede declararse cerrada y la continuación prevista es P7 — candidato visual para beta web.

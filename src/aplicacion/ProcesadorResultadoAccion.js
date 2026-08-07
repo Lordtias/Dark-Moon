@@ -56,6 +56,7 @@ export function aplicarResultadoAccion({
   notificarDerrotaSiCorresponde({
     juego,
     resultado: resultadoNormalizado,
+    renderizador,
     alJugadorDerrotado,
   });
 
@@ -67,6 +68,7 @@ export function aplicarResultadoAccion({
 function notificarDerrotaSiCorresponde({
   juego,
   resultado,
+  renderizador,
   alJugadorDerrotado,
 }) {
   if (
@@ -78,11 +80,20 @@ function notificarDerrotaSiCorresponde({
 
   JUEGOS_CON_DERROTA_NOTIFICADA.add(juego);
 
-  alJugadorDerrotado({
-    juego,
-    jugador: juego.player,
-    resultado,
-  });
+  const presentarDerrota = () => {
+    alJugadorDerrotado({
+      juego,
+      jugador: juego.player,
+      resultado,
+    });
+  };
+  const esperaPresentacion = renderizador.esperarPresentacionPendiente?.();
+  if (!esperaPresentacion || typeof esperaPresentacion.then !== "function") {
+    presentarDerrota();
+    return;
+  }
+
+  esperaPresentacion.then(presentarDerrota, presentarDerrota);
 }
 
 function validarJuego(juego) {

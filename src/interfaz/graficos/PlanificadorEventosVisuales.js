@@ -4,9 +4,6 @@ import {
 import { obtenerIdVisualEntidad } from "./AdaptadorEscenaJuego.js";
 import { obtenerPerfilHabilidadVisual } from "./ContextoPerfilesHabilidadesVisuales.js";
 import {
-  PATRONES_VISUALES_HABILIDAD,
-} from "./PatronesVisualesHabilidades.js";
-import {
   obtenerPerfilZonaTemporalVisual,
 } from "./ContextoPerfilesZonasTemporalesVisuales.js";
 import {
@@ -44,6 +41,7 @@ export const TIPOS_EVENTO_VISUAL = Object.freeze({
   ENTIDAD_DERROTADA: "entidad_derrotada",
   RECURSOS_RECUPERADOS: "recursos_recuperados",
   NIVEL_AUMENTADO: "nivel_aumentado",
+  BOTIN_APARECIDO: "botin_aparecido",
   EFECTO_TEMPORAL_APLICADO: "efecto_temporal_aplicado",
   EFECTO_TEMPORAL_ACTUALIZADO: "efecto_temporal_actualizado",
   EFECTO_TEMPORAL_NO_APLICADO: "efecto_temporal_no_aplicado",
@@ -86,7 +84,11 @@ export function crearPlanEventosVisuales({
         break;
 
       case TIPOS_EVENTO_ACCION.ATAQUE_RESUELTO:
-        agregarAtaque(plan, evento, entidadesPorId);
+        agregarAtaque(plan, evento, entidadesPorId, {
+          eventos,
+          indiceActual: indice,
+          indicesConsumidos,
+        });
         break;
 
       case TIPOS_EVENTO_ACCION.HABILIDAD_RESUELTA:
@@ -107,6 +109,10 @@ export function crearPlanEventosVisuales({
 
       case TIPOS_EVENTO_ACCION.NIVEL_AUMENTADO:
         agregarNivelAumentado(plan, evento, entidadesPorId);
+        break;
+
+      case TIPOS_EVENTO_ACCION.BOTIN_GENERADO:
+        agregarBotinGenerado(plan, evento, entidadesPorId);
         break;
 
       case "efecto_aplicado":
@@ -138,11 +144,20 @@ export function crearPlanEventosVisuales({
         agregarDanioPeriodico(plan, evento, entidadesPorId);
         break;
 
-      case "combatiente_derrotado":
+      case "combatiente_derrotado": {
         agregarEntidadDerrotada(plan, evento.objetivo, entidadesPorId, {
           motivo: "efecto_periodico",
         });
+        const botinVisual = extraerBotinVisualDerrota({
+          objetivo: evento.objetivo,
+          entidadesPorId,
+          eventos,
+          indiceActual: indice,
+          indicesConsumidos,
+        });
+        if (botinVisual) plan.push(botinVisual);
         break;
+      }
 
       case "zona_temporal_creada":
         agregarZonaTemporal(plan, evento, TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA);
@@ -203,7 +218,7 @@ function agregarMovimiento(plan, evento, entidadesPorId) {
   );
 }
 
-function agregarAtaque(plan, evento, entidadesPorId) {
+function agregarAtaque(plan, evento, entidadesPorId, contexto = {}) {
   const idAtacante = obtenerIdSeguro(evento.atacante);
   const idObjetivo = obtenerIdSeguro(evento.objetivo);
   const atacanteVisual = entidadesPorId.get(idAtacante) ?? null;
@@ -245,6 +260,14 @@ function agregarAtaque(plan, evento, entidadesPorId) {
     agregarEntidadDerrotada(plan, evento.objetivo, entidadesPorId, {
       motivo: "ataque_directo",
     });
+    const botinVisual = extraerBotinVisualDerrota({
+      objetivo: evento.objetivo,
+      entidadesPorId,
+      eventos: contexto.eventos ?? [],
+      indiceActual: contexto.indiceActual ?? -1,
+      indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
+    });
+    if (botinVisual) plan.push(botinVisual);
   }
 }
 
@@ -258,11 +281,6 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
 
   const perfilVisual = obtenerPerfilHabilidadVisual(idHabilidad);
   const zonaTemporalVisual = normalizarZonaTemporalVisual(evento.zonaTemporal);
-  const integraDerrotasVisuales = [
-    PATRONES_VISUALES_HABILIDAD.PROYECTIL,
-    PATRONES_VISUALES_HABILIDAD.CADENA,
-    PATRONES_VISUALES_HABILIDAD.LINEA,
-  ].includes(perfilVisual?.patronVisual);
   const ritmoVisual = crearPlanRitmoVisualHabilidad({
     perfilVisual,
     ejecucionTemporal: evento.ejecucionTemporal,
@@ -295,9 +313,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
         critico: impacto.critico === true,
         objetivoDerrotado: impacto.objetivoDerrotado === true,
         derrotaVisual:
-          integraDerrotasVisuales &&
-          impacto.objetivoDerrotado === true &&
-          idObjetivo
+          impacto.objetivoDerrotado === true && idObjetivo
             ? Object.freeze({
                 tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
                 idEntidad: idObjetivo,
@@ -308,6 +324,16 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
                     ? copiarPosicion(objetivoVisual)
                     : null,
                 motivo: "habilidad_directa",
+              })
+            : null,
+        botinVisual:
+          impacto.objetivoDerrotado === true
+            ? extraerBotinVisualDerrota({
+                objetivo: impacto.objetivo,
+                entidadesPorId,
+                eventos: contexto.eventos ?? [],
+                indiceActual: contexto.indiceActual ?? -1,
+                indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
               })
             : null,
         danio: impacto.danio ?? null,
@@ -354,15 +380,6 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     ritmoVisual,
   }));
 
-  if (!integraDerrotasVisuales) {
-    for (const impacto of evento.impactos ?? []) {
-      if (impacto.objetivoDerrotado === true && impacto.objetivo) {
-        agregarEntidadDerrotada(plan, impacto.objetivo, entidadesPorId, {
-          motivo: "habilidad_directa",
-        });
-      }
-    }
-  }
 }
 
 function agregarZonaTemporal(plan, evento, tipoVisual) {
@@ -443,6 +460,15 @@ function agregarActivacionZonaTemporal(
         motivo: "zona_temporal",
       })
     : null;
+  const botinVisual = evento.objetivoDerrotado === true
+    ? extraerBotinVisualDerrota({
+        objetivo: evento.objetivo,
+        entidadesPorId,
+        eventos: contexto.eventos ?? [],
+        indiceActual: contexto.indiceActual ?? -1,
+        indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
+      })
+    : null;
 
   plan.push(Object.freeze({
     tipo: TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA,
@@ -464,6 +490,7 @@ function agregarActivacionZonaTemporal(
       critico: evento.critico === true,
       objetivoDerrotado: evento.objetivoDerrotado === true,
       derrotaVisual,
+      botinVisual,
       danio: normalizarDanioZona(evento.danio, evento.resolucionImpacto),
       efectos: Object.freeze(Array.isArray(evento.efectos) ? evento.efectos : []),
       recursosObjetivo: Object.freeze([]),
@@ -832,6 +859,60 @@ function agregarEntidadDerrotada(
       motivo,
     }),
   );
+}
+
+function agregarBotinGenerado(plan, evento, entidadesPorId) {
+  const visual = crearEventoVisualBotin(evento, entidadesPorId);
+  if (visual) plan.push(visual);
+}
+
+function extraerBotinVisualDerrota({
+  objetivo,
+  entidadesPorId,
+  eventos = [],
+  indiceActual = -1,
+  indicesConsumidos = new Set(),
+} = {}) {
+  if (!objetivo) return null;
+
+  for (let indice = indiceActual + 1; indice < eventos.length; indice += 1) {
+    if (indicesConsumidos.has(indice)) continue;
+    const candidato = eventos[indice];
+    if (
+      candidato?.tipo !== TIPOS_EVENTO_ACCION.BOTIN_GENERADO ||
+      candidato.fuente !== objetivo
+    ) {
+      continue;
+    }
+
+    const visual = crearEventoVisualBotin(candidato, entidadesPorId);
+    if (!visual) continue;
+    indicesConsumidos.add(indice);
+    return visual;
+  }
+
+  return null;
+}
+
+function crearEventoVisualBotin(evento, entidadesPorId) {
+  const idFuente = obtenerIdSeguro(evento?.fuente);
+  const idBotin = obtenerIdSeguro(evento?.botin);
+  const idBotinAnterior = obtenerIdSeguro(evento?.botinAnterior);
+  const entidadBotin = entidadesPorId.get(idBotin) ?? null;
+  if (!idBotin || !entidadBotin || !esPosicion(entidadBotin)) return null;
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.BOTIN_APARECIDO,
+    idFuente,
+    idBotin,
+    idBotinAnterior,
+    posicion: copiarPosicion(entidadBotin),
+    entidadBotin: Object.freeze({ ...entidadBotin }),
+    botinCreado: evento.botinCreado === true,
+    botinActualizado: evento.botinActualizado === true,
+    cantidadUnidades: normalizarNumeroNoNegativo(evento.cantidadUnidades),
+    resumenTexto: normalizarTextoSimple(evento.resumenTexto),
+  });
 }
 
 function agregarRecursosRecuperados(plan, evento, entidadesPorId) {

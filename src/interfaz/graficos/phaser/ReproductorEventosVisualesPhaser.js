@@ -69,6 +69,7 @@ export class ReproductorEventosVisualesPhaser {
 
     this.escena = escena;
     this.compositor = compositor;
+    this.gestorRecursos = gestorRecursos;
     this.alAplicarEscena = alAplicarEscena;
     this.alMoverJugadorVisual = alMoverJugadorVisual;
     this.creadorEfectos = new CreadorEfectosCombatePhaser({
@@ -117,6 +118,7 @@ export class ReproductorEventosVisualesPhaser {
     this.efectosReducidos = false;
     this.tweensActivos = new Set();
     this.temporizadoresActivos = new Set();
+    this.esperadoresInactividad = new Set();
     this.versionCancelacion = 0;
   }
 
@@ -161,6 +163,19 @@ export class ReproductorEventosVisualesPhaser {
     );
   }
 
+  esperarInactividad() {
+    if (!this.estaActivo()) return Promise.resolve();
+    return new Promise((resolver) => {
+      this.esperadoresInactividad.add(resolver);
+    });
+  }
+
+  resolverEsperadoresInactividad() {
+    if (this.estaActivo()) return;
+    for (const resolver of this.esperadoresInactividad) resolver();
+    this.esperadoresInactividad.clear();
+  }
+
   cancelar({ aplicarUltimaEscena = false } = {}) {
     this.versionCancelacion += 1;
     const ultimaEscena = this.cola.at(-1)?.escenaFinal ?? null;
@@ -187,6 +202,7 @@ export class ReproductorEventosVisualesPhaser {
       this.compositor?.reconciliarEfectosTemporalesDesdeEscenaActual?.();
       this.compositor?.reconciliarZonasTemporalesDesdeEscenaActual?.();
     }
+    this.resolverEsperadoresInactividad();
   }
 
   destruir() {
@@ -195,6 +211,7 @@ export class ReproductorEventosVisualesPhaser {
     this.cancelar();
     this.escena = null;
     this.compositor = null;
+    this.gestorRecursos = null;
     this.alAplicarEscena = null;
     this.alMoverJugadorVisual = null;
     this.creadorEfectos = null;
@@ -224,6 +241,7 @@ export class ReproductorEventosVisualesPhaser {
     } finally {
       if (version === this.versionCancelacion) {
         this.reproduciendo = false;
+        this.resolverEsperadoresInactividad();
       }
     }
   }
@@ -266,6 +284,8 @@ export class ReproductorEventosVisualesPhaser {
       await this.reproducirDanioPeriodico(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA) {
       await this.reproducirEntidadDerrotada(evento, version);
+    } else if (evento.tipo === TIPOS_EVENTO_VISUAL.BOTIN_APARECIDO) {
+      await this.reproducirBotinAparecido(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA) {
       await this.reproducirZonaTemporalCreada(evento, version);
     } else if (evento.tipo === TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA) {
@@ -438,13 +458,6 @@ export class ReproductorEventosVisualesPhaser {
 
     await Promise.all(animaciones);
 
-    if (
-      impacto.derrotaVisual &&
-      version === this.versionCancelacion &&
-      !this.destruido
-    ) {
-      await this.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
-    }
   }
 
   async reproducirEfectoTemporalAplicado(evento, version) {
@@ -2031,6 +2044,9 @@ export class ReproductorEventosVisualesPhaser {
     if (impacto.derrotaVisual) {
       await this.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
     }
+    if (impacto.botinVisual) {
+      await this.reproducirBotinAparecido(impacto.botinVisual, version);
+    }
   }
 
   async reproducirRecuperacionHabilidad({
@@ -3215,6 +3231,78 @@ export class ReproductorEventosVisualesPhaser {
     }
 
     await Promise.all(promesas);
+  }
+
+  async reproducirBotinAparecido(evento, version) {
+    if (!evento?.entidadBotin) return;
+
+    if (evento.botinActualizado === true && evento.idBotinAnterior) {
+      const nodoExistente = this.compositor.obtenerNodoEntidad?.(
+        evento.idBotinAnterior,
+      );
+      if (nodoExistente?.contenedor) {
+        if (this.efectosReducidos) {
+          await this.esperar(this.calcularDuracion(90), version);
+          return;
+        }
+
+        const escalaX = nodoExistente.contenedor.scaleX ?? 1;
+        const escalaY = nodoExistente.contenedor.scaleY ?? 1;
+        await this.crearTween({
+          targets: nodoExistente.contenedor,
+          scaleX: escalaX * 1.14,
+          scaleY: escalaY * 1.14,
+          duration: this.calcularDuracion(110),
+          yoyo: true,
+          ease: "Sine.easeOut",
+        }, version);
+        if (nodoExistente.contenedor) {
+          nodoExistente.contenedor.scaleX = escalaX;
+          nodoExistente.contenedor.scaleY = escalaY;
+        }
+        return;
+      }
+    }
+
+    const rutaBotin = evento.entidadBotin.recursoVisual ?? null;
+    if (rutaBotin) {
+      await this.gestorRecursos?.obtenerInformacionAsync?.(rutaBotin);
+      if (version !== this.versionCancelacion || this.destruido) return;
+    }
+
+    const nodo = this.compositor.establecerEntidadVisualTemporal?.(
+      evento.entidadBotin,
+    );
+    if (!nodo?.contenedor) return;
+
+    if (this.efectosReducidos) {
+      nodo.contenedor.alpha = 1;
+      nodo.contenedor.scaleX = 1;
+      nodo.contenedor.scaleY = 1;
+      await this.esperar(this.calcularDuracion(80), version);
+      return;
+    }
+
+    nodo.contenedor.alpha = 0;
+    nodo.contenedor.scaleX = 0.6;
+    nodo.contenedor.scaleY = 0.6;
+    await this.crearTween({
+      targets: nodo.contenedor,
+      alpha: 1,
+      scaleX: 1.1,
+      scaleY: 1.1,
+      duration: this.calcularDuracion(130),
+      ease: "Back.easeOut",
+    }, version);
+
+    if (version !== this.versionCancelacion || this.destruido) return;
+    await this.crearTween({
+      targets: nodo.contenedor,
+      scaleX: 1,
+      scaleY: 1,
+      duration: this.calcularDuracion(70),
+      ease: "Sine.easeInOut",
+    }, version);
   }
 
   async reproducirEntidadDerrotada(evento, version) {

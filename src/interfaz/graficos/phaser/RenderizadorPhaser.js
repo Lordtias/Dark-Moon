@@ -98,6 +98,10 @@ export class RenderizadorPhaser {
     this.escenaPhaser?.actualizarEscena(escena, { eventosVisuales });
   }
 
+  esperarPresentacionPendiente() {
+    return this.escenaPhaser?.esperarPresentacionPendiente?.() ?? null;
+  }
+
   configurarAnimaciones(configuracion = {}) {
     if (!configuracion || typeof configuracion !== "object") {
       throw new Error("La configuración de animaciones debe ser un objeto.");

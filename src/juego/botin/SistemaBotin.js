@@ -475,6 +475,7 @@ function crearOActualizarBotinSuelo({ x, y, objetosNuevos, interactuables }) {
 
   return {
     botin: botinActualizado,
+    botinAnterior: botinExistente,
     botinCreado: indiceExistente === -1,
     botinActualizado: indiceExistente >= 0,
   };

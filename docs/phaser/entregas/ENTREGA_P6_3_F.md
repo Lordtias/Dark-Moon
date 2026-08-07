@@ -221,12 +221,7 @@ P6.3F no incorpora:
 
 ## 17. Próximo paso
 
-Si la validación manual de esta entrega es correcta:
-
-1. commit de P6.3F;
-2. registrar el SHA final;
-3. declarar P6.3 cerrada;
-4. continuar con **P6.4 — muerte, botín, regresión y cierre general de P6**.
+Cierre posterior: la validación manual fue correcta y el commit final de P6.3F es `2ef2697ae2de753c305dac00082199c2e6505e63`. P6.3 queda cerrada y la continuación es P6.4.
 
 ## 18. Commit propuesto
 

@@ -1021,68 +1021,91 @@ export class CompositorMundoPhaser {
     );
 
     for (const entidad of entidades) {
-      const posicion = this.obtenerPosicionCasilla(entidad);
-      if (!posicion) continue;
-
-      const idVisual =
-        typeof entidad.idVisual === "string" ? entidad.idVisual : null;
-      const estilo = obtenerEstiloRespaldoEntidadPhaser(entidad.tipo);
-      const centro = obtenerCentroEntidad(posicion);
-      const metricas = this.obtenerMetricasVisualesEntidad(entidad);
-      const informacionRecurso = metricas.informacionRecurso;
-      const contenedor = this.escena.add.container(centro.x, centro.y);
-
-      if (informacionRecurso) {
-        const imagen = this.escena.add.image(
-          0,
-          0,
-          informacionRecurso.claveTextura,
-        );
-        imagen.setOrigin(metricas.anclaje.x, metricas.anclaje.y);
-        imagen.setDisplaySize(metricas.anchoDibujo, metricas.altoDibujo);
-        imagen.setAlpha(
-          entidad.estaViva === false
-            ? CONFIGURACION_ENTIDADES_PHASER.opacidadEntidadMuerta
-            : 1,
-        );
-        contenedor.add(imagen);
-      } else {
-        this.agregarRespaldoEntidad({
-          contenedor,
-          entidad,
-          estilo,
-        });
-      }
-
-      const indicadorAgresividad =
-        entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
-        entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
-          ? this.agregarAgresividad(contenedor)
-          : null;
-
-      const barraVida =
-        entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
-          ? this.agregarBarraVida(contenedor, entidad)
-          : null;
-
-      const estadosTemporales = this.agregarEstadosTemporales(
-        contenedor,
-        entidad.efectosTemporales,
-      );
-
-      this.capaEntidades.add(contenedor);
-      if (idVisual) {
-        const nodoExistente = this.nodosEntidades.get(idVisual) ?? {};
-        this.nodosEntidades.set(idVisual, {
-          ...nodoExistente,
-          entidad,
-          contenedor,
-          barraVida,
-          indicadorAgresividad,
-          estadosTemporales,
-        });
-      }
+      this.crearNodoEntidadVisual(entidad);
     }
+  }
+
+  establecerEntidadVisualTemporal(entidad) {
+    if (!entidad || typeof entidad !== "object") return null;
+    const idVisual =
+      typeof entidad.idVisual === "string" ? entidad.idVisual : null;
+    const existente = idVisual ? this.nodosEntidades.get(idVisual) ?? null : null;
+    if (existente?.contenedor) return existente;
+    return this.crearNodoEntidadVisual(entidad);
+  }
+
+  crearNodoEntidadVisual(entidad) {
+    const posicion = this.obtenerPosicionCasilla(entidad);
+    if (!posicion) return null;
+
+    const idVisual =
+      typeof entidad.idVisual === "string" ? entidad.idVisual : null;
+    const estilo = obtenerEstiloRespaldoEntidadPhaser(entidad.tipo);
+    const centro = obtenerCentroEntidad(posicion);
+    const metricas = this.obtenerMetricasVisualesEntidad(entidad);
+    const informacionRecurso = metricas.informacionRecurso;
+    const contenedor = this.escena.add.container(centro.x, centro.y);
+
+    if (informacionRecurso) {
+      const imagen = this.escena.add.image(
+        0,
+        0,
+        informacionRecurso.claveTextura,
+      );
+      imagen.setOrigin(metricas.anclaje.x, metricas.anclaje.y);
+      imagen.setDisplaySize(metricas.anchoDibujo, metricas.altoDibujo);
+      imagen.setAlpha(
+        entidad.estaViva === false
+          ? CONFIGURACION_ENTIDADES_PHASER.opacidadEntidadMuerta
+          : 1,
+      );
+      contenedor.add(imagen);
+    } else {
+      this.agregarRespaldoEntidad({
+        contenedor,
+        entidad,
+        estilo,
+      });
+    }
+
+    const indicadorAgresividad =
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
+      entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
+        ? this.agregarAgresividad(contenedor)
+        : null;
+
+    const barraVida =
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
+        ? this.agregarBarraVida(contenedor, entidad)
+        : null;
+
+    const estadosTemporales = this.agregarEstadosTemporales(
+      contenedor,
+      entidad.efectosTemporales,
+    );
+
+    this.capaEntidades.add(contenedor);
+    if (!idVisual) {
+      return {
+        entidad,
+        contenedor,
+        barraVida,
+        indicadorAgresividad,
+        estadosTemporales,
+      };
+    }
+
+    const nodoExistente = this.nodosEntidades.get(idVisual) ?? {};
+    const nodo = {
+      ...nodoExistente,
+      entidad,
+      contenedor,
+      barraVida,
+      indicadorAgresividad,
+      estadosTemporales,
+    };
+    this.nodosEntidades.set(idVisual, nodo);
+    return nodo;
   }
 
   agregarEstadosTemporales(contenedor, efectos = []) {

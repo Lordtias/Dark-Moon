@@ -1,4 +1,7 @@
-import { crearEventoNivelAumentado } from "../acciones/EventosAccion.js";
+import {
+  crearEventoBotinGenerado,
+  crearEventoNivelAumentado,
+} from "../acciones/EventosAccion.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
 import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
@@ -122,14 +125,25 @@ export class ResolutorDerrotasJugador {
         );
       }
 
-      const eventos = progresion.nivelesGanados > 0
-        ? [crearEventoNivelAumentado({
+      const eventos = [];
+      if (resultadoBotin.cantidadUnidades > 0) {
+        eventos.push(
+          crearEventoBotinGenerado({
+            fuente: objetivo,
+            resultadoBotin,
+          }),
+        );
+      }
+      if (progresion.nivelesGanados > 0) {
+        eventos.push(
+          crearEventoNivelAumentado({
             jugador: this.jugador,
             nivelAnterior,
             nivelActual: progresion.nivelActual,
             nivelesGanados: progresion.nivelesGanados,
-          })]
-        : [];
+          }),
+        );
+      }
 
       return {
         procesada: true,

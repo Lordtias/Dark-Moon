@@ -133,6 +133,10 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
       return this.reproductorEventosVisuales?.configurar(configuracion) ?? null;
     }
 
+    esperarPresentacionPendiente() {
+      return this.reproductorEventosVisuales?.esperarInactividad() ?? null;
+    }
+
     aplicarEscenaInmediata(escena) {
       this.escenaDarkMoon = escena ?? null;
       this.redibujar();

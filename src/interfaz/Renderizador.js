@@ -89,6 +89,13 @@ export class Renderizador {
     });
   }
 
+  esperarPresentacionPendiente() {
+    if (typeof this.renderizadorMapa.esperarPresentacionPendiente !== "function") {
+      return null;
+    }
+    return this.renderizadorMapa.esperarPresentacionPendiente();
+  }
+
   configurarAnimacionesMapa(configuracion = {}) {
     if (typeof this.renderizadorMapa.configurarAnimaciones !== "function") {
       return null;

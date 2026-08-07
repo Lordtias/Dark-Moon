@@ -10,6 +10,7 @@ export const TIPOS_EVENTO_ACCION = Object.freeze({
   HOSTILIDAD_CAMBIADA: "hostilidad_cambiada",
   RECURSOS_RECUPERADOS: "recursos_recuperados",
   NIVEL_AUMENTADO: "nivel_aumentado",
+  BOTIN_GENERADO: "botin_generado",
 });
 
 export const TIPOS_ACTOR_HABILIDAD = Object.freeze({
@@ -181,6 +182,49 @@ export function crearEventoRecursosRecuperados({
     origen: normalizarTexto(origen) ?? "desconocido",
     fuente: copiarDescriptorVisualObjeto(fuente),
     recursos: Object.freeze(recursosNormalizados),
+    ejecucionTemporal: null,
+  });
+}
+
+
+export function crearEventoBotinGenerado({
+  fuente,
+  resultadoBotin,
+} = {}) {
+  validarEntidad(fuente, "fuente de botín");
+  if (
+    !resultadoBotin ||
+    typeof resultadoBotin !== "object" ||
+    Array.isArray(resultadoBotin)
+  ) {
+    throw new Error("El evento de botín necesita un resultado canónico válido.");
+  }
+
+  const cantidadUnidades = normalizarEnteroNoNegativo(
+    resultadoBotin.cantidadUnidades,
+  );
+  if (cantidadUnidades === null || cantidadUnidades <= 0 || !resultadoBotin.botin) {
+    throw new Error("El evento de botín necesita una recompensa creada o actualizada.");
+  }
+
+  validarEntidad(resultadoBotin.botin, "botín generado");
+  validarPosicion(resultadoBotin.botin, "posición del botín generado");
+
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_ACCION.BOTIN_GENERADO,
+    fuente,
+    botin: resultadoBotin.botin,
+    botinAnterior: resultadoBotin.botinAnterior ?? null,
+    posicion: copiarPosicion(resultadoBotin.botin),
+    botinCreado: resultadoBotin.botinCreado === true,
+    botinActualizado: resultadoBotin.botinActualizado === true,
+    cantidadUnidades,
+    resumen: Object.freeze(
+      Array.isArray(resultadoBotin.resumen)
+        ? resultadoBotin.resumen.map((entrada) => Object.freeze({ ...entrada }))
+        : [],
+    ),
+    resumenTexto: normalizarTexto(resultadoBotin.resumenTexto),
     ejecucionTemporal: null,
   });
 }

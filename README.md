@@ -1885,3 +1885,11 @@ Para comprender una modificación, seguir este orden:
 7. realizar la prueba desde `index.html`, no solamente desde funciones aisladas.
 
 La arquitectura actual ya permite que la lógica principal continúe independiente del backend gráfico. La prioridad para incorporar Phaser debe ser conservar esa separación y reemplazar gradualmente entrada y representación, no reescribir el juego.
+
+### P6.4A — Muerte y aparición inmediata de botín
+
+P6.3 quedó cerrada y validada manualmente en `2ef2697ae2de753c305dac00082199c2e6505e63`. P6.4A mantiene `SistemaBotin` como única autoridad para tablas, probabilidades, cantidades, rarezas y consolidación de pilas, pero incorpora el hecho canónico `botin_generado` para transportar a presentación una recompensa ya resuelta. El plan visual correlaciona ese hecho con la derrota concreta y Phaser representa primero la desaparición del derrotado y, a continuación, la creación o actualización del botín, sin esperar al final de toda la cola.
+
+En ataques simples la secuencia visual es impacto → derrota → botín. En habilidades con impactos internos, incluidas cadenas, líneas, áreas y zonas temporales, la recompensa queda asociada al impacto que produjo la muerte para no retrasarse hasta el cierre de la habilidad. Una pila nueva entra con un `pop` breve; una pila ya existente pulsa y continúa como una única entidad. Si la tabla no genera objetos no existe evento de botín ni animación falsa. La escena final continúa siendo autoritativa y reconcilia la entidad sin duplicarla.
+
+La derrota del jugador también coordina presentación y aplicación: Canvas 2D puede notificar el modal inmediatamente, mientras Phaser espera a que finalice su cola visual pendiente antes de abrir `ModalDerrota`. Esta espera pertenece exclusivamente a presentación; el jugador ya está derrotado en el dominio y ninguna regla jugable depende de la animación.

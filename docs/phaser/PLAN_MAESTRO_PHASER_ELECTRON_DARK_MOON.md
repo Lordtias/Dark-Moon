@@ -1330,7 +1330,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1 y P6.2 están cerradas. Dentro de P6.3, A, B.1, B.2, C.1A, C.1B, C.2A, C.2B, D.1, D.2, D.3 y E están cerradas. P6.3D.3 fue publicada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`, con Congelamiento 200/250/300 y Ráfaga glacial mediante fragmentos dirigidos. P6.3E fue validada y publicada en `4ab9d468db5e77547a85be7dd4f23bd01028be42`. P6.3F queda implementada y validada técnicamente sobre esa base, pendiente únicamente de validación manual y commit del usuario para declarar P6.3 cerrada.
+Estado: en progreso. P6.1, P6.2 y P6.3 están cerradas. P6.3F fue validada manualmente y publicada en `2ef2697ae2de753c305dac00082199c2e6505e63`; con ese SHA queda cerrado el bloque completo de habilidades, estados, zonas y habilidades NPC. La etapa operativa siguiente es P6.4, dedicada a muerte, aparición inmediata de botín y regresión final de P6.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 
@@ -1999,7 +1999,7 @@ Base exacta: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`. Commit final: `4ab9d468
 
 #### P6.3F — Regresión, documentación y cierre general de P6.3
 
-Estado: implementada y validada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada y validada manualmente en `2ef2697ae2de753c305dac00082199c2e6505e63`.
 
 P6.3F no agrega contenido jugable. Recorre de forma transversal las doce habilidades del jugador, las dos habilidades NPC, los ocho contratos de efectos temporales, zonas, patrones visuales y rutas de recuperación para comprobar que P6.3 funciona como un único sistema y que Phaser continúa consumiendo resultados canónicos sin decidir reglas jugables.
 
@@ -2016,3 +2016,17 @@ P6.3F no agrega contenido jugable. Recorre de forma transversal las doce habilid
 Base exacta: `4ab9d468db5e77547a85be7dd4f23bd01028be42`.
 
 La validación visual interactiva en navegador debe realizarse manualmente porque el entorno de entrega bloqueó tanto `localhost` como `file://` con `ERR_BLOCKED_BY_ADMINISTRATOR`. Tras esa validación y el commit del usuario, P6.3 puede declararse cerrada y la siguiente etapa es P6.4 — muerte, botín, regresión y cierre general de P6.
+
+#### P6.3F — cierre definitivo de P6.3
+
+Estado: cerrada y validada manualmente en `2ef2697ae2de753c305dac00082199c2e6505e63`.
+
+La regresión integral quedó aprobada por el usuario. Con este SHA, P6.3 se considera formalmente cerrada. Las doce habilidades del jugador, las dos habilidades NPC, estados, zonas, contraefectos, bloqueos, Canvas 2D y contratos Phaser quedan como base estable para P6.4.
+
+#### P6.4A — Muerte y aparición inmediata de botín
+
+Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.4A incorpora `botin_generado` como hecho canónico de una recompensa ya resuelta. Phaser no calcula tablas ni probabilidades: el planificador asocia el botín con la derrota exacta y lo reproduce inmediatamente después de retirar al derrotado. Las pilas nuevas aparecen con una entrada breve; las pilas existentes se actualizan mediante pulso sin crear una segunda bolsa. La correlación se integra también dentro de impactos de habilidades y zonas para que una cadena o línea no retrase el botín hasta el final de la habilidad.
+
+La derrota del jugador agrega un contrato de espera exclusivamente visual: Phaser puede terminar la cola pendiente antes de presentar el modal, mientras Canvas 2D conserva respuesta inmediata. La próxima subetapa prevista, tras validación de P6.4A, es P6.4B — regresión y cierre general de P6.

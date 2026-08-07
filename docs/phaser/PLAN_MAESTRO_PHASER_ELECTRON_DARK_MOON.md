@@ -3,10 +3,10 @@
 Proyecto: Dark Moon
 Repositorio: https://github.com/Lordtias/Dark-Moon.git
 Rama principal: main
-Versión del documento: 1.7
+Versión del documento: 1.8
 Fecha inicial: 30 de julio de 2026
-Última actualización: 31 de julio de 2026
-Etapa operativa actual: P4 — Entrada e intenciones jugables desde Phaser
+Última actualización: 7 de agosto de 2026
+Etapa operativa actual: P7.5 — Candidato beta web y regresión final de P7
 
 ---
 
@@ -1412,7 +1412,7 @@ Regla canónica de internacionalización: **solo cambia el texto presentado al u
 
 ### P7.4 — Experiencia de tester
 
-Estado: **en implementación sobre P7.3B validada** (`497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`).
+Estado: **validada y cerrada** en `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`.
 
 - agregar un acceso explícito **Ayuda del juego / Game Help**, visible y separado visualmente de la barra de habilidades;
 - incorporar un modal grande bilingüe con representaciones HTML/CSS de teclado y mouse para movimiento, espera, combate, interacción, habilidades y cámara;
@@ -1428,13 +1428,19 @@ Estado: **en implementación sobre P7.3B validada** (`497af6b1fe8c86c16c2d08a7d4
 
 ### P7.5 — Candidato beta web
 
-- recorrido completo desde navegador limpio;
-- Nuevo Juego y Continuar;
-- combate, botín, equipo, habilidades y ciudad;
-- recarga del navegador y persistencia durable;
-- revisión de rutas relativas y compatibilidad con GitHub Pages;
-- Phaser predeterminado y Canvas 2D de respaldo;
-- regresión final y cierre de P7.
+Estado: **implementada técnicamente sobre P7.4 validada** (`c9a84e48007e6bdd59e12edea357b1f0ec7f6764`); pendiente de validación manual y commit del usuario.
+
+- elevar la versión candidata a `0.7.0-beta.2`;
+- validar arranque/configuración con almacenamiento limpio y cambio ES/EN;
+- validar guardado/restauración durable y Continuar desde ciudad;
+- ejecutar la regresión determinista de mapas, combate, habilidades, efectos, muerte, XP y botín;
+- auditar rutas relativas, capitalización y recursos desde un subdirectorio equivalente a GitHub Pages;
+- confirmar Phaser predeterminado y Canvas 2D como respaldo explícito;
+- corregir únicamente bloqueantes o regresiones detectadas;
+- registrar una matriz reproducible y checklist manual final en `ENTREGA_P7_5.md`;
+- no incorporar nuevas mecánicas, balance, rediseño de UI ni persistencia de expedición.
+
+La regresión técnica previa al empaquetado no detectó bloqueantes ni regresiones jugables, por lo que P7.5 no modifica motores de dominio. El cierre funcional definitivo de P7 queda sujeto a la validación manual del candidato `0.7.0-beta.2` en navegador/GitHub Pages.
 
 ### Criterio de cierre
 
@@ -2017,21 +2023,17 @@ El Documento Maestro no mantendrá una tabla histórica de estados ni identifica
 
 # 17. Etapa operativa actual
 
-## P7.1 — Entrada de beta y continuidad
+## P7.5 — Candidato beta web y regresión final de P7
 
 Estado: **implementada técnicamente; pendiente de validación manual y commit del usuario**.
 
-P6 fue validada manualmente y cerrada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. P7.1 inicia el candidato visual para beta web sin agregar reglas jugables. Phaser pasa a ser el backend predeterminado, Canvas 2D queda como respaldo explícito, el menú incorpora Continuar con validación de guardado y la versión visible se centraliza en `0.7.0-beta.1`.
+P7.4 fue validada manualmente y cerrada en `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`. P7.5 toma ese commit como base exacta, no agrega mecánicas y eleva la identificación del candidato a `0.7.0-beta.2`.
 
-Continuar restaura únicamente el estado durable del personaje y siempre comienza una sesión nueva desde la ciudad. La expedición interrumpida, posiciones, enemigos, botín en suelo, agenda y efectos temporales activos continúan fuera del snapshot. Un guardado inválido deshabilita Continuar sin eliminarse y un personaje nuevo exige confirmación antes de reemplazar un guardado existente.
+La regresión cubre arranque con configuraciones canónicas, preferencias ES/EN, persistencia durable, Continuar desde ciudad, Phaser predeterminado, Canvas 2D de respaldo, rutas relativas para GitHub Pages, generación determinista, combate, habilidades, estados, muerte, XP y botín. La candidata solo admite correcciones de bloqueantes o regresiones; cualquier mejora de UI, balance o contenido se difiere a hitos posteriores.
 
-Plan posterior aprobado:
+La validación automática de P7.5 conserva 0 errores de sintaxis/importación/configuración, 0 recursos faltantes o con capitalización incorrecta, 0 resultados incorrectos en la regresión determinista y una reconstrucción durable correcta del personaje. La sesión gráfica completa y la publicación real en GitHub Pages se confirman mediante la checklist manual de `docs/phaser/entregas/ENTREGA_P7_5.md`.
 
-1. P7.2 — configuración real, validada en `93cbd48cb29c77c9af8f3de222e13437971abb32`;
-2. P7.3A — infraestructura bilingüe y contenido localizado, validada en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`;
-3. P7.3B — mensajes dinámicos, feedback Phaser/Canvas y cierre bilingüe, validada en `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`;
-4. P7.4 — experiencia de tester;
-5. P7.5 — candidato beta web y regresión final.
+Si esa validación manual resulta satisfactoria, P7 queda formalmente cerrada como candidato beta web y la siguiente etapa se definirá fuera del alcance de la migración obligatoria de Phaser.
 
 #### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
 

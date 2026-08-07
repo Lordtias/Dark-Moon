@@ -10,6 +10,8 @@ Este documento describe el estado funcional actual del repositorio. Cuando el co
 
 Dark Moon es un RPG roguelike ejecutado en el navegador mediante HTML, CSS y módulos JavaScript nativos.
 
+Candidato beta web actual: `0.7.0-beta.2`.
+
 La versión actual incluye:
 
 - creación de Guerrero, Rogue y Mago;
@@ -1946,3 +1948,14 @@ P7.3B fue validada y cerrada en `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`. P7.4
 Las instrucciones permanentes de controles y el overlay técnico de cámara Phaser se retiran; los cambios de zoom se informan solamente con feedback temporal. Phaser queda consolidado como backend predeterminado de la beta web y Canvas 2D continúa como fallback técnico explícito mediante `?render=canvas2d`.
 
 El registro de eventos elimina ruido rutinario —movimiento del jugador, avance de enemigos, espera y colisiones sin información— sin eliminar los eventos canónicos que necesitan el juego o la presentación. A cambio, los resultados de combate se vuelven más analíticos: el daño final aparece destacado y los mensajes detallan las ecuaciones con los operandos realmente utilizados para impacto, crítico, bloqueo, Armadura, resistencias, daño físico/elemental, habilidades, daño periódico y aplicación o rechazo de efectos. La presentación no recalcula reglas: recibe instantáneas de cálculo generadas por los sistemas canónicos y únicamente las formatea en Español o Inglés.
+
+
+### P7.5 — Candidato beta web y regresión final de P7
+
+P7.4 fue validada y cerrada en `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`. P7.5 no incorpora mecánicas ni balance: convierte el estado actual en el candidato `0.7.0-beta.2` y ejecuta una regresión transversal antes de la publicación para testers.
+
+La candidata mantiene Phaser como renderizador predeterminado y `?render=canvas2d` como fallback técnico. La auditoría de publicación verifica imports ES, JSON, recursos visuales, rutas con capitalización exacta y carga relativa desde un subdirectorio equivalente a GitHub Pages (`/Dark-Moon/`). La persistencia durable se valida mediante guardado/restauración real de personaje, inventario, equipamiento, recursos, oro y progreso mágico; **Continuar** reconstruye una sesión nueva en `ciudad_inicial` y no intenta persistir una expedición interrumpida.
+
+La regresión canónica de motores conserva 12 habilidades y 40 grados, 45 generaciones deterministas de mapa y 0 resultados incorrectos en la regresión general. Español e Inglés mantienen paridad estructural y de placeholders. P7.5 corrige únicamente bloqueantes o regresiones; rediseño de UI, tooltips, balance, contenido nuevo, persistencia de expedición, audio y Electron continúan fuera de este cierre.
+
+El detalle reproducible de pruebas y la checklist manual del candidato se registra en `docs/phaser/entregas/ENTREGA_P7_5.md`.

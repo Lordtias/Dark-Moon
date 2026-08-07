@@ -4,9 +4,9 @@ Fecha: 2026-08-07
 Etapa: P7.4
 Base exacta: `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`
 Rama: `main`
-HEAD conservado: `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`
-Commit realizado: no
-Estado: implementada técnicamente; pendiente de validación manual y commit
+HEAD de implementación: `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`
+Commit final validado: `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`
+Estado: validada manualmente, commiteada y cerrada
 
 ## 1. Objetivo
 
@@ -196,6 +196,6 @@ La validación visual interactiva completa en navegador debe realizarla el usuar
 - ampliación de persistencia/autosave;
 - audio.
 
-## 14. Próxima etapa
+## 14. Cierre
 
-P7.5 — candidato beta web y regresión final de P7.
+P7.4 fue validada manualmente por el usuario y cerrada en `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`. La continuación operativa es P7.5 — candidato beta web y regresión final de P7.

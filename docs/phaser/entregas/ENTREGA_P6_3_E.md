@@ -4,7 +4,7 @@ Fecha: 2026-08-06
 Etapa: P6.3E  
 Base exacta: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`  
 Rama: `main`  
-Commit realizado: no
+Commit final: `4ab9d468db5e77547a85be7dd4f23bd01028be42`
 
 ## 1. Objetivo
 
@@ -228,8 +228,12 @@ P6.3E no incorpora:
 
 La validación automatizada no sustituye la comprobación visual en navegador. Debe validarse manualmente que la trayectoria entre Lythra y el jugador sea legible con la cámara real y que la reproducción consecutiva de Vida y Maná tenga un ritmo satisfactorio.
 
-## 18. Próximo paso
+## 18. Cierre posterior a la entrega
 
-Después de la validación manual y el commit del usuario, continuar con:
+La etapa fue validada manualmente por el usuario y cerrada en:
 
-**P6.3F — regresión, documentación y cierre general de P6.3.**
+`4ab9d468db5e77547a85be7dd4f23bd01028be42`
+
+Las pruebas confirmaron los servicios de Vida, Maná y Ambos, la presentación mágica de Lythra y la ausencia de consumo de tiempo jugable.
+
+Próximo paso: **P6.3F — regresión, documentación y cierre general de P6.3.**

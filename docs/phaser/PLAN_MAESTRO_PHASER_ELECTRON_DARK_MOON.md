@@ -1330,7 +1330,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B, P6.3D.1, P6.3D.2 y P6.3D.3 están cerradas. P6.3D.3 fue validada y publicada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`, con Congelamiento 200/250/300 y Ráfaga glacial representada mediante fragmentos dirigidos. P6.3E queda implementada técnicamente y pendiente de validación manual; P6.3F permanece pendiente.
+Estado: en progreso. P6.1 y P6.2 están cerradas. Dentro de P6.3, A, B.1, B.2, C.1A, C.1B, C.2A, C.2B, D.1, D.2, D.3 y E están cerradas. P6.3D.3 fue publicada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`, con Congelamiento 200/250/300 y Ráfaga glacial mediante fragmentos dirigidos. P6.3E fue validada y publicada en `4ab9d468db5e77547a85be7dd4f23bd01028be42`. P6.3F queda implementada y validada técnicamente sobre esa base, pendiente únicamente de validación manual y commit del usuario para declarar P6.3 cerrada.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 
@@ -1982,7 +1982,7 @@ Base de implementación: `f5edc8d61776a21a15e627289faeab20f3e00b7e`. Commit fina
 
 #### P6.3E — Habilidades canónicas de NPC para Lythra
 
-Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `4ab9d468db5e77547a85be7dd4f23bd01028be42`.
 
 P6.3E incorpora `HabilidadesNPC.json` como catálogo separado del progreso mágico del jugador. Lythra utiliza `Curación lunar` para Vida y `Restauración lunar` para Maná. `SistemaCuracion` conserva la economía, el pago atómico y el rollback existentes; únicamente después de una recuperación aceptada genera `habilidad_resuelta` con `tipoActor: npc` y el cambio real dentro de `recursosObjetivo`.
 
@@ -1995,6 +1995,24 @@ P6.3E incorpora `HabilidadesNPC.json` como catálogo separado del progreso mági
 - `recursosObjetivo` queda soportado dentro del impacto de cualquier habilidad para futuras recuperaciones de jugador, NPC o enemigo;
 - Canvas 2D conserva el estado final canónico y no depende de Phaser.
 
-Base exacta: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`.
+Base exacta: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`. Commit final: `4ab9d468db5e77547a85be7dd4f23bd01028be42`.
 
-Próxima acción después de validar y commitear: P6.3F — regresión, documentación y cierre general de P6.3.
+#### P6.3F — Regresión, documentación y cierre general de P6.3
+
+Estado: implementada y validada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.3F no agrega contenido jugable. Recorre de forma transversal las doce habilidades del jugador, las dos habilidades NPC, los ocho contratos de efectos temporales, zonas, patrones visuales y rutas de recuperación para comprobar que P6.3 funciona como un único sistema y que Phaser continúa consumiendo resultados canónicos sin decidir reglas jugables.
+
+- se verifican 12 habilidades del jugador, 40 grados, 2 habilidades NPC, 8 efectos temporales y 14 perfiles visuales de habilidad;
+- Congelamiento conserva 200/250/300, bloqueo total, vulnerabilidad normal al daño y convivencia con daño periódico;
+- Quemadura y Congelamiento mantienen la eliminación mutua solo tras una aplicación aceptada;
+- Plaga corrosiva conserva una única instancia intensificada y Nube tóxica sus activaciones `al_crear`, `al_entrar` y `por_intervalo`;
+- el planificador conserva derrotas integradas para proyectiles, cadenas y líneas sin duplicarlas;
+- Lythra mantiene eventos `habilidad_resuelta` de tipo NPC y `recursosObjetivo` reales;
+- Canvas 2D continúa siendo el renderizador predeterminado y Phaser sigue seleccionable sin trasladar lógica jugable;
+- la herramienta de balance corrige un falso negativo genérico de zonas persistentes: la tabla general pasa a marcarlas como informativas porque mide una sola activación y deja el balance definitivo al análisis focalizado de ciclo completo; no se modifica daño, Maná, duración, probabilidad ni ningún otro valor de balance;
+- el analizador real termina sin resultados incorrectos: Incinerar G3 conserva una advertencia legítima y Nube tóxica/Plaga corrosiva quedan informativas según sus contratos de persistencia/reaplicación.
+
+Base exacta: `4ab9d468db5e77547a85be7dd4f23bd01028be42`.
+
+La validación visual interactiva en navegador debe realizarse manualmente porque el entorno de entrega bloqueó tanto `localhost` como `file://` con `ERR_BLOCKED_BY_ADMINISTRATOR`. Tras esa validación y el commit del usuario, P6.3 puede declararse cerrada y la siguiente etapa es P6.4 — muerte, botín, regresión y cierre general de P6.

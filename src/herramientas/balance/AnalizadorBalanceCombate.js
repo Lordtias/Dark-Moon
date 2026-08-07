@@ -710,6 +710,17 @@ function crearInformeHabilidadesCombate({
       "daño esperado por tiempo, objetivos probables y utilidad de control",
   });
   for (const fila of filasPrincipales) {
+    const habilidadConfigurada =
+      configuracionEjecucionHabilidades.habilidades[fila.idHabilidad];
+    const gradoConfigurado = habilidadConfigurada?.ejecucion?.grados?.[fila.grado];
+
+    if (gradoConfigurado?.zonaTemporal) {
+      fila.estado = ESTADOS.INFORMATIVO;
+      fila.criterio =
+        "La habilidad crea una zona persistente. Esta fila general mide una sola activación; su balance definitivo corresponde al análisis focalizado de toda la duración de la zona.";
+      continue;
+    }
+
     if (!fila.requiereReaplicaciones) continue;
     fila.estado = ESTADOS.INFORMATIVO;
     fila.criterio =

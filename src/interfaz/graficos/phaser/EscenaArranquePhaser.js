@@ -10,7 +10,11 @@ import {
 
 // La clase se crea después de cargar Phaser para no introducir una dependencia
 // global durante el arranque del modo Canvas 2D.
-export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
+export function crearEscenaArranquePhaser({
+  Phaser,
+  alPreparar,
+  zoomInicial,
+} = {}) {
   if (!Phaser?.Scene) {
     throw new Error("No se puede crear la escena sin Phaser.Scene.");
   }
@@ -56,6 +60,7 @@ export function crearEscenaArranquePhaser({ Phaser, alPreparar } = {}) {
         escena: this,
         compositor: this.compositor,
         conversorCoordenadas: this.conversorCoordenadas,
+        zoomInicial,
         alCambiar: (estado) => this.actualizarTextoAyuda(estado),
       });
 

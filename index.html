@@ -74,8 +74,57 @@
 
           <div id="settingsPlaceholder" class="panel-configuracion-menu oculto">
             <h2>Configuración</h2>
-            <p>Esta sección todavía no está implementada.</p>
-            <button id="backToMainMenuButton" type="button">Volver</button>
+
+            <div class="opcion-configuracion">
+              <label for="animationSpeedSelect">Velocidad de animaciones</label>
+              <select id="animationSpeedSelect" disabled>
+                <option>Cargando...</option>
+              </select>
+              <p class="ayuda-configuracion">
+                Modifica únicamente la velocidad de presentación en Phaser.
+              </p>
+            </div>
+
+            <label class="opcion-configuracion opcion-configuracion--interruptor">
+              <span>
+                <strong>Efectos visuales reducidos</strong>
+                <small>Reduce efectos secundarios sin alterar la jugabilidad.</small>
+              </span>
+              <input id="reducedEffectsCheckbox" type="checkbox" disabled />
+            </label>
+
+            <div class="opcion-configuracion">
+              <span class="etiqueta-configuracion">Zoom inicial del mapa</span>
+              <div class="control-zoom-configuracion" role="group" aria-label="Zoom inicial del mapa">
+                <button id="zoomInitialDecreaseButton" type="button" disabled aria-label="Reducir zoom inicial">−</button>
+                <output id="zoomInitialValue" aria-live="polite">120 %</output>
+                <button id="zoomInitialIncreaseButton" type="button" disabled aria-label="Aumentar zoom inicial">+</button>
+              </div>
+              <p class="ayuda-configuracion">
+                Define cómo comienza la cámara. La rueda y las teclas de zoom siguen funcionando durante la partida.
+              </p>
+            </div>
+
+            <div class="opcion-configuracion">
+              <span class="etiqueta-configuracion">Pantalla completa</span>
+              <button id="fullscreenButton" type="button">
+                Activar pantalla completa
+              </button>
+            </div>
+
+            <p
+              id="settingsMessage"
+              class="mensaje-configuracion"
+              role="status"
+              aria-live="polite"
+            ></p>
+
+            <div class="acciones-configuracion">
+              <button id="resetSettingsButton" type="button" disabled>
+                Restablecer valores predeterminados
+              </button>
+              <button id="backToMainMenuButton" type="button">Volver</button>
+            </div>
           </div>
         </div>
       </section>

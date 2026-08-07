@@ -31,6 +31,7 @@ export function crearInterfazPartidaDom({
   configuracionRarezas,
   tipoRenderizador = TIPO_RENDERIZADOR_CANVAS_2D,
   Phaser = null,
+  preferenciasInterfaz = null,
 } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
@@ -53,6 +54,7 @@ export function crearInterfazPartidaDom({
     canvas,
     panelMapa,
     tileSize,
+    preferenciasInterfaz,
   });
 
   const panelPersonaje = new PanelPersonaje({
@@ -133,6 +135,7 @@ function crearRenderizadorMapa({
   canvas,
   panelMapa,
   tileSize,
+  preferenciasInterfaz,
 }) {
   canvas.classList.remove("game-canvas--oculto-phaser");
   canvas.removeAttribute("aria-hidden");
@@ -145,6 +148,7 @@ function crearRenderizadorMapa({
         Phaser,
         canvasBase: canvas,
         contenedor: panelMapa,
+        preferenciasInterfaz,
       });
 
     case TIPO_RENDERIZADOR_CANVAS_2D:

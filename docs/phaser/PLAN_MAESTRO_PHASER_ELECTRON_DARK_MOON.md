@@ -1342,24 +1342,36 @@ Preparar una versión presentable para amigos y testers mediante GitHub Pages, m
 
 ### P7.1 — Entrada de beta y continuidad
 
+Estado: **validada y cerrada** en `9d7938fc0d92c5735a9df81dddd42834903bac68`.
+
 - Phaser pasa a ser el backend visual predeterminado;
 - `?render=canvas2d` conserva Canvas 2D como respaldo explícito;
 - el menú incorpora **Continuar** solo cuando existe un guardado durable válido;
 - Continuar reconstruye el personaje y reanuda desde la ciudad, sin persistir la expedición activa;
 - los guardados inválidos no bloquean el menú ni se eliminan automáticamente;
 - una partida nueva pide confirmación antes de reemplazar progreso existente;
-- la versión visible se centraliza y comienza en `0.7.0-beta.1`.
+- la versión visible se centraliza y comienza en `0.7.0-beta.1`;
+- la mejora del autosave durable del personaje queda pospuesta fuera de P7.2.
 
 ### P7.2 — Configuración real
 
-- velocidad de animaciones;
-- efectos reducidos;
-- zoom;
-- pantalla completa web;
-- persistencia de preferencias;
-- restauración de valores predeterminados.
+Estado: **implementada técnicamente; pendiente de validación manual y commit**.
 
-No se mostrará un control de volumen mientras Dark Moon no tenga un sistema de audio real.
+- `src/config/presentacion/PreferenciasInterfaz.json` es la fuente canónica de los valores iniciales y límites configurables;
+- la persistencia guarda únicamente overrides elegidos por el usuario y no copia defaults automáticamente a `localStorage`;
+- si no hay persistencia, la aplicación utiliza directamente el JSON canónico;
+- **Restablecer valores predeterminados** elimina los overrides y vuelve a resolver desde el JSON vigente;
+- velocidad de animaciones: Normal, Rápida y Muy rápida;
+- efectos visuales reducidos: activado/desactivado;
+- zoom inicial del mapa: 80 % a 160 %, con valor canónico inicial de 120 %;
+- el zoom elegido se aplica al comenzar la sesión y al activar cada mapa, sin persistir los cambios temporales realizados con rueda o teclado;
+- pantalla completa utiliza la API estándar del navegador y es un estado de sesión, no una preferencia persistida;
+- las preferencias de interfaz son independientes del guardado del personaje y no se eliminan al crear una nueva partida;
+- una persistencia de preferencias inválida no bloquea el arranque: los campos inválidos vuelven al valor canónico;
+- Phaser recibe las preferencias efectivas desde la aplicación y no consulta JSON ni `localStorage`;
+- Canvas 2D permanece operativo; las preferencias exclusivas de Phaser no introducen comportamiento artificial en el fallback.
+
+No se mostrará un control de volumen mientras Dark Moon no tenga un sistema de audio real. El idioma se incorporará en P7.3 sobre esta misma infraestructura de preferencias, manteniendo código e IDs en español.
 
 ### P7.3 — Internacionalización y centralización de textos
 

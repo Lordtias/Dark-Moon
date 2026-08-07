@@ -31,6 +31,18 @@ import { configurarPerfilesEstadosTemporalesVisuales } from "../interfaz/grafico
 import { configurarPerfilesZonasTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesZonasTemporalesVisuales.js";
 import { ControladorPartida } from "./ControladorPartida.js";
 import { VERSION_APLICACION } from "../config/VersionAplicacion.js";
+import {
+  actualizarPreferenciaInterfaz,
+  cargarConfiguracionPreferenciasInterfaz,
+  crearOverridesPreferenciasInterfaz,
+  crearPreferenciasIniciales,
+  resolverPreferenciasInterfaz,
+} from "../interfaz/configuracion/PreferenciasInterfaz.js";
+import {
+  eliminarPreferenciasInterfazPersistidas,
+  guardarPreferenciasInterfazPersistidas,
+  leerPreferenciasInterfazPersistidas,
+} from "../interfaz/configuracion/PersistenciaPreferenciasInterfaz.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
 export class Aplicacion {
@@ -39,6 +51,7 @@ export class Aplicacion {
 
     this.presentacion = presentacion;
     this.controladorPantallas = null;
+    this.controladorConfiguracion = null;
     this.controladorPartida = null;
     this.menuCreacionPersonaje = null;
     this.configuracionPersonaje = null;
@@ -56,6 +69,8 @@ export class Aplicacion {
     this.configuracionPresentacionZonasTemporales = null;
     this.guardadoPresente = false;
     this.guardadoValido = false;
+    this.configuracionPreferenciasInterfaz = null;
+    this.preferenciasInterfaz = null;
   }
 
   async iniciar() {
@@ -66,6 +81,13 @@ export class Aplicacion {
         alSolicitarNuevoJuego: () => this.confirmarInicioNuevaPartida(),
         alSolicitarContinuar: () => this.continuarPartida(),
       });
+      this.controladorConfiguracion.configurarEventos({
+        alCambiarPreferencia: (clave, valor) =>
+          this.cambiarPreferenciaInterfaz(clave, valor),
+        alRestablecerPreferencias: () =>
+          this.restablecerPreferenciasInterfaz(),
+      });
+      await this.cargarPreferenciasInterfaz();
       await this.cargarConfiguraciones();
       this.actualizarDisponibilidadContinuar();
       this.crearMenuCreacionPersonaje();
@@ -77,16 +99,106 @@ export class Aplicacion {
   crearControladores() {
     this.controladorPantallas =
       this.presentacion.crearControladorPantallas();
+    this.controladorConfiguracion =
+      this.presentacion.crearControladorConfiguracion();
 
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
       alJugadorDerrotado: (detalle) =>
         this.presentacion.presentarDerrota(detalle),
       crearInterfazPartida: (configuracion) =>
-        this.presentacion.crearInterfazPartida(configuracion),
+        this.presentacion.crearInterfazPartida({
+          ...configuracion,
+          preferenciasInterfaz: this.preferenciasInterfaz,
+        }),
       crearPresentacionMapaActivo: (configuracion) =>
         this.presentacion.crearPresentacionMapaActivo(configuracion),
     });
+  }
+
+  async cargarPreferenciasInterfaz() {
+    this.configuracionPreferenciasInterfaz =
+      await cargarConfiguracionPreferenciasInterfaz();
+
+    let persistidas = null;
+    let mensaje = "";
+
+    try {
+      persistidas = leerPreferenciasInterfazPersistidas();
+    } catch (error) {
+      console.warn(
+        "Las preferencias guardadas no pudieron utilizarse; se aplicarán los valores canónicos:",
+        error,
+      );
+      mensaje =
+        "Las preferencias guardadas no eran válidas. Se utilizaron los valores predeterminados.";
+    }
+
+    this.preferenciasInterfaz = resolverPreferenciasInterfaz({
+      configuracion: this.configuracionPreferenciasInterfaz,
+      persistidas,
+    });
+
+    this.controladorConfiguracion.presentar({
+      configuracion: this.configuracionPreferenciasInterfaz,
+      preferencias: this.preferenciasInterfaz,
+      mensaje,
+    });
+  }
+
+  cambiarPreferenciaInterfaz(clave, valor) {
+    try {
+      const preferenciasNuevas = actualizarPreferenciaInterfaz({
+        configuracion: this.configuracionPreferenciasInterfaz,
+        preferenciasActuales: this.preferenciasInterfaz,
+        clave,
+        valor,
+      });
+      const overrides = crearOverridesPreferenciasInterfaz({
+        configuracion: this.configuracionPreferenciasInterfaz,
+        preferencias: preferenciasNuevas,
+      });
+
+      guardarPreferenciasInterfazPersistidas({
+        version: this.configuracionPreferenciasInterfaz.version,
+        preferencias: overrides,
+      });
+
+      this.preferenciasInterfaz = preferenciasNuevas;
+      this.controladorConfiguracion.mostrarMensaje(
+        "Preferencias guardadas. Se aplicarán al iniciar la partida.",
+      );
+      return this.preferenciasInterfaz;
+    } catch (error) {
+      console.warn("No se pudo guardar la preferencia de interfaz:", error);
+      this.controladorConfiguracion.mostrarMensaje(
+        "No se pudo guardar la preferencia seleccionada.",
+        { error: true },
+      );
+      return this.preferenciasInterfaz;
+    }
+  }
+
+  restablecerPreferenciasInterfaz() {
+    try {
+      eliminarPreferenciasInterfazPersistidas();
+      this.preferenciasInterfaz = crearPreferenciasIniciales(
+        this.configuracionPreferenciasInterfaz,
+      );
+      this.controladorConfiguracion.presentar({
+        configuracion: this.configuracionPreferenciasInterfaz,
+        preferencias: this.preferenciasInterfaz,
+        mensaje: "Se restauraron los valores predeterminados.",
+      });
+      return this.preferenciasInterfaz;
+    } catch (error) {
+      console.warn("No se pudieron restablecer las preferencias:", error);
+      this.controladorConfiguracion.mostrarMensaje(
+        "No se pudieron restablecer las preferencias.",
+        { error: true },
+      );
+      return this.preferenciasInterfaz;
+    }
   }
 
   // La configuración de maestrías se carga junto con el resto. Así, Player
@@ -310,6 +422,7 @@ export class Aplicacion {
 function validarPresentacion(presentacion) {
   const metodosObligatorios = [
     "crearControladorPantallas",
+    "crearControladorConfiguracion",
     "mostrarVersionAplicacion",
     "confirmarReemplazoGuardado",
     "crearMenuCreacionPersonaje",

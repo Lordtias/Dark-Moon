@@ -3,6 +3,7 @@ import { crearInterfazPartidaDom } from "./FabricaInterfazPartidaDom.js";
 import { PresentacionMapaActivoDom } from "./PresentacionMapaActivoDom.js";
 import { AdaptadorDerrotaDom } from "../derrota/AdaptadorDerrotaDom.js";
 import { ControladorPantallasDom } from "./ControladorPantallasDom.js";
+import { ControladorConfiguracionDom } from "./ControladorConfiguracionDom.js";
 
 // Construye y conecta la presentación HTML actual de Dark Moon.
 //
@@ -56,6 +57,43 @@ export class PresentacionAplicacionDom {
       mensajeMenuPrincipal: obtenerElementoObligatorio(
         "mainMenuMessage",
         "mensaje del menú principal",
+      ),
+    });
+  }
+
+  crearControladorConfiguracion() {
+    return new ControladorConfiguracionDom({
+      selectorVelocidad: obtenerElementoObligatorio(
+        "animationSpeedSelect",
+        "selector de velocidad de animaciones",
+      ),
+      casillaEfectosReducidos: obtenerElementoObligatorio(
+        "reducedEffectsCheckbox",
+        "casilla de efectos reducidos",
+      ),
+      botonZoomMenos: obtenerElementoObligatorio(
+        "zoomInitialDecreaseButton",
+        "botón para reducir el zoom inicial",
+      ),
+      botonZoomMas: obtenerElementoObligatorio(
+        "zoomInitialIncreaseButton",
+        "botón para aumentar el zoom inicial",
+      ),
+      valorZoom: obtenerElementoObligatorio(
+        "zoomInitialValue",
+        "valor del zoom inicial",
+      ),
+      botonPantallaCompleta: obtenerElementoObligatorio(
+        "fullscreenButton",
+        "botón de pantalla completa",
+      ),
+      botonRestablecer: obtenerElementoObligatorio(
+        "resetSettingsButton",
+        "botón para restablecer configuración",
+      ),
+      mensajeConfiguracion: obtenerElementoObligatorio(
+        "settingsMessage",
+        "mensaje de configuración",
       ),
     });
   }

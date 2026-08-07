@@ -223,3 +223,8 @@ P7.1 no incorpora:
 Tras validación manual y commit de P7.1: **P7.2 — Configuración real** (velocidad de animaciones, efectos reducidos, zoom, pantalla completa, persistencia de preferencias y restauración de valores).
 
 Después de P7.2 está aprobada **P7.3 — Internacionalización y centralización de textos**, con Español/Inglés y selector ES/EN, manteniendo código e IDs canónicos en español.
+
+
+## 13. Cierre validado
+
+P7.1 fue validada manualmente y commiteada en `9d7938fc0d92c5735a9df81dddd42834903bac68`. La mejora del autosave durable del personaje queda pospuesta; P7.2 no modifica esa política de persistencia.

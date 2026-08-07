@@ -1282,3 +1282,116 @@ main {
 .mensaje-menu--error {
   color: #ffb0b0;
 }
+
+/* =========================================================
+   CONFIGURACIÓN DE LA BETA WEB
+========================================================= */
+.panel-configuracion-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.panel-configuracion-menu.oculto {
+  display: none;
+}
+
+.opcion-configuracion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(174, 184, 255, 0.2);
+}
+
+.opcion-configuracion label,
+.etiqueta-configuracion,
+.opcion-configuracion strong {
+  font-weight: 700;
+}
+
+.opcion-configuracion select,
+.opcion-configuracion button,
+.acciones-configuracion button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #8796f2;
+  border-radius: 5px;
+  background: rgba(23, 27, 46, 0.92);
+  color: #ffffff;
+  font: inherit;
+}
+
+.opcion-configuracion button:not(:disabled):hover,
+.acciones-configuracion button:not(:disabled):hover {
+  background: rgba(53, 65, 120, 0.96);
+}
+
+.opcion-configuracion--interruptor {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+}
+
+.opcion-configuracion--interruptor span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opcion-configuracion--interruptor small,
+.ayuda-configuracion {
+  margin: 0;
+  color: #c4cae5;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.opcion-configuracion--interruptor input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.control-zoom-configuracion {
+  display: grid;
+  grid-template-columns: 44px minmax(90px, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-zoom-configuracion output {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(174, 184, 255, 0.45);
+  border-radius: 5px;
+  background: rgba(6, 10, 24, 0.7);
+  font-weight: 700;
+}
+
+.mensaje-configuracion {
+  min-height: 20px;
+  margin: 0;
+  color: #cbd3ff;
+  font-size: 13px;
+}
+
+.mensaje-configuracion--error {
+  color: #ffb8b8;
+}
+
+.acciones-configuracion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.acciones-configuracion button {
+  flex: 1 1 160px;
+}

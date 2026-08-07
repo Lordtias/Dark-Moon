@@ -1973,3 +1973,14 @@ Continuar no intenta representar una transición desde la mazmorra anterior: la 
 ### P7.3 — Regla visual bilingüe prevista
 
 La internacionalización se realizará después de P7.2. El selector **ES / EN** debe estar disponible en una esquina de la pantalla principal para que el usuario pueda cambiar idioma antes de navegar la interfaz. Solo cambia el texto presentado. Código, IDs, nombres técnicos y contratos canónicos permanecen en español. La traducción no debe duplicar layouts ni crear variantes funcionales por idioma; ambas lenguas comparten exactamente la misma estructura visual y reglas.
+
+
+### P7.2 — Pantalla de configuración de presentación
+
+La configuración de la beta mantiene el lenguaje visual del menú principal y evita convertir opciones técnicas en controles de juego. El panel presenta cuatro bloques legibles: velocidad de animaciones, efectos visuales reducidos, zoom inicial del mapa y pantalla completa.
+
+La velocidad utiliza un selector de tres niveles (`normal`, `rapida`, `muy-rapida` internamente), mientras que la interfaz muestra **Normal**, **Rápida** y **Muy rápida**. Efectos reducidos se presenta como un interruptor simple. El zoom inicial se expresa como porcentaje con botones `− / +` entre 80 % y 160 %, evitando exponer números decimales al usuario. La cámara puede seguir modificándose temporalmente durante la partida mediante rueda o teclado, pero cada mapa comienza desde el zoom inicial elegido.
+
+Pantalla completa debe afectar a la aplicación web completa, no solo al canvas, para conservar paneles HTML, modales y HUD. El botón refleja el estado real mediante `fullscreenchange` y no promete restauración automática tras una recarga.
+
+`PreferenciasInterfaz.json` es el origen canónico de defaults y límites configurables. Los overrides persistidos pertenecen a presentación y no al personaje. En P7.3 el idioma se agregará a este mismo contrato, pero únicamente modificará textos visibles: la estructura, código e IDs internos permanecerán en español.

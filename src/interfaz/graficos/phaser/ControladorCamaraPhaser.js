@@ -20,6 +20,7 @@ export class ControladorCamaraPhaser {
     escena,
     compositor,
     conversorCoordenadas,
+    zoomInicial,
     alCambiar = null,
   } = {}) {
     if (
@@ -52,7 +53,8 @@ export class ControladorCamaraPhaser {
     this.ventana = this.documento.defaultView ?? globalThis;
     this.teclasDireccionActivas = new Set();
 
-    this.camara.setZoom(CONFIGURACION_CAMARA_PHASER.zoomInicial);
+    this.zoomInicial = validarZoom(zoomInicial);
+    this.camara.setZoom(this.zoomInicial);
     this.camara.setBackgroundColor("#101814");
 
     this.alPointerDown = (pointer) => this.manejarPointerDown(pointer);
@@ -119,6 +121,7 @@ export class ControladorCamaraPhaser {
       this.siguiendoJugador = true;
       this.finalizarArrastre();
       this.limpiarTeclasDireccion();
+      this.establecerZoom(this.zoomInicial, { notificar: false });
     }
 
     if (cambioGeometria || cambioMapa) {
@@ -346,6 +349,27 @@ export class ControladorCamaraPhaser {
     this.teclasDireccionActivas.delete(evento.code);
   }
 
+  establecerZoom(zoom, { notificar = true } = {}) {
+    const zoomNuevo = validarZoom(zoom);
+    if (Math.abs(zoomNuevo - this.camara.zoom) < 1e-9) {
+      return this.camara.zoom;
+    }
+
+    this.camara.setZoom(zoomNuevo);
+    this.firmaLimites = null;
+    this.actualizarLimitesCamara();
+
+    if (this.siguiendoJugador || this.seleccionActiva) {
+      this.centrarEnJugador();
+    } else {
+      this.aplicarLimitesDesplazamiento();
+    }
+
+    this.actualizarCasillaPunteroConocido();
+    if (notificar) this.notificarCambio();
+    return this.camara.zoom;
+  }
+
   cambiarZoom(direccion, { puntoPantalla = null } = {}) {
     const debeConservarJugador =
       this.siguiendoJugador || this.seleccionActiva;
@@ -568,6 +592,20 @@ function obtenerDireccionZoomTeclado(evento) {
   }
 
   return 0;
+}
+
+function validarZoom(zoom) {
+  const numero = Number(zoom);
+  if (
+    !Number.isFinite(numero) ||
+    numero < CONFIGURACION_CAMARA_PHASER.zoomMinimo ||
+    numero > CONFIGURACION_CAMARA_PHASER.zoomMaximo
+  ) {
+    throw new Error(
+      `El zoom inicial debe estar entre ${CONFIGURACION_CAMARA_PHASER.zoomMinimo} y ${CONFIGURACION_CAMARA_PHASER.zoomMaximo}.`,
+    );
+  }
+  return redondearZoom(numero);
 }
 
 function esElementoEditable(elemento) {

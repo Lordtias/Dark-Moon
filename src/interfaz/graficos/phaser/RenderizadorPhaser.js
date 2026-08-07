@@ -13,8 +13,14 @@ const RETARDO_REINTENTO_AJUSTE_ESCALA_MS = 50;
 // Backend visual que consume el mismo contrato neutral que Canvas 2D.
 // No recibe Juego, no ejecuta comandos y no contiene reglas jugables.
 export class RenderizadorPhaser {
-  constructor({ Phaser, canvasBase, contenedor } = {}) {
+  constructor({
+    Phaser,
+    canvasBase,
+    contenedor,
+    preferenciasInterfaz,
+  } = {}) {
     validarElementos({ Phaser, canvasBase, contenedor });
+    validarPreferenciasInterfaz(preferenciasInterfaz);
 
     this.Phaser = Phaser;
     this.canvasBase = canvasBase;
@@ -34,12 +40,17 @@ export class RenderizadorPhaser {
     this.idReintentoAjusteEscala = null;
     this.reintentosAjusteEscala = 0;
     this.ultimoTamanoHost = Object.freeze({ ancho: 0, alto: 0 });
-    this.configuracionAnimaciones = Object.freeze({});
+    this.configuracionAnimaciones = Object.freeze({
+      velocidad: preferenciasInterfaz.velocidadAnimaciones,
+      efectosReducidos: preferenciasInterfaz.efectosReducidos,
+    });
+    this.zoomInicial = preferenciasInterfaz.zoomInicial;
 
     this.prepararContenedor();
 
     const Escena = crearEscenaArranquePhaser({
       Phaser,
+      zoomInicial: this.zoomInicial,
       alPreparar: (escenaPhaser) => {
         this.escenaPhaser = escenaPhaser;
         this.escenaPhaser.configurarAnimaciones(this.configuracionAnimaciones);
@@ -340,6 +351,20 @@ export class RenderizadorPhaser {
     this.pantallaJuego = null;
     this.canvasBase.classList.remove(CLASE_CANVAS_BASE_OCULTO);
     this.canvasBase.removeAttribute("aria-hidden");
+  }
+}
+
+function validarPreferenciasInterfaz(preferencias) {
+  if (
+    !preferencias ||
+    typeof preferencias !== "object" ||
+    typeof preferencias.velocidadAnimaciones !== "string" ||
+    typeof preferencias.efectosReducidos !== "boolean" ||
+    !Number.isFinite(preferencias.zoomInicial)
+  ) {
+    throw new Error(
+      "RenderizadorPhaser necesita preferencias de interfaz válidas.",
+    );
   }
 }
 

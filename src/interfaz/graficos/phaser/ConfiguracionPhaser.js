@@ -3,7 +3,6 @@ export const ALTO_REFERENCIA_PHASER = 640;
 export const TAMANO_CASILLA_REFERENCIA = 32;
 
 export const CONFIGURACION_CAMARA_PHASER = Object.freeze({
-  zoomInicial: 1.2,
   zoomMinimo: 0.8,
   zoomMaximo: 1.6,
   pasoZoom: 0.1,

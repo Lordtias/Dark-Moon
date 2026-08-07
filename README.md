@@ -1913,3 +1913,14 @@ P6.4B queda técnicamente lista para validación manual final. P6 se declarará 
 P7.1 abre el hito de candidato visual para beta web. La versión visible se centraliza en `src/config/VersionAplicacion.js` como `0.7.0-beta.1`; Phaser pasa a ser el backend predeterminado, mientras Canvas 2D queda disponible mediante `?render=canvas2d`. El menú incorpora **Continuar**, habilitado únicamente cuando el guardado durable puede validarse y reconstruirse con los catálogos actuales. Continuar conserva personaje, nivel, XP, atributos, recursos, oro, inventario, equipamiento y progreso mágico, pero inicia en la ciudad y no intenta reanudar una expedición interrumpida. Los guardados dañados no se borran automáticamente y una partida nueva exige confirmación antes de reemplazar progreso existente.
 
 La internacionalización no forma parte de P7.1. El plan incorpora P7.3 como etapa específica bilingüe Español/Inglés: únicamente se traducirá el texto presentado al usuario; código, nombres técnicos e IDs canónicos permanecerán en español.
+
+
+### P7.2 — Configuración visual persistente
+
+P7.1 fue validada y cerrada en `9d7938fc0d92c5735a9df81dddd42834903bac68`. P7.2 reemplaza el placeholder de Configuración por opciones reales de presentación: velocidad de animaciones, efectos reducidos, zoom inicial y pantalla completa.
+
+Los valores iniciales no están hardcodeados en la persistencia. `src/config/presentacion/PreferenciasInterfaz.json` es la fuente canónica; `PersistenciaPreferenciasInterfaz` guarda solamente las decisiones del usuario que difieren de esos defaults. Si el usuario nunca modifica una opción no se crea una copia innecesaria en `localStorage`, y **Restablecer valores predeterminados** elimina los overrides para volver al JSON canónico vigente.
+
+La persistencia de preferencias es independiente de `PersistenciaJugador`: crear/reemplazar un personaje no elimina velocidad, efectos o zoom. Pantalla completa no se persiste porque el navegador exige una interacción explícita para activarla. Phaser recibe las preferencias efectivas desde la aplicación; no lee `localStorage` ni decide valores iniciales. Canvas 2D continúa disponible mediante `?render=canvas2d`.
+
+La mejora adicional del autosave del personaje queda pospuesta. P7.3 utilizará la misma infraestructura para incorporar la preferencia de idioma, traduciendo únicamente texto presentado y conservando código e IDs canónicos en español.

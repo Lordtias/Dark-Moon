@@ -177,12 +177,18 @@ export class PanelPersonaje {
 
     // El tooltip muestra cómo se obtuvo el DPS actualmente visible.
     this.obtener('[data-personaje="dps"]').closest(".dato-personaje").title =
-      `Daño medio: ${this.formatear(resultadoDps.danioMedio)}. ` +
-      `Costo efectivo: ${resultadoDps.costoAtaqueEfectivo}. ` +
-      `Duración: ${this.formatear(
-        resultadoDps.duracionAtaqueSegundos,
-      )} segundos. ` +
-      "No incluye precisión, crítico, armadura ni bloqueo.";
+      traducir("interfaz.personaje.dpsDetalle", {
+        parametros: {
+          danioMedio: this.formatear(resultadoDps.danioMedio),
+          costo: resultadoDps.costoAtaqueEfectivo,
+          duracion: this.formatear(resultadoDps.duracionAtaqueSegundos),
+        },
+        respaldo:
+          `Daño medio: ${this.formatear(resultadoDps.danioMedio)}. ` +
+          `Costo efectivo: ${resultadoDps.costoAtaqueEfectivo}. ` +
+          `Duración: ${this.formatear(resultadoDps.duracionAtaqueSegundos)} segundos. ` +
+          "No incluye precisión, crítico, armadura ni bloqueo.",
+      });
 
     this.actualizarBarra("vida", player.vidaActual, player.vidaMaxima);
     this.actualizarBarra("mana", player.manaActual, player.manaMaximo);

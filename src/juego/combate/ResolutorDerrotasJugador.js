@@ -6,6 +6,13 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { generarBotinEnSuelo } from "../botin/SistemaBotin.js";
 import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
 import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  crearParametroTraduccionMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 
 function crearResultadoSinProcesar(objetivo = null) {
   return {
@@ -17,6 +24,31 @@ function crearResultadoSinProcesar(objetivo = null) {
     progresion: null,
     eventos: [],
   };
+}
+
+function crearDetalleBotinPresentacion(resumen = []) {
+  return resumen.map((entrada) => {
+    const objeto = crearParametroContenidoMensaje("objetos", entrada.idObjeto, {
+      respaldo: entrada.nombre,
+    });
+    if (entrada.rareza === "comun") {
+      return crearParametroTraduccionMensaje("mensajes.derrotas.botinEntradaComun", {
+        parametros: { cantidad: entrada.cantidad, objeto },
+        respaldo: `${entrada.cantidad} ${entrada.nombre}`,
+      });
+    }
+    return crearParametroTraduccionMensaje("mensajes.derrotas.botinEntradaRara", {
+      parametros: {
+        cantidad: entrada.cantidad,
+        objeto,
+        rareza: crearParametroContenidoMensaje("rarezas", entrada.rareza, {
+          respaldo: entrada.rareza,
+        }),
+        nivel: entrada.nivelObjeto,
+      },
+      respaldo: `${entrada.cantidad} ${entrada.nombre}`,
+    });
+  });
 }
 
 // Resuelve una sola vez las consecuencias jugables de derrotar a un enemigo:
@@ -82,7 +114,13 @@ export class ResolutorDerrotasJugador {
     try {
       this.eliminarActorTemporal(objetivo);
 
-      const mensajes = [`${objetivo.nombre} fue derrotado.`];
+      const parametroObjetivo = crearParametroEntidadMensaje(objetivo);
+      const mensajes = [
+        crearMensajeTraducible("mensajes.derrotas.enemigo", {
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          parametros: { objetivo: parametroObjetivo },
+        }),
+      ];
       const resultadoBotin = generarBotinEnSuelo({
         fuente: objetivo,
         configuracionObjetos: this.configuracionObjetos,
@@ -91,7 +129,13 @@ export class ResolutorDerrotasJugador {
       });
       if (resultadoBotin.cantidadUnidades > 0) {
         mensajes.push(
-          `${objetivo.nombre} dejó botín: ${resultadoBotin.resumenTexto}.`,
+          crearMensajeTraducible("mensajes.derrotas.botin", {
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+            parametros: {
+              objetivo: parametroObjetivo,
+              detalle: crearDetalleBotinPresentacion(resultadoBotin.resumen),
+            },
+          }),
         );
       }
 
@@ -105,23 +149,43 @@ export class ResolutorDerrotasJugador {
         recompensaExperiencia.experienciaFinal,
       );
       mensajes.push(
-        `Ganaste ${progresion.experienciaGanada} puntos de experiencia.`,
+        crearMensajeTraducible("mensajes.derrotas.experiencia", {
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          parametros: { cantidad: progresion.experienciaGanada },
+        }),
       );
 
       if (progresion.nivelesGanados === 1) {
-        mensajes.push(`Subiste al nivel ${progresion.nivelActual}.`);
+        mensajes.push(
+          crearMensajeTraducible("mensajes.derrotas.nivel", {
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+            parametros: { nivel: progresion.nivelActual },
+          }),
+        );
       } else if (progresion.nivelesGanados > 1) {
         mensajes.push(
-          `Subiste ${progresion.nivelesGanados} niveles y alcanzaste el nivel ` +
-            `${progresion.nivelActual}.`,
+          crearMensajeTraducible("mensajes.derrotas.niveles", {
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+            parametros: {
+              cantidad: progresion.nivelesGanados,
+              nivel: progresion.nivelActual,
+            },
+          }),
         );
       }
 
       if (progresion.puntosGanados === 1) {
-        mensajes.push("Obtuviste 1 punto de atributo.");
+        mensajes.push(
+          crearMensajeTraducible("mensajes.derrotas.atributo", {
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          }),
+        );
       } else if (progresion.puntosGanados > 1) {
         mensajes.push(
-          `Obtuviste ${progresion.puntosGanados} puntos de atributo.`,
+          crearMensajeTraducible("mensajes.derrotas.atributos", {
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+            parametros: { cantidad: progresion.puntosGanados },
+          }),
         );
       }
 
@@ -148,7 +212,7 @@ export class ResolutorDerrotasJugador {
       return {
         procesada: true,
         objetivo,
-        mensaje: mensajes.filter(Boolean).join("\n"),
+        mensaje: mensajes.filter(Boolean),
         resultadoBotin,
         recompensaExperiencia,
         progresion,
@@ -178,7 +242,7 @@ export class ResolutorDerrotasJugador {
     return {
       cantidadProcesada: resultados.length,
       mensajes,
-      mensaje: mensajes.join("\n"),
+      mensaje: mensajes,
       resultados,
       eventos: resultados.flatMap((resultado) => resultado.eventos ?? []),
     };

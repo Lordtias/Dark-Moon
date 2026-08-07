@@ -1,3 +1,5 @@
+import { traducir } from "../idiomas/ContextoIdioma.js";
+
 // Coordina inventario, equipamiento, modal
 // y acciones expuestas por Juego.
 //
@@ -153,7 +155,7 @@ export class ControladorEquipamientoDom {
       objetosEquipados: this.obtenerObjetosEquipados(),
 
       accion: {
-        texto: "Desequipar",
+        texto: traducir("interfaz.detalleObjeto.desequipar", { respaldo: "Desequipar" }),
 
         ejecutar: () => {
           const resultado =
@@ -169,11 +171,11 @@ export class ControladorEquipamientoDom {
     let texto = null;
 
     if (objeto.esMunicion) {
-      texto = "Cargar";
+      texto = traducir("interfaz.detalleObjeto.cargar", { respaldo: "Cargar" });
     } else if (objeto.esConsumible) {
-      texto = "Consumir";
+      texto = traducir("interfaz.detalleObjeto.consumir", { respaldo: "Consumir" });
     } else if (objeto.esEquipable) {
-      texto = "Equipar";
+      texto = traducir("interfaz.detalleObjeto.equipar", { respaldo: "Equipar" });
     }
 
     if (texto === null) {
@@ -237,7 +239,7 @@ export class ControladorEquipamientoDom {
 
 function formatearNombreRanura(nombreRanura) {
   if (typeof nombreRanura !== "string" || nombreRanura.trim() === "") {
-    return "Equipado";
+    return traducir("interfaz.equipamiento.equipado", { respaldo: "Equipado" });
   }
 
   const texto = nombreRanura
@@ -246,5 +248,6 @@ function formatearNombreRanura(nombreRanura) {
     .trim()
     .toLowerCase();
 
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
+  const respaldo = texto.charAt(0).toUpperCase() + texto.slice(1);
+  return traducir(`interfaz.equipamiento.${nombreRanura}`, { respaldo });
 }

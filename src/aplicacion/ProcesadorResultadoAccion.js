@@ -34,8 +34,9 @@ export function aplicarResultadoAccion({
 
   // Evitamos agregar entradas vacías al historial.
   if (
-    typeof resultadoNormalizado.mensaje === "string" &&
-    resultadoNormalizado.mensaje.trim() !== ""
+    resultadoNormalizado.mensaje !== null &&
+    resultadoNormalizado.mensaje !== undefined &&
+    resultadoNormalizado.mensaje !== ""
   ) {
     renderizador.mostrarMensaje(resultadoNormalizado.mensaje);
   }

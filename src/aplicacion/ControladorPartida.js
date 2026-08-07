@@ -16,6 +16,11 @@ import {
   TIPOS_COMANDO_JUGADOR,
 } from "./EjecutorAccionesJugador.js";
 import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../juego/mensajes/MensajesJuego.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -329,7 +334,11 @@ export class ControladorPartida {
     }
 
     this.renderizador.mostrarMensaje(
-      `El mapa fijo "${idMapa}" todavía no está disponible.`,
+      crearMensajeTraducible("mensajes.juego.mapaFijoNoDisponible", {
+        parametros: { id: idMapa },
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        respaldo: `El mapa fijo "${idMapa}" todavía no está disponible.`,
+      }),
     );
 
     return false;
@@ -537,15 +546,27 @@ export class ControladorPartida {
 
   mostrarResumenCiudad({ esInicioPartida } = {}) {
     const mapaSeleccionado = this.juego.mapaSeleccionado;
-    const mensajePrincipal = esInicioPartida
-      ? `Comenzaste tu aventura en ${mapaSeleccionado.nombre}.`
-      : `Regresaste a ${mapaSeleccionado.nombre}.`;
-
-    this.renderizador.mostrarMensaje(
-      `${mensajePrincipal}\n` +
-        "Acercate al mercader y presioná R para comerciar. " +
-        "La entrada a las mazmorras se encuentra al norte.",
+    const mapa = crearParametroContenidoMensaje("mapas", mapaSeleccionado.id, {
+      respaldo: mapaSeleccionado.nombre ?? "",
+    });
+    const mensajePrincipal = crearMensajeTraducible(
+      esInicioPartida ? "mensajes.juego.ciudadInicio" : "mensajes.juego.ciudadRegreso",
+      {
+        parametros: { mapa },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: esInicioPartida
+          ? `Comenzaste tu aventura en ${mapaSeleccionado.nombre}.`
+          : `Regresaste a ${mapaSeleccionado.nombre}.`,
+      },
     );
+
+    this.renderizador.mostrarMensaje([
+      mensajePrincipal,
+      crearMensajeTraducible("mensajes.juego.ciudadAyuda", {
+        tipo: TIPOS_MENSAJE_JUEGO.SISTEMA,
+        respaldo: "Acercate al mercader y presioná R para comerciar. La entrada a las mazmorras se encuentra al norte.",
+      }),
+    ]);
 
     console.groupCollapsed(`[Ciudad] ${mapaSeleccionado.nombre}`);
     console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
@@ -564,33 +585,38 @@ export class ControladorPartida {
     const tiposEnemigos = formatearConteo(generacion.enemigosPorTipo);
     const variantes = formatearConteo(generacion.variantes);
 
-    const mensajeModoPrueba = parametrosPrueba?.activo
-      ? " Modo de prueba activo."
-      : "";
-    const mensajeBotinPrueba = parametrosPrueba?.botinPrueba
-      ? " Botín de prueba activo: acercate y presioná R para revisarlo."
-      : "";
-    const mensajePortalPrueba = parametrosPrueba?.portalPrueba
-      ? " Portal de prueba activo: acercate y presioná R para generar otra mazmorra."
-      : "";
-
-    this.renderizador.mostrarMensaje(
-      `Mapa generado: ${mapaSeleccionado.nombre}.\n` +
-        `Bioma: ${mapaSeleccionado.bioma}. ` +
-        `Nivel seleccionado: ${generacion.nivelMapa}. ` +
-        `Semilla: ${generacion.semilla}. ` +
-        `Tamaño: ${generacion.ancho} × ${generacion.alto}. ` +
-        `Paredes: ${generacion.porcentajeNoCaminableReal}% ` +
-        `(objetivo ${generacion.porcentajeNoCaminableObjetivo}%). ` +
-        `Enemigos: ${generacion.cantidadEnemigos} ` +
-        `(${tiposEnemigos}). ` +
-        `Variantes: ${variantes}.\n` +
-        `Destructibles: ${generacion.cantidadDestructibles}. ` +
-        "La salida hacia la ciudad está ubicada en un borde del mapa." +
-        mensajeModoPrueba +
-        mensajeBotinPrueba +
-        mensajePortalPrueba,
-    );
+    const mensajesResumen = [
+      crearMensajeTraducible("mensajes.juego.mapaGenerado", {
+        parametros: {
+          mapa: crearParametroContenidoMensaje("mapas", mapaSeleccionado.id, { respaldo: mapaSeleccionado.nombre ?? "" }),
+        },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Mapa generado: ${mapaSeleccionado.nombre}.`,
+      }),
+      crearMensajeTraducible("mensajes.juego.mapaResumen", {
+        parametros: {
+          bioma: mapaSeleccionado.bioma,
+          nivel: generacion.nivelMapa,
+          semilla: generacion.semilla,
+          ancho: generacion.ancho,
+          alto: generacion.alto,
+          paredes: generacion.porcentajeNoCaminableReal,
+          objetivoParedes: generacion.porcentajeNoCaminableObjetivo,
+          enemigos: generacion.cantidadEnemigos,
+          tipos: tiposEnemigos,
+          variantes,
+        },
+        respaldo: `Bioma: ${mapaSeleccionado.bioma}. Nivel seleccionado: ${generacion.nivelMapa}. Semilla: ${generacion.semilla}. Tamaño: ${generacion.ancho} × ${generacion.alto}. Paredes: ${generacion.porcentajeNoCaminableReal}% (objetivo ${generacion.porcentajeNoCaminableObjetivo}%). Enemigos: ${generacion.cantidadEnemigos} (${tiposEnemigos}). Variantes: ${variantes}.`,
+      }),
+      crearMensajeTraducible("mensajes.juego.mapaResumenFinal", {
+        parametros: { destructibles: generacion.cantidadDestructibles },
+        respaldo: `Destructibles: ${generacion.cantidadDestructibles}. La salida hacia la ciudad está ubicada en un borde del mapa.`,
+      }),
+    ];
+    if (parametrosPrueba?.activo) mensajesResumen.push(crearMensajeTraducible("mensajes.juego.modoPrueba", { respaldo: "Modo de prueba activo." }));
+    if (parametrosPrueba?.botinPrueba) mensajesResumen.push(crearMensajeTraducible("mensajes.juego.botinPrueba", { respaldo: "Botín de prueba activo: acercate y presioná R para revisarlo." }));
+    if (parametrosPrueba?.portalPrueba) mensajesResumen.push(crearMensajeTraducible("mensajes.juego.portalPrueba", { respaldo: "Portal de prueba activo: acercate y presioná R para generar otra mazmorra." }));
+    this.renderizador.mostrarMensaje(mensajesResumen);
 
     console.groupCollapsed(
       `[Mapa] ${mapaSeleccionado.nombre} | ` +

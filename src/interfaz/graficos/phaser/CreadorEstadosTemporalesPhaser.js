@@ -1,3 +1,4 @@
+import { traducir, traducirContenido } from "../../idiomas/ContextoIdioma.js";
 // Construye representaciones de estados ya resueltos por el dominio. Los
 // objetos persistentes se adjuntan al contenedor de la entidad; las entradas,
 // rechazos y retiradas utilizan la capa transitoria del compositor.
@@ -209,7 +210,7 @@ export class CreadorEstadosTemporalesPhaser {
     return grafico;
   }
 
-  crearNoAplicado({ centro, feedback } = {}) {
+  crearNoAplicado({ centro, feedback, motivo = null } = {}) {
     if (!esCentroValido(centro) || !feedback) return null;
     const contenedor = this.escena.add.container(centro.x, centro.y - 8);
     const grafico = this.escena.add.graphics();
@@ -223,7 +224,7 @@ export class CreadorEstadosTemporalesPhaser {
       secundario,
     });
     const texto = this.escena.add
-      .text(0, -13, feedback.texto, {
+      .text(0, -13, resolverTextoNoAplicado({ feedback, motivo }), {
         color: feedback.colorSecundario,
         fontFamily: "monospace",
         fontSize: "11px",
@@ -463,14 +464,30 @@ function esCentroValido(centro) {
   return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }
 
+function resolverTextoNoAplicado({ feedback, motivo }) {
+  const claves = {
+    resistencia: "resistido",
+    inmunidad: "inmune",
+    duplicado: "yaActivo",
+  };
+  const sufijo = claves[motivo];
+  return sufijo
+    ? traducir(`mensajes.feedback.${sufijo}`, { respaldo: feedback?.texto ?? "" })
+    : feedback?.texto ?? "";
+}
+
 function resolverTextoEstado({ perfil, efecto, operacion }) {
-  const base = typeof perfil?.textoEstado === "string"
+  const respaldo = typeof perfil?.textoEstado === "string"
     ? perfil.textoEstado.trim()
     : "";
+  const idEfecto = efecto?.catalogoEfectoId ?? efecto?.efectoId ?? efecto?.idDefinicion ?? null;
+  const base = idEfecto
+    ? traducirContenido("efectos", idEfecto, "textoEstado", respaldo)
+    : respaldo;
   if (!base) return null;
 
   if (operacion === "renovado") {
-    return `${base} · RENOVADO`;
+    return `${base} · ${traducir("mensajes.feedback.renovado", { respaldo: "RENOVADO" })}`;
   }
 
   if (operacion === "intensificado" || operacion === "acumulado") {

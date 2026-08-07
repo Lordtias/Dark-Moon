@@ -390,7 +390,7 @@
 
         <div class="lista-atributos">
           <div class="fila-atributo" data-atributo="fuerza">
-            <span class="nombre-atributo-panel"> Fuerza </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.fuerza"> Fuerza </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -400,13 +400,15 @@
               data-atributo="fuerza"
               aria-label="Aumentar Fuerza"
               title="Asignar un punto a Fuerza"
+              data-i18n-aria-label="interfaz.personaje.aumentarFuerza"
+              data-i18n-title="interfaz.personaje.asignarFuerza"
             >
               +
             </button>
           </div>
 
           <div class="fila-atributo" data-atributo="destreza">
-            <span class="nombre-atributo-panel"> Destreza </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.destreza"> Destreza </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -416,13 +418,15 @@
               data-atributo="destreza"
               aria-label="Aumentar Destreza"
               title="Asignar un punto a Destreza"
+              data-i18n-aria-label="interfaz.personaje.aumentarDestreza"
+              data-i18n-title="interfaz.personaje.asignarDestreza"
             >
               +
             </button>
           </div>
 
           <div class="fila-atributo" data-atributo="constitucion">
-            <span class="nombre-atributo-panel"> Constitución </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.constitucion"> Constitución </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -432,13 +436,15 @@
               data-atributo="constitucion"
               aria-label="Aumentar Constitución"
               title="Asignar un punto a Constitución"
+              data-i18n-aria-label="interfaz.personaje.aumentarConstitucion"
+              data-i18n-title="interfaz.personaje.asignarConstitucion"
             >
               +
             </button>
           </div>
 
           <div class="fila-atributo" data-atributo="inteligencia">
-            <span class="nombre-atributo-panel"> Inteligencia </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.inteligencia"> Inteligencia </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -448,13 +454,15 @@
               data-atributo="inteligencia"
               aria-label="Aumentar Inteligencia"
               title="Asignar un punto a Inteligencia"
+              data-i18n-aria-label="interfaz.personaje.aumentarInteligencia"
+              data-i18n-title="interfaz.personaje.asignarInteligencia"
             >
               +
             </button>
           </div>
 
           <div class="fila-atributo" data-atributo="sabiduria">
-            <span class="nombre-atributo-panel"> Sabiduría </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.sabiduria"> Sabiduría </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -464,13 +472,15 @@
               data-atributo="sabiduria"
               aria-label="Aumentar Sabiduría"
               title="Asignar un punto a Sabiduría"
+              data-i18n-aria-label="interfaz.personaje.aumentarSabiduria"
+              data-i18n-title="interfaz.personaje.asignarSabiduria"
             >
               +
             </button>
           </div>
 
           <div class="fila-atributo" data-atributo="carisma">
-            <span class="nombre-atributo-panel"> Carisma </span>
+            <span class="nombre-atributo-panel" data-i18n="interfaz.personaje.carisma"> Carisma </span>
             <strong data-campo="valor"> 0 </strong>
 
             <button
@@ -480,6 +490,8 @@
               data-atributo="carisma"
               aria-label="Aumentar Carisma"
               title="Asignar un punto a Carisma"
+              data-i18n-aria-label="interfaz.personaje.aumentarCarisma"
+              data-i18n-title="interfaz.personaje.asignarCarisma"
             >
               +
             </button>
@@ -544,49 +556,57 @@
         </div>
       </section>
 
-      <!-- Resistencias elementales y resistencias a efectos actuales. -->
-      <section class="seccion-panel" data-seccion-personaje="resistencias">
-        <h3>Resistencias</h3>
+      <!-- Resistencias de daño y resistencias a efectos actuales. -->
+      <section class="seccion-panel seccion-resistencias-personaje" data-seccion-personaje="resistencias">
+        <h3 data-i18n="interfaz.personaje.resistencias">Resistencias</h3>
 
-        <div class="resumen-personaje">
-          <div class="dato-personaje">
-            <span>Fuego</span>
-            <strong data-personaje="res-fuego">0</strong>
+        <div class="grupo-resistencias-personaje">
+          <h4 data-i18n="interfaz.personaje.resistenciasDanio">Resistencias de daño</h4>
+          <div class="resumen-personaje">
+            <div class="dato-personaje dato-resistencia-danio" data-resistencia-danio="fuego">
+              <span data-i18n="interfaz.personaje.fuego">Fuego</span>
+              <strong data-personaje="res-fuego">0</strong>
+            </div>
+
+            <div class="dato-personaje dato-resistencia-danio" data-resistencia-danio="frio">
+              <span data-i18n="interfaz.personaje.frio">Frío</span>
+              <strong data-personaje="res-frio">0</strong>
+            </div>
+
+            <div class="dato-personaje dato-resistencia-danio" data-resistencia-danio="rayo">
+              <span data-i18n="interfaz.personaje.rayo">Rayo</span>
+              <strong data-personaje="res-rayo">0</strong>
+            </div>
+
+            <div class="dato-personaje dato-resistencia-danio" data-resistencia-danio="veneno">
+              <span data-i18n="interfaz.personaje.veneno">Veneno</span>
+              <strong data-personaje="res-veneno">0</strong>
+            </div>
           </div>
+        </div>
 
-          <div class="dato-personaje">
-            <span>Frío</span>
-            <strong data-personaje="res-frio">0</strong>
-          </div>
+        <div class="grupo-resistencias-personaje">
+          <h4 data-i18n="interfaz.personaje.resistenciasEfectos">Resistencias de efectos</h4>
+          <div class="resumen-personaje">
+            <div class="dato-personaje">
+              <span data-i18n="interfaz.personaje.congelamiento">Congelamiento</span>
+              <strong data-personaje="res-congelamiento">0</strong>
+            </div>
 
-          <div class="dato-personaje">
-            <span>Rayo</span>
-            <strong data-personaje="res-rayo">0</strong>
-          </div>
+            <div class="dato-personaje">
+              <span data-i18n="interfaz.personaje.aturdimiento">Aturdimiento</span>
+              <strong data-personaje="res-aturdimiento">0</strong>
+            </div>
 
-          <div class="dato-personaje">
-            <span>Veneno</span>
-            <strong data-personaje="res-veneno">0</strong>
-          </div>
+            <div class="dato-personaje">
+              <span data-i18n="interfaz.personaje.envenenamiento">Envenenamiento</span>
+              <strong data-personaje="res-envenenamiento">0</strong>
+            </div>
 
-          <div class="dato-personaje">
-            <span>Congelamiento</span>
-            <strong data-personaje="res-congelamiento">0</strong>
-          </div>
-
-          <div class="dato-personaje">
-            <span>Aturdimiento</span>
-            <strong data-personaje="res-aturdimiento">0</strong>
-          </div>
-
-          <div class="dato-personaje">
-            <span>Envenenamiento</span>
-            <strong data-personaje="res-envenenamiento">0</strong>
-          </div>
-
-          <div class="dato-personaje">
-            <span>Quemadura</span>
-            <strong data-personaje="res-quemadura">0</strong>
+            <div class="dato-personaje">
+              <span data-i18n="interfaz.personaje.quemadura">Quemadura</span>
+              <strong data-personaje="res-quemadura">0</strong>
+            </div>
           </div>
         </div>
       </section>

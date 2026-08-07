@@ -16,6 +16,14 @@ import {
   TIPOS_ACCION_TEMPORAL,
 } from "../tiempo/SistemaTiempo.js";
 import { buscarSiguientePaso } from "./BuscadorCamino.js";
+import { crearMensajesResultadoAtaque } from "../mensajes/MensajesCombate.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  crearParametroTraduccionMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 
 export { calcularDistanciaCuadricula } from "../combate/SistemaAlcanceAtaque.js";
 
@@ -47,7 +55,11 @@ function actualizarAgresividad({
   if (!enemigo.estaAgresivo && puedeDetectar) {
     enemigo.activarAgresividad();
     registrarParticipanteCombate(enemigo, "deteccion_con_persecucion");
-    mensajes.push(`${enemigo.nombre} te ha detectado.`);
+    mensajes.push(crearMensajeTraducible("mensajes.ia.detectado", {
+      parametros: { enemigo: crearParametroEntidadMensaje(enemigo) },
+      tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+      respaldo: `${enemigo.nombre} te ha detectado.`,
+    }));
     eventos.push(
       crearEventoHostilidadCambiada({
         enemigo,
@@ -61,7 +73,11 @@ function actualizarAgresividad({
   if (enemigo.estaAgresivo && distancia > enemigo.rangoPersecucion) {
     enemigo.desactivarAgresividad();
     retirarParticipanteCombate(enemigo, "perdida_de_persecucion");
-    mensajes.push(`${enemigo.nombre} dejó de perseguirte.`);
+    mensajes.push(crearMensajeTraducible("mensajes.ia.abandona", {
+      parametros: { enemigo: crearParametroEntidadMensaje(enemigo) },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `${enemigo.nombre} dejó de perseguirte.`,
+    }));
     eventos.push(
       crearEventoHostilidadCambiada({
         enemigo,
@@ -90,7 +106,13 @@ function prepararAtaqueEnemigo(enemigo) {
       disponible: true,
       mensaje:
         estabaUsandoAtaqueNatural && arma
-          ? `${enemigo.nombre} vuelve a utilizar ${arma.nombre}.`
+          ? crearMensajeTraducible("mensajes.ia.vuelveArma", {
+              parametros: {
+                enemigo: crearParametroEntidadMensaje(enemigo),
+                arma: crearParametroContenidoMensaje("objetos", arma.id, { respaldo: arma.nombre ?? "" }),
+              },
+              respaldo: `${enemigo.nombre} vuelve a utilizar ${arma.nombre}.`,
+            })
           : null,
     };
   }
@@ -102,15 +124,23 @@ function prepararAtaqueEnemigo(enemigo) {
     return {
       disponible: requisitosAtaqueNatural.disponible,
       mensaje: !estabaUsandoAtaqueNatural
-        ? `${enemigo.nombre} no puede utilizar ` +
-          `${arma?.nombre ?? "su ataque equipado"} y cambia a su ataque natural.`
+        ? crearMensajeTraducible("mensajes.ia.cambiaNatural", {
+            parametros: {
+              enemigo: crearParametroEntidadMensaje(enemigo),
+              arma: arma
+                ? crearParametroContenidoMensaje("objetos", arma.id, { respaldo: arma.nombre ?? "" })
+                : crearParametroTraduccionMensaje("mensajes.ia.ataqueNatural", { respaldo: "su ataque equipado" }),
+            },
+            tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+            respaldo: `${enemigo.nombre} no puede utilizar ${arma?.nombre ?? "su ataque equipado"} y cambia a su ataque natural.`,
+          })
         : null,
     };
   }
 
   return {
     disponible: false,
-    mensaje: requisitosAtaqueEquipado.mensaje,
+    mensaje: requisitosAtaqueEquipado.mensajePresentacion ?? requisitosAtaqueEquipado.mensaje,
   };
 }
 
@@ -171,7 +201,7 @@ function crearResultadoAccion({
     tipoAccion,
     costoBase,
     mensajes: mensajesLimpios,
-    mensaje: mensajesLimpios.join("\n"),
+    mensaje: mensajesLimpios,
     eventos: Array.isArray(eventos) ? eventos : [],
   };
 }
@@ -259,10 +289,18 @@ export function procesarAccionEnemigo({
     const costoAtaque = enemigo.costoAtaqueActual;
     const configuracionAtaque = enemigo.configuracionAtaqueActual;
     const resultadoAtaque = enemigo.atacar(jugador);
-    mensajes.push(resultadoAtaque.mensaje);
+    mensajes.push(...crearMensajesResultadoAtaque({
+      atacante: enemigo,
+      objetivo: jugador,
+      resultado: resultadoAtaque,
+      ataqueDelJugador: false,
+    }));
 
     if (!jugador.estaVivo) {
-      mensajes.push("Has muerto.\nRecargá la página para reiniciar.");
+      mensajes.push(crearMensajeTraducible("mensajes.ia.jugadorMuerto", {
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: "Has muerto. Recargá la página para reiniciar.",
+      }));
     }
 
     return crearResultadoAccion({
@@ -289,7 +327,11 @@ export function procesarAccionEnemigo({
   });
 
   if (resultadoMovimiento.seMovio) {
-    mensajes.push(`${enemigo.nombre} avanza hacia vos.`);
+    mensajes.push(crearMensajeTraducible("mensajes.ia.avanza", {
+      parametros: { enemigo: crearParametroEntidadMensaje(enemigo) },
+      tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+      respaldo: `${enemigo.nombre} avanza hacia vos.`,
+    }));
     const resultadoZona = notificarMovimientoActor({
       actor: enemigo,
       origen: resultadoMovimiento.origen,

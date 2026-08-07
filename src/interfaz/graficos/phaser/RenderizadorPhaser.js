@@ -1,3 +1,4 @@
+import { traducir } from "../../idiomas/ContextoIdioma.js";
 import { crearEscenaArranquePhaser } from "./EscenaArranquePhaser.js";
 import { inicializarPhaser } from "./InicializadorPhaser.js";
 
@@ -68,7 +69,9 @@ export class RenderizadorPhaser {
           this.canvasPhaser.classList.add(CLASE_CANVAS_PHASER);
           this.canvasPhaser.setAttribute(
             "aria-label",
-            "Mapa de Dark Moon representado visualmente con Phaser",
+            traducir("interfaz.juego.mapaPhaserAria", {
+              respaldo: "Mapa de Dark Moon representado visualmente con Phaser",
+            }),
           );
           this.solicitarAjusteEscala();
         },

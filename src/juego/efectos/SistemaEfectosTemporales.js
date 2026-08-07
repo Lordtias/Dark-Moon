@@ -8,6 +8,12 @@ import {
   AgendaEventosTemporales,
 } from "../tiempo/AgendaEventosTemporales.js";
 import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+import {
   FACTORES_TEMPORALES_MODIFICABLES,
   MODOS_RESISTENCIA_EFECTO,
   POLITICAS_ACUMULACION_EFECTO,
@@ -26,6 +32,17 @@ const TIPO_EVENTO_AGENDA = Object.freeze({
 const ESTADOS_POR_OBJETIVO = new WeakMap();
 
 let siguienteIdInstancia = 1;
+
+function parametroEfecto(id, nombre = "") {
+  return crearParametroContenidoMensaje("efectos", id, { respaldo: nombre });
+}
+
+function mensajeEfecto(clave, { objetivo = null, efectoId = null, nombreEfecto = "", parametros = {}, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA } = {}) {
+  const completos = { ...parametros };
+  if (objetivo) completos.objetivo = crearParametroEntidadMensaje(objetivo);
+  if (efectoId) completos.efecto = parametroEfecto(efectoId, nombreEfecto);
+  return crearMensajeTraducible(clave, { tipo, parametros: completos });
+}
 
 function obtenerEstadoObjetivo(objetivo, crear = true) {
   let estado = ESTADOS_POR_OBJETIVO.get(objetivo);
@@ -300,6 +317,10 @@ export class SistemaEfectosTemporales {
         estadoAplicacion: "rechazado_por_politica",
         motivo: "objetivo_derrotado",
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} está derrotado.`,
+        mensajePresentacion: mensajeEfecto("mensajes.efectos.objetivoDerrotado", {
+          objetivo: definicion.objetivo,
+          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        }),
         eventos: [
           {
             tipo: "efecto_rechazado",
@@ -323,6 +344,12 @@ export class SistemaEfectosTemporales {
         probabilidadFinal: 0,
         tiradaAplicacion: null,
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} es inmune a ${definicion.nombreEfecto}.`,
+        mensajePresentacion: mensajeEfecto("mensajes.efectos.inmune", {
+          objetivo: definicion.objetivo,
+          efectoId: definicion.efectoId,
+          nombreEfecto: definicion.nombreEfecto,
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
         eventos: [
           {
             tipo: "efecto_inmune",
@@ -357,6 +384,12 @@ export class SistemaEfectosTemporales {
         probabilidadFinal,
         tiradaAplicacion,
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} resistió ${definicion.nombreEfecto}.`,
+        mensajePresentacion: mensajeEfecto("mensajes.efectos.resistido", {
+          objetivo: definicion.objetivo,
+          efectoId: definicion.efectoId,
+          nombreEfecto: definicion.nombreEfecto,
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
         eventos: [
           {
             tipo: "efecto_resistido",
@@ -478,6 +511,12 @@ export class SistemaEfectosTemporales {
       tiradaAplicacion,
       efecto: crearResumenEfecto(efecto),
       mensaje: `${obtenerNombreObjetivo(efecto.objetivo)} recibió ${efecto.nombreEfecto}.`,
+      mensajePresentacion: mensajeEfecto("mensajes.efectos.aplicado", {
+        objetivo: efecto.objetivo,
+        efectoId: efecto.efectoId,
+        nombreEfecto: efecto.nombreEfecto,
+        tipo: efecto.beneficioso ? TIPOS_MENSAJE_JUEGO.POSITIVO : TIPOS_MENSAJE_JUEGO.ALERTA,
+      }),
       contraefectosRetirados: eventosContraefecto.map(
         (eventoRetiro) => eventoRetiro.catalogoEfectoId,
       ),
@@ -499,6 +538,9 @@ export class SistemaEfectosTemporales {
         ...resolucion,
         efecto: crearResumenEfecto(efecto),
         mensaje: "El grupo de acumulación ya pertenece a un efecto incompatible.",
+        mensajePresentacion: mensajeEfecto("mensajes.efectos.grupoIncompatible", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
         eventos: [
           this.crearEventoDominio("efecto_rechazado", efecto, {
             motivo: "grupo_incompatible",
@@ -520,6 +562,11 @@ export class SistemaEfectosTemporales {
         ...resolucion,
         efecto: crearResumenEfecto(efecto),
         mensaje: `${efecto.nombreEfecto} ya está activo y no renovó su duración.`,
+        mensajePresentacion: mensajeEfecto("mensajes.efectos.duplicado", {
+          efectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
         eventos: [
           this.crearEventoDominio("efecto_rechazado", efecto, {
             motivo: "duplicado",
@@ -620,6 +667,16 @@ export class SistemaEfectosTemporales {
       mensaje: alcanzoMaximo
         ? `${efecto.nombreEfecto} renovó su duración y ya estaba en su máximo.`
         : `${efecto.nombreEfecto} se aplicó nuevamente.`,
+      mensajePresentacion: mensajeEfecto(
+        alcanzoMaximo
+          ? "mensajes.efectos.renovadoMaximo"
+          : "mensajes.efectos.reaplicado",
+        {
+          efectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
+          tipo: efecto.beneficioso ? TIPOS_MENSAJE_JUEGO.POSITIVO : TIPOS_MENSAJE_JUEGO.ALERTA,
+        },
+      ),
       eventos: [
         this.crearEventoDominio(tipoEvento, efecto, {
           alcanzoMaximo,
@@ -843,7 +900,13 @@ export class SistemaEfectosTemporales {
     );
 
     resultado.mensajes.push(
-      `${obtenerNombreObjetivo(efecto.objetivo)} recibe ${danioAplicado} de daño periódico.`,
+      mensajeEfecto("mensajes.efectos.danioPeriodico", {
+        objetivo: efecto.objetivo,
+        efectoId: efecto.efectoId,
+        nombreEfecto: efecto.nombreEfecto,
+        parametros: { danio: danioAplicado },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      }),
     );
 
     if (!estaObjetivoVivo(efecto.objetivo)) {
@@ -887,7 +950,12 @@ export class SistemaEfectosTemporales {
 
     resultado.eventos.push(evento);
     resultado.mensajes.push(
-      `El efecto ${efecto.grupoAcumulacion} terminó sobre ${obtenerNombreObjetivo(efecto.objetivo)}.`,
+      mensajeEfecto("mensajes.efectos.vencido", {
+        objetivo: efecto.objetivo,
+        efectoId: efecto.efectoId,
+        nombreEfecto: efecto.nombreEfecto,
+        tipo: TIPOS_MENSAJE_JUEGO.SISTEMA,
+      }),
     );
   }
 

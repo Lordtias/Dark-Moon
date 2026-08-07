@@ -1,3 +1,7 @@
+import {
+  crearMensajeTraducible,
+  TIPOS_MENSAJE_JUEGO,
+} from "../juego/mensajes/MensajesJuego.js";
 import { crearResultadoAccion } from "../juego/acciones/ResultadoAccion.js";
 
 export const TIPOS_COMANDO_JUGADOR = Object.freeze({
@@ -18,6 +22,10 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
 // pruebas deterministas pueden construir los mismos comandos y reutilizar
 // este flujo sin duplicar reglas de movimiento, combate, habilidades
 // o interacción.
+function mensajeCombate(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.combate.${sufijo}`, { tipo, respaldo });
+}
+
 export class EjecutorAccionesJugador {
   constructor({ juego, obtenerSistemaHabilidades = null } = {}) {
     validarJuego(juego);
@@ -96,8 +104,7 @@ export class EjecutorAccionesJugador {
     if (sistemaHabilidades?.modoHabilidad) {
       return {
         exito: false,
-        mensaje:
-          "Cancelá primero la habilidad con Escape para usar el ataque de respaldo.",
+        mensaje: mensajeCombate("cancelarHabilidadRespaldo", "Cancelá primero la habilidad con Escape para usar el ataque de respaldo.", TIPOS_MENSAJE_JUEGO.ALERTA),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -108,7 +115,7 @@ export class EjecutorAccionesJugador {
     if (!jugador?.estaVivo) {
       return {
         exito: false,
-        mensaje: "No podés atacar estando derrotado.",
+        mensaje: mensajeCombate("derrotadoNoAtaca", "No podés atacar estando derrotado.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -117,7 +124,7 @@ export class EjecutorAccionesJugador {
     if (this.juego.modoInteraccionActivo) {
       return {
         exito: false,
-        mensaje: "Cancelá la interacción antes de usar el ataque de respaldo.",
+        mensaje: mensajeCombate("cancelarInteraccionRespaldo", "Cancelá la interacción antes de usar el ataque de respaldo.", TIPOS_MENSAJE_JUEGO.ALERTA),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -138,9 +145,15 @@ export class EjecutorAccionesJugador {
     return {
       ...resultado,
       mensaje:
-        typeof mensajeActivacion === "string" && mensajeActivacion.trim() !== ""
+        mensajeActivacion && typeof mensajeActivacion === "object"
           ? mensajeActivacion
-          : "Ataque de respaldo activo. Seleccioná una casilla adyacente y confirmá.",
+          : typeof mensajeActivacion === "string" && mensajeActivacion.trim() !== ""
+            ? mensajeActivacion
+            : mensajeCombate(
+                "respaldoActivo",
+                "Ataque de respaldo activo. Seleccioná una casilla adyacente y confirmá.",
+                TIPOS_MENSAJE_JUEGO.POSITIVO,
+              ),
     };
   }
 
@@ -205,7 +218,10 @@ export class EjecutorAccionesJugador {
     if (opciones.length === 0) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay nada para revisar cerca.",
+        mensaje: crearMensajeTraducible("mensajes.interacciones.nadaCerca", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: "No hay nada para revisar cerca.",
+        }),
       });
     }
 

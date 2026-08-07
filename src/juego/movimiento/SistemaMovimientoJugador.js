@@ -5,6 +5,18 @@ import {
   COSTOS_TEMPORALES_BASE,
   TIPOS_ACCION_TEMPORAL,
 } from "../tiempo/SistemaTiempo.js";
+import {
+  crearMensajeTraducible,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+
+function mensajeMovimiento(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.movimiento.${sufijo}`, {
+    tipo,
+    respaldo,
+  });
+}
 
 export class SistemaMovimientoJugador {
   constructor({
@@ -133,13 +145,13 @@ export class SistemaMovimientoJugador {
     if (!this.esCaminable(nuevaX, nuevaY)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No podés atravesar una pared.",
+        mensaje: mensajeMovimiento("pared", "No podés atravesar una pared.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No podés atravesar esa esquina.",
+        mensaje: mensajeMovimiento("esquina", "No podés atravesar esa esquina.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
 
@@ -151,7 +163,11 @@ export class SistemaMovimientoJugador {
     if (objetivo) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: `No podés caminar sobre ${objetivo.nombre}.`,
+        mensaje: crearMensajeTraducible("mensajes.movimiento.ocupado", {
+          parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
+          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+          respaldo: `No podés caminar sobre ${objetivo.nombre}.`,
+        }),
       });
     }
 
@@ -166,22 +182,30 @@ export class SistemaMovimientoJugador {
       destino: { x: nuevaX, y: nuevaY },
     });
     const opcionesInteraccion = this.obtenerOpcionesInteraccion();
-    let mensajeInteraccion = "";
+    const mensajesMovimiento = [
+      mensajeMovimiento("movido", "Te moviste por el mapa."),
+    ];
     if (opcionesInteraccion.length === 1) {
-      mensajeInteraccion =
-        `\n${opcionesInteraccion[0].interaccionPrioritaria.texto}: ` +
-        "presioná R.";
+      mensajesMovimiento.push(
+        crearMensajeTraducible("mensajes.interacciones.unaCerca", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: "Hay una entidad para revisar: presioná R.",
+        }),
+      );
     } else if (opcionesInteraccion.length > 1) {
-      mensajeInteraccion = "\nHay varias entidades para revisar: presioná R.";
+      mensajesMovimiento.push(
+        crearMensajeTraducible("mensajes.interacciones.variasCerca", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: "Hay varias entidades para revisar: presioná R.",
+        }),
+      );
     }
 
     return this.finalizarAccionJugador({
       mensaje: [
-        "Te moviste por la mazmorra." + mensajeInteraccion,
+        ...mensajesMovimiento,
         ...(resultadoZona?.mensajes ?? []),
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      ].filter(Boolean),
       tipoAccion: TIPOS_ACCION_TEMPORAL.MOVIMIENTO,
       costoBase: COSTOS_TEMPORALES_BASE.movimiento,
       eventos: [

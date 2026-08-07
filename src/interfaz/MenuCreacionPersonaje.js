@@ -641,30 +641,33 @@ export class MenuCreacionPersonaje {
     );
 
     if (!tirada) {
-      this.botonEquipoAleatorio.textContent = "Tirar equipo alternativo";
+      this.botonEquipoAleatorio.textContent = traducir("interfaz.creacion.tirarAlternativo", { respaldo: "Tirar equipo alternativo" });
 
-      this.textoEstadoEquipoAleatorio.textContent =
-        "Podés realizar una única tirada de equipo para esta profesión.";
+      this.textoEstadoEquipoAleatorio.textContent = traducir("interfaz.creacion.tiradaUnica", {
+        respaldo: "Podés realizar una única tirada de equipo para esta profesión.",
+      });
 
       this.textoEstadoEquipoAleatorio.dataset.estado = "disponible";
 
       return;
     }
 
-    this.botonEquipoAleatorio.textContent = "Usar equipo obtenido";
+    this.botonEquipoAleatorio.textContent = traducir("interfaz.creacion.usarObtenido", { respaldo: "Usar equipo obtenido" });
 
     if (tirada.objetoMagico) {
-      this.textoEstadoEquipoAleatorio.textContent =
-        `Tirada utilizada. Obtuviste: ` + `${tirada.objetoMagico.nombre}.`;
+      this.textoEstadoEquipoAleatorio.textContent = traducir("interfaz.creacion.tiradaObtuviste", {
+        parametros: { objeto: traducirContenido("objetos", tirada.objetoMagico.id, "nombre", tirada.objetoMagico.nombre) },
+        respaldo: `Tirada utilizada. Obtuviste: ${tirada.objetoMagico.nombre}.`,
+      });
 
       this.textoEstadoEquipoAleatorio.dataset.estado = "magico";
 
       return;
     }
 
-    this.textoEstadoEquipoAleatorio.textContent =
-      "Tirada utilizada. El conjunto alternativo " +
-      "no obtuvo un objeto mágico.";
+    this.textoEstadoEquipoAleatorio.textContent = traducir("interfaz.creacion.tiradaSinMagico", {
+      respaldo: "Tirada utilizada. El conjunto alternativo no obtuvo un objeto mágico.",
+    });
 
     this.textoEstadoEquipoAleatorio.dataset.estado =
       seleccion.origen === "aleatorio" ? "seleccionado" : "utilizado";
@@ -690,13 +693,13 @@ export class MenuCreacionPersonaje {
     const nombre = this.inputNombre.value.trim();
 
     if (nombre === "") {
-      this.mostrarMensaje("Debés ingresar un nombre.");
+      this.mostrarMensaje(traducir("interfaz.creacion.validacionNombre", { respaldo: "Debés ingresar un nombre." }));
 
       return;
     }
 
     if (this.calcularPuntosRestantes() !== 0) {
-      this.mostrarMensaje("Debés distribuir todos los puntos.");
+      this.mostrarMensaje(traducir("interfaz.creacion.validacionPuntos", { respaldo: "Debés distribuir todos los puntos." }));
 
       return;
     }
@@ -707,7 +710,7 @@ export class MenuCreacionPersonaje {
     const seleccion = this.seleccionesEquipo.get(this.idProfesionSeleccionada);
 
     if (!seleccion) {
-      this.mostrarMensaje("Debés seleccionar un conjunto inicial.");
+      this.mostrarMensaje(traducir("interfaz.creacion.validacionConjunto", { respaldo: "Debés seleccionar un conjunto inicial." }));
 
       return;
     }

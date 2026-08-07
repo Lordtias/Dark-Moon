@@ -453,6 +453,9 @@ export function calcularDatosEnemigo({
 
   const datos = {
     nombre: plantilla.nombre,
+    idPlantilla,
+    idVariante,
+    genero: plantilla.genero ?? "masculino",
 
     nivel,
 

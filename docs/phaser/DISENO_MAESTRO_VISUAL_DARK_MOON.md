@@ -1976,7 +1976,9 @@ P7.2 fue validada en `93cbd48cb29c77c9af8f3de222e13437971abb32`. El selector **E
 
 Solo cambia el texto presentado. Código, IDs, nombres técnicos y contratos canónicos permanecen en español. La traducción no duplica layouts ni crea variantes funcionales por idioma; ambas lenguas comparten exactamente la misma estructura, reglas y recursos. `es.json` y `en.json` contienen exclusivamente presentación. Los catálogos jugables conservan sus `nombre` y `descripcion` españoles como respaldo: si una traducción falta, el usuario debe seguir viendo un texto válido y nunca `undefined` ni una clave técnica.
 
-P7.3A cubre estructura y contenido localizado. P7.3B cubrirá mensajes dinámicos y feedback de ejecución. Los textos ingleses más largos deben adaptarse dentro de los mismos paneles mediante flujo normal, wrapping y tamaños existentes; no se crearán paneles alternativos por idioma.
+P7.3A fue validada en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`. P7.3B completa mensajes dinámicos y feedback de ejecución mediante contratos semánticos: el color/jerarquía visual pertenece al tipo del mensaje y nunca se deduce leyendo palabras del idioma. Phaser y Canvas localizan etiquetas transitorias desde el mismo contexto de idioma. Los textos ingleses más largos deben adaptarse dentro de los mismos paneles mediante flujo normal, wrapping y tamaños existentes; no se crearán paneles alternativos por idioma.
+
+La revisión manual de P7.3B separa además el bloque del personaje en **resistencias de daño** y **resistencias de efectos**. Las resistencias de daño conservan el lenguaje elemental ya usado por habilidades: Fuego `#ff6b2c`, Frío `#6fd7ff`, Rayo `#b95cff` y Veneno `#75df37`; el color es únicamente de presentación y no modifica valores ni reglas. Las resistencias de efectos permanecen con la lectura neutra del panel.
 
 
 ### P7.2 — Pantalla de configuración de presentación

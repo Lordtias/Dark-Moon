@@ -6,6 +6,12 @@ import {
 } from "./CalculadorPreciosComercio.js";
 
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 
 // Ejecuta una compra desde el stock del mercader
 // hacia el inventario del jugador.
@@ -17,6 +23,10 @@ import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 // - Se comprueba que toda la cantidad pueda entrar.
 // - Se transfiere exactamente la cantidad solicitada.
 // - Recién entonces se descuenta el oro.
+function mensajeComercio(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.comercio.${sufijo}`, { tipo, respaldo });
+}
+
 export function comprarObjetoMercader({
   jugador,
   mercader,
@@ -40,7 +50,7 @@ export function comprarObjetoMercader({
     return crearResultadoAccion({
       exito: false,
 
-      mensaje: "Ese espacio del mercader está vacío.",
+      mensaje: mensajeComercio("mercaderVacio", "Ese espacio del mercader está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
     });
   }
 
@@ -59,9 +69,10 @@ export function comprarObjetoMercader({
     return crearResultadoAccion({
       exito: false,
 
-      mensaje:
-        `Necesitás ${crearTextoMonedas(precio.precioTotal)} para comprar ` +
-        `${crearNombreCantidad(objeto, cantidad)}.`,
+      mensaje: crearMensajeTraducible("mensajes.comercio.oroInsuficiente", {
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `Necesitás ${crearTextoMonedas(precio.precioTotal)} para comprar ${crearNombreCantidad(objeto, cantidad)}.`,
+      }),
     });
   }
 
@@ -100,9 +111,15 @@ export function comprarObjetoMercader({
     exito: true,
     redibujar: true,
 
-    mensaje:
-      `Compraste ${crearNombreCantidad(objeto, cantidad)} ` +
-      `por ${crearTextoMonedas(precio.precioTotal)}.`,
+    mensaje: crearMensajeTraducible("mensajes.comercio.compra", {
+      parametros: {
+        cantidad,
+        objeto: crearParametroContenidoMensaje("objetos", objeto.id, { respaldo: objeto.nombre }),
+        precio: precio.precioTotal,
+      },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Compraste ${crearNombreCantidad(objeto, cantidad)} por ${crearTextoMonedas(precio.precioTotal)}.`,
+    }),
 
     tipoOperacion: "compra",
 
@@ -146,7 +163,7 @@ export function venderObjetoMercader({
     return crearResultadoAccion({
       exito: false,
 
-      mensaje: "Ese espacio del inventario está vacío.",
+      mensaje: mensajeComercio("inventarioVacio", "Ese espacio del inventario está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
     });
   }
 
@@ -164,7 +181,7 @@ export function venderObjetoMercader({
   if (!precio.permitido) {
     return crearResultadoAccion({
       exito: false,
-      mensaje: precio.mensaje,
+      mensaje: precio.mensajePresentacion ?? precio.mensaje,
     });
   }
 
@@ -185,8 +202,12 @@ export function venderObjetoMercader({
 
       mensaje:
         transferencia.motivo === "sinEspacio"
-          ? `${mercader.nombre} no tiene espacio para recibir ese objeto.`
-          : transferencia.mensaje,
+          ? crearMensajeTraducible("mensajes.comercio.mercaderSinEspacio", {
+              parametros: { mercader: crearParametroEntidadMensaje(mercader) },
+              tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+              respaldo: `${mercader.nombre} no tiene espacio para recibir ese objeto.`,
+            })
+          : mensajeComercio("transferenciaFallo", transferencia.mensaje ?? "No se pudo completar la transferencia comercial.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     });
   }
 
@@ -196,9 +217,15 @@ export function venderObjetoMercader({
     exito: true,
     redibujar: true,
 
-    mensaje:
-      `Vendiste ${crearNombreCantidad(objeto, cantidad)} ` +
-      `por ${crearTextoMonedas(precio.precioTotal)}.`,
+    mensaje: crearMensajeTraducible("mensajes.comercio.venta", {
+      parametros: {
+        cantidad,
+        objeto: crearParametroContenidoMensaje("objetos", objeto.id, { respaldo: objeto.nombre }),
+        precio: precio.precioTotal,
+      },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Vendiste ${crearNombreCantidad(objeto, cantidad)} por ${crearTextoMonedas(precio.precioTotal)}.`,
+    }),
 
     tipoOperacion: "venta",
 

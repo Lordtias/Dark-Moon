@@ -7,6 +7,15 @@ import {
   ESTADOS_HOSTILIDAD_ACCION,
 } from "../acciones/EventosAccion.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
+import {
+  crearMensajeTraducible,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+import {
+  crearMensajesAtaqueCasillaVacia,
+  crearMensajesResultadoAtaque,
+} from "../mensajes/MensajesCombate.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
 import {
@@ -22,7 +31,7 @@ function crearResultadoAtaqueCasillaVacia({ jugador, posicionObjetivo }) {
   const resultadoAtaque = jugador.atacarCasillaVacia();
 
   return {
-    mensaje: resultadoAtaque.mensaje,
+    mensaje: crearMensajesAtaqueCasillaVacia({ resultado: resultadoAtaque }),
     eventos: [
       crearEventoAtaqueResuelto({
         atacante: jugador,
@@ -216,7 +225,9 @@ export class SistemaCombateJugador {
     if (this.obtenerModoInteraccionActivo()) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Confirmá la interacción con R o cancelá con Escape.",
+        mensaje: crearMensajeTraducible("mensajes.combate.confirmarInteraccion", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
       });
     }
 
@@ -228,7 +239,9 @@ export class SistemaCombateJugador {
     if (seleccion === null) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay una casilla válida para atacar.",
+        mensaje: crearMensajeTraducible("mensajes.combate.sinCasilla", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
       });
     }
 
@@ -236,7 +249,7 @@ export class SistemaCombateJugador {
     if (seleccionExplicita && !evaluacion.puedeAtacar) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: evaluacion.mensaje,
+        mensaje: evaluacion.mensajePresentacion ?? evaluacion.mensaje,
       });
     }
     if (
@@ -245,7 +258,9 @@ export class SistemaCombateJugador {
     ) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay una casilla válida para atacar.",
+        mensaje: crearMensajeTraducible("mensajes.combate.sinCasilla", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
       });
     }
 
@@ -254,8 +269,12 @@ export class SistemaCombateJugador {
     const objetivo = this.obtenerObjetivoEn(seleccion.x, seleccion.y);
     return crearResultadoAccion({
       mensaje: objetivo
-        ? `Modo combate: seleccionaste a ${objetivo.nombre}.`
-        : `Modo combate: casilla ${seleccion.x}, ${seleccion.y}.`,
+        ? crearMensajeTraducible("mensajes.combate.modoObjetivo", {
+            parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
+          })
+        : crearMensajeTraducible("mensajes.combate.modoCasilla", {
+            parametros: { x: seleccion.x, y: seleccion.y },
+          }),
       redibujar: true,
     });
   }
@@ -269,9 +288,11 @@ export class SistemaCombateJugador {
     this.jugador.ataqueNaturalForzado = false;
     this.limpiarSelector();
     return crearResultadoAccion({
-      mensaje: respaldoActivo
-        ? "Cancelaste el ataque de respaldo."
-        : "Cancelaste el modo combate.",
+      mensaje: crearMensajeTraducible(
+        respaldoActivo
+          ? "mensajes.combate.cancelarRespaldo"
+          : "mensajes.combate.cancelarModo",
+      ),
       redibujar: true,
     });
   }
@@ -291,34 +312,45 @@ export class SistemaCombateJugador {
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "La casilla seleccionada es inválida.",
+        mensaje: crearMensajeTraducible("mensajes.combate.casillaInvalida", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
       });
     }
 
     if (!this.esCaminable(x, y)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No podés seleccionar una pared.",
+        mensaje: crearMensajeTraducible("mensajes.combate.paredSeleccion", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        }),
       });
     }
     if (!this.estaCasillaDentroAlcance(x, y)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: `Esa casilla supera el alcance ${this.jugador.alcanceAtaque}.`,
+        mensaje: crearMensajeTraducible("mensajes.combate.fueraAlcance", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          parametros: { alcance: this.jugador.alcanceAtaque },
+        }),
       });
     }
 
     this.selector = { x, y };
     const objetivo = this.obtenerObjetivoEn(x, y);
     const evaluacion = this.evaluarCasillaAtaque(x, y);
-    const textoSeleccion = objetivo
-      ? `Seleccionaste a ${objetivo.nombre}.`
-      : `Seleccionaste la casilla ${x}, ${y}.`;
+    const mensajeSeleccion = objetivo
+      ? crearMensajeTraducible("mensajes.combate.seleccionObjetivo", {
+          parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
+        })
+      : crearMensajeTraducible("mensajes.combate.seleccionCasilla", {
+          parametros: { x, y },
+        });
 
     return crearResultadoAccion({
       mensaje: evaluacion.puedeAtacar
-        ? textoSeleccion
-        : `${textoSeleccion} ${evaluacion.mensaje}`,
+        ? mensajeSeleccion
+        : [mensajeSeleccion, evaluacion.mensajePresentacion ?? evaluacion.mensaje],
       redibujar: true,
     });
   }
@@ -342,7 +374,9 @@ export class SistemaCombateJugador {
 
     if (resultadoAtaque.ataqueNoDisponible) {
       return {
-        mensaje: resultadoAtaque.mensaje,
+        mensaje:
+          resultadoAtaque.requisitos?.mensajePresentacion ??
+          resultadoAtaque.mensaje,
         eventos: [],
       };
     }
@@ -355,7 +389,12 @@ export class SistemaCombateJugador {
       objetivo.activarAgresividad();
     }
 
-    const mensajes = [resultadoAtaque.mensaje];
+    const mensajes = crearMensajesResultadoAtaque({
+      atacante: this.jugador,
+      objetivo,
+      resultado: resultadoAtaque,
+      ataqueDelJugador: true,
+    });
     const eventos = [
       crearEventoAtaqueResuelto({
         atacante: this.jugador,
@@ -378,15 +417,20 @@ export class SistemaCombateJugador {
 
     if (!objetivo.estaDestruido) {
       return {
-        mensaje: mensajes.filter(Boolean).join("\n"),
+        mensaje: mensajes.filter(Boolean),
         eventos,
       };
     }
 
     if (!(objetivo instanceof Enemigo)) {
-      mensajes.push(`${objetivo.nombre} fue destruido.`);
+      mensajes.push(
+        crearMensajeTraducible("mensajes.combate.destructibleDestruido", {
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
+        }),
+      );
       return {
-        mensaje: mensajes.filter(Boolean).join("\n"),
+        mensaje: mensajes.filter(Boolean),
         eventos,
       };
     }
@@ -395,7 +439,7 @@ export class SistemaCombateJugador {
     mensajes.push(derrota.mensaje);
     eventos.push(...(derrota.eventos ?? []));
     return {
-      mensaje: mensajes.filter(Boolean).join("\n"),
+      mensaje: mensajes.filter(Boolean),
       eventos,
     };
   }
@@ -408,7 +452,7 @@ export class SistemaCombateJugador {
     if (!evaluacion.puedeAtacar) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: evaluacion.mensaje,
+        mensaje: evaluacion.mensajePresentacion ?? evaluacion.mensaje,
       });
     }
 
@@ -418,7 +462,7 @@ export class SistemaCombateJugador {
     if (!requisitos.disponible) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: requisitos.mensaje,
+        mensaje: requisitos.mensajePresentacion ?? requisitos.mensaje,
         turnoConsumido: false,
         redibujar: false,
       });

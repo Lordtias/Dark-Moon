@@ -1379,7 +1379,7 @@ P7.3 se divide en dos subetapas para evitar mezclar la migración estructural de
 
 #### P7.3A — Infraestructura bilingüe y contenido localizado
 
-Estado: **implementada técnicamente; pendiente de validación manual y commit**.
+Estado: **validada y cerrada** en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`.
 
 - centralizar presentación en `src/config/idiomas/es.json` y `en.json`;
 - Español es el idioma canónico inicial y `idioma` reutiliza la persistencia de overrides de P7.2;
@@ -1392,10 +1392,21 @@ Estado: **implementada técnicamente; pendiente de validación manual y commit**
 
 #### P7.3B — Mensajes dinámicos y cierre bilingüe
 
+Estado: **implementada técnicamente; pendiente de validación manual y commit**.
+
 - reemplazar mensajes visibles literales por contratos semánticos traducibles;
 - eliminar la clasificación visual dependiente de buscar palabras españolas en `MensajesJuego.js`;
 - localizar combate, movimiento, interacciones, comercio, consumibles, estados, zonas, progreso, muerte, botín y feedback Phaser/Canvas;
 - auditar el repo para que no queden textos visibles dependientes accidentalmente del español.
+
+Implementación P7.3B:
+
+- `MensajesJuego.js` conserva compatibilidad con texto heredado, pero los textos heredados quedan como `sistema`: ya no se deduce su tipo buscando vocabulario español;
+- los nuevos contratos `crearMensajeTraducible`, referencias de contenido y referencias de entidad transportan significado sin traducir IDs;
+- `PresentadorMensajesJuego` resuelve el idioma únicamente en presentación y mantiene `nombre`/`descripcion` canónicos como fallback;
+- el feedback textual de Phaser y Canvas usa las mismas claves localizadas para fallo, crítico, bloqueo, estados, renovación, resistencia e inmunidad;
+- los errores técnicos internos (`throw`, validadores, consola de desarrollo) no se traducen salvo que exista una presentación separada dirigida al jugador.
+
 
 Regla canónica de internacionalización: **solo cambia el texto presentado al usuario**. Código, variables, nombres técnicos, claves jugables e IDs continúan en español (`rafaga_glacial`, `congelamiento`, `curacion_lunar`, etc.). Los JSON funcionales siguen siendo únicos: no se agregan `nombreEN`/`descripcionEN` ni se duplican catálogos jugables por idioma.
 

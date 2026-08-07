@@ -4,6 +4,11 @@ import { asociarEjecucionTemporalAEventos } from "../acciones/EventosAccion.js";
 import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
 import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+import {
   aplicarContenidoZonaTemporal,
   validarContenidoZonaTemporal,
 } from "../zonas/AplicadorContenidoZonaTemporal.js";
@@ -241,7 +246,7 @@ export class CoordinadorTiempoPartida {
     return {
       ...resultado,
       mensajes: acumulado.mensajes,
-      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      mensaje: acumulado.mensajes.filter(Boolean),
       eventos: acumulado.eventos,
     };
   }
@@ -257,7 +262,7 @@ export class CoordinadorTiempoPartida {
     return {
       ...resultado,
       mensajes: acumulado.mensajes,
-      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      mensaje: acumulado.mensajes.filter(Boolean),
       eventos: acumulado.eventos,
     };
   }
@@ -311,18 +316,31 @@ export class CoordinadorTiempoPartida {
       this.sistemaEfectosTemporales.obtenerBloqueoTotalActivo(this.jugador);
     if (!efecto) return null;
 
-    const mensajes = {
-      aturdimiento: "Estás aturdido y no podés realizar acciones.",
-      congelamiento: "Estás congelado y no podés realizar acciones.",
-      paralisis: "Estás paralizado y no podés realizar acciones.",
+    const claves = {
+      aturdimiento: "aturdido",
+      congelamiento: "congelado",
+      paralisis: "paralizado",
     };
+    const clave = claves[efecto.efectoId] ?? "bloqueoGenerico";
     return {
       exito: false,
       bloqueado: true,
       motivo: "bloqueo_total",
-      mensaje:
-        mensajes[efecto.efectoId] ??
-        `El efecto ${efecto.nombreEfecto} impide realizar acciones.`,
+      mensaje: crearMensajeTraducible(`mensajes.habilidades.${clave}`, {
+        parametros: {
+          efecto: crearParametroContenidoMensaje("efectos", efecto.efectoId, {
+            respaldo: efecto.nombreEfecto ?? "",
+          }),
+        },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: claves[efecto.efectoId]
+          ? {
+              aturdimiento: "Estás aturdido y no podés realizar acciones.",
+              congelamiento: "Estás congelado y no podés realizar acciones.",
+              paralisis: "Estás paralizado y no podés realizar acciones.",
+            }[efecto.efectoId]
+          : `El efecto ${efecto.nombreEfecto} impide realizar acciones.`,
+      }),
       turnoConsumido: false,
       redibujar: false,
       eventos: [
@@ -350,7 +368,10 @@ export class CoordinadorTiempoPartida {
       exito: false,
       bloqueado: true,
       motivo: "bloqueo_habilidades",
-      mensaje: "Estás silenciado y no podés usar habilidades.",
+      mensaje: crearMensajeTraducible("mensajes.habilidades.silenciado", {
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: "Estás silenciado y no podés usar habilidades.",
+      }),
       turnoConsumido: false,
       redibujar: false,
       eventos: [
@@ -696,24 +717,36 @@ export class CoordinadorTiempoPartida {
 
     return {
       mensajes: acumulado.mensajes,
-      mensaje: acumulado.mensajes.filter(Boolean).join("\n"),
+      mensaje: acumulado.mensajes.filter(Boolean),
       recuperacionJugador: acumulado.recuperacionJugador,
       eventos: acumulado.eventos,
     };
   }
   crearMensajeRegeneracion(regeneracion) {
-    const recursosRecuperados = [];
-    if (regeneracion.vidaRecuperada > 0) {
-      recursosRecuperados.push(`${regeneracion.vidaRecuperada} de Vida`);
+    const vida = regeneracion.vidaRecuperada ?? 0;
+    const mana = regeneracion.manaRecuperado ?? 0;
+    if (vida <= 0 && mana <= 0) return null;
+    if (vida > 0 && mana > 0) {
+      return crearMensajeTraducible("mensajes.tiempo.regeneracionAmbos", {
+        parametros: { vida, mana },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Recuperaste ${vida} de Vida y ${mana} de Maná.`,
+      });
     }
-    if (regeneracion.manaRecuperado > 0) {
-      recursosRecuperados.push(`${regeneracion.manaRecuperado} de Maná`);
+    if (vida > 0) {
+      return crearMensajeTraducible("mensajes.tiempo.regeneracionVida", {
+        parametros: { cantidad: vida },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Recuperaste ${vida} de Vida.`,
+      });
     }
-    if (recursosRecuperados.length === 0) {
-      return null;
-    }
-    return `Recuperaste ${recursosRecuperados.join(" y ")}.`;
+    return crearMensajeTraducible("mensajes.tiempo.regeneracionMana", {
+      parametros: { cantidad: mana },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Recuperaste ${mana} de Maná.`,
+    });
   }
+
   finalizarAccionJugador({
     mensaje,
     tipoAccion,
@@ -750,7 +783,7 @@ export class CoordinadorTiempoPartida {
       mensajes.push(mensajeRegeneracion);
     }
     return {
-      mensaje: mensajes.filter(Boolean).join("\n"),
+      mensaje: mensajes.filter(Boolean),
       turnoConsumido: true,
       redibujar: true,
       eventos: [...eventosAccionJugador, ...resultadoTemporal.eventos],

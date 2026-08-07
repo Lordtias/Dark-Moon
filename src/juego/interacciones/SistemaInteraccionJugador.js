@@ -1,4 +1,10 @@
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 
 import {
   transferirObjetoEntreContenedores,
@@ -36,6 +42,13 @@ import { TIPOS_INTERACCION } from "./TiposInteraccion.js";
 //
 // La interfaz continúa comunicándose con Juego.
 // Juego simplemente delegará aquí las operaciones.
+function mensajeInteraccion(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.interacciones.${sufijo}`, {
+    tipo,
+    respaldo,
+  });
+}
+
 export class SistemaInteraccionJugador {
   constructor({
     jugador,
@@ -149,7 +162,7 @@ export class SistemaInteraccionJugador {
     if (this.modoActivo) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Ya estás seleccionando una interacción.",
+        mensaje: mensajeInteraccion("yaSeleccionando", "Ya estás seleccionando una interacción.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -158,7 +171,7 @@ export class SistemaInteraccionJugador {
     if (opciones.length === 0) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay nada para revisar cerca.",
+        mensaje: mensajeInteraccion("nadaCerca", "No hay nada para revisar cerca.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -167,7 +180,7 @@ export class SistemaInteraccionJugador {
     if (opciones.length === 1) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Solo hay una entidad interactuable disponible.",
+        mensaje: mensajeInteraccion("unaDisponible", "Solo hay una entidad interactuable disponible."),
         interaccion: opciones[0].interaccionPrioritaria,
       });
     }
@@ -177,9 +190,11 @@ export class SistemaInteraccionJugador {
 
     return crearResultadoAccion({
       exito: true,
-      mensaje:
-        `Seleccionaste ${opciones[0].entidad.nombre}. ` +
-        "Mové el selector y confirmá con R.",
+      mensaje: crearMensajeTraducible("mensajes.interacciones.seleccionadaMover", {
+        parametros: { entidad: crearParametroEntidadMensaje(opciones[0].entidad) },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Seleccionaste ${opciones[0].entidad.nombre}. Mové el selector y confirmá con R.`,
+      }),
       redibujar: true,
     });
   }
@@ -197,7 +212,7 @@ export class SistemaInteraccionJugador {
       this.limpiarSelector();
 
       return crearResultadoAccion({
-        mensaje: "Ya no hay interacciones disponibles.",
+        mensaje: mensajeInteraccion("sinDisponibles", "Ya no hay interacciones disponibles.", TIPOS_MENSAJE_JUEGO.ALERTA),
         redibujar: true,
       });
     }
@@ -215,7 +230,7 @@ export class SistemaInteraccionJugador {
 
     if (siguienteOpcion === opcionActual) {
       return crearResultadoAccion({
-        mensaje: "No hay otro interactuable en esa dirección.",
+        mensaje: mensajeInteraccion("sinDireccion", "No hay otro interactuable en esa dirección."),
       });
     }
 
@@ -230,7 +245,7 @@ export class SistemaInteraccionJugador {
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "La casilla seleccionada es inválida.",
+        mensaje: mensajeInteraccion("casillaInvalida", "La casilla seleccionada es inválida.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
 
@@ -240,7 +255,7 @@ export class SistemaInteraccionJugador {
       this.limpiarSelector();
 
       return crearResultadoAccion({
-        mensaje: "Ya no hay interacciones disponibles.",
+        mensaje: mensajeInteraccion("sinDisponibles", "Ya no hay interacciones disponibles.", TIPOS_MENSAJE_JUEGO.ALERTA),
         redibujar: true,
       });
     }
@@ -258,7 +273,7 @@ export class SistemaInteraccionJugador {
     if (!opcion) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay un interactuable seleccionable en esa casilla.",
+        mensaje: mensajeInteraccion("sinSeleccionable", "No hay un interactuable seleccionable en esa casilla.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -269,7 +284,11 @@ export class SistemaInteraccionJugador {
     this.establecerSelector(opcion);
 
     return crearResultadoAccion({
-      mensaje: `Seleccionaste ${opcion.entidad.nombre}. Confirmá con R.`,
+      mensaje: crearMensajeTraducible("mensajes.interacciones.seleccionada", {
+        parametros: { entidad: crearParametroEntidadMensaje(opcion.entidad) },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Seleccionaste ${opcion.entidad.nombre}. Confirmá con R.`,
+      }),
       redibujar: true,
     });
   }
@@ -296,7 +315,7 @@ export class SistemaInteraccionJugador {
     if (!opcionSeleccionada) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "La interacción seleccionada ya no está disponible.",
+        mensaje: mensajeInteraccion("yaNoDisponible", "La interacción seleccionada ya no está disponible.", TIPOS_MENSAJE_JUEGO.ALERTA),
         interaccion: null,
         redibujar: true,
       });
@@ -319,7 +338,7 @@ export class SistemaInteraccionJugador {
     this.limpiarSelector();
 
     return crearResultadoAccion({
-      mensaje: "Cancelaste la selección de interacción.",
+      mensaje: mensajeInteraccion("cancelada", "Cancelaste la selección de interacción."),
       redibujar: true,
     });
   }
@@ -330,14 +349,14 @@ export class SistemaInteraccionJugador {
     if (!this.jugador.estaVivo) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No podés interactuar estando derrotado.",
+        mensaje: mensajeInteraccion("jugadorDerrotado", "No podés interactuar estando derrotado.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
 
     if (this.obtenerModoCombateActivo()) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Cancelá el modo combate antes de interactuar.",
+        mensaje: mensajeInteraccion("cancelarCombate", "Cancelá el modo combate antes de interactuar.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -359,7 +378,7 @@ export class SistemaInteraccionJugador {
     if (!objeto) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Ese espacio del contenedor está vacío.",
+        mensaje: mensajeInteraccion("espacioVacio", "Ese espacio del contenedor está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -374,28 +393,45 @@ export class SistemaInteraccionJugador {
     if (!resultadoTransferencia.exito) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay espacio suficiente en el inventario.",
+        mensaje: mensajeInteraccion("inventarioLleno", "No hay espacio suficiente en el inventario.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
 
     this.retirarInteractuableSiVacio(interactuable);
 
+    const parametroObjeto = crearParametroContenidoMensaje(
+      "objetos",
+      resultadoTransferencia.idObjeto,
+      { respaldo: resultadoTransferencia.nombreObjeto ?? "" },
+    );
     const mensajes = [
-      `Recogiste ${resultadoTransferencia.cantidadTransferida} ` +
-        `${resultadoTransferencia.nombreObjeto}.`,
+      crearMensajeTraducible("mensajes.interacciones.recogidoCantidad", {
+        parametros: {
+          cantidad: resultadoTransferencia.cantidadTransferida,
+          objeto: parametroObjeto,
+        },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Recogiste ${resultadoTransferencia.cantidadTransferida} ${resultadoTransferencia.nombreObjeto}.`,
+      }),
     ];
 
     if (resultadoTransferencia.cantidadRestante > 0) {
       mensajes.push(
-        `Quedaron ${resultadoTransferencia.cantidadRestante} ` +
-          `${resultadoTransferencia.nombreObjeto} en el botín.`,
+        crearMensajeTraducible("mensajes.interacciones.quedaronBotin", {
+          parametros: {
+            cantidad: resultadoTransferencia.cantidadRestante,
+            objeto: parametroObjeto,
+          },
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: `Quedaron ${resultadoTransferencia.cantidadRestante} ${resultadoTransferencia.nombreObjeto} en el botín.`,
+        }),
       );
     }
 
     const resultado = crearResultadoAccion({
       ...resultadoTransferencia,
       exito: true,
-      mensaje: mensajes.join("\n"),
+      mensaje: mensajes,
     });
 
     return this.finalizarResultadoAccionJugador({
@@ -423,7 +459,7 @@ export class SistemaInteraccionJugador {
     if (!resultadoTransferencia.exito) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "No hay espacio suficiente en el inventario.",
+        mensaje: mensajeInteraccion("inventarioLleno", "No hay espacio suficiente en el inventario.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
       });
     }
 
@@ -431,24 +467,38 @@ export class SistemaInteraccionJugador {
 
     const detalles = resultadoTransferencia.resultados
       .filter((resultado) => resultado.cantidadTransferida > 0)
-      .map(
-        (resultado) =>
-          `${resultado.cantidadTransferida} ` + `${resultado.nombreObjeto}`,
+      .map((resultado) =>
+        crearMensajeTraducible("mensajes.interacciones.detalleRecogido", {
+          parametros: {
+            cantidad: resultado.cantidadTransferida,
+            objeto: crearParametroContenidoMensaje("objetos", resultado.idObjeto, {
+              respaldo: resultado.nombreObjeto ?? "",
+            }),
+          },
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          respaldo: `${resultado.cantidadTransferida} ${resultado.nombreObjeto}`,
+        }),
       );
 
-    const mensajes = ["Recogiste todo lo posible:", ...detalles];
+    const mensajes = [
+      mensajeInteraccion("recogisteTodo", "Recogiste todo lo posible:", TIPOS_MENSAJE_JUEGO.POSITIVO),
+      ...detalles,
+    ];
 
     if (!resultadoTransferencia.origenVacio) {
       mensajes.push(
-        "Algunos objetos quedaron en el botín porque " +
-          "el inventario no tiene espacio.",
+        mensajeInteraccion(
+          "algunosQuedaron",
+          "Algunos objetos quedaron en el botín porque el inventario no tiene espacio.",
+          TIPOS_MENSAJE_JUEGO.ALERTA,
+        ),
       );
     }
 
     const resultado = crearResultadoAccion({
       ...resultadoTransferencia,
       exito: true,
-      mensaje: mensajes.join("\n"),
+      mensaje: mensajes,
     });
 
     return this.finalizarResultadoAccionJugador({
@@ -470,7 +520,7 @@ export class SistemaInteraccionJugador {
     if (!this.interactuables.includes(interactuable)) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Ese contenedor ya no está disponible.",
+        mensaje: mensajeInteraccion("contenedorNoDisponible", "Ese contenedor ya no está disponible.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -480,7 +530,7 @@ export class SistemaInteraccionJugador {
     ) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "La entidad seleccionada no contiene objetos.",
+        mensaje: mensajeInteraccion("sinObjetos", "La entidad seleccionada no contiene objetos.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 
@@ -489,7 +539,7 @@ export class SistemaInteraccionJugador {
 
       return crearResultadoAccion({
         exito: false,
-        mensaje: "El contenedor está vacío.",
+        mensaje: mensajeInteraccion("contenedorVacio", "El contenedor está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
         redibujar: true,
       });
     }
@@ -503,7 +553,7 @@ export class SistemaInteraccionJugador {
     if (!interaccionDisponible) {
       return crearResultadoAccion({
         exito: false,
-        mensaje: "Acercate al contenedor para recoger sus objetos.",
+        mensaje: mensajeInteraccion("acercarse", "Acercate al contenedor para recoger sus objetos.", TIPOS_MENSAJE_JUEGO.ALERTA),
       });
     }
 

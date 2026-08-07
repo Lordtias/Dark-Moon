@@ -180,7 +180,7 @@ function crearSubtitulo(objeto) {
   }
   if (objeto.esArmadura) {
     const ranuras = objeto.ranurasCompatibles
-      .map(formatearIdentificador)
+      .map(traducirRanuraEquipamiento)
       .join(" / ");
     return ranuras !== "" ? `${tipo} · ${ranuras}` : tipo;
   }
@@ -687,6 +687,26 @@ function traducirEtiquetaValorAfijo(propiedad, respaldo) {
 
 function tDetalle(clave, respaldo) {
   return traducir(`interfaz.detalleObjeto.${clave}`, { respaldo });
+}
+
+
+function traducirRanuraEquipamiento(nombreRanura) {
+  const claves = {
+    cabeza: ["cabeza", "Cabeza"],
+    torso: ["torso", "Torso"],
+    manos: ["manos", "Manos"],
+    piernas: ["piernas", "Piernas"],
+    pies: ["pies", "Pies"],
+    arma: ["arma", "Arma"],
+    secundaria: ["secundaria", "Secundaria"],
+    collar: ["collar", "Collar"],
+    anillo_derecho: ["anilloDerecho", "Anillo der."],
+    anillo_izquierdo: ["anilloIzquierdo", "Anillo izq."],
+  };
+  const [clave, respaldo] = claves[nombreRanura] ?? [null, formatearIdentificador(nombreRanura)];
+  return clave
+    ? traducir(`interfaz.equipamiento.${clave}`, { respaldo })
+    : respaldo;
 }
 
 function traducirTipoObjeto(tipo) {

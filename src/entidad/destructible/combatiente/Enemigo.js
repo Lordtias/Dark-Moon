@@ -9,6 +9,9 @@ const ESTRATEGIAS_SIN_RECURSOS_VALIDAS = ["ataqueNatural", "esperar"];
 export class Enemigo extends Combatiente {
   constructor({
     nombre,
+    idPlantilla = null,
+    idVariante = null,
+    genero = null,
     nivel = 1,
     x = 0,
     y = 0,
@@ -56,6 +59,12 @@ export class Enemigo extends Combatiente {
     }
 
     this.recursoVisual = recursoVisual?.trim() ?? null;
+
+    // Metadata canónica de presentación. No altera estadísticas ni IA;
+    // permite localizar el nombre sin depender del texto español final.
+    this.idPlantilla = normalizarIdPresentacion(idPlantilla);
+    this.idVariante = normalizarIdPresentacion(idVariante);
+    this.genero = normalizarIdPresentacion(genero);
 
     if (!Number.isInteger(experienciaOtorgada) || experienciaOtorgada < 0) {
       throw new Error(
@@ -181,4 +190,10 @@ export class Enemigo extends Combatiente {
 
     return true;
   }
+}
+
+function normalizarIdPresentacion(valor) {
+  return typeof valor === "string" && valor.trim() !== ""
+    ? valor.trim().toLowerCase()
+    : null;
 }

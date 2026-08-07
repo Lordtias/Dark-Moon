@@ -1,3 +1,4 @@
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
   TIPOS_ENTIDAD_VISUAL,
@@ -1844,14 +1845,18 @@ function resolverPosicionMultiplicadorCanvas({ canal, centroX, centroY, radio })
 
 function crearFeedbackEstadoCanvas(evento) {
   const perfil = evento?.efecto?.perfilVisual;
-  const base = typeof perfil?.textoEstado === "string"
+  const respaldo = typeof perfil?.textoEstado === "string"
     ? perfil.textoEstado.trim()
     : "";
+  const idEfecto = evento?.efecto?.catalogoEfectoId ?? evento?.efecto?.efectoId ?? evento?.efecto?.idDefinicion ?? null;
+  const base = idEfecto
+    ? traducirContenido("efectos", idEfecto, "textoEstado", respaldo)
+    : respaldo;
   if (!base || typeof evento?.idObjetivo !== "string") return null;
 
   let texto = base;
   if (evento.operacion === "renovado") {
-    texto = `${base} · RENOVADO`;
+    texto = `${base} · ${traducir("mensajes.feedback.renovado", { respaldo: "RENOVADO" })}`;
   } else if (
     evento.operacion === "intensificado" ||
     evento.operacion === "acumulado"

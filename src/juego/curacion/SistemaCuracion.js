@@ -1,5 +1,9 @@
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 import {
+  crearMensajeTraducible,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+import {
   crearEventoHabilidadResuelta,
   TIPOS_ACTOR_HABILIDAD,
 } from "../acciones/EventosAccion.js";
@@ -85,7 +89,12 @@ export function curarJugador({
   if (jugador.estaVivo === false) {
     return crearResultadoAccion({
       exito: false,
-      mensaje: "La curandera no puede devolver la vida a quien ya cayó.",
+      mensaje: mensajeCuracionTraducible(
+        "derrotado",
+        "La curandera no puede devolver la vida a quien ya cayó.",
+        {},
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
     });
   }
 
@@ -99,16 +108,19 @@ export function curarJugador({
   if (!servicio.necesitaRecuperacion) {
     return crearResultadoAccion({
       exito: false,
-      mensaje: crearMensajeRecursoCompleto(tipoServicio),
+      mensaje: crearMensajeRecursoCompletoPresentacion(tipoServicio),
     });
   }
 
   if (!servicio.puedePagar) {
     return crearResultadoAccion({
       exito: false,
-      mensaje:
-        `Necesitás ${crearTextoMonedas(servicio.precio)} ` +
-        `y tenés ${crearTextoMonedas(jugador.oro)}.`,
+      mensaje: mensajeCuracionTraducible(
+        "oroInsuficiente",
+        `Necesitás ${crearTextoMonedas(servicio.precio)} y tenés ${crearTextoMonedas(jugador.oro)}.`,
+        { necesario: servicio.precio, actual: jugador.oro },
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
       tipoServicio,
       precio: servicio.precio,
       oroActual: jugador.oro,
@@ -128,7 +140,12 @@ export function curarJugador({
   if (!resultadoPago.exito) {
     return crearResultadoAccion({
       exito: false,
-      mensaje: resultadoPago.mensaje,
+      mensaje: mensajeCuracionTraducible(
+        "oroInsuficiente",
+        resultadoPago.mensaje ?? "No tenés suficiente oro.",
+        { necesario: servicio.precio, actual: jugador.oro },
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
       tipoServicio,
       precio: servicio.precio,
       oroActual: jugador.oro,
@@ -196,7 +213,7 @@ export function curarJugador({
   return crearResultadoAccion({
     exito: true,
     redibujar: true,
-    mensaje: crearMensajeCuracion({
+    mensaje: crearMensajeCuracionPresentacion({
       vidaRecuperada,
       manaRecuperado,
       precio: servicio.precio,
@@ -549,6 +566,57 @@ function restaurarOroJugador({ jugador, oroAnterior }) {
 
 function obtenerMensajeError(error) {
   return error instanceof Error ? error.message : String(error);
+}
+
+function crearMensajeRecursoCompletoPresentacion(tipoServicio) {
+  const configuracion = {
+    [TIPOS_SERVICIO_CURACION.VIDA]: ["vidaCompleta", "Tu Vida ya está completa."],
+    [TIPOS_SERVICIO_CURACION.MANA]: ["manaCompleto", "Tu Maná ya está completo."],
+    [TIPOS_SERVICIO_CURACION.AMBOS]: ["recursosCompletos", "Tu Vida y tu Maná ya están completos."],
+  };
+  const [clave, respaldo] = configuracion[tipoServicio] ?? [
+    "sinNecesidad",
+    "No necesitás recuperación.",
+  ];
+  return mensajeCuracionTraducible(clave, respaldo, {}, TIPOS_MENSAJE_JUEGO.ALERTA);
+}
+
+function crearMensajeCuracionPresentacion({ vidaRecuperada, manaRecuperado, precio }) {
+  if (vidaRecuperada > 0 && manaRecuperado > 0) {
+    return mensajeCuracionTraducible(
+      "resultadoAmbos",
+      crearMensajeCuracion({ vidaRecuperada, manaRecuperado, precio }),
+      { vida: vidaRecuperada, mana: manaRecuperado, precio },
+      TIPOS_MENSAJE_JUEGO.POSITIVO,
+    );
+  }
+  if (vidaRecuperada > 0) {
+    return mensajeCuracionTraducible(
+      "resultadoVida",
+      crearMensajeCuracion({ vidaRecuperada, manaRecuperado, precio }),
+      { vida: vidaRecuperada, precio },
+      TIPOS_MENSAJE_JUEGO.POSITIVO,
+    );
+  }
+  return mensajeCuracionTraducible(
+    "resultadoMana",
+    crearMensajeCuracion({ vidaRecuperada, manaRecuperado, precio }),
+    { mana: manaRecuperado, precio },
+    TIPOS_MENSAJE_JUEGO.POSITIVO,
+  );
+}
+
+function mensajeCuracionTraducible(
+  sufijo,
+  respaldo,
+  parametros = {},
+  tipo = TIPOS_MENSAJE_JUEGO.SISTEMA,
+) {
+  return crearMensajeTraducible(`mensajes.curacion.${sufijo}`, {
+    parametros,
+    tipo,
+    respaldo,
+  });
 }
 
 function crearMensajeRecursoCompleto(tipoServicio) {

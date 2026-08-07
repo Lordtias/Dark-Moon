@@ -1,5 +1,6 @@
 import { TIPOS_SERVICIO_CURACION } from "../../juego/curacion/ConfiguracionCuracion.js";
 import { idiomaActivo, traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+import { resolverTextoMensajesJuego } from "../idiomas/PresentadorMensajesJuego.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalCuracion";
 
@@ -249,7 +250,7 @@ export class ModalCuracion {
   }
 
   mostrarMensaje(resultado) {
-    this.mensajeEstado.textContent = resultado?.mensaje ?? "";
+    this.mensajeEstado.textContent = resolverTextoMensajesJuego(resultado?.mensaje);
 
     this.mensajeEstado.classList.toggle(
       "modal-curacion__mensaje-estado--error",

@@ -72,7 +72,15 @@
       "danio": "Damage {minimo}-{maximo}",
       "bloqueo": "Block",
       "flechasIncluidas": "Arrows included: {cantidad}",
-      "consumibleInicial": "Starting consumable"
+      "consumibleInicial": "Starting consumable",
+      "tirarAlternativo": "Roll alternate gear",
+      "tiradaUnica": "You can roll alternate gear once for this profession.",
+      "usarObtenido": "Use rolled gear",
+      "tiradaObtuviste": "Roll used. You obtained: {objeto}.",
+      "tiradaSinMagico": "Roll used. The alternate set did not receive a magical item.",
+      "validacionNombre": "You must enter a name.",
+      "validacionPuntos": "You must distribute all points.",
+      "validacionConjunto": "You must select a starting set."
     },
     "juego": {
       "controles": "MOVEMENT: arrows, WASD, or numpad. Press Space or 5 to wait one turn. COMBAT: f INTERACT: r",
@@ -81,7 +89,8 @@
       "inventario": "Inventory",
       "inventarioVacio": "The inventory is empty.",
       "equipamiento": "Equipment",
-      "personaje": "Character"
+      "personaje": "Character",
+      "mapaPhaserAria": "Dark Moon map visually rendered with Phaser"
     },
     "personaje": {
       "cargando": "Loading...",
@@ -120,7 +129,28 @@
       "xp": "XP",
       "dpsAyuda": "Average raw damage per second. Includes attack speed, but not accuracy, critical hits, armor, or block.",
       "danioMagicoAyuda": "Multiplier derived from Intelligence and Wisdom used by magical skills.",
-      "potenciaEfectosAyuda": "Multiplier derived from Wisdom and Intelligence. Each effect defines whether it scales value, duration, or both."
+      "potenciaEfectosAyuda": "Multiplier derived from Wisdom and Intelligence. Each effect defines whether it scales value, duration, or both.",
+      "dpsDetalle": "Average damage: {danioMedio}. Effective cost: {costo}. Duration: {duracion} seconds. Does not include accuracy, critical hits, armor, or block.",
+      "fuerza": "Strength",
+      "destreza": "Dexterity",
+      "constitucion": "Constitution",
+      "inteligencia": "Intelligence",
+      "sabiduria": "Wisdom",
+      "carisma": "Charisma",
+      "aumentarFuerza": "Increase Strength",
+      "asignarFuerza": "Assign one point to Strength",
+      "aumentarDestreza": "Increase Dexterity",
+      "asignarDestreza": "Assign one point to Dexterity",
+      "aumentarConstitucion": "Increase Constitution",
+      "asignarConstitucion": "Assign one point to Constitution",
+      "aumentarInteligencia": "Increase Intelligence",
+      "asignarInteligencia": "Assign one point to Intelligence",
+      "aumentarSabiduria": "Increase Wisdom",
+      "asignarSabiduria": "Assign one point to Wisdom",
+      "aumentarCarisma": "Increase Charisma",
+      "asignarCarisma": "Assign one point to Charisma",
+      "resistenciasDanio": "Damage resistances",
+      "resistenciasEfectos": "Effect resistances"
     },
     "curacion": {
       "subtitulo": "Restore your resources before a new expedition.",
@@ -220,7 +250,51 @@
       "danioFisico": "Physical",
       "patronAdyacente": "Adjacent",
       "patronLineal": "Linear",
-      "patronLibre": "Free"
+      "patronLibre": "Free",
+      "consumiraEspecifico": "1 specific point will be spent. {cantidad} will remain.",
+      "consumiraUniversal": "1 universal point will be spent. {cantidad} will remain.",
+      "confirmarMejora": "Confirm upgrade",
+      "confirmarAprendizaje": "Confirm learning",
+      "mejorarGrado": "Upgrade one rank",
+      "aprenderHabilidad": "Learn skill",
+      "elegirOrigen": "You must choose the point source.",
+      "gradoAlcanzado": "{habilidad} reached rank {grado}.",
+      "asignarTitulo": "Assign {habilidad}",
+      "reemplazoResumen": "Slot {ranura} contains {actual}. It will be replaced by {nueva}.",
+      "reemplazoAviso": "The replaced skill will remain learned but will no longer have quick access.",
+      "confirmarReemplazo": "Confirm replacement",
+      "reemplazar": "Replace",
+      "quitarResumen": "Remove {habilidad} from slot {ranura}.",
+      "quitarAviso": "The learned rank will not be lost.",
+      "confirmarDesasignacion": "Confirm unassignment",
+      "quitarBarra": "Remove from bar",
+      "quitadaBarra": "{habilidad} was removed from the bar.",
+      "asignadaRanura": "{habilidad} was assigned to slot {ranura}.",
+      "confirmar": "Confirm",
+      "cancelar": "Cancel",
+      "cancelarAccion": "Cancel action",
+      "basicasEtiqueta": "Basic",
+      "generalesTitulo": "General skills",
+      "generalesVacias": "There are no basic skills available yet.",
+      "generalesDetalle": "This section remains prepared as a visual reminder for future actions such as Rest, Research, and other general mechanics.",
+      "seccionVacia": "Empty section",
+      "extensionFutura": "Future extension",
+      "enConstruccion": "In development",
+      "maestriasArmasTitulo": "Weapon masteries",
+      "maestriasArmasDetalle": "The weapon families are shown as a reminder, but they do not gain experience or grant points yet.",
+      "maestriasArmadurasTitulo": "Armor masteries",
+      "maestriasArmadurasDetalle": "Progression through armor use and mitigation will be designed in a future milestone.",
+      "resumenGrado": "{habilidad}: grade {actual} → {nuevo}.",
+      "elegirPuntoConsumir": "Choose which point to spend",
+      "puntoEspecificoDisponible": "{maestria}-specific ({cantidad} available)",
+      "puntoUniversalDisponible": "Universal ({cantidad} available)",
+      "motivoNivelMaestria": "The mastery does not meet the requirement yet.",
+      "motivoGradoMaximo": "The skill has already reached its maximum grade.",
+      "motivoSinUniversales": "No universal points remain.",
+      "motivoSinEspecificos": "No specific points remain for that mastery.",
+      "motivoPuntoOtraMaestria": "The specific point belongs to another mastery.",
+      "motivoOperacion": "The operation could not be completed ({motivo}).",
+      "errorOperacion": "The operation could not be completed."
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -251,7 +325,11 @@
       "riesgoPeligroso": "Dangerous",
       "niveles": "Levels {minimo}–{maximo}",
       "dimensiones": "{ancho} × {alto} tiles",
-      "sinEnemigos": "No enemies configured"
+      "sinEnemigos": "No enemies configured",
+      "entrarBoton": "Enter",
+      "tamano": "Size",
+      "enemigos": "Enemies",
+      "cantidad": "Count"
     },
     "comercio": {
       "subtitulo": "Buy supplies or sell loot from your expeditions.",
@@ -320,7 +398,8 @@
       "anilloIzquierdo": "Left ring",
       "contenidoFlechas": "Contents: {cantidad} arrows.",
       "reservada": "Slot occupied by {nombre}.",
-      "dosManos": "2H"
+      "dosManos": "2H",
+      "equipado": "Equipped"
     },
     "derrota": {
       "titulo": "You have fallen",
@@ -427,7 +506,11 @@
       "volverObjeto": "Back to item",
       "comparar": "Compare",
       "elegirOtro": "Choose another",
-      "nivelObjeto": "Item level {nivel}"
+      "nivelObjeto": "Item level {nivel}",
+      "desequipar": "Unequip",
+      "cargar": "Load",
+      "consumir": "Consume",
+      "equipar": "Equip"
     },
     "comparacionObjetos": {
       "sinOpciones": "There are no other equipped items to compare.",
@@ -447,6 +530,9 @@
       "soloElegido": "Only on selected",
       "cambia": "Changes",
       "nivel": "Level {nivel}"
+    },
+    "comun": {
+      "cancelar": "Cancel"
     }
   },
   "contenido": {
@@ -1082,28 +1168,36 @@
     },
     "efectos": {
       "ralentizacion": {
-        "nombre": "Slow"
+        "nombre": "Slow",
+        "textoEstado": "SLOWED"
       },
       "electrizacion": {
-        "nombre": "Electrification"
+        "nombre": "Electrification",
+        "textoEstado": "ELECTRIFIED"
       },
       "congelamiento": {
-        "nombre": "Freeze"
+        "nombre": "Freeze",
+        "textoEstado": "FROZEN"
       },
       "aturdimiento": {
-        "nombre": "Stun"
+        "nombre": "Stun",
+        "textoEstado": "STUNNED"
       },
       "envenenamiento": {
-        "nombre": "Poisoning"
+        "nombre": "Poisoning",
+        "textoEstado": "POISONED"
       },
       "quemadura": {
-        "nombre": "Burn"
+        "nombre": "Burn",
+        "textoEstado": "BURNING"
       },
       "paralisis": {
-        "nombre": "Paralysis"
+        "nombre": "Paralysis",
+        "textoEstado": "PARALYZED"
       },
       "silencio": {
-        "nombre": "Silence"
+        "nombre": "Silence",
+        "textoEstado": "SILENCED"
       }
     },
     "habilidades": {
@@ -1224,6 +1318,297 @@
       "mercader_refugio": {
         "nombre": "Edran, the Merchant"
       }
+    },
+    "tiposDanio": {
+      "fisico": {
+        "nombre": "physical"
+      },
+      "fuego": {
+        "nombre": "fire"
+      },
+      "frio": {
+        "nombre": "cold"
+      },
+      "rayo": {
+        "nombre": "lightning"
+      },
+      "veneno": {
+        "nombre": "poison"
+      }
+    }
+  },
+  "mensajes": {
+    "entidades": {
+      "enemigoVariante": "{variante} {base}"
+    },
+    "combate": {
+      "atacanteDerrotado": "{atacante} cannot attack while defeated.",
+      "objetivoDestruido": "{objetivo} is already destroyed.",
+      "ataqueSimple": "{atacante} attacks {objetivo}.",
+      "ataqueDual": "{atacante} attacks {objetivo} with two weapons.",
+      "golpeFallo": "{fuente} misses ({tirada} / {probabilidad}%).",
+      "golpeImpacto": "{fuente} hits ({tirada} / {probabilidad}%) and deals {danio} damage. Raw: {bruto}.",
+      "golpeCritico": "Critical hit.",
+      "bloqueo": "Block: {tirada} / {probabilidad}%. Mitigation: {mitigacion}% (-{danioMitigado}).",
+      "armadura": "Armor: {armadura} (-{reduccion}%).",
+      "componenteDanio": "{final} {tipo} (raw {bruto}).",
+      "componenteDanioArmadura": "{final} {tipo} (raw {bruto}, Armor -{reduccion}%).",
+      "componenteDanioResistencia": "{final} {tipo} (raw {bruto}, resistance {resistencia}%).",
+      "danioTotal": "Total damage: {danio}.",
+      "segundoGolpeOmitido": "The second hit was not performed because the target was destroyed.",
+      "municionRestante": "Ammunition remaining: {cantidad}.",
+      "casillaVacia": "You attacked an empty tile.",
+      "casillaVaciaDual": "You attacked an empty tile with both weapons.",
+      "manaInsuficiente": "You do not have enough Mana to attack with {arma}. You need {necesario} and have {actual}. You can use G for the backup attack, wait, or change weapons.",
+      "requiereQuiver": "{arma} requires a quiver equipped in the off-hand slot.",
+      "quiverIncompatible": "{quiver} does not accept the ammunition required by {arma}.",
+      "sinMunicion": "{quiver} has no compatible ammunition.",
+      "modoObjetivo": "Combat mode: selected {objetivo}.",
+      "modoCasilla": "Combat mode: tile {x}, {y}.",
+      "seleccionObjetivo": "Selected {objetivo}.",
+      "seleccionCasilla": "Selected tile {x}, {y}.",
+      "cancelarModo": "Combat mode cancelled.",
+      "cancelarRespaldo": "Backup attack cancelled.",
+      "sinCasilla": "There is no valid tile to attack.",
+      "casillaInvalida": "The selected tile is invalid.",
+      "paredSeleccion": "You cannot select a wall.",
+      "fueraAlcance": "That tile is beyond range {alcance}.",
+      "confirmarInteraccion": "Confirm the interaction with R or cancel with Escape.",
+      "confirmarAtaque": "Confirm with F or cancel with Escape.",
+      "destructibleDestruido": "{objetivo} was destroyed.",
+      "ataqueNatural": "Natural attack",
+      "manoPrincipal": "Main hand",
+      "manoSecundaria": "Off hand",
+      "golpeFalloDual": "{mano} ({fuente}) misses ({tirada} / {probabilidad}%).",
+      "golpeImpactoDual": "{mano} ({fuente}) hits ({tirada} / {probabilidad}%) and deals {danio} damage. Raw: {bruto}.",
+      "cancelarHabilidadRespaldo": "Cancel the skill with Escape before using the fallback attack.",
+      "derrotadoNoAtaca": "You cannot attack while defeated.",
+      "cancelarInteraccionRespaldo": "Cancel the interaction before using the fallback attack.",
+      "respaldoActivo": "Fallback attack active. Select an adjacent tile and confirm.",
+      "objetivoYaDestruido": "{objetivo} is already destroyed."
+    },
+    "alcance": {
+      "propiaCasilla": "You cannot attack your own tile.",
+      "superaAlcance": "The tile is beyond range {alcance}.",
+      "patronNoImplementado": "The selected attack pattern is not implemented.",
+      "saleMapa": "The trajectory leaves the map.",
+      "dosParedesDiagonal": "Two walls block the diagonal attack trajectory.",
+      "paredBloquea": "A wall blocks the attack trajectory.",
+      "soloAdyacente": "This attack can only reach adjacent tiles.",
+      "soloLineal": "This attack must be made in a horizontal, vertical, or diagonal line."
+    },
+    "derrotas": {
+      "enemigo": "{objetivo} was defeated.",
+      "experiencia": "You gained {cantidad} experience.",
+      "nivel": "You reached level {nivel}.",
+      "atributo": "You gained 1 attribute point.",
+      "habilidad": "You gained 1 skill point.",
+      "maestria": "{maestria} reached level {nivel}.",
+      "puntoMaestria": "You gained 1 {maestria} point.",
+      "botin": "{objetivo} dropped loot: {detalle}.",
+      "botinEntradaComun": "{cantidad} {objeto}",
+      "botinEntradaRara": "{cantidad} {objeto} [{rareza}, level {nivel}]",
+      "niveles": "You gained {cantidad} levels and reached level {nivel}.",
+      "atributos": "You gained {cantidad} attribute points."
+    },
+    "ia": {
+      "detectado": "{enemigo} detected you.",
+      "abandona": "{enemigo} stopped pursuing you.",
+      "avanza": "{enemigo} advances toward you.",
+      "jugadorMuerto": "You have died. Reload the page to restart.",
+      "ataqueNatural": "{enemigo} switches back to its natural attack.",
+      "sinRecursosEspera": "{enemigo} cannot use its attack and waits.",
+      "vuelveArma": "{enemigo} goes back to using {arma}.",
+      "cambiaNatural": "{enemigo} cannot use {arma} and switches to its natural attack."
+    },
+    "efectos": {
+      "objetivoDerrotado": "{objetivo} is defeated.",
+      "inmune": "{objetivo} is immune to {efecto}.",
+      "resistido": "{objetivo} resisted {efecto}.",
+      "aplicado": "{objetivo} received {efecto}.",
+      "grupoIncompatible": "The stacking group already belongs to an incompatible effect.",
+      "duplicado": "{efecto} is already active and its duration was not refreshed.",
+      "renovadoMaximo": "{efecto} refreshed its duration and was already at maximum intensity.",
+      "reaplicado": "{efecto} was applied again.",
+      "danioPeriodico": "{objetivo} takes {danio} periodic damage.",
+      "vencido": "The {efecto} effect ended on {objetivo}."
+    },
+    "zonas": {
+      "creada": "{zona} remains active for {duracion} time units.",
+      "renovada": "The duration of {zona} was refreshed.",
+      "entrada": "{actor} enters {zona}.",
+      "disipada": "{zona} dissipated."
+    },
+    "movimiento": {
+      "pared": "You cannot move through a wall.",
+      "esquina": "You cannot move through that corner.",
+      "ocupado": "You cannot walk over {objetivo}.",
+      "movido": "You moved across the map."
+    },
+    "interacciones": {
+      "yaSeleccionando": "You are already selecting an interaction.",
+      "nadaCerca": "There is nothing nearby to inspect.",
+      "unaDisponible": "Only one interactable entity is available.",
+      "sinDisponibles": "There are no interactions available anymore.",
+      "sinDireccion": "There is no other interactable in that direction.",
+      "casillaInvalida": "The selected tile is invalid.",
+      "sinSeleccionable": "There is no selectable interactable on that tile.",
+      "seleccionada": "Selected {entidad}. Confirm with R.",
+      "yaNoDisponible": "The selected interaction is no longer available.",
+      "cancelada": "Interaction selection cancelled.",
+      "jugadorDerrotado": "You cannot interact while defeated.",
+      "cancelarCombate": "Cancel combat mode before interacting.",
+      "espacioVacio": "That container slot is empty.",
+      "inventarioLleno": "There is not enough inventory space.",
+      "contenedorNoDisponible": "That container is no longer available.",
+      "sinObjetos": "The selected entity contains no items.",
+      "contenedorVacio": "The container is empty.",
+      "acercarse": "Move closer to the container to collect its items.",
+      "recogido": "You picked up {objeto}.",
+      "recogidos": "You picked up {cantidad} items.",
+      "unaCerca": "There is an entity to inspect: press R.",
+      "variasCerca": "There are several entities to inspect: press R.",
+      "seleccionadaMover": "Selected {entidad}. Move the selector and confirm with R.",
+      "recogidoCantidad": "You picked up {cantidad} {objeto}.",
+      "quedaronBotin": "{cantidad} {objeto} remained in the loot.",
+      "recogisteTodo": "You picked up everything possible:",
+      "detalleRecogido": "{cantidad} {objeto}",
+      "algunosQuedaron": "Some items remained in the loot because the inventory has no space."
+    },
+    "inventario": {
+      "espacioVacio": "That inventory slot is empty.",
+      "noUtilizable": "{objeto} cannot be used right now.",
+      "noMunicion": "The selected item is not ammunition.",
+      "necesitaCarcaj": "You need a quiver equipped in the off-hand slot.",
+      "municionIncompatible": "{quiver} does not accept {municion}.",
+      "noEquipable": "{objeto} cannot be equipped.",
+      "sinRanura": "{objeto} has no compatible slot.",
+      "inventarioLleno": "The inventory is full.",
+      "ranuraInexistente": "The selected slot does not exist.",
+      "ranuraVacia": "That slot is empty.",
+      "desequiparFallo": "The item could not be unequipped.",
+      "devolverFallo": "The item could not be returned to the inventory.",
+      "devuelto": "{objeto} returned to the inventory.",
+      "equipado": "Equipped {objeto}.",
+      "municionCargada": "Loaded {cantidad} of {objeto}.",
+      "carcajOcupado": "{quiver} already contains {contenido} and has no available space.",
+      "cargaFallo": "Could not load {municion} into {quiver}.",
+      "cargasteEn": "Loaded {cantidad} {municion} into {quiver}.",
+      "carcajCantidad": "It now contains {cantidad}.",
+      "restanteInventario": "{cantidad} {municion} remained in the inventory.",
+      "sinEspacioDesplazados": "There is not enough space to store the items that would be unequipped.",
+      "equipadoRanura": "Equipped {objeto} in {ranura}.",
+      "desplazadoUno": "{objeto} returned to the inventory.",
+      "desplazadosVarios": "{objetos} returned to the inventory.",
+      "equiparFallo": "The item could not be equipped."
+    },
+    "consumibles": {
+      "espacioVacio": "That inventory slot is empty.",
+      "noConsumible": "{objeto} is not a consumable.",
+      "fallo": "Could not consume {objeto}.",
+      "usado": "Used {objeto}.",
+      "usadoRecuperacion": "Used {objeto}. Recovered {detalle}.",
+      "vidaMaxima": "Your Life is already full. {objeto} was not consumed.",
+      "manaMaximo": "Your Mana is already full. {objeto} was not consumed.",
+      "sinEfecto": "{objeto} cannot produce any effect right now.",
+      "recuperacionVida": "{cantidad} Life",
+      "recuperacionMana": "{cantidad} Mana",
+      "recuperacionAmbos": "{vida} Life and {mana} Mana"
+    },
+    "comercio": {
+      "mercaderVacio": "That merchant slot is empty.",
+      "inventarioVacio": "That inventory slot is empty.",
+      "noVendible": "{objeto} cannot be sold.",
+      "sinStock": "There is not enough quantity available.",
+      "oroInsuficiente": "You do not have enough gold.",
+      "compra": "Bought {cantidad} × {objeto} for {precio} coins.",
+      "venta": "Sold {cantidad} × {objeto} for {precio} coins.",
+      "faltanMonedas": "You are short {cantidad} coins.",
+      "objetoNoDisponible": "The selected item is no longer available.",
+      "valorInsuficiente": "The selected quantity does not reach the minimum value of one coin. Select more units to sell them together.",
+      "mercaderSinEspacio": "{mercader} has no space to receive that item.",
+      "transferenciaFallo": "The trade transfer could not be completed."
+    },
+    "curacion": {
+      "derrotado": "The healer cannot restore life to someone who has already fallen.",
+      "vidaCompleta": "Your Health is already full.",
+      "manaCompleto": "Your Mana is already full.",
+      "recursosCompletos": "Your Health and Mana are already full.",
+      "oroInsuficiente": "You need {necesario} coins and have {actual}.",
+      "resultadoVida": "Recovered {vida} Health for {precio} coins.",
+      "resultadoMana": "Recovered {mana} Mana for {precio} coins.",
+      "resultadoAmbos": "Recovered {vida} Health and {mana} Mana for {precio} coins.",
+      "sinNecesidad": "You do not need recovery."
+    },
+    "habilidades": {
+      "seleccionada": "{habilidad} grade {grado} selected.",
+      "centrada": "The skill remains centered on the player.",
+      "selectorMovido": "Skill selector moved.",
+      "silenciado": "You are silenced and cannot use skills.",
+      "integracionDestruida": "The skill integration has already been destroyed.",
+      "ranuraVacia": "The slot is empty.",
+      "habilidadDesconocida": "The assigned skill does not exist.",
+      "habilidadNoConfigurada": "The skill does not have a playable execution yet.",
+      "habilidadNoAprendida": "The skill has not been learned yet.",
+      "sinSeleccion": "No skill is selected.",
+      "desplazamientoInvalido": "The movement is invalid.",
+      "casillaInvalida": "The tile is invalid.",
+      "seleccionCancelada": "Skill selection cancelled.",
+      "sinSeleccionParaCancelar": "No skill was selected.",
+      "sinObjetivos": "There are no valid targets for the skill.",
+      "manaInsuficiente": "You need {cantidad} Mana to use {habilidad}.",
+      "impactoUnico": "{habilidad} hits the target.",
+      "falloUnico": "{habilidad} misses the target.",
+      "multiobjetivo": "{habilidad} reaches {objetivos} targets: {impactos} hits and {fallos} misses.",
+      "zonaObjetivoSingular": "{habilidad} initially affects 1 target.",
+      "zonaObjetivoPlural": "{habilidad} initially affects {cantidad} targets.",
+      "zonaActiva": "{habilidad} remains active over the selected area.",
+      "jugadorNoPuedeActuar": "The player cannot act.",
+      "errorEjecucion": "The skill could not be executed.",
+      "modoInteraccion": "Close the interaction before selecting a skill.",
+      "fueraAlcance": "The selected tile is outside the skill range.",
+      "patronInvalido": "The selected tile does not match the skill pattern.",
+      "lineaVision": "Line of sight to the selected tile is blocked.",
+      "manaAtomico": "The full Mana cost could not be deducted atomically.",
+      "noConfigurada": "The skill has no configured execution.",
+      "yaNoAprendida": "The skill is no longer learned.",
+      "aturdido": "You are stunned and cannot act.",
+      "congelado": "You are frozen and cannot act.",
+      "paralizado": "You are paralyzed and cannot act.",
+      "bloqueoGenerico": "{efecto} prevents you from acting.",
+      "cancelada": "The skill operation was canceled.",
+      "objetivoInvalido": "The target or tile is not valid for the skill.",
+      "bloqueoTemporal": "The player cannot use skills right now."
+    },
+    "tiempo": {
+      "espera": "You waited for one action.",
+      "regeneracionVida": "Recovered {cantidad} Health.",
+      "regeneracionMana": "Recovered {cantidad} Mana.",
+      "regeneracionAmbos": "Recovered {vida} Health and {mana} Mana."
+    },
+    "juego": {
+      "equipamientoDerrotado": "You cannot change equipment while defeated.",
+      "equipamientoCombate": "Cancel combat mode before changing equipment.",
+      "objetosInteraccion": "Cancel interaction selection before using items.",
+      "mapaFijoNoDisponible": "The fixed map \"{id}\" is not available yet.",
+      "ciudadInicio": "You began your adventure in {mapa}.",
+      "ciudadRegreso": "You returned to {mapa}.",
+      "ciudadAyuda": "Move close to the merchant and press R to trade. The dungeon entrance is to the north.",
+      "mapaGenerado": "Map generated: {mapa}.",
+      "mapaResumen": "Biome: {bioma}. Selected level: {nivel}. Seed: {semilla}. Size: {ancho} × {alto}. Walls: {paredes}% (target {objetivoParedes}%). Enemies: {enemigos} ({tipos}). Variants: {variantes}.",
+      "mapaResumenFinal": "Destructibles: {destructibles}. The exit to the city is located on a map edge.",
+      "modoPrueba": "Test mode active.",
+      "botinPrueba": "Test loot active: move close and press R to inspect it.",
+      "portalPrueba": "Test portal active: move close and press R to generate another dungeon."
+    },
+    "feedback": {
+      "fallo": "MISS",
+      "bloqueo": "BLOCK",
+      "critico": "CRITICAL",
+      "renovado": "REFRESHED",
+      "resistido": "RESISTED",
+      "inmune": "IMMUNE",
+      "yaActivo": "ALREADY ACTIVE"
     }
   }
 }

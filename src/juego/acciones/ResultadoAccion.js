@@ -1,3 +1,5 @@
+import { esMensajeJuegoValido } from "../mensajes/MensajesJuego.js";
+
 // Define la estructura común utilizada por las acciones del juego.
 //
 // Una acción puede representar:
@@ -90,11 +92,11 @@ function validarBooleano(valor, nombrePropiedad) {
   }
 }
 
-// El mensaje puede ser texto o null cuando no hay nada que mostrar.
+// El mensaje puede ser texto, contrato semántico, lista o null.
 function validarMensaje(mensaje) {
-  if (mensaje !== null && typeof mensaje !== "string") {
+  if (!esMensajeJuegoValido(mensaje)) {
     throw new Error(
-      'La propiedad "mensaje" del resultado debe ser texto o null.',
+      'La propiedad "mensaje" del resultado necesita un formato de mensaje válido.',
     );
   }
 }

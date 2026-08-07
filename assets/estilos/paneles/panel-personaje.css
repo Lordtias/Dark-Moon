@@ -218,3 +218,44 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* P7.3B: separa resistencias de daño y de efectos sin alterar sus valores. */
+.seccion-resistencias-personaje .grupo-resistencias-personaje + .grupo-resistencias-personaje {
+  margin-top: 10px;
+}
+
+.seccion-resistencias-personaje .grupo-resistencias-personaje h4 {
+  margin: 0 0 5px;
+  color: #8f99bf;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.seccion-resistencias-personaje .dato-resistencia-danio {
+  --color-resistencia-danio: #aeb8ff;
+  border-color: var(--color-resistencia-danio);
+  box-shadow: inset 2px 0 0 var(--color-resistencia-danio);
+}
+
+.seccion-resistencias-personaje .dato-resistencia-danio span,
+.seccion-resistencias-personaje .dato-resistencia-danio strong {
+  color: var(--color-resistencia-danio);
+}
+
+.seccion-resistencias-personaje [data-resistencia-danio="fuego"] {
+  --color-resistencia-danio: #ff6b2c;
+}
+
+.seccion-resistencias-personaje [data-resistencia-danio="frio"] {
+  --color-resistencia-danio: #6fd7ff;
+}
+
+.seccion-resistencias-personaje [data-resistencia-danio="rayo"] {
+  --color-resistencia-danio: #b95cff;
+}
+
+.seccion-resistencias-personaje [data-resistencia-danio="veneno"] {
+  --color-resistencia-danio: #75df37;
+}

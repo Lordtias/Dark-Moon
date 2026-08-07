@@ -1,4 +1,11 @@
 import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroEntidadMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+
+import {
   ACTIVADORES_ZONA_TEMPORAL,
   POLITICAS_SUPERPOSICION_ZONA,
   normalizarCasillasZonaTemporal,
@@ -66,7 +73,14 @@ export class SistemaZonasTemporales {
       crearEvento("zona_temporal_creada", normalizada, ahora),
     );
     acumulado.mensajes.push(
-      `${normalizada.nombre} permanece activa durante ${normalizada.configuracion.duracion} unidades de tiempo.`,
+      crearMensajeTraducible("mensajes.zonas.creada", {
+        parametros: {
+          zona: parametroZona(normalizada),
+          duracion: normalizada.configuracion.duracion,
+        },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `${normalizada.nombre} permanece activa durante ${normalizada.configuracion.duracion} unidades de tiempo.`,
+      }),
     );
 
     if (
@@ -105,7 +119,13 @@ export class SistemaZonasTemporales {
 
     const acumulado = crearResultadoZonas();
     acumulado.eventos.push(crearEvento("zona_temporal_renovada", zona, ahora));
-    acumulado.mensajes.push(`La duración de ${zona.nombre} fue renovada.`);
+    acumulado.mensajes.push(
+      crearMensajeTraducible("mensajes.zonas.renovada", {
+        parametros: { zona: parametroZona(zona) },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `La duración de ${zona.nombre} fue renovada.`,
+      }),
+    );
 
     if (
       zona.configuracion.activadores.includes(
@@ -158,7 +178,14 @@ export class SistemaZonasTemporales {
         destino: { ...destino },
       });
       acumulado.mensajes.push(
-        `${actor.nombre ?? "Un actor"} entra en ${zona.nombre}.`,
+        crearMensajeTraducible("mensajes.zonas.entrada", {
+          parametros: {
+            actor: crearParametroEntidadMensaje(actor, actor.nombre ?? "Un actor"),
+            zona: parametroZona(zona),
+          },
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: `${actor.nombre ?? "Un actor"} entra en ${zona.nombre}.`,
+        }),
       );
       this.activarZonaSobreObjetivo({
         zona,
@@ -222,7 +249,12 @@ export class SistemaZonasTemporales {
       acumulado.eventos.push(
         crearEvento("zona_temporal_vencida", zona, instante),
       );
-      acumulado.mensajes.push(`${zona.nombre} se disipó.`);
+      acumulado.mensajes.push(
+        crearMensajeTraducible("mensajes.zonas.disipada", {
+          parametros: { zona: parametroZona(zona) },
+          respaldo: `${zona.nombre} se disipó.`,
+        }),
+      );
     }
 
     return cerrarResultado(acumulado);
@@ -418,6 +450,12 @@ function normalizarDefinicionCreacion({
   };
 }
 
+function parametroZona(zona) {
+  return crearParametroContenidoMensaje("habilidades", zona?.idHabilidad, {
+    respaldo: zona?.nombre ?? "",
+  });
+}
+
 function calcularProximaActivacion(zona, desde) {
   if (
     !zona.configuracion.activadores.includes(
@@ -444,7 +482,7 @@ function cerrarResultado(acumulado) {
   const mensajes = acumulado.mensajes.filter(Boolean);
   return {
     mensajes,
-    mensaje: mensajes.join("\n"),
+    mensaje: mensajes,
     eventos: acumulado.eventos,
     impactos: acumulado.impactos,
     objetivosDerrotados: [...new Set(acumulado.objetivosDerrotados)],

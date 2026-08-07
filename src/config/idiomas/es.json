@@ -72,7 +72,15 @@
       "danio": "Daño {minimo}-{maximo}",
       "bloqueo": "Bloqueo",
       "flechasIncluidas": "Flechas incluidas: {cantidad}",
-      "consumibleInicial": "Consumible inicial"
+      "consumibleInicial": "Consumible inicial",
+      "tirarAlternativo": "Tirar equipo alternativo",
+      "tiradaUnica": "Podés realizar una única tirada de equipo para esta profesión.",
+      "usarObtenido": "Usar equipo obtenido",
+      "tiradaObtuviste": "Tirada utilizada. Obtuviste: {objeto}.",
+      "tiradaSinMagico": "Tirada utilizada. El conjunto alternativo no obtuvo un objeto mágico.",
+      "validacionNombre": "Debés ingresar un nombre.",
+      "validacionPuntos": "Debés distribuir todos los puntos.",
+      "validacionConjunto": "Debés seleccionar un conjunto inicial."
     },
     "juego": {
       "controles": "MOVIMIENTO: flechas, WASD o teclado numérico. Con el espacio o 5 esperas un turno. COMBATE: f INTERACTUAR: r",
@@ -81,7 +89,8 @@
       "inventario": "Inventario",
       "inventarioVacio": "El inventario está vacío.",
       "equipamiento": "Equipamiento",
-      "personaje": "Personaje"
+      "personaje": "Personaje",
+      "mapaPhaserAria": "Mapa de Dark Moon representado visualmente con Phaser"
     },
     "personaje": {
       "cargando": "Cargando...",
@@ -120,7 +129,28 @@
       "xp": "PX",
       "dpsAyuda": "Daño bruto medio por segundo. Incluye la velocidad del ataque, pero no precisión, críticos, armadura ni bloqueo.",
       "danioMagicoAyuda": "Multiplicador derivado de Inteligencia y Sabiduría que usarán las habilidades mágicas.",
-      "potenciaEfectosAyuda": "Multiplicador derivado de Sabiduría e Inteligencia. Cada efecto define si escala valor, duración o ambos."
+      "potenciaEfectosAyuda": "Multiplicador derivado de Sabiduría e Inteligencia. Cada efecto define si escala valor, duración o ambos.",
+      "dpsDetalle": "Daño medio: {danioMedio}. Costo efectivo: {costo}. Duración: {duracion} segundos. No incluye precisión, crítico, armadura ni bloqueo.",
+      "fuerza": "Fuerza",
+      "destreza": "Destreza",
+      "constitucion": "Constitución",
+      "inteligencia": "Inteligencia",
+      "sabiduria": "Sabiduría",
+      "carisma": "Carisma",
+      "aumentarFuerza": "Aumentar Fuerza",
+      "asignarFuerza": "Asignar un punto a Fuerza",
+      "aumentarDestreza": "Aumentar Destreza",
+      "asignarDestreza": "Asignar un punto a Destreza",
+      "aumentarConstitucion": "Aumentar Constitución",
+      "asignarConstitucion": "Asignar un punto a Constitución",
+      "aumentarInteligencia": "Aumentar Inteligencia",
+      "asignarInteligencia": "Asignar un punto a Inteligencia",
+      "aumentarSabiduria": "Aumentar Sabiduría",
+      "asignarSabiduria": "Asignar un punto a Sabiduría",
+      "aumentarCarisma": "Aumentar Carisma",
+      "asignarCarisma": "Asignar un punto a Carisma",
+      "resistenciasDanio": "Resistencias de daño",
+      "resistenciasEfectos": "Resistencias de efectos"
     },
     "curacion": {
       "subtitulo": "Restaurá tus recursos antes de una nueva expedición.",
@@ -220,7 +250,51 @@
       "danioFisico": "Físico",
       "patronAdyacente": "Adyacente",
       "patronLineal": "Lineal",
-      "patronLibre": "Libre"
+      "patronLibre": "Libre",
+      "consumiraEspecifico": "Se consumirá 1 punto específico. Quedarán {cantidad}.",
+      "consumiraUniversal": "Se consumirá 1 punto universal. Quedarán {cantidad}.",
+      "confirmarMejora": "Confirmar mejora",
+      "confirmarAprendizaje": "Confirmar aprendizaje",
+      "mejorarGrado": "Mejorar un grado",
+      "aprenderHabilidad": "Aprender habilidad",
+      "elegirOrigen": "Debés elegir el origen del punto.",
+      "gradoAlcanzado": "{habilidad} alcanzó el grado {grado}.",
+      "asignarTitulo": "Asignar {habilidad}",
+      "reemplazoResumen": "La ranura {ranura} contiene {actual}. Será reemplazada por {nueva}.",
+      "reemplazoAviso": "La habilidad reemplazada seguirá aprendida, pero quedará sin acceso rápido.",
+      "confirmarReemplazo": "Confirmar reemplazo",
+      "reemplazar": "Reemplazar",
+      "quitarResumen": "Quitar {habilidad} de la ranura {ranura}.",
+      "quitarAviso": "No se perderá el grado aprendido.",
+      "confirmarDesasignacion": "Confirmar desasignación",
+      "quitarBarra": "Quitar de la barra",
+      "quitadaBarra": "{habilidad} fue quitada de la barra.",
+      "asignadaRanura": "{habilidad} fue asignada a la ranura {ranura}.",
+      "confirmar": "Confirmar",
+      "cancelar": "Cancelar",
+      "cancelarAccion": "Cancelar acción",
+      "basicasEtiqueta": "Básicas",
+      "generalesTitulo": "Habilidades generales",
+      "generalesVacias": "Todavía no hay habilidades básicas disponibles.",
+      "generalesDetalle": "Esta sección queda preparada como recordatorio visual para futuras acciones como Descansar, Investigar y otras dinámicas generales.",
+      "seccionVacia": "Sección vacía",
+      "extensionFutura": "Extensión futura",
+      "enConstruccion": "En construcción",
+      "maestriasArmasTitulo": "Maestrías de armas",
+      "maestriasArmasDetalle": "Las familias ya quedan visibles como recordatorio, pero todavía no ganan experiencia ni conceden puntos.",
+      "maestriasArmadurasTitulo": "Maestrías de armaduras",
+      "maestriasArmadurasDetalle": "La progresión por uso y mitigación de armaduras se diseñará en un hito futuro.",
+      "resumenGrado": "{habilidad}: grado {actual} → {nuevo}.",
+      "elegirPuntoConsumir": "Elegí qué punto consumir",
+      "puntoEspecificoDisponible": "Específico de {maestria} ({cantidad} disponibles)",
+      "puntoUniversalDisponible": "Universal ({cantidad} disponibles)",
+      "motivoNivelMaestria": "La maestría todavía no cumple el requisito.",
+      "motivoGradoMaximo": "La habilidad ya alcanzó su grado máximo.",
+      "motivoSinUniversales": "No quedan puntos universales.",
+      "motivoSinEspecificos": "No quedan puntos específicos de esa maestría.",
+      "motivoPuntoOtraMaestria": "El punto específico pertenece a otra maestría.",
+      "motivoOperacion": "No se pudo completar la operación ({motivo}).",
+      "errorOperacion": "No se pudo completar la operación."
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -251,7 +325,11 @@
       "riesgoPeligroso": "Peligroso",
       "niveles": "Niveles {minimo}–{maximo}",
       "dimensiones": "{ancho} × {alto} casillas",
-      "sinEnemigos": "Sin enemigos configurados"
+      "sinEnemigos": "Sin enemigos configurados",
+      "entrarBoton": "Entrar",
+      "tamano": "Tamaño",
+      "enemigos": "Enemigos",
+      "cantidad": "Cantidad"
     },
     "comercio": {
       "subtitulo": "Comprá provisiones o vendé el botín de tus expediciones.",
@@ -320,7 +398,8 @@
       "anilloIzquierdo": "Anillo izq.",
       "contenidoFlechas": "Contenido: {cantidad} flechas.",
       "reservada": "Ranura ocupada por {nombre}.",
-      "dosManos": "2M"
+      "dosManos": "2M",
+      "equipado": "Equipado"
     },
     "derrota": {
       "titulo": "Has caído",
@@ -427,7 +506,11 @@
       "volverObjeto": "Volver al objeto",
       "comparar": "Comparar",
       "elegirOtro": "Elegir otro",
-      "nivelObjeto": "Nivel de objeto {nivel}"
+      "nivelObjeto": "Nivel de objeto {nivel}",
+      "desequipar": "Desequipar",
+      "cargar": "Cargar",
+      "consumir": "Consumir",
+      "equipar": "Equipar"
     },
     "comparacionObjetos": {
       "sinOpciones": "No hay otros objetos equipados para comparar.",
@@ -447,6 +530,9 @@
       "soloElegido": "Solo en elegido",
       "cambia": "Cambia",
       "nivel": "Nivel {nivel}"
+    },
+    "comun": {
+      "cancelar": "Cancelar"
     }
   },
   "contenido": {
@@ -1082,28 +1168,36 @@
     },
     "efectos": {
       "ralentizacion": {
-        "nombre": "Ralentización"
+        "nombre": "Ralentización",
+        "textoEstado": "RALENTIZADO"
       },
       "electrizacion": {
-        "nombre": "Electrización"
+        "nombre": "Electrización",
+        "textoEstado": "ELECTRIZADO"
       },
       "congelamiento": {
-        "nombre": "Congelamiento"
+        "nombre": "Congelamiento",
+        "textoEstado": "CONGELADO"
       },
       "aturdimiento": {
-        "nombre": "Aturdimiento"
+        "nombre": "Aturdimiento",
+        "textoEstado": "ATURDIDO"
       },
       "envenenamiento": {
-        "nombre": "Envenenamiento"
+        "nombre": "Envenenamiento",
+        "textoEstado": "ENVENENADO"
       },
       "quemadura": {
-        "nombre": "Quemadura"
+        "nombre": "Quemadura",
+        "textoEstado": "QUEMADO"
       },
       "paralisis": {
-        "nombre": "Parálisis"
+        "nombre": "Parálisis",
+        "textoEstado": "PARALIZADO"
       },
       "silencio": {
-        "nombre": "Silencio"
+        "nombre": "Silencio",
+        "textoEstado": "SILENCIADO"
       }
     },
     "habilidades": {
@@ -1224,6 +1318,297 @@
       "mercader_refugio": {
         "nombre": "Edran, el mercader"
       }
+    },
+    "tiposDanio": {
+      "fisico": {
+        "nombre": "físico"
+      },
+      "fuego": {
+        "nombre": "fuego"
+      },
+      "frio": {
+        "nombre": "frío"
+      },
+      "rayo": {
+        "nombre": "rayo"
+      },
+      "veneno": {
+        "nombre": "veneno"
+      }
+    }
+  },
+  "mensajes": {
+    "entidades": {
+      "enemigoVariante": "{base} {variante}"
+    },
+    "combate": {
+      "atacanteDerrotado": "{atacante} no puede atacar porque está derrotado.",
+      "objetivoDestruido": "{objetivo} ya está destruido.",
+      "ataqueSimple": "{atacante} ataca a {objetivo}.",
+      "ataqueDual": "{atacante} ataca a {objetivo} con dos armas.",
+      "golpeFallo": "{fuente} falla ({tirada} / {probabilidad}%).",
+      "golpeImpacto": "{fuente} impacta ({tirada} / {probabilidad}%) y causa {danio} de daño. Bruto: {bruto}.",
+      "golpeCritico": "Golpe crítico.",
+      "bloqueo": "Bloqueo: {tirada} / {probabilidad}%. Mitigación: {mitigacion}% (-{danioMitigado}).",
+      "armadura": "Armadura: {armadura} (-{reduccion}%).",
+      "componenteDanio": "{final} {tipo} (bruto {bruto}).",
+      "componenteDanioArmadura": "{final} {tipo} (bruto {bruto}, Armadura -{reduccion}%).",
+      "componenteDanioResistencia": "{final} {tipo} (bruto {bruto}, resistencia {resistencia}%).",
+      "danioTotal": "Daño total: {danio}.",
+      "segundoGolpeOmitido": "El segundo golpe no se realizó porque el objetivo fue destruido.",
+      "municionRestante": "Munición restante: {cantidad}.",
+      "casillaVacia": "Atacaste una casilla vacía.",
+      "casillaVaciaDual": "Atacaste una casilla vacía con ambas armas.",
+      "manaInsuficiente": "No tenés Maná suficiente para atacar con {arma}. Necesitás {necesario} y tenés {actual}. Podés usar G para el ataque de respaldo, esperar o cambiar de arma.",
+      "requiereQuiver": "{arma} necesita un quiver equipado en secundaria.",
+      "quiverIncompatible": "{quiver} no admite la munición requerida por {arma}.",
+      "sinMunicion": "{quiver} no tiene munición compatible.",
+      "modoObjetivo": "Modo combate: seleccionaste a {objetivo}.",
+      "modoCasilla": "Modo combate: casilla {x}, {y}.",
+      "seleccionObjetivo": "Seleccionaste a {objetivo}.",
+      "seleccionCasilla": "Seleccionaste la casilla {x}, {y}.",
+      "cancelarModo": "Cancelaste el modo combate.",
+      "cancelarRespaldo": "Cancelaste el ataque de respaldo.",
+      "sinCasilla": "No hay una casilla válida para atacar.",
+      "casillaInvalida": "La casilla seleccionada es inválida.",
+      "paredSeleccion": "No podés seleccionar una pared.",
+      "fueraAlcance": "Esa casilla supera el alcance {alcance}.",
+      "confirmarInteraccion": "Confirmá la interacción con R o cancelá con Escape.",
+      "confirmarAtaque": "Confirmá con F o cancelá con Escape.",
+      "destructibleDestruido": "{objetivo} fue destruido.",
+      "ataqueNatural": "Ataque natural",
+      "manoPrincipal": "Mano principal",
+      "manoSecundaria": "Mano secundaria",
+      "golpeFalloDual": "{mano} ({fuente}) falla ({tirada} / {probabilidad}%).",
+      "golpeImpactoDual": "{mano} ({fuente}) impacta ({tirada} / {probabilidad}%) y causa {danio} de daño. Bruto: {bruto}.",
+      "cancelarHabilidadRespaldo": "Cancelá primero la habilidad con Escape para usar el ataque de respaldo.",
+      "derrotadoNoAtaca": "No podés atacar estando derrotado.",
+      "cancelarInteraccionRespaldo": "Cancelá la interacción antes de usar el ataque de respaldo.",
+      "respaldoActivo": "Ataque de respaldo activo. Seleccioná una casilla adyacente y confirmá.",
+      "objetivoYaDestruido": "{objetivo} ya está destruido."
+    },
+    "alcance": {
+      "propiaCasilla": "No podés atacar tu propia casilla.",
+      "superaAlcance": "La casilla supera el alcance {alcance}.",
+      "patronNoImplementado": "El patrón de ataque seleccionado no está implementado.",
+      "saleMapa": "La trayectoria sale del mapa.",
+      "dosParedesDiagonal": "Dos paredes bloquean la trayectoria diagonal del ataque.",
+      "paredBloquea": "Una pared bloquea la trayectoria del ataque.",
+      "soloAdyacente": "Este ataque solamente puede alcanzar casillas adyacentes.",
+      "soloLineal": "Este ataque debe realizarse en línea horizontal, vertical o diagonal."
+    },
+    "derrotas": {
+      "enemigo": "{objetivo} fue derrotado.",
+      "experiencia": "Ganaste {cantidad} de experiencia.",
+      "nivel": "Subiste al nivel {nivel}.",
+      "atributo": "Obtuviste 1 punto de atributo.",
+      "habilidad": "Obtuviste 1 punto de habilidad.",
+      "maestria": "{maestria} subió a nivel {nivel}.",
+      "puntoMaestria": "Obtuviste 1 punto de {maestria}.",
+      "botin": "{objetivo} dejó botín: {detalle}.",
+      "botinEntradaComun": "{cantidad} {objeto}",
+      "botinEntradaRara": "{cantidad} {objeto} [{rareza}, nivel {nivel}]",
+      "niveles": "Subiste {cantidad} niveles y alcanzaste el nivel {nivel}.",
+      "atributos": "Obtuviste {cantidad} puntos de atributo."
+    },
+    "ia": {
+      "detectado": "{enemigo} te ha detectado.",
+      "abandona": "{enemigo} dejó de perseguirte.",
+      "avanza": "{enemigo} avanza hacia vos.",
+      "jugadorMuerto": "Has muerto. Recargá la página para reiniciar.",
+      "ataqueNatural": "{enemigo} vuelve a utilizar su ataque natural.",
+      "sinRecursosEspera": "{enemigo} no puede usar su ataque y espera.",
+      "vuelveArma": "{enemigo} vuelve a utilizar {arma}.",
+      "cambiaNatural": "{enemigo} no puede utilizar {arma} y cambia a su ataque natural."
+    },
+    "efectos": {
+      "objetivoDerrotado": "{objetivo} está derrotado.",
+      "inmune": "{objetivo} es inmune a {efecto}.",
+      "resistido": "{objetivo} resistió {efecto}.",
+      "aplicado": "{objetivo} recibió {efecto}.",
+      "grupoIncompatible": "El grupo de acumulación ya pertenece a un efecto incompatible.",
+      "duplicado": "{efecto} ya está activo y no renovó su duración.",
+      "renovadoMaximo": "{efecto} renovó su duración y ya estaba en su máximo.",
+      "reaplicado": "{efecto} se aplicó nuevamente.",
+      "danioPeriodico": "{objetivo} recibe {danio} de daño periódico.",
+      "vencido": "El efecto {efecto} terminó sobre {objetivo}."
+    },
+    "zonas": {
+      "creada": "{zona} permanece activa durante {duracion} unidades de tiempo.",
+      "renovada": "La duración de {zona} fue renovada.",
+      "entrada": "{actor} entra en {zona}.",
+      "disipada": "{zona} se disipó."
+    },
+    "movimiento": {
+      "pared": "No podés atravesar una pared.",
+      "esquina": "No podés atravesar esa esquina.",
+      "ocupado": "No podés caminar sobre {objetivo}.",
+      "movido": "Te moviste por el mapa."
+    },
+    "interacciones": {
+      "yaSeleccionando": "Ya estás seleccionando una interacción.",
+      "nadaCerca": "No hay nada para revisar cerca.",
+      "unaDisponible": "Solo hay una entidad interactuable disponible.",
+      "sinDisponibles": "Ya no hay interacciones disponibles.",
+      "sinDireccion": "No hay otro interactuable en esa dirección.",
+      "casillaInvalida": "La casilla seleccionada es inválida.",
+      "sinSeleccionable": "No hay un interactuable seleccionable en esa casilla.",
+      "seleccionada": "Seleccionaste {entidad}. Confirmá con R.",
+      "yaNoDisponible": "La interacción seleccionada ya no está disponible.",
+      "cancelada": "Cancelaste la selección de interacción.",
+      "jugadorDerrotado": "No podés interactuar estando derrotado.",
+      "cancelarCombate": "Cancelá el modo combate antes de interactuar.",
+      "espacioVacio": "Ese espacio del contenedor está vacío.",
+      "inventarioLleno": "No hay espacio suficiente en el inventario.",
+      "contenedorNoDisponible": "Ese contenedor ya no está disponible.",
+      "sinObjetos": "La entidad seleccionada no contiene objetos.",
+      "contenedorVacio": "El contenedor está vacío.",
+      "acercarse": "Acercate al contenedor para recoger sus objetos.",
+      "recogido": "Recogiste {objeto}.",
+      "recogidos": "Recogiste {cantidad} objetos.",
+      "unaCerca": "Hay una entidad para revisar: presioná R.",
+      "variasCerca": "Hay varias entidades para revisar: presioná R.",
+      "seleccionadaMover": "Seleccionaste {entidad}. Mové el selector y confirmá con R.",
+      "recogidoCantidad": "Recogiste {cantidad} {objeto}.",
+      "quedaronBotin": "Quedaron {cantidad} {objeto} en el botín.",
+      "recogisteTodo": "Recogiste todo lo posible:",
+      "detalleRecogido": "{cantidad} {objeto}",
+      "algunosQuedaron": "Algunos objetos quedaron en el botín porque el inventario no tiene espacio."
+    },
+    "inventario": {
+      "espacioVacio": "Ese espacio del inventario está vacío.",
+      "noUtilizable": "{objeto} no puede utilizarse por ahora.",
+      "noMunicion": "El objeto seleccionado no es munición.",
+      "necesitaCarcaj": "Necesitás un carcaj equipado en secundaria.",
+      "municionIncompatible": "{quiver} no admite {municion}.",
+      "noEquipable": "{objeto} no puede equiparse.",
+      "sinRanura": "{objeto} no tiene una ranura compatible.",
+      "inventarioLleno": "El inventario está lleno.",
+      "ranuraInexistente": "La ranura seleccionada no existe.",
+      "ranuraVacia": "Esa ranura está vacía.",
+      "desequiparFallo": "No se pudo desequipar el objeto.",
+      "devolverFallo": "No se pudo devolver el objeto al inventario.",
+      "devuelto": "{objeto} volvió al inventario.",
+      "equipado": "Equipaste {objeto}.",
+      "municionCargada": "Cargaste {cantidad} de {objeto}.",
+      "carcajOcupado": "{quiver} ya contiene {contenido} y no tiene espacio disponible.",
+      "cargaFallo": "No se pudo cargar {municion} en {quiver}.",
+      "cargasteEn": "Cargaste {cantidad} {municion} en {quiver}.",
+      "carcajCantidad": "Ahora contiene {cantidad}.",
+      "restanteInventario": "Quedaron {cantidad} {municion} en el inventario.",
+      "sinEspacioDesplazados": "No hay espacio suficiente para guardar los objetos que serían desequipados.",
+      "equipadoRanura": "Equipaste {objeto} en {ranura}.",
+      "desplazadoUno": "{objeto} volvió al inventario.",
+      "desplazadosVarios": "{objetos} volvieron al inventario.",
+      "equiparFallo": "No se pudo equipar el objeto."
+    },
+    "consumibles": {
+      "espacioVacio": "Ese espacio del inventario está vacío.",
+      "noConsumible": "{objeto} no es un consumible.",
+      "fallo": "No se pudo consumir {objeto}.",
+      "usado": "Usaste {objeto}.",
+      "usadoRecuperacion": "Usaste {objeto}. Recuperaste {detalle}.",
+      "vidaMaxima": "Ya tenés la Vida al máximo. {objeto} no fue consumida.",
+      "manaMaximo": "Ya tenés el Maná al máximo. {objeto} no fue consumida.",
+      "sinEfecto": "{objeto} no puede producir ningún efecto en este momento.",
+      "recuperacionVida": "{cantidad} de Vida",
+      "recuperacionMana": "{cantidad} de Maná",
+      "recuperacionAmbos": "{vida} de Vida y {mana} de Maná"
+    },
+    "comercio": {
+      "mercaderVacio": "Ese espacio del mercader está vacío.",
+      "inventarioVacio": "Ese espacio del inventario está vacío.",
+      "noVendible": "{objeto} no se puede vender.",
+      "sinStock": "No hay suficiente cantidad disponible.",
+      "oroInsuficiente": "No tenés oro suficiente.",
+      "compra": "Compraste {cantidad} × {objeto} por {precio} monedas.",
+      "venta": "Vendiste {cantidad} × {objeto} por {precio} monedas.",
+      "faltanMonedas": "Te faltan {cantidad} monedas.",
+      "objetoNoDisponible": "El objeto seleccionado ya no está disponible.",
+      "valorInsuficiente": "La cantidad seleccionada no alcanza el valor mínimo de una moneda. Seleccioná más unidades para venderlas juntas.",
+      "mercaderSinEspacio": "{mercader} no tiene espacio para recibir ese objeto.",
+      "transferenciaFallo": "No se pudo completar la transferencia comercial."
+    },
+    "curacion": {
+      "derrotado": "La curandera no puede devolver la vida a quien ya cayó.",
+      "vidaCompleta": "Tu Vida ya está completa.",
+      "manaCompleto": "Tu Maná ya está completo.",
+      "recursosCompletos": "Tu Vida y Maná ya están completos.",
+      "oroInsuficiente": "Necesitás {necesario} monedas y tenés {actual}.",
+      "resultadoVida": "Recuperaste {vida} de Vida por {precio} monedas.",
+      "resultadoMana": "Recuperaste {mana} de Maná por {precio} monedas.",
+      "resultadoAmbos": "Recuperaste {vida} de Vida y {mana} de Maná por {precio} monedas.",
+      "sinNecesidad": "No necesitás recuperación."
+    },
+    "habilidades": {
+      "seleccionada": "{habilidad} grado {grado} seleccionada.",
+      "centrada": "La habilidad permanece centrada en el jugador.",
+      "selectorMovido": "Selector de habilidad desplazado.",
+      "silenciado": "Estás silenciado y no podés usar habilidades.",
+      "integracionDestruida": "La integración ya fue destruida.",
+      "ranuraVacia": "La ranura está vacía.",
+      "habilidadDesconocida": "La habilidad asignada no existe.",
+      "habilidadNoConfigurada": "La habilidad todavía no posee ejecución jugable.",
+      "habilidadNoAprendida": "La habilidad todavía no fue aprendida.",
+      "sinSeleccion": "No hay una habilidad seleccionada.",
+      "desplazamientoInvalido": "El desplazamiento es inválido.",
+      "casillaInvalida": "La casilla es inválida.",
+      "seleccionCancelada": "Selección de habilidad cancelada.",
+      "sinSeleccionParaCancelar": "No había una habilidad seleccionada.",
+      "sinObjetivos": "No hay objetivos válidos para la habilidad.",
+      "manaInsuficiente": "Necesitás {cantidad} de Maná para usar {habilidad}.",
+      "impactoUnico": "{habilidad} impacta al objetivo.",
+      "falloUnico": "{habilidad} falla el impacto.",
+      "multiobjetivo": "{habilidad} alcanza {objetivos} objetivos: {impactos} impactos y {fallos} fallos.",
+      "zonaObjetivoSingular": "{habilidad} afecta inicialmente a 1 objetivo.",
+      "zonaObjetivoPlural": "{habilidad} afecta inicialmente a {cantidad} objetivos.",
+      "zonaActiva": "{habilidad} queda activa sobre el área seleccionada.",
+      "jugadorNoPuedeActuar": "El jugador no puede actuar.",
+      "errorEjecucion": "No se pudo ejecutar la habilidad.",
+      "modoInteraccion": "Cerrá la interacción antes de seleccionar una habilidad.",
+      "fueraAlcance": "La casilla seleccionada está fuera del alcance de la habilidad.",
+      "patronInvalido": "La casilla seleccionada no cumple el patrón de la habilidad.",
+      "lineaVision": "La línea de visión hacia la casilla seleccionada está bloqueada.",
+      "manaAtomico": "No fue posible descontar el Maná completo de forma atómica.",
+      "noConfigurada": "La habilidad no posee ejecución configurada.",
+      "yaNoAprendida": "La habilidad ya no está aprendida.",
+      "aturdido": "Estás aturdido y no podés realizar acciones.",
+      "congelado": "Estás congelado y no podés realizar acciones.",
+      "paralizado": "Estás paralizado y no podés realizar acciones.",
+      "bloqueoGenerico": "{efecto} impide realizar acciones.",
+      "cancelada": "La operación de habilidad fue cancelada.",
+      "objetivoInvalido": "El objetivo o la casilla no son válidos para la habilidad.",
+      "bloqueoTemporal": "El jugador no puede usar habilidades en este momento."
+    },
+    "tiempo": {
+      "espera": "Esperaste una acción.",
+      "regeneracionVida": "Recuperaste {cantidad} de Vida.",
+      "regeneracionMana": "Recuperaste {cantidad} de Maná.",
+      "regeneracionAmbos": "Recuperaste {vida} de Vida y {mana} de Maná."
+    },
+    "juego": {
+      "equipamientoDerrotado": "No podés modificar el equipamiento estando derrotado.",
+      "equipamientoCombate": "Cancelá el modo combate antes de cambiar el equipamiento.",
+      "objetosInteraccion": "Cancelá la selección de interacción antes de usar objetos.",
+      "mapaFijoNoDisponible": "El mapa fijo \"{id}\" todavía no está disponible.",
+      "ciudadInicio": "Comenzaste tu aventura en {mapa}.",
+      "ciudadRegreso": "Regresaste a {mapa}.",
+      "ciudadAyuda": "Acercate al mercader y presioná R para comerciar. La entrada a las mazmorras se encuentra al norte.",
+      "mapaGenerado": "Mapa generado: {mapa}.",
+      "mapaResumen": "Bioma: {bioma}. Nivel seleccionado: {nivel}. Semilla: {semilla}. Tamaño: {ancho} × {alto}. Paredes: {paredes}% (objetivo {objetivoParedes}%). Enemigos: {enemigos} ({tipos}). Variantes: {variantes}.",
+      "mapaResumenFinal": "Destructibles: {destructibles}. La salida hacia la ciudad está ubicada en un borde del mapa.",
+      "modoPrueba": "Modo de prueba activo.",
+      "botinPrueba": "Botín de prueba activo: acercate y presioná R para revisarlo.",
+      "portalPrueba": "Portal de prueba activo: acercate y presioná R para generar otra mazmorra."
+    },
+    "feedback": {
+      "fallo": "FALLO",
+      "bloqueo": "BLOQUEO",
+      "critico": "CRÍTICO",
+      "renovado": "RENOVADO",
+      "resistido": "RESISTIDO",
+      "inmune": "INMUNE",
+      "yaActivo": "YA ACTIVO"
     }
   }
 }

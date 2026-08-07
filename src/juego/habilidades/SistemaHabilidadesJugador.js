@@ -8,6 +8,11 @@ import {
 } from "../combate/SelectorObjetivoPrioritario.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
+import {
   asignarHabilidadARanura,
   generarIdEjecucionHabilidad,
   obtenerAsignacionesHabilidades,
@@ -200,7 +205,11 @@ export class SistemaHabilidadesJugador {
     return {
       exito: true,
       motivo: MOTIVOS.OK,
-      mensaje: `${habilidad.nombre} grado ${grado} seleccionada.`,
+      mensaje: crearMensajeTraducible("mensajes.habilidades.seleccionada", {
+        parametros: { habilidad: parametroHabilidad(habilidad), grado },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `${habilidad.nombre} grado ${grado} seleccionada.`,
+      }),
       turnoConsumido: false,
       redibujar: true,
       seleccion: this.obtenerSeleccionDetallada(),
@@ -233,7 +242,7 @@ export class SistemaHabilidadesJugador {
       return {
         exito: true,
         motivo: MOTIVOS.OK,
-        mensaje: "La habilidad permanece centrada en el jugador.",
+        mensaje: mensajeHabilidad("centrada", "La habilidad permanece centrada en el jugador."),
         turnoConsumido: false,
         redibujar: true,
         seleccion: this.obtenerSeleccionDetallada(),
@@ -247,7 +256,7 @@ export class SistemaHabilidadesJugador {
     return {
       exito: true,
       motivo: MOTIVOS.OK,
-      mensaje: "Selector de habilidad desplazado.",
+      mensaje: mensajeHabilidad("selectorMovido", "Selector de habilidad desplazado."),
       turnoConsumido: false,
       redibujar: true,
       seleccion: this.obtenerSeleccionDetallada(),
@@ -380,14 +389,15 @@ export class SistemaHabilidadesJugador {
       });
       const mensaje = plan.creaZonaTemporal
         ? crearMensajeCreacionZona({
-            nombreHabilidad: plan.habilidad.nombre,
+            habilidad: plan.habilidad,
             cantidadObjetivos: impactos.length,
             mensajeZona: resultadoZona?.mensaje,
           })
         : crearMensajeEjecucion({
-            nombreHabilidad: plan.habilidad.nombre,
+            habilidad: plan.habilidad,
             cantidadObjetivos: impactos.length,
             cantidadImpactos,
+            efectos,
           });
       const resultadoBase = {
         exito: true,
@@ -686,7 +696,14 @@ export class SistemaHabilidadesJugador {
     if (leerManaActual(this.jugador) < gradoConfig.costoMana) {
       return crearRechazo(
         MOTIVOS.MANA_INSUFICIENTE,
-        `Se necesitan ${gradoConfig.costoMana} de Maná.`,
+        crearMensajeTraducible("mensajes.habilidades.manaInsuficiente", {
+          parametros: {
+            cantidad: gradoConfig.costoMana,
+            habilidad: parametroHabilidad(habilidad),
+          },
+          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+          respaldo: `Se necesitan ${gradoConfig.costoMana} de Maná.`,
+        }),
       );
     }
     const bloqueo = obtenerBloqueoTemporal(this.juego);
@@ -913,39 +930,91 @@ function escalarComponentesDanio(componentes, multiplicador = 1) {
 }
 
 function crearMensajeCreacionZona({
-  nombreHabilidad,
+  habilidad,
   cantidadObjetivos,
   mensajeZona,
 }) {
-  const resumen =
-    cantidadObjetivos > 0
-      ? `${nombreHabilidad} afecta inicialmente a ${cantidadObjetivos} objetivo${cantidadObjetivos === 1 ? "" : "s"}.`
-      : `${nombreHabilidad} queda activa sobre el área seleccionada.`;
-  return [resumen, mensajeZona].filter(Boolean).join("\n");
+  const parametro = parametroHabilidad(habilidad);
+  const resumen = cantidadObjetivos > 0
+    ? crearMensajeTraducible(
+        cantidadObjetivos === 1
+          ? "mensajes.habilidades.zonaObjetivoSingular"
+          : "mensajes.habilidades.zonaObjetivoPlural",
+        {
+          parametros: { habilidad: parametro, cantidad: cantidadObjetivos },
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+          respaldo: cantidadObjetivos === 1
+            ? `${habilidad.nombre} afecta inicialmente a 1 objetivo.`
+            : `${habilidad.nombre} afecta inicialmente a ${cantidadObjetivos} objetivos.`,
+        },
+      )
+    : crearMensajeTraducible("mensajes.habilidades.zonaActiva", {
+        parametros: { habilidad: parametro },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `${habilidad.nombre} queda activa sobre el área seleccionada.`,
+      });
+  return [resumen, mensajeZona].filter(Boolean);
 }
 
 function crearMensajeEjecucion({
-  nombreHabilidad,
+  habilidad,
   cantidadObjetivos,
   cantidadImpactos,
   efectos = [],
 }) {
-  const resumen =
-    cantidadObjetivos === 1
-      ? cantidadImpactos === 1
-        ? `${nombreHabilidad} impacta al objetivo.`
-        : `${nombreHabilidad} falla el impacto.`
-      :
-        `${nombreHabilidad} alcanza ${cantidadObjetivos} objetivos: ` +
-        `${cantidadImpactos} impactos y ${cantidadObjetivos - cantidadImpactos} fallos.`;
-  const mensajesEfectos = [
-    ...new Set(
-      efectos
-        .map((efecto) => efecto?.resultado?.mensaje)
-        .filter((mensaje) => typeof mensaje === "string" && mensaje !== ""),
-    ),
-  ];
-  return [resumen, ...mensajesEfectos].join("\n");
+  const fallos = cantidadObjetivos - cantidadImpactos;
+  const parametro = parametroHabilidad(habilidad);
+  const resumen = cantidadObjetivos === 1
+    ? crearMensajeTraducible(
+        cantidadImpactos === 1
+          ? "mensajes.habilidades.impactoUnico"
+          : "mensajes.habilidades.falloUnico",
+        {
+          parametros: { habilidad: parametro },
+          tipo: cantidadImpactos === 1
+            ? TIPOS_MENSAJE_JUEGO.POSITIVO
+            : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+          respaldo: cantidadImpactos === 1
+            ? `${habilidad.nombre} impacta al objetivo.`
+            : `${habilidad.nombre} falla el impacto.`,
+        },
+      )
+    : crearMensajeTraducible("mensajes.habilidades.multiobjetivo", {
+        parametros: {
+          habilidad: parametro,
+          objetivos: cantidadObjetivos,
+          impactos: cantidadImpactos,
+          fallos,
+        },
+        tipo: cantidadImpactos > 0
+          ? TIPOS_MENSAJE_JUEGO.POSITIVO
+          : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `${habilidad.nombre} alcanza ${cantidadObjetivos} objetivos: ${cantidadImpactos} impactos y ${fallos} fallos.`,
+      });
+  const vistos = new Set();
+  const mensajesEfectos = [];
+  for (const efecto of efectos) {
+    const mensaje = efecto?.resultado?.mensajePresentacion ?? efecto?.resultado?.mensaje;
+    if (!mensaje) continue;
+    const clave = typeof mensaje === "object" ? JSON.stringify(mensaje) : String(mensaje);
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    mensajesEfectos.push(mensaje);
+  }
+  return [resumen, ...mensajesEfectos];
+}
+
+function parametroHabilidad(habilidad) {
+  return crearParametroContenidoMensaje("habilidades", habilidad?.id, {
+    respaldo: habilidad?.nombre ?? "",
+  });
+}
+
+function mensajeHabilidad(sufijo, respaldo, opciones = {}) {
+  return crearMensajeTraducible(`mensajes.habilidades.${sufijo}`, {
+    respaldo,
+    ...opciones,
+  });
 }
 
 function finalizarTiempo(juego, { resultado, costoTemporalBase }) {
@@ -1116,10 +1185,32 @@ function obtenerLimitesMapa(mapa) {
 }
 
 function crearRechazo(motivo, mensaje) {
+  const claves = {
+    [MOTIVOS.RANURA_VACIA]: "ranuraVacia",
+    [MOTIVOS.HABILIDAD_DESCONOCIDA]: "habilidadDesconocida",
+    [MOTIVOS.HABILIDAD_NO_CONFIGURADA]: "habilidadNoConfigurada",
+    [MOTIVOS.HABILIDAD_NO_APRENDIDA]: "habilidadNoAprendida",
+    [MOTIVOS.FUERA_DE_ALCANCE]: "fueraAlcance",
+    [MOTIVOS.PATRON_INVALIDO]: "patronInvalido",
+    [MOTIVOS.LINEA_VISION_BLOQUEADA]: "lineaVision",
+    [MOTIVOS.OBJETIVO_INVALIDO]: "objetivoInvalido",
+    [MOTIVOS.BLOQUEO_TEMPORAL]: "bloqueoTemporal",
+    [MOTIVOS.MANA_INSUFICIENTE]: "manaAtomico",
+    [MOTIVOS.CANCELADA]: "cancelada",
+    [MOTIVOS.MODO_INTERACCION_ACTIVO]: "modoInteraccion",
+    [MOTIVOS.ERROR_EJECUCION]: "errorEjecucion",
+  };
+  const mensajePresentacion = mensaje && typeof mensaje === "object"
+    ? mensaje
+    : claves[motivo]
+      ? mensajeHabilidad(claves[motivo], typeof mensaje === "string" ? mensaje : "", {
+          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        })
+      : mensaje;
   return {
     exito: false,
     motivo,
-    mensaje,
+    mensaje: mensajePresentacion,
     turnoConsumido: false,
     redibujar: true,
     ejecucionEfectiva: false,

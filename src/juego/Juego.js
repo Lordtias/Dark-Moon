@@ -3,6 +3,10 @@ import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
 import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
 import {
+  crearMensajeTraducible,
+  TIPOS_MENSAJE_JUEGO,
+} from "./mensajes/MensajesJuego.js";
+import {
   COSTOS_TEMPORALES_BASE,
   TIPOS_ACCION_TEMPORAL,
 } from "./tiempo/SistemaTiempo.js";
@@ -338,7 +342,7 @@ export class Juego {
     if (!this.player.estaVivo) {
       return {
         exito: false,
-        mensaje: "No podés modificar el equipamiento estando derrotado.",
+        mensaje: crearMensajeTraducible("mensajes.juego.equipamientoDerrotado", { tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO, respaldo: "No podés modificar el equipamiento estando derrotado." }),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -352,7 +356,7 @@ export class Juego {
     if (this.modoCombateActivo) {
       return {
         exito: false,
-        mensaje: "Cancelá el modo combate antes de cambiar el equipamiento.",
+        mensaje: crearMensajeTraducible("mensajes.juego.equipamientoCombate", { tipo: TIPOS_MENSAJE_JUEGO.ALERTA, respaldo: "Cancelá el modo combate antes de cambiar el equipamiento." }),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -361,7 +365,7 @@ export class Juego {
     if (this.modoInteraccionActivo) {
       return {
         exito: false,
-        mensaje: "Cancelá la selección de interacción antes de usar objetos.",
+        mensaje: crearMensajeTraducible("mensajes.juego.objetosInteraccion", { tipo: TIPOS_MENSAJE_JUEGO.ALERTA, respaldo: "Cancelá la selección de interacción antes de usar objetos." }),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -453,7 +457,7 @@ export class Juego {
 
     return {
       ...resultado,
-      mensaje: [resultado.mensaje, derrotas.mensaje].filter(Boolean).join("\n"),
+      mensaje: [resultado.mensaje, derrotas.mensaje].filter(Boolean),
       eventos: [...(resultado.eventos ?? []), ...(derrotas.eventos ?? [])],
       redibujar: true,
     };
@@ -508,7 +512,7 @@ export class Juego {
 
     if (this.modoInteraccionActivo) {
       return {
-        mensaje: "Confirmá la interacción con R o cancelá con Escape.",
+        mensaje: crearMensajeTraducible("mensajes.combate.confirmarInteraccion", { tipo: TIPOS_MENSAJE_JUEGO.ALERTA, respaldo: "Confirmá la interacción con R o cancelá con Escape." }),
         turnoConsumido: false,
         redibujar: false,
       };
@@ -516,14 +520,14 @@ export class Juego {
 
     if (this.modoCombateActivo) {
       return {
-        mensaje: "Confirmá con F o cancelá con Escape.",
+        mensaje: crearMensajeTraducible("mensajes.combate.confirmarAtaque", { tipo: TIPOS_MENSAJE_JUEGO.ALERTA, respaldo: "Confirmá con F o cancelá con Escape." }),
         turnoConsumido: false,
         redibujar: false,
       };
     }
 
     return this.finalizarAccionJugador({
-      mensaje: "Esperaste una acción.",
+      mensaje: crearMensajeTraducible("mensajes.tiempo.espera", { tipo: TIPOS_MENSAJE_JUEGO.SISTEMA, respaldo: "Esperaste una acción." }),
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
     });

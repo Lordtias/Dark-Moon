@@ -1,4 +1,10 @@
 import { usarConsumibleDesdeInventario } from "./SistemaConsumibles.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroTraduccionMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 import { transferirObjetoEntreContenedores } from "./SistemaTransferenciaObjetos.js";
 import {
   capturarEstadoRecursos,
@@ -25,6 +31,34 @@ const ETIQUETAS_RANURAS = {
 // 2. Consumible: utilizar una unidad.
 // 3. Equipable: equipar.
 // 4. Otros objetos: informar que aún no se usan.
+function parametroObjeto(objeto) {
+  return crearParametroContenidoMensaje("objetos", objeto?.id, { respaldo: objeto?.nombre ?? "" });
+}
+
+function parametroRanura(id, respaldo) {
+  const mapa = {
+    cabeza: "cabeza", torso: "torso", manos: "manos", piernas: "piernas", pies: "pies",
+    arma: "arma", secundaria: "secundaria", collar: "collar",
+    anillo_derecho: "anilloDerecho", anillo_izquierdo: "anilloIzquierdo",
+  };
+  const clave = mapa[id];
+  return clave
+    ? crearParametroTraduccionMensaje(`interfaz.equipamiento.${clave}`, { respaldo })
+    : respaldo;
+}
+
+function mensajeInventario(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.inventario.${sufijo}`, { tipo, respaldo });
+}
+
+function mensajeObjetoInventario(sufijo, objeto, respaldo, tipo) {
+  return crearMensajeTraducible(`mensajes.inventario.${sufijo}`, {
+    parametros: { objeto: parametroObjeto(objeto) },
+    tipo,
+    respaldo,
+  });
+}
+
 export function interactuarConObjetoInventario(player, indiceInventario) {
   validarPlayer(player);
   const objeto = player.inventario.obtenerObjetoEn(indiceInventario);
@@ -32,7 +66,7 @@ export function interactuarConObjetoInventario(player, indiceInventario) {
   if (!objeto) {
     return {
       exito: false,
-      mensaje: "Ese espacio del inventario está vacío.",
+      mensaje: mensajeInventario("espacioVacio", "Ese espacio del inventario está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
     };
   }
 
@@ -47,7 +81,7 @@ export function interactuarConObjetoInventario(player, indiceInventario) {
   if (!objeto.esEquipable) {
     return {
       exito: false,
-      mensaje: `${objeto.nombre} no puede utilizarse por ahora.`,
+      mensaje: mensajeObjetoInventario("noUtilizable", objeto, `${objeto.nombre} no puede utilizarse por ahora.`, TIPOS_MENSAJE_JUEGO.ALERTA),
     };
   }
 
@@ -62,7 +96,7 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   if (!municion?.esMunicion) {
     return {
       exito: false,
-      mensaje: "El objeto seleccionado no es munición.",
+      mensaje: mensajeInventario("noMunicion", "El objeto seleccionado no es munición.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -70,14 +104,18 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
   if (!quiver) {
     return {
       exito: false,
-      mensaje: "Necesitás un carcaj equipado en secundaria.",
+      mensaje: mensajeInventario("necesitaCarcaj", "Necesitás un carcaj equipado en secundaria.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
   if (quiver.propiedades.tipoMunicion !== municion.propiedades.tipoMunicion) {
     return {
       exito: false,
-      mensaje: `${quiver.nombre} no admite ${municion.nombre}.`,
+      mensaje: crearMensajeTraducible("mensajes.inventario.municionIncompatible", {
+        parametros: { quiver: parametroObjeto(quiver), municion: parametroObjeto(municion) },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `${quiver.nombre} no admite ${municion.nombre}.`,
+      }),
     };
   }
 
@@ -93,24 +131,45 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
     return {
       exito: false,
       mensaje: contenidoActual
-        ? `${quiver.nombre} ya contiene ` +
-          `${contenidoActual.nombre} y no tiene espacio disponible.`
-        : `No se pudo cargar ${nombreMunicion} ` + `en ${quiver.nombre}.`,
+        ? crearMensajeTraducible("mensajes.inventario.carcajOcupado", {
+            parametros: { quiver: parametroObjeto(quiver), contenido: parametroObjeto(contenidoActual) },
+            tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+            respaldo: `${quiver.nombre} ya contiene ${contenidoActual.nombre} y no tiene espacio disponible.`,
+          })
+        : crearMensajeTraducible("mensajes.inventario.cargaFallo", {
+            parametros: { municion: parametroObjeto(municion), quiver: parametroObjeto(quiver) },
+            tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+            respaldo: `No se pudo cargar ${nombreMunicion} en ${quiver.nombre}.`,
+          }),
     };
   }
 
   const mensajes = [
-    `Cargaste ${resultadoTransferencia.cantidadTransferida} ` +
-      `${nombreMunicion} en ${quiver.nombre}.`,
-    `Ahora contiene ${quiver.cantidadMunicion}.`,
+    crearMensajeTraducible("mensajes.inventario.cargasteEn", {
+      parametros: {
+        cantidad: resultadoTransferencia.cantidadTransferida,
+        municion: parametroObjeto(municion),
+        quiver: parametroObjeto(quiver),
+      },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Cargaste ${resultadoTransferencia.cantidadTransferida} ${nombreMunicion} en ${quiver.nombre}.`,
+    }),
+    crearMensajeTraducible("mensajes.inventario.carcajCantidad", {
+      parametros: { cantidad: quiver.cantidadMunicion },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Ahora contiene ${quiver.cantidadMunicion}.`,
+    }),
   ];
 
   // Una transferencia puede ser parcial cuando solamente existe espacio
   // dentro de una pila ya iniciada.
   if (resultadoTransferencia.cantidadRestante > 0) {
     mensajes.push(
-      `Quedaron ${resultadoTransferencia.cantidadRestante} ` +
-        `${nombreMunicion} en el inventario.`,
+      crearMensajeTraducible("mensajes.inventario.restanteInventario", {
+        parametros: { cantidad: resultadoTransferencia.cantidadRestante, municion: parametroObjeto(municion) },
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        respaldo: `Quedaron ${resultadoTransferencia.cantidadRestante} ${nombreMunicion} en el inventario.`,
+      }),
     );
   }
 
@@ -119,7 +178,7 @@ export function cargarMunicionDesdeInventario(player, indiceInventario) {
     cantidadTransferida: resultadoTransferencia.cantidadTransferida,
     cantidadRestante: resultadoTransferencia.cantidadRestante,
     transferenciaCompleta: resultadoTransferencia.completa,
-    mensaje: mensajes.join("\n"),
+    mensaje: mensajes,
   };
 }
 
@@ -135,14 +194,14 @@ export function equiparObjetoDesdeInventario(
   if (!objeto) {
     return {
       exito: false,
-      mensaje: "Ese espacio del inventario está vacío.",
+      mensaje: mensajeInventario("espacioVacio", "Ese espacio del inventario está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
     };
   }
 
   if (!objeto.esEquipable) {
     return {
       exito: false,
-      mensaje: `${objeto.nombre} no puede equiparse.`,
+      mensaje: mensajeObjetoInventario("noEquipable", objeto, `${objeto.nombre} no puede equiparse.`, TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -150,7 +209,7 @@ export function equiparObjetoDesdeInventario(
   if (!ranura) {
     return {
       exito: false,
-      mensaje: `${objeto.nombre} no tiene una ranura compatible.`,
+      mensaje: mensajeObjetoInventario("sinRanura", objeto, `${objeto.nombre} no tiene una ranura compatible.`, TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -161,9 +220,14 @@ export function equiparObjetoDesdeInventario(
       objeto,
     );
   } catch (error) {
+    console.error("[Dark Moon · Inventario]", error);
     return {
       exito: false,
-      mensaje: error.message,
+      mensaje: mensajeInventario(
+        "equiparFallo",
+        "No se pudo equipar el objeto.",
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
     };
   }
 
@@ -172,9 +236,11 @@ export function equiparObjetoDesdeInventario(
   if (objetosDesplazados.length > espaciosDisponibles) {
     return {
       exito: false,
-      mensaje:
-        "No hay espacio suficiente para guardar " +
-        "los objetos que serían desequipados.",
+      mensaje: mensajeInventario(
+        "sinEspacioDesplazados",
+        "No hay espacio suficiente para guardar los objetos que serían desequipados.",
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
     };
   }
 
@@ -186,9 +252,14 @@ export function equiparObjetoDesdeInventario(
     resultado = player.equipamiento.equiparEnRanura(ranura, objetoRetirado);
   } catch (error) {
     player.inventario.colocarObjetoEn(indiceInventario, objetoRetirado);
+    console.error("[Dark Moon · Inventario]", error);
     return {
       exito: false,
-      mensaje: error.message,
+      mensaje: mensajeInventario(
+        "equiparFallo",
+        "No se pudo equipar el objeto.",
+        TIPOS_MENSAJE_JUEGO.NEGATIVO,
+      ),
     };
   }
 
@@ -201,17 +272,29 @@ export function equiparObjetoDesdeInventario(
 
   const etiqueta =
     ETIQUETAS_RANURAS[resultado.ranuraAsignada] ?? resultado.ranuraAsignada;
-  const nombresDesplazados = resultado.objetosDesequipados.map(
-    (item) => item.nombre,
-  );
-  let mensaje = `Equipaste ${objeto.nombre} en ${etiqueta}.`;
-
-  if (nombresDesplazados.length === 1) {
-    mensaje += ` ${nombresDesplazados[0]} volvió al inventario.`;
-  } else if (nombresDesplazados.length > 1) {
-    mensaje +=
-      ` ${nombresDesplazados.join(", ")} ` + "volvieron al inventario.";
+  const mensajes = [
+    crearMensajeTraducible("mensajes.inventario.equipadoRanura", {
+      parametros: {
+        objeto: parametroObjeto(objeto),
+        ranura: parametroRanura(resultado.ranuraAsignada, etiqueta),
+      },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `Equipaste ${objeto.nombre} en ${etiqueta}.`,
+    }),
+  ];
+  if (resultado.objetosDesequipados.length === 1) {
+    const desplazado = resultado.objetosDesequipados[0];
+    mensajes.push(crearMensajeTraducible("mensajes.inventario.desplazadoUno", {
+      parametros: { objeto: parametroObjeto(desplazado) },
+      respaldo: `${desplazado.nombre} volvió al inventario.`,
+    }));
+  } else if (resultado.objetosDesequipados.length > 1) {
+    mensajes.push(crearMensajeTraducible("mensajes.inventario.desplazadosVarios", {
+      parametros: { objetos: resultado.objetosDesequipados.map(parametroObjeto) },
+      respaldo: `${resultado.objetosDesequipados.map((item) => item.nombre).join(", ")} volvieron al inventario.`,
+    }));
   }
+  const mensaje = mensajes;
 
   return {
     exito: true,
@@ -227,7 +310,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (player.inventario.estaLleno()) {
     return {
       exito: false,
-      mensaje: "El inventario está lleno.",
+      mensaje: mensajeInventario("inventarioLleno", "El inventario está lleno.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -236,7 +319,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!estado) {
     return {
       exito: false,
-      mensaje: "La ranura seleccionada no existe.",
+      mensaje: mensajeInventario("ranuraInexistente", "La ranura seleccionada no existe.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -244,7 +327,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!objeto) {
     return {
       exito: false,
-      mensaje: "Esa ranura está vacía.",
+      mensaje: mensajeInventario("ranuraVacia", "Esa ranura está vacía.", TIPOS_MENSAJE_JUEGO.ALERTA),
     };
   }
 
@@ -253,7 +336,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!objetoDesequipado) {
     return {
       exito: false,
-      mensaje: "No se pudo desequipar el objeto.",
+      mensaje: mensajeInventario("desequiparFallo", "No se pudo desequipar el objeto.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -261,7 +344,7 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   if (!agregado) {
     return {
       exito: false,
-      mensaje: "No se pudo devolver el objeto al inventario.",
+      mensaje: mensajeInventario("devolverFallo", "No se pudo devolver el objeto al inventario.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
     };
   }
 
@@ -270,7 +353,11 @@ export function desequiparObjetoAInventario(player, nombreRanura) {
   return {
     exito: true,
     objetoDesequipado,
-    mensaje: `${objetoDesequipado.nombre} volvió al inventario.`,
+    mensaje: crearMensajeTraducible("mensajes.inventario.devuelto", {
+      parametros: { objeto: parametroObjeto(objetoDesequipado) },
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: `${objetoDesequipado.nombre} volvió al inventario.`,
+    }),
   };
 }
 

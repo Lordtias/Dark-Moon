@@ -6,7 +6,7 @@ Base exacta: `93cbd48cb29c77c9af8f3de222e13437971abb32`
 Rama: `main`  
 HEAD conservado: `93cbd48cb29c77c9af8f3de222e13437971abb32`  
 Commit realizado: no  
-Estado: implementada técnicamente; pendiente de validación manual y commit
+Estado: validada manualmente y cerrada
 
 ## 1. Objetivo
 

@@ -1,5 +1,10 @@
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../../../juego/mensajes/MensajesJuego.js";
 
 // Analiza el equipo actual y determina:
 //
@@ -218,6 +223,12 @@ export function calcularCostoManaAtaqueBasico(configuracion) {
   }, 0);
 }
 
+function parametroObjeto(objeto, respaldo = "") {
+  return crearParametroContenidoMensaje("objetos", objeto?.id, {
+    respaldo: objeto?.nombre ?? respaldo,
+  });
+}
+
 // Comprueba conjuntamente munición y Maná antes de que el ataque pueda alterar
 // hostilidad, Vida, selector o agenda temporal.
 export function verificarRequisitosAtaque(combatiente) {
@@ -239,6 +250,14 @@ export function verificarRequisitosAtaque(combatiente) {
         `${configuracion.armaControladora?.nombre ?? "la varita"}. ` +
         `Necesitás ${costoMana} y tenés ${manaActual}. ` +
         "Podés usar G para el ataque de respaldo, esperar o cambiar de arma.",
+      mensajePresentacion: crearMensajeTraducible("mensajes.combate.manaInsuficiente", {
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        parametros: {
+          arma: parametroObjeto(configuracion.armaControladora, "la varita"),
+          necesario: costoMana,
+          actual: manaActual,
+        },
+      }),
     };
   }
 
@@ -250,6 +269,7 @@ export function verificarRequisitosAtaque(combatiente) {
       costoMana,
       manaActual,
       mensaje: null,
+      mensajePresentacion: null,
     };
   }
 
@@ -263,6 +283,10 @@ export function verificarRequisitosAtaque(combatiente) {
       mensaje:
         `${configuracion.armaControladora.nombre} ` +
         "necesita un quiver equipado en secundaria.",
+      mensajePresentacion: crearMensajeTraducible("mensajes.combate.requiereQuiver", {
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        parametros: { arma: parametroObjeto(configuracion.armaControladora) },
+      }),
     };
   }
 
@@ -278,6 +302,13 @@ export function verificarRequisitosAtaque(combatiente) {
       mensaje:
         `${configuracion.quiver.nombre} no admite la munición requerida por ` +
         `${configuracion.armaControladora.nombre}.`,
+      mensajePresentacion: crearMensajeTraducible("mensajes.combate.quiverIncompatible", {
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        parametros: {
+          quiver: parametroObjeto(configuracion.quiver),
+          arma: parametroObjeto(configuracion.armaControladora),
+        },
+      }),
     };
   }
 
@@ -290,6 +321,10 @@ export function verificarRequisitosAtaque(combatiente) {
       costoMana,
       manaActual,
       mensaje: `${configuracion.quiver.nombre} no tiene munición compatible.`,
+      mensajePresentacion: crearMensajeTraducible("mensajes.combate.sinMunicion", {
+        tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        parametros: { quiver: parametroObjeto(configuracion.quiver) },
+      }),
     };
   }
 
@@ -300,6 +335,7 @@ export function verificarRequisitosAtaque(combatiente) {
     costoMana,
     manaActual,
     mensaje: null,
+    mensajePresentacion: null,
   };
 }
 

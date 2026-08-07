@@ -1,4 +1,10 @@
 import { crearEventoRecursosRecuperados } from "../acciones/EventosAccion.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  crearParametroTraduccionMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 // Tipos de efectos que actualmente pueden
 // aplicar los objetos consumibles.
 //
@@ -122,28 +128,41 @@ function crearMensajeEfectos(efectosAplicados) {
 // de los efectos puede aplicarse.
 function crearMensajeSinEfecto(objeto) {
   const tipos = objeto.propiedades.efectos.map((efecto) => efecto.tipo);
-
+  const objetoParam = parametroObjeto(objeto);
   const solamenteVida =
     tipos.length === 1 && tipos[0] === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_VIDA;
-
   if (solamenteVida) {
-    return (
-      "Ya tenés la Vida al máximo. " + `${objeto.nombre} no fue consumida.`
-    );
+    return crearMensajeTraducible("mensajes.consumibles.vidaMaxima", {
+      parametros: { objeto: objetoParam },
+      tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+      respaldo: `Ya tenés la Vida al máximo. ${objeto.nombre} no fue consumida.`,
+    });
   }
-
   const solamenteMana =
     tipos.length === 1 && tipos[0] === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_MANA;
-
   if (solamenteMana) {
-    return (
-      "Ya tenés el Maná al máximo. " + `${objeto.nombre} no fue consumida.`
-    );
+    return crearMensajeTraducible("mensajes.consumibles.manaMaximo", {
+      parametros: { objeto: objetoParam },
+      tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+      respaldo: `Ya tenés el Maná al máximo. ${objeto.nombre} no fue consumida.`,
+    });
   }
+  return crearMensajeTraducible("mensajes.consumibles.sinEfecto", {
+    parametros: { objeto: objetoParam },
+    tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+    respaldo: `${objeto.nombre} no puede producir ningún efecto en este momento.`,
+  });
+}
 
-  return (
-    `${objeto.nombre} no puede producir ` + "ningún efecto en este momento."
-  );
+
+function parametroObjeto(objeto) {
+  return crearParametroContenidoMensaje("objetos", objeto?.id, {
+    respaldo: objeto?.nombre ?? "",
+  });
+}
+
+function mensajeConsumible(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
+  return crearMensajeTraducible(`mensajes.consumibles.${sufijo}`, { tipo, respaldo });
 }
 
 // Utiliza una unidad de un consumible
@@ -168,7 +187,7 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     return {
       exito: false,
 
-      mensaje: "Ese espacio del inventario está vacío.",
+      mensaje: mensajeConsumible("espacioVacio", "Ese espacio del inventario está vacío.", TIPOS_MENSAJE_JUEGO.ALERTA),
     };
   }
 
@@ -176,7 +195,11 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     return {
       exito: false,
 
-      mensaje: `${objeto.nombre} no es un consumible.`,
+      mensaje: crearMensajeTraducible("mensajes.consumibles.noConsumible", {
+        parametros: { objeto: parametroObjeto(objeto) },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `${objeto.nombre} no es un consumible.`,
+      }),
     };
   }
 
@@ -212,7 +235,11 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     return {
       exito: false,
 
-      mensaje: `No se pudo consumir ${objeto.nombre}.`,
+      mensaje: crearMensajeTraducible("mensajes.consumibles.fallo", {
+        parametros: { objeto: parametroObjeto(objeto) },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `No se pudo consumir ${objeto.nombre}.`,
+      }),
     };
   }
 
@@ -250,12 +277,44 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
       })]
     : [];
 
-  const efectosMensaje = crearMensajeEfectos(efectosAplicados);
-
-  const detalleRecuperacion =
-    efectosMensaje.length > 0
-      ? ` Recuperaste ${efectosMensaje.join(" y ")}.`
-      : "";
+  const vidaRecuperada = efectosAplicados
+    .filter((efecto) => efecto.tipo === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_VIDA)
+    .reduce((total, efecto) => total + Math.max(0, efecto.cantidadAplicada ?? 0), 0);
+  const manaRecuperado = efectosAplicados
+    .filter((efecto) => efecto.tipo === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_MANA)
+    .reduce((total, efecto) => total + Math.max(0, efecto.cantidadAplicada ?? 0), 0);
+  let detalle = null;
+  let detalleRespaldo = "";
+  if (vidaRecuperada > 0 && manaRecuperado > 0) {
+    detalle = crearParametroTraduccionMensaje("mensajes.consumibles.recuperacionAmbos", {
+      parametros: { vida: vidaRecuperada, mana: manaRecuperado },
+      respaldo: `${vidaRecuperada} de Vida y ${manaRecuperado} de Maná`,
+    });
+    detalleRespaldo = `${vidaRecuperada} de Vida y ${manaRecuperado} de Maná`;
+  } else if (vidaRecuperada > 0) {
+    detalle = crearParametroTraduccionMensaje("mensajes.consumibles.recuperacionVida", {
+      parametros: { cantidad: vidaRecuperada },
+      respaldo: `${vidaRecuperada} de Vida`,
+    });
+    detalleRespaldo = `${vidaRecuperada} de Vida`;
+  } else if (manaRecuperado > 0) {
+    detalle = crearParametroTraduccionMensaje("mensajes.consumibles.recuperacionMana", {
+      parametros: { cantidad: manaRecuperado },
+      respaldo: `${manaRecuperado} de Maná`,
+    });
+    detalleRespaldo = `${manaRecuperado} de Maná`;
+  }
+  const mensaje = detalle
+    ? crearMensajeTraducible("mensajes.consumibles.usadoRecuperacion", {
+        parametros: { objeto: parametroObjeto(objeto), detalle },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Usaste ${objeto.nombre}. Recuperaste ${detalleRespaldo}.`,
+      })
+    : crearMensajeTraducible("mensajes.consumibles.usado", {
+        parametros: { objeto: parametroObjeto(objeto) },
+        tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        respaldo: `Usaste ${objeto.nombre}.`,
+      });
 
   return {
     exito: true,
@@ -263,11 +322,7 @@ export function usarConsumibleDesdeInventario(player, indiceInventario) {
     cantidadConsumida: 1,
     efectosAplicados,
     eventos,
-
-    // Juego utilizará este valor como
-    // coste temporal base del consumo.
     costoConsumo: objeto.costoConsumo,
-
-    mensaje: `Usaste ${objeto.nombre}.` + detalleRecuperacion,
+    mensaje,
   };
 }

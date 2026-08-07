@@ -4,6 +4,7 @@ import { crearPresentacionObjeto } from "../objetos/PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "../objetos/VistaDetalleObjeto.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+import { resolverTextoMensajesJuego } from "../idiomas/PresentadorMensajesJuego.js";
 
 const ORIGENES_COMERCIO = Object.freeze({
   JUGADOR: "jugador",
@@ -755,8 +756,9 @@ export class ModalComercio {
 
       this.botonOperacion.disabled = true;
 
-      this.mensajeOperacion.textContent =
-        "El objeto seleccionado ya no está disponible.";
+      this.mensajeOperacion.textContent = traducir("mensajes.comercio.objetoNoDisponible", {
+        respaldo: "El objeto seleccionado ya no está disponible.",
+      });
 
       return;
     }
@@ -774,7 +776,7 @@ export class ModalComercio {
 
       this.botonOperacion.disabled = true;
 
-      this.mensajeOperacion.textContent = calculo.mensaje ?? "";
+      this.mensajeOperacion.textContent = resolverTextoMensajesJuego(calculo.mensajePresentacion ?? calculo.mensaje);
 
       return;
     }
@@ -784,13 +786,12 @@ export class ModalComercio {
 
       this.botonOperacion.disabled = true;
 
-      this.mensajeOperacion.textContent = `Te faltan ${formatearMonedas(
-        Math.max(
-          0,
-
-          calculo.precioTotal - this.jugador.oro,
-        ),
-      )} monedas.`;
+      this.mensajeOperacion.textContent = traducir("mensajes.comercio.faltanMonedas", {
+        parametros: {
+          cantidad: formatearMonedas(Math.max(0, calculo.precioTotal - this.jugador.oro)),
+        },
+        respaldo: `Te faltan ${formatearMonedas(Math.max(0, calculo.precioTotal - this.jugador.oro))} monedas.`,
+      });
 
       return;
     }
@@ -960,7 +961,7 @@ export class ModalComercio {
         ? this.alComprar(parametros)
         : this.alVender(parametros);
 
-    this.mensajeEstado.textContent = resultado?.mensaje ?? "";
+    this.mensajeEstado.textContent = resolverTextoMensajesJuego(resultado?.mensaje);
 
     this.actualizar();
   }

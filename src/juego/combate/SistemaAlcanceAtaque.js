@@ -1,3 +1,4 @@
+import { crearMensajeTraducible, TIPOS_MENSAJE_JUEGO } from "../mensajes/MensajesJuego.js";
 import { PATRONES_ATAQUE, esPatronAtaqueValido } from "./PatronesAtaque.js";
 
 // Centraliza las reglas de alcance y línea de visión.
@@ -30,11 +31,15 @@ export function evaluarAtaqueCasilla({
   if (!estaDentroMapa(mapa, destino.x, destino.y)) {
     return crearResultadoInvalido(
       "La casilla seleccionada está fuera del mapa.",
+      "mensajes.alcance.saleMapa",
     );
   }
 
   if (esPared(mapa, destino.x, destino.y)) {
-    return crearResultadoInvalido("No podés atacar una pared.");
+    return crearResultadoInvalido(
+      "No podés atacar una pared.",
+      "mensajes.combate.paredSeleccion",
+    );
   }
 
   const distancia = calcularDistanciaCuadricula(origen, destino);
@@ -49,6 +54,7 @@ export function evaluarAtaqueCasilla({
       alineacionValida: false,
       distancia,
       mensaje: "No podés atacar tu propia casilla.",
+      mensajePresentacion: crearMensajeAlcance("mensajes.alcance.propiaCasilla"),
     };
   }
 
@@ -61,6 +67,9 @@ export function evaluarAtaqueCasilla({
       alineacionValida: false,
       distancia,
       mensaje: `La casilla supera el alcance ` + `${atacante.alcanceAtaque}.`,
+      mensajePresentacion: crearMensajeAlcance("mensajes.alcance.superaAlcance", {
+        alcance: atacante.alcanceAtaque,
+      }),
     };
   }
 
@@ -87,6 +96,7 @@ export function evaluarAtaqueCasilla({
       alineacionValida: false,
       distancia,
       mensaje: evaluacionPatron.mensaje,
+      mensajePresentacion: evaluacionPatron.mensajePresentacion ?? null,
     };
   }
 
@@ -100,6 +110,7 @@ export function evaluarAtaqueCasilla({
       alineacionValida: true,
       distancia,
       mensaje: lineaVision.mensaje,
+      mensajePresentacion: lineaVision.mensajePresentacion ?? null,
     };
   }
 
@@ -111,6 +122,7 @@ export function evaluarAtaqueCasilla({
     alineacionValida: true,
     distancia,
     mensaje: null,
+    mensajePresentacion: null,
   };
 }
 
@@ -128,22 +140,29 @@ function evaluarPatronAtaque({ patronAtaque, origen, destino, distancia }) {
           distancia === 1
             ? null
             : "Este ataque solamente puede alcanzar casillas adyacentes.",
+        mensajePresentacion:
+          distancia === 1
+            ? null
+            : crearMensajeAlcance("mensajes.alcance.soloAdyacente"),
       };
     case PATRONES_ATAQUE.LINEAL:
       return {
         valido: estaEnDireccionLineal(origen, destino),
         mensaje:
           "Este ataque debe realizarse en línea horizontal, vertical o diagonal.",
+        mensajePresentacion: crearMensajeAlcance("mensajes.alcance.soloLineal"),
       };
     case PATRONES_ATAQUE.LIBRE:
       return {
         valido: true,
         mensaje: null,
+        mensajePresentacion: null,
       };
     default:
       return {
         valido: false,
         mensaje: "El patrón de ataque seleccionado no está implementado.",
+        mensajePresentacion: crearMensajeAlcance("mensajes.alcance.patronNoImplementado"),
       };
   }
 }
@@ -187,6 +206,7 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
     return {
       despejada: false,
       mensaje: "La trayectoria sale del mapa.",
+      mensajePresentacion: crearMensajeAlcance("mensajes.alcance.saleMapa"),
     };
   }
 
@@ -229,6 +249,7 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
         return {
           despejada: false,
           mensaje: "Dos paredes bloquean la trayectoria diagonal del ataque.",
+          mensajePresentacion: crearMensajeAlcance("mensajes.alcance.dosParedesDiagonal"),
         };
       }
 
@@ -251,6 +272,7 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
       return {
         despejada: false,
         mensaje: "Una pared bloquea la trayectoria del ataque.",
+        mensajePresentacion: crearMensajeAlcance("mensajes.alcance.paredBloquea"),
       };
     }
   }
@@ -258,6 +280,7 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
   return {
     despejada: true,
     mensaje: null,
+    mensajePresentacion: null,
   };
 }
 
@@ -274,7 +297,7 @@ function esBloqueante(mapa, x, y) {
   return !estaDentroMapa(mapa, x, y) || esPared(mapa, x, y);
 }
 
-function crearResultadoInvalido(mensaje) {
+function crearResultadoInvalido(mensaje, clave = null) {
   return {
     puedeAtacar: false,
     dentroAlcance: false,
@@ -283,7 +306,15 @@ function crearResultadoInvalido(mensaje) {
     alineacionValida: false,
     distancia: null,
     mensaje,
+    mensajePresentacion: clave ? crearMensajeAlcance(clave) : null,
   };
+}
+
+function crearMensajeAlcance(clave, parametros = {}) {
+  return crearMensajeTraducible(clave, {
+    tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+    parametros,
+  });
 }
 
 function validarDatos({ atacante, xObjetivo, yObjetivo, mapa }) {

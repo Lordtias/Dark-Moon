@@ -1,3 +1,4 @@
+import { traducir } from "../../idiomas/ContextoIdioma.js";
 import {
   TIPOS_EVENTO_VISUAL,
 } from "../PlanificadorEventosVisuales.js";
@@ -576,6 +577,7 @@ export class ReproductorEventosVisualesPhaser {
     const feedback = this.creadorEstadosTemporales?.crearNoAplicado({
       centro,
       feedback: evento.feedback,
+      motivo: evento.motivo,
     });
     if (!feedback) return;
     const yInicial = feedback.y;
@@ -2993,7 +2995,7 @@ export class ReproductorEventosVisualesPhaser {
       decorativos.push(
         this.reproducirTextoResultado({
           evento,
-          texto: "FALLO",
+          texto: traducir("mensajes.feedback.fallo", { respaldo: "FALLO" }),
           tipo: TIPOS_FEEDBACK_COMBATE.FALLO,
           indiceGolpe,
           version,
@@ -3027,7 +3029,7 @@ export class ReproductorEventosVisualesPhaser {
         this.reproducirBloqueo(evento, indiceGolpe, version),
         this.reproducirTextoResultado({
           evento,
-          texto: "BLOQUEO",
+          texto: traducir("mensajes.feedback.bloqueo", { respaldo: "BLOQUEO" }),
           tipo: TIPOS_FEEDBACK_COMBATE.BLOQUEO,
           indiceGolpe,
           desplazamientoY: 8,
@@ -3040,7 +3042,7 @@ export class ReproductorEventosVisualesPhaser {
       decorativos.push(
         this.reproducirTextoResultado({
           evento,
-          texto: "CRÍTICO",
+          texto: traducir("mensajes.feedback.critico", { respaldo: "CRÍTICO" }),
           tipo: TIPOS_FEEDBACK_COMBATE.CRITICO,
           indiceGolpe,
           desplazamientoY: -8,

@@ -258,6 +258,7 @@ function resumirResultado(resultado) {
     estadoAplicacion: resultado?.estadoAplicacion ?? null,
     motivo: resultado?.motivo ?? null,
     mensaje: resultado?.mensaje ?? null,
+    mensajePresentacion: resultado?.mensajePresentacion ?? null,
     probabilidadBase: resultado?.probabilidadBase ?? null,
     resistencia: resultado?.resistencia ?? null,
     probabilidadFinal: resultado?.probabilidadFinal ?? null,

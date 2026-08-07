@@ -1,4 +1,5 @@
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
+import { resolverTextoMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
 
 import { crearEscenaJuego } from "./graficos/AdaptadorEscenaJuego.js";
 import { crearPlanEventosVisuales } from "./graficos/PlanificadorEventosVisuales.js";
@@ -192,7 +193,7 @@ export class Renderizador {
         `mensaje-registro--${evento.tipo}`,
       );
       elemento.dataset.tipo = evento.tipo;
-      elemento.textContent = evento.texto;
+      elemento.textContent = resolverTextoMensajeJuego(evento);
       fragmento.appendChild(elemento);
     }
 

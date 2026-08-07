@@ -2,7 +2,7 @@ import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const CATEGORIAS = Object.freeze([
   { id: "magicas", clave: "interfaz.habilidades.categoriaMagicas", respaldo: "Mágicas" },
-  { id: "basicas", clave: "interfaz.habilidades.categoriaBasicas", respaldo: "Básicas" },
+  { id: "basicas", clave: "interfaz.habilidades.categoriaBasicas", respaldo: traducir("interfaz.habilidades.basicasEtiqueta", { respaldo: "Básicas" }) },
   { id: "armas", clave: "interfaz.habilidades.categoriaArmas", respaldo: "Armas" },
   { id: "armaduras", clave: "interfaz.habilidades.categoriaArmaduras", respaldo: "Armaduras" },
 ]);
@@ -65,15 +65,19 @@ export class PanelHabilidadesMaestrias {
       this.renderizarBasicas();
     } else if (this.categoriaActiva === "armas") {
       this.renderizarConstruccion(
-        "Maestrías de armas",
+        traducir("interfaz.habilidades.maestriasArmasTitulo", { respaldo: "Maestrías de armas" }),
         this.familiasArmas,
-        "Las familias ya quedan visibles como recordatorio, pero todavía no ganan experiencia ni conceden puntos.",
+        traducir("interfaz.habilidades.maestriasArmasDetalle", {
+          respaldo: "Las familias ya quedan visibles como recordatorio, pero todavía no ganan experiencia ni conceden puntos.",
+        }),
       );
     } else {
       this.renderizarConstruccion(
-        "Maestrías de armaduras",
+        traducir("interfaz.habilidades.maestriasArmadurasTitulo", { respaldo: "Maestrías de armaduras" }),
         ["liviana", "media", "pesada"],
-        "La progresión por uso y mitigación de armaduras se diseñará en un hito futuro.",
+        traducir("interfaz.habilidades.maestriasArmadurasDetalle", {
+          respaldo: "La progresión por uso y mitigación de armaduras se diseñará en un hito futuro.",
+        }),
       );
     }
   }
@@ -445,7 +449,14 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "confirmacion-habilidad__resumen",
-        `${habilidad.nombre}: grado ${habilidad.grado} → ${gradoNuevo}.`,
+        traducir("interfaz.habilidades.resumenGrado", {
+          parametros: {
+            habilidad: nombreHabilidad(habilidad),
+            actual: habilidad.grado,
+            nuevo: gradoNuevo,
+          },
+          respaldo: `${habilidad.nombre}: grado ${habilidad.grado} → ${gradoNuevo}.`,
+        }),
       ),
     );
     let obtenerOrigen;
@@ -454,16 +465,36 @@ export class PanelHabilidadesMaestrias {
         "fieldset",
         "confirmacion-habilidad__opciones",
       );
-      opciones.append(crearElemento("legend", "", "Elegí qué punto consumir"));
+      opciones.append(
+        crearElemento(
+          "legend",
+          "",
+          traducir("interfaz.habilidades.elegirPuntoConsumir", {
+            respaldo: "Elegí qué punto consumir",
+          }),
+        ),
+      );
       opciones.append(
         crearOpcionPunto({
           valor: "especifico",
-          texto: `Específico de ${this.maestriaActiva} (${estado.puntosEspecificos} disponibles)`,
+          texto: traducir("interfaz.habilidades.puntoEspecificoDisponible", {
+            parametros: {
+              maestria: nombreMaestria(
+                this.maestriaActiva,
+                this.configuracionProgreso.maestrias[this.maestriaActiva],
+              ),
+              cantidad: estado.puntosEspecificos,
+            },
+            respaldo: `Específico de ${this.maestriaActiva} (${estado.puntosEspecificos} disponibles)`,
+          }),
           marcado: true,
         }),
         crearOpcionPunto({
           valor: "universal",
-          texto: `Universal (${resumen.puntosUniversales} disponibles)`,
+          texto: traducir("interfaz.habilidades.puntoUniversalDisponible", {
+            parametros: { cantidad: resumen.puntosUniversales },
+            respaldo: `Universal (${resumen.puntosUniversales} disponibles)`,
+          }),
           marcado: false,
         }),
       );
@@ -478,22 +509,22 @@ export class PanelHabilidadesMaestrias {
           "p",
           "confirmacion-habilidad__origen",
           origen === "especifico"
-            ? `Se consumirá 1 punto específico. Quedarán ${estado.puntosEspecificos - 1}.`
-            : `Se consumirá 1 punto universal. Quedarán ${resumen.puntosUniversales - 1}.`,
+            ? traducir("interfaz.habilidades.consumiraEspecifico", { parametros: { cantidad: estado.puntosEspecificos - 1 }, respaldo: `Se consumirá 1 punto específico. Quedarán ${estado.puntosEspecificos - 1}.` })
+            : traducir("interfaz.habilidades.consumiraUniversal", { parametros: { cantidad: resumen.puntosUniversales - 1 }, respaldo: `Se consumirá 1 punto universal. Quedarán ${resumen.puntosUniversales - 1}.` }),
         ),
       );
       obtenerOrigen = () => origen;
     }
     this.abrirCapaAccion({
       titulo:
-        habilidad.grado > 0 ? "Confirmar mejora" : "Confirmar aprendizaje",
+        habilidad.grado > 0 ? traducir("interfaz.habilidades.confirmarMejora", { respaldo: "Confirmar mejora" }) : traducir("interfaz.habilidades.confirmarAprendizaje", { respaldo: "Confirmar aprendizaje" }),
       cuerpo,
       textoConfirmar:
-        habilidad.grado > 0 ? "Mejorar un grado" : "Aprender habilidad",
+        habilidad.grado > 0 ? traducir("interfaz.habilidades.mejorarGrado", { respaldo: "Mejorar un grado" }) : traducir("interfaz.habilidades.aprenderHabilidad", { respaldo: "Aprender habilidad" }),
       alConfirmar: () => {
         const origenPunto = obtenerOrigen();
         if (!origenPunto) {
-          throw new Error("Debés elegir el origen del punto.");
+          throw new Error(traducir("interfaz.habilidades.elegirOrigen", { respaldo: "Debés elegir el origen del punto." }));
         }
         const resultado = mejorarHabilidadJugador(this.jugador, {
           idHabilidad: habilidad.id,
@@ -507,7 +538,10 @@ export class PanelHabilidadesMaestrias {
         }
         this.guardarCambios("progreso");
         this.mostrarMensaje(
-          `${habilidad.nombre} alcanzó el grado ${resultado.gradoActual}.`,
+          traducir("interfaz.habilidades.gradoAlcanzado", {
+            parametros: { habilidad: nombreHabilidad(habilidad), grado: resultado.gradoActual },
+            respaldo: `${habilidad.nombre} alcanzó el grado ${resultado.gradoActual}.`,
+          }),
           "exito",
         );
         this.renderizar();
@@ -540,7 +574,7 @@ export class PanelHabilidadesMaestrias {
       cuerpo.append(boton);
     });
     this.abrirCapaAccion({
-      titulo: `Asignar ${habilidad.nombre}`,
+      titulo: traducir("interfaz.habilidades.asignarTitulo", { parametros: { habilidad: nombreHabilidad(habilidad) }, respaldo: `Asignar ${habilidad.nombre}` }),
       cuerpo,
       mostrarConfirmar: false,
     });
@@ -551,18 +585,21 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "confirmacion-habilidad__resumen",
-        `La ranura ${indice === 9 ? 0 : indice + 1} contiene ${ranura.nombre}. Será reemplazada por ${habilidad.nombre}.`,
+        traducir("interfaz.habilidades.reemplazoResumen", {
+          parametros: { ranura: indice === 9 ? 0 : indice + 1, actual: nombreHabilidad(ranura), nueva: nombreHabilidad(habilidad) },
+          respaldo: `La ranura ${indice === 9 ? 0 : indice + 1} contiene ${ranura.nombre}. Será reemplazada por ${habilidad.nombre}.`,
+        }),
       ),
       crearElemento(
         "p",
         "confirmacion-habilidad__aviso",
-        "La habilidad reemplazada seguirá aprendida, pero quedará sin acceso rápido.",
+        traducir("interfaz.habilidades.reemplazoAviso", { respaldo: "La habilidad reemplazada seguirá aprendida, pero quedará sin acceso rápido." }),
       ),
     );
     this.abrirCapaAccion({
-      titulo: "Confirmar reemplazo",
+      titulo: traducir("interfaz.habilidades.confirmarReemplazo", { respaldo: "Confirmar reemplazo" }),
       cuerpo,
-      textoConfirmar: "Reemplazar",
+      textoConfirmar: traducir("interfaz.habilidades.reemplazar", { respaldo: "Reemplazar" }),
       alConfirmar: () => {
         this.asignarHabilidad(habilidad, indice);
         return true;
@@ -575,23 +612,23 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "confirmacion-habilidad__resumen",
-        `Quitar ${habilidad.nombre} de la ranura ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}.`,
+        traducir("interfaz.habilidades.quitarResumen", { parametros: { habilidad: nombreHabilidad(habilidad), ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 }, respaldo: `Quitar ${habilidad.nombre} de la ranura ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}.` }),
       ),
       crearElemento(
         "p",
         "confirmacion-habilidad__aviso",
-        "No se perderá el grado aprendido.",
+        traducir("interfaz.habilidades.quitarAviso", { respaldo: "No se perderá el grado aprendido." }),
       ),
     );
     this.abrirCapaAccion({
-      titulo: "Confirmar desasignación",
+      titulo: traducir("interfaz.habilidades.confirmarDesasignacion", { respaldo: "Confirmar desasignación" }),
       cuerpo,
-      textoConfirmar: "Quitar de la barra",
+      textoConfirmar: traducir("interfaz.habilidades.quitarBarra", { respaldo: "Quitar de la barra" }),
       alConfirmar: () => {
         this.sistema.desasignarHabilidad(indiceAsignado);
         this.guardarCambios("barra");
         this.mostrarMensaje(
-          `${habilidad.nombre} fue quitada de la barra.`,
+          traducir("interfaz.habilidades.quitadaBarra", { parametros: { habilidad: nombreHabilidad(habilidad) }, respaldo: `${habilidad.nombre} fue quitada de la barra.` }),
           "exito",
         );
         this.renderizar();
@@ -603,7 +640,7 @@ export class PanelHabilidadesMaestrias {
     this.sistema.asignarHabilidad(indice, habilidad.id);
     this.guardarCambios("barra");
     this.mostrarMensaje(
-      `${habilidad.nombre} fue asignada a la ranura ${indice === 9 ? 0 : indice + 1}.`,
+      traducir("interfaz.habilidades.asignadaRanura", { parametros: { habilidad: nombreHabilidad(habilidad), ranura: indice === 9 ? 0 : indice + 1 }, respaldo: `${habilidad.nombre} fue asignada a la ranura ${indice === 9 ? 0 : indice + 1}.` }),
       "exito",
     );
     this.renderizar();
@@ -611,7 +648,7 @@ export class PanelHabilidadesMaestrias {
   abrirCapaAccion({
     titulo,
     cuerpo,
-    textoConfirmar = "Confirmar",
+    textoConfirmar = traducir("interfaz.habilidades.confirmar", { respaldo: "Confirmar" }),
     alConfirmar = null,
     mostrarConfirmar = true,
   }) {
@@ -629,11 +666,11 @@ export class PanelHabilidadesMaestrias {
       "×",
     );
     cerrar.type = "button";
-    cerrar.setAttribute("aria-label", "Cancelar acción");
+    cerrar.setAttribute("aria-label", traducir("interfaz.habilidades.cancelarAccion", { respaldo: "Cancelar acción" }));
     cerrar.addEventListener("click", () => this.cerrarCapaAccion());
     cabecera.append(cerrar);
     const acciones = crearElemento("div", "confirmacion-habilidad__acciones");
-    const cancelar = crearElemento("button", "", "Cancelar");
+    const cancelar = crearElemento("button", "", traducir("interfaz.habilidades.cancelar", { respaldo: "Cancelar" }));
     cancelar.type = "button";
     cancelar.addEventListener("click", () => this.cerrarCapaAccion());
     acciones.append(cancelar);
@@ -652,7 +689,13 @@ export class PanelHabilidadesMaestrias {
             this.cerrarCapaAccion();
           }
         } catch (error) {
-          this.mostrarMensaje(error.message, "error");
+          console.error("[Dark Moon · Habilidades]", error);
+          this.mostrarMensaje(
+            traducir("interfaz.habilidades.errorOperacion", {
+              respaldo: "No se pudo completar la operación.",
+            }),
+            "error",
+          );
         } finally {
           confirmar.disabled = false;
         }
@@ -669,18 +712,18 @@ export class PanelHabilidadesMaestrias {
   renderizarBasicas() {
     const seccion = crearElemento("section", "seccion-en-construccion");
     seccion.append(
-      crearElemento("p", "seccion-en-construccion__etiqueta", "Básicas"),
-      crearElemento("h3", "", "Habilidades generales"),
-      crearElemento("p", "", "Todavía no hay habilidades básicas disponibles."),
+      crearElemento("p", "seccion-en-construccion__etiqueta", traducir("interfaz.habilidades.basicasEtiqueta", { respaldo: "Básicas" })),
+      crearElemento("h3", "", traducir("interfaz.habilidades.generalesTitulo", { respaldo: "Habilidades generales" })),
+      crearElemento("p", "", traducir("interfaz.habilidades.generalesVacias", { respaldo: "Todavía no hay habilidades básicas disponibles." })),
       crearElemento(
         "p",
         "seccion-en-construccion__detalle",
-        "Esta sección queda preparada como recordatorio visual para futuras acciones como Descansar, Investigar y otras dinámicas generales.",
+        traducir("interfaz.habilidades.generalesDetalle", { respaldo: "Esta sección queda preparada como recordatorio visual para futuras acciones como Descansar, Investigar y otras dinámicas generales." }),
       ),
       crearElemento(
         "strong",
         "seccion-en-construccion__estado",
-        "Sección vacía",
+        traducir("interfaz.habilidades.seccionVacia", { respaldo: "Sección vacía" }),
       ),
     );
     this.contenido.append(seccion);
@@ -691,7 +734,7 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "seccion-en-construccion__etiqueta",
-        "Extensión futura",
+        traducir("interfaz.habilidades.extensionFutura", { respaldo: "Extensión futura" }),
       ),
       crearElemento("h3", "", titulo),
       crearElemento("p", "", descripcion),
@@ -701,7 +744,7 @@ export class PanelHabilidadesMaestrias {
       const tarjeta = crearElemento("article", "familia-en-construccion");
       tarjeta.append(
         crearElemento("strong", "", formatearNombre(familia)),
-        crearElemento("span", "", "En construcción"),
+        crearElemento("span", "", traducir("interfaz.habilidades.enConstruccion", { respaldo: "En construcción" })),
       );
       lista.append(tarjeta);
     });
@@ -1023,14 +1066,34 @@ function obtenerResumenProgreso(jugador) {
   throw new Error("El jugador no expone su resumen de progreso mágico.");
 }
 function traducirMotivo(motivo) {
-  const mensajes = {
-    NIVEL_MAESTRIA_INSUFICIENTE: "La maestría todavía no cumple el requisito.",
-    GRADO_MAXIMO_ALCANZADO: "La habilidad ya alcanzó su grado máximo.",
-    SIN_PUNTOS_UNIVERSALES: "No quedan puntos universales.",
-    SIN_PUNTOS_ESPECIFICOS: "No quedan puntos específicos de esa maestría.",
-    PUNTO_DE_OTRA_MAESTRIA: "El punto específico pertenece a otra maestría.",
+  const claves = {
+    NIVEL_MAESTRIA_INSUFICIENTE: [
+      "interfaz.habilidades.motivoNivelMaestria",
+      "La maestría todavía no cumple el requisito.",
+    ],
+    GRADO_MAXIMO_ALCANZADO: [
+      "interfaz.habilidades.motivoGradoMaximo",
+      "La habilidad ya alcanzó su grado máximo.",
+    ],
+    SIN_PUNTOS_UNIVERSALES: [
+      "interfaz.habilidades.motivoSinUniversales",
+      "No quedan puntos universales.",
+    ],
+    SIN_PUNTOS_ESPECIFICOS: [
+      "interfaz.habilidades.motivoSinEspecificos",
+      "No quedan puntos específicos de esa maestría.",
+    ],
+    PUNTO_DE_OTRA_MAESTRIA: [
+      "interfaz.habilidades.motivoPuntoOtraMaestria",
+      "El punto específico pertenece a otra maestría.",
+    ],
   };
-  return mensajes[motivo] ?? `No se pudo completar la operación (${motivo}).`;
+  const [clave, respaldo] = claves[motivo] ?? [];
+  if (clave) return traducir(clave, { respaldo });
+  return traducir("interfaz.habilidades.motivoOperacion", {
+    parametros: { motivo },
+    respaldo: `No se pudo completar la operación (${motivo}).`,
+  });
 }
 function asegurarHojaEstilos() {
   if (document.getElementById("estilosHabilidadesMaestrias")) {

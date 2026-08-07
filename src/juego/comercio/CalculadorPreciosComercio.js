@@ -4,6 +4,11 @@ import {
 } from "./CalculadorValorObjeto.js";
 
 import { validarConfiguracionComercio } from "./ValidadorConfiguracionComercio.js";
+import {
+  crearMensajeTraducible,
+  crearParametroContenidoMensaje,
+  TIPOS_MENSAJE_JUEGO,
+} from "../mensajes/MensajesJuego.js";
 
 // Las operaciones se nombran desde la perspectiva
 // del jugador, no desde la del mercader.
@@ -114,6 +119,11 @@ export function calcularPrecioVenta({
       puedePagar: null,
 
       mensaje: `${objeto.nombre} no se puede vender.`,
+      mensajePresentacion: crearMensajeTraducible("mensajes.comercio.noVendible", {
+        parametros: { objeto: crearParametroContenidoMensaje("objetos", objeto.id, { respaldo: objeto.nombre }) },
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: `${objeto.nombre} no se puede vender.`,
+      }),
     });
   }
 
@@ -150,6 +160,10 @@ export function calcularPrecioVenta({
       mensaje:
         "La cantidad seleccionada no alcanza el valor mínimo de una moneda. " +
         "Seleccioná más unidades para venderlas juntas.",
+      mensajePresentacion: crearMensajeTraducible("mensajes.comercio.valorInsuficiente", {
+        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        respaldo: "La cantidad seleccionada no alcanza el valor mínimo de una moneda. Seleccioná más unidades para venderlas juntas.",
+      }),
     });
   }
 
@@ -323,6 +337,7 @@ function crearResultadoPrecio({
   precioTotal,
   puedePagar,
   mensaje = null,
+  mensajePresentacion = null,
 }) {
   return {
     tipoOperacion,
@@ -350,6 +365,7 @@ function crearResultadoPrecio({
     precioTotal,
     puedePagar,
     mensaje,
+    mensajePresentacion,
   };
 }
 

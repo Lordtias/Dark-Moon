@@ -131,13 +131,13 @@ export class ModalSeleccionMazmorra {
     acciones.classList.add("modal-seleccion-mazmorra__acciones");
 
     this.botonCancelar = crearBoton({
-      texto: "Cancelar",
+      texto: traducir("interfaz.comun.cancelar", { respaldo: "Cancelar" }),
 
       clase: "modal-seleccion-mazmorra__boton--secundario",
     });
 
     this.botonConfirmar = crearBoton({
-      texto: "Entrar",
+      texto: traducir("interfaz.mazmorras.entrarBoton", { respaldo: "Entrar" }),
 
       clase: "modal-seleccion-mazmorra__boton--principal",
     });
@@ -410,7 +410,7 @@ export class ModalSeleccionMazmorra {
     agregarDato({
       lista: datos,
 
-      termino: "Rango disponible",
+      termino: traducir("interfaz.mazmorras.rangoDisponible", { respaldo: "Rango disponible" }),
 
       valor: crearTextoNivel(mazmorra),
     });
@@ -418,7 +418,7 @@ export class ModalSeleccionMazmorra {
     agregarDato({
       lista: datos,
 
-      termino: "Tamaño",
+      termino: traducir("interfaz.mazmorras.tamano", { respaldo: "Tamaño" }),
 
       valor: crearTextoDimensiones(mazmorra),
     });
@@ -426,7 +426,7 @@ export class ModalSeleccionMazmorra {
     agregarDato({
       lista: datos,
 
-      termino: "Enemigos",
+      termino: traducir("interfaz.mazmorras.enemigos", { respaldo: "Enemigos" }),
 
       valor: crearTextoEnemigos(mazmorra),
     });
@@ -434,7 +434,7 @@ export class ModalSeleccionMazmorra {
     agregarDato({
       lista: datos,
 
-      termino: "Cantidad",
+      termino: traducir("interfaz.mazmorras.cantidad", { respaldo: "Cantidad" }),
 
       valor: crearTextoCantidadEnemigos(mazmorra),
     });
@@ -817,7 +817,11 @@ function crearTextoEnemigos(mazmorra) {
     return traducir("interfaz.mazmorras.sinEnemigos", { respaldo: "Sin enemigos configurados" });
   }
 
-  return mazmorra.enemigos.map(formatearTexto).join(", ");
+  return mazmorra.enemigos
+    .map((idEnemigo) =>
+      traducirContenido("enemigos", idEnemigo, "nombre", formatearTexto(idEnemigo)),
+    )
+    .join(", ");
 }
 
 function crearTextoCantidadEnemigos(mazmorra) {

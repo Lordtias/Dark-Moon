@@ -291,6 +291,7 @@ function resolverFuenteAtaque({
   if (!tiradaImpacto.exito) {
     return {
       nombreFuente: fuente.nombre,
+      idFuente: fuente.objeto?.id ?? null,
       mano: fuente.mano,
       multiplicadorGolpe: fuente.multiplicadorGolpe,
       impacto: false,
@@ -357,6 +358,7 @@ function resolverFuenteAtaque({
 
   return {
     nombreFuente: fuente.nombre,
+    idFuente: fuente.objeto?.id ?? null,
     mano: fuente.mano,
     multiplicadorGolpe: fuente.multiplicadorGolpe,
     impacto: true,
@@ -542,6 +544,8 @@ export function resolverAtaqueSinObjetivo({ atacante } = {}) {
     return {
       impacto: false,
       danio: 0,
+      ataqueNoDisponible: true,
+      motivoNoDisponible: "atacante_derrotado",
       mensaje:
         `${atacante?.nombre ?? "El combatiente"} ` +
         "no puede atacar porque está derrotado.",
@@ -554,6 +558,7 @@ export function resolverAtaqueSinObjetivo({ atacante } = {}) {
       impacto: false,
       danio: 0,
       ataqueNoDisponible: true,
+      requisitos,
       mensaje: requisitos.mensaje,
     };
   }
@@ -581,6 +586,8 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       critico: false,
       danio: 0,
       objetivoDestruido: false,
+      ataqueNoDisponible: true,
+      motivoNoDisponible: "atacante_derrotado",
       mensaje:
         `${atacante?.nombre ?? "El combatiente"} ` +
         "no puede atacar porque está derrotado.",
@@ -601,6 +608,8 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       critico: false,
       danio: 0,
       objetivoDestruido: true,
+      ataqueNoDisponible: true,
+      motivoNoDisponible: "objetivo_destruido",
       mensaje: `${objetivo.nombre} ya está destruido.`,
     };
   }
@@ -614,6 +623,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
       danio: 0,
       objetivoDestruido: false,
       ataqueNoDisponible: true,
+      requisitos,
       mensaje: requisitos.mensaje,
     };
   }

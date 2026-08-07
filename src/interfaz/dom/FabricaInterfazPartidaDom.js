@@ -13,6 +13,7 @@ import { ModalDetalleObjeto } from "../objetos/ModalDetalleObjeto.js";
 import { ModalContenedorObjetos } from "../objetos/ModalContenedorObjetos.js";
 import { ModalSeleccionMazmorra } from "../ModalSeleccionMazmorra.js";
 import { ModalComercio } from "../comercio/ModalComercio.js";
+import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
 
 // Crea los componentes visuales persistentes
 // utilizados durante toda una partida.
@@ -29,9 +30,10 @@ import { ModalComercio } from "../comercio/ModalComercio.js";
 export function crearInterfazPartidaDom({
   tileSize,
   configuracionRarezas,
-  tipoRenderizador = TIPO_RENDERIZADOR_CANVAS_2D,
+  tipoRenderizador = TIPO_RENDERIZADOR_PHASER,
   Phaser = null,
   preferenciasInterfaz = null,
+  obtenerContextoDiagnostico = () => ({}),
 } = {}) {
   if (!Number.isInteger(tileSize) || tileSize <= 0) {
     throw new Error("La interfaz necesita un tamaño de casilla válido.");
@@ -105,6 +107,14 @@ export function crearInterfazPartidaDom({
   // y stock persistente.
   const modalComercio = new ModalComercio();
 
+  const modalAyudaJuego = new ModalAyudaJuego({
+    botonAbrir: obtenerElementoObligatorio(
+      "gameHelpButton",
+      "botón de ayuda del juego",
+    ),
+    obtenerContextoDiagnostico,
+  });
+
   const combatLogText = obtenerElementoObligatorio(
     "combatLog",
     "registro de combate",
@@ -126,6 +136,7 @@ export function crearInterfazPartidaDom({
     modalContenedorObjetos,
     modalSeleccionMazmorra,
     modalComercio,
+    modalAyudaJuego,
   };
 }
 

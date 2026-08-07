@@ -184,6 +184,11 @@ export class ControladorCamaraPhaser {
   }
 
   actualizar(deltaMs) {
+    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+      this.limpiarTeclasDireccion();
+      return;
+    }
+
     if (
       this.seleccionActiva ||
       this.teclasDireccionActivas.size === 0 ||
@@ -302,6 +307,10 @@ export class ControladorCamaraPhaser {
   }
 
   manejarKeyDown(evento) {
+    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+      return;
+    }
+
     if (
       esElementoEditable(evento.target) ||
       evento.altKey ||
@@ -346,6 +355,10 @@ export class ControladorCamaraPhaser {
 
   manejarKeyUp(evento) {
     if (!DIRECCIONES_CAMARA_POR_TECLA[evento.code]) return;
+    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+      this.teclasDireccionActivas.delete(evento.code);
+      return;
+    }
     this.teclasDireccionActivas.delete(evento.code);
   }
 
@@ -366,7 +379,7 @@ export class ControladorCamaraPhaser {
     }
 
     this.actualizarCasillaPunteroConocido();
-    if (notificar) this.notificarCambio();
+    if (notificar) this.notificarCambio("zoom");
     return this.camara.zoom;
   }
 
@@ -412,7 +425,7 @@ export class ControladorCamaraPhaser {
     }
 
     this.actualizarCasillaPunteroConocido();
-    this.notificarCambio();
+    this.notificarCambio("zoom");
   }
 
   actualizarCasillaPuntero(pointer) {
@@ -549,8 +562,8 @@ export class ControladorCamaraPhaser {
     });
   }
 
-  notificarCambio() {
-    this.alCambiar?.(this.obtenerEstado());
+  notificarCambio(motivo = "vista") {
+    this.alCambiar?.(this.obtenerEstado(), motivo);
   }
 
   destruir() {

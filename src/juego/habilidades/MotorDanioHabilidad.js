@@ -1,5 +1,5 @@
 import { resolverPaqueteDanio } from "../combate/ComponentesDanio.js";
-import { calcularProbabilidadImpacto } from "../combate/SistemaCombate.js";
+import { obtenerDesgloseProbabilidadImpacto } from "../combate/SistemaCombate.js";
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
 import { crearContextoPotenciaHabilidad } from "../magia/SistemaCatalizadores.js";
 
@@ -66,9 +66,10 @@ export function resolverImpactoHabilidad({
   const estadisticasLanzador = obtenerEstadisticas(lanzador);
   const vidaObjetivoAntes = leerVidaActual(objetivo);
   const vidaObjetivoMaxima = leerVidaMaxima(objetivo);
-  const probabilidadImpacto = resolverImpacto
-    ? obtenerProbabilidadImpacto(lanzador, objetivo)
-    : 100;
+  const desgloseImpacto = resolverImpacto
+    ? obtenerDesgloseImpactoSeguro(lanzador, objetivo)
+    : crearDesgloseImpactoAutomatico();
+  const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = obtenerTirada("impacto");
   const impacto = !resolverImpacto || tiradaImpacto <= probabilidadImpacto;
   const probabilidadCritico = resolverCritico
@@ -84,6 +85,7 @@ export function resolverImpactoHabilidad({
     impacto,
     critico,
     probabilidadImpacto,
+    desgloseImpacto,
     tiradaImpacto,
     probabilidadCritico,
     tiradaCritico,
@@ -111,9 +113,10 @@ export function resolverDanioHabilidad({
   const vidaObjetivoMaxima = leerVidaMaxima(objetivo);
   const estadisticasLanzador = obtenerEstadisticas(lanzador);
   const estadisticasObjetivo = obtenerEstadisticas(objetivo);
-  const probabilidadImpacto = resolverImpacto
-    ? obtenerProbabilidadImpacto(lanzador, objetivo)
-    : 100;
+  const desgloseImpacto = resolverImpacto
+    ? obtenerDesgloseImpactoSeguro(lanzador, objetivo)
+    : crearDesgloseImpactoAutomatico();
+  const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = obtenerTirada("impacto");
   const impacto = !resolverImpacto || tiradaImpacto <= probabilidadImpacto;
 
@@ -130,6 +133,7 @@ export function resolverDanioHabilidad({
     return crearResultadoFallo({
       idEjecucion,
       probabilidadImpacto,
+      desgloseImpacto,
       tiradaImpacto,
       multiplicadorAtributos,
       contextoPotencia: contextoPotenciaCalculado,
@@ -165,6 +169,12 @@ export function resolverDanioHabilidad({
     resistencias,
     bloqueo: { activo: false, mitigacion: 0 },
   });
+  const componentesDanio = resolucion.componentes.map(
+    (componenteResuelto, indice) => ({
+      ...componentes[indice],
+      ...componenteResuelto,
+    }),
+  );
   const danioAplicado = aplicarDanioFinal(objetivo, resolucion.danioCalculado, {
     idEjecucion,
     fuente: lanzador,
@@ -176,11 +186,13 @@ export function resolverDanioHabilidad({
     impacto: true,
     critico,
     probabilidadImpacto,
+    desgloseImpacto,
     tiradaImpacto,
     probabilidadCritico,
     tiradaCritico,
     multiplicadorCritico,
     multiplicadorDanioMagico: multiplicadorFinal,
+    multiplicadorBaseDanioMagico: multiplicadorBase,
     multiplicadorAtributosMagicos: multiplicadorAtributos,
     multiplicadorPotenciaHabilidad:
       contextoPotenciaCalculado.multiplicadorHabilidad,
@@ -188,7 +200,7 @@ export function resolverDanioHabilidad({
     cantidadObjetosAportandoPotencia:
       contextoPotenciaCalculado.cantidadObjetosAportando ?? 0,
     componentes,
-    componentesDanio: resolucion.componentes,
+    componentesDanio,
     desgloseDanio: resolucion.desgloseDanio,
     resistencias,
     resolucion,
@@ -272,18 +284,43 @@ function validarEntradaDanio({ lanzador, objetivo, componentesConfigurados }) {
   }
 }
 
-function obtenerProbabilidadImpacto(lanzador, objetivo) {
+function obtenerDesgloseImpactoSeguro(lanzador, objetivo) {
   try {
-    const probabilidad = calcularProbabilidadImpacto(lanzador, objetivo);
-    return limitar(Number.isFinite(probabilidad) ? probabilidad : 100, 0, 100);
+    const desglose = obtenerDesgloseProbabilidadImpacto(lanzador, objetivo);
+    return Object.freeze({
+      ...desglose,
+      probabilidadFinal: limitar(
+        Number.isFinite(desglose?.probabilidadFinal)
+          ? desglose.probabilidadFinal
+          : 100,
+        0,
+        100,
+      ),
+    });
   } catch {
-    return 100;
+    return crearDesgloseImpactoAutomatico();
   }
+}
+
+function crearDesgloseImpactoAutomatico() {
+  return Object.freeze({
+    automatico: true,
+    precision: null,
+    evasion: null,
+    nivelAtacante: null,
+    nivelObjetivo: null,
+    factorFormula: null,
+    probabilidadMinima: 100,
+    probabilidadMaxima: 100,
+    probabilidadSinLimitar: 100,
+    probabilidadFinal: 100,
+  });
 }
 
 function crearResultadoFallo({
   idEjecucion,
   probabilidadImpacto,
+  desgloseImpacto,
   tiradaImpacto,
   multiplicadorAtributos,
   contextoPotencia,
@@ -295,6 +332,7 @@ function crearResultadoFallo({
     impacto: false,
     critico: false,
     probabilidadImpacto,
+    desgloseImpacto,
     tiradaImpacto,
     probabilidadCritico: 0,
     tiradaCritico: null,

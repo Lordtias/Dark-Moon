@@ -208,11 +208,6 @@
         <header class="cabecera-partida">
           <div>
             <h1>Dark Moon</h1>
-
-            <p class="controles-partida">
-              MOVIMIENTO: flechas, WASD o teclado numérico. Con el espacio o 5
-              esperas un turno. COMBATE: f INTERACTUAR: r
-            </p>
           </div>
         </header>
 
@@ -229,8 +224,17 @@
               <canvas id="gameCanvas"></canvas>
             </div>
 
-            <!-- Barra reservada para las futuras habilidades. -->
-            <div class="panel-juego barra-habilidades">
+            <div class="zona-acciones-partida">
+              <button
+                id="gameHelpButton"
+                class="boton-ayuda-juego"
+                type="button"
+                data-i18n="interfaz.ayuda.boton"
+              >
+                Ayuda del juego
+              </button>
+
+              <div class="panel-juego barra-habilidades">
               <div class="slot-habilidad">
                 <span class="tecla-habilidad">1</span>
               </div>
@@ -270,6 +274,7 @@
               <div class="slot-habilidad">
                 <span class="tecla-habilidad">0</span>
               </div>
+            </div>
             </div>
 
             <section class="panel-juego panel-registro">

@@ -66,7 +66,7 @@ function obtenerEstadisticasCombatiente(objetivo) {
 //
 // Los consumidores anteriores pueden seguir
 // llamando la función con solamente dos argumentos.
-export function calcularProbabilidadImpacto(
+export function obtenerDesgloseProbabilidadImpacto(
   atacante,
   objetivo,
   precisionAtaque = null,
@@ -74,10 +74,21 @@ export function calcularProbabilidadImpacto(
   const estadisticasAtacante = atacante.estadisticasDerivadas;
   const estadisticasObjetivo = obtenerEstadisticasCombatiente(objetivo);
 
-  // Los destructibles inmóviles
-  // no pueden evadir.
+  // Los destructibles inmóviles no pueden evadir. El 100% forma parte del
+  // contrato canónico y se conserva explícitamente en la instantánea.
   if (estadisticasObjetivo === null) {
-    return 100;
+    return Object.freeze({
+      automatico: true,
+      precision: Math.max(1, precisionAtaque ?? estadisticasAtacante.precision),
+      evasion: 0,
+      nivelAtacante: Math.max(1, atacante.nivel),
+      nivelObjetivo: null,
+      factorFormula: null,
+      probabilidadMinima: 100,
+      probabilidadMaxima: 100,
+      probabilidadSinLimitar: 100,
+      probabilidadFinal: 100,
+    });
   }
 
   const precision = Math.max(
@@ -88,16 +99,40 @@ export function calcularProbabilidadImpacto(
   const nivelAtacante = Math.max(1, atacante.nivel);
   const nivelObjetivo = Math.max(1, objetivo.nivel);
   const configuracion = CONFIGURACION_COMBATE.impacto;
-  const probabilidad =
+  const probabilidadSinLimitar =
     configuracion.factorFormula *
     (precision / (precision + evasion)) *
     (nivelAtacante / (nivelAtacante + nivelObjetivo));
-
-  return limitar(
-    probabilidad,
+  const probabilidadFinal = limitar(
+    probabilidadSinLimitar,
     configuracion.probabilidadMinima,
     configuracion.probabilidadMaxima,
   );
+
+  return Object.freeze({
+    automatico: false,
+    precision,
+    evasion,
+    nivelAtacante,
+    nivelObjetivo,
+    factorFormula: configuracion.factorFormula,
+    probabilidadMinima: configuracion.probabilidadMinima,
+    probabilidadMaxima: configuracion.probabilidadMaxima,
+    probabilidadSinLimitar,
+    probabilidadFinal,
+  });
+}
+
+export function calcularProbabilidadImpacto(
+  atacante,
+  objetivo,
+  precisionAtaque = null,
+) {
+  return obtenerDesgloseProbabilidadImpacto(
+    atacante,
+    objetivo,
+    precisionAtaque,
+  ).probabilidadFinal;
 }
 
 function obtenerComponentesDanioFuente(fuente) {
@@ -281,11 +316,12 @@ function resolverFuenteAtaque({
   tiradaDanioGlobal,
   estadisticasObjetivo,
 }) {
-  const probabilidadImpacto = calcularProbabilidadImpacto(
+  const desgloseImpacto = obtenerDesgloseProbabilidadImpacto(
     atacante,
     objetivo,
     fuente.precision,
   );
+  const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = tirarPorcentaje(probabilidadImpacto);
 
   if (!tiradaImpacto.exito) {
@@ -303,6 +339,7 @@ function resolverFuenteAtaque({
       componentesDanio: [],
       desgloseDanio: crearDesgloseDanioVacio(),
       probabilidadImpacto,
+      desgloseImpacto,
       tiradaImpacto: tiradaImpacto.tirada,
       armadura: 0,
       reduccionArmadura: 0,
@@ -388,6 +425,7 @@ function resolverFuenteAtaque({
     reduccionArmadura: primerFisico?.reduccionArmadura ?? 0,
     resistencias,
     probabilidadImpacto,
+    desgloseImpacto,
     tiradaImpacto: tiradaImpacto.tirada,
   };
 }

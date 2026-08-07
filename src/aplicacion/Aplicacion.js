@@ -121,10 +121,22 @@ export class Aplicacion {
         this.presentacion.crearInterfazPartida({
           ...configuracion,
           preferenciasInterfaz: this.preferenciasInterfaz,
+          obtenerContextoDiagnostico: () => this.obtenerContextoDiagnostico(),
         }),
       crearPresentacionMapaActivo: (configuracion) =>
         this.presentacion.crearPresentacionMapaActivo(configuracion),
     });
+  }
+
+
+  obtenerContextoDiagnostico() {
+    return {
+      version: VERSION_APLICACION,
+      renderizador: this.presentacion.obtenerInformacionRenderizador?.() ?? null,
+      idioma: this.traductor?.obtenerIdioma?.() ?? this.preferenciasInterfaz?.idioma ?? "es",
+      preferencias: this.preferenciasInterfaz ? { ...this.preferenciasInterfaz } : null,
+      partida: this.controladorPartida?.obtenerContextoDiagnostico?.() ?? null,
+    };
   }
 
   async cargarPreferenciasInterfaz() {

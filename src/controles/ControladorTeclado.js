@@ -59,6 +59,10 @@ export class ControladorTeclado {
   }
 
   manejarTecla(evento) {
+    if (document.body?.classList.contains("modal-ayuda-juego-abierta")) {
+      return;
+    }
+
     const movimiento = MOVIMIENTOS_POR_TECLA[evento.code];
     const indiceRanura = obtenerIndiceRanura(evento);
     const esEspera = TECLAS_ESPERA.has(evento.code);

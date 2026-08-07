@@ -1,4 +1,5 @@
 @import url("../paneles/panel-objetos.css");
+@import url("../modales/modal-ayuda-juego.css");
 
 /* Aplicamos box-sizing a todos los elementos para que
    los tamaños incluyan bordes y rellenos. */
@@ -399,12 +400,6 @@ main {
   margin: 0;
 }
 
-/* Texto que recuerda los controles disponibles. */
-.controles-partida {
-  margin: 5px 0 0;
-  color: #aeb8ff;
-}
-
 /* La cuadrícula aprovecha todo el espacio debajo del encabezado. */
 .interfaz-partida {
   flex: 1;
@@ -534,6 +529,34 @@ main {
   image-rendering: pixelated;
 }
 
+/* Acciones persistentes debajo del mapa. La ayuda queda deliberadamente
+   separada de las habilidades para que no parezca asociada a una ranura. */
+.zona-acciones-partida {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: stretch;
+  gap: 30px;
+}
+
+.boton-ayuda-juego {
+  min-width: 142px;
+  padding: 10px 16px;
+  border: 2px solid #7586ff;
+  border-radius: 6px;
+  background: #171b2e;
+  color: #e2e6ff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-ayuda-juego:hover,
+.boton-ayuda-juego:focus-visible {
+  background: #222a4d;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(117, 134, 255, 0.28);
+}
+
 /* Barra rápida de habilidades ubicada debajo del mapa. */
 .barra-habilidades {
   display: grid;
@@ -624,6 +647,11 @@ main {
 /* El último mensaje no necesita separador inferior. */
 .mensaje-registro:last-child {
   border-bottom: 0;
+}
+
+.mensaje-registro__destacado {
+  color: currentColor;
+  font-weight: 800;
 }
 
 /* Pequeño indicador lateral del tipo de evento. */
@@ -982,6 +1010,15 @@ main {
   /* El inventario vuelve a cuatro columnas. */
   .cuadricula-inventario {
     grid-template-columns: repeat(4, 48px);
+  }
+
+  .zona-acciones-partida {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .boton-ayuda-juego {
+    justify-self: start;
   }
 
   /* La barra permite desplazamiento horizontal. */

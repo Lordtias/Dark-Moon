@@ -313,6 +313,7 @@ export function resolverComponenteDanio({
     danioMitigadoBloqueo,
     danioDespuesBloqueo,
     armadura: armaduraAplicada,
+    factorArmadura: CONFIGURACION_COMBATE.armadura.factorDanio,
     reduccionArmadura,
     resistencia: resistenciaAplicada,
     reduccionResistencia,

@@ -8,11 +8,13 @@ import {
   AgendaEventosTemporales,
 } from "../tiempo/AgendaEventosTemporales.js";
 import {
+  crearDestacadoMensajeTraducible,
   crearMensajeTraducible,
   crearParametroContenidoMensaje,
   crearParametroEntidadMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
+import { crearMensajeDetalleDanioPeriodico } from "../mensajes/MensajesCalculoCombate.js";
 import {
   FACTORES_TEMPORALES_MODIFICABLES,
   MODOS_RESISTENCIA_EFECTO,
@@ -37,11 +39,21 @@ function parametroEfecto(id, nombre = "") {
   return crearParametroContenidoMensaje("efectos", id, { respaldo: nombre });
 }
 
-function mensajeEfecto(clave, { objetivo = null, efectoId = null, nombreEfecto = "", parametros = {}, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA } = {}) {
+function mensajeEfecto(clave, {
+  objetivo = null,
+  efectoId = null,
+  nombreEfecto = "",
+  parametros = {},
+  tipo = TIPOS_MENSAJE_JUEGO.SISTEMA,
+  claveDestacado = null,
+} = {}) {
   const completos = { ...parametros };
   if (objetivo) completos.objetivo = crearParametroEntidadMensaje(objetivo);
   if (efectoId) completos.efecto = parametroEfecto(efectoId, nombreEfecto);
-  return crearMensajeTraducible(clave, { tipo, parametros: completos });
+  const destacado = claveDestacado
+    ? crearDestacadoMensajeTraducible(claveDestacado, { parametros: completos })
+    : null;
+  return crearMensajeTraducible(clave, { tipo, parametros: completos, destacado });
 }
 
 function obtenerEstadoObjetivo(objetivo, crear = true) {
@@ -138,6 +150,115 @@ function calcularProbabilidadFinal(definicion, resistencia) {
     );
   }
   return limitar(definicion.probabilidadBase, 0, 100);
+}
+
+function crearMensajeDetalleAplicacion({
+  definicion,
+  estado,
+  resistencia = 0,
+  probabilidadFinal = 0,
+  tiradaAplicacion = null,
+  duracion = null,
+  efecto = null,
+  alcanzoMaximo = false,
+}) {
+  const objetivo = definicion?.objetivo ?? efecto?.objetivo ?? null;
+  const efectoId = definicion?.efectoId ?? efecto?.efectoId ?? null;
+  const nombreEfecto = definicion?.nombreEfecto ?? efecto?.nombreEfecto ?? "";
+  const modoProporcional = definicion?.modoResistencia ===
+    MODOS_RESISTENCIA_EFECTO.REDUCIR_PROBABILIDAD_APLICACION;
+  const tipo = (definicion?.beneficioso ?? efecto?.beneficioso)
+    ? TIPOS_MENSAJE_JUEGO.POSITIVO
+    : TIPOS_MENSAJE_JUEGO.ALERTA;
+  const parametros = {
+    base: numeroMensaje(definicion?.probabilidadBase ?? 0),
+    resistencia: numeroMensaje(resistencia ?? 0),
+    final: numeroMensaje(probabilidadFinal ?? 0),
+    tirada: tiradaAplicacion ?? "—",
+    duracion: numeroMensaje(duracion ?? definicion?.duracion ?? efecto?.duracion ?? 0),
+  };
+
+  if (estado === "inmune") {
+    return mensajeEfecto("mensajes.efectos.detalleInmune", {
+      objetivo,
+      efectoId,
+      nombreEfecto,
+      tipo,
+      parametros,
+      claveDestacado: "mensajes.efectos.estadoInmune",
+    });
+  }
+  if (estado === "resistido") {
+    return mensajeEfecto(
+      modoProporcional
+        ? "mensajes.efectos.detalleResistido"
+        : "mensajes.efectos.detalleResistidoSinResistencia",
+      {
+        objetivo,
+        efectoId,
+        nombreEfecto,
+        tipo,
+        parametros,
+        claveDestacado: "mensajes.efectos.estadoResistido",
+      },
+    );
+  }
+  if (estado === "duplicado" || estado === "grupo_incompatible") {
+    return mensajeEfecto(
+      modoProporcional
+        ? "mensajes.efectos.detalleRechazadoPolitica"
+        : "mensajes.efectos.detalleRechazadoPoliticaSinResistencia",
+      {
+        objetivo,
+        efectoId,
+        nombreEfecto,
+        tipo,
+        parametros: {
+          ...parametros,
+          politica: estado === "duplicado" ? "duplicado" : "grupo_incompatible",
+        },
+        claveDestacado: estado === "duplicado"
+          ? "mensajes.efectos.estadoDuplicado"
+          : "mensajes.efectos.estadoGrupoIncompatible",
+      },
+    );
+  }
+  if (estado === "reaplicado") {
+    return mensajeEfecto(
+      modoProporcional
+        ? "mensajes.efectos.detalleReaplicado"
+        : "mensajes.efectos.detalleReaplicadoSinResistencia",
+      {
+        objetivo,
+        efectoId,
+        nombreEfecto,
+        tipo,
+        parametros: { ...parametros, maximo: alcanzoMaximo ? "sí" : "no" },
+        claveDestacado: alcanzoMaximo
+          ? "mensajes.efectos.estadoRenovadoMaximo"
+          : "mensajes.efectos.estadoReaplicado",
+      },
+    );
+  }
+  return mensajeEfecto(
+    modoProporcional
+      ? "mensajes.efectos.detalleAplicado"
+      : "mensajes.efectos.detalleAplicadoSinResistencia",
+    {
+      objetivo,
+      efectoId,
+      nombreEfecto,
+      tipo,
+      parametros,
+      claveDestacado: "mensajes.efectos.estadoAplicado",
+    },
+  );
+}
+
+function numeroMensaje(valor) {
+  const numero = Number(valor);
+  if (!Number.isFinite(numero)) return "0";
+  return Number.isInteger(numero) ? String(numero) : String(Number(numero.toFixed(3)));
 }
 
 function obtenerTiradaAplicacion(definicion, proveedor) {
@@ -344,11 +465,12 @@ export class SistemaEfectosTemporales {
         probabilidadFinal: 0,
         tiradaAplicacion: null,
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} es inmune a ${definicion.nombreEfecto}.`,
-        mensajePresentacion: mensajeEfecto("mensajes.efectos.inmune", {
-          objetivo: definicion.objetivo,
-          efectoId: definicion.efectoId,
-          nombreEfecto: definicion.nombreEfecto,
-          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        mensajePresentacion: crearMensajeDetalleAplicacion({
+          definicion,
+          estado: "inmune",
+          resistencia: 0,
+          probabilidadFinal: 0,
+          tiradaAplicacion: null,
         }),
         eventos: [
           {
@@ -384,11 +506,12 @@ export class SistemaEfectosTemporales {
         probabilidadFinal,
         tiradaAplicacion,
         mensaje: `${obtenerNombreObjetivo(definicion.objetivo)} resistió ${definicion.nombreEfecto}.`,
-        mensajePresentacion: mensajeEfecto("mensajes.efectos.resistido", {
-          objetivo: definicion.objetivo,
-          efectoId: definicion.efectoId,
-          nombreEfecto: definicion.nombreEfecto,
-          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        mensajePresentacion: crearMensajeDetalleAplicacion({
+          definicion,
+          estado: "resistido",
+          resistencia,
+          probabilidadFinal,
+          tiradaAplicacion,
         }),
         eventos: [
           {
@@ -511,11 +634,14 @@ export class SistemaEfectosTemporales {
       tiradaAplicacion,
       efecto: crearResumenEfecto(efecto),
       mensaje: `${obtenerNombreObjetivo(efecto.objetivo)} recibió ${efecto.nombreEfecto}.`,
-      mensajePresentacion: mensajeEfecto("mensajes.efectos.aplicado", {
-        objetivo: efecto.objetivo,
-        efectoId: efecto.efectoId,
-        nombreEfecto: efecto.nombreEfecto,
-        tipo: efecto.beneficioso ? TIPOS_MENSAJE_JUEGO.POSITIVO : TIPOS_MENSAJE_JUEGO.ALERTA,
+      mensajePresentacion: crearMensajeDetalleAplicacion({
+        definicion,
+        estado: "aplicado",
+        resistencia,
+        probabilidadFinal,
+        tiradaAplicacion,
+        duracion: efecto.duracion,
+        efecto,
       }),
       contraefectosRetirados: eventosContraefecto.map(
         (eventoRetiro) => eventoRetiro.catalogoEfectoId,
@@ -538,8 +664,13 @@ export class SistemaEfectosTemporales {
         ...resolucion,
         efecto: crearResumenEfecto(efecto),
         mensaje: "El grupo de acumulación ya pertenece a un efecto incompatible.",
-        mensajePresentacion: mensajeEfecto("mensajes.efectos.grupoIncompatible", {
-          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        mensajePresentacion: crearMensajeDetalleAplicacion({
+          definicion,
+          estado: "grupo_incompatible",
+          resistencia: resolucion.resistencia ?? 0,
+          probabilidadFinal: resolucion.probabilidadFinal ?? definicion.probabilidadBase,
+          tiradaAplicacion: resolucion.tiradaAplicacion ?? null,
+          efecto,
         }),
         eventos: [
           this.crearEventoDominio("efecto_rechazado", efecto, {
@@ -562,10 +693,13 @@ export class SistemaEfectosTemporales {
         ...resolucion,
         efecto: crearResumenEfecto(efecto),
         mensaje: `${efecto.nombreEfecto} ya está activo y no renovó su duración.`,
-        mensajePresentacion: mensajeEfecto("mensajes.efectos.duplicado", {
-          efectoId: efecto.efectoId,
-          nombreEfecto: efecto.nombreEfecto,
-          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+        mensajePresentacion: crearMensajeDetalleAplicacion({
+          definicion,
+          estado: "duplicado",
+          resistencia: resolucion.resistencia ?? 0,
+          probabilidadFinal: resolucion.probabilidadFinal ?? definicion.probabilidadBase,
+          tiradaAplicacion: resolucion.tiradaAplicacion ?? null,
+          efecto,
         }),
         eventos: [
           this.crearEventoDominio("efecto_rechazado", efecto, {
@@ -667,16 +801,16 @@ export class SistemaEfectosTemporales {
       mensaje: alcanzoMaximo
         ? `${efecto.nombreEfecto} renovó su duración y ya estaba en su máximo.`
         : `${efecto.nombreEfecto} se aplicó nuevamente.`,
-      mensajePresentacion: mensajeEfecto(
-        alcanzoMaximo
-          ? "mensajes.efectos.renovadoMaximo"
-          : "mensajes.efectos.reaplicado",
-        {
-          efectoId: efecto.efectoId,
-          nombreEfecto: efecto.nombreEfecto,
-          tipo: efecto.beneficioso ? TIPOS_MENSAJE_JUEGO.POSITIVO : TIPOS_MENSAJE_JUEGO.ALERTA,
-        },
-      ),
+      mensajePresentacion: crearMensajeDetalleAplicacion({
+        definicion,
+        estado: "reaplicado",
+        resistencia: resolucion.resistencia ?? 0,
+        probabilidadFinal: resolucion.probabilidadFinal ?? definicion.probabilidadBase,
+        tiradaAplicacion: resolucion.tiradaAplicacion ?? null,
+        duracion: efecto.duracion,
+        efecto,
+        alcanzoMaximo,
+      }),
       eventos: [
         this.crearEventoDominio(tipoEvento, efecto, {
           alcanzoMaximo,
@@ -847,17 +981,21 @@ export class SistemaEfectosTemporales {
     }
 
     const escala = obtenerEscalaAcumulacion(efecto);
-    const componentes = efecto.componentesDanio
+    const componentesBase = efecto.componentesDanio
       ? efecto.componentesDanio.map((componente) => ({
           tipo: componente.tipo,
-          danioBruto: componente.danioBruto * escala,
+          danioBruto: componente.danioBruto,
         }))
       : [
           {
             tipo: efecto.tipoDanio,
-            danioBruto: efecto.valor * escala,
+            danioBruto: efecto.valor,
           },
         ];
+    const componentes = componentesBase.map((componente) => ({
+      tipo: componente.tipo,
+      danioBruto: componente.danioBruto * escala,
+    }));
 
     const estadisticas =
       efecto.objetivo?.estadisticasDerivadas ?? null;
@@ -899,15 +1037,22 @@ export class SistemaEfectosTemporales {
       }),
     );
 
-    resultado.mensajes.push(
-      mensajeEfecto("mensajes.efectos.danioPeriodico", {
-        objetivo: efecto.objetivo,
-        efectoId: efecto.efectoId,
-        nombreEfecto: efecto.nombreEfecto,
-        parametros: { danio: danioAplicado },
-        tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
-      }),
-    );
+    paquete.componentes.forEach((componente, indice) => {
+      resultado.mensajes.push(
+        crearMensajeDetalleDanioPeriodico({
+          efectoId: efecto.efectoId,
+          nombreEfecto: efecto.nombreEfecto,
+          objetivo: efecto.objetivo,
+          componente,
+          baseTick: componentesBase[indice]?.danioBruto ?? componente.danioBruto,
+          escala,
+          danioFinal: danioAplicado,
+          danioCalculado: paquete.danioCalculado,
+          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
+          destacar: indice === 0,
+        }),
+      );
+    });
 
     if (!estaObjetivoVivo(efecto.objetivo)) {
       resultado.objetivosDerrotados.push(efecto.objetivo);

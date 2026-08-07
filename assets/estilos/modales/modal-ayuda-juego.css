@@ -1,0 +1,136 @@
+.modal-ayuda-juego {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.modal-ayuda-juego.oculto { display: none; }
+
+.modal-ayuda-juego__panel {
+  width: min(1120px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #7586ff;
+  border-radius: 10px;
+  background: #111527;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+  text-align: left;
+}
+
+.modal-ayuda-juego__cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 20px 22px;
+  border-bottom: 1px solid #3e497f;
+}
+
+.modal-ayuda-juego__cabecera h2 { margin: 0 0 8px; }
+.modal-ayuda-juego__cabecera p { margin: 0; color: #b8c0df; line-height: 1.5; }
+.modal-ayuda-juego__cerrar { flex: 0 0 auto; }
+
+.modal-ayuda-juego__contenido {
+  padding: 20px 22px 24px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ayuda-bloque {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #39467f;
+  border-radius: 8px;
+  background: #0b1020;
+}
+
+.ayuda-bloque h3 { margin: 0 0 14px; color: #d8dcff; }
+.ayuda-bloque > p { color: #b8c0df; line-height: 1.5; }
+.ayuda-bloque--diagnostico { grid-column: 1 / -1; }
+
+.ayuda-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  margin: 9px 0;
+}
+
+.ayuda-control__texto { color: #d5daf2; line-height: 1.4; }
+.ayuda-separador { color: #8991b5; font-weight: bold; }
+.teclas-linea { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.tecla {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #7c89d8;
+  border-bottom-width: 4px;
+  border-radius: 5px;
+  background: #20294c;
+  color: #ffffff;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+  white-space: nowrap;
+}
+
+.tecla--ancha { min-width: 86px; }
+
+.teclado-cruz {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.teclado-cruz > div { display: flex; gap: 4px; }
+
+.teclado-numerico {
+  display: grid;
+  grid-template-columns: repeat(3, 34px);
+  gap: 4px;
+}
+
+.ayuda-diagnostico {
+  max-height: 260px;
+  overflow: auto;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid #27345f;
+  border-radius: 6px;
+  background: #050812;
+  color: #c8d3ff;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.ayuda-diagnostico__acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ayuda-diagnostico__mensaje { color: #72c98a; }
+.ayuda-diagnostico__mensaje.error { color: #e06c75; }
+
+@media (max-width: 760px) {
+  .modal-ayuda-juego { padding: 10px; }
+  .modal-ayuda-juego__contenido { grid-template-columns: 1fr; }
+  .ayuda-bloque--diagnostico { grid-column: auto; }
+  .ayuda-control { align-items: flex-start; flex-wrap: wrap; }
+}

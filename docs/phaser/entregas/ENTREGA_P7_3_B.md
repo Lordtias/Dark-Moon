@@ -1,12 +1,12 @@
 # ENTREGA P7.3B — MENSAJES DINÁMICOS Y CIERRE BILINGÜE
 
-Fecha: 2026-08-07  
-Etapa: P7.3B  
-Base exacta: `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`  
-Rama: `main`  
-HEAD conservado: `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`  
-Commit realizado: no  
-Estado: implementada técnicamente; pendiente de validación manual y commit
+Fecha: 2026-08-07
+Etapa: P7.3B
+Base exacta: `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`
+Rama: `main`
+HEAD de implementación conservado: `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`
+Commit final validado por el usuario: `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`
+Estado: **validada y cerrada**
 
 ## 1. Objetivo
 

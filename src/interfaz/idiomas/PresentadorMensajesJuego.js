@@ -1,21 +1,39 @@
 import { normalizarMensajesJuego } from "../../juego/mensajes/MensajesJuego.js";
 import { idiomaActivo, traducir, traducirContenido } from "./ContextoIdioma.js";
 
+export function resolverPresentacionMensajeJuego(mensaje) {
+  if (!mensaje || typeof mensaje !== "object") {
+    return Object.freeze({ destacado: "", texto: "" });
+  }
+
+  const texto = resolverFragmentoMensaje(mensaje);
+  const destacado = mensaje.destacado
+    ? resolverFragmentoMensaje(mensaje.destacado)
+    : "";
+
+  return Object.freeze({ destacado, texto });
+}
+
 export function resolverTextoMensajeJuego(mensaje) {
-  if (!mensaje || typeof mensaje !== "object") return "";
-  if (typeof mensaje.clave !== "string" || mensaje.clave.trim() === "") {
-    return typeof mensaje.texto === "string" ? mensaje.texto : "";
+  const presentacion = resolverPresentacionMensajeJuego(mensaje);
+  return [presentacion.destacado, presentacion.texto].filter(Boolean).join(" ");
+}
+
+function resolverFragmentoMensaje(fragmento) {
+  if (!fragmento || typeof fragmento !== "object") return "";
+  if (typeof fragmento.clave !== "string" || fragmento.clave.trim() === "") {
+    return typeof fragmento.texto === "string" ? fragmento.texto : "";
   }
 
   const parametros = Object.fromEntries(
-    Object.entries(mensaje.parametros ?? {}).map(([clave, valor]) => [
+    Object.entries(fragmento.parametros ?? {}).map(([clave, valor]) => [
       clave,
       resolverParametro(valor),
     ]),
   );
-  return traducir(mensaje.clave, {
+  return traducir(fragmento.clave, {
     parametros,
-    respaldo: mensaje.respaldo ?? "",
+    respaldo: fragmento.respaldo ?? "",
   });
 }
 

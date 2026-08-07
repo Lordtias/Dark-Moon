@@ -1,5 +1,5 @@
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
-import { resolverTextoMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
+import { resolverPresentacionMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
 
 import { crearEscenaJuego } from "./graficos/AdaptadorEscenaJuego.js";
 import { crearPlanEventosVisuales } from "./graficos/PlanificadorEventosVisuales.js";
@@ -193,7 +193,17 @@ export class Renderizador {
         `mensaje-registro--${evento.tipo}`,
       );
       elemento.dataset.tipo = evento.tipo;
-      elemento.textContent = resolverTextoMensajeJuego(evento);
+      const presentacion = resolverPresentacionMensajeJuego(evento);
+      if (presentacion.destacado) {
+        const destacado = document.createElement("strong");
+        destacado.className = "mensaje-registro__destacado";
+        destacado.textContent = presentacion.destacado;
+        elemento.appendChild(destacado);
+      }
+      if (presentacion.texto) {
+        if (presentacion.destacado) elemento.appendChild(document.createTextNode(" "));
+        elemento.appendChild(document.createTextNode(presentacion.texto));
+      }
       fragmento.appendChild(elemento);
     }
 

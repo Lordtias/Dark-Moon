@@ -7,16 +7,8 @@ import {
 } from "../tiempo/SistemaTiempo.js";
 import {
   crearMensajeTraducible,
-  crearParametroEntidadMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
-
-function mensajeMovimiento(sufijo, respaldo, tipo = TIPOS_MENSAJE_JUEGO.SISTEMA) {
-  return crearMensajeTraducible(`mensajes.movimiento.${sufijo}`, {
-    tipo,
-    respaldo,
-  });
-}
 
 export class SistemaMovimientoJugador {
   constructor({
@@ -143,16 +135,10 @@ export class SistemaMovimientoJugador {
     const nuevaY = this.jugador.y + movimientoY;
 
     if (!this.esCaminable(nuevaX, nuevaY)) {
-      return crearResultadoAccion({
-        exito: false,
-        mensaje: mensajeMovimiento("pared", "No podés atravesar una pared.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
-      });
+      return crearResultadoAccion({ exito: false });
     }
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
-      return crearResultadoAccion({
-        exito: false,
-        mensaje: mensajeMovimiento("esquina", "No podés atravesar esa esquina.", TIPOS_MENSAJE_JUEGO.NEGATIVO),
-      });
+      return crearResultadoAccion({ exito: false });
     }
 
     const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
@@ -161,14 +147,7 @@ export class SistemaMovimientoJugador {
       return this.entrarModoCombate(nuevaX, nuevaY);
     }
     if (objetivo) {
-      return crearResultadoAccion({
-        exito: false,
-        mensaje: crearMensajeTraducible("mensajes.movimiento.ocupado", {
-          parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
-          tipo: TIPOS_MENSAJE_JUEGO.NEGATIVO,
-          respaldo: `No podés caminar sobre ${objetivo.nombre}.`,
-        }),
-      });
+      return crearResultadoAccion({ exito: false });
     }
 
     const origen = { x: this.jugador.x, y: this.jugador.y };
@@ -182,9 +161,7 @@ export class SistemaMovimientoJugador {
       destino: { x: nuevaX, y: nuevaY },
     });
     const opcionesInteraccion = this.obtenerOpcionesInteraccion();
-    const mensajesMovimiento = [
-      mensajeMovimiento("movido", "Te moviste por el mapa."),
-    ];
+    const mensajesMovimiento = [];
     if (opcionesInteraccion.length === 1) {
       mensajesMovimiento.push(
         crearMensajeTraducible("mensajes.interacciones.unaCerca", {

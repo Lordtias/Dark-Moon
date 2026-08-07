@@ -4,6 +4,10 @@ import {
   crearParametroEntidadMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
+import {
+  crearMensajeDetalleImpacto,
+  crearMensajesDetalleDanioHabilidad,
+} from "../mensajes/MensajesCalculoCombate.js";
 
 import {
   ACTIVADORES_ZONA_TEMPORAL,
@@ -333,6 +337,31 @@ export class SistemaZonasTemporales {
       instante,
     });
     acumulado.impactos.push(impacto);
+    if (impacto.danio) {
+      acumulado.mensajes.push(
+        ...crearMensajesDetalleDanioHabilidad({
+          habilidad: { id: zona.idHabilidad, nombre: zona.nombre },
+          objetivo,
+          danio: impacto.danio,
+          tipo: zona.hostil
+            ? TIPOS_MENSAJE_JUEGO.POSITIVO
+            : TIPOS_MENSAJE_JUEGO.SISTEMA,
+        }),
+      );
+    } else if (impacto.resolucionImpacto) {
+      acumulado.mensajes.push(
+        crearMensajeDetalleImpacto(impacto.resolucionImpacto, {
+          tipo: impacto.resolucionImpacto.impacto
+            ? TIPOS_MENSAJE_JUEGO.POSITIVO
+            : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        }),
+      );
+    }
+    for (const efecto of impacto.efectos ?? []) {
+      acumulado.mensajes.push(
+        efecto?.resultado?.mensajePresentacion ?? efecto?.resultado?.mensaje ?? null,
+      );
+    }
     const eventosEfectos = (impacto.efectos ?? []).flatMap(
       (efecto) => efecto?.eventos ?? [],
     );

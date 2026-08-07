@@ -327,11 +327,6 @@ export function procesarAccionEnemigo({
   });
 
   if (resultadoMovimiento.seMovio) {
-    mensajes.push(crearMensajeTraducible("mensajes.ia.avanza", {
-      parametros: { enemigo: crearParametroEntidadMensaje(enemigo) },
-      tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
-      respaldo: `${enemigo.nombre} avanza hacia vos.`,
-    }));
     const resultadoZona = notificarMovimientoActor({
       actor: enemigo,
       origen: resultadoMovimiento.origen,

@@ -154,6 +154,13 @@ export class PresentacionAplicacionDom {
     return new MenuCreacionPersonaje(configuracion);
   }
 
+  obtenerInformacionRenderizador() {
+    return {
+      tipo: this.tipoRenderizador,
+      phaserVersion: this.Phaser?.VERSION ?? null,
+    };
+  }
+
   crearInterfazPartida(configuracion) {
     return crearInterfazPartidaDom({
       ...configuracion,

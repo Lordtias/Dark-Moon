@@ -13,6 +13,10 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
 import {
+  crearMensajeDetalleImpacto,
+  crearMensajesDetalleDanioHabilidad,
+} from "../mensajes/MensajesCalculoCombate.js";
+import {
   asignarHabilidadARanura,
   generarIdEjecucionHabilidad,
   obtenerAsignacionesHabilidades,
@@ -398,6 +402,7 @@ export class SistemaHabilidadesJugador {
             cantidadObjetivos: impactos.length,
             cantidadImpactos,
             efectos,
+            impactos,
           });
       const resultadoBase = {
         exito: true,
@@ -528,11 +533,7 @@ export class SistemaHabilidadesJugador {
         : [];
 
     return {
-      objetivo: {
-        nombre: objetivo.nombre ?? "Objetivo",
-        x: objetivo.x,
-        y: objetivo.y,
-      },
+      objetivo: resumirObjetivoMensaje(objetivo),
       orden: entrada.orden,
       multiplicadorDanio: entrada.multiplicadorDanio,
       impacto: danio.impacto,
@@ -875,11 +876,7 @@ function resumirImpactoZona(impacto) {
   const objetivo = impacto.objetivo;
   return {
     idEjecucion: impacto.idEjecucion ?? null,
-    objetivo: {
-      nombre: objetivo?.nombre ?? "Objetivo",
-      x: objetivo?.x,
-      y: objetivo?.y,
-    },
+    objetivo: resumirObjetivoMensaje(objetivo),
     orden: 0,
     multiplicadorDanio: 1,
     impacto: impacto.impacto === true,
@@ -961,6 +958,7 @@ function crearMensajeEjecucion({
   cantidadObjetivos,
   cantidadImpactos,
   efectos = [],
+  impactos = [],
 }) {
   const fallos = cantidadObjetivos - cantidadImpactos;
   const parametro = parametroHabilidad(habilidad);
@@ -1001,7 +999,43 @@ function crearMensajeEjecucion({
     vistos.add(clave);
     mensajesEfectos.push(mensaje);
   }
-  return [resumen, ...mensajesEfectos];
+  const mensajesCalculo = [];
+  for (const impacto of impactos) {
+    if (impacto?.danio) {
+      mensajesCalculo.push(
+        ...crearMensajesDetalleDanioHabilidad({
+          habilidad,
+          objetivo: impacto.objetivo,
+          danio: impacto.danio,
+          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+        }),
+      );
+    } else if (impacto?.resolucionImpacto) {
+      const detalleImpacto = crearMensajeDetalleImpacto(
+        impacto.resolucionImpacto,
+        { tipo: impacto.resolucionImpacto.impacto
+            ? TIPOS_MENSAJE_JUEGO.POSITIVO
+            : TIPOS_MENSAJE_JUEGO.NEGATIVO },
+      );
+      if (detalleImpacto) mensajesCalculo.push(detalleImpacto);
+    }
+  }
+  return [resumen, ...mensajesCalculo, ...mensajesEfectos];
+}
+
+function resumirObjetivoMensaje(objetivo) {
+  if (!objetivo || typeof objetivo !== "object") {
+    return { nombre: "Objetivo", x: null, y: null };
+  }
+  return {
+    id: objetivo.id ?? null,
+    idPlantilla: objetivo.idPlantilla ?? objetivo.plantillaId ?? null,
+    idVariante: objetivo.idVariante ?? objetivo.varianteId ?? null,
+    genero: objetivo.genero ?? null,
+    nombre: objetivo.nombre ?? "Objetivo",
+    x: objetivo.x,
+    y: objetivo.y,
+  };
 }
 
 function parametroHabilidad(habilidad) {

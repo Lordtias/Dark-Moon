@@ -1,3 +1,4 @@
+import { traducir } from "../../idiomas/ContextoIdioma.js";
 import { TIPOS_ENTIDAD_VISUAL } from "../TiposEscena.js";
 import { CompositorMundoPhaser } from "./CompositorMundoPhaser.js";
 import { ControladorCamaraPhaser } from "./ControladorCamaraPhaser.js";
@@ -32,7 +33,8 @@ export function crearEscenaArranquePhaser({
       this.controladorEntradaJugable = null;
       this.reproductorEventosVisuales = null;
       this.alEjecutarComando = null;
-      this.textoAyuda = null;
+      this.textoZoom = null;
+      this.temporizadorZoom = null;
       this.redibujoPendiente = false;
       this.destruida = false;
     }
@@ -61,7 +63,7 @@ export function crearEscenaArranquePhaser({
         compositor: this.compositor,
         conversorCoordenadas: this.conversorCoordenadas,
         zoomInicial,
-        alCambiar: (estado) => this.actualizarTextoAyuda(estado),
+        alCambiar: (estado, motivo) => this.mostrarFeedbackCamara(estado, motivo),
       });
 
       this.reproductorEventosVisuales =
@@ -75,20 +77,20 @@ export function crearEscenaArranquePhaser({
             this.controladorCamara?.actualizarPosicionVisualJugador(posicion),
         });
 
-      this.textoAyuda = this.add
+      this.textoZoom = this.add
         .text(14, 14, "", {
           color: "#edf4ee",
           backgroundColor: "rgba(7, 13, 10, 0.82)",
           fontFamily: "Georgia, serif",
-          fontSize: "12px",
+          fontSize: "13px",
+          fontStyle: "bold",
           padding: { x: 9, y: 6 },
           stroke: "#07100c",
           strokeThickness: 1,
         })
         .setScrollFactor(0)
-        .setDepth(1000);
-
-      this.actualizarTextoAyuda(this.controladorCamara.obtenerEstado());
+        .setDepth(1000)
+        .setVisible(false);
 
       this.events.once("shutdown", () => this.destruirComponentes());
       this.events.once("destroy", () => this.destruirComponentes());
@@ -215,23 +217,22 @@ export function crearEscenaArranquePhaser({
       });
     }
 
-    actualizarTextoAyuda(estado) {
-      if (!this.textoAyuda || !estado) {
-        return;
-      }
-
-      const zoom = Math.round(estado.zoom * 100);
-      const seguimiento = estado.siguiendoJugador
-        ? "siguiendo al personaje"
-        : "cámara libre";
-      const controles = estado.seleccionActiva
-        ? "Selección: clic para elegir · F/R: confirmar · rueda o +/-: zoom"
-        : "IJKL: cámara · rueda o +/-: zoom · arrastre: cámara · H: recentrar";
-
-      this.textoAyuda.setText(
-        `Vista ${zoom}% · ${seguimiento}\n` +
-          controles,
-      );
+    mostrarFeedbackCamara(estado, motivo) {
+      if (!this.textoZoom || !estado || motivo !== "zoom") return;
+      const porcentaje = Math.round(estado.zoom * 100);
+      this.textoZoom
+        .setText(
+          traducir("interfaz.ayuda.zoomFeedback", {
+            parametros: { porcentaje },
+            respaldo: `Zoom ${porcentaje} %`,
+          }),
+        )
+        .setVisible(true)
+        .setAlpha(1);
+      this.temporizadorZoom?.remove?.(false);
+      this.temporizadorZoom = this.time.delayedCall(900, () => {
+        this.textoZoom?.setVisible(false);
+      });
     }
 
     destruirComponentes() {
@@ -253,7 +254,9 @@ export function crearEscenaArranquePhaser({
       this.compositor = null;
       this.conversorCoordenadas = null;
       this.gestorRecursos = null;
-      this.textoAyuda = null;
+      this.temporizadorZoom?.remove?.(false);
+      this.temporizadorZoom = null;
+      this.textoZoom = null;
       this.escenaDarkMoon = null;
     }
   };

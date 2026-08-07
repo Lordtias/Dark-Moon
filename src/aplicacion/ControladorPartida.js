@@ -544,6 +544,19 @@ export class ControladorPartida {
     this.renderizador.dibujarJuego(this.juego);
   }
 
+  obtenerContextoDiagnostico() {
+    const mapa = this.juego?.mapaSeleccionado ?? null;
+    const jugador = this.estadoPartida?.jugador ?? this.juego?.jugador ?? null;
+    return {
+      partidaIniciada: this.partidaIniciada === true,
+      ubicacion: this.estadoPartida?.tipoUbicacionActual ??
+        (mapa?.bioma === "ciudad" ? "ciudad" : "mazmorra"),
+      mapaId: mapa?.id ?? null,
+      mapaNombre: mapa?.nombre ?? null,
+      nivelJugador: Number.isFinite(jugador?.nivel) ? jugador.nivel : null,
+    };
+  }
+
   mostrarResumenCiudad({ esInicioPartida } = {}) {
     const mapaSeleccionado = this.juego.mapaSeleccionado;
     const mapa = crearParametroContenidoMensaje("mapas", mapaSeleccionado.id, {
@@ -568,15 +581,7 @@ export class ControladorPartida {
       }),
     ]);
 
-    console.groupCollapsed(`[Ciudad] ${mapaSeleccionado.nombre}`);
-    console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
-    console.log("Configuración del mapa:", mapaSeleccionado.generacionActual);
-    console.log("Interactuables de la ciudad:", this.juego.interactuables);
-    console.log(
-      "Estado de mercaderes:",
-      this.gestorMercaderesPartida.obtenerResumen(),
-    );
-    console.groupEnd();
+
   }
 
   mostrarResumenMazmorra({ parametrosPrueba } = {}) {
@@ -618,22 +623,7 @@ export class ControladorPartida {
     if (parametrosPrueba?.portalPrueba) mensajesResumen.push(crearMensajeTraducible("mensajes.juego.portalPrueba", { respaldo: "Portal de prueba activo: acercate y presioná R para generar otra mazmorra." }));
     this.renderizador.mostrarMensaje(mensajesResumen);
 
-    console.groupCollapsed(
-      `[Mapa] ${mapaSeleccionado.nombre} | ` +
-        `nivel ${generacion.nivelMapa} | ` +
-        `semilla ${generacion.semilla}`,
-    );
-    console.log("Estado persistente:", this.estadoPartida.obtenerResumen());
-    console.log("Parámetros de prueba:", parametrosPrueba);
-    console.log("Resumen de generación:", generacion);
-    console.log("Interactuables iniciales:", this.juego.interactuables);
-    console.log(
-      "Stock renovado de mercaderes:",
-      this.gestorMercaderesPartida.obtenerResumen(),
-    );
-    console.table(generacion.detalleEnemigos);
-    console.table(generacion.detalleDestructibles);
-    console.groupEnd();
+
   }
 
 }

@@ -29,6 +29,7 @@ export function crearMensajeTraducible(
     parametros = {},
     tipo = TIPOS_MENSAJE_JUEGO.SISTEMA,
     respaldo = "",
+    destacado = null,
   } = {},
 ) {
   if (typeof clave !== "string" || clave.trim() === "") {
@@ -45,7 +46,30 @@ export function crearMensajeTraducible(
     clave: clave.trim(),
     parametros: congelarSimple(parametros),
     respaldo: respaldo.trim(),
+    destacado: normalizarDestacado(destacado),
     tipo,
+  });
+}
+
+// Fragmento localizado que la presentación puede destacar tipográficamente
+// antes del cuerpo del mensaje. No contiene HTML ni decisiones visuales.
+export function crearDestacadoMensajeTraducible(
+  clave,
+  { parametros = {}, respaldo = "" } = {},
+) {
+  if (typeof clave !== "string" || clave.trim() === "") {
+    throw new Error("El destacado traducible necesita una clave válida.");
+  }
+  if (!parametros || typeof parametros !== "object" || Array.isArray(parametros)) {
+    throw new Error("Los parámetros del destacado deben ser un objeto.");
+  }
+  if (typeof respaldo !== "string") {
+    throw new Error("El respaldo del destacado debe ser texto.");
+  }
+  return Object.freeze({
+    clave: clave.trim(),
+    parametros: congelarSimple(parametros),
+    respaldo: respaldo.trim(),
   });
 }
 
@@ -137,9 +161,21 @@ function normalizarMensajeTipado(mensaje) {
       parametros: mensaje.parametros ?? {},
       tipo,
       respaldo: mensaje.respaldo ?? "",
+      destacado: mensaje.destacado ?? null,
     });
   }
   return crearMensajeJuego(mensaje.texto, tipo);
+}
+
+function normalizarDestacado(destacado) {
+  if (destacado === null || destacado === undefined) return null;
+  if (!destacado || typeof destacado !== "object" || Array.isArray(destacado)) {
+    throw new Error("El destacado de un mensaje debe ser un objeto o null.");
+  }
+  return crearDestacadoMensajeTraducible(destacado.clave, {
+    parametros: destacado.parametros ?? {},
+    respaldo: destacado.respaldo ?? "",
+  });
 }
 
 function validarTipo(tipo) {

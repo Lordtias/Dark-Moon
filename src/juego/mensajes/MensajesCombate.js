@@ -1,4 +1,8 @@
 import {
+  crearMensajeDetalleImpacto,
+  crearMensajesDetalleDanioAtaque,
+} from "./MensajesCalculoCombate.js";
+import {
   crearMensajeTraducible,
   crearParametroContenidoMensaje,
   crearParametroEntidadMensaje,
@@ -52,6 +56,7 @@ export function crearMensajesResultadoAtaque({
         tipoImpacto,
         tipoFallo,
         ataqueDelJugador,
+        objetivo,
       }),
     );
   }
@@ -140,6 +145,7 @@ function crearMensajesGolpe({
   tipoImpacto,
   tipoFallo,
   ataqueDelJugador,
+  objetivo,
 }) {
   const fuente = parametroFuente(golpe);
   const parametrosBase = {
@@ -155,7 +161,8 @@ function crearMensajesGolpe({
         esDual ? "mensajes.combate.golpeFalloDual" : "mensajes.combate.golpeFallo",
         { tipo: tipoFallo, parametros: parametrosBase },
       ),
-    ];
+      crearMensajeDetalleImpacto(golpe, { tipo: tipoFallo }),
+    ].filter(Boolean);
   }
 
   const mensajes = [
@@ -170,76 +177,18 @@ function crearMensajesGolpe({
         },
       },
     ),
+    ...crearMensajesDetalleDanioAtaque({
+      golpe,
+      objetivo,
+      fuente,
+      tipo: ataqueDelJugador
+        ? TIPOS_MENSAJE_JUEGO.POSITIVO
+        : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+    }),
+    crearMensajeDetalleImpacto(golpe, { tipo: tipoImpacto }),
   ];
 
-  if (golpe.critico === true) {
-    mensajes.push(
-      crearMensajeTraducible("mensajes.combate.golpeCritico", {
-        tipo: tipoImpacto,
-      }),
-    );
-  }
-
-  if (golpe.bloqueado === true) {
-    mensajes.push(
-      crearMensajeTraducible("mensajes.combate.bloqueo", {
-        tipo: ataqueDelJugador
-          ? TIPOS_MENSAJE_JUEGO.ALERTA
-          : TIPOS_MENSAJE_JUEGO.POSITIVO,
-        parametros: {
-          tirada: golpe.tiradaBloqueo ?? "—",
-          probabilidad: formatearNumero(golpe.probabilidadBloqueo ?? 0),
-          mitigacion: formatearNumero(golpe.mitigacionBloqueo ?? 0),
-          danioMitigado: formatearNumero(golpe.danioMitigadoBloqueo ?? 0),
-        },
-      }),
-    );
-  }
-
-  const componentes = (golpe.componentesDanio ?? []).filter(
-    (componente) => Number(componente.danioBruto) > 0,
-  );
-  const esFisicoPuro = componentes.length === 1 && componentes[0].tipo === "fisico";
-
-  if (esFisicoPuro && Number(golpe.armadura) > 0) {
-    mensajes.push(
-      crearMensajeTraducible("mensajes.combate.armadura", {
-        tipo: TIPOS_MENSAJE_JUEGO.SISTEMA,
-        parametros: {
-          armadura: golpe.armadura,
-          reduccion: formatearNumero((golpe.reduccionArmadura ?? 0) * 100),
-        },
-      }),
-    );
-  } else if (componentes.length > 0) {
-    for (const componente of componentes) {
-      mensajes.push(crearMensajeComponente(componente));
-    }
-  }
-
-  return mensajes;
-}
-
-function crearMensajeComponente(componente) {
-  let clave = "mensajes.combate.componenteDanio";
-  const parametros = {
-    final: formatearNumero(componente.danioFinal ?? 0),
-    bruto: formatearNumero(componente.danioBruto ?? 0),
-    tipo: crearParametroContenidoMensaje("tiposDanio", componente.tipo, {
-      respaldo: componente.tipo ?? "daño",
-    }),
-  };
-  if (componente.tipo === "fisico" && Number(componente.armadura) > 0) {
-    clave = "mensajes.combate.componenteDanioArmadura";
-    parametros.reduccion = formatearNumero((componente.reduccionArmadura ?? 0) * 100);
-  } else if (Number(componente.resistencia) > 0) {
-    clave = "mensajes.combate.componenteDanioResistencia";
-    parametros.resistencia = formatearNumero(componente.resistencia);
-  }
-  return crearMensajeTraducible(clave, {
-    tipo: TIPOS_MENSAJE_JUEGO.SISTEMA,
-    parametros,
-  });
+  return mensajes.filter(Boolean);
 }
 
 function parametroFuente(golpe) {

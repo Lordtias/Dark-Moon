@@ -527,7 +527,7 @@ export class Juego {
     }
 
     return this.finalizarAccionJugador({
-      mensaje: crearMensajeTraducible("mensajes.tiempo.espera", { tipo: TIPOS_MENSAJE_JUEGO.SISTEMA, respaldo: "Esperaste una acción." }),
+      mensaje: null,
       tipoAccion: TIPOS_ACCION_TEMPORAL.ESPERA,
       costoBase: COSTOS_TEMPORALES_BASE.espera,
     });

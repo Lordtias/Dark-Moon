@@ -1392,7 +1392,7 @@ Estado: **validada y cerrada** en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`.
 
 #### P7.3B — Mensajes dinámicos y cierre bilingüe
 
-Estado: **implementada técnicamente; pendiente de validación manual y commit**.
+Estado: **validada y cerrada** en `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`.
 
 - reemplazar mensajes visibles literales por contratos semánticos traducibles;
 - eliminar la clasificación visual dependiente de buscar palabras españolas en `MensajesJuego.js`;
@@ -1412,11 +1412,19 @@ Regla canónica de internacionalización: **solo cambia el texto presentado al u
 
 ### P7.4 — Experiencia de tester
 
-- instrucciones breves y ayuda consultable;
-- revisión de tooltips y jerarquía visual;
-- eliminación de textos o elementos temporales de desarrollo;
-- diagnóstico copiable;
-- plantilla simple para reportar qué ocurrió, qué se esperaba y qué se estaba haciendo.
+Estado: **en implementación sobre P7.3B validada** (`497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`).
+
+- agregar un acceso explícito **Ayuda del juego / Game Help**, visible y separado visualmente de la barra de habilidades;
+- incorporar un modal grande bilingüe con representaciones HTML/CSS de teclado y mouse para movimiento, espera, combate, interacción, habilidades y cámara;
+- incluir diagnóstico copiable dentro del modal, sin inventario, guardado completo ni datos personales;
+- retirar instrucciones permanentes de controles y el overlay técnico de cámara Phaser; el zoom conserva solamente feedback temporal;
+- consolidar Phaser como renderizador predeterminado y mantener `?render=canvas2d` como fallback técnico explícito;
+- limpiar del registro los mensajes rutinarios de movimiento, persecución, espera y colisiones sin valor analítico, conservando los eventos canónicos que presentación y juego necesitan;
+- preservar y ampliar los mensajes ricos de combate: daño final destacado al inicio, fórmulas con los operandos reales de impacto, crítico, bloqueo, Armadura, resistencias y daño físico/elemental;
+- aplicar el mismo criterio a habilidades, daño periódico y aplicación/no aplicación de efectos, mostrando probabilidad base, resistencia, probabilidad final y tirada real cuando corresponda;
+- la presentación no recalcula reglas: el dominio transporta instantáneas de cálculo y el registro únicamente las formatea;
+- retirar logs rutinarios de consola conservando `console.warn`, `console.error` y `darkMoonDebug`;
+- tooltips, rediseño general de UI y plantilla de reporte quedan fuera de P7.4 y se evaluarán en hitos posteriores.
 
 ### P7.5 — Candidato beta web
 
@@ -2020,10 +2028,10 @@ Continuar restaura únicamente el estado durable del personaje y siempre comienz
 Plan posterior aprobado:
 
 1. P7.2 — configuración real, validada en `93cbd48cb29c77c9af8f3de222e13437971abb32`;
-2. P7.3A — infraestructura bilingüe y contenido localizado;
-3. P7.3B — mensajes dinámicos, feedback Phaser/Canvas y cierre bilingüe;
-3. P7.4 — experiencia de tester;
-4. P7.5 — candidato beta web y regresión final.
+2. P7.3A — infraestructura bilingüe y contenido localizado, validada en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`;
+3. P7.3B — mensajes dinámicos, feedback Phaser/Canvas y cierre bilingüe, validada en `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`;
+4. P7.4 — experiencia de tester;
+5. P7.5 — candidato beta web y regresión final.
 
 #### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
 

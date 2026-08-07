@@ -3,6 +3,7 @@ import { validarConfiguracionMapas } from "./ValidadorConfiguracionMapas.js";
 import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfiguracionGeneracionObjetos.js";
 
 import { validarConfiguracionComercio } from "../comercio/ValidadorConfiguracionComercio.js";
+import { validarHabilidadesNPC } from "../habilidades/ValidadorHabilidadesNPC.js";
 
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
@@ -34,6 +35,8 @@ const RUTA_MAPAS = "./src/config/mapas/mapas.json";
 const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
 
 const RUTA_CONFIGURACION_COMERCIO = "./src/config/comercio/Comercio.json";
+
+const RUTA_HABILIDADES_NPC = "./src/config/magia/HabilidadesNPC.json";
 
 const RUTA_PERFILES_ATAQUE_POR_FAMILIA =
   "./src/config/presentacion/PerfilesAtaquePorFamilia.json";
@@ -235,6 +238,15 @@ export async function cargarConfiguracionComercio() {
   );
 
   return validarConfiguracionComercio(configuracion);
+}
+
+export async function cargarConfiguracionHabilidadesNPC() {
+  const configuracion = await cargarArchivoJson(
+    RUTA_HABILIDADES_NPC,
+    "el catálogo de habilidades NPC",
+  );
+
+  return validarHabilidadesNPC(configuracion);
 }
 
 export function cargarPerfilesAtaquePorFamilia() {

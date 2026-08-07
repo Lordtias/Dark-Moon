@@ -1,4 +1,8 @@
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
+import {
+  crearEventoHabilidadResuelta,
+  TIPOS_ACTOR_HABILIDAD,
+} from "../acciones/EventosAccion.js";
 
 import {
   CONFIGURACION_CURACION,
@@ -69,8 +73,10 @@ export function calcularEstadoCuracion({
 // Vida, Maná y oro al estado previo a la transacción.
 export function curarJugador({
   jugador,
+  curandera = null,
   tipoServicio,
   configuracion = CONFIGURACION_CURACION,
+  configuracionHabilidadesNPC = null,
 } = {}) {
   validarJugador(jugador);
   validarTipoServicio(tipoServicio);
@@ -131,6 +137,7 @@ export function curarJugador({
 
   let vidaRecuperada = 0;
   let manaRecuperado = 0;
+  let eventosHabilidades = [];
 
   try {
     if (
@@ -156,6 +163,15 @@ export function curarJugador({
       jugador,
       tipoServicio,
       estado,
+      vidaRecuperada,
+      manaRecuperado,
+    });
+
+    eventosHabilidades = crearEventosHabilidadesCuracion({
+      jugador,
+      curandera,
+      configuracionHabilidadesNPC,
+      estadoAnterior,
       vidaRecuperada,
       manaRecuperado,
     });
@@ -191,7 +207,143 @@ export function curarJugador({
     oroActual: jugador.oro,
     vidaRecuperada,
     manaRecuperado,
+    eventos: eventosHabilidades,
   });
+}
+
+function crearEventosHabilidadesCuracion({
+  jugador,
+  curandera,
+  configuracionHabilidadesNPC,
+  estadoAnterior,
+  vidaRecuperada,
+  manaRecuperado,
+}) {
+  // Las llamadas antiguas y las pruebas aisladas del sistema pueden seguir
+  // ejecutando únicamente la transacción. La partida real proporciona ambos
+  // argumentos y obtiene los eventos canónicos de Lythra.
+  if (!curandera || !configuracionHabilidadesNPC?.habilidades) {
+    return [];
+  }
+  if (typeof curandera.obtenerDatos !== "function") {
+    throw new Error(
+      "La curandera debe exponer sus habilidades mediante datos NPC.",
+    );
+  }
+
+  const habilidadesServicio =
+    curandera.obtenerDatos()?.habilidadesServicioCuracion ?? null;
+  if (!habilidadesServicio || typeof habilidadesServicio !== "object") {
+    throw new Error(
+      `La curandera "${curandera.nombre}" no declara habilidades de servicio.`,
+    );
+  }
+
+  const eventos = [];
+  if (vidaRecuperada > 0) {
+    eventos.push(
+      crearEventoRecuperacionNPC({
+        jugador,
+        curandera,
+        habilidad: obtenerHabilidadServicioNPC({
+          configuracionHabilidadesNPC,
+          idHabilidad: habilidadesServicio.vida,
+          recursoEsperado: "vida",
+        }),
+        recurso: "vida",
+        valorAntes: estadoAnterior.vidaActual,
+        valorDespues: jugador.vidaActual,
+        valorMaximo: jugador.vidaMaxima,
+        cantidadReal: vidaRecuperada,
+      }),
+    );
+  }
+
+  if (manaRecuperado > 0) {
+    eventos.push(
+      crearEventoRecuperacionNPC({
+        jugador,
+        curandera,
+        habilidad: obtenerHabilidadServicioNPC({
+          configuracionHabilidadesNPC,
+          idHabilidad: habilidadesServicio.mana,
+          recursoEsperado: "mana",
+        }),
+        recurso: "mana",
+        valorAntes: estadoAnterior.manaActual,
+        valorDespues: jugador.manaActual,
+        valorMaximo: jugador.manaMaximo,
+        cantidadReal: manaRecuperado,
+      }),
+    );
+  }
+
+  return eventos;
+}
+
+function crearEventoRecuperacionNPC({
+  jugador,
+  curandera,
+  habilidad,
+  recurso,
+  valorAntes,
+  valorDespues,
+  valorMaximo,
+  cantidadReal,
+}) {
+  const cambioRecurso = {
+    recurso,
+    valorAntes,
+    valorDespues,
+    valorMaximo,
+    cantidadReal,
+    tipoCambio: "recuperacion",
+  };
+
+  return crearEventoHabilidadResuelta({
+    actor: curandera,
+    tipoActor: TIPOS_ACTOR_HABILIDAD.NPC,
+    habilidad,
+    grado: 1,
+    posicionObjetivo: { x: jugador.x, y: jugador.y },
+    objetivoPrimario: jugador,
+    casillasAfectadas: [{ x: jugador.x, y: jugador.y }],
+    impactos: [
+      {
+        objetivoEntidad: jugador,
+        posicionObjetivo: { x: jugador.x, y: jugador.y },
+        orden: 0,
+        impacto: true,
+        critico: false,
+        objetivoDerrotado: false,
+        cantidadDanio: 0,
+        efectos: [],
+        recursosObjetivo: [cambioRecurso],
+      },
+    ],
+  });
+}
+
+function obtenerHabilidadServicioNPC({
+  configuracionHabilidadesNPC,
+  idHabilidad,
+  recursoEsperado,
+}) {
+  if (typeof idHabilidad !== "string" || idHabilidad.trim() === "") {
+    throw new Error(
+      `El servicio de ${recursoEsperado} no declara una habilidad NPC válida.`,
+    );
+  }
+  const habilidad = configuracionHabilidadesNPC.habilidades[idHabilidad];
+  if (!habilidad) {
+    throw new Error(`La habilidad NPC "${idHabilidad}" no existe.`);
+  }
+  if (habilidad.ejecucion?.recuperacion?.recurso !== recursoEsperado) {
+    throw new Error(
+      `La habilidad NPC "${idHabilidad}" no recupera ${recursoEsperado}.`,
+    );
+  }
+  return habilidad;
 }
 
 function calcularServicioIndividual({

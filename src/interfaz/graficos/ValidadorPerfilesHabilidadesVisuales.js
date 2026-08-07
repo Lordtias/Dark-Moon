@@ -112,6 +112,7 @@ function validarPerfiles({ perfiles, secuencias }) {
       `tamanoVisualPx de "${idHabilidad}"`,
     );
     validarEscalas(perfil.escalaPorGrado, idHabilidad);
+    validarDuracionVisualOpcional(perfil, idHabilidad);
     validarSonido(perfil.sonido, idHabilidad);
     validarPerfilPatronVisualHabilidad(perfil, idHabilidad);
   }
@@ -150,6 +151,20 @@ function validarEscalas(escalas, idHabilidad) {
       `escalaPorGrado[${indice}] de "${idHabilidad}"`,
     );
   });
+}
+
+function validarDuracionVisualOpcional(perfil, idHabilidad) {
+  if (perfil.duracionVisualMs === undefined) return;
+  validarNumeroPositivo(
+    perfil.duracionVisualMs,
+    `duracionVisualMs de "${idHabilidad}"`,
+  );
+  if (perfil.nivelVisual !== "npc" && perfil.nivelVisual !== "enemigo") {
+    throw new Error(
+      `La habilidad "${idHabilidad}" solo puede declarar duracionVisualMs ` +
+        "si pertenece a un NPC o enemigo sin coste temporal jugable.",
+    );
+  }
 }
 
 function validarSonido(sonido, idHabilidad) {

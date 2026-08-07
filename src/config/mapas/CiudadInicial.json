@@ -213,7 +213,11 @@
       "simbolo": "C",
       "recursoVisual": "assets/imagenes/npc/lythra_curandera.png",
       "datos": {
-        "idServicioCuracion": "curacion_refugio"
+        "idServicioCuracion": "curacion_refugio",
+        "habilidadesServicioCuracion": {
+          "vida": "curacion_lunar",
+          "mana": "restauracion_mana_lunar"
+        }
       },
       "interacciones": [
         {

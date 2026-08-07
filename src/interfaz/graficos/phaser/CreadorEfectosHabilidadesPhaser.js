@@ -195,6 +195,22 @@ function dibujarGlifoConjuracion({
     }
     return;
   }
+  if (forma === "orbe_lunar_vida" || forma === "orbe_lunar_mana") {
+    grafico.lineStyle?.(1.4, secundario, 0.9);
+    grafico.strokeCircle?.(-radio * 0.08, 0, radio * 0.48);
+    grafico.fillStyle?.(principal, 0.72);
+    grafico.fillCircle?.(radio * 0.12, -radio * 0.05, radio * 0.3);
+    grafico.fillStyle?.(secundario, 0.86);
+    for (let indice = 0; indice < 3; indice += 1) {
+      const angulo = -Math.PI * 0.6 + indice * Math.PI * 0.6;
+      grafico.fillCircle?.(
+        Math.cos(angulo) * radio * 0.82,
+        Math.sin(angulo) * radio * 0.82,
+        1.2,
+      );
+    }
+    return;
+  }
   if (forma === "masa_corrosiva") {
     grafico.fillStyle?.(principal, 0.72);
     grafico.fillCircle?.(-radio * 0.38, radio * 0.16, radio * 0.28);
@@ -288,6 +304,28 @@ function dibujarFormaHabilidad({
     grafico.lineBetween?.(-largo * 0.58, mitad * 0.22, largo * 0.54, mitad * 0.1);
     grafico.fillStyle?.(secundario, 0.74);
     grafico.fillCircle?.(-largo * 0.62, 0, Math.max(1.2, tamano * 0.08));
+    return;
+  }
+
+  if (forma === "orbe_lunar_vida" || forma === "orbe_lunar_mana") {
+    const esMana = forma === "orbe_lunar_mana";
+    grafico.fillStyle?.(principal, 0.78);
+    grafico.fillCircle?.(0, 0, mitad * 0.62);
+    grafico.lineStyle?.(grosor, secundario, 0.9);
+    grafico.strokeCircle?.(0, 0, mitad * 0.72);
+    grafico.fillStyle?.(secundario, 0.88);
+    grafico.fillCircle?.(mitad * 0.16, -mitad * 0.14, mitad * 0.22);
+    grafico.lineStyle?.(1, secundario, 0.72);
+    const cantidad = esMana ? 5 : 4;
+    for (let indice = 0; indice < cantidad; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / cantidad + (esMana ? 0.35 : 0);
+      grafico.lineBetween?.(
+        Math.cos(angulo) * mitad * 0.7,
+        Math.sin(angulo) * mitad * 0.7,
+        Math.cos(angulo) * mitad * 1.02,
+        Math.sin(angulo) * mitad * 1.02,
+      );
+    }
     return;
   }
 
@@ -425,6 +463,25 @@ function dibujarTexturaHabilidad({
     grafico.fillCircle?.(mitad * 0.34, -mitad * 0.18, Math.max(0.8, tamano * 0.04));
     return;
   }
+  if (textura === "motas_lunares" || textura === "motas_arcanas") {
+    const esArcana = textura === "motas_arcanas";
+    const cantidad = esArcana ? 5 : 4;
+    grafico.fillStyle?.(secundario, 0.72);
+    for (let indice = 0; indice < cantidad; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / cantidad + 0.25;
+      const distancia = mitad * (0.48 + (indice % 2) * 0.32);
+      grafico.fillCircle?.(
+        Math.cos(angulo) * distancia,
+        Math.sin(angulo) * distancia,
+        Math.max(0.8, tamano * (esArcana ? 0.05 : 0.045)),
+      );
+    }
+    if (esArcana) {
+      grafico.lineStyle?.(1, principal, 0.62);
+      grafico.strokeCircle?.(0, 0, mitad * 0.42);
+    }
+    return;
+  }
   if (textura === "toxina_burbujeante") {
     grafico.lineStyle?.(1.2, secundario, 0.86);
     grafico.strokeCircle?.(
@@ -486,7 +543,18 @@ function dibujarEstelaHabilidad({
     const x = origen.x + dx * t + perpendicular.x * alternancia * 2.2 * escala;
     const y = origen.y + dy * t + perpendicular.y * alternancia * 2.2 * escala;
 
-    if (estela === "cristales_arrastrados") {
+    if (estela === "destellos_lunares" || estela === "destellos_arcanos") {
+      const esArcana = estela === "destellos_arcanos";
+      const radio = (1.2 + (paso % 3) * 0.4) * escala;
+      grafico.fillStyle?.(paso % 2 === 0 ? secundario : principal, 0.68);
+      grafico.fillCircle?.(x, y, radio);
+      grafico.lineStyle?.(0.8, secundario, esArcana ? 0.54 : 0.4);
+      grafico.lineBetween?.(x - radio * 1.6, y, x + radio * 1.6, y);
+      grafico.lineBetween?.(x, y - radio * 1.6, x, y + radio * 1.6);
+      if (esArcana && paso % 2 === 0) {
+        grafico.strokeCircle?.(x, y, radio * 2.1);
+      }
+    } else if (estela === "cristales_arrastrados") {
       grafico.lineStyle?.(1.2, secundario, 0.82);
       const radio = (1.8 + (paso % 3) * 0.5) * escala;
       grafico.lineBetween?.(x - radio, y, x + radio, y);
@@ -536,6 +604,30 @@ function dibujarImpactoHabilidad({
 }) {
   const radio = tamano * 0.58;
   const grosor = critico ? 3 : 2;
+
+  if (impacto === "sanacion_lunar" || impacto === "restauracion_lunar") {
+    const esMana = impacto === "restauracion_lunar";
+    grafico.fillStyle?.(principal, esMana ? 0.24 : 0.28);
+    grafico.fillCircle?.(0, 0, radio * 0.58);
+    grafico.lineStyle?.(grosor, secundario, 0.88);
+    grafico.strokeCircle?.(0, 0, radio * 0.78);
+    const cantidad = esMana ? 8 : 6;
+    for (let indice = 0; indice < cantidad; indice += 1) {
+      const angulo = (Math.PI * 2 * indice) / cantidad;
+      const distancia = radio * (0.72 + (indice % 2) * 0.22);
+      const x = Math.cos(angulo) * distancia;
+      const y = Math.sin(angulo) * distancia;
+      grafico.fillStyle?.(indice % 2 === 0 ? secundario : principal, 0.76);
+      grafico.fillCircle?.(x, y, esMana ? 1.4 : 1.6);
+      if (esMana) {
+        grafico.lineStyle?.(0.8, principal, 0.5);
+        grafico.lineBetween?.(x, y, x * 1.18, y * 1.18);
+      }
+    }
+    grafico.fillStyle?.(secundario, 0.84);
+    grafico.fillCircle?.(0, -radio * 0.08, Math.max(1.2, radio * 0.14));
+    return;
+  }
 
   if (impacto === "choque_glacial") {
     grafico.fillStyle?.(principal, 0.32);

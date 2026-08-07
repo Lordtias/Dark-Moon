@@ -4,7 +4,7 @@ Fecha: 2026-08-06
 Etapa: P6.3D.3  
 Base exacta: `f5edc8d61776a21a15e627289faeab20f3e00b7e`  
 Rama: `main`  
-Commit realizado: no
+Commit final: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`
 
 ## 1. Objetivo
 
@@ -36,9 +36,9 @@ Se conservan sin cambios:
 
 | Grado | Maná | Tiempo | Alcance | Daño de Frío | Duración de Congelamiento |
 |---:|---:|---:|---:|---:|---:|
-| 1 | 8 | 115 | 5 | 9 | 80 |
-| 2 | 10 | 112 | 6 | 12 | 90 |
-| 3 | 13 | 110 | 6 | 16 | 100 |
+| 1 | 8 | 115 | 5 | 9 | 200 |
+| 2 | 10 | 112 | 6 | 12 | 250 |
+| 3 | 13 | 110 | 6 | 16 | 300 |
 
 La resistencia a Congelamiento continúa reduciendo la probabilidad efectiva. Si el ataque falla o el daño derrota al objetivo, no se aplica el estado. Una reaplicación sobre Congelamiento activo sigue siendo rechazada y no renueva la duración.
 
@@ -144,18 +144,18 @@ El perfil utiliza:
 
 - forma `rafaga_glacial`;
 - movimiento `impulso_fuerte`;
-- textura `viento_helado`;
+- textura `fragmentos_helados`;
 - estela `cristales_arrastrados`;
-- impacto `choque_glacial`;
+- impacto `escarcha_fragmentada`;
 - patrón reusable `proyectil`.
 
 La presentación incluye:
 
-- corriente ancha de viento azulado;
+- múltiples fragmentos pequeños de hielo dirigidos a un único objetivo;
 - cristales arrastrados durante la trayectoria;
-- compresión y expansión para transmitir fuerza;
-- impacto de aire helado y escarcha;
-- lectura claramente distinta de Esquirla de hielo.
+- lectura clara de selección individual, sin cono ni frente de área;
+- impacto compacto de escarcha fragmentada;
+- lectura claramente distinta de Esquirla de hielo y Chispa.
 
 No existe cierre vertical, bloque sólido ni carcasa invulnerable.
 
@@ -346,3 +346,8 @@ feat(magia): rediseñar Ráfaga glacial y generalizar controles
 ## 22. Próximo paso
 
 Después de la validación manual y el commit de P6.3D.3, el plan continúa con **P6.3E — habilidades canónicas de NPC para Lythra**. Antes de implementar esa etapa debe analizarse el código real de la nueva base y presentarse una propuesta para aprobación.
+
+
+## 22. Cierre posterior a la validación
+
+El usuario validó P6.3D.3 y realizó el commit final `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`. Durante la validación final se ajustó la duración de Congelamiento de Ráfaga glacial a 200/250/300 y se sustituyó la presentación ancha inicial por múltiples fragmentos de hielo dirigidos al objetivo. Estos valores y esta representación constituyen el cierre canónico de P6.3D.3.

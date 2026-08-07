@@ -1330,7 +1330,7 @@ Los seis estados se reconstruyen desde la escena, siguen a la entidad, responden
 
 ### Criterio de cierre de P6 completa
 
-Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B, P6.3D.1 y P6.3D.2 están cerradas; P6.3D.2 fue validada y publicada en `f5edc8d61776a21a15e627289faeab20f3e00b7e`. P6.3D.3 queda implementada con validaciones técnicas completas y validación visual manual pendiente; P6.3E y P6.3F permanecen pendientes.
+Estado: en progreso. P6.1, P6.2, P6.3A, P6.3B.1, P6.3B.2, P6.3C.1A, P6.3C.1B, P6.3C.2A, P6.3C.2B, P6.3D.1, P6.3D.2 y P6.3D.3 están cerradas. P6.3D.3 fue validada y publicada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`, con Congelamiento 200/250/300 y Ráfaga glacial representada mediante fragmentos dirigidos. P6.3E queda implementada técnicamente y pendiente de validación manual; P6.3F permanece pendiente.
 
 El cierre general requiere completar habilidades, estados, zonas, muerte, aparición inmediata de botín y regresión final sin trasladar reglas canónicas a Phaser.
 
@@ -1961,9 +1961,9 @@ E0 continúa pausada y no se considera completada.
 
 #### P6.3D.3 — Ráfaga glacial, bloqueo total y contraefectos
 
-Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+Estado: cerrada, validada manualmente y publicada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`.
 
-P6.3D.3 descarta la entidad física e invulnerable sugerida por el nombre Prisión glacial y la reemplaza por Ráfaga glacial. La habilidad conserva sus valores de daño, Maná, tiempo, alcance y duración, y usa 60 % de probabilidad base de Congelamiento en los tres grados.
+P6.3D.3 descarta la entidad física e invulnerable sugerida por el nombre Prisión glacial y la reemplaza por Ráfaga glacial. La habilidad conserva daño, Maná, tiempo y alcance, usa 60 % de probabilidad base de Congelamiento y cierra con duraciones 200/250/300 por grado.
 
 - Congelamiento, Aturdimiento y la futura Parálisis comparten `bloqueo_total`;
 - un bloqueo total impide cualquier acción y hace que la agenda temporal saltee al actor hasta el vencimiento;
@@ -1973,8 +1973,28 @@ P6.3D.3 descarta la entidad física e invulnerable sugerida por el nombre Prisi�
 - `eliminaEfectosAlAplicarse` define contraefectos sin condiciones específicas en el código;
 - Quemadura y Congelamiento se cancelan mutuamente después de una aplicación aceptada;
 - resistencia, inmunidad y rechazo por duplicado conservan el efecto activo;
-- Ráfaga glacial se presenta como viento helado fuerte con cristales y un impacto de escarcha, no como pared, bloque, destructible o colisión;
+- Ráfaga glacial se presenta como múltiples fragmentos pequeños de hielo dirigidos a un único objetivo, no como cono, pared, bloque, destructible o colisión;
 - los guardados con `prision_glacial` migran a `rafaga_glacial`;
 - Canvas 2D continúa operativo.
 
-Base exacta: `f5edc8d61776a21a15e627289faeab20f3e00b7e`.
+Base de implementación: `f5edc8d61776a21a15e627289faeab20f3e00b7e`. Commit final: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`.
+
+
+#### P6.3E — Habilidades canónicas de NPC para Lythra
+
+Estado: implementada técnicamente; pendiente de validación manual y commit del usuario.
+
+P6.3E incorpora `HabilidadesNPC.json` como catálogo separado del progreso mágico del jugador. Lythra utiliza `Curación lunar` para Vida y `Restauración lunar` para Maná. `SistemaCuracion` conserva la economía, el pago atómico y el rollback existentes; únicamente después de una recuperación aceptada genera `habilidad_resuelta` con `tipoActor: npc` y el cambio real dentro de `recursosObjetivo`.
+
+- las habilidades NPC no aparecen en maestrías, aprendizaje ni barra;
+- el servicio «Ambos» reutiliza Vida y Maná en orden y omite recursos ya completos;
+- las habilidades no consumen Maná, cooldown ni tiempo jugable;
+- `duracionVisualMs` permite una duración de presentación independiente del sistema temporal;
+- Phaser reutiliza el patrón `proyectil` y `CreadorEfectosRecuperacionPhaser`, sin mostrar una poción;
+- Curación lunar usa luz blanca/rosada y Restauración lunar azul/violeta;
+- `recursosObjetivo` queda soportado dentro del impacto de cualquier habilidad para futuras recuperaciones de jugador, NPC o enemigo;
+- Canvas 2D conserva el estado final canónico y no depende de Phaser.
+
+Base exacta: `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`.
+
+Próxima acción después de validar y commitear: P6.3F — regresión, documentación y cierre general de P6.3.

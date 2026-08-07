@@ -2011,6 +2011,18 @@ export class ReproductorEventosVisualesPhaser {
       { esperarDecorativos: false },
     );
 
+    const recursosRecuperados = convertirCambiosRecursosARecuperacion(
+      impacto.recursosObjetivo,
+    );
+    if (recursosRecuperados.length > 0) {
+      await this.reproducirRecuperacionHabilidad({
+        evento,
+        impacto,
+        recursos: recursosRecuperados,
+        version,
+      });
+    }
+
     for (const eventoEfecto of impacto.eventosEfectos ?? []) {
       if (version !== this.versionCancelacion || this.destruido) return;
       await this.reproducirEventoVisual(eventoEfecto, version);
@@ -2019,6 +2031,34 @@ export class ReproductorEventosVisualesPhaser {
     if (impacto.derrotaVisual) {
       await this.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
     }
+  }
+
+  async reproducirRecuperacionHabilidad({
+    evento,
+    impacto,
+    recursos,
+    version,
+  }) {
+    const centro = this.obtenerCentroImpactoHabilidad(evento, impacto);
+    if (!centro || !Array.isArray(recursos) || recursos.length === 0) return;
+
+    const efecto = this.creadorEfectosRecuperacion?.crearRecuperacion({
+      centro,
+      recursos,
+      reducido: this.efectosReducidos,
+    });
+
+    const eventoRecuperacion = {
+      idObjetivo: impacto.idObjetivo,
+      recursos,
+    };
+    const animaciones = [
+      this.reproducirAumentoVidaExplicito(eventoRecuperacion, version),
+    ];
+    if (efecto) {
+      animaciones.push(this.animarRecuperacionFija(efecto, centro, version));
+    }
+    await Promise.all(animaciones);
   }
 
   async reproducirAtaqueResuelto(evento, version) {
@@ -3577,6 +3617,25 @@ export class ReproductorEventosVisualesPhaser {
       this.temporizadoresActivos.add(espera);
     });
   }
+}
+
+function convertirCambiosRecursosARecuperacion(recursos) {
+  if (!Array.isArray(recursos)) return [];
+  return recursos
+    .map((recurso) => {
+      const cantidadAplicada = Math.max(0, Number(recurso?.cantidadReal) || 0);
+      const valorMaximo = Math.max(0, Number(recurso?.valorMaximo) || 0);
+      if (cantidadAplicada <= 0 || valorMaximo <= 0) return null;
+      return {
+        recurso: recurso?.recurso === "mana" ? "mana" : "vida",
+        cantidadAplicada,
+        valorAntes: Math.max(0, Number(recurso?.valorAntes) || 0),
+        valorDespues: Math.max(0, Number(recurso?.valorDespues) || 0),
+        valorMaximo,
+        proporcionRecuperada: Math.min(1, cantidadAplicada / valorMaximo),
+      };
+    })
+    .filter(Boolean);
 }
 
 function resolverEaseHabilidad(movimiento) {

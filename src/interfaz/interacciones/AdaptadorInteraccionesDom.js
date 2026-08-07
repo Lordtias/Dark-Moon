@@ -23,6 +23,7 @@ import {
 export class AdaptadorInteraccionesDom {
   constructor({
     juego,
+    configuracionHabilidadesNPC,
     modalContenedorObjetos,
     modalSeleccionMazmorra,
     obtenerMazmorrasDisponibles,
@@ -93,6 +94,7 @@ export class AdaptadorInteraccionesDom {
     }
 
     this.juego = juego;
+    this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
     this.modalContenedorObjetos = modalContenedorObjetos;
     this.modalSeleccionMazmorra = modalSeleccionMazmorra;
     this.obtenerMazmorrasDisponibles = obtenerMazmorrasDisponibles;
@@ -230,7 +232,9 @@ export class AdaptadorInteraccionesDom {
       alCurar: (tipoServicio) => {
         const resultado = curarJugador({
           jugador: this.juego.player,
+          curandera,
           tipoServicio,
+          configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
         });
 
         return this.procesarResultado(resultado);

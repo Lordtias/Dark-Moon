@@ -365,6 +365,58 @@
       "efectoCasilla": null,
       "efectoObjetivo": "corrosion_expansiva",
       "efectoObjetivoPrimario": "corrosion_expansiva"
+    },
+    "curacion_lunar": {
+      "nivelVisual": "npc",
+      "secuencia": "proyectil_basico",
+      "forma": "orbe_lunar_vida",
+      "movimiento": "flotante",
+      "textura": "motas_lunares",
+      "estela": "destellos_lunares",
+      "impacto": "sanacion_lunar",
+      "colorPrincipal": "#ffb8c9",
+      "colorSecundario": "#fff4ee",
+      "tamanoVisualPx": 18,
+      "escalaPorGrado": [
+        1
+      ],
+      "duracionVisualMs": 820,
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "actor",
+      "efectoCasilla": null,
+      "efectoObjetivo": "sanacion_lunar",
+      "efectoObjetivoPrimario": null
+    },
+    "restauracion_mana_lunar": {
+      "nivelVisual": "npc",
+      "secuencia": "proyectil_basico",
+      "forma": "orbe_lunar_mana",
+      "movimiento": "flotante",
+      "textura": "motas_arcanas",
+      "estela": "destellos_arcanos",
+      "impacto": "restauracion_lunar",
+      "colorPrincipal": "#879cff",
+      "colorSecundario": "#eadfff",
+      "tamanoVisualPx": 18,
+      "escalaPorGrado": [
+        1
+      ],
+      "duracionVisualMs": 820,
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "actor",
+      "efectoCasilla": null,
+      "efectoObjetivo": "restauracion_lunar",
+      "efectoObjetivoPrimario": null
     }
   }
 }

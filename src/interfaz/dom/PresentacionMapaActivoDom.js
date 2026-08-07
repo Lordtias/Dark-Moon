@@ -21,6 +21,7 @@ export class PresentacionMapaActivoDom {
     configuracionObjetos,
     configuracionRarezas,
     configuracionComercio,
+    configuracionHabilidadesNPC,
     obtenerMazmorrasDisponibles,
     alSeleccionarMazmorra,
     alSolicitarTransicionMapa,
@@ -70,6 +71,7 @@ export class PresentacionMapaActivoDom {
 
     this.adaptadorInteracciones = new AdaptadorInteraccionesDom({
       juego,
+      configuracionHabilidadesNPC,
       modalContenedorObjetos: interfazPartida.modalContenedorObjetos,
       modalSeleccionMazmorra: interfazPartida.modalSeleccionMazmorra,
       obtenerMazmorrasDisponibles,

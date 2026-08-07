@@ -1873,7 +1873,7 @@ P6.3D.1 aplica el patrón `linea`. La trayectoria visual nace en el actor y reco
 
 P6.3D.2 reutiliza el patrón `proyectil` para Plaga corrosiva. Debe leerse como una masa tóxica más grande, pesada y viscosa que Aguijón tóxico: cuerpo irregular, núcleo verde con burbujas, pequeñas masas residuales, giro lento, compresión durante el avance y gotas corrosivas amplias. El impacto forma una corrosión expansiva con charco breve, salpicaduras y burbujas. La intensidad canónica aumenta de manera acotada el radio y la densidad de esas marcas; nunca altera la trayectoria ni inventa acumulaciones. Una aplicación resistida o inmune conserva el golpe directo, pero no muestra un aumento de intensidad. Al alcanzar el máximo puede aparecer un anillo exterior breve. La derrota ocurre dentro del impacto del proyectil y no vuelve a reproducirse como evento separado.
 
-Ráfaga glacial se define en P6.3D.3 como un proyectil ancho de viento helado y cristales. No crea pared, bloque sólido, entidad destructible ni inmunidad.
+Ráfaga glacial se define en P6.3D.3 como un ataque individual compuesto por múltiples fragmentos pequeños de hielo que viajan desde el ejecutor hasta un único objetivo. No crea cono, pared, bloque sólido, entidad destructible ni inmunidad.
 
 Lythra debe ejecutar habilidades canónicas de NPC que no aparezcan en aprendizaje ni barra del jugador. Curación y restauración de Maná reutilizarán `habilidad_resuelta`, `recursosObjetivo` con valores anterior, posterior, máximo y cantidad real, y actualización de barras, pero tendrán perfil mágico propio, no consumirán objetos y no mostrarán el gesto de beber.
 
@@ -1917,10 +1917,17 @@ La duración canónica no se transforma en una cuenta regresiva de milisegundos 
 
 ### Ráfaga glacial y controles totales
 
-Ráfaga glacial nace en el ejecutor como una corriente ancha y rápida de viento azulado. Su lectura debe diferenciarse de Esquirla de hielo: no es una pieza sólida y pequeña, sino un frente de aire con cristales arrastrados, compresión longitudinal y un impacto de escarcha expansiva. El perfil utiliza `rafaga_glacial`, `impulso_fuerte`, `viento_helado`, `cristales_arrastrados` y `choque_glacial`.
+Ráfaga glacial nace en el ejecutor como un conjunto de pequeños fragmentos de hielo que avanzan agrupados hacia un único objetivo. Su gramática de selección es similar a Chispa, pero sustituye la descarga por múltiples cristales, estelas heladas y un impacto compacto de escarcha. No debe parecer un cono ni una habilidad de área. El perfil utiliza `rafaga_glacial`, `impulso_fuerte`, `fragmentos_helados`, `cristales_arrastrados` y `escarcha_fragmentada`.
 
 Cuando Congelamiento se aplica, la presentación persistente usa `escarcha_inmovilizante`: placas finas y cristales alrededor del contorno, dejando visible al actor y su barra. No existe bloque opaco ni carcasa invulnerable. Aturdimiento conserva su identidad eléctrica o contundente; Parálisis usa anillos de control; Silencio usa un sello discreto en la zona superior.
 
 Los contraefectos son hechos del dominio. Si una aplicación aceptada de Quemadura retira Congelamiento, o viceversa, el plan visual reproduce primero `efecto_temporal_retirado` y después `efecto_temporal_aplicado` dentro del mismo impacto. Phaser no compara elementos ni decide incompatibilidades.
 
 Canvas 2D dibuja una marca de escarcha equivalente y sigue siendo funcional sin depender de los recursos Phaser.
+
+
+### Habilidades lunares de Lythra
+
+P6.3E define una familia visual propia para las recuperaciones de Lythra. No deben reutilizar el sprite de una poción ni el gesto de consumo. `Curación lunar` nace en Lythra como un orbe suave de luz blanca y rosada, viaja hacia el jugador con destellos lunares y termina en un pulso de sanación ascendente. `Restauración lunar` comparte la misma familia, pero utiliza azul, violeta y motas arcanas para distinguir Maná.
+
+Ambas son habilidades de objetivo individual y usan el patrón reusable `proyectil`. El resultado canónico llega mediante `recursosObjetivo`; la presentación solo muestra la cantidad realmente recuperada y puede reutilizar `CreadorEfectosRecuperacionPhaser`. Su duración es exclusivamente visual: no representa coste temporal, Maná, cooldown ni turno de Lythra. El servicio «Ambos» reproduce las dos habilidades en el orden Vida → Maná cuando ambos recursos necesitan recuperación.

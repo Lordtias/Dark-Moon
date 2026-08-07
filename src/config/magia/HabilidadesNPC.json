@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "habilidades": {
+    "curacion_lunar": {
+      "nombre": "Curación lunar",
+      "descripcion": "Lythra canaliza luz lunar para restaurar por completo la Vida faltante del objetivo.",
+      "ejecucion": {
+        "tipoObjetivo": "aliado",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": false,
+        "recuperacion": {
+          "recurso": "vida"
+        }
+      }
+    },
+    "restauracion_mana_lunar": {
+      "nombre": "Restauración lunar",
+      "descripcion": "Lythra canaliza energía lunar para restaurar por completo el Maná faltante del objetivo.",
+      "ejecucion": {
+        "tipoObjetivo": "aliado",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": false,
+        "recuperacion": {
+          "recurso": "mana"
+        }
+      }
+    }
+  }
+}

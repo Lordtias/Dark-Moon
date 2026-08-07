@@ -83,6 +83,7 @@ export class ControladorPartida {
     this.configuracionObjetos = null;
     this.configuracionRarezas = null;
     this.configuracionComercio = null;
+    this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
   }
 
@@ -95,6 +96,7 @@ export class ControladorPartida {
     configuracionMapas,
     configuracionCiudad,
     configuracionComercio,
+    configuracionHabilidadesNPC,
   } = {}) {
     if (this.partidaIniciada) {
       return false;
@@ -132,6 +134,7 @@ export class ControladorPartida {
     this.configuracionObjetos = configuracionObjetos;
     this.configuracionRarezas = configuracionGeneracionObjetos.rarezas;
     this.configuracionComercio = configuracionComercio;
+    this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
 
     this.interfazPartida = this.crearInterfazPartida({
       tileSize: TILE_SIZE,
@@ -504,6 +507,7 @@ export class ControladorPartida {
       configuracionObjetos: this.configuracionObjetos,
       configuracionRarezas: this.configuracionRarezas,
       configuracionComercio: this.configuracionComercio,
+      configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
       obtenerMazmorrasDisponibles: () =>
         this.gestorMapasPartida.obtenerMazmorrasDisponibles(),
       alSeleccionarMazmorra: (seleccion) =>

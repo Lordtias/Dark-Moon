@@ -37,20 +37,31 @@ export function crearPlanRitmoVisualHabilidad({
   perfilVisual,
   ejecucionTemporal,
 } = {}) {
-  const costoFinal = ejecucionTemporal?.costoFinal;
-  if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
-    return null;
-  }
   const idSecuencia = perfilVisual?.secuencia;
   if (typeof idSecuencia !== "string" || idSecuencia === "") {
     throw new Error("La habilidad necesita una secuencia visual válida.");
   }
+
+  const costoFinal = ejecucionTemporal?.costoFinal;
+  const usaCostoTemporal = Number.isInteger(costoFinal) && costoFinal > 0;
+  const duracionVisualFija = Number(perfilVisual?.duracionVisualMs);
+  const usaDuracionVisualFija =
+    Number.isFinite(duracionVisualFija) && duracionVisualFija > 0;
+
+  if (!usaCostoTemporal && !usaDuracionVisualFija) {
+    return null;
+  }
+
   const proporciones = obtenerSecuenciaHabilidadVisual(idSecuencia);
-  const duracionTotalMs = convertirCostoFinalADuracionVisual(costoFinal);
+  const duracionTotalMs = usaCostoTemporal
+    ? convertirCostoFinalADuracionVisual(costoFinal)
+    : Math.round(duracionVisualFija);
+
   return Object.freeze({
-    costoFinal,
+    costoFinal: usaCostoTemporal ? costoFinal : null,
     duracionTotalMs,
     secuencia: idSecuencia,
+    origenDuracion: usaCostoTemporal ? "costo_temporal" : "visual_fija",
     fases: distribuirDuracionPorFases({
       duracionTotalMs,
       proporciones,

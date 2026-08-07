@@ -8,6 +8,7 @@ import {
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
+  cargarConfiguracionHabilidadesNPC,
   cargarPerfilesAtaquePorFamilia,
   cargarPerfilesHabilidadesVisuales,
   cargarPerfilesEstadosTemporalesVisuales,
@@ -42,6 +43,7 @@ export class Aplicacion {
     this.configuracionMapas = null;
     this.configuracionCiudad = null;
     this.configuracionComercio = null;
+    this.configuracionHabilidadesNPC = null;
     this.configuracionProgresoMagico = null;
     this.configuracionPresentacionCombate = null;
     this.configuracionPresentacionHabilidades = null;
@@ -86,6 +88,7 @@ export class Aplicacion {
       configuracionMapas,
       configuracionCiudad,
       configuracionComercio,
+      configuracionHabilidadesNPC,
       configuracionProgresoMagico,
       perfilesAtaquePorFamilia,
       perfilesHabilidadesVisuales,
@@ -99,6 +102,7 @@ export class Aplicacion {
       cargarConfiguracionMapas(),
       cargarConfiguracionCiudad(),
       cargarConfiguracionComercio(),
+      cargarConfiguracionHabilidadesNPC(),
       cargarYConfigurarProgresoMagico(),
       cargarPerfilesAtaquePorFamilia(),
       cargarPerfilesHabilidadesVisuales(),
@@ -117,10 +121,17 @@ export class Aplicacion {
       });
     const configuracionEjecucionHabilidades =
       obtenerConfiguracionEjecucionHabilidades();
+    const configuracionHabilidadesVisualesCanonicas = {
+      ...configuracionEjecucionHabilidades,
+      habilidades: {
+        ...configuracionEjecucionHabilidades.habilidades,
+        ...configuracionHabilidadesNPC.habilidades,
+      },
+    };
     this.configuracionPresentacionHabilidades =
       configurarPerfilesHabilidadesVisuales({
         configuracion: perfilesHabilidadesVisuales,
-        configuracionHabilidades: configuracionEjecucionHabilidades,
+        configuracionHabilidades: configuracionHabilidadesVisualesCanonicas,
       });
     this.configuracionPresentacionEstadosTemporales =
       configurarPerfilesEstadosTemporalesVisuales({
@@ -135,6 +146,7 @@ export class Aplicacion {
     this.configuracionMapas = configuracionMapas;
     this.configuracionCiudad = configuracionCiudad;
     this.configuracionComercio = configuracionComercio;
+    this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
     this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
 
@@ -171,6 +183,7 @@ export class Aplicacion {
             configuracionMapas: this.configuracionMapas,
             configuracionCiudad: this.configuracionCiudad,
             configuracionComercio: this.configuracionComercio,
+            configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
           });
         },
       });

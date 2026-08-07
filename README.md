@@ -1905,7 +1905,7 @@ Los contratos de P6.4A mantienen el orden ataque/impacto → derrota → botín.
 
 La auditoría de dependencias confirma que los módulos de `src/interfaz/graficos/phaser/` no importan motores de daño, efectos, botín, XP, alcance o resistencias. La persistencia tampoco contiene IDs, tweens o colas puramente visuales. Phaser responde a la pregunta «cómo representar el resultado» y no a «qué resultado debe ocurrir».
 
-P6.4B queda técnicamente lista para validación manual final. P6 se declarará cerrada y validada únicamente después de esa aprobación y del commit correspondiente. La continuación prevista es P7 — candidato visual para beta web.
+P6.4B fue validada y publicada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. Con ese commit P6 quedó formalmente cerrada y la continuación operativa es P7 — candidato visual para beta web.
 
 
 ### P7.1 — Entrada de beta y continuidad
@@ -1924,3 +1924,11 @@ Los valores iniciales no están hardcodeados en la persistencia. `src/config/pre
 La persistencia de preferencias es independiente de `PersistenciaJugador`: crear/reemplazar un personaje no elimina velocidad, efectos o zoom. Pantalla completa no se persiste porque el navegador exige una interacción explícita para activarla. Phaser recibe las preferencias efectivas desde la aplicación; no lee `localStorage` ni decide valores iniciales. Canvas 2D continúa disponible mediante `?render=canvas2d`.
 
 La mejora adicional del autosave del personaje queda pospuesta. P7.3 utilizará la misma infraestructura para incorporar la preferencia de idioma, traduciendo únicamente texto presentado y conservando código e IDs canónicos en español.
+
+### P7.3A — Infraestructura bilingüe y contenido localizado
+
+P7.2 fue validada y cerrada en `93cbd48cb29c77c9af8f3de222e13437971abb32`. P7.3 se divide en dos subetapas para separar infraestructura/contenido de los mensajes dinámicos. P7.3A incorpora los catálogos `src/config/idiomas/es.json` y `en.json`, el traductor común, el selector **ES / EN** del menú y Configuración, y `idioma` como preferencia de interfaz con Español como valor canónico inicial. Cambiar idioma no recarga la página, actualiza `lang` del documento y solo persiste un override cuando el usuario elige un idioma distinto del default.
+
+Los JSON jugables continúan siendo únicos y conservan sus IDs, `nombre` y `descripcion` en español. La interfaz localiza contenido mediante el ID canónico; si una traducción del idioma activo falta, `Traductor.traducirContenido()` utiliza primero el `nombre`/`descripcion` original de la definición como respaldo seguro y emite una advertencia de desarrollo. No existen campos `nombreEN`/`descripcionEN` ni copias inglesas de Armas, Habilidades, Efectos u otros catálogos funcionales.
+
+P7.3A cubre menú, Configuración, creación de personaje, HUD/panel de personaje, inventario/equipamiento, detalle y comparación de objetos, contenedores, comercio, Lythra, selector de mazmorra, habilidades/maestrías y los nombres/descripciones de objetos, afijos, profesiones, mapas, enemigos, efectos y demás contenido con ID canónico. P7.3B queda reservada para convertir mensajes dinámicos y feedback textual de combate/acciones a contratos semánticos, eliminando dependencias que todavía clasifican resultados a partir de frases españolas.

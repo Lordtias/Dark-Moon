@@ -1,4 +1,5 @@
 import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
+import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosResumenInventario";
 
@@ -90,7 +91,7 @@ export class PanelInventario {
     casilla.dataset.indiceInventario = `${indice}`;
 
     if (!objeto) {
-      casilla.setAttribute("aria-label", "Espacio vacío");
+      casilla.setAttribute("aria-label", traducir("interfaz.inventario.espacioVacio", { respaldo: "Espacio vacío" }));
 
       return casilla;
     }
@@ -103,7 +104,11 @@ export class PanelInventario {
 
     casilla.title = this.crearTituloObjeto(objeto);
 
-    casilla.setAttribute("aria-label", `Ver detalles de ${objeto.nombre}`);
+    const nombreObjeto = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
+    casilla.setAttribute("aria-label", traducir("interfaz.inventario.verDetalles", {
+      parametros: { nombre: nombreObjeto },
+      respaldo: `Ver detalles de ${nombreObjeto}`,
+    }));
 
     agregarRepresentacionObjeto({
       contenedor: casilla,
@@ -141,11 +146,14 @@ export class PanelInventario {
       typeof objeto.descripcion === "string" &&
       objeto.descripcion.trim() !== ""
     ) {
-      lineas.push(objeto.descripcion);
+      lineas.push(traducirContenido("objetos", objeto.id, "descripcion", objeto.descripcion));
     }
 
     if (objeto.esQuiver) {
-      lineas.push(`Contenido: ${objeto.cantidadMunicion} flechas.`);
+      lineas.push(traducir("interfaz.inventario.contenidoFlechas", {
+        parametros: { cantidad: objeto.cantidadMunicion },
+        respaldo: `Contenido: ${objeto.cantidadMunicion} flechas.`,
+      }));
     }
 
     lineas.push("Clic para ver detalles.");
@@ -162,20 +170,20 @@ export class PanelInventario {
 
     this.resumenInventario.classList.add("resumen-inventario");
 
-    this.resumenInventario.setAttribute("aria-label", "Resumen del inventario");
+    this.resumenInventario.setAttribute("aria-label", traducir("interfaz.inventario.resumenAria", { respaldo: "Resumen del inventario" }));
 
     const resumenCasillas = crearDatoResumen({
-      etiqueta: "Casillas",
+      etiqueta: traducir("interfaz.inventario.casillas", { respaldo: "Casillas" }),
     });
 
     const resumenPeso = crearDatoResumen({
-      etiqueta: "Peso",
+      etiqueta: traducir("interfaz.inventario.peso", { respaldo: "Peso" }),
 
       claseAdicional: "resumen-inventario__dato--peso",
     });
 
     const resumenOro = crearDatoResumen({
-      etiqueta: "Oro",
+      etiqueta: traducir("interfaz.inventario.oro", { respaldo: "Oro" }),
 
       claseAdicional: "resumen-inventario__dato--oro",
     });
@@ -220,10 +228,15 @@ export class PanelInventario {
     this.resumenInventario.setAttribute(
       "aria-label",
 
-      `Inventario: ${ocupadas} de ` +
-        `${inventario.capacidad} casillas ocupadas, ` +
-        `peso ${formatearPeso(pesoTotal)} y ` +
-        `${jugador.oro} monedas de oro.`,
+      traducir("interfaz.inventario.resumen", {
+        parametros: {
+          ocupadas,
+          capacidad: inventario.capacidad,
+          peso: formatearPeso(pesoTotal),
+          oro: jugador.oro,
+        },
+        respaldo: `Inventario: ${ocupadas} de ${inventario.capacidad} casillas ocupadas, peso ${formatearPeso(pesoTotal)} y ${jugador.oro} monedas de oro.`,
+      }),
     );
   }
 

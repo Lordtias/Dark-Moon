@@ -1,0 +1,1229 @@
+{
+  "meta": {
+    "idioma": "es",
+    "nombre": "Español"
+  },
+  "interfaz": {
+    "menu": {
+      "nuevoJuego": "Nuevo Juego",
+      "continuar": "Continuar",
+      "configuracion": "Configuración",
+      "beta": "Beta",
+      "continuarTitulo": "Continuar como {nombre} (nivel {nivel})"
+    },
+    "idioma": {
+      "etiqueta": "Idioma",
+      "espanol": "Español",
+      "ingles": "English",
+      "selector": "Cambiar idioma"
+    },
+    "configuracion": {
+      "titulo": "Configuración",
+      "velocidad": "Velocidad de animaciones",
+      "cargando": "Cargando...",
+      "ayudaVelocidad": "Modifica únicamente la velocidad de presentación en Phaser.",
+      "efectosReducidos": "Efectos visuales reducidos",
+      "ayudaEfectos": "Reduce efectos secundarios sin alterar la jugabilidad.",
+      "zoom": "Zoom inicial del mapa",
+      "reducirZoom": "Reducir zoom inicial",
+      "aumentarZoom": "Aumentar zoom inicial",
+      "ayudaZoom": "Define cómo comienza la cámara. La rueda y las teclas de zoom siguen funcionando durante la partida.",
+      "pantallaCompleta": "Pantalla completa",
+      "activarPantallaCompleta": "Activar pantalla completa",
+      "salirPantallaCompleta": "Salir de pantalla completa",
+      "restablecer": "Restablecer valores predeterminados",
+      "volver": "Volver",
+      "velocidadNormal": "Normal",
+      "velocidadRapida": "Rápida",
+      "velocidadMuyRapida": "Muy rápida"
+    },
+    "creacion": {
+      "titulo": "Creación del personaje",
+      "nombre": "Nombre",
+      "profesion": "Profesión",
+      "cargandoProfesiones": "Cargando profesiones...",
+      "atributos": "Atributos",
+      "puntosDisponibles": "Puntos disponibles:",
+      "reiniciarAtributos": "Reiniciar atributos",
+      "distribuirProfesion": "Distribuir según profesión",
+      "comenzar": "Comenzar aventura",
+      "profesionSeleccionada": "Profesión seleccionada",
+      "conjuntoInicial": "Conjunto inicial",
+      "equipado": "Equipado",
+      "inventario": "Inventario",
+      "equipoRecomendado": "Equipo recomendado",
+      "equipoAlternativo": "Tirar equipo alternativo",
+      "vistaProfesion": "Vista de {nombre}",
+      "origenAlternativo": "Alternativo",
+      "origenRecomendado": "Recomendado",
+      "sinEquipados": "No hay objetos equipados.",
+      "inventarioInicialVacio": "El inventario inicial está vacío.",
+      "armadura": "Armadura",
+      "danioBase": "Daño base",
+      "alcance": "Alcance",
+      "magicos": "Mágicos",
+      "tipoArma": "Arma",
+      "tipoArmadura": "Armadura",
+      "tipoQuiver": "Carcaj",
+      "tipoMunicion": "Munición",
+      "tipoConsumible": "Consumible",
+      "tipoMaterial": "Material",
+      "cantidad": "Cantidad {cantidad}",
+      "danio": "Daño {minimo}-{maximo}",
+      "bloqueo": "Bloqueo",
+      "flechasIncluidas": "Flechas incluidas: {cantidad}",
+      "consumibleInicial": "Consumible inicial"
+    },
+    "juego": {
+      "controles": "MOVIMIENTO: flechas, WASD o teclado numérico. Con el espacio o 5 esperas un turno. COMBATE: f INTERACTUAR: r",
+      "registro": "Registro de eventos",
+      "mensajeInicial": "Comenzá la aventura y explorá el mapa.",
+      "inventario": "Inventario",
+      "inventarioVacio": "El inventario está vacío.",
+      "equipamiento": "Equipamiento",
+      "personaje": "Personaje"
+    },
+    "personaje": {
+      "cargando": "Cargando...",
+      "aventurero": "Aventurero",
+      "nivel": "Nivel {nivel}",
+      "vida": "Vida",
+      "mana": "Maná",
+      "atributos": "Atributos",
+      "puntos": "Puntos",
+      "combate": "Combate",
+      "danioMedio": "Daño medio",
+      "turno": "Turno",
+      "precision": "Precisión",
+      "evasion": "Evasión",
+      "armadura": "Armadura",
+      "critico": "Crítico",
+      "bloqueo": "Bloqueo",
+      "regenVida": "Regen. vida",
+      "regenMana": "Regen. maná",
+      "alcance": "Alcance",
+      "resistencias": "Resistencias",
+      "fuego": "Fuego",
+      "frio": "Frío",
+      "rayo": "Rayo",
+      "veneno": "Veneno",
+      "congelamiento": "Congelamiento",
+      "aturdimiento": "Aturdimiento",
+      "envenenamiento": "Envenenamiento",
+      "quemadura": "Quemadura",
+      "puntosPendientes": "Puntos pendientes de repartir",
+      "aumentarAtributo": "Aumentar {atributo}",
+      "asignarAtributo": "Asignar un punto a {atributo}",
+      "magia": "Magia",
+      "danioMagico": "Daño mágico",
+      "potenciaEfectos": "Potencia de efectos",
+      "xp": "PX",
+      "dpsAyuda": "Daño bruto medio por segundo. Incluye la velocidad del ataque, pero no precisión, críticos, armadura ni bloqueo.",
+      "danioMagicoAyuda": "Multiplicador derivado de Inteligencia y Sabiduría que usarán las habilidades mágicas.",
+      "potenciaEfectosAyuda": "Multiplicador derivado de Sabiduría e Inteligencia. Cada efecto define si escala valor, duración o ambos."
+    },
+    "curacion": {
+      "subtitulo": "Restaurá tus recursos antes de una nueva expedición.",
+      "oro": "Oro",
+      "cerrarServicios": "Cerrar servicios de curación",
+      "cerrar": "Cerrar",
+      "introduccion": "El precio depende únicamente de los puntos que necesites recuperar.",
+      "restaurarVida": "Restaurar Vida",
+      "descripcionVida": "Completa todos los puntos de Vida faltantes.",
+      "restaurarMana": "Restaurar Maná",
+      "descripcionMana": "Completa todos los puntos de Maná faltantes.",
+      "restaurarTodo": "Restaurar todo",
+      "descripcionTodo": "Completa Vida y Maná en una sola operación.",
+      "estadoActual": "Estado actual",
+      "puntosFaltantes": "Puntos faltantes",
+      "vidaFaltante": "Vida faltante",
+      "manaFaltante": "Maná faltante",
+      "precio": "Precio",
+      "precioTotal": "Precio total",
+      "calcular": "Calcular servicio"
+    },
+    "mensajes": {
+      "preferenciasInvalidas": "Las preferencias guardadas no eran válidas. Se utilizaron los valores predeterminados.",
+      "preferenciasGuardadas": "Preferencias guardadas. Se aplicarán al iniciar la partida.",
+      "preferenciaError": "No se pudo guardar la preferencia seleccionada.",
+      "preferenciasRestauradas": "Se restauraron los valores predeterminados.",
+      "restablecerError": "No se pudieron restablecer las preferencias.",
+      "fullscreenNoDisponible": "Este navegador no permite activar pantalla completa desde la aplicación.",
+      "fullscreenError": "No se pudo cambiar el modo de pantalla completa.",
+      "confirmarReemplazo": "Existe una partida guardada. Crear este personaje reemplazará su progreso. ¿Continuar?",
+      "guardadoAccesoError": "No se pudo acceder al guardado del navegador.",
+      "guardadoCargaError": "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+      "guardadoInexistente": "No existe una partida guardada para continuar.",
+      "inicioError": "No se pudo cargar la configuración del juego."
+    },
+    "habilidades": {
+      "abrir": "Habilidades",
+      "abrirTitulo": "Abrir habilidades y maestrías",
+      "progresoPersonaje": "Progreso del personaje",
+      "titulo": "Habilidades y maestrías",
+      "cerrar": "Cerrar habilidades",
+      "categoriasAria": "Categorías de maestrías",
+      "categoriaMagicas": "Mágicas",
+      "categoriaBasicas": "Básicas",
+      "categoriaArmas": "Armas",
+      "categoriaArmaduras": "Armaduras",
+      "universales": "Universales",
+      "especificos": "Específicos",
+      "maestriaMagica": "Maestría mágica",
+      "puntosEspecificos": "Puntos específicos",
+      "nivel": "Nivel {nivel} / {maximo}",
+      "grado": "Grado {grado} / {maximo}",
+      "sinDescripcion": "Sin descripción.",
+      "requiereNivel": "Requiere nivel {nivel} de la maestría.",
+      "requisitoCumplido": "Requisito de maestría cumplido: nivel {nivel}.",
+      "mejorar": "Mejorar",
+      "aprender": "Aprender",
+      "quitarRanura": "Quitar de {ranura}",
+      "asignarBarra": "Asignar a barra",
+      "ejecucionConstruccion": "Ejecución en construcción",
+      "ranuraVacia": "Vacía",
+      "bloqueada": "Bloqueada",
+      "disponible": "Disponible",
+      "aprendida": "Aprendida",
+      "mejorable": "Mejorable",
+      "gradoMaximo": "Grado máximo",
+      "sinPuntos": "Sin puntos",
+      "asignada": "Asignada: {ranura}",
+      "seleccionada": "Seleccionada",
+      "ranuraAria": "Ranura {ranura} vacía",
+      "ranuraHabilidadAria": "{nombre}, grado {grado}, ranura {ranura}",
+      "listaUsar": "Lista para usar",
+      "manaInsuficiente": "Maná insuficiente",
+      "mana": "Maná: {valor}",
+      "ranura": "Ranura: {ranura}",
+      "gradoSimple": "Grado {grado}",
+      "nivelMaximo": "Nivel máximo",
+      "experienciaProgreso": "{actual} / {necesaria} XP",
+      "experienciaTotal": "Experiencia total acumulada: {valor}",
+      "lanzamiento": "Lanzamiento",
+      "pendienteContenido": "Pendiente de una etapa de contenido",
+      "danioBase": "Daño base",
+      "manaEtiqueta": "Maná",
+      "tiempo": "Tiempo",
+      "alcance": "Alcance",
+      "patron": "Patrón",
+      "lineaVision": "Línea de visión",
+      "si": "Sí",
+      "no": "No",
+      "tooltipMaestria": "Maestría: {maestria} (nivel {nivel})",
+      "tooltipRequisito": "Requisito: nivel {nivel}",
+      "tooltipDanioBase": "Daño base: {valor}",
+      "tooltipTiempo": "Tiempo: {valor}",
+      "tooltipAlcance": "Alcance: {valor}",
+      "tooltipPatron": "Patrón: {patron}",
+      "tooltipLineaVision": "Línea de visión: {valor}",
+      "danioFisico": "Físico",
+      "patronAdyacente": "Adyacente",
+      "patronLineal": "Lineal",
+      "patronLibre": "Libre"
+    },
+    "mazmorras": {
+      "elegir": "Elegir expedición",
+      "subtitulo": "Elegí una mazmorra y ajustá el nivel de expedición.",
+      "disponible": "Disponible",
+      "bloqueada": "Bloqueada",
+      "nivel": "Nivel {nivel}",
+      "rangoNivel": "Nivel {minimo}–{maximo}",
+      "entrar": "Entrar a {nombre} · Nivel {nivel}",
+      "mapaBloqueado": "Mapa bloqueado",
+      "nivelExpedicion": "Nivel de expedición",
+      "vistaPrevia": "Vista previa de {nombre}",
+      "cerrar": "Cerrar",
+      "cerrarAria": "Cerrar selección de expedición",
+      "requiereNivel": "Requiere nivel {nivel}",
+      "desbloqueo": "Desbloqueo",
+      "rangoDisponible": "Rango disponible",
+      "nivelSugerido": "Nivel sugerido",
+      "bioma": "Bioma",
+      "nivelJugador": "Tu nivel: {nivel}",
+      "nivelJugadorRequiere": "Tu nivel: {nivel} · Requiere {requerido}",
+      "disminuirNivel": "Disminuir nivel de expedición",
+      "aumentarNivel": "Aumentar nivel de expedición",
+      "bloqueoNivel": "Necesitás alcanzar el nivel {nivel} para acceder a esta expedición.",
+      "riesgoFavorable": "Favorable",
+      "riesgoEquilibrado": "Equilibrado",
+      "riesgoDesafiante": "Desafiante",
+      "riesgoPeligroso": "Peligroso",
+      "niveles": "Niveles {minimo}–{maximo}",
+      "dimensiones": "{ancho} × {alto} casillas",
+      "sinEnemigos": "Sin enemigos configurados"
+    },
+    "comercio": {
+      "subtitulo": "Comprá provisiones o vendé el botín de tus expediciones.",
+      "oro": "Oro",
+      "cerrar": "Cerrar",
+      "cerrarAria": "Cerrar comercio",
+      "inventario": "Tu inventario",
+      "stock": "Stock del mercader",
+      "detalleVacio": "Seleccioná un objeto para revisar sus detalles y precio.",
+      "sinObjetos": "No hay objetos disponibles.",
+      "operacion": "Operación",
+      "cantidad": "Cantidad",
+      "disminuir": "Disminuir cantidad",
+      "aumentar": "Aumentar cantidad",
+      "maximo": "Máx.",
+      "precio": "Precio",
+      "seleccionarObjeto": "Seleccionar objeto",
+      "espacioVacio": "Espacio vacío",
+      "seleccionar": "Seleccionar {nombre}",
+      "noVendible": "No vendible",
+      "venderVarias": "Vender varias",
+      "comprar": "Comprar",
+      "vender": "Vender",
+      "unidad": "1 u. · ",
+      "precioCompra": "Precio de compra",
+      "precioVenta": "Precio de venta",
+      "monedas": "{cantidad} monedas",
+      "cantidadInsuficiente": "Cantidad insuficiente",
+      "oroInsuficiente": "Oro insuficiente",
+      "comprarPor": "Comprar por {cantidad}",
+      "venderPor": "Vender por {cantidad}"
+    },
+    "contenedores": {
+      "cerrarAria": "Cerrar contenedor",
+      "objetos": "Objetos",
+      "vacio": "El contenedor está vacío.",
+      "verDetalles": "Ver detalles de {nombre}",
+      "cerrar": "Cerrar",
+      "recogerTodo": "Recoger todo",
+      "recogerTodoAtajo": "Recoger todo (R)",
+      "recoger": "Recoger"
+    },
+    "inventario": {
+      "espacioVacio": "Espacio vacío",
+      "verDetalles": "Ver detalles de {nombre}",
+      "resumenAria": "Resumen del inventario",
+      "casillas": "Casillas",
+      "peso": "Peso",
+      "oro": "Oro",
+      "contenidoFlechas": "Contenido: {cantidad} flechas.",
+      "resumen": "Inventario: {ocupadas} de {capacidad} casillas ocupadas, peso {peso} y {oro} monedas de oro."
+    },
+    "equipamiento": {
+      "ranuraVacia": "Ranura vacía",
+      "verDetalles": "Ver detalles de {nombre}",
+      "clicDetalles": "Clic para ver detalles.",
+      "cabeza": "Cabeza",
+      "torso": "Torso",
+      "manos": "Manos",
+      "piernas": "Piernas",
+      "pies": "Pies",
+      "arma": "Arma",
+      "secundaria": "Secundaria",
+      "collar": "Collar",
+      "anilloDerecho": "Anillo der.",
+      "anilloIzquierdo": "Anillo izq.",
+      "contenidoFlechas": "Contenido: {cantidad} flechas.",
+      "reservada": "Ranura ocupada por {nombre}.",
+      "dosManos": "2M"
+    },
+    "derrota": {
+      "titulo": "Has caído",
+      "descripcion": "La oscuridad puso fin a esta aventura.",
+      "nombre": "Nombre",
+      "clase": "Clase",
+      "nivel": "Nivel",
+      "experiencia": "Experiencia",
+      "oro": "Oro",
+      "volverMenu": "Volver al menú"
+    },
+    "curacionDinamica": {
+      "vida": "Vida",
+      "mana": "Maná",
+      "restaurar": "Restaurar {recurso}",
+      "completo": "{recurso} completa",
+      "restaurarTodo": "Restaurar todo",
+      "recursosCompletos": "Recursos completos",
+      "oroInsuficiente": "Oro insuficiente",
+      "sinCosto": "Sin costo",
+      "moneda": "{cantidad} moneda",
+      "monedas": "{cantidad} monedas"
+    },
+    "detalleObjeto": {
+      "sinDescripcion": "Este objeto no tiene una descripción disponible.",
+      "tipoArma": "Arma",
+      "tipoArmadura": "Armadura",
+      "tipoQuiver": "Carcaj",
+      "tipoMunicion": "Tipo de munición",
+      "tipoConsumible": "Consumible",
+      "tipoMaterial": "Material",
+      "mano": "mano",
+      "manos": "manos",
+      "peso": "Peso",
+      "noVendible": "No vendible",
+      "valor": "Valor",
+      "propioTotal": "{propio} propio · {total} total",
+      "unidadTotal": "{unidad} c/u · {total} total",
+      "prefijo": "Prefijo",
+      "sufijo": "Sufijo",
+      "cuerpoACuerpo": "Cuerpo a cuerpo",
+      "distancia": "Distancia",
+      "adyacente": "Adyacente",
+      "lineal": "Lineal",
+      "libre": "Libre",
+      "recuperaVida": "Recupera Vida",
+      "recuperaMana": "Recupera Maná",
+      "danioElemental": "Daño elemental",
+      "elemento": "Elemento",
+      "danioFisico": "Daño físico",
+      "atributo": "Atributo",
+      "precision": "Precisión",
+      "velocidadAtaque": "Velocidad de ataque",
+      "critico": "Crítico",
+      "alcance": "Alcance",
+      "tipoAtaque": "Tipo de ataque",
+      "patron": "Patrón",
+      "manosEtiqueta": "Manos",
+      "potenciaHabilidad": "Potencia de Habilidad",
+      "manaAtaque": "Maná por ataque",
+      "municion": "Munición",
+      "armadura": "Armadura",
+      "bloqueo": "Bloqueo",
+      "mitigacionBloqueo": "Mitigación de bloqueo",
+      "capacidad": "Capacidad",
+      "contenido": "Contenido",
+      "cantidad": "Cantidad",
+      "maximoPila": "Máximo por pila",
+      "pila": "{cantidad} pila",
+      "unidades": "{cantidad} unidades",
+      "si": "Sí",
+      "no": "No",
+      "resistenciaFuego": "Resistencia al fuego",
+      "resistenciaFrio": "Resistencia al frío",
+      "resistenciaRayo": "Resistencia al rayo",
+      "resistenciaVeneno": "Resistencia al veneno",
+      "resistenciaCongelamiento": "Resistencia al Congelamiento",
+      "resistenciaAturdimiento": "Resistencia al Aturdimiento",
+      "resistenciaEnvenenamiento": "Resistencia al Envenenamiento",
+      "resistenciaQuemadura": "Resistencia a la Quemadura",
+      "danioFisicoLocal": "daño físico local",
+      "vidaMaxima": "Vida máxima",
+      "manaMaximo": "Maná máximo",
+      "probabilidadCritico": "probabilidad de crítico",
+      "multiplicadorCritico": "multiplicador crítico",
+      "evasion": "Evasión",
+      "regeneracionVida": "regeneración de Vida",
+      "regeneracionMana": "regeneración de Maná",
+      "probabilidadBloqueo": "probabilidad de bloqueo",
+      "mitigacionBloqueoAfijo": "mitigación al bloquear",
+      "porcentajeDe": "{valor} % de {etiqueta}",
+      "valorDe": "{valor} de {etiqueta}",
+      "agregaRango": "Agrega {minimo}–{maximo} de {descripcion}",
+      "danioElementoLocalAtaque": "daño de {elemento} local al ataque básico",
+      "danioElementoLocal": "Daño de {elemento} local",
+      "ataqueBasico": "ataque básico",
+      "ataquesPorSegundo": "{valor} ataques/s",
+      "sinPropiedades": "Este objeto no tiene propiedades especiales.",
+      "afijos": "Afijos",
+      "cantidadValor": "Cantidad: {cantidad}",
+      "afijo": "Afijo",
+      "cerrar": "Cerrar",
+      "cerrarAria": "Cerrar detalle del objeto",
+      "volverObjeto": "Volver al objeto",
+      "comparar": "Comparar",
+      "elegirOtro": "Elegir otro",
+      "nivelObjeto": "Nivel de objeto {nivel}"
+    },
+    "comparacionObjetos": {
+      "sinOpciones": "No hay otros objetos equipados para comparar.",
+      "objetoInspeccionado": "Objeto inspeccionado",
+      "objetoElegido": "Objeto elegido",
+      "propiedad": "Propiedad",
+      "inspeccionado": "Inspeccionado",
+      "elegido": "Elegido",
+      "diferencia": "Diferencia",
+      "diferenciasAfijos": "Diferencias de afijos",
+      "sinDiferenciasAfijos": "Los objetos no presentan diferencias de afijos.",
+      "elegirEquipado": "Elegí un objeto equipado",
+      "inspeccionando": "Objeto inspeccionado: {nombre}",
+      "titulo": "Comparación de objetos",
+      "subtitulo": "La comparación es informativa y no modifica el equipamiento.",
+      "soloInspeccionado": "Solo en inspeccionado",
+      "soloElegido": "Solo en elegido",
+      "cambia": "Cambia",
+      "nivel": "Nivel {nivel}"
+    }
+  },
+  "contenido": {
+    "atributos": {
+      "fuerza": {
+        "nombre": "Fuerza"
+      },
+      "destreza": {
+        "nombre": "Destreza"
+      },
+      "constitucion": {
+        "nombre": "Constitución"
+      },
+      "inteligencia": {
+        "nombre": "Inteligencia"
+      },
+      "sabiduria": {
+        "nombre": "Sabiduría"
+      },
+      "carisma": {
+        "nombre": "Carisma"
+      }
+    },
+    "profesiones": {
+      "guerrero": {
+        "nombre": "Guerrero",
+        "descripcion": "Combatiente resistente que puede alternar entre arma y escudo o armas de dos manos.",
+        "estiloJuego": "Protección, bloqueo y daño físico directo."
+      },
+      "rogue": {
+        "nombre": "Rogue",
+        "descripcion": "Combatiente ágil que combina dagas rápidas con ataques precisos a distancia.",
+        "estiloJuego": "Velocidad, evasión, críticos y cambio de arma."
+      },
+      "mago": {
+        "nombre": "Mago",
+        "descripcion": "Aventurero orientado a Inteligencia que utiliza bastones o varitas mientras se desarrolla el sistema de magia.",
+        "estiloJuego": "Alcance, Maná y futura especialización en hechizos."
+      }
+    },
+    "conjuntosEquipo": {
+      "guerrero_espada_escudo": {
+        "nombre": "Espada y escudo",
+        "descripcion": "Configuración equilibrada con buena defensa, bloqueo y daño estable."
+      },
+      "guerrero_hacha_escudo": {
+        "nombre": "Hacha y escudo",
+        "descripcion": "Golpes más fuertes y menos precisos, manteniendo la misma protección total."
+      },
+      "guerrero_lanza": {
+        "nombre": "Lancero protegido",
+        "descripcion": "Utiliza alcance dos y compensa la ausencia de escudo con un conjunto medio completo."
+      },
+      "guerrero_mandoble": {
+        "nombre": "Mandoble ofensivo",
+        "descripcion": "Sacrifica bloqueo para comenzar con el mayor daño físico de las armas Tier I."
+      },
+      "rogue_daga_arco": {
+        "nombre": "Daga y arco",
+        "descripcion": "Comienza con daga equipada y conserva el arco con carcaj como alternativa a distancia."
+      },
+      "rogue_arco_preparado": {
+        "nombre": "Arquero preparado",
+        "descripcion": "Comienza atacando a distancia con el arco y el carcaj ya equipados."
+      },
+      "rogue_doble_daga": {
+        "nombre": "Doble daga",
+        "descripcion": "Aumenta la presión cuerpo a cuerpo con dos dagas y conserva el arco en el inventario."
+      },
+      "mago_baston": {
+        "nombre": "Bastón de aprendiz",
+        "descripcion": "Configuración recomendada de dos manos con daño estable basado en Inteligencia."
+      },
+      "mago_varita_escudo": {
+        "nombre": "Varita y escudo",
+        "descripcion": "Reduce el daño ofensivo a cambio de alcance, bloqueo y una defensa inicial superior."
+      },
+      "mago_baston_viajero": {
+        "nombre": "Bastón de viajero",
+        "descripcion": "Mantiene el bastón y redistribuye las piezas ligeras conservando la misma armadura total."
+      }
+    },
+    "objetos": {
+      "capucha_tela": {
+        "nombre": "Capucha de tela",
+        "descripcion": "Una capucha sencilla de tela que protege la cabeza sin añadir peso innecesario."
+      },
+      "tunica_aprendiz": {
+        "nombre": "Túnica de aprendiz",
+        "descripcion": "Una túnica liviana utilizada por aprendices y viajeros que priorizan la libertad de movimiento."
+      },
+      "guantes_tela": {
+        "nombre": "Guantes de tela",
+        "descripcion": "Guantes livianos que ofrecen una protección mínima sin dificultar los movimientos de las manos."
+      },
+      "pantalones_tela": {
+        "nombre": "Pantalones de tela",
+        "descripcion": "Pantalones cómodos de tela preparados para viajes y exploraciones prolongadas."
+      },
+      "botas_tela": {
+        "nombre": "Botas de tela",
+        "descripcion": "Botas livianas que sacrifican protección para mantener una pisada ágil."
+      },
+      "capucha_tela_reforzada": {
+        "nombre": "Capucha de tela reforzada",
+        "descripcion": "Una capucha confeccionada con varias capas de tela resistente."
+      },
+      "tunica_reforzada": {
+        "nombre": "Túnica reforzada",
+        "descripcion": "Una túnica reforzada que mejora la protección sin perder flexibilidad."
+      },
+      "guantes_tela_reforzados": {
+        "nombre": "Guantes de tela reforzados",
+        "descripcion": "Guantes reforzados para proteger las manos manteniendo una gran libertad de movimiento."
+      },
+      "pantalones_tela_reforzados": {
+        "nombre": "Pantalones de tela reforzados",
+        "descripcion": "Pantalones de varias capas que ofrecen una protección ligera mejorada."
+      },
+      "botas_tela_reforzadas": {
+        "nombre": "Botas de tela reforzadas",
+        "descripcion": "Botas reforzadas, ligeras y adecuadas para desplazamientos rápidos."
+      },
+      "capucha_cuero": {
+        "nombre": "Capucha de cuero",
+        "descripcion": "Una protección flexible de cuero para la cabeza."
+      },
+      "jubon_acolchado": {
+        "nombre": "Jubón acolchado",
+        "descripcion": "Una protección flexible para el torso, adecuada para comenzar una aventura."
+      },
+      "guantes_cuero": {
+        "nombre": "Guantes de cuero",
+        "descripcion": "Guantes de cuero que protegen las manos sin dificultar demasiado el movimiento."
+      },
+      "pantalones_cuero": {
+        "nombre": "Pantalones de cuero",
+        "descripcion": "Una protección flexible de cuero para las piernas."
+      },
+      "botas_cuero": {
+        "nombre": "Botas de cuero",
+        "descripcion": "Botas flexibles que ofrecen una protección básica."
+      },
+      "capucha_cuero_endurecido": {
+        "nombre": "Capucha de cuero endurecido",
+        "descripcion": "Una capucha de cuero tratado que mejora la protección sin volverla rígida."
+      },
+      "jubon_cuero_endurecido": {
+        "nombre": "Jubón de cuero endurecido",
+        "descripcion": "Un jubón de cuero endurecido que equilibra protección, peso y movilidad."
+      },
+      "guantes_cuero_endurecido": {
+        "nombre": "Guantes de cuero endurecido",
+        "descripcion": "Guantes de cuero tratado que protegen las manos durante combates prolongados."
+      },
+      "pantalones_cuero_endurecido": {
+        "nombre": "Pantalones de cuero endurecido",
+        "descripcion": "Pantalones reforzados con cuero endurecido para proteger mejor las piernas."
+      },
+      "botas_cuero_endurecido": {
+        "nombre": "Botas de cuero endurecido",
+        "descripcion": "Botas resistentes de cuero endurecido, preparadas para terrenos hostiles."
+      },
+      "casco_hierro": {
+        "nombre": "Casco de hierro",
+        "descripcion": "Un casco de hierro que ofrece una protección sólida para la cabeza."
+      },
+      "coraza_hierro": {
+        "nombre": "Coraza de hierro",
+        "descripcion": "Una coraza pesada de hierro diseñada para resistir golpes directos."
+      },
+      "guantes_hierro": {
+        "nombre": "Guantes de hierro",
+        "descripcion": "Guantes metálicos que protegen las manos a costa de un mayor peso."
+      },
+      "grebas_hierro": {
+        "nombre": "Grebas de hierro",
+        "descripcion": "Protecciones metálicas de hierro para las piernas."
+      },
+      "botas_hierro": {
+        "nombre": "Botas de hierro",
+        "descripcion": "Botas de hierro que ofrecen una protección firme para los pies."
+      },
+      "casco_acero": {
+        "nombre": "Casco de acero",
+        "descripcion": "Un casco de acero resistente, preparado para enfrentamientos de alto riesgo."
+      },
+      "coraza_acero": {
+        "nombre": "Coraza de acero",
+        "descripcion": "Una coraza de acero que proporciona una defensa superior contra ataques físicos."
+      },
+      "guantes_acero": {
+        "nombre": "Guantes de acero",
+        "descripcion": "Guantes de acero reforzado que protegen las manos y los antebrazos."
+      },
+      "grebas_acero": {
+        "nombre": "Grebas de acero",
+        "descripcion": "Grebas de acero diseñadas para soportar golpes fuertes en las piernas."
+      },
+      "botas_acero": {
+        "nombre": "Botas de acero",
+        "descripcion": "Botas de acero pesadas que completan una defensa de primera línea."
+      },
+      "escudo_madera": {
+        "nombre": "Escudo de madera",
+        "descripcion": "Un escudo básico que ofrece armadura y una posibilidad de bloquear parte del daño."
+      },
+      "escudo_hierro": {
+        "nombre": "Escudo de hierro",
+        "descripcion": "Un escudo pesado de hierro que mejora la armadura y el bloqueo."
+      },
+      "daga_hierro": {
+        "nombre": "Daga de hierro",
+        "descripcion": "Una daga ligera y precisa, especializada en ataques rápidos y golpes críticos."
+      },
+      "daga_acero": {
+        "nombre": "Daga de acero",
+        "descripcion": "Una daga de acero equilibrada para ataques muy rápidos y críticos frecuentes."
+      },
+      "espada_larga": {
+        "nombre": "Espada larga",
+        "descripcion": "Una espada equilibrada que combina buen daño, precisión y velocidad."
+      },
+      "espada_acero": {
+        "nombre": "Espada de acero",
+        "descripcion": "Una espada de acero confiable, más dañina y precisa que su equivalente de hierro."
+      },
+      "hacha_mano": {
+        "nombre": "Hacha de mano",
+        "descripcion": "Un arma de una mano con golpes fuertes, aunque menos precisos que los de una espada."
+      },
+      "hacha_batalla": {
+        "nombre": "Hacha de batalla",
+        "descripcion": "Un hacha de acero de una mano que prioriza golpes pesados por encima de la precisión."
+      },
+      "mandoble_hierro": {
+        "nombre": "Mandoble de hierro",
+        "descripcion": "Una espada pesada de dos manos, lenta y poco precisa, capaz de causar un gran daño."
+      },
+      "mandoble_acero": {
+        "nombre": "Mandoble de acero",
+        "descripcion": "Una enorme hoja de acero de dos manos capaz de causar daños devastadores."
+      },
+      "lanza": {
+        "nombre": "Lanza",
+        "descripcion": "Un arma de dos manos que combina un golpe firme con la capacidad de atacar desde una casilla adicional."
+      },
+      "lanza_reforzada": {
+        "nombre": "Lanza reforzada",
+        "descripcion": "Una lanza reforzada que mejora el daño y conserva el control de los pasillos a alcance dos."
+      },
+      "arco_corto": {
+        "nombre": "Arco corto",
+        "descripcion": "Un arco preciso que permite atacar a distancia, pero necesita un quiver equipado."
+      },
+      "arco_recurvo": {
+        "nombre": "Arco recurvo",
+        "descripcion": "Un arco recurvo de mayor potencia, precisión y alcance que continúa necesitando un quiver."
+      },
+      "baston_aprendiz": {
+        "nombre": "Bastón de aprendiz",
+        "descripcion": "Un bastón de dos manos que canaliza la Inteligencia del portador y potencia sus habilidades mágicas."
+      },
+      "baston_reforzado": {
+        "nombre": "Bastón reforzado",
+        "descripcion": "Un bastón reforzado de dos manos que ofrece una canalización mágica superior."
+      },
+      "varita_fuego_aprendiz": {
+        "nombre": "Varita de fuego de aprendiz",
+        "descripcion": "Una varita de una mano afinada con Fuego. Canaliza habilidades y prepara una descarga mágica sin munición."
+      },
+      "varita_frio_aprendiz": {
+        "nombre": "Varita de frío de aprendiz",
+        "descripcion": "Una varita de una mano afinada con Frío. Canaliza habilidades y prepara una descarga mágica sin munición."
+      },
+      "varita_electrica_aprendiz": {
+        "nombre": "Varita eléctrica de aprendiz",
+        "descripcion": "Una varita de una mano afinada con Rayo. Canaliza habilidades y prepara una descarga mágica sin munición."
+      },
+      "varita_veneno_aprendiz": {
+        "nombre": "Varita de veneno de aprendiz",
+        "descripcion": "Una varita de una mano afinada con Veneno. Canaliza habilidades y prepara una descarga mágica sin munición."
+      },
+      "varita_fuego_canalizada": {
+        "nombre": "Varita de fuego canalizada",
+        "descripcion": "Una varita de una mano afinada con Fuego y preparada para canalizar habilidades de mayor potencia."
+      },
+      "varita_frio_canalizada": {
+        "nombre": "Varita de frío canalizada",
+        "descripcion": "Una varita de una mano afinada con Frío y preparada para canalizar habilidades de mayor potencia."
+      },
+      "varita_electrica_canalizada": {
+        "nombre": "Varita eléctrica canalizada",
+        "descripcion": "Una varita de una mano afinada con Rayo y preparada para canalizar habilidades de mayor potencia."
+      },
+      "varita_veneno_canalizada": {
+        "nombre": "Varita de veneno canalizada",
+        "descripcion": "Una varita de una mano afinada con Veneno y preparada para canalizar habilidades de mayor potencia."
+      },
+      "pocion_curacion": {
+        "nombre": "Poción de curación",
+        "descripcion": "Una pequeña poción que recupera una cantidad significativa de Vida."
+      },
+      "pocion_mana": {
+        "nombre": "Poción de Maná",
+        "descripcion": "Una pequeña poción que recupera una cantidad significativa de Maná."
+      },
+      "quiver_cuero": {
+        "nombre": "Quiver de cuero",
+        "descripcion": "Un quiver sencillo con capacidad para una pila de flechas."
+      },
+      "cola_rata": {
+        "nombre": "Cola de rata",
+        "descripcion": "La cola cortada de una rata de alcantarilla. Puede conservarse como prueba de caza o utilizarse en preparaciones poco agradables."
+      },
+      "caparazon_cucaracha": {
+        "nombre": "Caparazón de cucaracha",
+        "descripcion": "Un fragmento duro y resistente del caparazón de una cucaracha gigante."
+      },
+      "hueso_esqueleto": {
+        "nombre": "Hueso de esqueleto",
+        "descripcion": "Un hueso viejo animado anteriormente por energía oscura. Todavía conserva un leve frío antinatural."
+      },
+      "carne_putrefacta": {
+        "nombre": "Carne putrefacta",
+        "descripcion": "Un trozo de carne descompuesta. Su olor deja pocas dudas sobre su procedencia."
+      },
+      "hueso_negro": {
+        "nombre": "Hueso negro",
+        "descripcion": "Un fragmento óseo endurecido y oscurecido por una energía maligna. Es mucho más resistente que un hueso común."
+      },
+      "flecha_madera": {
+        "nombre": "Flecha de madera",
+        "descripcion": "Una flecha sencilla con punta de metal."
+      }
+    },
+    "afijos": {
+      "afilado": {
+        "nombre": "Afilado",
+        "descripcion": "Aumenta solamente el daño físico mínimo del arma para volver sus golpes más consistentes."
+      },
+      "brutal": {
+        "nombre": "Brutal",
+        "descripcion": "Aumenta porcentualmente el daño físico local del arma."
+      },
+      "reforzado": {
+        "nombre": "Reforzado",
+        "descripcion": "Agrega Armadura a la pieza."
+      },
+      "vigoroso": {
+        "nombre": "Vigoroso",
+        "descripcion": "Aumenta la Vida máxima."
+      },
+      "arcano": {
+        "nombre": "Arcano",
+        "descripcion": "Aumentaría el Maná máximo."
+      },
+      "ligero": {
+        "nombre": "Ligero",
+        "descripcion": "Aumentaría la velocidad de ataque local del arma."
+      },
+      "sanguinario": {
+        "nombre": "Sanguinario",
+        "descripcion": "Agregaría daño físico a todos los ataques."
+      },
+      "del_conquistador": {
+        "nombre": "Del conquistador",
+        "descripcion": "Aumentaría porcentualmente todo el daño físico."
+      },
+      "despiadado": {
+        "nombre": "Despiadado",
+        "descripcion": "Otorgaría más daño físico multiplicativo."
+      },
+      "fortificado": {
+        "nombre": "Fortificado",
+        "descripcion": "Aumentaría porcentualmente la armadura base de la pieza."
+      },
+      "ardiente": {
+        "nombre": "Ardiente",
+        "descripcion": "Agrega daño de fuego local al ataque básico del arma."
+      },
+      "glacial": {
+        "nombre": "Glacial",
+        "descripcion": "Agrega daño de frío local al ataque básico del arma."
+      },
+      "electrificado": {
+        "nombre": "Electrificado",
+        "descripcion": "Agrega daño de rayo local al ataque básico del arma."
+      },
+      "venenoso": {
+        "nombre": "Venenoso",
+        "descripcion": "Agrega daño de veneno local al ataque básico del arma."
+      },
+      "igneo": {
+        "nombre": "Ígneo",
+        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+      },
+      "invernal": {
+        "nombre": "Invernal",
+        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+      },
+      "tempestuoso": {
+        "nombre": "Tempestuoso",
+        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+      },
+      "toxico": {
+        "nombre": "Tóxico",
+        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+      },
+      "abrasador": {
+        "nombre": "Abrasador",
+        "descripcion": "Otorgaría una probabilidad de quemar."
+      },
+      "congelante": {
+        "nombre": "Congelante",
+        "descripcion": "Otorgaría una probabilidad de congelar."
+      },
+      "aturdidor": {
+        "nombre": "Aturdidor",
+        "descripcion": "Otorgaría una probabilidad de aturdir."
+      },
+      "ponzonoso": {
+        "nombre": "Ponzoñoso",
+        "descripcion": "Otorgaría una probabilidad de envenenar."
+      },
+      "enfocado": {
+        "nombre": "Enfocado",
+        "descripcion": "Aumenta la Potencia de Habilidad del catalizador."
+      },
+      "de_precision": {
+        "nombre": "De precisión",
+        "descripcion": "Aumenta la precisión del arma."
+      },
+      "del_verdugo": {
+        "nombre": "Del verdugo",
+        "descripcion": "Aumenta la probabilidad de crítico del arma."
+      },
+      "de_devastacion": {
+        "nombre": "De devastación",
+        "descripcion": "Aumenta el multiplicador de los golpes críticos."
+      },
+      "de_evasion": {
+        "nombre": "De evasión",
+        "descripcion": "Aumenta la Evasión."
+      },
+      "de_regeneracion": {
+        "nombre": "De regeneración",
+        "descripcion": "Aumenta la regeneración plana de Vida."
+      },
+      "de_claridad": {
+        "nombre": "De claridad",
+        "descripcion": "Aumentaría la regeneración plana de Maná."
+      },
+      "de_ascuas": {
+        "nombre": "De ascuas",
+        "descripcion": "Aumenta la resistencia al fuego del personaje."
+      },
+      "de_escarcha": {
+        "nombre": "De escarcha",
+        "descripcion": "Aumenta la resistencia al frío del personaje."
+      },
+      "de_tormenta": {
+        "nombre": "De tormenta",
+        "descripcion": "Aumenta la resistencia al rayo del personaje."
+      },
+      "del_antidoto": {
+        "nombre": "Del antídoto",
+        "descripcion": "Aumenta la resistencia al veneno del personaje."
+      },
+      "del_guardian": {
+        "nombre": "Del guardián",
+        "descripcion": "Aumenta la probabilidad de bloqueo de un escudo."
+      },
+      "de_absorcion": {
+        "nombre": "De absorción",
+        "descripcion": "Aumenta el porcentaje de daño mitigado al bloquear."
+      },
+      "de_fatalidad": {
+        "nombre": "De fatalidad",
+        "descripcion": "Aumentaría la probabilidad de crítico de todos los ataques."
+      },
+      "de_carniceria": {
+        "nombre": "De carnicería",
+        "descripcion": "Aumentaría el multiplicador crítico de todos los ataques."
+      },
+      "de_renovacion": {
+        "nombre": "De renovación",
+        "descripcion": "Regeneraría un porcentaje de la Vida máxima."
+      },
+      "de_meditacion": {
+        "nombre": "De meditación",
+        "descripcion": "Regeneraría un porcentaje del Maná máximo."
+      },
+      "del_oso": {
+        "nombre": "Del oso",
+        "descripcion": "Aumentaría Fuerza."
+      },
+      "del_lince": {
+        "nombre": "Del lince",
+        "descripcion": "Aumentaría Destreza."
+      },
+      "del_roble": {
+        "nombre": "Del roble",
+        "descripcion": "Aumentaría Constitución."
+      },
+      "del_sabio": {
+        "nombre": "Del sabio",
+        "descripcion": "Aumentaría Inteligencia."
+      },
+      "del_buho": {
+        "nombre": "Del búho",
+        "descripcion": "Aumentaría Sabiduría."
+      },
+      "del_soberano": {
+        "nombre": "Del soberano",
+        "descripcion": "Aumentaría Carisma."
+      },
+      "de_celeridad": {
+        "nombre": "De celeridad",
+        "descripcion": "Aumentaría la velocidad de movimiento."
+      },
+      "del_vampiro": {
+        "nombre": "Del vampiro",
+        "descripcion": "Recuperaría Vida según el daño causado."
+      },
+      "del_devorador": {
+        "nombre": "Del devorador",
+        "descripcion": "Recuperaría Maná según el daño causado."
+      },
+      "de_fortuna": {
+        "nombre": "De fortuna",
+        "descripcion": "Aumentaría la calidad de los objetos encontrados."
+      },
+      "de_abundancia": {
+        "nombre": "De abundancia",
+        "descripcion": "Aumentaría la cantidad de objetos encontrados."
+      },
+      "del_taumaturgo": {
+        "nombre": "Del taumaturgo",
+        "descripcion": "Aumentaría el daño de los hechizos."
+      },
+      "de_canalizacion": {
+        "nombre": "De canalización",
+        "descripcion": "Aumentaría la velocidad de lanzamiento."
+      },
+      "de_concentracion": {
+        "nombre": "De concentración",
+        "descripcion": "Aumentaría la precisión de los hechizos."
+      },
+      "del_archimago": {
+        "nombre": "Del archimago",
+        "descripcion": "Aumentaría el Maná y la potencia de los hechizos."
+      },
+      "del_deshielo": {
+        "nombre": "Del deshielo",
+        "descripcion": "Aumenta la resistencia al Congelamiento."
+      },
+      "de_firmeza": {
+        "nombre": "De firmeza",
+        "descripcion": "Aumenta la resistencia al Aturdimiento."
+      },
+      "de_purificacion": {
+        "nombre": "De purificación",
+        "descripcion": "Aumenta la resistencia al Envenenamiento."
+      },
+      "de_ceniza": {
+        "nombre": "De ceniza",
+        "descripcion": "Aumenta la resistencia a la Quemadura."
+      }
+    },
+    "rarezas": {
+      "comun": {
+        "nombre": "Común"
+      },
+      "magico": {
+        "nombre": "Mágico"
+      },
+      "raro": {
+        "nombre": "Raro"
+      },
+      "unico": {
+        "nombre": "Único"
+      }
+    },
+    "enemigos": {
+      "rata": {
+        "nombre": "Rata"
+      },
+      "cucaracha": {
+        "nombre": "Cucaracha"
+      },
+      "esqueleto_arquero": {
+        "nombre": "Esqueleto Arquero"
+      },
+      "esqueleto_guardia": {
+        "nombre": "Esqueleto Guardia"
+      },
+      "ladron": {
+        "nombre": "Ladrón"
+      },
+      "lancero": {
+        "nombre": "Lancero"
+      },
+      "hombre_rata_saqueador": {
+        "nombre": "Hombre rata saqueador"
+      },
+      "zombi": {
+        "nombre": "Zombi"
+      },
+      "caballero_oseo": {
+        "nombre": "Caballero Óseo"
+      },
+      "comandante": {
+        "nombre": "Comandante"
+      },
+      "senor_guerra": {
+        "nombre": "Señor de la Guerra"
+      }
+    },
+    "variantesEnemigos": {
+      "enfermo": {
+        "masculino": "Enfermo",
+        "femenino": "Enferma"
+      },
+      "gigante": {
+        "masculino": "Gigante",
+        "femenino": "Gigante"
+      },
+      "elite": {
+        "masculino": "Élite",
+        "femenino": "Élite"
+      }
+    },
+    "efectos": {
+      "ralentizacion": {
+        "nombre": "Ralentización"
+      },
+      "electrizacion": {
+        "nombre": "Electrización"
+      },
+      "congelamiento": {
+        "nombre": "Congelamiento"
+      },
+      "aturdimiento": {
+        "nombre": "Aturdimiento"
+      },
+      "envenenamiento": {
+        "nombre": "Envenenamiento"
+      },
+      "quemadura": {
+        "nombre": "Quemadura"
+      },
+      "paralisis": {
+        "nombre": "Parálisis"
+      },
+      "silencio": {
+        "nombre": "Silencio"
+      }
+    },
+    "habilidades": {
+      "ascua": {
+        "nombre": "Ascua",
+        "descripcion": "Lanza una brasa concentrada que causa daño inmediato de Fuego a un enemigo."
+      },
+      "explosion_ignea": {
+        "nombre": "Explosión ígnea",
+        "descripcion": "Detona una masa de fuego sobre una casilla y causa daño a todos los enemigos dentro del radio."
+      },
+      "incinerar": {
+        "nombre": "Incinerar",
+        "descripcion": "Proyecta una línea de fuego que atraviesa enemigos, causa daño inmediato y puede aplicar Quemadura."
+      },
+      "esquirla_hielo": {
+        "nombre": "Esquirla de hielo",
+        "descripcion": "Dispara una esquirla que causa daño de Frío y ralentiza temporalmente el movimiento del enemigo."
+      },
+      "nova_escarcha": {
+        "nombre": "Nova de escarcha",
+        "descripcion": "Libera una onda de frío alrededor del lanzador que daña y ralentiza a los enemigos cercanos."
+      },
+      "rafaga_glacial": {
+        "nombre": "Ráfaga glacial",
+        "descripcion": "Lanza una ráfaga intensa de viento helado que causa daño de Frío y tiene 60% de probabilidad base de aplicar Congelamiento."
+      },
+      "chispa": {
+        "nombre": "Chispa",
+        "descripcion": "Descarga una chispa rápida que causa daño de Rayo y retrasa temporalmente las acciones del enemigo."
+      },
+      "cadena_rayos": {
+        "nombre": "Cadena de rayos",
+        "descripcion": "Descarga un rayo que salta entre enemigos cercanos sin golpear dos veces al mismo objetivo."
+      },
+      "descarga_fulminante": {
+        "nombre": "Descarga fulminante",
+        "descripcion": "Lanza una descarga lineal que atraviesa enemigos, causa daño de Rayo y puede aplicar Aturdimiento de manera independiente a cada objetivo."
+      },
+      "aguijon_toxico": {
+        "nombre": "Aguijón tóxico",
+        "descripcion": "Dispara un aguijón de veneno que causa daño inmediato y deja una toxina temporal."
+      },
+      "nube_toxica": {
+        "nombre": "Nube tóxica",
+        "descripcion": "Crea una nube persistente que envenena a los enemigos presentes, a quienes entren y a quienes permanezcan dentro."
+      },
+      "plaga_corrosiva": {
+        "nombre": "Plaga corrosiva",
+        "descripcion": "Infecta a un enemigo con Envenenamiento y permite intensificar una única instancia hasta el máximo de cada grado."
+      },
+      "curacion_lunar": {
+        "nombre": "Curación lunar",
+        "descripcion": "Lythra canaliza luz lunar para restaurar por completo la Vida faltante del objetivo."
+      },
+      "restauracion_mana_lunar": {
+        "nombre": "Restauración lunar",
+        "descripcion": "Lythra canaliza energía lunar para restaurar por completo el Maná faltante del objetivo."
+      }
+    },
+    "maestrias": {
+      "fuego": {
+        "nombre": "Fuego"
+      },
+      "frio": {
+        "nombre": "Frío"
+      },
+      "rayo": {
+        "nombre": "Rayo"
+      },
+      "veneno": {
+        "nombre": "Veneno"
+      }
+    },
+    "mapas": {
+      "alcantarilla": {
+        "nombre": "Alcantarilla",
+        "descripcion": "Túneles húmedos y estrechos infestados de alimañas. En ocasiones, un hombre rata saqueador se aventura entre los conductos en busca de objetos abandonados."
+      },
+      "cementerio": {
+        "nombre": "Cementerio",
+        "descripcion": "Un camposanto abandonado donde guardias y arqueros esqueleto patrullan entre criptas. Un zombi puede emerger como encuentro poco frecuente."
+      },
+      "casa_guerrero": {
+        "nombre": "Casa del Guerrero",
+        "descripcion": "Una antigua residencia militar convertida en campo de entrenamiento para guerreros no muertos. En ocasiones, un Caballero Óseo protege sus salones."
+      },
+      "fortaleza_abandonada": {
+        "nombre": "Fortaleza abandonada",
+        "descripcion": "Una fortificación derruida ocupada por ladrones y lanceros que aprovechan sus corredores defensivos. Un Comandante puede organizar la resistencia."
+      },
+      "sala_guerra": {
+        "nombre": "Sala de guerra",
+        "descripcion": "El núcleo militar de la fortaleza, donde combatientes de expediciones anteriores convergen bajo las órdenes del Señor de la Guerra."
+      },
+      "ciudad_inicial": {
+        "nombre": "Refugio de la Luna Oscura",
+        "descripcion": "Ciudad segura desde la que comienzan y terminan las expediciones."
+      }
+    },
+    "entidades": {
+      "mercader_refugio": {
+        "nombre": "Edran, el mercader",
+        "descripcion": "Un comerciante del refugio que compra botines y prepara provisiones para nuevas expediciones.",
+        "interaccion": "Comerciar con Edran"
+      },
+      "curandera_refugio": {
+        "nombre": "Lythra, sanadora lunar",
+        "descripcion": "Una sanadora élfica que atiende a quienes regresan heridos o agotados de las mazmorras.",
+        "interaccion": "Recibir cuidados de Lythra"
+      },
+      "entrada_mazmorras": {
+        "nombre": "Entrada a las mazmorras",
+        "interaccion": "Elegir mazmorra"
+      }
+    },
+    "mercaderes": {
+      "mercader_refugio": {
+        "nombre": "Edran, el mercader"
+      }
+    }
+  }
+}

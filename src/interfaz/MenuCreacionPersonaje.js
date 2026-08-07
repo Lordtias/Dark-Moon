@@ -3,6 +3,8 @@ import {
   generarAtributosAleatorios,
 } from "../juego/generacion/GeneradorAtributos.js";
 
+import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
+
 import {
   aplicarSeleccionEquipoAProfesion,
   calcularResumenSeleccionEquipo,
@@ -54,6 +56,11 @@ export class MenuCreacionPersonaje {
     this.inicializarSeleccionEquipo();
     this.cargarProfesiones();
     this.configurarEventos();
+    this.renderizarTodo();
+  }
+
+  actualizarIdioma() {
+    this.cargarProfesiones();
     this.renderizarTodo();
   }
 
@@ -200,7 +207,7 @@ export class MenuCreacionPersonaje {
         const opcion = document.createElement("option");
 
         opcion.value = idProfesion;
-        opcion.textContent = profesion.nombre;
+        opcion.textContent = traducirContenido("profesiones", idProfesion, "nombre", profesion.nombre);
         opcion.selected = idProfesion === this.idProfesionSeleccionada;
 
         this.selectorProfesion.appendChild(opcion);
@@ -379,7 +386,7 @@ export class MenuCreacionPersonaje {
 
       const nombre = document.createElement("span");
       nombre.className = "nombre-atributo";
-      nombre.textContent = atributo.nombre;
+      nombre.textContent = traducirContenido("atributos", atributo.id, "nombre", atributo.nombre);
 
       const botonRestar = document.createElement("button");
       botonRestar.type = "button";
@@ -415,15 +422,20 @@ export class MenuCreacionPersonaje {
     const profesion =
       this.configuracion.profesiones[this.idProfesionSeleccionada];
 
-    this.textoNombreProfesion.textContent = profesion.nombre;
-
-    this.textoDescripcionProfesion.textContent = profesion.descripcion ?? "";
-
-    this.textoEstiloProfesion.textContent = profesion.estiloJuego ?? "";
+    const nombreProfesion = traducirContenido(
+      "profesiones", this.idProfesionSeleccionada, "nombre", profesion.nombre,
+    );
+    this.textoNombreProfesion.textContent = nombreProfesion;
+    this.textoDescripcionProfesion.textContent = traducirContenido(
+      "profesiones", this.idProfesionSeleccionada, "descripcion", profesion.descripcion ?? "",
+    );
+    this.textoEstiloProfesion.textContent = traducirContenido(
+      "profesiones", this.idProfesionSeleccionada, "estiloJuego", profesion.estiloJuego ?? "",
+    );
 
     if (profesion.recursoVisual) {
       this.imagenProfesion.src = profesion.recursoVisual;
-      this.imagenProfesion.alt = `Vista de ${profesion.nombre}`;
+      this.imagenProfesion.alt = traducir("interfaz.creacion.vistaProfesion", { parametros: { nombre: nombreProfesion }, respaldo: `Vista de ${profesion.nombre}` });
       this.imagenProfesion.hidden = false;
 
       this.imagenProfesion.onerror = () => {
@@ -444,12 +456,13 @@ export class MenuCreacionPersonaje {
       configuracionObjetos: this.configuracionObjetos,
     });
 
-    this.textoNombreConjunto.textContent = seleccion.nombre;
+    this.textoNombreConjunto.textContent = traducirContenido("conjuntosEquipo", seleccion.id, "nombre", seleccion.nombre);
 
-    this.textoDescripcionConjunto.textContent = seleccion.descripcion;
+    this.textoDescripcionConjunto.textContent = traducirContenido("conjuntosEquipo", seleccion.id, "descripcion", seleccion.descripcion);
 
-    this.textoOrigenConjunto.textContent =
-      seleccion.origen === "aleatorio" ? "Alternativo" : "Recomendado";
+    this.textoOrigenConjunto.textContent = seleccion.origen === "aleatorio"
+      ? traducir("interfaz.creacion.origenAlternativo")
+      : traducir("interfaz.creacion.origenRecomendado");
 
     this.textoOrigenConjunto.dataset.origen = seleccion.origen;
 
@@ -458,13 +471,13 @@ export class MenuCreacionPersonaje {
     this.renderizarListaObjetos({
       contenedor: this.contenedorEquipoInicial,
       objetos: resumen.objetos.equipamiento,
-      mensajeVacio: "No hay objetos equipados.",
+      mensajeVacio: traducir("interfaz.creacion.sinEquipados"),
     });
 
     this.renderizarListaObjetos({
       contenedor: this.contenedorInventarioInicial,
       objetos: resumen.objetos.inventario,
-      mensajeVacio: "El inventario inicial está vacío.",
+      mensajeVacio: traducir("interfaz.creacion.inventarioInicialVacio"),
     });
 
     this.actualizarEstadoEquipoAleatorio(seleccion);
@@ -477,11 +490,11 @@ export class MenuCreacionPersonaje {
 
     const datos = [
       {
-        etiqueta: "Armadura",
+        etiqueta: traducir("interfaz.creacion.armadura"),
         valor: resumen.armaduraTotal,
       },
       {
-        etiqueta: "Daño base",
+        etiqueta: traducir("interfaz.creacion.danioBase"),
 
         valor: arma
           ? `${arma.propiedades.danioFisicoMinimo}-` +
@@ -489,11 +502,11 @@ export class MenuCreacionPersonaje {
           : "—",
       },
       {
-        etiqueta: "Alcance",
+        etiqueta: traducir("interfaz.creacion.alcance"),
         valor: arma ? arma.propiedades.alcance : "—",
       },
       {
-        etiqueta: "Mágicos",
+        etiqueta: traducir("interfaz.creacion.magicos"),
         valor: resumen.cantidadObjetosMagicos,
       },
     ];
@@ -555,7 +568,7 @@ export class MenuCreacionPersonaje {
     const contenido = document.createElement("div");
 
     const nombre = document.createElement("strong");
-    nombre.textContent = objeto.nombreCompleto ?? objeto.nombre;
+    nombre.textContent = traducirContenido("objetos", objeto.id, "nombre", objeto.nombreCompleto ?? objeto.nombre);
 
     const metadatos = document.createElement("span");
 
@@ -576,16 +589,16 @@ export class MenuCreacionPersonaje {
 
   crearTextoMetadatosObjeto(objeto) {
     const partes = [
-      this.capitalizar(objeto.tipo),
+      this.traducirTipoObjeto(objeto.tipo),
       `Tier ${objeto.tierBase ?? 1}`,
     ];
 
     if (objeto.rareza && objeto.rareza !== "comun") {
-      partes.push(this.capitalizar(objeto.rareza));
+      partes.push(traducirContenido("rarezas", objeto.rareza, "nombre", this.capitalizar(objeto.rareza)));
     }
 
     if (objeto.cantidad > 1) {
-      partes.push(`Cantidad ${objeto.cantidad}`);
+      partes.push(traducir("interfaz.creacion.cantidad", { parametros: { cantidad: objeto.cantidad }, respaldo: `Cantidad ${objeto.cantidad}` }));
     }
 
     return partes.join(" · ");
@@ -594,9 +607,10 @@ export class MenuCreacionPersonaje {
   crearTextoDetalleObjeto(objeto) {
     if (objeto.esArma) {
       return (
-        `Daño ${objeto.propiedades.danioFisicoMinimo}-` +
-        `${objeto.propiedades.danioFisicoMaximo} · ` +
-        `Alcance ${objeto.propiedades.alcance}`
+        traducir("interfaz.creacion.danio", {
+          parametros: { minimo: objeto.propiedades.danioFisicoMinimo, maximo: objeto.propiedades.danioFisicoMaximo },
+          respaldo: `Daño ${objeto.propiedades.danioFisicoMinimo}-${objeto.propiedades.danioFisicoMaximo}`,
+        }) + ` · ${traducir("interfaz.creacion.alcance")} ${objeto.propiedades.alcance}`
       );
     }
 
@@ -606,19 +620,19 @@ export class MenuCreacionPersonaje {
       const bloqueo = objeto.propiedades.probabilidadBloqueo ?? 0;
 
       return bloqueo > 0
-        ? `Armadura ${armadura} · Bloqueo ${bloqueo}%`
-        : `Armadura ${armadura}`;
+        ? `${traducir("interfaz.creacion.armadura")} ${armadura} · ${traducir("interfaz.creacion.bloqueo")} ${bloqueo}%`
+        : `${traducir("interfaz.creacion.armadura")} ${armadura}`;
     }
 
     if (objeto.esQuiver) {
-      return `Flechas incluidas: ${objeto.cantidadMunicion}`;
+      return traducir("interfaz.creacion.flechasIncluidas", { parametros: { cantidad: objeto.cantidadMunicion }, respaldo: `Flechas incluidas: ${objeto.cantidadMunicion}` });
     }
 
     if (objeto.esConsumible) {
-      return "Consumible inicial";
+      return traducir("interfaz.creacion.consumibleInicial", { respaldo: "Consumible inicial" });
     }
 
-    return objeto.descripcion ?? "";
+    return traducirContenido("objetos", objeto.id, "descripcion", objeto.descripcion ?? "");
   }
 
   actualizarEstadoEquipoAleatorio(seleccion) {
@@ -723,6 +737,21 @@ export class MenuCreacionPersonaje {
 
   mostrarMensaje(mensaje) {
     this.textoMensaje.textContent = mensaje;
+  }
+
+  traducirTipoObjeto(tipo) {
+    const claves = {
+      arma: "tipoArma",
+      armadura: "tipoArmadura",
+      quiver: "tipoQuiver",
+      municion: "tipoMunicion",
+      consumible: "tipoConsumible",
+      material: "tipoMaterial",
+    };
+    const clave = claves[tipo];
+    return clave
+      ? traducir(`interfaz.creacion.${clave}`, { respaldo: this.capitalizar(tipo) })
+      : this.capitalizar(tipo);
   }
 
   capitalizar(texto) {

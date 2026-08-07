@@ -1,3 +1,5 @@
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+
 const ID_HOJA_ESTILOS = "hojaEstilosModalDerrota";
 
 const RUTA_HOJA_ESTILOS = "./assets/estilos/modales/modal-derrota.css";
@@ -52,14 +54,14 @@ export class ModalDerrota {
 
     const bloqueTitulo = crearElemento("div", "modal-derrota__bloque-titulo");
 
-    this.titulo = crearElemento("h2", "modal-derrota__titulo", "Has caído");
+    this.titulo = crearElemento("h2", "modal-derrota__titulo", traducir("interfaz.derrota.titulo", { respaldo: "Has caído" }));
 
     this.titulo.id = this.idTitulo;
 
     const descripcion = crearElemento(
       "p",
       "modal-derrota__descripcion",
-      "La oscuridad puso fin a esta aventura.",
+      traducir("interfaz.derrota.descripcion", { respaldo: "La oscuridad puso fin a esta aventura." }),
     );
 
     bloqueTitulo.append(this.titulo, descripcion);
@@ -71,31 +73,31 @@ export class ModalDerrota {
     this.valorNombre = agregarDatoResumen({
       lista: this.resumen,
 
-      etiqueta: "Nombre",
+      etiqueta: traducir("interfaz.derrota.nombre", { respaldo: "Nombre" }),
     });
 
     this.valorClase = agregarDatoResumen({
       lista: this.resumen,
 
-      etiqueta: "Clase",
+      etiqueta: traducir("interfaz.derrota.clase", { respaldo: "Clase" }),
     });
 
     this.valorNivel = agregarDatoResumen({
       lista: this.resumen,
 
-      etiqueta: "Nivel",
+      etiqueta: traducir("interfaz.derrota.nivel", { respaldo: "Nivel" }),
     });
 
     this.valorExperiencia = agregarDatoResumen({
       lista: this.resumen,
 
-      etiqueta: "Experiencia",
+      etiqueta: traducir("interfaz.derrota.experiencia", { respaldo: "Experiencia" }),
     });
 
     this.valorOro = agregarDatoResumen({
       lista: this.resumen,
 
-      etiqueta: "Oro",
+      etiqueta: traducir("interfaz.derrota.oro", { respaldo: "Oro" }),
 
       claseAdicional: "modal-derrota__dato--oro",
     });
@@ -105,7 +107,7 @@ export class ModalDerrota {
     this.botonVolverMenu = crearElemento(
       "button",
       "modal-derrota__boton",
-      "Volver al menú",
+      traducir("interfaz.derrota.volverMenu", { respaldo: "Volver al menú" }),
     );
 
     this.botonVolverMenu.type = "button";
@@ -139,7 +141,12 @@ export class ModalDerrota {
 
     this.valorNombre.textContent = jugador.nombre;
 
-    this.valorClase.textContent = jugador.clasePersonaje;
+    this.valorClase.textContent = traducirContenido(
+      "profesiones",
+      jugador.idProfesion,
+      "nombre",
+      jugador.clasePersonaje,
+    );
 
     this.valorNivel.textContent = formatearNumero(jugador.nivel);
 

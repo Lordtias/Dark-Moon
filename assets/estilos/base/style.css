@@ -1395,3 +1395,66 @@ main {
 .acciones-configuracion button {
   flex: 1 1 160px;
 }
+
+/* =========================================================
+   SELECTOR DE IDIOMA — P7.3A
+   ========================================================= */
+.selector-idioma {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.selector-idioma--menu {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 2;
+  padding: 5px 7px;
+  border: 1px solid rgba(174, 184, 255, 0.45);
+  border-radius: 5px;
+  background: rgba(8, 12, 28, 0.72);
+}
+
+.menu-principal-capa {
+  position: relative;
+}
+
+.selector-idioma__opcion {
+  min-width: 32px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: #aeb8ff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.selector-idioma__opcion:hover {
+  background: rgba(117, 134, 255, 0.16);
+}
+
+.selector-idioma__opcion--activa {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.selector-idioma__separador {
+  color: #6975ac;
+  user-select: none;
+}
+
+.opcion-configuracion--idioma {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+@media (max-width: 520px) {
+  .selector-idioma--menu {
+    top: 10px;
+    right: 10px;
+  }
+}

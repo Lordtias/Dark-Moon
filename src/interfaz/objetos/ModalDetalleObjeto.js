@@ -5,6 +5,7 @@ import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
 import { VistaComparacionObjetos } from "./VistaComparacionObjetos.js";
 
 import { crearComparacionObjetos } from "./ComparadorObjetos.js";
+import { traducir } from "../idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalDetalleObjeto";
 
@@ -90,11 +91,11 @@ export class ModalDetalleObjeto {
 
     this.botonCerrarSuperior.textContent = "×";
 
-    this.botonCerrarSuperior.title = "Cerrar";
+    this.botonCerrarSuperior.title = traducir("interfaz.detalleObjeto.cerrar", { respaldo: "Cerrar" });
 
     this.botonCerrarSuperior.setAttribute(
       "aria-label",
-      "Cerrar detalle del objeto",
+      traducir("interfaz.detalleObjeto.cerrarAria", { respaldo: "Cerrar detalle del objeto" }),
     );
 
     const vistas = document.createElement("div");
@@ -113,13 +114,13 @@ export class ModalDetalleObjeto {
 
     acciones.classList.add("modal-detalle-objeto__acciones");
 
-    this.botonCerrar = crearBoton("Cerrar", "secundario");
+    this.botonCerrar = crearBoton(traducir("interfaz.detalleObjeto.cerrar", { respaldo: "Cerrar" }), "secundario");
 
-    this.botonVolver = crearBoton("Volver al objeto", "secundario");
+    this.botonVolver = crearBoton(traducir("interfaz.detalleObjeto.volverObjeto", { respaldo: "Volver al objeto" }), "secundario");
 
-    this.botonComparar = crearBoton("Comparar", "comparar");
+    this.botonComparar = crearBoton(traducir("interfaz.detalleObjeto.comparar", { respaldo: "Comparar" }), "comparar");
 
-    this.botonElegirOtro = crearBoton("Elegir otro", "secundario");
+    this.botonElegirOtro = crearBoton(traducir("interfaz.detalleObjeto.elegirOtro", { respaldo: "Elegir otro" }), "secundario");
 
     this.botonAccion = crearBoton("", "principal");
 

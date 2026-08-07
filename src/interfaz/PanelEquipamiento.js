@@ -1,17 +1,25 @@
 import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
+import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
-const ETIQUETAS_RANURAS = {
-  cabeza: "Cabeza",
-  torso: "Torso",
-  manos: "Manos",
-  piernas: "Piernas",
-  pies: "Pies",
-  arma: "Arma",
-  secundaria: "Secundaria",
-  collar: "Collar",
-  anillo_derecho: "Anillo der.",
-  anillo_izquierdo: "Anillo izq.",
-};
+const CLAVES_RANURAS = Object.freeze({
+  cabeza: ["cabeza", "Cabeza"],
+  torso: ["torso", "Torso"],
+  manos: ["manos", "Manos"],
+  piernas: ["piernas", "Piernas"],
+  pies: ["pies", "Pies"],
+  arma: ["arma", "Arma"],
+  secundaria: ["secundaria", "Secundaria"],
+  collar: ["collar", "Collar"],
+  anillo_derecho: ["anilloDerecho", "Anillo der."],
+  anillo_izquierdo: ["anilloIzquierdo", "Anillo izq."],
+});
+
+function traducirRanura(nombreRanura) {
+  const [clave, respaldo] = CLAVES_RANURAS[nombreRanura] ?? [null, nombreRanura];
+  return clave
+    ? traducir(`interfaz.equipamiento.${clave}`, { respaldo })
+    : respaldo;
+}
 
 // Representa las ranuras de equipamiento y notifica
 // cuando el usuario selecciona una posición ocupada.
@@ -77,14 +85,14 @@ export class PanelEquipamiento {
 
     etiqueta.classList.add("nombre-ranura");
 
-    etiqueta.textContent = ETIQUETAS_RANURAS[nombreRanura] ?? nombreRanura;
+    etiqueta.textContent = traducirRanura(nombreRanura);
 
     if (objeto) {
       this.mostrarObjeto(casilla, objeto);
     } else if (reservadaPor) {
       this.mostrarReserva(casilla, reservadaPor);
     } else {
-      casilla.setAttribute("aria-label", "Ranura vacía");
+      casilla.setAttribute("aria-label", traducir("interfaz.equipamiento.ranuraVacia", { respaldo: "Ranura vacía" }));
     }
 
     if (objeto || reservadaPor) {
@@ -104,13 +112,18 @@ export class PanelEquipamiento {
     casilla.classList.add("ocupada");
 
     const detalleQuiver = objeto.esQuiver
-      ? `\nContenido: ${objeto.cantidadMunicion} flechas.`
+      ? `\n${traducir("interfaz.equipamiento.contenidoFlechas", { parametros: { cantidad: objeto.cantidadMunicion }, respaldo: `Contenido: ${objeto.cantidadMunicion} flechas.` })}`
       : "";
 
+    const nombreObjeto = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
+    const descripcionObjeto = traducirContenido("objetos", objeto.id, "descripcion", objeto.descripcion);
     casilla.title =
-      `${objeto.descripcion}${detalleQuiver}` + "\nClic para ver detalles.";
+      `${descripcionObjeto}${detalleQuiver}` + `\n${traducir("interfaz.equipamiento.clicDetalles", { respaldo: "Clic para ver detalles." })}`;
 
-    casilla.setAttribute("aria-label", `Ver detalles de ${objeto.nombre}`);
+    casilla.setAttribute("aria-label", traducir("interfaz.equipamiento.verDetalles", {
+      parametros: { nombre: nombreObjeto },
+      respaldo: `Ver detalles de ${nombreObjeto}`,
+    }));
 
     agregarRepresentacionObjeto({
       contenedor: casilla,
@@ -136,13 +149,17 @@ export class PanelEquipamiento {
   mostrarReserva(casilla, objetoQueReserva) {
     casilla.classList.add("ocupada", "reservada");
 
+    const nombreObjeto = traducirContenido("objetos", objetoQueReserva.id, "nombre", objetoQueReserva.nombre);
     casilla.title =
-      `Ranura ocupada por ${objetoQueReserva.nombre}.\n` +
-      "Clic para ver detalles.";
+      `${traducir("interfaz.equipamiento.reservada", { parametros: { nombre: nombreObjeto }, respaldo: `Ranura ocupada por ${nombreObjeto}.` })}\n` +
+      traducir("interfaz.equipamiento.clicDetalles", { respaldo: "Clic para ver detalles." });
 
     casilla.setAttribute(
       "aria-label",
-      `Ver detalles de ${objetoQueReserva.nombre}`,
+      traducir("interfaz.equipamiento.verDetalles", {
+        parametros: { nombre: traducirContenido("objetos", objetoQueReserva.id, "nombre", objetoQueReserva.nombre) },
+        respaldo: `Ver detalles de ${objetoQueReserva.nombre}`,
+      }),
     );
 
     agregarRepresentacionObjeto({
@@ -157,7 +174,7 @@ export class PanelEquipamiento {
 
     indicador.classList.add("indicador-reserva-equipamiento");
 
-    indicador.textContent = "2M";
+    indicador.textContent = traducir("interfaz.equipamiento.dosManos", { respaldo: "2M" });
 
     casilla.appendChild(indicador);
   }

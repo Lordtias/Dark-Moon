@@ -1,8 +1,10 @@
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+
 const CATEGORIAS = Object.freeze([
-  { id: "magicas", nombre: "Mágicas" },
-  { id: "basicas", nombre: "Básicas" },
-  { id: "armas", nombre: "Armas" },
-  { id: "armaduras", nombre: "Armaduras" },
+  { id: "magicas", clave: "interfaz.habilidades.categoriaMagicas", respaldo: "Mágicas" },
+  { id: "basicas", clave: "interfaz.habilidades.categoriaBasicas", respaldo: "Básicas" },
+  { id: "armas", clave: "interfaz.habilidades.categoriaArmas", respaldo: "Armas" },
+  { id: "armaduras", clave: "interfaz.habilidades.categoriaArmaduras", respaldo: "Armaduras" },
 ]);
 const ORDEN_MAESTRIAS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
 export class PanelHabilidadesMaestrias {
@@ -104,11 +106,11 @@ export class PanelHabilidadesMaestrias {
     const boton = crearElemento(
       "button",
       "boton-habilidades-maestrias",
-      "Habilidades",
+      traducir("interfaz.habilidades.abrir", { respaldo: "Habilidades" }),
     );
     boton.id = "botonHabilidadesMaestrias";
     boton.type = "button";
-    boton.title = "Abrir habilidades y maestrías";
+    boton.title = traducir("interfaz.habilidades.abrirTitulo", { respaldo: "Abrir habilidades y maestrías" });
     barra.append(separador, boton);
     this.separadorBarra = separador;
     return boton;
@@ -124,23 +126,23 @@ export class PanelHabilidadesMaestrias {
     const sobreTitulo = crearElemento(
       "p",
       "panel-habilidades__etiqueta",
-      "Progreso del personaje",
+      traducir("interfaz.habilidades.progresoPersonaje", { respaldo: "Progreso del personaje" }),
     );
     const titulo = crearElemento(
       "h2",
       "panel-habilidades__titulo",
-      "Habilidades y maestrías",
+      traducir("interfaz.habilidades.titulo", { respaldo: "Habilidades y maestrías" }),
     );
     titulo.id = "tituloHabilidadesMaestrias";
     tituloBloque.append(sobreTitulo, titulo);
     this.resumenPuntos = crearElemento("div", "panel-habilidades__puntos");
     const cerrar = crearElemento("button", "panel-habilidades__cerrar", "×");
     cerrar.type = "button";
-    cerrar.setAttribute("aria-label", "Cerrar habilidades");
+    cerrar.setAttribute("aria-label", traducir("interfaz.habilidades.cerrar", { respaldo: "Cerrar habilidades" }));
     cabecera.append(tituloBloque, this.resumenPuntos, cerrar);
     const cuerpo = crearElemento("div", "panel-habilidades__cuerpo");
     this.navegacion = crearElemento("nav", "panel-habilidades__navegacion");
-    this.navegacion.setAttribute("aria-label", "Categorías de maestrías");
+    this.navegacion.setAttribute("aria-label", traducir("interfaz.habilidades.categoriasAria", { respaldo: "Categorías de maestrías" }));
     this.contenido = crearElemento("main", "panel-habilidades__contenido");
     cuerpo.append(this.navegacion, this.contenido);
     this.mensaje = crearElemento("p", "panel-habilidades__mensaje");
@@ -186,9 +188,9 @@ export class PanelHabilidadesMaestrias {
   }
   renderizarCabecera(resumen) {
     this.resumenPuntos.replaceChildren(
-      crearContador("Universales", resumen.puntosUniversales, "universal"),
+      crearContador(traducir("interfaz.habilidades.universales", { respaldo: "Universales" }), resumen.puntosUniversales, "universal"),
       crearContador(
-        "Específicos",
+        traducir("interfaz.habilidades.especificos", { respaldo: "Específicos" }),
         Object.values(resumen.maestrias).reduce(
           (total, maestria) => total + maestria.puntosEspecificos,
           0,
@@ -203,7 +205,7 @@ export class PanelHabilidadesMaestrias {
       const boton = crearElemento(
         "button",
         "panel-habilidades__categoria",
-        categoria.nombre,
+        traducir(categoria.clave, { respaldo: categoria.respaldo }),
       );
       boton.type = "button";
       boton.classList.toggle(
@@ -236,11 +238,14 @@ export class PanelHabilidadesMaestrias {
         idMaestria === this.maestriaActiva,
       );
       boton.append(
-        crearElemento("strong", "maestria-selector__nombre", definicion.nombre),
+        crearElemento("strong", "maestria-selector__nombre", nombreMaestria(idMaestria, definicion)),
         crearElemento(
           "span",
           "maestria-selector__nivel",
-          `Nivel ${estado.nivel} / ${this.configuracionProgreso.reglas.nivelMaximoMaestria}`,
+          traducir("interfaz.habilidades.nivel", {
+            parametros: { nivel: estado.nivel, maximo: this.configuracionProgreso.reglas.nivelMaximoMaestria },
+            respaldo: `Nivel ${estado.nivel} / ${this.configuracionProgreso.reglas.nivelMaximoMaestria}`,
+          }),
         ),
       );
       boton.addEventListener("click", () => {
@@ -261,11 +266,11 @@ export class PanelHabilidadesMaestrias {
     const cabecera = crearElemento("header", "maestria-detalle__cabecera");
     const identidad = crearElemento("div");
     identidad.append(
-      crearElemento("p", "maestria-detalle__categoria", "Maestría mágica"),
-      crearElemento("h3", "maestria-detalle__nombre", definicion.nombre),
+      crearElemento("p", "maestria-detalle__categoria", traducir("interfaz.habilidades.maestriaMagica", { respaldo: "Maestría mágica" })),
+      crearElemento("h3", "maestria-detalle__nombre", nombreMaestria(idMaestria, definicion)),
     );
     const puntos = crearContador(
-      "Puntos específicos",
+      traducir("interfaz.habilidades.puntosEspecificos", { respaldo: "Puntos específicos" }),
       estado.puntosEspecificos,
       "especifico",
     );
@@ -325,11 +330,14 @@ export class PanelHabilidadesMaestrias {
     const icono = crearIconoHabilidad(ejecucion, habilidad);
     const identidad = crearElemento("div", "tarjeta-habilidad__identidad");
     identidad.append(
-      crearElemento("h4", "tarjeta-habilidad__nombre", habilidad.nombre),
+      crearElemento("h4", "tarjeta-habilidad__nombre", nombreHabilidad(habilidad)),
       crearElemento(
         "p",
         "tarjeta-habilidad__grado",
-        `Grado ${grado} / ${habilidad.gradoMaximo}`,
+        traducir("interfaz.habilidades.grado", {
+          parametros: { grado, maximo: habilidad.gradoMaximo },
+          respaldo: `Grado ${grado} / ${habilidad.gradoMaximo}`,
+        }),
       ),
     );
     cabecera.append(icono, identidad);
@@ -348,21 +356,29 @@ export class PanelHabilidadesMaestrias {
     const descripcion = crearElemento(
       "p",
       "tarjeta-habilidad__descripcion",
-      ejecucion?.descripcion ?? "Sin descripción.",
+      descripcionHabilidad(habilidad, ejecucion),
     );
     const requisito = crearElemento(
       "p",
       "tarjeta-habilidad__requisito",
       bloqueada
-        ? `Requiere nivel ${habilidad.requisitoNivelMaestria} de la maestría.`
-        : `Requisito de maestría cumplido: nivel ${habilidad.requisitoNivelMaestria}.`,
+        ? traducir("interfaz.habilidades.requiereNivel", {
+            parametros: { nivel: habilidad.requisitoNivelMaestria },
+            respaldo: `Requiere nivel ${habilidad.requisitoNivelMaestria} de la maestría.`,
+          })
+        : traducir("interfaz.habilidades.requisitoCumplido", {
+            parametros: { nivel: habilidad.requisitoNivelMaestria },
+            respaldo: `Requisito de maestría cumplido: nivel ${habilidad.requisitoNivelMaestria}.`,
+          }),
     );
     const detalle = crearDetalleEjecucion({ ejecucion, grado });
     const acciones = crearElemento("div", "tarjeta-habilidad__acciones");
     const botonMejora = crearElemento(
       "button",
       "tarjeta-habilidad__accion tarjeta-habilidad__accion--principal",
-      aprendida ? "Mejorar" : "Aprender",
+      aprendida
+        ? traducir("interfaz.habilidades.mejorar", { respaldo: "Mejorar" })
+        : traducir("interfaz.habilidades.aprender", { respaldo: "Aprender" }),
     );
     botonMejora.type = "button";
     botonMejora.disabled = bloqueada || maximo || !tienePuntos;
@@ -376,8 +392,11 @@ export class PanelHabilidadesMaestrias {
         "button",
         "tarjeta-habilidad__accion",
         asignada
-          ? `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`
-          : "Asignar a barra",
+          ? traducir("interfaz.habilidades.quitarRanura", {
+              parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
+              respaldo: `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+            })
+          : traducir("interfaz.habilidades.asignarBarra", { respaldo: "Asignar a barra" }),
       );
       botonBarra.type = "button";
       botonBarra.addEventListener("click", (evento) => {
@@ -395,7 +414,7 @@ export class PanelHabilidadesMaestrias {
         crearElemento(
           "span",
           "tarjeta-habilidad__pendiente",
-          "Ejecución en construcción",
+          traducir("interfaz.habilidades.ejecucionConstruccion", { respaldo: "Ejecución en construcción" }),
         ),
       );
     }
@@ -508,7 +527,7 @@ export class PanelHabilidadesMaestrias {
       boton.type = "button";
       boton.append(
         crearElemento("strong", "", tecla),
-        crearElemento("span", "", ranura.idHabilidad ? ranura.nombre : "Vacía"),
+        crearElemento("span", "", ranura.idHabilidad ? nombreHabilidad(ranura) : traducir("interfaz.habilidades.ranuraVacia", { respaldo: "Vacía" })),
       );
       boton.addEventListener("click", () => {
         if (ranura.idHabilidad) {
@@ -699,6 +718,33 @@ export class PanelHabilidadesMaestrias {
     this.manejadores.push({ elemento, tipo, manejador, opciones });
   }
 }
+function nombreMaestria(idMaestria, definicion) {
+  return traducirContenido(
+    "maestrias",
+    idMaestria,
+    "nombre",
+    definicion?.nombre ?? idMaestria,
+  );
+}
+
+function nombreHabilidad(habilidad) {
+  if (!habilidad) return "";
+  const id = habilidad.id ?? habilidad.idHabilidad;
+  return traducirContenido(
+    "habilidades",
+    id,
+    "nombre",
+    habilidad.nombre ?? id ?? "",
+  );
+}
+
+function descripcionHabilidad(habilidad, ejecucion = null) {
+  const id = habilidad?.id ?? habilidad?.idHabilidad;
+  const respaldo = ejecucion?.descripcion ?? habilidad?.descripcion ?? "";
+  return traducirContenido("habilidades", id, "descripcion", respaldo) ||
+    traducir("interfaz.habilidades.sinDescripcion", { respaldo: "Sin descripción." });
+}
+
 function crearProgresoMaestria({ estado, nivelMaximo }) {
   const bloque = crearElemento("div", "progreso-maestria");
   const maximo = estado.nivel >= nivelMaximo;
@@ -709,11 +755,23 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
       : Math.min(100, Math.round((estado.experiencia / necesaria) * 100));
   const cabecera = crearElemento("div", "progreso-maestria__cabecera");
   cabecera.append(
-    crearElemento("strong", "", `Nivel ${estado.nivel} / ${nivelMaximo}`),
+    crearElemento(
+      "strong",
+      "",
+      traducir("interfaz.habilidades.nivel", {
+        parametros: { nivel: estado.nivel, maximo: nivelMaximo },
+        respaldo: `Nivel ${estado.nivel} / ${nivelMaximo}`,
+      }),
+    ),
     crearElemento(
       "span",
       "",
-      maximo ? "Nivel máximo" : `${estado.experiencia} / ${necesaria} XP`,
+      maximo
+        ? traducir("interfaz.habilidades.nivelMaximo", { respaldo: "Nivel máximo" })
+        : traducir("interfaz.habilidades.experienciaProgreso", {
+            parametros: { actual: estado.experiencia, necesaria },
+            respaldo: `${estado.experiencia} / ${necesaria} XP`,
+          }),
     ),
   );
   const barra = crearElemento("div", "progreso-maestria__barra");
@@ -726,7 +784,10 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
     crearElemento(
       "small",
       "",
-      `Experiencia total acumulada: ${estado.experienciaTotal}`,
+      traducir("interfaz.habilidades.experienciaTotal", {
+        parametros: { valor: estado.experienciaTotal },
+        respaldo: `Experiencia total acumulada: ${estado.experienciaTotal}`,
+      }),
     ),
   );
   return bloque;
@@ -734,25 +795,47 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
 function crearDetalleEjecucion({ ejecucion, grado }) {
   const lista = crearElemento("dl", "detalle-ejecucion-habilidad");
   if (!ejecucion?.ejecucion) {
-    agregarDato(lista, "Lanzamiento", "Pendiente de una etapa de contenido");
+    agregarDato(
+      lista,
+      traducir("interfaz.habilidades.lanzamiento", { respaldo: "Lanzamiento" }),
+      traducir("interfaz.habilidades.pendienteContenido", { respaldo: "Pendiente de una etapa de contenido" }),
+    );
     return lista;
   }
   const gradoVisible = grado > 0 ? grado : 1;
   const definicionGrado = ejecucion.ejecucion.grados[gradoVisible];
   lista.classList.add("detalle-ejecucion-habilidad--con-danio");
-  agregarDato(lista, "Daño base", formatearDanioBase(definicionGrado?.danio));
-  agregarDato(lista, "Maná", definicionGrado?.costoMana ?? "—");
-  agregarDato(lista, "Tiempo", definicionGrado?.costoTemporalBase ?? "—");
-  agregarDato(lista, "Alcance", definicionGrado?.alcance ?? "—");
   agregarDato(
     lista,
-    "Patrón",
-    formatearNombre(ejecucion.ejecucion.patronAtaque),
+    traducir("interfaz.habilidades.danioBase", { respaldo: "Daño base" }),
+    formatearDanioBase(definicionGrado?.danio),
   );
   agregarDato(
     lista,
-    "Línea de visión",
-    ejecucion.ejecucion.requiereLineaVision ? "Sí" : "No",
+    traducir("interfaz.habilidades.manaEtiqueta", { respaldo: "Maná" }),
+    definicionGrado?.costoMana ?? "—",
+  );
+  agregarDato(
+    lista,
+    traducir("interfaz.habilidades.tiempo", { respaldo: "Tiempo" }),
+    definicionGrado?.costoTemporalBase ?? "—",
+  );
+  agregarDato(
+    lista,
+    traducir("interfaz.habilidades.alcance", { respaldo: "Alcance" }),
+    definicionGrado?.alcance ?? "—",
+  );
+  agregarDato(
+    lista,
+    traducir("interfaz.habilidades.patron", { respaldo: "Patrón" }),
+    nombrePatronAtaque(ejecucion.ejecucion.patronAtaque),
+  );
+  agregarDato(
+    lista,
+    traducir("interfaz.habilidades.lineaVision", { respaldo: "Línea de visión" }),
+    ejecucion.ejecucion.requiereLineaVision
+      ? traducir("interfaz.habilidades.si", { respaldo: "Sí" })
+      : traducir("interfaz.habilidades.no", { respaldo: "No" }),
   );
   return lista;
 }
@@ -767,30 +850,33 @@ function crearEstadosVisuales({
   seleccionada,
   indiceAsignado,
 }) {
-  if (bloqueada) agregarInsignia(contenedor, "Bloqueada", "bloqueada");
+  if (bloqueada) agregarInsignia(contenedor, traducir("interfaz.habilidades.bloqueada", { respaldo: "Bloqueada" }), "bloqueada");
   if (!bloqueada && !aprendida)
-    agregarInsignia(contenedor, "Disponible", "disponible");
-  if (aprendida) agregarInsignia(contenedor, "Aprendida", "aprendida");
-  if (mejorable) agregarInsignia(contenedor, "Mejorable", "mejorable");
-  if (maximo) agregarInsignia(contenedor, "Grado máximo", "maximo");
+    agregarInsignia(contenedor, traducir("interfaz.habilidades.disponible", { respaldo: "Disponible" }), "disponible");
+  if (aprendida) agregarInsignia(contenedor, traducir("interfaz.habilidades.aprendida", { respaldo: "Aprendida" }), "aprendida");
+  if (mejorable) agregarInsignia(contenedor, traducir("interfaz.habilidades.mejorable", { respaldo: "Mejorable" }), "mejorable");
+  if (maximo) agregarInsignia(contenedor, traducir("interfaz.habilidades.gradoMaximo", { respaldo: "Grado máximo" }), "maximo");
   if (!bloqueada && !maximo && !tienePuntos) {
-    agregarInsignia(contenedor, "Sin puntos", "sin-puntos");
+    agregarInsignia(contenedor, traducir("interfaz.habilidades.sinPuntos", { respaldo: "Sin puntos" }), "sin-puntos");
   }
   if (asignada) {
     agregarInsignia(
       contenedor,
-      `Asignada: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+      traducir("interfaz.habilidades.asignada", {
+        parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
+        respaldo: `Asignada: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+      }),
       "asignada",
     );
   }
-  if (seleccionada) agregarInsignia(contenedor, "Seleccionada", "seleccionada");
+  if (seleccionada) agregarInsignia(contenedor, traducir("interfaz.habilidades.seleccionada", { respaldo: "Seleccionada" }), "seleccionada");
 }
 function crearIconoHabilidad(ejecucion, habilidad) {
   const marco = crearElemento("span", "tarjeta-habilidad__icono");
   const ruta = ejecucion?.icono ?? null;
   const fallback = () => {
     marco.replaceChildren(
-      crearElemento("span", "tarjeta-habilidad__inicial", habilidad.nombre[0]),
+      crearElemento("span", "tarjeta-habilidad__inicial", nombreHabilidad(habilidad)[0]),
     );
   };
   if (!ruta) {
@@ -813,28 +899,71 @@ function crearTooltipTexto({
   asignada,
   indiceAsignado,
 }) {
+  const nombreMaestriaVisible = traducirContenido(
+    "maestrias",
+    habilidad.maestria,
+    "nombre",
+    formatearNombre(habilidad.maestria),
+  );
   const lineas = [
-    `${habilidad.nombre} — grado ${grado}/${habilidad.gradoMaximo}`,
-    `Maestría: ${formatearNombre(habilidad.maestria)} (nivel ${estado.nivel})`,
-    `Requisito: nivel ${habilidad.requisitoNivelMaestria}`,
-    ejecucion?.descripcion ?? "",
+    `${nombreHabilidad(habilidad)} — ${traducir("interfaz.habilidades.grado", { parametros: { grado, maximo: habilidad.gradoMaximo }, respaldo: `grado ${grado}/${habilidad.gradoMaximo}` })}`,
+    traducir("interfaz.habilidades.tooltipMaestria", {
+      parametros: { maestria: nombreMaestriaVisible, nivel: estado.nivel },
+      respaldo: `Maestría: ${nombreMaestriaVisible} (nivel ${estado.nivel})`,
+    }),
+    traducir("interfaz.habilidades.tooltipRequisito", {
+      parametros: { nivel: habilidad.requisitoNivelMaestria },
+      respaldo: `Requisito: nivel ${habilidad.requisitoNivelMaestria}`,
+    }),
+    descripcionHabilidad(habilidad, ejecucion),
   ];
   if (ejecucion?.ejecucion) {
     const gradoVisible = grado > 0 ? grado : 1;
     const config = ejecucion.ejecucion.grados[gradoVisible];
     lineas.push(
-      `Daño base: ${formatearDanioBase(config.danio)}`,
-      `Maná: ${config.costoMana}`,
-      `Tiempo: ${config.costoTemporalBase}`,
-      `Alcance: ${config.alcance}`,
-      `Patrón: ${formatearNombre(ejecucion.ejecucion.patronAtaque)}`,
-      `Línea de visión: ${ejecucion.ejecucion.requiereLineaVision ? "sí" : "no"}`,
+      traducir("interfaz.habilidades.tooltipDanioBase", {
+        parametros: { valor: formatearDanioBase(config.danio) },
+        respaldo: `Daño base: ${formatearDanioBase(config.danio)}`,
+      }),
+      traducir("interfaz.habilidades.mana", {
+        parametros: { valor: config.costoMana },
+        respaldo: `Maná: ${config.costoMana}`,
+      }),
+      traducir("interfaz.habilidades.tooltipTiempo", {
+        parametros: { valor: config.costoTemporalBase },
+        respaldo: `Tiempo: ${config.costoTemporalBase}`,
+      }),
+      traducir("interfaz.habilidades.tooltipAlcance", {
+        parametros: { valor: config.alcance },
+        respaldo: `Alcance: ${config.alcance}`,
+      }),
+      traducir("interfaz.habilidades.tooltipPatron", {
+        parametros: { patron: nombrePatronAtaque(ejecucion.ejecucion.patronAtaque) },
+        respaldo: `Patrón: ${nombrePatronAtaque(ejecucion.ejecucion.patronAtaque)}`,
+      }),
+      traducir("interfaz.habilidades.tooltipLineaVision", {
+        parametros: {
+          valor: ejecucion.ejecucion.requiereLineaVision
+            ? traducir("interfaz.habilidades.si", { respaldo: "sí" })
+            : traducir("interfaz.habilidades.no", { respaldo: "no" }),
+        },
+        respaldo: `Línea de visión: ${ejecucion.ejecucion.requiereLineaVision ? "sí" : "no"}`,
+      }),
     );
   } else {
-    lineas.push("Ejecución jugable: en construcción");
+    lineas.push(
+      traducir("interfaz.habilidades.ejecucionConstruccion", {
+        respaldo: "Ejecución jugable: en construcción",
+      }),
+    );
   }
   if (asignada) {
-    lineas.push(`Ranura: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`);
+    lineas.push(
+      traducir("interfaz.habilidades.ranura", {
+        parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
+        respaldo: `Ranura: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+      }),
+    );
   }
   return lineas.filter(Boolean).join("\n");
 }
@@ -929,7 +1058,7 @@ function formatearDanioBase(componentes) {
     if (!Number.isFinite(valor)) {
       continue;
     }
-    const tipo = formatearNombre(componente?.tipo ?? "sin tipo");
+    const tipo = nombreTipoDanio(componente?.tipo);
     valoresPorTipo.set(tipo, (valoresPorTipo.get(tipo) ?? 0) + valor);
   }
   if (valoresPorTipo.size === 0) {
@@ -942,6 +1071,28 @@ function formatearDanioBase(componentes) {
 function formatearNumero(valor) {
   return Number.isInteger(valor) ? String(valor) : valor.toFixed(1);
 }
+function nombreTipoDanio(tipo) {
+  const claves = {
+    fisico: ["interfaz.habilidades.danioFisico", "Físico"],
+    fuego: ["interfaz.personaje.fuego", "Fuego"],
+    frio: ["interfaz.personaje.frio", "Frío"],
+    rayo: ["interfaz.personaje.rayo", "Rayo"],
+    veneno: ["interfaz.personaje.veneno", "Veneno"],
+  };
+  const [clave, respaldo] = claves[tipo] ?? [null, formatearNombre(tipo ?? "sin tipo")];
+  return clave ? traducir(clave, { respaldo }) : respaldo;
+}
+
+function nombrePatronAtaque(patron) {
+  const claves = {
+    adyacente: ["interfaz.habilidades.patronAdyacente", "Adyacente"],
+    lineal: ["interfaz.habilidades.patronLineal", "Lineal"],
+    libre: ["interfaz.habilidades.patronLibre", "Libre"],
+  };
+  const [clave, respaldo] = claves[patron] ?? [null, formatearNombre(patron)];
+  return clave ? traducir(clave, { respaldo }) : respaldo;
+}
+
 function formatearNombre(valor) {
   if (!valor) return "—";
   const texto = String(valor).replaceAll("_", " ");

@@ -43,6 +43,8 @@ import {
   guardarPreferenciasInterfazPersistidas,
   leerPreferenciasInterfazPersistidas,
 } from "../interfaz/configuracion/PersistenciaPreferenciasInterfaz.js";
+import { cargarTraductor } from "../interfaz/idiomas/CargadorIdiomas.js";
+import { traducir } from "../interfaz/idiomas/ContextoIdioma.js";
 
 // Aplicacion coordina el arranque y la sesión sin conocer la tecnología visual.
 export class Aplicacion {
@@ -52,6 +54,7 @@ export class Aplicacion {
     this.presentacion = presentacion;
     this.controladorPantallas = null;
     this.controladorConfiguracion = null;
+    this.controladorIdioma = null;
     this.controladorPartida = null;
     this.menuCreacionPersonaje = null;
     this.configuracionPersonaje = null;
@@ -71,6 +74,8 @@ export class Aplicacion {
     this.guardadoValido = false;
     this.configuracionPreferenciasInterfaz = null;
     this.preferenciasInterfaz = null;
+    this.traductor = null;
+    this.mensajePreferenciasInicial = "";
   }
 
   async iniciar() {
@@ -87,7 +92,12 @@ export class Aplicacion {
         alRestablecerPreferencias: () =>
           this.restablecerPreferenciasInterfaz(),
       });
+      this.controladorIdioma.configurarEventos({
+        alCambiarIdioma: (idioma) => this.cambiarIdioma(idioma),
+      });
       await this.cargarPreferenciasInterfaz();
+      await this.cargarIdiomaInterfaz();
+      this.presentarPreferenciasInterfaz(this.mensajePreferenciasInicial);
       await this.cargarConfiguraciones();
       this.actualizarDisponibilidadContinuar();
       this.crearMenuCreacionPersonaje();
@@ -101,6 +111,7 @@ export class Aplicacion {
       this.presentacion.crearControladorPantallas();
     this.controladorConfiguracion =
       this.presentacion.crearControladorConfiguracion();
+    this.controladorIdioma = this.presentacion.crearControladorIdioma();
 
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
@@ -139,10 +150,24 @@ export class Aplicacion {
       persistidas,
     });
 
+    this.mensajePreferenciasInicial = mensaje
+      ? "interfaz.mensajes.preferenciasInvalidas"
+      : "";
+  }
+
+  async cargarIdiomaInterfaz() {
+    this.traductor = await cargarTraductor({
+      idioma: this.preferenciasInterfaz?.idioma ?? "es",
+    });
+    this.presentacion.configurarTraductor(this.traductor);
+    this.controladorIdioma.presentar(this.traductor.obtenerIdioma());
+  }
+
+  presentarPreferenciasInterfaz(claveMensaje = "") {
     this.controladorConfiguracion.presentar({
       configuracion: this.configuracionPreferenciasInterfaz,
       preferencias: this.preferenciasInterfaz,
-      mensaje,
+      mensaje: claveMensaje ? traducir(claveMensaje) : "",
     });
   }
 
@@ -166,17 +191,36 @@ export class Aplicacion {
 
       this.preferenciasInterfaz = preferenciasNuevas;
       this.controladorConfiguracion.mostrarMensaje(
-        "Preferencias guardadas. Se aplicarán al iniciar la partida.",
+        traducir("interfaz.mensajes.preferenciasGuardadas"),
       );
       return this.preferenciasInterfaz;
     } catch (error) {
       console.warn("No se pudo guardar la preferencia de interfaz:", error);
       this.controladorConfiguracion.mostrarMensaje(
-        "No se pudo guardar la preferencia seleccionada.",
+        traducir("interfaz.mensajes.preferenciaError", {
+          respaldo: "No se pudo guardar la preferencia seleccionada.",
+        }),
         { error: true },
       );
       return this.preferenciasInterfaz;
     }
+  }
+
+  cambiarIdioma(idioma) {
+    if (!this.traductor || idioma === this.preferenciasInterfaz?.idioma) {
+      return this.preferenciasInterfaz;
+    }
+
+    const preferencias = this.cambiarPreferenciaInterfaz("idioma", idioma);
+    if (preferencias?.idioma !== idioma) return preferencias;
+
+    this.traductor.cambiarIdioma(idioma);
+    this.presentacion.actualizarIdioma();
+    this.controladorIdioma.presentar(idioma);
+    this.presentarPreferenciasInterfaz();
+    this.actualizarDisponibilidadContinuar();
+    this.menuCreacionPersonaje?.actualizarIdioma?.();
+    return preferencias;
   }
 
   restablecerPreferenciasInterfaz() {
@@ -185,16 +229,26 @@ export class Aplicacion {
       this.preferenciasInterfaz = crearPreferenciasIniciales(
         this.configuracionPreferenciasInterfaz,
       );
+      const idioma = this.preferenciasInterfaz.idioma;
+      if (this.traductor && idioma !== this.traductor.obtenerIdioma()) {
+        this.traductor.cambiarIdioma(idioma);
+        this.presentacion.actualizarIdioma();
+        this.controladorIdioma.presentar(idioma);
+        this.actualizarDisponibilidadContinuar();
+        this.menuCreacionPersonaje?.actualizarIdioma?.();
+      }
       this.controladorConfiguracion.presentar({
         configuracion: this.configuracionPreferenciasInterfaz,
         preferencias: this.preferenciasInterfaz,
-        mensaje: "Se restauraron los valores predeterminados.",
+        mensaje: traducir("interfaz.mensajes.preferenciasRestauradas"),
       });
       return this.preferenciasInterfaz;
     } catch (error) {
       console.warn("No se pudieron restablecer las preferencias:", error);
       this.controladorConfiguracion.mostrarMensaje(
-        "No se pudieron restablecer las preferencias.",
+        traducir("interfaz.mensajes.restablecerError", {
+          respaldo: "No se pudieron restablecer las preferencias.",
+        }),
         { error: true },
       );
       return this.preferenciasInterfaz;
@@ -291,7 +345,7 @@ export class Aplicacion {
       console.warn("No se pudo consultar el guardado durable:", error);
       this.controladorPantallas.configurarContinuar({
         habilitado: false,
-        mensaje: "No se pudo acceder al guardado del navegador.",
+        mensaje: traducir("interfaz.mensajes.guardadoAccesoError", { respaldo: "No se pudo acceder al guardado del navegador." }),
         error: true,
       });
       return false;
@@ -313,7 +367,10 @@ export class Aplicacion {
         habilitado: this.guardadoValido,
         mensaje: "",
         titulo: this.guardadoValido
-          ? `Continuar como ${jugador.nombre} (nivel ${jugador.nivel})`
+          ? traducir("interfaz.menu.continuarTitulo", {
+              parametros: { nombre: jugador.nombre, nivel: jugador.nivel },
+              respaldo: `Continuar como ${jugador.nombre} (nivel ${jugador.nivel})`,
+            })
           : "",
       });
       return this.guardadoValido;
@@ -322,8 +379,9 @@ export class Aplicacion {
       console.warn("El guardado durable no pudo validarse:", error);
       this.controladorPantallas.configurarContinuar({
         habilitado: false,
-        mensaje:
-          "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        mensaje: traducir("interfaz.mensajes.guardadoCargaError", {
+          respaldo: "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        }),
         error: true,
       });
       return false;
@@ -349,7 +407,7 @@ export class Aplicacion {
         this.guardadoValido = false;
         this.controladorPantallas.configurarContinuar({
           habilitado: false,
-          mensaje: "No existe una partida guardada para continuar.",
+          mensaje: traducir("interfaz.mensajes.guardadoInexistente", { respaldo: "No existe una partida guardada para continuar." }),
         });
         return false;
       }
@@ -363,8 +421,9 @@ export class Aplicacion {
       console.error("No se pudo continuar la partida guardada:", error);
       this.controladorPantallas.configurarContinuar({
         habilitado: false,
-        mensaje:
-          "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        mensaje: traducir("interfaz.mensajes.guardadoCargaError", {
+          respaldo: "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+        }),
         error: true,
       });
       return false;
@@ -423,6 +482,9 @@ function validarPresentacion(presentacion) {
   const metodosObligatorios = [
     "crearControladorPantallas",
     "crearControladorConfiguracion",
+    "crearControladorIdioma",
+    "configurarTraductor",
+    "actualizarIdioma",
     "mostrarVersionAplicacion",
     "confirmarReemplazoGuardado",
     "crearMenuCreacionPersonaje",

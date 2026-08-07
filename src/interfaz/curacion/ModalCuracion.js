@@ -1,4 +1,5 @@
 import { TIPOS_SERVICIO_CURACION } from "../../juego/curacion/ConfiguracionCuracion.js";
+import { idiomaActivo, traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalCuracion";
 
@@ -132,7 +133,12 @@ export class ModalCuracion {
     this.calcularEstado = calcularEstado;
     this.alCurar = alCurar;
 
-    this.titulo.textContent = curandera.nombre;
+    this.titulo.textContent = traducirContenido(
+      "entidades",
+      curandera.id,
+      "nombre",
+      curandera.nombre,
+    );
 
     this.limpiarMensaje();
     this.actualizar();
@@ -164,7 +170,7 @@ export class ModalCuracion {
 
       servicio: estado.vida,
 
-      nombreRecurso: "Vida",
+      nombreRecurso: traducir("interfaz.curacionDinamica.vida", { respaldo: "Vida" }),
     });
 
     this.actualizarRecurso({
@@ -172,7 +178,7 @@ export class ModalCuracion {
 
       servicio: estado.mana,
 
-      nombreRecurso: "Maná",
+      nombreRecurso: traducir("interfaz.curacionDinamica.mana", { respaldo: "Maná" }),
     });
 
     this.actualizarAmbos(estado.ambos);
@@ -192,9 +198,15 @@ export class ModalCuracion {
 
       servicio,
 
-      textoDisponible: `Restaurar ${nombreRecurso}`,
+      textoDisponible: traducir("interfaz.curacionDinamica.restaurar", {
+        parametros: { recurso: nombreRecurso },
+        respaldo: `Restaurar ${nombreRecurso}`,
+      }),
 
-      textoCompleto: `${nombreRecurso} completa`,
+      textoCompleto: traducir("interfaz.curacionDinamica.completo", {
+        parametros: { recurso: nombreRecurso },
+        respaldo: `${nombreRecurso} completa`,
+      }),
     });
   }
 
@@ -212,9 +224,9 @@ export class ModalCuracion {
 
       servicio,
 
-      textoDisponible: "Restaurar todo",
+      textoDisponible: traducir("interfaz.curacionDinamica.restaurarTodo", { respaldo: "Restaurar todo" }),
 
-      textoCompleto: "Recursos completos",
+      textoCompleto: traducir("interfaz.curacionDinamica.recursosCompletos", { respaldo: "Recursos completos" }),
     });
   }
 
@@ -347,7 +359,7 @@ function actualizarBoton({ boton, servicio, textoDisponible, textoCompleto }) {
   }
 
   if (!servicio.puedePagar) {
-    boton.textContent = "Oro insuficiente";
+    boton.textContent = traducir("interfaz.curacionDinamica.oroInsuficiente", { respaldo: "Oro insuficiente" });
 
     boton.disabled = true;
     return;
@@ -361,14 +373,22 @@ function actualizarBoton({ boton, servicio, textoDisponible, textoCompleto }) {
 
 function crearTextoMonedas(cantidad) {
   if (cantidad === 0) {
-    return "Sin costo";
+    return traducir("interfaz.curacionDinamica.sinCosto", { respaldo: "Sin costo" });
   }
 
-  return cantidad === 1 ? "1 moneda" : `${formatearNumero(cantidad)} monedas`;
+  return traducir(
+    cantidad === 1
+      ? "interfaz.curacionDinamica.moneda"
+      : "interfaz.curacionDinamica.monedas",
+    {
+      parametros: { cantidad: formatearNumero(cantidad) },
+      respaldo: cantidad === 1 ? "1 moneda" : `${formatearNumero(cantidad)} monedas`,
+    },
+  );
 }
 
 function formatearNumero(cantidad) {
-  return new Intl.NumberFormat("es-UY", {
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
     maximumFractionDigits: 2,
   }).format(cantidad);
 }

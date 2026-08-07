@@ -2,6 +2,7 @@ import {
   aplicarAparienciaRarezaObjeto,
   obtenerPresentacionRarezaObjeto,
 } from "./objetos/ContextoPresentacionObjetos.js";
+import { traducirContenido } from "./idiomas/ContextoIdioma.js";
 
 // Agrega a una casilla una imagen de objeto
 // con respaldo textual.
@@ -129,7 +130,7 @@ function crearTextoObjeto({ objeto, claseTexto }) {
 
   texto.classList.add(claseTexto);
 
-  texto.textContent = objeto.nombre;
+  texto.textContent = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
 
   return texto;
 }

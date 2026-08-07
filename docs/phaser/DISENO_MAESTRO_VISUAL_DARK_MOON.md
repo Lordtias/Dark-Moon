@@ -1970,9 +1970,13 @@ El menú principal mantiene la composición existente y suma **Continuar** entre
 
 Continuar no intenta representar una transición desde la mazmorra anterior: la sesión reaparece en la ciudad con el personaje durable reconstruido. Esta decisión debe sentirse como una entrada segura a la sesión y no como una reanudación visual de una escena inexistente.
 
-### P7.3 — Regla visual bilingüe prevista
+### P7.3 — Regla visual bilingüe
 
-La internacionalización se realizará después de P7.2. El selector **ES / EN** debe estar disponible en una esquina de la pantalla principal para que el usuario pueda cambiar idioma antes de navegar la interfaz. Solo cambia el texto presentado. Código, IDs, nombres técnicos y contratos canónicos permanecen en español. La traducción no debe duplicar layouts ni crear variantes funcionales por idioma; ambas lenguas comparten exactamente la misma estructura visual y reglas.
+P7.2 fue validada en `93cbd48cb29c77c9af8f3de222e13437971abb32`. El selector **ES / EN** está disponible en una esquina de la pantalla principal para permitir el cambio antes de navegar la interfaz y se refleja también en Configuración. La opción activa debe distinguirse sin competir visualmente con Nueva partida, Continuar o Configuración.
+
+Solo cambia el texto presentado. Código, IDs, nombres técnicos y contratos canónicos permanecen en español. La traducción no duplica layouts ni crea variantes funcionales por idioma; ambas lenguas comparten exactamente la misma estructura, reglas y recursos. `es.json` y `en.json` contienen exclusivamente presentación. Los catálogos jugables conservan sus `nombre` y `descripcion` españoles como respaldo: si una traducción falta, el usuario debe seguir viendo un texto válido y nunca `undefined` ni una clave técnica.
+
+P7.3A cubre estructura y contenido localizado. P7.3B cubrirá mensajes dinámicos y feedback de ejecución. Los textos ingleses más largos deben adaptarse dentro de los mismos paneles mediante flujo normal, wrapping y tamaños existentes; no se crearán paneles alternativos por idioma.
 
 
 ### P7.2 — Pantalla de configuración de presentación

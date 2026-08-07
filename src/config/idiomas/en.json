@@ -1,0 +1,1229 @@
+{
+  "meta": {
+    "idioma": "en",
+    "nombre": "English"
+  },
+  "interfaz": {
+    "menu": {
+      "nuevoJuego": "New Game",
+      "continuar": "Continue",
+      "configuracion": "Settings",
+      "beta": "Beta",
+      "continuarTitulo": "Continue as {nombre} (level {nivel})"
+    },
+    "idioma": {
+      "etiqueta": "Language",
+      "espanol": "Español",
+      "ingles": "English",
+      "selector": "Change language"
+    },
+    "configuracion": {
+      "titulo": "Settings",
+      "velocidad": "Animation speed",
+      "cargando": "Loading...",
+      "ayudaVelocidad": "Changes only presentation speed in Phaser.",
+      "efectosReducidos": "Reduced visual effects",
+      "ayudaEfectos": "Reduces secondary effects without changing gameplay.",
+      "zoom": "Initial map zoom",
+      "reducirZoom": "Decrease initial zoom",
+      "aumentarZoom": "Increase initial zoom",
+      "ayudaZoom": "Defines how the camera starts. The mouse wheel and zoom keys still work during play.",
+      "pantallaCompleta": "Fullscreen",
+      "activarPantallaCompleta": "Enter fullscreen",
+      "salirPantallaCompleta": "Exit fullscreen",
+      "restablecer": "Restore defaults",
+      "volver": "Back",
+      "velocidadNormal": "Normal",
+      "velocidadRapida": "Fast",
+      "velocidadMuyRapida": "Very fast"
+    },
+    "creacion": {
+      "titulo": "Character Creation",
+      "nombre": "Name",
+      "profesion": "Profession",
+      "cargandoProfesiones": "Loading professions...",
+      "atributos": "Attributes",
+      "puntosDisponibles": "Available points:",
+      "reiniciarAtributos": "Reset attributes",
+      "distribuirProfesion": "Distribute by profession",
+      "comenzar": "Begin adventure",
+      "profesionSeleccionada": "Selected profession",
+      "conjuntoInicial": "Starting set",
+      "equipado": "Equipped",
+      "inventario": "Inventory",
+      "equipoRecomendado": "Recommended gear",
+      "equipoAlternativo": "Roll alternate gear",
+      "vistaProfesion": "View of {nombre}",
+      "origenAlternativo": "Alternate",
+      "origenRecomendado": "Recommended",
+      "sinEquipados": "No equipped items.",
+      "inventarioInicialVacio": "The starting inventory is empty.",
+      "armadura": "Armor",
+      "danioBase": "Base damage",
+      "alcance": "Range",
+      "magicos": "Magic",
+      "tipoArma": "Weapon",
+      "tipoArmadura": "Armor",
+      "tipoQuiver": "Quiver",
+      "tipoMunicion": "Ammunition",
+      "tipoConsumible": "Consumable",
+      "tipoMaterial": "Material",
+      "cantidad": "Quantity {cantidad}",
+      "danio": "Damage {minimo}-{maximo}",
+      "bloqueo": "Block",
+      "flechasIncluidas": "Arrows included: {cantidad}",
+      "consumibleInicial": "Starting consumable"
+    },
+    "juego": {
+      "controles": "MOVEMENT: arrows, WASD, or numpad. Press Space or 5 to wait one turn. COMBAT: f INTERACT: r",
+      "registro": "Event log",
+      "mensajeInicial": "Begin the adventure and explore the map.",
+      "inventario": "Inventory",
+      "inventarioVacio": "The inventory is empty.",
+      "equipamiento": "Equipment",
+      "personaje": "Character"
+    },
+    "personaje": {
+      "cargando": "Loading...",
+      "aventurero": "Adventurer",
+      "nivel": "Level {nivel}",
+      "vida": "Life",
+      "mana": "Mana",
+      "atributos": "Attributes",
+      "puntos": "Points",
+      "combate": "Combat",
+      "danioMedio": "Average damage",
+      "turno": "Turn",
+      "precision": "Accuracy",
+      "evasion": "Evasion",
+      "armadura": "Armor",
+      "critico": "Critical",
+      "bloqueo": "Block",
+      "regenVida": "Life regen.",
+      "regenMana": "Mana regen.",
+      "alcance": "Range",
+      "resistencias": "Resistances",
+      "fuego": "Fire",
+      "frio": "Frost",
+      "rayo": "Lightning",
+      "veneno": "Poison",
+      "congelamiento": "Freeze",
+      "aturdimiento": "Stun",
+      "envenenamiento": "Poisoning",
+      "quemadura": "Burn",
+      "puntosPendientes": "Unspent attribute points",
+      "aumentarAtributo": "Increase {atributo}",
+      "asignarAtributo": "Assign one point to {atributo}",
+      "magia": "Magic",
+      "danioMagico": "Magic damage",
+      "potenciaEfectos": "Effect power",
+      "xp": "XP",
+      "dpsAyuda": "Average raw damage per second. Includes attack speed, but not accuracy, critical hits, armor, or block.",
+      "danioMagicoAyuda": "Multiplier derived from Intelligence and Wisdom used by magical skills.",
+      "potenciaEfectosAyuda": "Multiplier derived from Wisdom and Intelligence. Each effect defines whether it scales value, duration, or both."
+    },
+    "curacion": {
+      "subtitulo": "Restore your resources before a new expedition.",
+      "oro": "Gold",
+      "cerrarServicios": "Close healing services",
+      "cerrar": "Close",
+      "introduccion": "The price depends only on the points you need to recover.",
+      "restaurarVida": "Restore Life",
+      "descripcionVida": "Restores all missing Life points.",
+      "restaurarMana": "Restore Mana",
+      "descripcionMana": "Restores all missing Mana points.",
+      "restaurarTodo": "Restore all",
+      "descripcionTodo": "Restores Life and Mana in a single operation.",
+      "estadoActual": "Current state",
+      "puntosFaltantes": "Missing points",
+      "vidaFaltante": "Missing Life",
+      "manaFaltante": "Missing Mana",
+      "precio": "Price",
+      "precioTotal": "Total price",
+      "calcular": "Calculate service"
+    },
+    "mensajes": {
+      "preferenciasInvalidas": "Saved preferences were invalid. Default values were used.",
+      "preferenciasGuardadas": "Preferences saved. They will apply when the game starts.",
+      "preferenciaError": "The selected preference could not be saved.",
+      "preferenciasRestauradas": "Default values were restored.",
+      "restablecerError": "Preferences could not be reset.",
+      "fullscreenNoDisponible": "This browser does not allow the application to enter fullscreen.",
+      "fullscreenError": "Fullscreen mode could not be changed.",
+      "confirmarReemplazo": "A saved game already exists. Creating this character will replace its progress. Continue?",
+      "guardadoAccesoError": "The browser save could not be accessed.",
+      "guardadoCargaError": "The saved game could not be loaded. You can start a new game.",
+      "guardadoInexistente": "There is no saved game to continue.",
+      "inicioError": "The game configuration could not be loaded."
+    },
+    "habilidades": {
+      "abrir": "Skills",
+      "abrirTitulo": "Open skills and masteries",
+      "progresoPersonaje": "Character progress",
+      "titulo": "Skills and masteries",
+      "cerrar": "Close skills",
+      "categoriasAria": "Mastery categories",
+      "categoriaMagicas": "Magic",
+      "categoriaBasicas": "Basic",
+      "categoriaArmas": "Weapons",
+      "categoriaArmaduras": "Armor",
+      "universales": "Universal",
+      "especificos": "Specific",
+      "maestriaMagica": "Magic mastery",
+      "puntosEspecificos": "Specific points",
+      "nivel": "Level {nivel} / {maximo}",
+      "grado": "Rank {grado} / {maximo}",
+      "sinDescripcion": "No description.",
+      "requiereNivel": "Requires mastery level {nivel}.",
+      "requisitoCumplido": "Mastery requirement met: level {nivel}.",
+      "mejorar": "Upgrade",
+      "aprender": "Learn",
+      "quitarRanura": "Remove from {ranura}",
+      "asignarBarra": "Assign to bar",
+      "ejecucionConstruccion": "Implementation in progress",
+      "ranuraVacia": "Empty",
+      "bloqueada": "Locked",
+      "disponible": "Available",
+      "aprendida": "Learned",
+      "mejorable": "Upgradeable",
+      "gradoMaximo": "Maximum rank",
+      "sinPuntos": "No points",
+      "asignada": "Assigned: {ranura}",
+      "seleccionada": "Selected",
+      "ranuraAria": "Slot {ranura} empty",
+      "ranuraHabilidadAria": "{nombre}, rank {grado}, slot {ranura}",
+      "listaUsar": "Ready to use",
+      "manaInsuficiente": "Insufficient Mana",
+      "mana": "Mana: {valor}",
+      "ranura": "Slot: {ranura}",
+      "gradoSimple": "Rank {grado}",
+      "nivelMaximo": "Maximum level",
+      "experienciaProgreso": "{actual} / {necesaria} XP",
+      "experienciaTotal": "Total accumulated experience: {valor}",
+      "lanzamiento": "Cast",
+      "pendienteContenido": "Pending a content stage",
+      "danioBase": "Base damage",
+      "manaEtiqueta": "Mana",
+      "tiempo": "Time",
+      "alcance": "Range",
+      "patron": "Pattern",
+      "lineaVision": "Line of sight",
+      "si": "Yes",
+      "no": "No",
+      "tooltipMaestria": "Mastery: {maestria} (level {nivel})",
+      "tooltipRequisito": "Requirement: level {nivel}",
+      "tooltipDanioBase": "Base damage: {valor}",
+      "tooltipTiempo": "Time: {valor}",
+      "tooltipAlcance": "Range: {valor}",
+      "tooltipPatron": "Pattern: {patron}",
+      "tooltipLineaVision": "Line of sight: {valor}",
+      "danioFisico": "Physical",
+      "patronAdyacente": "Adjacent",
+      "patronLineal": "Linear",
+      "patronLibre": "Free"
+    },
+    "mazmorras": {
+      "elegir": "Choose expedition",
+      "subtitulo": "Choose a dungeon and set the expedition level.",
+      "disponible": "Available",
+      "bloqueada": "Locked",
+      "nivel": "Level {nivel}",
+      "rangoNivel": "Level {minimo}–{maximo}",
+      "entrar": "Enter {nombre} · Level {nivel}",
+      "mapaBloqueado": "Map locked",
+      "nivelExpedicion": "Expedition level",
+      "vistaPrevia": "Preview of {nombre}",
+      "cerrar": "Close",
+      "cerrarAria": "Close expedition selection",
+      "requiereNivel": "Requires level {nivel}",
+      "desbloqueo": "Unlock",
+      "rangoDisponible": "Available range",
+      "nivelSugerido": "Suggested level",
+      "bioma": "Biome",
+      "nivelJugador": "Your level: {nivel}",
+      "nivelJugadorRequiere": "Your level: {nivel} · Requires {requerido}",
+      "disminuirNivel": "Decrease expedition level",
+      "aumentarNivel": "Increase expedition level",
+      "bloqueoNivel": "You need to reach level {nivel} to access this expedition.",
+      "riesgoFavorable": "Favorable",
+      "riesgoEquilibrado": "Balanced",
+      "riesgoDesafiante": "Challenging",
+      "riesgoPeligroso": "Dangerous",
+      "niveles": "Levels {minimo}–{maximo}",
+      "dimensiones": "{ancho} × {alto} tiles",
+      "sinEnemigos": "No enemies configured"
+    },
+    "comercio": {
+      "subtitulo": "Buy supplies or sell loot from your expeditions.",
+      "oro": "Gold",
+      "cerrar": "Close",
+      "cerrarAria": "Close trading",
+      "inventario": "Your inventory",
+      "stock": "Merchant stock",
+      "detalleVacio": "Select an item to review its details and price.",
+      "sinObjetos": "No items available.",
+      "operacion": "Transaction",
+      "cantidad": "Quantity",
+      "disminuir": "Decrease quantity",
+      "aumentar": "Increase quantity",
+      "maximo": "Max.",
+      "precio": "Price",
+      "seleccionarObjeto": "Select item",
+      "espacioVacio": "Empty slot",
+      "seleccionar": "Select {nombre}",
+      "noVendible": "Not sellable",
+      "venderVarias": "Sell multiple",
+      "comprar": "Buy",
+      "vender": "Sell",
+      "unidad": "1 u. · ",
+      "precioCompra": "Purchase price",
+      "precioVenta": "Sale price",
+      "monedas": "{cantidad} coins",
+      "cantidadInsuficiente": "Insufficient quantity",
+      "oroInsuficiente": "Not enough gold",
+      "comprarPor": "Buy for {cantidad}",
+      "venderPor": "Sell for {cantidad}"
+    },
+    "contenedores": {
+      "cerrarAria": "Close container",
+      "objetos": "Items",
+      "vacio": "The container is empty.",
+      "verDetalles": "View details for {nombre}",
+      "cerrar": "Close",
+      "recogerTodo": "Take all",
+      "recogerTodoAtajo": "Take all (R)",
+      "recoger": "Take"
+    },
+    "inventario": {
+      "espacioVacio": "Empty slot",
+      "verDetalles": "View details for {nombre}",
+      "resumenAria": "Inventory summary",
+      "casillas": "Slots",
+      "peso": "Weight",
+      "oro": "Gold",
+      "contenidoFlechas": "Contents: {cantidad} arrows.",
+      "resumen": "Inventory: {ocupadas} of {capacidad} slots occupied, weight {peso}, and {oro} gold coins."
+    },
+    "equipamiento": {
+      "ranuraVacia": "Empty slot",
+      "verDetalles": "View details for {nombre}",
+      "clicDetalles": "Click to view details.",
+      "cabeza": "Head",
+      "torso": "Torso",
+      "manos": "Hands",
+      "piernas": "Legs",
+      "pies": "Feet",
+      "arma": "Weapon",
+      "secundaria": "Off-hand",
+      "collar": "Necklace",
+      "anilloDerecho": "Right ring",
+      "anilloIzquierdo": "Left ring",
+      "contenidoFlechas": "Contents: {cantidad} arrows.",
+      "reservada": "Slot occupied by {nombre}.",
+      "dosManos": "2H"
+    },
+    "derrota": {
+      "titulo": "You have fallen",
+      "descripcion": "The darkness brought this adventure to an end.",
+      "nombre": "Name",
+      "clase": "Class",
+      "nivel": "Level",
+      "experiencia": "Experience",
+      "oro": "Gold",
+      "volverMenu": "Return to menu"
+    },
+    "curacionDinamica": {
+      "vida": "Life",
+      "mana": "Mana",
+      "restaurar": "Restore {recurso}",
+      "completo": "{recurso} full",
+      "restaurarTodo": "Restore all",
+      "recursosCompletos": "Resources full",
+      "oroInsuficiente": "Not enough gold",
+      "sinCosto": "Free",
+      "moneda": "{cantidad} coin",
+      "monedas": "{cantidad} coins"
+    },
+    "detalleObjeto": {
+      "sinDescripcion": "This item has no description available.",
+      "tipoArma": "Weapon",
+      "tipoArmadura": "Armor",
+      "tipoQuiver": "Quiver",
+      "tipoMunicion": "Ammunition type",
+      "tipoConsumible": "Consumable",
+      "tipoMaterial": "Material",
+      "mano": "hand",
+      "manos": "hands",
+      "peso": "Weight",
+      "noVendible": "Not sellable",
+      "valor": "Value",
+      "propioTotal": "{propio} own · {total} total",
+      "unidadTotal": "{unidad} each · {total} total",
+      "prefijo": "Prefix",
+      "sufijo": "Suffix",
+      "cuerpoACuerpo": "Melee",
+      "distancia": "Ranged",
+      "adyacente": "Adjacent",
+      "lineal": "Linear",
+      "libre": "Free",
+      "recuperaVida": "Restores Life",
+      "recuperaMana": "Restores Mana",
+      "danioElemental": "Elemental damage",
+      "elemento": "Element",
+      "danioFisico": "Physical damage",
+      "atributo": "Attribute",
+      "precision": "Accuracy",
+      "velocidadAtaque": "Attack speed",
+      "critico": "Critical",
+      "alcance": "Range",
+      "tipoAtaque": "Attack type",
+      "patron": "Pattern",
+      "manosEtiqueta": "Hands",
+      "potenciaHabilidad": "Skill Power",
+      "manaAtaque": "Mana per attack",
+      "municion": "Ammunition",
+      "armadura": "Armor",
+      "bloqueo": "Block",
+      "mitigacionBloqueo": "Block mitigation",
+      "capacidad": "Capacity",
+      "contenido": "Contents",
+      "cantidad": "Quantity",
+      "maximoPila": "Maximum stack",
+      "pila": "{cantidad} stack",
+      "unidades": "{cantidad} units",
+      "si": "Yes",
+      "no": "No",
+      "resistenciaFuego": "Fire resistance",
+      "resistenciaFrio": "Frost resistance",
+      "resistenciaRayo": "Lightning resistance",
+      "resistenciaVeneno": "Poison resistance",
+      "resistenciaCongelamiento": "Freeze resistance",
+      "resistenciaAturdimiento": "Stun resistance",
+      "resistenciaEnvenenamiento": "Poisoning resistance",
+      "resistenciaQuemadura": "Burn resistance",
+      "danioFisicoLocal": "local physical damage",
+      "vidaMaxima": "Maximum Life",
+      "manaMaximo": "Maximum Mana",
+      "probabilidadCritico": "critical chance",
+      "multiplicadorCritico": "critical multiplier",
+      "evasion": "Evasion",
+      "regeneracionVida": "Life regeneration",
+      "regeneracionMana": "Mana regeneration",
+      "probabilidadBloqueo": "block chance",
+      "mitigacionBloqueoAfijo": "block mitigation",
+      "porcentajeDe": "{valor} % {etiqueta}",
+      "valorDe": "{valor} {etiqueta}",
+      "agregaRango": "Adds {minimo}–{maximo} {descripcion}",
+      "danioElementoLocalAtaque": "local {elemento} damage to basic attacks",
+      "danioElementoLocal": "Local {elemento} damage",
+      "ataqueBasico": "basic attack",
+      "ataquesPorSegundo": "{valor} attacks/s",
+      "sinPropiedades": "This item has no special properties.",
+      "afijos": "Affixes",
+      "cantidadValor": "Quantity: {cantidad}",
+      "afijo": "Affix",
+      "cerrar": "Close",
+      "cerrarAria": "Close item details",
+      "volverObjeto": "Back to item",
+      "comparar": "Compare",
+      "elegirOtro": "Choose another",
+      "nivelObjeto": "Item level {nivel}"
+    },
+    "comparacionObjetos": {
+      "sinOpciones": "There are no other equipped items to compare.",
+      "objetoInspeccionado": "Inspected item",
+      "objetoElegido": "Selected item",
+      "propiedad": "Property",
+      "inspeccionado": "Inspected",
+      "elegido": "Selected",
+      "diferencia": "Difference",
+      "diferenciasAfijos": "Affix differences",
+      "sinDiferenciasAfijos": "The items have no affix differences.",
+      "elegirEquipado": "Choose an equipped item",
+      "inspeccionando": "Inspected item: {nombre}",
+      "titulo": "Item comparison",
+      "subtitulo": "The comparison is informational and does not change equipment.",
+      "soloInspeccionado": "Only on inspected",
+      "soloElegido": "Only on selected",
+      "cambia": "Changes",
+      "nivel": "Level {nivel}"
+    }
+  },
+  "contenido": {
+    "atributos": {
+      "fuerza": {
+        "nombre": "Strength"
+      },
+      "destreza": {
+        "nombre": "Dexterity"
+      },
+      "constitucion": {
+        "nombre": "Constitution"
+      },
+      "inteligencia": {
+        "nombre": "Intelligence"
+      },
+      "sabiduria": {
+        "nombre": "Wisdom"
+      },
+      "carisma": {
+        "nombre": "Charisma"
+      }
+    },
+    "profesiones": {
+      "guerrero": {
+        "nombre": "Warrior",
+        "descripcion": "A resilient fighter who can alternate between weapon and shield or two-handed weapons.",
+        "estiloJuego": "Protection, blocking, and direct physical damage."
+      },
+      "rogue": {
+        "nombre": "Rogue",
+        "descripcion": "An agile fighter who combines fast daggers with accurate ranged attacks.",
+        "estiloJuego": "Speed, evasion, critical hits, and weapon swapping."
+      },
+      "mago": {
+        "nombre": "Mage",
+        "descripcion": "An Intelligence-focused adventurer who uses staves or wands to channel magical abilities.",
+        "estiloJuego": "Range, Mana, and specialization in spells."
+      }
+    },
+    "conjuntosEquipo": {
+      "guerrero_espada_escudo": {
+        "nombre": "Sword and shield",
+        "descripcion": "A balanced setup with good defense, blocking, and steady damage."
+      },
+      "guerrero_hacha_escudo": {
+        "nombre": "Axe and shield",
+        "descripcion": "Stronger but less accurate blows while maintaining the same overall protection."
+      },
+      "guerrero_lanza": {
+        "nombre": "Protected spearman",
+        "descripcion": "Uses range two and compensates for the lack of a shield with a complete medium set."
+      },
+      "guerrero_mandoble": {
+        "nombre": "Offensive greatsword",
+        "descripcion": "Sacrifices blocking to start with the highest physical damage among Tier I weapons."
+      },
+      "rogue_daga_arco": {
+        "nombre": "Dagger and bow",
+        "descripcion": "Starts with a dagger equipped and keeps the bow and quiver as a ranged alternative."
+      },
+      "rogue_arco_preparado": {
+        "nombre": "Prepared archer",
+        "descripcion": "Starts attacking at range with the bow and quiver already equipped."
+      },
+      "rogue_doble_daga": {
+        "nombre": "Dual daggers",
+        "descripcion": "Increases melee pressure with two daggers while keeping the bow in the inventory."
+      },
+      "mago_baston": {
+        "nombre": "Apprentice staff",
+        "descripcion": "Recommended two-handed setup with steady damage based on Intelligence."
+      },
+      "mago_varita_escudo": {
+        "nombre": "Wand and shield",
+        "descripcion": "Trades offensive damage for range, blocking, and stronger starting defense."
+      },
+      "mago_baston_viajero": {
+        "nombre": "Traveler's staff",
+        "descripcion": "Keeps the staff and redistributes light pieces while preserving the same total armor."
+      }
+    },
+    "objetos": {
+      "capucha_tela": {
+        "nombre": "Cloth Hood",
+        "descripcion": "A simple cloth hood that protects the head without adding unnecessary weight."
+      },
+      "tunica_aprendiz": {
+        "nombre": "Apprentice Robe",
+        "descripcion": "A light robe used by apprentices and travelers who value freedom of movement."
+      },
+      "guantes_tela": {
+        "nombre": "Cloth Gloves",
+        "descripcion": "Light gloves offering minimal protection without hindering hand movement."
+      },
+      "pantalones_tela": {
+        "nombre": "Cloth Trousers",
+        "descripcion": "Comfortable cloth trousers suited to long journeys and exploration."
+      },
+      "botas_tela": {
+        "nombre": "Cloth Boots",
+        "descripcion": "Light boots that trade protection for an agile step."
+      },
+      "capucha_tela_reforzada": {
+        "nombre": "Reinforced Cloth Hood",
+        "descripcion": "A hood made from several layers of durable cloth."
+      },
+      "tunica_reforzada": {
+        "nombre": "Reinforced Robe",
+        "descripcion": "A reinforced robe that improves protection without losing flexibility."
+      },
+      "guantes_tela_reforzados": {
+        "nombre": "Reinforced Cloth Gloves",
+        "descripcion": "Reinforced gloves that protect the hands while preserving freedom of movement."
+      },
+      "pantalones_tela_reforzados": {
+        "nombre": "Reinforced Cloth Trousers",
+        "descripcion": "Layered trousers that provide improved light protection."
+      },
+      "botas_tela_reforzadas": {
+        "nombre": "Reinforced Cloth Boots",
+        "descripcion": "Light reinforced boots suited to quick movement."
+      },
+      "capucha_cuero": {
+        "nombre": "Leather Hood",
+        "descripcion": "Flexible leather protection for the head."
+      },
+      "jubon_acolchado": {
+        "nombre": "Padded Jerkin",
+        "descripcion": "Flexible torso protection suitable for beginning an adventure."
+      },
+      "guantes_cuero": {
+        "nombre": "Leather Gloves",
+        "descripcion": "Leather gloves that protect the hands without greatly limiting movement."
+      },
+      "pantalones_cuero": {
+        "nombre": "Leather Trousers",
+        "descripcion": "Flexible leather protection for the legs."
+      },
+      "botas_cuero": {
+        "nombre": "Leather Boots",
+        "descripcion": "Flexible boots offering basic protection."
+      },
+      "capucha_cuero_endurecido": {
+        "nombre": "Hardened Leather Hood",
+        "descripcion": "A treated leather hood that improves protection without becoming rigid."
+      },
+      "jubon_cuero_endurecido": {
+        "nombre": "Hardened Leather Jerkin",
+        "descripcion": "A hardened leather jerkin balancing protection, weight, and mobility."
+      },
+      "guantes_cuero_endurecido": {
+        "nombre": "Hardened Leather Gloves",
+        "descripcion": "Treated leather gloves that protect the hands during prolonged fights."
+      },
+      "pantalones_cuero_endurecido": {
+        "nombre": "Hardened Leather Trousers",
+        "descripcion": "Trousers reinforced with hardened leather for better leg protection."
+      },
+      "botas_cuero_endurecido": {
+        "nombre": "Hardened Leather Boots",
+        "descripcion": "Durable hardened-leather boots prepared for hostile terrain."
+      },
+      "casco_hierro": {
+        "nombre": "Iron Helmet",
+        "descripcion": "An iron helmet that provides solid head protection."
+      },
+      "coraza_hierro": {
+        "nombre": "Iron Cuirass",
+        "descripcion": "A heavy iron cuirass designed to withstand direct blows."
+      },
+      "guantes_hierro": {
+        "nombre": "Iron Gauntlets",
+        "descripcion": "Metal gauntlets that protect the hands at the cost of extra weight."
+      },
+      "grebas_hierro": {
+        "nombre": "Iron Greaves",
+        "descripcion": "Iron leg guards."
+      },
+      "botas_hierro": {
+        "nombre": "Iron Boots",
+        "descripcion": "Iron boots providing firm protection for the feet."
+      },
+      "casco_acero": {
+        "nombre": "Steel Helmet",
+        "descripcion": "A durable steel helmet prepared for high-risk encounters."
+      },
+      "coraza_acero": {
+        "nombre": "Steel Cuirass",
+        "descripcion": "A steel cuirass providing superior defense against physical attacks."
+      },
+      "guantes_acero": {
+        "nombre": "Steel Gauntlets",
+        "descripcion": "Reinforced steel gauntlets protecting the hands and forearms."
+      },
+      "grebas_acero": {
+        "nombre": "Steel Greaves",
+        "descripcion": "Steel greaves designed to withstand heavy blows to the legs."
+      },
+      "botas_acero": {
+        "nombre": "Steel Boots",
+        "descripcion": "Heavy steel boots completing a front-line defense."
+      },
+      "escudo_madera": {
+        "nombre": "Wooden Shield",
+        "descripcion": "A basic shield that provides armor and a chance to block part of incoming damage."
+      },
+      "escudo_hierro": {
+        "nombre": "Iron Shield",
+        "descripcion": "A heavy iron shield that improves armor and blocking."
+      },
+      "daga_hierro": {
+        "nombre": "Iron Dagger",
+        "descripcion": "A light, accurate dagger specialized in fast attacks and critical strikes."
+      },
+      "daga_acero": {
+        "nombre": "Steel Dagger",
+        "descripcion": "A balanced steel dagger for very fast attacks and frequent critical strikes."
+      },
+      "espada_larga": {
+        "nombre": "Longsword",
+        "descripcion": "A balanced sword combining good damage, accuracy, and speed."
+      },
+      "espada_acero": {
+        "nombre": "Steel Sword",
+        "descripcion": "A reliable steel sword, more damaging and accurate than its iron counterpart."
+      },
+      "hacha_mano": {
+        "nombre": "Hand Axe",
+        "descripcion": "A one-handed weapon with strong blows, though less accurate than a sword."
+      },
+      "hacha_batalla": {
+        "nombre": "Battle Axe",
+        "descripcion": "A one-handed steel axe that favors heavy blows over accuracy."
+      },
+      "mandoble_hierro": {
+        "nombre": "Iron Greatsword",
+        "descripcion": "A slow, inaccurate two-handed heavy sword capable of dealing great damage."
+      },
+      "mandoble_acero": {
+        "nombre": "Steel Greatsword",
+        "descripcion": "A massive two-handed steel blade capable of devastating damage."
+      },
+      "lanza": {
+        "nombre": "Spear",
+        "descripcion": "A two-handed weapon combining a firm thrust with the ability to attack from one extra tile away."
+      },
+      "lanza_reforzada": {
+        "nombre": "Reinforced Spear",
+        "descripcion": "A reinforced spear with improved damage that keeps control of corridors at range two."
+      },
+      "arco_corto": {
+        "nombre": "Short Bow",
+        "descripcion": "An accurate ranged bow that requires an equipped quiver."
+      },
+      "arco_recurvo": {
+        "nombre": "Recurve Bow",
+        "descripcion": "A stronger, more accurate recurve bow with greater range that still requires a quiver."
+      },
+      "baston_aprendiz": {
+        "nombre": "Apprentice Staff",
+        "descripcion": "A two-handed staff that channels the wielder’s Intelligence and empowers magical abilities."
+      },
+      "baston_reforzado": {
+        "nombre": "Reinforced Staff",
+        "descripcion": "A reinforced two-handed staff offering stronger magical channeling."
+      },
+      "varita_fuego_aprendiz": {
+        "nombre": "Apprentice Fire Wand",
+        "descripcion": "A one-handed wand attuned to Fire. It channels abilities and prepares a magical discharge without ammunition."
+      },
+      "varita_frio_aprendiz": {
+        "nombre": "Apprentice Frost Wand",
+        "descripcion": "A one-handed wand attuned to Frost. It channels abilities and prepares a magical discharge without ammunition."
+      },
+      "varita_electrica_aprendiz": {
+        "nombre": "Apprentice Lightning Wand",
+        "descripcion": "A one-handed wand attuned to Lightning. It channels abilities and prepares a magical discharge without ammunition."
+      },
+      "varita_veneno_aprendiz": {
+        "nombre": "Apprentice Poison Wand",
+        "descripcion": "A one-handed wand attuned to Poison. It channels abilities and prepares a magical discharge without ammunition."
+      },
+      "varita_fuego_canalizada": {
+        "nombre": "Channeled Fire Wand",
+        "descripcion": "A one-handed wand attuned to Fire and prepared to channel more powerful abilities."
+      },
+      "varita_frio_canalizada": {
+        "nombre": "Channeled Frost Wand",
+        "descripcion": "A one-handed wand attuned to Frost and prepared to channel more powerful abilities."
+      },
+      "varita_electrica_canalizada": {
+        "nombre": "Channeled Lightning Wand",
+        "descripcion": "A one-handed wand attuned to Lightning and prepared to channel more powerful abilities."
+      },
+      "varita_veneno_canalizada": {
+        "nombre": "Channeled Poison Wand",
+        "descripcion": "A one-handed wand attuned to Poison and prepared to channel more powerful abilities."
+      },
+      "pocion_curacion": {
+        "nombre": "Healing Potion",
+        "descripcion": "A small potion that restores a significant amount of Life."
+      },
+      "pocion_mana": {
+        "nombre": "Mana Potion",
+        "descripcion": "A small potion that restores a significant amount of Mana."
+      },
+      "quiver_cuero": {
+        "nombre": "Leather Quiver",
+        "descripcion": "A simple leather quiver with room for one stack of arrows."
+      },
+      "cola_rata": {
+        "nombre": "Rat Tail",
+        "descripcion": "The severed tail of a sewer rat. It can be kept as proof of a hunt or used in unpleasant preparations."
+      },
+      "caparazon_cucaracha": {
+        "nombre": "Cockroach Carapace",
+        "descripcion": "A hard, durable fragment from the carapace of a giant cockroach."
+      },
+      "hueso_esqueleto": {
+        "nombre": "Skeleton Bone",
+        "descripcion": "An old bone once animated by dark energy. It still carries a faint unnatural chill."
+      },
+      "carne_putrefacta": {
+        "nombre": "Rotten Flesh",
+        "descripcion": "A piece of decomposed flesh. Its smell leaves little doubt about its origin."
+      },
+      "hueso_negro": {
+        "nombre": "Black Bone",
+        "descripcion": "A bone fragment hardened and darkened by malignant energy. It is far tougher than an ordinary bone."
+      },
+      "flecha_madera": {
+        "nombre": "Wooden Arrow",
+        "descripcion": "A simple wooden arrow with a metal tip."
+      }
+    },
+    "afijos": {
+      "afilado": {
+        "nombre": "Sharp",
+        "descripcion": "Increases only the weapon’s minimum physical damage, making its hits more consistent."
+      },
+      "brutal": {
+        "nombre": "Brutal",
+        "descripcion": "Increases the weapon’s local physical damage by a percentage."
+      },
+      "reforzado": {
+        "nombre": "Reinforced",
+        "descripcion": "Adds Armor to the item."
+      },
+      "vigoroso": {
+        "nombre": "Vigorous",
+        "descripcion": "Increases maximum Life."
+      },
+      "arcano": {
+        "nombre": "Arcane",
+        "descripcion": "Would increase maximum Mana."
+      },
+      "ligero": {
+        "nombre": "Light",
+        "descripcion": "Would increase the weapon’s local attack speed."
+      },
+      "sanguinario": {
+        "nombre": "Bloodthirsty",
+        "descripcion": "Would add physical damage to all attacks."
+      },
+      "del_conquistador": {
+        "nombre": "Conqueror’s",
+        "descripcion": "Would increase all physical damage by a percentage."
+      },
+      "despiadado": {
+        "nombre": "Ruthless",
+        "descripcion": "Would grant additional multiplicative physical damage."
+      },
+      "fortificado": {
+        "nombre": "Fortified",
+        "descripcion": "Would increase the item’s base Armor by a percentage."
+      },
+      "ardiente": {
+        "nombre": "Burning",
+        "descripcion": "Adds local Fire damage to the weapon’s basic attack."
+      },
+      "glacial": {
+        "nombre": "Glacial",
+        "descripcion": "Adds local Frost damage to the weapon’s basic attack."
+      },
+      "electrificado": {
+        "nombre": "Electrified",
+        "descripcion": "Adds local Lightning damage to the weapon’s basic attack."
+      },
+      "venenoso": {
+        "nombre": "Venomous",
+        "descripcion": "Adds local Poison damage to the weapon’s basic attack."
+      },
+      "igneo": {
+        "nombre": "Fiery",
+        "descripcion": "Would increase one elemental damage type by a percentage."
+      },
+      "invernal": {
+        "nombre": "Wintry",
+        "descripcion": "Would increase one elemental damage type by a percentage."
+      },
+      "tempestuoso": {
+        "nombre": "Stormy",
+        "descripcion": "Would increase one elemental damage type by a percentage."
+      },
+      "toxico": {
+        "nombre": "Toxic",
+        "descripcion": "Would increase one elemental damage type by a percentage."
+      },
+      "abrasador": {
+        "nombre": "Scorching",
+        "descripcion": "Would grant a chance to Burn."
+      },
+      "congelante": {
+        "nombre": "Freezing",
+        "descripcion": "Would grant a chance to Freeze."
+      },
+      "aturdidor": {
+        "nombre": "Stunning",
+        "descripcion": "Would grant a chance to Stun."
+      },
+      "ponzonoso": {
+        "nombre": "Poisonous",
+        "descripcion": "Would grant a chance to Poison."
+      },
+      "enfocado": {
+        "nombre": "Focused",
+        "descripcion": "Increases the catalyst’s Ability Power."
+      },
+      "de_precision": {
+        "nombre": "of Precision",
+        "descripcion": "Increases weapon accuracy."
+      },
+      "del_verdugo": {
+        "nombre": "of the Executioner",
+        "descripcion": "Increases the weapon’s critical chance."
+      },
+      "de_devastacion": {
+        "nombre": "of Devastation",
+        "descripcion": "Increases the critical strike multiplier."
+      },
+      "de_evasion": {
+        "nombre": "of Evasion",
+        "descripcion": "Increases Evasion."
+      },
+      "de_regeneracion": {
+        "nombre": "of Regeneration",
+        "descripcion": "Increases flat Life regeneration."
+      },
+      "de_claridad": {
+        "nombre": "of Clarity",
+        "descripcion": "Would increase flat Mana regeneration."
+      },
+      "de_ascuas": {
+        "nombre": "of Embers",
+        "descripcion": "Increases the character’s Fire resistance."
+      },
+      "de_escarcha": {
+        "nombre": "of Frost",
+        "descripcion": "Increases the character’s Frost resistance."
+      },
+      "de_tormenta": {
+        "nombre": "of the Storm",
+        "descripcion": "Increases the character’s Lightning resistance."
+      },
+      "del_antidoto": {
+        "nombre": "of the Antidote",
+        "descripcion": "Increases the character’s Poison resistance."
+      },
+      "del_guardian": {
+        "nombre": "of the Guardian",
+        "descripcion": "Increases a shield’s block chance."
+      },
+      "de_absorcion": {
+        "nombre": "of Absorption",
+        "descripcion": "Increases the percentage of damage mitigated when blocking."
+      },
+      "de_fatalidad": {
+        "nombre": "of Fatality",
+        "descripcion": "Would increase the critical chance of all attacks."
+      },
+      "de_carniceria": {
+        "nombre": "of Carnage",
+        "descripcion": "Would increase the critical multiplier of all attacks."
+      },
+      "de_renovacion": {
+        "nombre": "of Renewal",
+        "descripcion": "Would regenerate a percentage of maximum Life."
+      },
+      "de_meditacion": {
+        "nombre": "of Meditation",
+        "descripcion": "Would regenerate a percentage of maximum Mana."
+      },
+      "del_oso": {
+        "nombre": "of the Bear",
+        "descripcion": "Would increase Strength."
+      },
+      "del_lince": {
+        "nombre": "of the Lynx",
+        "descripcion": "Would increase Dexterity."
+      },
+      "del_roble": {
+        "nombre": "of the Oak",
+        "descripcion": "Would increase Constitution."
+      },
+      "del_sabio": {
+        "nombre": "of the Sage",
+        "descripcion": "Would increase Intelligence."
+      },
+      "del_buho": {
+        "nombre": "of the Owl",
+        "descripcion": "Would increase Wisdom."
+      },
+      "del_soberano": {
+        "nombre": "of the Sovereign",
+        "descripcion": "Would increase Charisma."
+      },
+      "de_celeridad": {
+        "nombre": "of Celerity",
+        "descripcion": "Would increase movement speed."
+      },
+      "del_vampiro": {
+        "nombre": "of the Vampire",
+        "descripcion": "Would recover Life based on damage dealt."
+      },
+      "del_devorador": {
+        "nombre": "of the Devourer",
+        "descripcion": "Would recover Mana based on damage dealt."
+      },
+      "de_fortuna": {
+        "nombre": "of Fortune",
+        "descripcion": "Would increase the quality of items found."
+      },
+      "de_abundancia": {
+        "nombre": "of Abundance",
+        "descripcion": "Would increase the quantity of items found."
+      },
+      "del_taumaturgo": {
+        "nombre": "of the Thaumaturge",
+        "descripcion": "Would increase spell damage."
+      },
+      "de_canalizacion": {
+        "nombre": "of Channeling",
+        "descripcion": "Would increase casting speed."
+      },
+      "de_concentracion": {
+        "nombre": "of Concentration",
+        "descripcion": "Would increase spell accuracy."
+      },
+      "del_archimago": {
+        "nombre": "of the Archmage",
+        "descripcion": "Would increase Mana and spell power."
+      },
+      "del_deshielo": {
+        "nombre": "of Thawing",
+        "descripcion": "Increases Freeze resistance."
+      },
+      "de_firmeza": {
+        "nombre": "of Steadfastness",
+        "descripcion": "Increases Stun resistance."
+      },
+      "de_purificacion": {
+        "nombre": "of Purification",
+        "descripcion": "Increases Poisoning resistance."
+      },
+      "de_ceniza": {
+        "nombre": "of Ash",
+        "descripcion": "Increases Burn resistance."
+      }
+    },
+    "rarezas": {
+      "comun": {
+        "nombre": "Common"
+      },
+      "magico": {
+        "nombre": "Magic"
+      },
+      "raro": {
+        "nombre": "Rare"
+      },
+      "unico": {
+        "nombre": "Unique"
+      }
+    },
+    "enemigos": {
+      "rata": {
+        "nombre": "Rat"
+      },
+      "cucaracha": {
+        "nombre": "Cockroach"
+      },
+      "esqueleto_arquero": {
+        "nombre": "Skeleton Archer"
+      },
+      "esqueleto_guardia": {
+        "nombre": "Skeleton Guard"
+      },
+      "ladron": {
+        "nombre": "Thief"
+      },
+      "lancero": {
+        "nombre": "Spearman"
+      },
+      "hombre_rata_saqueador": {
+        "nombre": "Ratman Scavenger"
+      },
+      "zombi": {
+        "nombre": "Zombie"
+      },
+      "caballero_oseo": {
+        "nombre": "Bone Knight"
+      },
+      "comandante": {
+        "nombre": "Commander"
+      },
+      "senor_guerra": {
+        "nombre": "Warlord"
+      }
+    },
+    "variantesEnemigos": {
+      "enfermo": {
+        "masculino": "Sick",
+        "femenino": "Sick"
+      },
+      "gigante": {
+        "masculino": "Giant",
+        "femenino": "Giant"
+      },
+      "elite": {
+        "masculino": "Elite",
+        "femenino": "Elite"
+      }
+    },
+    "efectos": {
+      "ralentizacion": {
+        "nombre": "Slow"
+      },
+      "electrizacion": {
+        "nombre": "Electrification"
+      },
+      "congelamiento": {
+        "nombre": "Freeze"
+      },
+      "aturdimiento": {
+        "nombre": "Stun"
+      },
+      "envenenamiento": {
+        "nombre": "Poisoning"
+      },
+      "quemadura": {
+        "nombre": "Burn"
+      },
+      "paralisis": {
+        "nombre": "Paralysis"
+      },
+      "silencio": {
+        "nombre": "Silence"
+      }
+    },
+    "habilidades": {
+      "ascua": {
+        "nombre": "Ember",
+        "descripcion": "Launches a concentrated ember that deals immediate Fire damage to one enemy."
+      },
+      "explosion_ignea": {
+        "nombre": "Fiery Explosion",
+        "descripcion": "Detonates a mass of fire on a tile, damaging all enemies within the radius."
+      },
+      "incinerar": {
+        "nombre": "Incinerate",
+        "descripcion": "Projects a line of fire through enemies, dealing immediate damage and possibly applying Burn."
+      },
+      "esquirla_hielo": {
+        "nombre": "Ice Shard",
+        "descripcion": "Fires a shard that deals Frost damage and temporarily slows the enemy’s movement."
+      },
+      "nova_escarcha": {
+        "nombre": "Frost Nova",
+        "descripcion": "Releases a wave of cold around the caster that damages and slows nearby enemies."
+      },
+      "rafaga_glacial": {
+        "nombre": "Glacial Burst",
+        "descripcion": "Launches an intense burst of icy fragments that deals Frost damage and has a 60% base chance to apply Freeze."
+      },
+      "chispa": {
+        "nombre": "Spark",
+        "descripcion": "Releases a quick spark that deals Lightning damage and temporarily delays the enemy’s actions."
+      },
+      "cadena_rayos": {
+        "nombre": "Chain Lightning",
+        "descripcion": "Releases lightning that jumps between nearby enemies without striking the same target twice."
+      },
+      "descarga_fulminante": {
+        "nombre": "Thunderous Discharge",
+        "descripcion": "Launches a linear discharge through enemies, dealing Lightning damage and independently attempting to Stun each target."
+      },
+      "aguijon_toxico": {
+        "nombre": "Toxic Sting",
+        "descripcion": "Fires a venomous sting that deals immediate damage and leaves a temporary toxin."
+      },
+      "nube_toxica": {
+        "nombre": "Toxic Cloud",
+        "descripcion": "Creates a persistent cloud that poisons enemies already inside, those who enter, and those who remain within it."
+      },
+      "plaga_corrosiva": {
+        "nombre": "Corrosive Plague",
+        "descripcion": "Infects an enemy with Poisoning and can intensify a single instance up to the maximum for each rank."
+      },
+      "curacion_lunar": {
+        "nombre": "Moonlight Healing",
+        "descripcion": "Lythra channels moonlight to fully restore the target’s missing Life."
+      },
+      "restauracion_mana_lunar": {
+        "nombre": "Moonlight Mana Restoration",
+        "descripcion": "Lythra channels lunar energy to fully restore the target’s missing Mana."
+      }
+    },
+    "maestrias": {
+      "fuego": {
+        "nombre": "Fire"
+      },
+      "frio": {
+        "nombre": "Frost"
+      },
+      "rayo": {
+        "nombre": "Lightning"
+      },
+      "veneno": {
+        "nombre": "Poison"
+      }
+    },
+    "mapas": {
+      "alcantarilla": {
+        "nombre": "Sewers",
+        "descripcion": "Damp, narrow tunnels infested with vermin. A ratman scavenger occasionally ventures through the passages in search of abandoned items."
+      },
+      "cementerio": {
+        "nombre": "Cemetery",
+        "descripcion": "An abandoned graveyard where skeleton guards and archers patrol among the crypts. A zombie may emerge as an uncommon encounter."
+      },
+      "casa_guerrero": {
+        "nombre": "Warrior's House",
+        "descripcion": "An old military residence turned into a training ground for undead warriors. A Bone Knight occasionally guards its halls."
+      },
+      "fortaleza_abandonada": {
+        "nombre": "Abandoned Fortress",
+        "descripcion": "A ruined fortification occupied by thieves and spearmen who exploit its defensive corridors. A Commander may organize the resistance."
+      },
+      "sala_guerra": {
+        "nombre": "War Room",
+        "descripcion": "The military core of the fortress, where fighters from earlier expeditions gather under the Warlord’s command."
+      },
+      "ciudad_inicial": {
+        "nombre": "Dark Moon Refuge",
+        "descripcion": "A safe town where expeditions begin and end."
+      }
+    },
+    "entidades": {
+      "mercader_refugio": {
+        "nombre": "Edran, the Merchant",
+        "descripcion": "A refuge merchant who buys loot and prepares supplies for new expeditions.",
+        "interaccion": "Trade with Edran"
+      },
+      "curandera_refugio": {
+        "nombre": "Lythra, Lunar Healer",
+        "descripcion": "An elven healer who tends to those returning wounded or exhausted from the dungeons.",
+        "interaccion": "Receive care from Lythra"
+      },
+      "entrada_mazmorras": {
+        "nombre": "Dungeon Entrance",
+        "interaccion": "Choose dungeon"
+      }
+    },
+    "mercaderes": {
+      "mercader_refugio": {
+        "nombre": "Edran, the Merchant"
+      }
+    }
+  }
+}

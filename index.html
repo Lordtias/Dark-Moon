@@ -26,6 +26,11 @@
       ============================================= -->
       <section id="mainMenu" class="pantalla-menu-principal">
         <div class="menu-principal-capa">
+          <div class="selector-idioma selector-idioma--menu" role="group" aria-label="Cambiar idioma" data-i18n-aria-label="interfaz.idioma.selector">
+            <button id="botonIdiomaEsMenu" class="selector-idioma__opcion" type="button" aria-pressed="true">ES</button>
+            <span class="selector-idioma__separador" aria-hidden="true">|</span>
+            <button id="botonIdiomaEnMenu" class="selector-idioma__opcion" type="button" aria-pressed="false">EN</button>
+          </div>
           <h1 class="titulo-menu-principal">Dark Moon</h1>
           <p class="subtitulo-menu-principal">---</p>
           <p class="version-menu-principal">
@@ -74,6 +79,15 @@
 
           <div id="settingsPlaceholder" class="panel-configuracion-menu oculto">
             <h2>Configuración</h2>
+
+            <div class="opcion-configuracion opcion-configuracion--idioma">
+              <span class="etiqueta-configuracion" data-i18n="interfaz.idioma.etiqueta">Idioma</span>
+              <div class="selector-idioma selector-idioma--configuracion" role="group" aria-label="Cambiar idioma" data-i18n-aria-label="interfaz.idioma.selector">
+                <button id="botonIdiomaEsConfiguracion" class="selector-idioma__opcion" type="button" aria-pressed="true">ES</button>
+                <span class="selector-idioma__separador" aria-hidden="true">|</span>
+                <button id="botonIdiomaEnConfiguracion" class="selector-idioma__opcion" type="button" aria-pressed="false">EN</button>
+              </div>
+            </div>
 
             <div class="opcion-configuracion">
               <label for="animationSpeedSelect">Velocidad de animaciones</label>
@@ -531,7 +545,7 @@
       </section>
 
       <!-- Resistencias elementales y resistencias a efectos actuales. -->
-      <section class="seccion-panel">
+      <section class="seccion-panel" data-seccion-personaje="resistencias">
         <h3>Resistencias</h3>
 
         <div class="resumen-personaje">

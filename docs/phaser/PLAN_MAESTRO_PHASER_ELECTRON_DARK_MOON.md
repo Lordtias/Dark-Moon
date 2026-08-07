@@ -1355,7 +1355,7 @@ Estado: **validada y cerrada** en `9d7938fc0d92c5735a9df81dddd42834903bac68`.
 
 ### P7.2 — Configuración real
 
-Estado: **implementada técnicamente; pendiente de validación manual y commit**.
+Estado: **validada y cerrada** en `93cbd48cb29c77c9af8f3de222e13437971abb32`.
 
 - `src/config/presentacion/PreferenciasInterfaz.json` es la fuente canónica de los valores iniciales y límites configurables;
 - la persistencia guarda únicamente overrides elegidos por el usuario y no copia defaults automáticamente a `localStorage`;
@@ -1375,14 +1375,29 @@ No se mostrará un control de volumen mientras Dark Moon no tenga un sistema de 
 
 ### P7.3 — Internacionalización y centralización de textos
 
-- centralizar textos y mensajes presentados al usuario;
-- incorporar Español e Inglés;
-- agregar un selector discreto **ES / EN** en una esquina de la pantalla principal junto a Nueva partida, Continuar y Configuración;
-- reflejar la misma preferencia en Configuración;
-- persistir el idioma elegido;
-- aplicar la traducción a menús, HUD, inventario, equipamiento, habilidades, comercio, Lythra, mensajes de combate, errores y ayuda.
+P7.3 se divide en dos subetapas para evitar mezclar la migración estructural de la interfaz con la conversión semántica de los mensajes de ejecución.
 
-Regla canónica de internacionalización: **solo cambia el texto presentado al usuario**. Código, nombres técnicos, claves jugables e IDs continúan en español (`rafaga_glacial`, `congelamiento`, `curacion_lunar`, etc.). No se traducen identificadores internos ni se duplican catálogos jugables por idioma.
+#### P7.3A — Infraestructura bilingüe y contenido localizado
+
+Estado: **implementada técnicamente; pendiente de validación manual y commit**.
+
+- centralizar presentación en `src/config/idiomas/es.json` y `en.json`;
+- Español es el idioma canónico inicial y `idioma` reutiliza la persistencia de overrides de P7.2;
+- agregar un selector discreto **ES / EN** en la esquina del menú principal y reflejarlo en Configuración;
+- cambiar idioma sin recargar y mantener actualizado `<html lang>`;
+- localizar textos estructurales de menú, creación, HUD, personaje, inventario, equipamiento, objetos, comercio, Lythra, mazmorras y habilidades/maestrías;
+- localizar nombres/descripciones por ID canónico para objetos, afijos, profesiones, mapas, enemigos, efectos, habilidades, maestrías y contenido relacionado;
+- conservar `nombre` y `descripcion` españoles de los catálogos jugables como fallback explícito cuando falte una traducción;
+- validar paridad ES/EN, valores no vacíos y parámetros de plantillas.
+
+#### P7.3B — Mensajes dinámicos y cierre bilingüe
+
+- reemplazar mensajes visibles literales por contratos semánticos traducibles;
+- eliminar la clasificación visual dependiente de buscar palabras españolas en `MensajesJuego.js`;
+- localizar combate, movimiento, interacciones, comercio, consumibles, estados, zonas, progreso, muerte, botín y feedback Phaser/Canvas;
+- auditar el repo para que no queden textos visibles dependientes accidentalmente del español.
+
+Regla canónica de internacionalización: **solo cambia el texto presentado al usuario**. Código, variables, nombres técnicos, claves jugables e IDs continúan en español (`rafaga_glacial`, `congelamiento`, `curacion_lunar`, etc.). Los JSON funcionales siguen siendo únicos: no se agregan `nombreEN`/`descripcionEN` ni se duplican catálogos jugables por idioma.
 
 ### P7.4 — Experiencia de tester
 
@@ -1993,8 +2008,9 @@ Continuar restaura únicamente el estado durable del personaje y siempre comienz
 
 Plan posterior aprobado:
 
-1. P7.2 — configuración real;
-2. P7.3 — internacionalización Español/Inglés y centralización de textos, traduciendo solo presentación y manteniendo código/IDs en español;
+1. P7.2 — configuración real, validada en `93cbd48cb29c77c9af8f3de222e13437971abb32`;
+2. P7.3A — infraestructura bilingüe y contenido localizado;
+3. P7.3B — mensajes dinámicos, feedback Phaser/Canvas y cierre bilingüe;
 3. P7.4 — experiencia de tester;
 4. P7.5 — candidato beta web y regresión final.
 

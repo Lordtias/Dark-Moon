@@ -1,11 +1,12 @@
 const RUTA_PREFERENCIAS_INTERFAZ =
   "./src/config/presentacion/PreferenciasInterfaz.json";
-const VERSION_SOPORTADA = 1;
+const VERSION_SOPORTADA = 2;
 
 const CLAVES_PREFERENCIAS = Object.freeze([
   "velocidadAnimaciones",
   "efectosReducidos",
   "zoomInicial",
+  "idioma",
 ]);
 
 export async function cargarConfiguracionPreferenciasInterfaz({
@@ -40,6 +41,7 @@ export function validarConfiguracionPreferenciasInterfaz(configuracion) {
   validarVelocidadAnimaciones(preferencias.velocidadAnimaciones);
   validarEfectosReducidos(preferencias.efectosReducidos);
   validarZoomInicial(preferencias.zoomInicial);
+  validarIdioma(preferencias.idioma);
 
   for (const clave of CLAVES_PREFERENCIAS) {
     if (!Object.prototype.hasOwnProperty.call(preferencias, clave)) {
@@ -63,6 +65,10 @@ export function validarConfiguracionPreferenciasInterfaz(configuracion) {
         maximo: preferencias.zoomInicial.maximo,
         paso: preferencias.zoomInicial.paso,
       },
+      idioma: {
+        valorInicial: preferencias.idioma.valorInicial,
+        opciones: [...preferencias.idioma.opciones],
+      },
     },
   });
 }
@@ -75,6 +81,7 @@ export function crearPreferenciasIniciales(configuracion) {
       canonica.preferencias.velocidadAnimaciones.valorInicial,
     efectosReducidos: canonica.preferencias.efectosReducidos.valorInicial,
     zoomInicial: canonica.preferencias.zoomInicial.valorInicial,
+    idioma: canonica.preferencias.idioma.valorInicial,
   });
 }
 
@@ -103,6 +110,12 @@ export function resolverPreferenciasInterfaz({
       clave: "zoomInicial",
       valor: entrada.zoomInicial,
       respaldo: iniciales.zoomInicial,
+      configuracion: canonica,
+    }),
+    idioma: resolverValorPreferencia({
+      clave: "idioma",
+      valor: entrada.idioma,
+      respaldo: iniciales.idioma,
       configuracion: canonica,
     }),
   });
@@ -171,6 +184,7 @@ export function obtenerOpcionesPreferenciasInterfaz(configuracion) {
       maximo: zoom.maximo,
       paso: zoom.paso,
     }),
+    idiomas: Object.freeze([...canonica.preferencias.idioma.opciones]),
   });
 }
 
@@ -206,6 +220,10 @@ function resolverValorPreferencia({
       numero <= perfil.maximo &&
       estaAlineadoConPaso(numero, perfil.minimo, perfil.paso);
     normalizado = redondearDecimal(numero);
+  } else if (clave === "idioma") {
+    valido =
+      typeof valor === "string" &&
+      configuracion.preferencias.idioma.opciones.includes(valor);
   }
 
   if (valido) return normalizado;
@@ -270,6 +288,22 @@ function validarZoomInicial(configuracion) {
     throw new Error(
       "La preferencia zoomInicial no tiene límites o valor inicial válidos.",
     );
+  }
+}
+
+function validarIdioma(configuracion) {
+  if (
+    !esObjetoPlano(configuracion) ||
+    typeof configuracion.valorInicial !== "string" ||
+    !Array.isArray(configuracion.opciones) ||
+    configuracion.opciones.length < 2 ||
+    configuracion.opciones.some(
+      (opcion) => typeof opcion !== "string" || opcion.trim() === "",
+    ) ||
+    new Set(configuracion.opciones).size !== configuracion.opciones.length ||
+    !configuracion.opciones.includes(configuracion.valorInicial)
+  ) {
+    throw new Error("La preferencia idioma no tiene una configuración válida.");
   }
 }
 

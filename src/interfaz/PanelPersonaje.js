@@ -1,4 +1,5 @@
 import { calcularDpsCombatiente } from "../juego/combate/CalculadorDPS.js";
+import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
 const ATRIBUTOS = [
   "fuerza",
@@ -56,10 +57,11 @@ export class PanelPersonaje {
     }
 
     etiqueta.textContent = "DPS";
-    contenedorDato.title =
-      "Daño bruto medio por segundo. " +
-      "Incluye la velocidad del ataque, pero no " +
-      "precisión, críticos, armadura ni bloqueo.";
+    contenedorDato.title = traducir("interfaz.personaje.dpsAyuda", {
+      respaldo:
+        "Daño bruto medio por segundo. Incluye la velocidad del ataque, " +
+        "pero no precisión, críticos, armadura ni bloqueo.",
+    });
   }
 
   // Agrega solamente los dos derivados mágicos necesarios para esta etapa.
@@ -70,34 +72,35 @@ export class PanelPersonaje {
     seccion.dataset.seccionPersonaje = "magia";
 
     const titulo = document.createElement("h3");
-    titulo.textContent = "Magia";
+    titulo.textContent = traducir("interfaz.personaje.magia", { respaldo: "Magia" });
     seccion.append(titulo);
 
     const resumen = document.createElement("div");
     resumen.className = "resumen-personaje";
     resumen.append(
       this.crearDatoMagico({
-        etiqueta: "Daño mágico",
+        etiqueta: traducir("interfaz.personaje.danioMagico", { respaldo: "Daño mágico" }),
         campo: "danio-magico",
-        descripcion:
-          "Multiplicador derivado de Inteligencia y Sabiduría " +
-          "que usarán las habilidades mágicas.",
+        descripcion: traducir("interfaz.personaje.danioMagicoAyuda", {
+          respaldo:
+            "Multiplicador derivado de Inteligencia y Sabiduría " +
+            "que usarán las habilidades mágicas.",
+        }),
       }),
       this.crearDatoMagico({
-        etiqueta: "Potencia de efectos",
+        etiqueta: traducir("interfaz.personaje.potenciaEfectos", { respaldo: "Potencia de efectos" }),
         campo: "potencia-efectos",
-        descripcion:
-          "Multiplicador derivado de Sabiduría e Inteligencia. " +
-          "Cada efecto define si escala valor, duración o ambos.",
+        descripcion: traducir("interfaz.personaje.potenciaEfectosAyuda", {
+          respaldo:
+            "Multiplicador derivado de Sabiduría e Inteligencia. " +
+            "Cada efecto define si escala valor, duración o ambos.",
+        }),
       }),
     );
     seccion.append(resumen);
 
-    const seccionResistencias = Array.from(
-      this.contenedor.querySelectorAll(".seccion-panel"),
-    ).find(
-      (actual) =>
-        actual.querySelector("h3")?.textContent.trim() === "Resistencias",
+    const seccionResistencias = this.contenedor.querySelector(
+      '[data-seccion-personaje="resistencias"]',
     );
 
     if (seccionResistencias) {
@@ -155,10 +158,13 @@ export class PanelPersonaje {
     const resultadoDps = calcularDpsCombatiente(player);
 
     this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
-    this.obtener('[data-personaje="clase"]').textContent =
-      player.clasePersonaje;
-    this.obtener('[data-personaje="nivel"]').textContent =
-      `Nivel ${player.nivel}`;
+    this.obtener('[data-personaje="clase"]').textContent = traducirContenido(
+      "profesiones", player.idProfesion, "nombre", player.clasePersonaje,
+    );
+    this.obtener('[data-personaje="nivel"]').textContent = traducir(
+      "interfaz.personaje.nivel",
+      { parametros: { nivel: player.nivel }, respaldo: `Nivel ${player.nivel}` },
+    );
     this.actualizarExperiencia(player);
     this.obtener('[data-personaje="puntos-atributo"]').textContent =
       player.puntosAtributoDisponibles;
@@ -237,7 +243,8 @@ export class PanelPersonaje {
   // Actualiza el texto y el ancho de la barra de experiencia.
   actualizarExperiencia(player) {
     this.obtener('[data-personaje="experiencia-texto"]').textContent =
-      `${player.experiencia} / ` + `${player.experienciaNecesaria} PX`;
+      `${player.experiencia} / ${player.experienciaNecesaria} ` +
+      traducir("interfaz.personaje.xp", { respaldo: "PX" });
     this.obtener('[data-personaje="experiencia-barra"]').style.width =
       `${this.limitarPorcentaje(player.porcentajeExperiencia)}%`;
   }

@@ -3,6 +3,7 @@ import { agregarRepresentacionObjeto } from "../RepresentacionObjeto.js";
 import { crearPresentacionObjeto } from "../objetos/PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "../objetos/VistaDetalleObjeto.js";
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const ORIGENES_COMERCIO = Object.freeze({
   JUGADOR: "jugador",
@@ -103,7 +104,7 @@ export class ModalComercio {
 
       "modal-comercio__subtitulo",
 
-      "Comprá provisiones o vendé el botín de tus expediciones.",
+      traducir("interfaz.comercio.subtitulo", { respaldo: "Comprá provisiones o vendé el botín de tus expediciones." }),
     );
 
     bloqueTitulo.append(this.titulo, this.subtitulo);
@@ -115,7 +116,7 @@ export class ModalComercio {
 
       "modal-comercio__estado-etiqueta",
 
-      "Oro",
+      traducir("interfaz.comercio.oro", { respaldo: "Oro" }),
     );
 
     this.valorOro = crearElemento("strong", "modal-comercio__oro", "0");
@@ -130,9 +131,9 @@ export class ModalComercio {
 
     this.botonCerrarSuperior.type = "button";
 
-    this.botonCerrarSuperior.title = "Cerrar";
+    this.botonCerrarSuperior.title = traducir("interfaz.comercio.cerrar", { respaldo: "Cerrar" });
 
-    this.botonCerrarSuperior.setAttribute("aria-label", "Cerrar comercio");
+    this.botonCerrarSuperior.setAttribute("aria-label", traducir("interfaz.comercio.cerrarAria", { respaldo: "Cerrar comercio" }));
 
     bloqueEstado.append(etiquetaOro, this.valorOro, this.botonCerrarSuperior);
 
@@ -141,7 +142,7 @@ export class ModalComercio {
     const cuerpo = crearElemento("div", "modal-comercio__cuerpo");
 
     const seccionJugador = this.crearSeccionContenedor({
-      titulo: "Tu inventario",
+      titulo: traducir("interfaz.comercio.inventario", { respaldo: "Tu inventario" }),
 
       modificador: "jugador",
     });
@@ -157,7 +158,7 @@ export class ModalComercio {
 
       "modal-comercio__detalle-vacio",
 
-      "Seleccioná un objeto para revisar sus detalles y precio.",
+      traducir("interfaz.comercio.detalleVacio", { respaldo: "Seleccioná un objeto para revisar sus detalles y precio." }),
     );
 
     this.contenedorVistaDetalle = crearElemento(
@@ -176,7 +177,7 @@ export class ModalComercio {
     );
 
     const seccionMercader = this.crearSeccionContenedor({
-      titulo: "Stock del mercader",
+      titulo: traducir("interfaz.comercio.stock", { respaldo: "Stock del mercader" }),
 
       modificador: "mercader",
     });
@@ -200,7 +201,7 @@ export class ModalComercio {
     this.botonCerrar = crearElemento(
       "button",
       "modal-comercio__boton",
-      "Cerrar",
+      traducir("interfaz.comercio.cerrar", { respaldo: "Cerrar" }),
     );
 
     this.botonCerrar.type = "button";
@@ -238,7 +239,7 @@ export class ModalComercio {
 
       "modal-comercio__vacio",
 
-      "No hay objetos disponibles.",
+      traducir("interfaz.comercio.sinObjetos", { respaldo: "No hay objetos disponibles." }),
     );
 
     seccion.append(elementoTitulo, lista, mensajeVacio);
@@ -259,7 +260,7 @@ export class ModalComercio {
 
       "modal-comercio__operacion-titulo",
 
-      "Operación",
+      traducir("interfaz.comercio.operacion", { respaldo: "Operación" }),
     );
 
     const cantidad = crearElemento("div", "modal-comercio__cantidad");
@@ -269,7 +270,7 @@ export class ModalComercio {
 
       "modal-comercio__cantidad-etiqueta",
 
-      "Cantidad",
+      traducir("interfaz.comercio.cantidad", { respaldo: "Cantidad" }),
     );
 
     const controlesCantidad = crearElemento(
@@ -278,7 +279,7 @@ export class ModalComercio {
       "modal-comercio__cantidad-controles",
     );
 
-    this.botonDisminuir = crearBotonCantidad("−", "Disminuir cantidad");
+    this.botonDisminuir = crearBotonCantidad("−", traducir("interfaz.comercio.disminuir", { respaldo: "Disminuir cantidad" }));
 
     this.inputCantidad = document.createElement("input");
 
@@ -292,7 +293,7 @@ export class ModalComercio {
 
     this.inputCantidad.value = "1";
 
-    this.botonAumentar = crearBotonCantidad("+", "Aumentar cantidad");
+    this.botonAumentar = crearBotonCantidad("+", traducir("interfaz.comercio.aumentar", { respaldo: "Aumentar cantidad" }));
 
     controlesCantidad.append(
       this.botonDisminuir,
@@ -307,7 +308,7 @@ export class ModalComercio {
     );
 
     for (const preset of [1, 5, 10, "max"]) {
-      const texto = preset === "max" ? "Máx." : `${preset}`;
+      const texto = preset === "max" ? traducir("interfaz.comercio.maximo", { respaldo: "Máx." }) : `${preset}`;
 
       const boton = crearElemento(
         "button",
@@ -346,7 +347,7 @@ export class ModalComercio {
 
       "modal-comercio__precio-etiqueta",
 
-      "Precio",
+      traducir("interfaz.comercio.precio", { respaldo: "Precio" }),
     );
 
     this.valorPrecio = crearElemento(
@@ -370,7 +371,7 @@ export class ModalComercio {
 
       "modal-comercio__boton",
 
-      "Seleccionar objeto",
+      traducir("interfaz.comercio.seleccionarObjeto", { respaldo: "Seleccionar objeto" }),
     );
 
     this.botonOperacion.type = "button";
@@ -446,9 +447,15 @@ export class ModalComercio {
 
     this.alVender = alVender;
 
-    this.titulo.textContent = mercader.nombre;
+    const nombreMercader = traducirContenido(
+      "mercaderes",
+      mercader.id,
+      "nombre",
+      mercader.nombre,
+    );
+    this.titulo.textContent = nombreMercader;
 
-    this.tituloStockMercader.textContent = mercader.nombre;
+    this.tituloStockMercader.textContent = nombreMercader;
 
     this.mensajeEstado.textContent = "";
 
@@ -552,7 +559,7 @@ export class ModalComercio {
     if (!objeto) {
       slot.classList.add("modal-comercio__slot--vacio");
 
-      slot.setAttribute("aria-label", "Espacio vacío");
+      slot.setAttribute("aria-label", traducir("interfaz.comercio.espacioVacio", { respaldo: "Espacio vacío" }));
 
       return slot;
     }
@@ -568,7 +575,11 @@ export class ModalComercio {
 
     slot.setAttribute("aria-selected", `${seleccionado}`);
 
-    slot.setAttribute("aria-label", `Seleccionar ${objeto.nombre}`);
+    const nombreObjeto = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
+    slot.setAttribute("aria-label", traducir("interfaz.comercio.seleccionar", {
+      parametros: { nombre: nombreObjeto },
+      respaldo: `Seleccionar ${nombreObjeto}`,
+    }));
 
     agregarRepresentacionObjeto({
       contenedor: slot,
@@ -583,7 +594,7 @@ export class ModalComercio {
 
       "modal-comercio__nombre",
 
-      objeto.nombre,
+      nombreObjeto,
     );
 
     const precio = crearElemento(
@@ -633,15 +644,19 @@ export class ModalComercio {
 
     if (origen === ORIGENES_COMERCIO.JUGADOR && !calculo.permitido) {
       return calculo.motivoNoPermitido === "objetoNoVendible"
-        ? "No vendible"
-        : "Vender varias";
+        ? traducir("interfaz.comercio.noVendible", { respaldo: "No vendible" })
+        : traducir("interfaz.comercio.venderVarias", { respaldo: "Vender varias" });
     }
 
     const etiqueta =
-      origen === ORIGENES_COMERCIO.MERCADER ? "Comprar" : "Vender";
+      origen === ORIGENES_COMERCIO.MERCADER
+        ? traducir("interfaz.comercio.comprar", { respaldo: "Comprar" })
+        : traducir("interfaz.comercio.vender", { respaldo: "Vender" });
 
     const prefijoUnidad =
-      objeto.apilable && objeto.cantidad > 1 ? "1 u. · " : "";
+      objeto.apilable && objeto.cantidad > 1
+        ? traducir("interfaz.comercio.unidad", { respaldo: "1 u. · " })
+        : "";
 
     return (
       `${etiqueta}: ` +
@@ -727,11 +742,13 @@ export class ModalComercio {
           cantidad: this.cantidadSeleccionada,
         });
 
-    this.tituloOperacion.textContent = esCompra ? "Comprar" : "Vender";
+    this.tituloOperacion.textContent = esCompra
+      ? traducir("interfaz.comercio.comprar", { respaldo: "Comprar" })
+      : traducir("interfaz.comercio.vender", { respaldo: "Vender" });
 
     this.etiquetaPrecio.textContent = esCompra
-      ? "Precio de compra"
-      : "Precio de venta";
+      ? traducir("interfaz.comercio.precioCompra", { respaldo: "Precio de compra" })
+      : traducir("interfaz.comercio.precioVenta", { respaldo: "Precio de venta" });
 
     if (!calculo) {
       this.valorPrecio.textContent = "—";
@@ -744,13 +761,16 @@ export class ModalComercio {
       return;
     }
 
-    this.valorPrecio.textContent = `${formatearMonedas(calculo.precioTotal)} monedas`;
+    this.valorPrecio.textContent = traducir("interfaz.comercio.monedas", {
+      parametros: { cantidad: formatearMonedas(calculo.precioTotal) },
+      respaldo: `${formatearMonedas(calculo.precioTotal)} monedas`,
+    });
 
     if (!calculo.permitido) {
       this.botonOperacion.textContent =
         calculo.motivoNoPermitido === "objetoNoVendible"
-          ? "No vendible"
-          : "Cantidad insuficiente";
+          ? traducir("interfaz.comercio.noVendible", { respaldo: "No vendible" })
+          : traducir("interfaz.comercio.cantidadInsuficiente", { respaldo: "Cantidad insuficiente" });
 
       this.botonOperacion.disabled = true;
 
@@ -760,7 +780,7 @@ export class ModalComercio {
     }
 
     if (esCompra && !calculo.puedePagar) {
-      this.botonOperacion.textContent = "Oro insuficiente";
+      this.botonOperacion.textContent = traducir("interfaz.comercio.oroInsuficiente", { respaldo: "Oro insuficiente" });
 
       this.botonOperacion.disabled = true;
 
@@ -776,8 +796,14 @@ export class ModalComercio {
     }
 
     this.botonOperacion.textContent = esCompra
-      ? `Comprar por ${formatearMonedas(calculo.precioTotal)}`
-      : `Vender por ${formatearMonedas(calculo.precioTotal)}`;
+      ? traducir("interfaz.comercio.comprarPor", {
+          parametros: { cantidad: formatearMonedas(calculo.precioTotal) },
+          respaldo: `Comprar por ${formatearMonedas(calculo.precioTotal)}`,
+        })
+      : traducir("interfaz.comercio.venderPor", {
+          parametros: { cantidad: formatearMonedas(calculo.precioTotal) },
+          respaldo: `Vender por ${formatearMonedas(calculo.precioTotal)}`,
+        });
 
     this.botonOperacion.disabled = false;
 

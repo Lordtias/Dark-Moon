@@ -1,3 +1,5 @@
+import { traducirContenido } from "../idiomas/ContextoIdioma.js";
+
 // Mantiene la configuración visual de las rarezas
 // disponible para todos los componentes de objetos.
 //
@@ -57,7 +59,12 @@ export function obtenerPresentacionRarezaObjeto(idRareza = "comun") {
   return {
     id,
 
-    nombre: configuracion?.nombre ?? formatearIdentificador(id),
+    nombre: traducirContenido(
+      "rarezas",
+      id,
+      "nombre",
+      configuracion?.nombre ?? formatearIdentificador(id),
+    ),
 
     color: configuracion?.colorInterfaz ?? COLOR_RESPALDO,
 

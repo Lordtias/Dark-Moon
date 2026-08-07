@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "preferencias": {
     "velocidadAnimaciones": {
       "valorInicial": "normal",
@@ -17,6 +17,13 @@
       "minimo": 0.8,
       "maximo": 1.6,
       "paso": 0.1
+    },
+    "idioma": {
+      "valorInicial": "es",
+      "opciones": [
+        "es",
+        "en"
+      ]
     }
   }
 }

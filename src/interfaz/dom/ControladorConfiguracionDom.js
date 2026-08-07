@@ -1,7 +1,9 @@
-const ETIQUETAS_VELOCIDAD = Object.freeze({
-  normal: "Normal",
-  rapida: "Rápida",
-  "muy-rapida": "Muy rápida",
+import { traducir } from "../idiomas/ContextoIdioma.js";
+
+const CLAVES_VELOCIDAD = Object.freeze({
+  normal: "interfaz.configuracion.velocidadNormal",
+  rapida: "interfaz.configuracion.velocidadRapida",
+  "muy-rapida": "interfaz.configuracion.velocidadMuyRapida",
 });
 
 export class ControladorConfiguracionDom {
@@ -142,7 +144,7 @@ export class ControladorConfiguracionDom {
     for (const valor of opciones) {
       const opcion = this.documento.createElement("option");
       opcion.value = valor;
-      opcion.textContent = ETIQUETAS_VELOCIDAD[valor] ?? valor;
+      opcion.textContent = traducir(CLAVES_VELOCIDAD[valor] ?? valor, { respaldo: valor });
       this.selectorVelocidad.append(opcion);
     }
   }
@@ -185,7 +187,9 @@ export class ControladorConfiguracionDom {
   async alternarPantallaCompleta() {
     if (!this.documento?.fullscreenEnabled) {
       this.mostrarMensaje(
-        "Este navegador no permite activar pantalla completa desde la aplicación.",
+        traducir("interfaz.mensajes.fullscreenNoDisponible", {
+          respaldo: "Este navegador no permite activar pantalla completa desde la aplicación.",
+        }),
         { error: true },
       );
       return false;
@@ -202,7 +206,9 @@ export class ControladorConfiguracionDom {
     } catch (error) {
       console.warn("No se pudo cambiar el modo de pantalla completa:", error);
       this.mostrarMensaje(
-        "No se pudo cambiar el modo de pantalla completa.",
+        traducir("interfaz.mensajes.fullscreenError", {
+          respaldo: "No se pudo cambiar el modo de pantalla completa.",
+        }),
         { error: true },
       );
       return false;
@@ -214,8 +220,8 @@ export class ControladorConfiguracionDom {
     const activo = Boolean(this.documento?.fullscreenElement);
     this.botonPantallaCompleta.disabled = !soportado;
     this.botonPantallaCompleta.textContent = activo
-      ? "Salir de pantalla completa"
-      : "Activar pantalla completa";
+      ? traducir("interfaz.configuracion.salirPantallaCompleta", { respaldo: "Salir de pantalla completa" })
+      : traducir("interfaz.configuracion.activarPantallaCompleta", { respaldo: "Activar pantalla completa" });
   }
 
   deshabilitarControles(deshabilitar) {

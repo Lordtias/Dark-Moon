@@ -4,6 +4,9 @@ import { PresentacionMapaActivoDom } from "./PresentacionMapaActivoDom.js";
 import { AdaptadorDerrotaDom } from "../derrota/AdaptadorDerrotaDom.js";
 import { ControladorPantallasDom } from "./ControladorPantallasDom.js";
 import { ControladorConfiguracionDom } from "./ControladorConfiguracionDom.js";
+import { ControladorIdiomaDom } from "./ControladorIdiomaDom.js";
+import { AplicadorIdiomaDom } from "../idiomas/AplicadorIdiomaDom.js";
+import { configurarTraductorActivo, traducir } from "../idiomas/ContextoIdioma.js";
 
 // Construye y conecta la presentación HTML actual de Dark Moon.
 //
@@ -14,6 +17,8 @@ export class PresentacionAplicacionDom {
     this.adaptadorDerrota = null;
     this.tipoRenderizador = tipoRenderizador;
     this.Phaser = Phaser;
+    this.traductor = null;
+    this.aplicadorIdioma = null;
   }
 
   crearControladorPantallas() {
@@ -98,6 +103,31 @@ export class PresentacionAplicacionDom {
     });
   }
 
+  crearControladorIdioma() {
+    return new ControladorIdiomaDom({
+      botones: {
+        es: [
+          obtenerElementoObligatorio("botonIdiomaEsMenu", "selector ES del menú"),
+          obtenerElementoObligatorio("botonIdiomaEsConfiguracion", "selector ES de configuración"),
+        ],
+        en: [
+          obtenerElementoObligatorio("botonIdiomaEnMenu", "selector EN del menú"),
+          obtenerElementoObligatorio("botonIdiomaEnConfiguracion", "selector EN de configuración"),
+        ],
+      },
+    });
+  }
+
+  configurarTraductor(traductor) {
+    this.traductor = configurarTraductorActivo(traductor);
+    this.aplicadorIdioma = new AplicadorIdiomaDom({ traductor });
+    this.aplicadorIdioma.aplicar();
+    return this.traductor;
+  }
+
+  actualizarIdioma() {
+    this.aplicadorIdioma?.aplicar();
+  }
 
   mostrarVersionAplicacion(version) {
     const elemento = obtenerElementoObligatorio(
@@ -114,7 +144,9 @@ export class PresentacionAplicacionDom {
     }
 
     return confirmar(
-      "Existe una partida guardada. Crear este personaje reemplazará su progreso. ¿Continuar?",
+      traducir("interfaz.mensajes.confirmarReemplazo", {
+        respaldo: "Existe una partida guardada. Crear este personaje reemplazará su progreso. ¿Continuar?",
+      }),
     );
   }
 
@@ -145,7 +177,9 @@ export class PresentacionAplicacionDom {
   mostrarErrorInicio(error) {
     console.error("No se pudo iniciar la aplicación:", error);
 
-    const texto = "No se pudo cargar la configuración del juego.";
+    const texto = traducir("interfaz.mensajes.inicioError", {
+      respaldo: "No se pudo cargar la configuración del juego.",
+    });
     for (const id of ["startupError", "creationMessage"]) {
       const mensaje = document.getElementById(id);
       if (mensaje) {

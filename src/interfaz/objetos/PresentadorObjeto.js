@@ -5,6 +5,7 @@ import {
 } from "../../juego/tiempo/SistemaTiempo.js";
 import { obtenerPresentacionRarezaObjeto } from "./ContextoPresentacionObjetos.js";
 import { RANGOS_DANIO_ELEMENTAL_LOCAL } from "../../juego/combate/ComponentesDanio.js";
+import { idiomaActivo, traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const ETIQUETAS_TIPO = Object.freeze({
   arma: "Arma",
@@ -149,12 +150,12 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
 
   const esMaterial = objeto.tipo === "material";
   return {
-    nombre: objeto.nombre,
+    nombre: traducirContenido("objetos", objeto.id, "nombre", objeto.nombre),
     subtitulo: crearSubtitulo(objeto),
     descripcion:
       objeto.descripcion.trim() !== ""
-        ? objeto.descripcion
-        : "Este objeto no tiene una descripción disponible.",
+        ? traducirContenido("objetos", objeto.id, "descripcion", objeto.descripcion)
+        : traducir("interfaz.detalleObjeto.sinDescripcion", { respaldo: "Este objeto no tiene una descripción disponible." }),
     recursoVisual: normalizarRuta(objeto.recursoVisual),
     cantidad: Number.isInteger(objeto.cantidad) ? objeto.cantidad : 1,
     rareza: obtenerPresentacionRarezaObjeto(objeto.rareza),
@@ -168,12 +169,14 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
 }
 
 function crearSubtitulo(objeto) {
-  const tipo =
-    ETIQUETAS_TIPO[objeto.tipo] ?? formatearIdentificador(objeto.tipo);
+  const tipo = traducirTipoObjeto(objeto.tipo);
 
   if (objeto.esArma) {
     const manos = objeto.propiedades.manos;
-    return `${tipo} · ${manos} ${manos === 1 ? "mano" : "manos"}`;
+    const etiquetaManos = manos === 1
+      ? traducir("interfaz.detalleObjeto.mano", { respaldo: "mano" })
+      : traducir("interfaz.detalleObjeto.manos", { respaldo: "manos" });
+    return `${tipo} · ${manos} ${etiquetaManos}`;
   }
   if (objeto.esArmadura) {
     const ranuras = objeto.ranurasCompatibles
@@ -189,7 +192,7 @@ function crearInformacionComercial(objeto) {
   const informacion = [
     {
       tipo: "peso",
-      etiqueta: "Peso",
+      etiqueta: traducir("interfaz.detalleObjeto.peso", { respaldo: "Peso" }),
       valor: crearTextoMagnitudComercial({
         objeto,
         valorUnitario: obtenerNumeroNoNegativo(objeto.pesoUnitario),
@@ -202,7 +205,7 @@ function crearInformacionComercial(objeto) {
   if (objeto.vendible === false) {
     informacion.push({
       tipo: "no-vendible",
-      etiqueta: "No vendible",
+      etiqueta: traducir("interfaz.detalleObjeto.noVendible", { respaldo: "No vendible" }),
       valor: "",
     });
     return informacion;
@@ -210,7 +213,7 @@ function crearInformacionComercial(objeto) {
 
   informacion.push({
     tipo: "valor",
-    etiqueta: "Valor",
+    etiqueta: traducir("interfaz.detalleObjeto.valor", { respaldo: "Valor" }),
     valor: crearTextoMagnitudComercial({
       objeto,
       valorUnitario: obtenerNumeroNoNegativo(objeto.valorBase),
@@ -237,10 +240,16 @@ function crearTextoMagnitudComercial({
     typeof objeto.contenedorObjetos.obtenerObjetos === "function";
 
   if (tieneContenedor) {
-    return `${formateador(valorUnitario)} propio · ${formateador(valorTotal)} total`;
+    return traducir("interfaz.detalleObjeto.propioTotal", {
+      parametros: { propio: formateador(valorUnitario), total: formateador(valorTotal) },
+      respaldo: `${formateador(valorUnitario)} propio · ${formateador(valorTotal)} total`,
+    });
   }
   if (objeto.apilable === true && cantidad > 1) {
-    return `${formateador(valorUnitario)} c/u · ${formateador(valorTotal)} total`;
+    return traducir("interfaz.detalleObjeto.unidadTotal", {
+      parametros: { unidad: formateador(valorUnitario), total: formateador(valorTotal) },
+      respaldo: `${formateador(valorUnitario)} c/u · ${formateador(valorTotal)} total`,
+    });
   }
 
   return formateador(valorTotal);
@@ -251,10 +260,15 @@ function crearPresentacionAfijos(objeto) {
   return afijos.map((afijo) => ({
     id: afijo.id,
     tipo: afijo.tipoAfijo,
-    tipoEtiqueta: afijo.tipoAfijo === "prefijo" ? "Prefijo" : "Sufijo",
-    nombre: afijo.nombre,
+    tipoEtiqueta: afijo.tipoAfijo === "prefijo"
+      ? traducir("interfaz.detalleObjeto.prefijo", { respaldo: "Prefijo" })
+      : traducir("interfaz.detalleObjeto.sufijo", { respaldo: "Sufijo" }),
+    nombre: traducirContenido("afijos", afijo.id, "nombre", afijo.nombre),
     grado: afijo.grado,
-    descripcion: typeof afijo.descripcion === "string" ? afijo.descripcion : "",
+    descripcion:
+      typeof afijo.descripcion === "string"
+        ? traducirContenido("afijos", afijo.id, "descripcion", afijo.descripcion)
+        : "",
     efectos: crearTextosEfectosAfijo(afijo),
   }));
 }
@@ -270,7 +284,7 @@ function crearTextosEfectosAfijo(afijo) {
     propiedadesProcesadas,
     propiedadMinimo: "danioFisicoLocalMinimo",
     propiedadMaximo: "danioFisicoLocalMaximo",
-    descripcion: "daño físico local",
+    descripcion: tDetalle("danioFisicoLocal", "daño físico local"),
   });
 
   for (const rango of RANGOS_ELEMENTALES_LOCALES) {
@@ -280,7 +294,10 @@ function crearTextosEfectosAfijo(afijo) {
       propiedadesProcesadas,
       propiedadMinimo: rango.propiedadMinimo,
       propiedadMaximo: rango.propiedadMaximo,
-      descripcion: `daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local al ataque básico`,
+      descripcion: traducir("interfaz.detalleObjeto.danioElementoLocalAtaque", {
+        parametros: { elemento: traducirElemento(rango.tipo).toLowerCase() },
+        respaldo: `daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local al ataque básico`,
+      }),
     });
   }
 
@@ -298,10 +315,17 @@ function crearTextosEfectosAfijo(afijo) {
     }
 
     const valorFormateado = formatearNumeroConSignoFlexible(valor);
+    const etiqueta = traducirEtiquetaValorAfijo(propiedad, configuracion.etiqueta);
     textos.push(
       configuracion.porcentaje
-        ? `${valorFormateado} % de ${configuracion.etiqueta}`
-        : `${valorFormateado} de ${configuracion.etiqueta}`,
+        ? traducir("interfaz.detalleObjeto.porcentajeDe", {
+            parametros: { valor: valorFormateado, etiqueta },
+            respaldo: `${valorFormateado} % de ${configuracion.etiqueta}`,
+          })
+        : traducir("interfaz.detalleObjeto.valorDe", {
+            parametros: { valor: valorFormateado, etiqueta },
+            respaldo: `${valorFormateado} de ${configuracion.etiqueta}`,
+          }),
     );
   }
 
@@ -310,7 +334,9 @@ function crearTextosEfectosAfijo(afijo) {
     typeof afijo.descripcion === "string" &&
     afijo.descripcion.trim() !== ""
   ) {
-    textos.push(afijo.descripcion.trim());
+    textos.push(
+      traducirContenido("afijos", afijo.id, "descripcion", afijo.descripcion.trim()),
+    );
   }
 
   return textos;
@@ -332,8 +358,14 @@ function agregarTextoRangoAfijo({
   }
 
   textos.push(
-    `Agrega ${formatearNumeroFlexible(minimo)}` +
-      `–${formatearNumeroFlexible(maximo)} de ${descripcion}`,
+    traducir("interfaz.detalleObjeto.agregaRango", {
+      parametros: {
+        minimo: formatearNumeroFlexible(minimo),
+        maximo: formatearNumeroFlexible(maximo),
+        descripcion,
+      },
+      respaldo: `Agrega ${formatearNumeroFlexible(minimo)}–${formatearNumeroFlexible(maximo)} de ${descripcion}`,
+    }),
   );
   propiedadesProcesadas.add(propiedadMinimo);
   propiedadesProcesadas.add(propiedadMaximo);
@@ -369,21 +401,20 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   if (esVarita) {
     estadisticas.push(
       crearEstadistica(
-        "Daño elemental",
+        tDetalle("danioElemental", "Daño elemental"),
         `${formatearNumero(propiedades.danioElementalMinimo)} – ` +
           `${formatearNumero(propiedades.danioElementalMaximo)}`,
       ),
       crearEstadistica(
-        "Elemento",
-        ETIQUETAS_ELEMENTO[propiedades.elementoAtaqueBasico] ??
-          formatearIdentificador(propiedades.elementoAtaqueBasico),
+        tDetalle("elemento", "Elemento"),
+        traducirElemento(propiedades.elementoAtaqueBasico),
       ),
     );
   } else {
     const rangoLocal = calcularRangoDanioFisicoLocal(propiedades);
     estadisticas.push(
       crearEstadistica(
-        "Daño físico",
+        tDetalle("danioFisico", "Daño físico"),
         `${formatearNumero(rangoLocal.minimo)} – ${formatearNumero(rangoLocal.maximo)}`,
       ),
     );
@@ -393,35 +424,40 @@ function crearEstadisticasArma({ objeto, combatiente }) {
 
   estadisticas.push(
     crearEstadistica(
-      "Atributo",
-      ETIQUETAS_ATRIBUTO[propiedades.atributoAtaque] ??
-        formatearIdentificador(propiedades.atributoAtaque),
+      tDetalle("atributo", "Atributo"),
+      traducirContenido(
+        "atributos",
+        propiedades.atributoAtaque,
+        "nombre",
+        ETIQUETAS_ATRIBUTO[propiedades.atributoAtaque] ?? formatearIdentificador(propiedades.atributoAtaque),
+      ),
     ),
     crearEstadistica(
-      "Precisión",
+      tDetalle("precision", "Precisión"),
       formatearNumeroConSigno(propiedades.precision),
     ),
     crearEstadistica(
-      "Velocidad de ataque",
-      `${formatearNumero(velocidadAtaque, 2)} ataques/s`,
+      tDetalle("velocidadAtaque", "Velocidad de ataque"),
+      traducir("interfaz.detalleObjeto.ataquesPorSegundo", {
+        parametros: { valor: formatearNumero(velocidadAtaque, 2) },
+        respaldo: `${formatearNumero(velocidadAtaque, 2)} ataques/s`,
+      }),
     ),
     crearEstadistica(
-      "Crítico",
+      tDetalle("critico", "Crítico"),
       `${formatearNumero(propiedades.probabilidadCritico)} % × ` +
         `${formatearNumero(propiedades.multiplicadorCritico, 2)}`,
     ),
-    crearEstadistica("Alcance", formatearNumero(propiedades.alcance)),
+    crearEstadistica(tDetalle("alcance", "Alcance"), formatearNumero(propiedades.alcance)),
     crearEstadistica(
-      "Tipo de ataque",
-      ETIQUETAS_TIPO_ATAQUE[propiedades.tipoAtaque] ??
-        formatearIdentificador(propiedades.tipoAtaque),
+      tDetalle("tipoAtaque", "Tipo de ataque"),
+      traducirTipoAtaque(propiedades.tipoAtaque),
     ),
     crearEstadistica(
-      "Patrón",
-      ETIQUETAS_PATRON_ATAQUE[propiedades.patronAtaque] ??
-        formatearIdentificador(propiedades.patronAtaque),
+      tDetalle("patron", "Patrón"),
+      traducirPatronAtaque(propiedades.patronAtaque),
     ),
-    crearEstadistica("Manos", formatearNumero(propiedades.manos)),
+    crearEstadistica(tDetalle("manosEtiqueta", "Manos"), formatearNumero(propiedades.manos)),
   );
 
   if (
@@ -430,7 +466,7 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   ) {
     estadisticas.push(
       crearEstadistica(
-        "Potencia de Habilidad",
+        tDetalle("potenciaHabilidad", "Potencia de Habilidad"),
         `${formatearNumeroConSignoFlexible(propiedades.potenciaHabilidad)} %`,
       ),
     );
@@ -438,7 +474,7 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   if (esVarita && Number.isFinite(propiedades.costoManaAtaqueBasico)) {
     estadisticas.push(
       crearEstadistica(
-        "Maná por ataque",
+        tDetalle("manaAtaque", "Maná por ataque"),
         formatearNumero(propiedades.costoManaAtaqueBasico),
       ),
     );
@@ -446,7 +482,7 @@ function crearEstadisticasArma({ objeto, combatiente }) {
   if (propiedades.requiereQuiver) {
     estadisticas.push(
       crearEstadistica(
-        "Munición",
+        tDetalle("municion", "Munición"),
         formatearIdentificador(propiedades.tipoMunicion),
       ),
     );
@@ -467,9 +503,12 @@ function crearEstadisticasDanioElementalLocal(propiedades) {
 
     estadisticas.push(
       crearEstadistica(
-        `Daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local`,
-        `${formatearNumeroFlexible(minimo)} – ` +
-          `${formatearNumeroFlexible(maximo)} (ataque básico)`,
+        traducir("interfaz.detalleObjeto.danioElementoLocal", {
+          parametros: { elemento: traducirElemento(rango.tipo).toLowerCase() },
+          respaldo: `Daño de ${ETIQUETAS_ELEMENTO[rango.tipo].toLowerCase()} local`,
+        }),
+        `${formatearNumeroFlexible(minimo)} – ${formatearNumeroFlexible(maximo)} ` +
+          `(${traducir("interfaz.detalleObjeto.ataqueBasico", { respaldo: "ataque básico" })})`,
       ),
     );
   }
@@ -498,7 +537,7 @@ function calcularRangoDanioFisicoLocal(propiedades) {
 function crearEstadisticasArmadura(objeto) {
   const propiedades = objeto.propiedades;
   const estadisticas = [
-    crearEstadistica("Armadura", formatearNumero(propiedades.armadura ?? 0)),
+    crearEstadistica(tDetalle("armadura", "Armadura"), formatearNumero(propiedades.armadura ?? 0)),
   ];
 
   if (
@@ -507,7 +546,7 @@ function crearEstadisticasArmadura(objeto) {
   ) {
     estadisticas.push(
       crearEstadistica(
-        "Bloqueo",
+        tDetalle("bloqueo", "Bloqueo"),
         `${formatearNumero(propiedades.probabilidadBloqueo)} %`,
       ),
     );
@@ -518,7 +557,7 @@ function crearEstadisticasArmadura(objeto) {
   ) {
     estadisticas.push(
       crearEstadistica(
-        "Mitigación de bloqueo",
+        tDetalle("mitigacionBloqueo", "Mitigación de bloqueo"),
         `${formatearNumero(propiedades.mitigacionBloqueo)} %`,
       ),
     );
@@ -541,11 +580,17 @@ function crearEstadisticasQuiver(objeto) {
   );
   const estadisticas = [
     crearEstadistica(
-      "Tipo de munición",
+      tDetalle("tipoMunicion", "Tipo de munición"),
       formatearIdentificador(objeto.propiedades.tipoMunicion),
     ),
-    crearEstadistica("Capacidad", `${contenedor?.capacidad ?? 0} pila`),
-    crearEstadistica("Contenido", `${cantidadMunicion} unidades`),
+    crearEstadistica(
+      tDetalle("capacidad", "Capacidad"),
+      traducir("interfaz.detalleObjeto.pila", { parametros: { cantidad: contenedor?.capacidad ?? 0 }, respaldo: `${contenedor?.capacidad ?? 0} pila` }),
+    ),
+    crearEstadistica(
+      tDetalle("contenido", "Contenido"),
+      traducir("interfaz.detalleObjeto.unidades", { parametros: { cantidad: cantidadMunicion }, respaldo: `${cantidadMunicion} unidades` }),
+    ),
   ];
 
   estadisticas.push(...crearEstadisticasResistencias(objeto.propiedades));
@@ -560,7 +605,7 @@ function crearEstadisticasResistencias(propiedades) {
     }
 
     return [
-      crearEstadistica(etiqueta, `${formatearNumeroConSignoFlexible(valor)} %`),
+      crearEstadistica(traducirResistencia(propiedad, etiqueta), `${formatearNumeroConSignoFlexible(valor)} %`),
     ];
   });
 }
@@ -568,11 +613,11 @@ function crearEstadisticasResistencias(propiedades) {
 function crearEstadisticasMunicion(objeto) {
   return [
     crearEstadistica(
-      "Tipo de munición",
+      tDetalle("tipoMunicion", "Tipo de munición"),
       formatearIdentificador(objeto.propiedades.tipoMunicion),
     ),
-    crearEstadistica("Cantidad", formatearNumero(objeto.cantidad)),
-    crearEstadistica("Máximo por pila", formatearNumero(objeto.cantidadMaxima)),
+    crearEstadistica(tDetalle("cantidad", "Cantidad"), formatearNumero(objeto.cantidad)),
+    crearEstadistica(tDetalle("maximoPila", "Máximo por pila"), formatearNumero(objeto.cantidadMaxima)),
   ];
 }
 
@@ -580,12 +625,12 @@ function crearEstadisticasConsumible(objeto) {
   const efectos = objeto.propiedades.efectos ?? [];
   const estadisticas = efectos.map((efecto) =>
     crearEstadistica(
-      ETIQUETAS_EFECTO[efecto.tipo] ?? formatearIdentificador(efecto.tipo),
+      traducirEfectoConsumible(efecto.tipo),
       formatearNumero(efecto.cantidad),
     ),
   );
   estadisticas.push(
-    crearEstadistica("Cantidad", formatearNumero(objeto.cantidad)),
+    crearEstadistica(tDetalle("cantidad", "Cantidad"), formatearNumero(objeto.cantidad)),
   );
   return estadisticas;
 }
@@ -594,9 +639,9 @@ function crearEstadisticasGenericas(objeto) {
   const estadisticas = [];
   if (objeto.apilable) {
     estadisticas.push(
-      crearEstadistica("Cantidad", formatearNumero(objeto.cantidad)),
+      crearEstadistica(tDetalle("cantidad", "Cantidad"), formatearNumero(objeto.cantidad)),
       crearEstadistica(
-        "Máximo por pila",
+        tDetalle("maximoPila", "Máximo por pila"),
         formatearNumero(objeto.cantidadMaxima),
       ),
     );
@@ -610,6 +655,96 @@ function crearEstadistica(etiqueta, valor) {
 
 function obtenerNumeroNoNegativo(valor) {
   return Number.isFinite(valor) && valor >= 0 ? valor : 0;
+}
+
+function traducirEtiquetaValorAfijo(propiedad, respaldo) {
+  const claves = {
+    danioFisicoLocalPorcentaje: "danioFisicoLocal",
+    potenciaHabilidad: "potenciaHabilidad",
+    armadura: "armadura",
+    vidaMaxima: "vidaMaxima",
+    manaMaximo: "manaMaximo",
+    precision: "precision",
+    probabilidadCritico: "probabilidadCritico",
+    multiplicadorCritico: "multiplicadorCritico",
+    evasion: "evasion",
+    regeneracionVida: "regeneracionVida",
+    regeneracionMana: "regeneracionMana",
+    resistenciaFuego: "resistenciaFuego",
+    resistenciaFrio: "resistenciaFrio",
+    resistenciaRayo: "resistenciaRayo",
+    resistenciaVeneno: "resistenciaVeneno",
+    resistenciaCongelamiento: "resistenciaCongelamiento",
+    resistenciaAturdimiento: "resistenciaAturdimiento",
+    resistenciaEnvenenamiento: "resistenciaEnvenenamiento",
+    resistenciaQuemadura: "resistenciaQuemadura",
+    probabilidadBloqueo: "probabilidadBloqueo",
+    mitigacionBloqueo: "mitigacionBloqueoAfijo",
+  };
+  const clave = claves[propiedad];
+  return clave ? tDetalle(clave, respaldo) : respaldo;
+}
+
+function tDetalle(clave, respaldo) {
+  return traducir(`interfaz.detalleObjeto.${clave}`, { respaldo });
+}
+
+function traducirTipoObjeto(tipo) {
+  const claves = {
+    arma: ["tipoArma", "Arma"],
+    armadura: ["tipoArmadura", "Armadura"],
+    quiver: ["tipoQuiver", "Carcaj"],
+    municion: ["tipoMunicion", "Munición"],
+    consumible: ["tipoConsumible", "Consumible"],
+    material: ["tipoMaterial", "Material"],
+  };
+  const [clave, respaldo] = claves[tipo] ?? [null, formatearIdentificador(tipo)];
+  return clave ? tDetalle(clave, respaldo) : respaldo;
+}
+
+function traducirElemento(tipo) {
+  const claves = {
+    fuego: ["interfaz.personaje.fuego", "Fuego"],
+    frio: ["interfaz.personaje.frio", "Frío"],
+    rayo: ["interfaz.personaje.rayo", "Rayo"],
+    veneno: ["interfaz.personaje.veneno", "Veneno"],
+  };
+  const [clave, respaldo] = claves[tipo] ?? [null, formatearIdentificador(tipo)];
+  return clave ? traducir(clave, { respaldo }) : respaldo;
+}
+
+function traducirTipoAtaque(tipo) {
+  if (tipo === "cuerpoACuerpo") return tDetalle("cuerpoACuerpo", "Cuerpo a cuerpo");
+  if (tipo === "distancia") return tDetalle("distancia", "Distancia");
+  return formatearIdentificador(tipo);
+}
+
+function traducirPatronAtaque(patron) {
+  if (["adyacente", "lineal", "libre"].includes(patron)) {
+    return tDetalle(patron, ETIQUETAS_PATRON_ATAQUE[patron]);
+  }
+  return formatearIdentificador(patron);
+}
+
+function traducirEfectoConsumible(tipo) {
+  if (tipo === "recuperarVida") return tDetalle("recuperaVida", "Recupera Vida");
+  if (tipo === "recuperarMana") return tDetalle("recuperaMana", "Recupera Maná");
+  return formatearIdentificador(tipo);
+}
+
+function traducirResistencia(propiedad, respaldo) {
+  const claves = {
+    resistenciaFuego: "resistenciaFuego",
+    resistenciaFrio: "resistenciaFrio",
+    resistenciaRayo: "resistenciaRayo",
+    resistenciaVeneno: "resistenciaVeneno",
+    resistenciaCongelamiento: "resistenciaCongelamiento",
+    resistenciaAturdimiento: "resistenciaAturdimiento",
+    resistenciaEnvenenamiento: "resistenciaEnvenenamiento",
+    resistenciaQuemadura: "resistenciaQuemadura",
+  };
+  const clave = claves[propiedad];
+  return clave ? tDetalle(clave, respaldo) : respaldo;
 }
 
 function validarObjeto(objeto) {
@@ -629,7 +764,7 @@ function normalizarRuta(ruta) {
 
 function formatearNumero(valor, decimalesMaximos = 0) {
   if (!Number.isFinite(valor)) return "—";
-  return new Intl.NumberFormat("es-UY", {
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
     minimumFractionDigits: decimalesMaximos,
     maximumFractionDigits: decimalesMaximos,
   }).format(valor);
@@ -637,21 +772,21 @@ function formatearNumero(valor, decimalesMaximos = 0) {
 
 function formatearNumeroFlexible(valor) {
   if (!Number.isFinite(valor)) return "—";
-  return new Intl.NumberFormat("es-UY", {
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(valor);
 }
 
 function formatearPeso(valor) {
-  return new Intl.NumberFormat("es-UY", {
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 3,
   }).format(valor);
 }
 
 function formatearMonedas(valor) {
-  return new Intl.NumberFormat("es-UY", {
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
     maximumFractionDigits: 0,
   }).format(Math.round(valor));
 }

@@ -2,6 +2,8 @@
 
 Fecha: 2026-08-07  
 Etapa: P7.2  
+Estado final: validada manualmente y cerrada
+SHA final: `93cbd48cb29c77c9af8f3de222e13437971abb32`
 Base exacta: `9d7938fc0d92c5735a9df81dddd42834903bac68`  
 Rama: `main`  
 Commit realizado: no
@@ -174,4 +176,4 @@ La API de fullscreen depende del navegador y puede estar deshabilitada por polí
 
 ## 14. Próximo paso
 
-Tras validación manual y commit de P7.2: **P7.3 — internacionalización y centralización de textos**, agregando Español/Inglés y el switch ES/EN sin traducir código ni IDs internos.
+P7.2 fue validada y commiteada en `93cbd48cb29c77c9af8f3de222e13437971abb32`. Próxima etapa: **P7.3 — internacionalización y centralización de textos**, agregando Español/Inglés y el switch ES/EN sin traducir código ni IDs internos.

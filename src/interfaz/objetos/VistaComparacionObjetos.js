@@ -1,3 +1,5 @@
+import { traducir } from "../idiomas/ContextoIdioma.js";
+
 let siguienteIdComparacion = 1;
 
 // Vista independiente para seleccionar un objeto equipado
@@ -37,7 +39,7 @@ export class VistaComparacionObjetos {
     this.mensajeSinOpciones = crearElemento(
       "p",
       "comparacion-objetos__mensaje",
-      "No hay otros objetos equipados para comparar.",
+      traducir("interfaz.comparacionObjetos.sinOpciones", { respaldo: "No hay otros objetos equipados para comparar." }),
     );
 
     this.seccionSelector.append(this.listaOpciones, this.mensajeSinOpciones);
@@ -73,9 +75,9 @@ export class VistaComparacionObjetos {
       "comparacion-objetos__resumen",
     );
 
-    this.resumenInspeccionado = crearTarjetaResumen("Objeto inspeccionado");
+    this.resumenInspeccionado = crearTarjetaResumen(traducir("interfaz.comparacionObjetos.objetoInspeccionado", { respaldo: "Objeto inspeccionado" }));
 
-    this.resumenElegido = crearTarjetaResumen("Objeto elegido");
+    this.resumenElegido = crearTarjetaResumen(traducir("interfaz.comparacionObjetos.objetoElegido", { respaldo: "Objeto elegido" }));
 
     this.resumenComparacion.append(
       this.resumenInspeccionado.elemento,
@@ -97,10 +99,10 @@ export class VistaComparacionObjetos {
     const fila = document.createElement("tr");
 
     for (const texto of [
-      "Propiedad",
-      "Inspeccionado",
-      "Elegido",
-      "Diferencia",
+      traducir("interfaz.comparacionObjetos.propiedad", { respaldo: "Propiedad" }),
+      traducir("interfaz.comparacionObjetos.inspeccionado", { respaldo: "Inspeccionado" }),
+      traducir("interfaz.comparacionObjetos.elegido", { respaldo: "Elegido" }),
+      traducir("interfaz.comparacionObjetos.diferencia", { respaldo: "Diferencia" }),
     ]) {
       const celda = document.createElement("th");
 
@@ -129,7 +131,7 @@ export class VistaComparacionObjetos {
     const titulo = crearElemento(
       "h3",
       "comparacion-objetos__afijos-titulo",
-      "Diferencias de afijos",
+      traducir("interfaz.comparacionObjetos.diferenciasAfijos", { respaldo: "Diferencias de afijos" }),
     );
 
     this.listaAfijos = crearElemento("ul", "comparacion-objetos__afijos-lista");
@@ -137,7 +139,7 @@ export class VistaComparacionObjetos {
     this.mensajeSinAfijos = crearElemento(
       "p",
       "comparacion-objetos__mensaje",
-      "Los objetos no presentan diferencias de afijos.",
+      traducir("interfaz.comparacionObjetos.sinDiferenciasAfijos", { respaldo: "Los objetos no presentan diferencias de afijos." }),
     );
 
     this.contenedorAfijos.append(
@@ -170,9 +172,9 @@ export class VistaComparacionObjetos {
       throw new Error("Las opciones de comparación deben ser una lista.");
     }
 
-    this.titulo.textContent = "Elegí un objeto equipado";
+    this.titulo.textContent = traducir("interfaz.comparacionObjetos.elegirEquipado", { respaldo: "Elegí un objeto equipado" });
 
-    this.subtitulo.textContent = `Objeto inspeccionado: ${presentacionBase.nombre}`;
+    this.subtitulo.textContent = traducir("interfaz.comparacionObjetos.inspeccionando", { parametros: { nombre: presentacionBase.nombre }, respaldo: `Objeto inspeccionado: ${presentacionBase.nombre}` });
 
     this.seccionSelector.hidden = false;
 
@@ -209,10 +211,11 @@ export class VistaComparacionObjetos {
   mostrarComparacion(comparacion) {
     validarComparacion(comparacion);
 
-    this.titulo.textContent = "Comparación de objetos";
+    this.titulo.textContent = traducir("interfaz.comparacionObjetos.titulo", { respaldo: "Comparación de objetos" });
 
-    this.subtitulo.textContent =
-      "La comparación es informativa y no modifica el equipamiento.";
+    this.subtitulo.textContent = traducir("interfaz.comparacionObjetos.subtitulo", {
+      respaldo: "La comparación es informativa y no modifica el equipamiento.",
+    });
 
     this.seccionSelector.hidden = true;
 
@@ -269,7 +272,7 @@ export class VistaComparacionObjetos {
         crearCambioAfijo({
           tipo: "agregado",
 
-          etiqueta: "Solo en inspeccionado",
+          etiqueta: traducir("interfaz.comparacionObjetos.soloInspeccionado", { respaldo: "Solo en inspeccionado" }),
 
           texto: formatearAfijo(afijo),
         }),
@@ -281,7 +284,7 @@ export class VistaComparacionObjetos {
         crearCambioAfijo({
           tipo: "perdido",
 
-          etiqueta: "Solo en elegido",
+          etiqueta: traducir("interfaz.comparacionObjetos.soloElegido", { respaldo: "Solo en elegido" }),
 
           texto: formatearAfijo(afijo),
         }),
@@ -293,7 +296,7 @@ export class VistaComparacionObjetos {
         crearCambioAfijo({
           tipo: "modificado",
 
-          etiqueta: "Cambia",
+          etiqueta: traducir("interfaz.comparacionObjetos.cambia", { respaldo: "Cambia" }),
 
           texto:
             `${formatearAfijo(cambio.elegido)} → ` +
@@ -374,7 +377,7 @@ function actualizarTarjetaResumen(tarjeta, resumen) {
   }
 
   if (Number.isInteger(resumen.nivelObjeto)) {
-    partes.push(`Nivel ${resumen.nivelObjeto}`);
+    partes.push(traducir("interfaz.comparacionObjetos.nivel", { parametros: { nivel: resumen.nivelObjeto }, respaldo: `Nivel ${resumen.nivelObjeto}` }));
   }
 
   tarjeta.subtitulo.textContent = partes.join(" · ");

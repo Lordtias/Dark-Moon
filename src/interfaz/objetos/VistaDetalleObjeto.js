@@ -1,3 +1,5 @@
+import { traducir } from "../idiomas/ContextoIdioma.js";
+
 const ID_HOJA_ESTILOS_ECONOMICOS = "hojaEstilosDetalleEconomicoObjeto";
 
 const RUTA_HOJA_ESTILOS_ECONOMICOS = "./assets/estilos/modales/detalle-economico-objeto.css";
@@ -83,7 +85,7 @@ export class VistaDetalleObjeto {
     this.mensajeSinEstadisticas = crearElemento(
       "p",
       "detalle-objeto__sin-estadisticas",
-      "Este objeto no tiene propiedades especiales.",
+      traducir("interfaz.detalleObjeto.sinPropiedades", { respaldo: "Este objeto no tiene propiedades especiales." }),
     );
 
     this.seccionAfijos = crearElemento("section", "detalle-objeto__afijos");
@@ -91,7 +93,7 @@ export class VistaDetalleObjeto {
     const tituloAfijos = crearElemento(
       "h3",
       "detalle-objeto__afijos-titulo",
-      "Afijos",
+      traducir("interfaz.detalleObjeto.afijos", { respaldo: "Afijos" }),
     );
 
     this.listaAfijos = crearElemento("div", "detalle-objeto__afijos-lista");
@@ -160,7 +162,7 @@ export class VistaDetalleObjeto {
     }
 
     if (Number.isInteger(presentacion.nivelObjeto)) {
-      partes.push(`Nivel de objeto ${presentacion.nivelObjeto}`);
+      partes.push(traducir("interfaz.detalleObjeto.nivelObjeto", { parametros: { nivel: presentacion.nivelObjeto }, respaldo: `Nivel de objeto ${presentacion.nivelObjeto}` }));
     }
 
     this.metadatos.textContent = partes.join(" · ");
@@ -201,7 +203,9 @@ export class VistaDetalleObjeto {
       ? presentacion.cantidad
       : 1;
 
-    this.cantidad.textContent = cantidad > 1 ? `Cantidad: ${cantidad}` : "";
+    this.cantidad.textContent = cantidad > 1
+      ? traducir("interfaz.detalleObjeto.cantidadValor", { parametros: { cantidad }, respaldo: `Cantidad: ${cantidad}` })
+      : "";
 
     this.cantidad.hidden = cantidad <= 1;
   }
@@ -300,7 +304,7 @@ function crearDatoComercial(dato) {
   const valor = typeof dato?.valor === "string" ? dato.valor.trim() : "";
 
   if (tipo === "no-vendible") {
-    contenedor.textContent = etiqueta || "No vendible";
+    contenedor.textContent = etiqueta || traducir("interfaz.detalleObjeto.noVendible", { respaldo: "No vendible" });
 
     return contenedor;
   }
@@ -337,7 +341,7 @@ function crearTarjetaAfijo(afijo) {
     "strong",
     "detalle-objeto__afijo-nombre",
 
-    typeof afijo.nombre === "string" ? afijo.nombre : "Afijo",
+    typeof afijo.nombre === "string" ? afijo.nombre : traducir("interfaz.detalleObjeto.afijo", { respaldo: "Afijo" }),
   );
 
   const grado = crearElemento(
@@ -388,7 +392,7 @@ function obtenerTipoAfijo(afijo) {
     return formatearIdentificador(afijo.tipo);
   }
 
-  return "Afijo";
+  return traducir("interfaz.detalleObjeto.afijo", { respaldo: "Afijo" });
 }
 
 function formatearEfecto(efecto) {

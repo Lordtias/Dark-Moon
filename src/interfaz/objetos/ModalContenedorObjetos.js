@@ -3,6 +3,7 @@ import { agregarRepresentacionObjeto } from "../RepresentacionObjeto.js";
 import { crearPresentacionObjeto } from "./PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS_DETALLE = "hojaEstilosModalDetalleObjeto";
 
@@ -110,9 +111,9 @@ export class ModalContenedorObjetos {
 
     this.botonCerrarSuperior.textContent = "×";
 
-    this.botonCerrarSuperior.title = "Cerrar";
+    this.botonCerrarSuperior.title = traducir("interfaz.contenedores.cerrar", { respaldo: "Cerrar" });
 
-    this.botonCerrarSuperior.setAttribute("aria-label", "Cerrar contenedor");
+    this.botonCerrarSuperior.setAttribute("aria-label", traducir("interfaz.contenedores.cerrarAria", { respaldo: "Cerrar contenedor" }));
 
     cabecera.append(this.titulo, this.botonCerrarSuperior);
 
@@ -128,7 +129,7 @@ export class ModalContenedorObjetos {
 
     tituloLista.classList.add("modal-contenedor-objetos__titulo-seccion");
 
-    tituloLista.textContent = "Objetos";
+    tituloLista.textContent = traducir("interfaz.contenedores.objetos", { respaldo: "Objetos" });
 
     this.listaObjetos = document.createElement("div");
 
@@ -140,7 +141,7 @@ export class ModalContenedorObjetos {
 
     this.mensajeVacio.classList.add("modal-contenedor-objetos__vacio");
 
-    this.mensajeVacio.textContent = "El contenedor está vacío.";
+    this.mensajeVacio.textContent = traducir("interfaz.contenedores.vacio", { respaldo: "El contenedor está vacío." });
 
     seccionLista.append(tituloLista, this.listaObjetos, this.mensajeVacio);
 
@@ -159,23 +160,23 @@ export class ModalContenedorObjetos {
     acciones.classList.add("modal-contenedor-objetos__acciones");
 
     this.botonCerrar = crearBotonAccion({
-      texto: "Cerrar",
+      texto: traducir("interfaz.contenedores.cerrar", { respaldo: "Cerrar" }),
 
       clase: "modal-contenedor-objetos__boton--secundario",
     });
 
     this.botonRecogerTodo = crearBotonAccion({
-      texto: "Recoger todo",
+      texto: traducir("interfaz.contenedores.recogerTodo", { respaldo: "Recoger todo" }),
 
       clase: "modal-contenedor-objetos__boton--secundario",
     });
 
-    this.botonRecogerTodo.title = "Recoger todo (R)";
+    this.botonRecogerTodo.title = traducir("interfaz.contenedores.recogerTodoAtajo", { respaldo: "Recoger todo (R)" });
 
     this.botonRecogerTodo.setAttribute("aria-keyshortcuts", "R");
 
     this.botonRecoger = crearBotonAccion({
-      texto: "Recoger",
+      texto: traducir("interfaz.contenedores.recoger", { respaldo: "Recoger" }),
 
       clase: "modal-contenedor-objetos__boton--principal",
     });
@@ -314,7 +315,11 @@ export class ModalContenedorObjetos {
 
     boton.setAttribute("role", "option");
 
-    boton.setAttribute("aria-label", `Ver detalles de ${objeto.nombre}`);
+    const nombreObjeto = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
+    boton.setAttribute("aria-label", traducir("interfaz.contenedores.verDetalles", {
+      parametros: { nombre: nombreObjeto },
+      respaldo: `Ver detalles de ${nombreObjeto}`,
+    }));
 
     const seleccionado = indice === this.indiceSeleccionado;
 
@@ -334,7 +339,7 @@ export class ModalContenedorObjetos {
 
     nombre.classList.add("modal-contenedor-objetos__nombre");
 
-    nombre.textContent = objeto.nombre;
+    nombre.textContent = traducirContenido("objetos", objeto.id, "nombre", objeto.nombre);
 
     boton.appendChild(nombre);
 

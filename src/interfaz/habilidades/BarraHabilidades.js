@@ -1,3 +1,5 @@
+import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+
 // Representa exclusivamente accesos rápidos. El contenido de cada habilidad,
 // sus grados y su validez se consultan siempre al sistema y al progreso real.
 export class BarraHabilidades {
@@ -31,11 +33,18 @@ export class BarraHabilidades {
       elemento.dataset.ranuraHabilidad = String(indice);
       elemento.setAttribute("role", "button");
       elemento.setAttribute("tabindex", "0");
+      const nombreHabilidad = obtenerNombreHabilidad(ranura);
       elemento.setAttribute(
         "aria-label",
         ranura.idHabilidad
-          ? `${ranura.nombre}, grado ${ranura.grado}, ranura ${ranura.tecla}`
-          : `Ranura ${ranura.tecla} vacía`,
+          ? traducir("interfaz.habilidades.ranuraHabilidadAria", {
+              parametros: { nombre: nombreHabilidad, grado: ranura.grado, ranura: ranura.tecla },
+              respaldo: `${nombreHabilidad}, grado ${ranura.grado}, ranura ${ranura.tecla}`,
+            })
+          : traducir("interfaz.habilidades.ranuraAria", {
+              parametros: { ranura: ranura.tecla },
+              respaldo: `Ranura ${ranura.tecla} vacía`,
+            }),
       );
       elemento.classList.toggle("habilidad-seleccionada", ranura.seleccionada);
       elemento.classList.toggle("habilidad-vacia", !ranura.idHabilidad);
@@ -145,7 +154,7 @@ function crearIconoConFallback(ranura) {
       crearElemento(
         "span",
         `habilidad-inicial habilidad-inicial--${ranura.idHabilidad}`,
-        ranura.nombre.slice(0, 1).toUpperCase(),
+        obtenerNombreHabilidad(ranura).slice(0, 1).toUpperCase(),
       ),
     );
   };
@@ -167,18 +176,47 @@ function crearIconoConFallback(ranura) {
 
 function crearTitulo(ranura) {
   if (!ranura.idHabilidad) {
-    return `Ranura ${ranura.tecla}: vacía`;
+    return traducir("interfaz.habilidades.ranuraAria", {
+      parametros: { ranura: ranura.tecla },
+      respaldo: `Ranura ${ranura.tecla}: vacía`,
+    });
   }
 
   return [
-    `${ranura.nombre} — grado ${ranura.grado}`,
-    ranura.descripcion,
-    ranura.costoMana !== null ? `Maná: ${ranura.costoMana}` : "",
-    ranura.configurada ? "Lista para usar" : "Ejecución en construcción",
-    ranura.manaSuficiente ? "" : "Maná insuficiente",
+    `${obtenerNombreHabilidad(ranura)} — ${traducir("interfaz.habilidades.gradoSimple", { parametros: { grado: ranura.grado }, respaldo: `Grado ${ranura.grado}` })}`,
+    obtenerDescripcionHabilidad(ranura),
+    ranura.costoMana !== null
+      ? traducir("interfaz.habilidades.mana", { parametros: { valor: ranura.costoMana }, respaldo: `Maná: ${ranura.costoMana}` })
+      : "",
+    ranura.configurada
+      ? traducir("interfaz.habilidades.listaUsar", { respaldo: "Lista para usar" })
+      : traducir("interfaz.habilidades.ejecucionConstruccion", { respaldo: "Ejecución en construcción" }),
+    ranura.manaSuficiente
+      ? ""
+      : traducir("interfaz.habilidades.manaInsuficiente", { respaldo: "Maná insuficiente" }),
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+function obtenerNombreHabilidad(ranura) {
+  if (!ranura?.idHabilidad) return ranura?.nombre ?? "";
+  return traducirContenido(
+    "habilidades",
+    ranura.idHabilidad,
+    "nombre",
+    ranura.nombre ?? ranura.idHabilidad,
+  );
+}
+
+function obtenerDescripcionHabilidad(ranura) {
+  if (!ranura?.idHabilidad) return ranura?.descripcion ?? "";
+  return traducirContenido(
+    "habilidades",
+    ranura.idHabilidad,
+    "descripcion",
+    ranura.descripcion ?? "",
+  );
 }
 
 function crearElemento(etiqueta, clase = "", texto = "") {

@@ -26,7 +26,9 @@ Cuando una etapa se cierre, su detalle reproducible se registrará en una entreg
 - rama de trabajo del hito: `feature/electron-e0`;
 - candidato web: `0.7.0-beta.2`;
 - P7: cerrada;
-- etapa operativa actual: **E0 — validación técnica temprana de Electron**.
+- E0: **cerrada técnicamente con clasificación 🟢 VIABLE**;
+- próxima etapa elegible: **E1 — Beta Electron**, pendiente de aprobación explícita;
+- SHA de cierre E0: **pendiente del commit final del usuario**.
 
 ### Estado web vigente
 
@@ -194,18 +196,37 @@ Versión vigente:
 
 E0 no debe actualizar Phaser salvo incompatibilidad concreta demostrada y aprobada.
 
-### 7.2 Herramientas aprobadas para iniciar E0
+### 7.2 Herramientas validadas en E0
 
-Versiones exactas aprobadas:
+Versiones exactas utilizadas y validadas en Windows 10:
 
-- Node.js `24.18.1` LTS — herramienta de desarrollo;
-- npm `11.16.0` — incluido con Node.js 24.18.1;
-- Electron `43.3.0` — runtime de escritorio;
-- `@electron-forge/cli` `7.11.2` — herramienta de empaquetado.
+- Node.js `24.19.0` LTS — herramienta de desarrollo;
+- npm `11.17.0` — gestor de paquetes utilizado durante E0;
+- Electron `43.3.0` — runtime de escritorio, licencia MIT;
+- `@electron/packager` `20.0.1` — empaquetado técnico Windows, licencia BSD-2-Clause.
 
-Estas versiones deben volver a comprobarse durante la instalación y quedar registradas con los comandos reales ejecutados.
+Las versiones de Electron y Packager quedan fijadas exactamente en `package.json` y `package-lock.json`.
 
-### 7.3 Qué significa cada elemento
+### 7.3 Decisión Forge → Packager
+
+La propuesta inicial contemplaba `@electron-forge/cli` `7.11.2`.
+
+Durante la instalación real, `npm audit` informó 21 vulnerabilidades en el árbol de tooling de Forge (3 low, 17 high y 1 critical), principalmente a través de dependencias transitivas de empaquetado y reconstrucción.
+
+No se aplicó `npm audit fix --force`.
+
+Se aprobó reemplazar Forge por `@electron/packager` `20.0.1`, porque E0 sólo necesitaba producir una carpeta Windows ejecutable y no requería makers, instalador, publicación ni actualización automática.
+
+Después del reemplazo:
+
+- Electron permaneció en `43.3.0`;
+- `@electron/packager` quedó en `20.0.1`;
+- Forge fue retirado del árbol;
+- el `npm audit` ejecutado en la máquina Windows de validación informó `0 vulnerabilities`.
+
+Forge podrá reevaluarse en E1/E2 si aporta una necesidad concreta y su árbol de dependencias resulta aceptable en ese momento.
+
+### 7.4 Qué significa cada elemento
 
 **Node.js**
 
@@ -213,19 +234,19 @@ Se instala solamente en la máquina de desarrollo para ejecutar herramientas de 
 
 **npm**
 
-Es el gestor de paquetes incluido con Node. Se utiliza para instalar las dependencias de desarrollo declaradas por el proyecto.
+Es el gestor de paquetes utilizado para reproducir las dependencias declaradas por el proyecto.
 
 **Electron**
 
-Incluye Chromium y su propio runtime Node para ejecutar la aplicación empaquetada. No implica exponer Node al código del juego.
+Incluye Chromium y su propio runtime Node para ejecutar la aplicación empaquetada. E0 confirmó que Node no queda expuesto al renderer del juego.
 
-**Electron Forge**
+**Electron Packager**
 
-Se utilizará para generar una compilación técnica reproducible. E0 no requiere todavía instalador comercial, actualización automática ni firma.
+Genera la carpeta técnica ejecutable para Windows x64. E0 no requiere todavía instalador comercial, actualización automática ni firma.
 
-### 7.4 Archivos esperados
+### 7.5 Archivos incorporados por E0
 
-Durante E0 podrán incorporarse como mínimo:
+E0 incorporó como mínimo:
 
 - `package.json`;
 - `package-lock.json`;
@@ -261,11 +282,11 @@ La arquitectura actual parece compatible con un wrapper Electron pequeño porque
 - la persistencia está centralizada en `localStorage`;
 - Electron puede proporcionar un entorno Chromium compatible con las APIs de navegador actuales.
 
-Esta hipótesis no se considera validada hasta completar pruebas reales y empaquetado.
+Esta hipótesis quedó **validada en E0** mediante ejecución real, pruebas de persistencia/offline, auditoría de aislamiento, empaquetado Windows x64 y regresión web.
 
 ---
 
-## 8.3 Arquitectura propuesta para E0
+## 8.3 Arquitectura validada en E0
 
 ### Contenedor mínimo
 
@@ -332,11 +353,26 @@ Nunca se desactivará `webSecurity` para resolver rutas o CORS.
 
 ### CSP
 
-Una Content Security Policy se evaluará después de conseguir el wrapper funcional.
+E0 incorporó una Content Security Policy aplicada desde el proceso principal de Electron, sin modificar `index.html` ni el destino web.
 
-No se impondrá una política restrictiva sin verificar primero que no bloquee Phaser, módulos, imágenes, CSS o recursos legítimos.
+Política validada:
 
-CSP es una mejora de seguridad; no debe convertirse en una solución improvisada para otros problemas.
+```text
+default-src 'self'
+script-src 'self'
+style-src 'self' 'unsafe-inline'
+img-src 'self' data: blob:
+connect-src 'self'
+font-src 'self' data:
+media-src 'self' data: blob:
+object-src 'none'
+frame-src 'none'
+base-uri 'none'
+```
+
+La política fue probada con Phaser 4.2.1 y el juego representativo sin errores o advertencias CSP en DevTools.
+
+`unsafe-inline` queda limitado a estilos por compatibilidad con la UI actual; no se habilitó `unsafe-inline` ni `unsafe-eval` para scripts.
 
 ---
 
@@ -536,7 +572,7 @@ Acción recomendada: no ampliar Electron hasta definir una etapa específica de 
 
 ---
 
-## 8.13 Riesgos conocidos antes de implementar
+## 8.13 Riesgos y deuda técnica vigentes
 
 ### Origen de persistencia
 
@@ -557,6 +593,47 @@ Si E1/E2 requieren exportar archivos, logs avanzados, Steam u otras funciones na
 ### Dependencias nativas futuras
 
 Una futura integración Steam podría introducir módulos nativos y requisitos adicionales de empaquetado. No deben anticiparse en E0.
+
+---
+
+## 8.14 Resultado final de E0
+
+Clasificación: **🟢 VIABLE**.
+
+E0 demostró que Dark Moon puede ejecutarse y empaquetarse con Electron mediante un wrapper acotado sin reestructurar gameplay, Phaser, presentación web ni persistencia.
+
+Quedó validado:
+
+- `darkmoon://app/` como origen interno estable;
+- módulos ES, `fetch()` de JSON/catálogos, CSS e imágenes locales;
+- Phaser 4.2.1 / WebGL;
+- persistencia `localStorage` entre cierres y reaperturas;
+- ejecución offline;
+- resize, maximizado y fullscreen;
+- `nodeIntegration: false`;
+- `contextIsolation: true`;
+- `sandbox: true`;
+- `webSecurity: true`;
+- bloqueo de nuevas ventanas y navegación externa;
+- CSP restrictiva compatible con el juego actual;
+- `require` y `process` no expuestos al renderer;
+- paquete Windows x64 ejecutable fuera del repositorio;
+- continuidad del destino web con Phaser y Canvas 2D.
+
+No se requiere migrar `localStorage` en esta etapa. No se requiere servidor local para el ejecutable. No se requiere Node/npm en el equipo del jugador.
+
+Deuda/riesgos que continúan vivos para etapas posteriores:
+
+- origen `darkmoon://app` debe mantenerse estable para no fragmentar `localStorage`;
+- el tamaño de Electron debe medirse/optimizarse cuando la distribución sea relevante;
+- la compilación no está firmada;
+- E0 produce carpeta portable técnica, no instalador;
+- E1 deberá decidir icono, metadatos, contenido final del paquete y política de datos/diagnóstico;
+- cualquier futura API nativa o Steam deberá introducirse mediante superficies pequeñas y explícitas, no habilitando Node globalmente.
+
+La evidencia detallada de cierre se registra en:
+
+`docs/electron/entregas/ENTREGA_E0.md`
 
 ---
 
@@ -682,23 +759,36 @@ Las conclusiones deben indicar de forma sencilla:
 
 ## E0 — Validación técnica temprana de Electron
 
-Estado: **APROBADA PARA INICIAR**.
+Estado: **CERRADA — 🟢 VIABLE**.
 
-Base:
+Base de inicio del hito Electron:
 
 `43786cd50840988c1f4d647128a96abdb0bd2d50`
 
-Rama:
+Commit documental inicial de la rama:
+
+`ea8943aeab80deda8746692006eec0cdcd20b0b2`
+
+Rama de validación:
 
 `feature/electron-e0`
 
-Primer movimiento del hito:
+SHA de cierre E0:
 
-- limpiar documentación histórica P0–P7 del árbol actual;
-- conservar el diseño maestro visual vigente;
-- establecer este Plan Maestro Electron;
-- realizar un commit documental separado;
-- después instalar y verificar Node.js/npm;
-- recién entonces incorporar las dependencias Electron aprobadas.
+**pendiente del commit final del usuario**.
 
-No se debe comenzar E1, E2 ni S1 automáticamente al finalizar E0.
+Resultado:
+
+- Electron funciona como segundo contenedor de la misma aplicación canónica;
+- no fue necesario modificar gameplay ni migrar persistencia;
+- se genera y ejecuta una carpeta Windows x64 portable técnica;
+- el ejecutable funciona fuera del repositorio y sin Internet;
+- la versión web continúa operativa;
+- la configuración de seguridad mínima y CSP fueron validadas;
+- E0 se clasifica **🟢 VIABLE**.
+
+Próxima etapa elegible:
+
+**E1 — Beta Electron**.
+
+E1 no se inicia automáticamente. Requiere análisis de alcance y aprobación explícita antes de cualquier implementación.

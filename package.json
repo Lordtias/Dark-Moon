@@ -1,0 +1,16 @@
+{
+  "name": "dark-moon",
+  "productName": "Dark Moon",
+  "version": "0.7.0-beta.2",
+  "private": true,
+  "description": "Dark Moon - RPG tactico desarrollado para web y Electron",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "npx @electron/packager . \"Dark Moon\" --platform=win32 --arch=x64 --out=out --overwrite"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.0.1",
+    "electron": "43.3.0"
+  }
+}

@@ -1193,11 +1193,8 @@ function prepararEnemigosEnLineaParaPrueba(
       };
     }).every(
       ({ x, y }) =>
-        y >= 0 &&
-        y < juego.map.length &&
-        x >= 0 &&
-        x < juego.map[y].length &&
-        juego.map[y][x] !== "#",
+        juego.sistemaEspacial?.consultarTerreno(x, y)?.dentroMapa === true &&
+        juego.sistemaEspacial.consultarTerreno(x, y).bloqueaMovimiento === false,
     ),
   );
 

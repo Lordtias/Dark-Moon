@@ -956,6 +956,8 @@
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
               "apariencia": "veneno",
+              "bloqueaMovimiento": false,
+              "bloqueaVision": true,
               "resolverImpacto": true,
               "resolverCritico": false
             }
@@ -989,6 +991,8 @@
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
               "apariencia": "veneno",
+              "bloqueaMovimiento": false,
+              "bloqueaVision": true,
               "resolverImpacto": true,
               "resolverCritico": false
             }
@@ -1022,6 +1026,8 @@
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
               "apariencia": "veneno",
+              "bloqueaMovimiento": false,
+              "bloqueaVision": true,
               "resolverImpacto": true,
               "resolverCritico": false
             }

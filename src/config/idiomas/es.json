@@ -1441,6 +1441,8 @@
       "saleMapa": "La trayectoria sale del mapa.",
       "dosParedesDiagonal": "Dos paredes bloquean la trayectoria diagonal del ataque.",
       "paredBloquea": "Una pared bloquea la trayectoria del ataque.",
+      "dosObstruccionesDiagonal": "Dos obstrucciones bloquean la trayectoria diagonal.",
+      "obstruccionBloquea": "Una obstrucción bloquea la trayectoria.",
       "soloAdyacente": "Este ataque solamente puede alcanzar casillas adyacentes.",
       "soloLineal": "Este ataque debe realizarse en línea horizontal, vertical o diagonal."
     },

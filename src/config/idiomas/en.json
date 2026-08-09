@@ -1441,6 +1441,8 @@
       "saleMapa": "The trajectory leaves the map.",
       "dosParedesDiagonal": "Two walls block the diagonal attack trajectory.",
       "paredBloquea": "A wall blocks the attack trajectory.",
+      "dosObstruccionesDiagonal": "Two obstructions block the diagonal trajectory.",
+      "obstruccionBloquea": "An obstruction blocks the trajectory.",
       "soloAdyacente": "This attack can only reach adjacent tiles.",
       "soloLineal": "This attack must be made in a horizontal, vertical, or diagonal line."
     },

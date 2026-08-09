@@ -556,6 +556,7 @@ export class SistemaHabilidadesJugador {
     const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
     const vistaPrevia = crearVistaPreviaHabilidad({
       mapa: this.juego.mapa,
+      sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       objetivos: obtenerObjetivosVivos(this.juego),
       habilidad,
@@ -658,6 +659,7 @@ export class SistemaHabilidadesJugador {
     const gradoConfig = habilidad.ejecucion.grados[grado];
     const vistaPrevia = crearVistaPreviaHabilidad({
       mapa: this.juego.mapa,
+      sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       objetivos: obtenerObjetivosVivos(this.juego),
       habilidad,
@@ -785,6 +787,7 @@ export class SistemaHabilidadesJugador {
     const gradoConfig = habilidad.ejecucion.grados[grado];
     const casillasSeleccionables = obtenerCasillasSeleccionablesHabilidad({
       mapa: this.juego.mapa,
+      sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       habilidad,
       gradoConfig,

@@ -2,6 +2,7 @@ import {
   calcularDistanciaCuadricula,
   evaluarLineaVision,
 } from "../combate/SistemaAlcanceAtaque.js";
+import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
 
 // Políticas canónicas para resolver cómo una forma de habilidad interactúa con
 // paredes y esquinas. Este módulo no conoce daño, efectos, animaciones ni UI.
@@ -14,6 +15,7 @@ export const POLITICAS_OBSTACULOS_HABILIDAD = Object.freeze({
 
 export function resolverCasillasRadioConObstaculos({
   mapa,
+  sistemaEspacial = null,
   centro,
   radio,
   politicaObstaculos = POLITICAS_OBSTACULOS_HABILIDAD.VISION_DESDE_CENTRO,
@@ -29,10 +31,11 @@ export function resolverCasillasRadioConObstaculos({
   for (let y = centro.y - radio; y <= centro.y + radio; y += 1) {
     for (let x = centro.x - radio; x <= centro.x + radio; x += 1) {
       const destino = { x, y };
-      if (!esCasillaSuelo(mapa, x, y)) continue;
+      if (!esCasillaSuelo(mapa, x, y, sistemaEspacial)) continue;
       if (calcularDistanciaCuadricula(centro, destino) > radio) continue;
       if (!esCasillaAlcanzablePorPolitica({
         mapa,
+        sistemaEspacial,
         origen: centro,
         destino,
         politicaObstaculos,
@@ -46,6 +49,7 @@ export function resolverCasillasRadioConObstaculos({
 
 export function resolverRecorridoCadenaConObstaculos({
   mapa,
+  sistemaEspacial = null,
   objetivoPrimario,
   objetivos = [],
   maximoObjetivos,
@@ -79,6 +83,7 @@ export function resolverRecorridoCadenaConObstaculos({
         }
         return esCasillaAlcanzablePorPolitica({
           mapa,
+          sistemaEspacial,
           origen: actual,
           destino: objetivo,
           politicaObstaculos,
@@ -105,6 +110,7 @@ export function resolverRecorridoCadenaConObstaculos({
 // que el resto del eje atraviese paredes.
 export function resolverLineaHastaObstaculo({
   mapa,
+  sistemaEspacial = null,
   origen,
   destino,
   longitud,
@@ -144,10 +150,15 @@ export function resolverLineaHastaObstaculo({
       y: Math.round(origen.y + direccion.y * avance),
     };
 
-    if (!esCasillaSuelo(mapa, eje.x, eje.y)) break;
+    if (!esCasillaSuelo(mapa, eje.x, eje.y, sistemaEspacial)) break;
     if (
       politicaObstaculos !== POLITICAS_OBSTACULOS_HABILIDAD.IGNORAR &&
-      !evaluarLineaVision({ mapa, origen, destino: eje }).despejada
+      !evaluarLineaVision({
+        mapa,
+        sistemaEspacial,
+        origen,
+        destino: eje,
+      }).despejada
     ) {
       break;
     }
@@ -157,7 +168,7 @@ export function resolverLineaHastaObstaculo({
         x: Math.round(eje.x + perpendicular.x * offset),
         y: Math.round(eje.y + perpendicular.y * offset),
       };
-      if (!esCasillaSuelo(mapa, casilla.x, casilla.y)) continue;
+      if (!esCasillaSuelo(mapa, casilla.x, casilla.y, sistemaEspacial)) continue;
       const clave = `${casilla.x}:${casilla.y}`;
       if (claves.has(clave)) continue;
       claves.add(clave);
@@ -170,6 +181,7 @@ export function resolverLineaHastaObstaculo({
 
 export function esCasillaAlcanzablePorPolitica({
   mapa,
+  sistemaEspacial = null,
   origen,
   destino,
   politicaObstaculos,
@@ -191,7 +203,10 @@ export function esCasillaAlcanzablePorPolitica({
     politicaObstaculos ===
       POLITICAS_OBSTACULOS_HABILIDAD.DETENER_EN_OBSTACULO
   ) {
-    return evaluarLineaVision({ mapa, origen, destino }).despejada === true;
+    return (
+      evaluarLineaVision({ mapa, sistemaEspacial, origen, destino }).despejada ===
+      true
+    );
   }
 
   return false;
@@ -225,14 +240,11 @@ function crearOffsetsCentrados(cantidad) {
   return Array.from({ length: cantidad }, (_, indice) => inicio + indice);
 }
 
-function esCasillaSuelo(mapa, x, y) {
-  return (
-    y >= 0 &&
-    y < mapa.length &&
-    x >= 0 &&
-    x < mapa[y].length &&
-    mapa[y][x] !== "#"
-  );
+function esCasillaSuelo(mapa, x, y, sistemaEspacial) {
+  const terreno = sistemaEspacial?.consultarTerreno
+    ? sistemaEspacial.consultarTerreno(x, y)
+    : consultarTerrenoMapa(mapa, x, y);
+  return terreno.dentroMapa && !terreno.bloqueaMovimiento;
 }
 
 function compararCasillas(a, b) {

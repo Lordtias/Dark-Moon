@@ -52,7 +52,7 @@ export class SistemaCombateJugador {
     interactuables,
     configuracionObjetos,
     semillaMapa = "partida",
-    esCaminable,
+    sistemaEspacial,
     obtenerObjetivoEn,
     obtenerModoInteraccionActivo,
     eliminarActorTemporal,
@@ -82,9 +82,12 @@ export class SistemaCombateJugador {
         "SistemaCombateJugador necesita una configuración de objetos válida.",
       );
     }
-    if (typeof esCaminable !== "function") {
+    if (
+      !sistemaEspacial ||
+      typeof sistemaEspacial.consultarTerreno !== "function"
+    ) {
       throw new Error(
-        "SistemaCombateJugador necesita consultar casillas caminables.",
+        "SistemaCombateJugador necesita un sistema espacial válido.",
       );
     }
     if (typeof obtenerObjetivoEn !== "function") {
@@ -116,7 +119,7 @@ export class SistemaCombateJugador {
     this.mapa = mapa;
     this.jugador = jugador;
     this.objetivos = objetivos;
-    this.esCaminable = esCaminable;
+    this.sistemaEspacial = sistemaEspacial;
     this.obtenerObjetivoEn = obtenerObjetivoEn;
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
     this.registrarParticipanteCombate = registrarParticipanteCombate;
@@ -138,6 +141,11 @@ export class SistemaCombateJugador {
     this.ultimaDireccion = { x: movimientoX, y: movimientoY };
   }
 
+  esTerrenoSeleccionable(x, y) {
+    const terreno = this.sistemaEspacial.consultarTerreno(x, y);
+    return terreno.dentroMapa && !terreno.bloqueaMovimiento;
+  }
+
   estaCasillaDentroAlcance(x, y) {
     const distancia = calcularDistanciaCuadricula(
       { x: this.jugador.x, y: this.jugador.y },
@@ -152,6 +160,7 @@ export class SistemaCombateJugador {
       xObjetivo: x,
       yObjetivo: y,
       mapa: this.mapa,
+      sistemaEspacial: this.sistemaEspacial,
     });
   }
 
@@ -198,7 +207,7 @@ export class SistemaCombateJugador {
     for (const direccion of direcciones) {
       const x = this.jugador.x + direccion.x;
       const y = this.jugador.y + direccion.y;
-      if (this.esCaminable(x, y) && this.esCasillaAtacable(x, y)) {
+      if (this.esTerrenoSeleccionable(x, y) && this.esCasillaAtacable(x, y)) {
         return { x, y };
       }
     }
@@ -253,7 +262,7 @@ export class SistemaCombateJugador {
       });
     }
     if (
-      !this.esCaminable(seleccion.x, seleccion.y) ||
+      !this.esTerrenoSeleccionable(seleccion.x, seleccion.y) ||
       !this.estaCasillaDentroAlcance(seleccion.x, seleccion.y)
     ) {
       return crearResultadoAccion({
@@ -318,7 +327,7 @@ export class SistemaCombateJugador {
       });
     }
 
-    if (!this.esCaminable(x, y)) {
+    if (!this.esTerrenoSeleccionable(x, y)) {
       return crearResultadoAccion({
         exito: false,
         mensaje: crearMensajeTraducible("mensajes.combate.paredSeleccion", {

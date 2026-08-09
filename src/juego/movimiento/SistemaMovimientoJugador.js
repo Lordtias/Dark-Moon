@@ -12,7 +12,7 @@ import {
 
 export class SistemaMovimientoJugador {
   constructor({
-    mapa,
+    sistemaEspacial,
     jugador,
     obtenerObjetivoEn,
     obtenerModoInteraccionActivo,
@@ -26,8 +26,17 @@ export class SistemaMovimientoJugador {
     notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
     finalizarAccionJugador,
   } = {}) {
-    if (!Array.isArray(mapa) || mapa.length === 0) {
-      throw new Error("SistemaMovimientoJugador necesita un mapa válido.");
+    if (
+      !sistemaEspacial ||
+      typeof sistemaEspacial.consultarPosicion !== "function" ||
+      typeof sistemaEspacial.consultarTerreno !== "function" ||
+      typeof sistemaEspacial.estaDentroMapa !== "function" ||
+      typeof sistemaEspacial.bloqueaMovimiento !== "function" ||
+      typeof sistemaEspacial.bloqueaPasoDiagonal !== "function"
+    ) {
+      throw new Error(
+        "SistemaMovimientoJugador necesita un sistema espacial válido.",
+      );
     }
     if (!jugador || typeof jugador !== "object") {
       throw new Error("SistemaMovimientoJugador necesita un jugador válido.");
@@ -66,7 +75,7 @@ export class SistemaMovimientoJugador {
       "finalizar acciones temporales",
     );
 
-    this.mapa = mapa;
+    this.sistemaEspacial = sistemaEspacial;
     this.jugador = jugador;
     this.obtenerObjetivoEn = obtenerObjetivoEn;
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
@@ -88,29 +97,23 @@ export class SistemaMovimientoJugador {
   }
 
   estaDentroMapa(x, y) {
-    return y >= 0 && y < this.mapa.length && x >= 0 && x < this.mapa[y].length;
+    return this.sistemaEspacial.estaDentroMapa(x, y);
   }
 
+  // Conserva el contrato histórico: indica si el terreno de la casilla puede
+  // recorrerse. Las entidades y zonas se combinan al resolver un movimiento.
   esCaminable(x, y) {
-    return this.estaDentroMapa(x, y) && this.mapa[y][x] !== "#";
+    const terreno = this.sistemaEspacial.consultarTerreno(x, y);
+    return terreno.dentroMapa && !terreno.bloqueaMovimiento;
   }
 
   estaDiagonalBloqueada(movimientoX, movimientoY) {
-    const esDiagonal =
-      Math.abs(movimientoX) === 1 && Math.abs(movimientoY) === 1;
-    if (!esDiagonal) {
-      return false;
-    }
-
-    const horizontalBloqueada = !this.esCaminable(
-      this.jugador.x + movimientoX,
-      this.jugador.y,
-    );
-    const verticalBloqueada = !this.esCaminable(
-      this.jugador.x,
-      this.jugador.y + movimientoY,
-    );
-    return horizontalBloqueada && verticalBloqueada;
+    return this.sistemaEspacial.bloqueaPasoDiagonal({
+      origen: this.jugador,
+      movimientoX,
+      movimientoY,
+      ignorarEntidades: [this.jugador],
+    });
   }
 
   mover(movimientoX, movimientoY) {
@@ -134,19 +137,35 @@ export class SistemaMovimientoJugador {
     const nuevaX = this.jugador.x + movimientoX;
     const nuevaY = this.jugador.y + movimientoY;
 
-    if (!this.esCaminable(nuevaX, nuevaY)) {
+    if (!this.estaDentroMapa(nuevaX, nuevaY)) {
+      return crearResultadoAccion({ exito: false });
+    }
+
+    const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
+    const consultaSinObjetivo = this.sistemaEspacial.consultarPosicion(
+      nuevaX,
+      nuevaY,
+      { ignorarEntidades: [this.jugador, objetivo].filter(Boolean) },
+    );
+    if (
+      consultaSinObjetivo.terreno.bloqueaMovimiento ||
+      consultaSinObjetivo.zonas.some((zona) => zona.bloqueaMovimiento === true)
+    ) {
       return crearResultadoAccion({ exito: false });
     }
     if (this.estaDiagonalBloqueada(movimientoX, movimientoY)) {
       return crearResultadoAccion({ exito: false });
     }
 
-    const objetivo = this.obtenerObjetivoEn(nuevaX, nuevaY);
     if (objetivo instanceof Combatiente) {
       this.registrarUltimaDireccionCombate(movimientoX, movimientoY);
       return this.entrarModoCombate(nuevaX, nuevaY);
     }
-    if (objetivo) {
+    if (
+      this.sistemaEspacial.bloqueaMovimiento(nuevaX, nuevaY, {
+        ignorarEntidades: [this.jugador],
+      })
+    ) {
       return crearResultadoAccion({ exito: false });
     }
 

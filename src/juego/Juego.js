@@ -2,6 +2,7 @@ import { EstadoCombatePartida } from "./combate/EstadoCombatePartida.js";
 import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
 import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
+import { SistemaEspacial } from "./espacio/SistemaEspacial.js";
 import {
   crearMensajeTraducible,
   TIPOS_MENSAJE_JUEGO,
@@ -54,6 +55,19 @@ export class Juego {
     this.interactuables = interactuables;
     this.destruido = false;
 
+    // El sistema espacial es la única autoridad runtime para combinar terreno,
+    // entidades y zonas al responder bloqueos de movimiento o visión.
+    this.sistemaEspacial = new SistemaEspacial({
+      mapa: this.map,
+      obtenerEntidades: () => [
+        this.player,
+        ...this.objetivos,
+        ...this.interactuables,
+      ],
+      obtenerZonas: () =>
+        this.coordinadorTiempo?.obtenerZonasTemporales?.() ?? [],
+    });
+
     // El estado pertenece al Juego y, por tanto, al mapa activo. No se guarda
     // en EstadoPartida porque debe desaparecer al volver a ciudad o iniciar
     // otra expedición.
@@ -63,6 +77,7 @@ export class Juego {
       jugador: this.player,
       objetivos: this.objetivos,
       estadoCombate: this.estadoCombatePartida,
+      sistemaEspacial: this.sistemaEspacial,
     });
 
     const semillaMapa =
@@ -74,7 +89,7 @@ export class Juego {
       interactuables: this.interactuables,
       configuracionObjetos: this.configuracionObjetos,
       semillaMapa,
-      esCaminable: (x, y) => this.esCaminable(x, y),
+      sistemaEspacial: this.sistemaEspacial,
       obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
       obtenerModoInteraccionActivo: () =>
         this.sistemaInteraccionJugador?.modoActivo === true,
@@ -96,7 +111,7 @@ export class Juego {
     });
 
     this.sistemaMovimientoJugador = new SistemaMovimientoJugador({
-      mapa: this.map,
+      sistemaEspacial: this.sistemaEspacial,
       jugador: this.player,
       obtenerObjetivoEn: (x, y) => this.obtenerObjetivoEn(x, y),
       obtenerModoInteraccionActivo: () => this.modoInteraccionActivo,

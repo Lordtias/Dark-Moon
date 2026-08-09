@@ -1,4 +1,5 @@
 import { crearMensajeTraducible, TIPOS_MENSAJE_JUEGO } from "../mensajes/MensajesJuego.js";
+import { SistemaEspacial } from "../espacio/SistemaEspacial.js";
 import { PATRONES_ATAQUE, esPatronAtaqueValido } from "./PatronesAtaque.js";
 
 // Centraliza las reglas de alcance y línea de visión.
@@ -17,8 +18,10 @@ export function evaluarAtaqueCasilla({
   xObjetivo,
   yObjetivo,
   mapa,
+  sistemaEspacial = null,
 } = {}) {
-  validarDatos({ atacante, xObjetivo, yObjetivo, mapa });
+  validarDatos({ atacante, xObjetivo, yObjetivo, mapa, sistemaEspacial });
+  const espacio = resolverSistemaEspacial({ mapa, sistemaEspacial });
   const origen = {
     x: atacante.x,
     y: atacante.y,
@@ -28,14 +31,15 @@ export function evaluarAtaqueCasilla({
     y: yObjetivo,
   };
 
-  if (!estaDentroMapa(mapa, destino.x, destino.y)) {
+  if (!espacio.estaDentroMapa(destino.x, destino.y)) {
     return crearResultadoInvalido(
       "La casilla seleccionada está fuera del mapa.",
       "mensajes.alcance.saleMapa",
     );
   }
 
-  if (esPared(mapa, destino.x, destino.y)) {
+  const terrenoDestino = espacio.consultarTerreno(destino.x, destino.y);
+  if (terrenoDestino.bloqueaMovimiento && terrenoDestino.bloqueaVision) {
     return crearResultadoInvalido(
       "No podés atacar una pared.",
       "mensajes.combate.paredSeleccion",
@@ -100,7 +104,12 @@ export function evaluarAtaqueCasilla({
     };
   }
 
-  const lineaVision = evaluarLineaVision({ mapa, origen, destino });
+  const lineaVision = evaluarLineaVision({
+    mapa,
+    sistemaEspacial: espacio,
+    origen,
+    destino,
+  });
   if (!lineaVision.despejada) {
     return {
       puedeAtacar: false,
@@ -185,10 +194,13 @@ function estaEnDireccionLineal(origen, destino) {
 // si ambos lados están cerrados por paredes. La función se exporta para que la
 // percepción enemiga pueda usar la misma regla geométrica que los ataques sin
 // convertir la percepción en un ataque ficticio.
-export function evaluarLineaVision({ mapa, origen, destino } = {}) {
-  if (!Array.isArray(mapa) || mapa.length === 0) {
-    throw new Error("Se necesita un mapa válido para evaluar línea de visión.");
-  }
+export function evaluarLineaVision({
+  mapa,
+  sistemaEspacial = null,
+  origen,
+  destino,
+} = {}) {
+  const espacio = resolverSistemaEspacial({ mapa, sistemaEspacial });
   if (
     !origen ||
     !destino ||
@@ -200,8 +212,8 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
     throw new Error("La línea de visión necesita posiciones enteras válidas.");
   }
   if (
-    !estaDentroMapa(mapa, origen.x, origen.y) ||
-    !estaDentroMapa(mapa, destino.x, destino.y)
+    !espacio.estaDentroMapa(origen.x, origen.y) ||
+    !espacio.estaDentroMapa(destino.x, destino.y)
   ) {
     return {
       despejada: false,
@@ -226,21 +238,13 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
       (1 + 2 * pasosX) * cantidadY - (1 + 2 * pasosY) * cantidadX;
 
     if (decision === 0) {
-      const lateralHorizontal = {
-        x: x + direccionX,
-        y,
-      };
-      const lateralVertical = {
-        x,
-        y: y + direccionY,
-      };
-      const horizontalBloqueado = esBloqueante(
-        mapa,
+      const lateralHorizontal = { x: x + direccionX, y };
+      const lateralVertical = { x, y: y + direccionY };
+      const horizontalBloqueado = espacio.bloqueaVision(
         lateralHorizontal.x,
         lateralHorizontal.y,
       );
-      const verticalBloqueado = esBloqueante(
-        mapa,
+      const verticalBloqueado = espacio.bloqueaVision(
         lateralVertical.x,
         lateralVertical.y,
       );
@@ -248,8 +252,10 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
       if (horizontalBloqueado && verticalBloqueado) {
         return {
           despejada: false,
-          mensaje: "Dos paredes bloquean la trayectoria diagonal del ataque.",
-          mensajePresentacion: crearMensajeAlcance("mensajes.alcance.dosParedesDiagonal"),
+          mensaje: "Dos obstrucciones bloquean la trayectoria diagonal.",
+          mensajePresentacion: crearMensajeAlcance(
+            "mensajes.alcance.dosObstruccionesDiagonal",
+          ),
         };
       }
 
@@ -266,13 +272,15 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
     }
 
     const esDestino = x === destino.x && y === destino.y;
-    // La casilla de destino fue validada antes. Aquí solamente comprobamos
-    // obstáculos que se encuentren en el trayecto.
-    if (!esDestino && esBloqueante(mapa, x, y)) {
+    // La casilla destino no bloquea la visión hacia sí misma. Solamente se
+    // evalúan obstrucciones intermedias de terreno, entidades y zonas.
+    if (!esDestino && espacio.bloqueaVision(x, y)) {
       return {
         despejada: false,
-        mensaje: "Una pared bloquea la trayectoria del ataque.",
-        mensajePresentacion: crearMensajeAlcance("mensajes.alcance.paredBloquea"),
+        mensaje: "Una obstrucción bloquea la trayectoria.",
+        mensajePresentacion: crearMensajeAlcance(
+          "mensajes.alcance.obstruccionBloquea",
+        ),
       };
     }
   }
@@ -284,17 +292,16 @@ export function evaluarLineaVision({ mapa, origen, destino } = {}) {
   };
 }
 
-function estaDentroMapa(mapa, x, y) {
-  return y >= 0 && y < mapa.length && x >= 0 && x < mapa[y].length;
-}
-
-function esPared(mapa, x, y) {
-  return estaDentroMapa(mapa, x, y) && mapa[y][x] === "#";
-}
-
-// Una posición fuera del mapa se considera bloqueante al comprobar esquinas.
-function esBloqueante(mapa, x, y) {
-  return !estaDentroMapa(mapa, x, y) || esPared(mapa, x, y);
+function resolverSistemaEspacial({ mapa, sistemaEspacial }) {
+  if (
+    sistemaEspacial &&
+    typeof sistemaEspacial.estaDentroMapa === "function" &&
+    typeof sistemaEspacial.bloqueaVision === "function" &&
+    typeof sistemaEspacial.consultarTerreno === "function"
+  ) {
+    return sistemaEspacial;
+  }
+  return new SistemaEspacial({ mapa });
 }
 
 function crearResultadoInvalido(mensaje, clave = null) {
@@ -317,14 +324,23 @@ function crearMensajeAlcance(clave, parametros = {}) {
   });
 }
 
-function validarDatos({ atacante, xObjetivo, yObjetivo, mapa }) {
+function validarDatos({
+  atacante,
+  xObjetivo,
+  yObjetivo,
+  mapa,
+  sistemaEspacial,
+}) {
   if (!atacante) {
     throw new Error("Se necesita un atacante para evaluar el alcance.");
   }
   if (!Number.isInteger(xObjetivo) || !Number.isInteger(yObjetivo)) {
     throw new Error("La posición objetivo debe utilizar coordenadas enteras.");
   }
-  if (!Array.isArray(mapa) || mapa.length === 0) {
-    throw new Error("Se necesita un mapa válido para evaluar el ataque.");
+  if (
+    (!Array.isArray(mapa) || mapa.length === 0) &&
+    !sistemaEspacial
+  ) {
+    throw new Error("Se necesita un mapa o sistema espacial válido para evaluar el ataque.");
   }
 }

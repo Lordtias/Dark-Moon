@@ -26,6 +26,7 @@ import {
 import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
+import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
 
 export const TILE_SIZE = 32;
 
@@ -520,10 +521,8 @@ function obtenerPosicionInteractuablePrueba({
 
     const y = player.y + direccion.y;
 
-    const dentroMapa =
-      y >= 0 && y < mapa.length && x >= 0 && x < mapa[y].length;
-
-    if (!dentroMapa || mapa[y][x] === "#") {
+    const terreno = consultarTerrenoMapa(mapa, x, y);
+    if (!terreno.dentroMapa || terreno.bloqueaMovimiento) {
       continue;
     }
 

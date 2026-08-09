@@ -1,4 +1,5 @@
 import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
+import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
 import {
   POLITICAS_OBSTACULOS_HABILIDAD,
   resolverCasillasRadioConObstaculos,
@@ -22,6 +23,7 @@ export const ORIENTACIONES_LINEA = Object.freeze({
 // El resultado sirve tanto para la interfaz como para preparar la ejecución.
 export function crearVistaPreviaHabilidad({
   mapa,
+  sistemaEspacial = null,
   jugador,
   objetivos = [],
   habilidad,
@@ -34,6 +36,7 @@ export function crearVistaPreviaHabilidad({
   const centro = obtenerCentroSeleccion({ jugador, habilidad, x, y });
   const geometria = evaluarSeleccionHabilidad({
     mapa,
+    sistemaEspacial,
     jugador,
     habilidad,
     gradoConfig,
@@ -42,6 +45,7 @@ export function crearVistaPreviaHabilidad({
   });
   const casillasSeleccionables = obtenerCasillasSeleccionablesHabilidad({
     mapa,
+    sistemaEspacial,
     jugador,
     habilidad,
     gradoConfig,
@@ -56,6 +60,7 @@ export function crearVistaPreviaHabilidad({
   );
   const resolucionImpacto = resolverFormaImpacto({
     mapa,
+    sistemaEspacial,
     jugador,
     centro,
     objetivos: objetivosVivos,
@@ -97,6 +102,7 @@ export function crearVistaPreviaHabilidad({
 
 export function obtenerCasillasSeleccionablesHabilidad({
   mapa,
+  sistemaEspacial = null,
   jugador,
   habilidad,
   gradoConfig,
@@ -112,6 +118,7 @@ export function obtenerCasillasSeleccionablesHabilidad({
     for (let x = 0; x < mapa[y].length; x += 1) {
       const geometria = evaluarSeleccionHabilidad({
         mapa,
+        sistemaEspacial,
         jugador,
         habilidad,
         gradoConfig,
@@ -126,6 +133,7 @@ export function obtenerCasillasSeleccionablesHabilidad({
 
 export function evaluarSeleccionHabilidad({
   mapa,
+  sistemaEspacial = null,
   jugador,
   habilidad,
   gradoConfig,
@@ -169,6 +177,7 @@ export function evaluarSeleccionHabilidad({
       xObjetivo: x,
       yObjetivo: y,
       mapa,
+      sistemaEspacial,
     });
     const dentroAlcance = Boolean(
       resultado.dentroAlcance ?? resultado.puedeAtacar,
@@ -212,6 +221,7 @@ export function evaluarSeleccionHabilidad({
 // habilidades. No aplica daño, efectos ni zonas.
 export function crearCasillasFormaImpacto({
   mapa,
+  sistemaEspacial = null,
   jugador,
   centro,
   formaImpacto,
@@ -237,6 +247,7 @@ export function crearCasillasFormaImpacto({
     case TIPOS_FORMA_IMPACTO.RADIO:
       return resolverCasillasRadioConObstaculos({
         mapa,
+        sistemaEspacial,
         centro,
         radio: formaImpacto.radio,
         politicaObstaculos:
@@ -244,10 +255,16 @@ export function crearCasillasFormaImpacto({
           POLITICAS_OBSTACULOS_HABILIDAD.VISION_DESDE_CENTRO,
       });
     case TIPOS_FORMA_IMPACTO.LINEA:
-      return crearCasillasLinea({ mapa, jugador, centro, formaImpacto });
+      return crearCasillasLinea({
+        mapa,
+        sistemaEspacial,
+        jugador,
+        centro,
+        formaImpacto,
+      });
     case TIPOS_FORMA_IMPACTO.INDIVIDUAL:
     default:
-      return esCasillaSuelo(mapa, centro.x, centro.y)
+      return esCasillaSuelo(mapa, centro.x, centro.y, sistemaEspacial)
         ? [{ x: centro.x, y: centro.y }]
         : [];
   }
@@ -255,6 +272,7 @@ export function crearCasillasFormaImpacto({
 
 function resolverFormaImpacto({
   mapa,
+  sistemaEspacial,
   jugador,
   centro,
   objetivos,
@@ -268,6 +286,7 @@ function resolverFormaImpacto({
         objetivos,
         casillasAfectadas: crearCasillasFormaImpacto({
           mapa,
+          sistemaEspacial,
           jugador,
           centro,
           formaImpacto,
@@ -279,6 +298,7 @@ function resolverFormaImpacto({
         objetivos,
         casillasAfectadas: crearCasillasFormaImpacto({
           mapa,
+          sistemaEspacial,
           jugador,
           centro,
           formaImpacto,
@@ -287,18 +307,34 @@ function resolverFormaImpacto({
     case TIPOS_FORMA_IMPACTO.CADENA:
       return resolverCadena({
         mapa,
+        sistemaEspacial,
         objetivoPrimario,
         objetivos,
         formaImpacto,
       });
     case TIPOS_FORMA_IMPACTO.INDIVIDUAL:
     default:
-      return resolverIndividual({ mapa, centro, objetivoPrimario });
+      return resolverIndividual({
+        mapa,
+        sistemaEspacial,
+        centro,
+        objetivoPrimario,
+      });
   }
 }
 
-function resolverIndividual({ mapa, centro, objetivoPrimario }) {
-  const casillasAfectadas = esCasillaSuelo(mapa, centro.x, centro.y)
+function resolverIndividual({
+  mapa,
+  sistemaEspacial,
+  centro,
+  objetivoPrimario,
+}) {
+  const casillasAfectadas = esCasillaSuelo(
+    mapa,
+    centro.x,
+    centro.y,
+    sistemaEspacial,
+  )
     ? [{ x: centro.x, y: centro.y }]
     : [];
   const objetivosAfectados = objetivoPrimario
@@ -336,7 +372,13 @@ function resolverPorCasillas({
   };
 }
 
-function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
+function crearCasillasLinea({
+  mapa,
+  sistemaEspacial,
+  jugador,
+  centro,
+  formaImpacto,
+}) {
   const direccion = normalizarDireccion({
     x: centro.x - jugador.x,
     y: centro.y - jugador.y,
@@ -353,7 +395,7 @@ function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
     const offsetsAncho = crearOffsetsCentrados(ancho);
     for (const avance of offsetsLongitud) {
       for (const grosor of offsetsAncho) {
-        agregarCasillaSiSuelo(casillas, mapa, {
+        agregarCasillaSiSuelo(casillas, mapa, sistemaEspacial, {
           x: centro.x + perpendicular.x * avance + direccion.x * grosor,
           y: centro.y + perpendicular.y * avance + direccion.y * grosor,
         });
@@ -362,6 +404,7 @@ function crearCasillasLinea({ mapa, jugador, centro, formaImpacto }) {
   } else {
     return resolverLineaHastaObstaculo({
       mapa,
+      sistemaEspacial,
       origen: jugador,
       destino: centro,
       longitud,
@@ -409,13 +452,20 @@ function resolverLinea({ jugador, objetivos, casillasAfectadas }) {
   };
 }
 
-function resolverCadena({ mapa, objetivoPrimario, objetivos, formaImpacto }) {
+function resolverCadena({
+  mapa,
+  sistemaEspacial,
+  objetivoPrimario,
+  objetivos,
+  formaImpacto,
+}) {
   if (!objetivoPrimario) {
     return { casillasAfectadas: [], objetivosAfectados: [], recorrido: [] };
   }
 
   const seleccionados = resolverRecorridoCadenaConObstaculos({
     mapa,
+    sistemaEspacial,
     objetivoPrimario,
     objetivos,
     maximoObjetivos: formaImpacto.maximoObjetivos,
@@ -544,8 +594,13 @@ function normalizarDireccion({ x, y }) {
   return dx === 0 && dy === 0 ? { x: 1, y: 0 } : { x: dx, y: dy };
 }
 
-function agregarCasillaSiSuelo(destino, mapa, casilla) {
-  if (!esCasillaSuelo(mapa, casilla.x, casilla.y)) return;
+function agregarCasillaSiSuelo(
+  destino,
+  mapa,
+  sistemaEspacial,
+  casilla,
+) {
+  if (!esCasillaSuelo(mapa, casilla.x, casilla.y, sistemaEspacial)) return;
   destino.set(crearClaveCasilla(casilla), casilla);
 }
 
@@ -556,14 +611,11 @@ function distanciaCuadricula(origen, destino) {
   );
 }
 
-function esCasillaSuelo(mapa, x, y) {
-  return (
-    y >= 0 &&
-    y < mapa.length &&
-    x >= 0 &&
-    x < mapa[y].length &&
-    mapa[y][x] !== "#"
-  );
+function esCasillaSuelo(mapa, x, y, sistemaEspacial) {
+  const terreno = sistemaEspacial?.consultarTerreno
+    ? sistemaEspacial.consultarTerreno(x, y)
+    : consultarTerrenoMapa(mapa, x, y);
+  return terreno.dentroMapa && !terreno.bloqueaMovimiento;
 }
 
 function crearClaveCasilla({ x, y }) {

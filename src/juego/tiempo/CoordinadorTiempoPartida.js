@@ -35,7 +35,13 @@ function acumularResultadoTemporal(destino, origen) {
   return destino;
 }
 export class CoordinadorTiempoPartida {
-  constructor({ mapa, jugador, objetivos, estadoCombate } = {}) {
+  constructor({
+    mapa,
+    jugador,
+    objetivos,
+    estadoCombate,
+    sistemaEspacial,
+  } = {}) {
     if (!Array.isArray(mapa) || mapa.length === 0) {
       throw new Error("CoordinadorTiempoPartida necesita un mapa válido.");
     }
@@ -58,10 +64,20 @@ export class CoordinadorTiempoPartida {
         "CoordinadorTiempoPartida necesita un estado de combate válido.",
       );
     }
+    if (
+      !sistemaEspacial ||
+      typeof sistemaEspacial.bloqueaMovimiento !== "function" ||
+      typeof sistemaEspacial.bloqueaVision !== "function"
+    ) {
+      throw new Error(
+        "CoordinadorTiempoPartida necesita un sistema espacial válido.",
+      );
+    }
     this.mapa = mapa;
     this.jugador = jugador;
     this.objetivos = objetivos;
     this.estadoCombate = estadoCombate;
+    this.sistemaEspacial = sistemaEspacial;
     this.sistemaTiempo = new SistemaTiempo();
     this.sistemaEfectosTemporales = new SistemaEfectosTemporales({
       obtenerTiempoActual: () => this.sistemaTiempo.tiempoActual,
@@ -72,6 +88,7 @@ export class CoordinadorTiempoPartida {
     this.fuentesCombatientesPorEfecto = new Map();
     this.sistemaZonasTemporales = new SistemaZonasTemporales({
       mapa: this.mapa,
+      sistemaEspacial: this.sistemaEspacial,
       obtenerTiempoActual: () => this.sistemaTiempo.tiempoActual,
       obtenerActores: () => [this.jugador, ...this.objetivos],
       esObjetivoValido: ({ zona, actor }) =>
@@ -677,6 +694,7 @@ export class CoordinadorTiempoPartida {
         jugador: this.jugador,
         mapa: this.mapa,
         objetivos: this.objetivos,
+        sistemaEspacial: this.sistemaEspacial,
         registrarParticipanteCombate: (participante, motivo) =>
           this.registrarParticipanteCombate(participante, motivo),
         retirarParticipanteCombate: (participante, motivo) =>

@@ -7,7 +7,9 @@ export class Entidad {
         nombre,
         x = 0,
         y = 0,
-        simbolo = "?"
+        simbolo = "?",
+        bloqueaMovimiento = false,
+        bloqueaVision = false,
     } = {}) {
         // Toda entidad debe tener un nombre de texto
         // y no puede estar vacío.
@@ -54,5 +56,34 @@ export class Entidad {
         // Representación visual temporal.
         // Más adelante podrá reemplazarse por un sprite.
         this.simbolo = simbolo;
+
+        this.configurarObstruccionEspacial({
+            bloqueaMovimiento,
+            bloqueaVision,
+        });
+    }
+
+    configurarObstruccionEspacial({
+        bloqueaMovimiento = this.bloqueaMovimiento,
+        bloqueaVision = this.bloqueaVision,
+    } = {}) {
+        if (typeof bloqueaMovimiento !== "boolean") {
+            throw new Error(
+                `bloqueaMovimiento de ${this.nombre} debe ser booleano.`
+            );
+        }
+        if (typeof bloqueaVision !== "boolean") {
+            throw new Error(
+                `bloqueaVision de ${this.nombre} debe ser booleano.`
+            );
+        }
+
+        this.bloqueaMovimiento = bloqueaMovimiento;
+        this.bloqueaVision = bloqueaVision;
+
+        return {
+            bloqueaMovimiento: this.bloqueaMovimiento,
+            bloqueaVision: this.bloqueaVision,
+        };
     }
 }

@@ -27,14 +27,11 @@ import {
 
 export { calcularDistanciaCuadricula } from "../combate/SistemaAlcanceAtaque.js";
 
-function crearClavePosicion(x, y) {
-  return `${x},${y}`;
-}
-
 function actualizarAgresividad({
   enemigo,
   jugador,
   mapa,
+  sistemaEspacial,
   registrarParticipanteCombate,
   retirarParticipanteCombate,
 }) {
@@ -42,15 +39,23 @@ function actualizarAgresividad({
   const eventos = [];
   const distancia = calcularDistanciaCuadricula(enemigo, jugador);
   const { tipoAgresividad, percepcion } = enemigo.configuracionIA;
-  const lineaVision = evaluarLineaVision({
-    mapa,
-    origen: { x: enemigo.x, y: enemigo.y },
-    destino: { x: jugador.x, y: jugador.y },
-  });
-  const puedeDetectar =
+  let puedeDetectar = false;
+
+  // La distancia es la comprobación barata. Solo calculamos LOS cuando el
+  // enemigo realmente puede iniciar detección y el jugador está dentro de su
+  // alcance de percepción. El resultado jugable no cambia.
+  if (
+    !enemigo.estaAgresivo &&
     tipoAgresividad === "activa" &&
-    distancia <= percepcion &&
-    lineaVision.despejada;
+    distancia <= percepcion
+  ) {
+    puedeDetectar = evaluarLineaVision({
+      mapa,
+      sistemaEspacial,
+      origen: { x: enemigo.x, y: enemigo.y },
+      destino: { x: jugador.x, y: jugador.y },
+    }).despejada;
+  }
 
   if (!enemigo.estaAgresivo && puedeDetectar) {
     enemigo.activarAgresividad();
@@ -144,33 +149,23 @@ function prepararAtaqueEnemigo(enemigo) {
   };
 }
 
-function evaluarAtaqueEnemigo({ enemigo, jugador, mapa }) {
+function evaluarAtaqueEnemigo({ enemigo, jugador, mapa, sistemaEspacial }) {
   return evaluarAtaqueCasilla({
     atacante: enemigo,
     xObjetivo: jugador.x,
     yObjetivo: jugador.y,
     mapa,
+    sistemaEspacial,
   });
 }
 
-function obtenerPosicionesBloqueadas(objetivos, enemigoActual) {
-  const posicionesBloqueadas = new Set();
-  for (const objetivo of objetivos) {
-    if (objetivo === enemigoActual || objetivo.estaDestruido) {
-      continue;
-    }
-    posicionesBloqueadas.add(crearClavePosicion(objetivo.x, objetivo.y));
-  }
-  return posicionesBloqueadas;
-}
-
-function moverEnemigoHaciaJugador({ enemigo, jugador, mapa, objetivos }) {
+function moverEnemigoHaciaJugador({ enemigo, jugador, sistemaEspacial }) {
   const origen = { x: enemigo.x, y: enemigo.y };
   const siguientePaso = buscarSiguientePaso({
-    mapa,
+    sistemaEspacial,
     origen: { x: enemigo.x, y: enemigo.y },
     destino: { x: jugador.x, y: jugador.y },
-    posicionesBloqueadas: obtenerPosicionesBloqueadas(objetivos, enemigo),
+    ignorarEntidades: [enemigo, jugador],
   });
 
   if (!siguientePaso) {
@@ -213,6 +208,7 @@ export function procesarAccionEnemigo({
   jugador,
   mapa,
   objetivos,
+  sistemaEspacial,
   registrarParticipanteCombate = () => {},
   retirarParticipanteCombate = () => {},
   notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
@@ -222,6 +218,13 @@ export function procesarAccionEnemigo({
   }
   if (!Array.isArray(objetivos)) {
     throw new Error("Los objetivos deben estar dentro de una lista.");
+  }
+  if (
+    !sistemaEspacial ||
+    typeof sistemaEspacial.bloqueaMovimiento !== "function" ||
+    typeof sistemaEspacial.bloqueaVision !== "function"
+  ) {
+    throw new Error("La IA necesita un sistema espacial válido.");
   }
   if (typeof registrarParticipanteCombate !== "function") {
     throw new Error("El registro de combate debe ser una función.");
@@ -246,6 +249,7 @@ export function procesarAccionEnemigo({
     enemigo,
     jugador,
     mapa,
+    sistemaEspacial,
     registrarParticipanteCombate,
     retirarParticipanteCombate,
   });
@@ -282,6 +286,7 @@ export function procesarAccionEnemigo({
     enemigo,
     jugador,
     mapa,
+    sistemaEspacial,
   });
 
   if (evaluacionAtaque.puedeAtacar) {
@@ -322,8 +327,7 @@ export function procesarAccionEnemigo({
   const resultadoMovimiento = moverEnemigoHaciaJugador({
     enemigo,
     jugador,
-    mapa,
-    objetivos,
+    sistemaEspacial,
   });
 
   if (resultadoMovimiento.seMovio) {

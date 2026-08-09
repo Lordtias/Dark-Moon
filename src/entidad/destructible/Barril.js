@@ -42,6 +42,10 @@ export class Barril extends Destructible {
 
       // Por ahora no posee protección física.
       armadura: 0,
+
+      // Es sólido para movimiento, pero no tapa la visión.
+      bloqueaMovimiento: true,
+      bloqueaVision: false,
     });
 
     // RenderizadorCanvas2D consulta esta propiedad

@@ -19,6 +19,7 @@ import {
 export class SistemaZonasTemporales {
   constructor({
     mapa,
+    sistemaEspacial,
     obtenerTiempoActual,
     obtenerActores,
     esObjetivoValido,
@@ -27,12 +28,21 @@ export class SistemaZonasTemporales {
     if (!Array.isArray(mapa) || mapa.length === 0) {
       throw new Error("SistemaZonasTemporales necesita un mapa válido.");
     }
+    if (
+      !sistemaEspacial ||
+      typeof sistemaEspacial.consultarTerreno !== "function"
+    ) {
+      throw new Error(
+        "SistemaZonasTemporales necesita un sistema espacial válido.",
+      );
+    }
     validarFuncion(obtenerTiempoActual, "consultar el tiempo actual");
     validarFuncion(obtenerActores, "consultar los actores del mapa");
     validarFuncion(esObjetivoValido, "filtrar objetivos de las zonas");
     validarFuncion(aplicarContenido, "aplicar el contenido de las zonas");
 
     this.mapa = mapa;
+    this.sistemaEspacial = sistemaEspacial;
     this.obtenerTiempoActual = obtenerTiempoActual;
     this.obtenerActores = obtenerActores;
     this.esObjetivoValido = esObjetivoValido;
@@ -48,6 +58,7 @@ export class SistemaZonasTemporales {
     const normalizada = normalizarDefinicionCreacion({
       definicion,
       mapa: this.mapa,
+      sistemaEspacial: this.sistemaEspacial,
       ahora,
       siguienteId: this.siguienteId,
     });
@@ -277,6 +288,8 @@ export class SistemaZonasTemporales {
       grupoSuperposicion: zona.configuracion.grupoSuperposicion,
       politicaSuperposicion: zona.configuracion.politicaSuperposicion,
       activadores: [...zona.configuracion.activadores],
+      bloqueaMovimiento: zona.configuracion.bloqueaMovimiento,
+      bloqueaVision: zona.configuracion.bloqueaVision,
       creadaEn: zona.creadaEn,
       venceEn: zona.venceEn,
       tiempoRestante: Math.max(0, zona.venceEn - ahora),
@@ -414,6 +427,7 @@ export class SistemaZonasTemporales {
 function normalizarDefinicionCreacion({
   definicion,
   mapa,
+  sistemaEspacial,
   ahora,
   siguienteId,
 }) {
@@ -442,7 +456,11 @@ function normalizarDefinicionCreacion({
       etiqueta: `la zona de "${definicion.nombre ?? definicion.idHabilidad ?? "habilidad"}"`,
     },
   );
-  const casillas = normalizarCasillasZonaTemporal(definicion.casillas, mapa);
+  const casillas = normalizarCasillasZonaTemporal(
+    definicion.casillas,
+    mapa,
+    sistemaEspacial,
+  );
   const id = `zona-${siguienteId}`;
 
   return {
@@ -537,6 +555,8 @@ function resumirZona(zona) {
     grupoSuperposicion: zona.configuracion.grupoSuperposicion,
     politicaSuperposicion: zona.configuracion.politicaSuperposicion,
     activadores: [...zona.configuracion.activadores],
+    bloqueaMovimiento: zona.configuracion.bloqueaMovimiento,
+    bloqueaVision: zona.configuracion.bloqueaVision,
     creadaEn: zona.creadaEn,
     venceEn: zona.venceEn,
     duracion: zona.configuracion.duracion,

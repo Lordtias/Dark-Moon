@@ -1,3 +1,5 @@
+import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
+
 export const ACTIVADORES_ZONA_TEMPORAL = Object.freeze({
   AL_CREAR: "al_crear",
   AL_ENTRAR: "al_entrar",
@@ -90,6 +92,14 @@ export function normalizarConfiguracionZonaTemporal(
       `resolverCritico de ${etiqueta} debe ser un valor booleano.`,
     );
   }
+  validarBooleanoOpcional(
+    definicion.bloqueaMovimiento,
+    `bloqueaMovimiento de ${etiqueta}`,
+  );
+  validarBooleanoOpcional(
+    definicion.bloqueaVision,
+    `bloqueaVision de ${etiqueta}`,
+  );
 
   return congelarProfundamente({
     duracion: definicion.duracion,
@@ -101,10 +111,16 @@ export function normalizarConfiguracionZonaTemporal(
     apariencia,
     resolverImpacto: definicion.resolverImpacto !== false,
     resolverCritico: definicion.resolverCritico === true,
+    bloqueaMovimiento: definicion.bloqueaMovimiento === true,
+    bloqueaVision: definicion.bloqueaVision === true,
   });
 }
 
-export function normalizarCasillasZonaTemporal(casillas, mapa) {
+export function normalizarCasillasZonaTemporal(
+  casillas,
+  mapa,
+  sistemaEspacial = null,
+) {
   if (!Array.isArray(casillas) || casillas.length === 0) {
     throw new Error("La zona temporal necesita al menos una casilla.");
   }
@@ -116,7 +132,7 @@ export function normalizarCasillasZonaTemporal(casillas, mapa) {
         "Cada casilla de la zona temporal debe usar coordenadas enteras.",
       );
     }
-    if (!esCasillaSuelo(mapa, casilla.x, casilla.y)) {
+    if (!esCasillaSuelo(mapa, casilla.x, casilla.y, sistemaEspacial)) {
       continue;
     }
     unicas.set(crearClaveCasilla(casilla), {
@@ -148,15 +164,11 @@ function normalizarActivadores(activadores, etiqueta) {
   return Object.freeze(normalizados);
 }
 
-function esCasillaSuelo(mapa, x, y) {
-  return (
-    Array.isArray(mapa) &&
-    y >= 0 &&
-    y < mapa.length &&
-    x >= 0 &&
-    x < mapa[y].length &&
-    mapa[y][x] !== "#"
-  );
+function esCasillaSuelo(mapa, x, y, sistemaEspacial) {
+  const terreno = sistemaEspacial?.consultarTerreno
+    ? sistemaEspacial.consultarTerreno(x, y)
+    : consultarTerrenoMapa(mapa, x, y);
+  return terreno.dentroMapa && !terreno.bloqueaMovimiento;
 }
 
 function crearClaveCasilla({ x, y }) {
@@ -170,6 +182,12 @@ function compararCasillas(a, b) {
 function validarObjeto(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`${descripcion} debe ser un objeto válido.`);
+  }
+}
+
+function validarBooleanoOpcional(valor, descripcion) {
+  if (valor !== undefined && typeof valor !== "boolean") {
+    throw new Error(`${descripcion} debe ser un valor booleano.`);
   }
 }
 

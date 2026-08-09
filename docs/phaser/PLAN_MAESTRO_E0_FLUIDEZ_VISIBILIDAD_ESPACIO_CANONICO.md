@@ -674,7 +674,7 @@ Procedimiento:
 6. mantener una dirección durante una secuencia visible de enemigos y soltarla antes de que termine;
 7. comprobar que `entradasDescartadas` aumenta y que no quedan movimientos residuales después de recuperar el control.
 
-**Estado de E0.1:** implementación técnica preparada y pruebas aisladas superadas; cierre pendiente de validación manual en web y Electron. No se considera cerrada hasta completar esa validación.
+**Estado de E0.1:** validada manualmente y cerrada. La prueba intensiva confirmó que las entradas recibidas durante la espera visual se descartan sin formar cola residual y que la compuerta vuelve a `disponible` al finalizar la presentación. **SHA de cierre:** `c77ea760f733c20877b8550e137fa9846f841276`.
 
 ---
 
@@ -696,6 +696,60 @@ Crear una sola fuente de verdad para `bloqueaMovimiento` y `bloqueaVision`, y ha
 ### Restricción crítica
 
 No crear un segundo cálculo de movimiento. Si el movimiento actual ya posee una autoridad válida, el nuevo sistema deberá integrarse con ella o extraer una consulta común, no competir con ella.
+
+### Registro de implementación E0.2
+
+**SHA base analizado:** `c77ea760f733c20877b8550e137fa9846f841276`.
+
+La implementación introduce `SistemaEspacial` como única autoridad de consulta para obstrucciones del mapa activo. El sistema combina, sin identificar elementos por nombre visible:
+
+- terreno;
+- entidades;
+- zonas temporales activas.
+
+Cada fuente puede aportar de forma independiente `bloqueaMovimiento` y `bloqueaVision`. El significado espacial actual del símbolo de pared `#` queda encapsulado en el resolutor de terreno del sistema espacial, de modo que movimiento, pathfinding y línea de visión dejan de interpretar ese símbolo por separado.
+
+`Entidad` admite ahora las propiedades genéricas `bloqueaMovimiento` y `bloqueaVision`, además de actualización dinámica mediante `configurarObstruccionEspacial()`. Los destructibles actuales conservan el comportamiento de bloqueo de movimiento sin bloquear visión; esto mantiene a Barril como caso real de la combinación `sí/no` sin introducir una excepción por nombre.
+
+Los NPC pasan a declarar `bloqueaMovimiento = true` y `bloqueaVision = false`. De este modo ocupan físicamente su casilla tanto para el jugador como para el pathfinding, pero continúan siendo visibles a través de otros NPC y siguen interactuándose desde las casillas permitidas por su alcance. La regla pertenece a la entidad NPC y no introduce excepciones por nombre, rol o mapa.
+
+La línea de visión existente `evaluarLineaVision()` conserva su geometría y pasa a consultar `SistemaEspacial.bloqueaVision()`. No se crea una segunda LOS. Ataques y habilidades que ya reutilizaban esa geometría reciben la misma autoridad espacial del mapa activo. La casilla destino conserva la regla existente de no bloquear la visión hacia sí misma.
+
+El pathfinding conserva BFS y cambia únicamente la fuente de obstrucciones: consulta `SistemaEspacial.bloqueaMovimiento()` y la misma regla diagonal. Se elimina la necesidad de construir una representación paralela de posiciones bloqueadas para el cálculo del camino. El actor que se mueve y el jugador cuando es destino pueden ignorarse explícitamente mediante el contrato genérico de consulta.
+
+El movimiento del jugador también consulta la autoridad espacial sin alterar la regla de combate existente: intentar desplazarse hacia un `Combatiente` continúa entrando en modo combate en lugar de convertir al enemigo en un bloqueo previo que impida esa interacción. La regla diagonal queda generalizada a bloqueos reales de movimiento: dos obstáculos laterales impiden atravesar diagonalmente entre ellos, mientras uno solo mantiene el comportamiento permitido.
+
+Las zonas temporales pueden declarar las dos propiedades espaciales. `Nube tóxica` queda configurada de forma declarativa como:
+
+```text
+bloqueaMovimiento = no
+bloqueaVision = sí
+```
+
+Por lo tanto puede atravesarse físicamente y, mientras esté activa, participa como obstrucción visual en la misma LOS utilizada por ataques, habilidades y detección enemiga. No existe lógica especial basada en el nombre de la habilidad.
+
+La detección enemiga aplica la optimización aprobada: primero compara distancia contra Percepción y solo calcula línea de visión si el jugador está dentro del alcance posible. La regla jugable de detección no cambia.
+
+#### Validaciones técnicas de E0.2
+
+Las pruebas aisladas realizadas sobre la implementación verifican:
+
+- suelo: no bloquea movimiento ni visión;
+- pared: bloquea movimiento y visión;
+- Barril: bloquea movimiento pero no visión;
+- zona visual: bloquea visión pero no movimiento;
+- combinación Barril + zona visual: bloquea ambos;
+- modificación dinámica de una entidad desde `sí/sí` a `no/no` sin cambiar consumidores;
+- LOS despejada a través de Barril y bloqueada a través de una zona visual;
+- BFS rodeando un Barril y atravesando una zona que solo bloquea visión;
+- NPC: bloquea movimiento, no bloquea visión, continúa siendo interactuable desde una casilla adyacente y el BFS no atraviesa su posición;
+- integración real entre `SistemaZonasTemporales` y `SistemaEspacial`;
+- los tres grados actuales de Nube tóxica normalizan correctamente sus propiedades espaciales;
+- un enemigo fuera de su alcance de Percepción no ejecuta ninguna consulta de LOS;
+- caminar hacia un enemigo continúa entrando en combate;
+- dos bloqueos laterales sólidos impiden el paso diagonal.
+
+**Estado de E0.2:** implementación técnica y pruebas aisladas completadas. Cierre pendiente de regresión manual dentro del juego; no se considera cerrada hasta validar movimiento, combate, Barril, Nube tóxica, persecución/pathfinding y diagonales en ejecución real.
 
 ---
 

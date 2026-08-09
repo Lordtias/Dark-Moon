@@ -624,6 +624,58 @@ Eliminar la cola incontrolable de órdenes y establecer una línea base de rendi
 
 Debe demostrarse que el jugador recupera control exactamente cuando corresponde y que no queda una cola residual de comandos.
 
+### Registro de implementación E0.1
+
+**SHA base analizado:** `28eb5082cd7de53ec51cfda0de60f98fd79df2b8`.
+
+La implementación de E0.1 deja la autoridad de entrada jugable en `ControladorPartida`. La compuerta se aplica antes de ejecutar una nueva entrada y mantiene tres estados de aplicación: `disponible`, `resolviendo` y `esperando_presentacion`. Una entrada recibida cuando la compuerta no está disponible se descarta y no ejecuta lógica, no se almacena y no se reproduce posteriormente.
+
+El punto seguro visual reutiliza el contrato existente `Renderizador.esperarPresentacionPendiente()`. Phaser continúa reproduciendo su cola visual secuencial sin convertirse en autoridad temporal. Canvas 2D, al no tener una espera asíncrona equivalente, libera la entrada después de su dibujo síncrono.
+
+Las rutas DOM que mutan estado jugable —equipamiento/consumo, botín, curación, compra/venta y confirmación de mazmorra— pasan por la misma compuerta. Las transiciones que son continuación inmediata de un comando ya aceptado no vuelven a ingresar por la compuerta, para no descartarse a sí mismas. Un identificador de versión invalida cualquier espera perteneciente a un mapa reemplazado.
+
+La instrumentación mínima se encuentra en `MedidorFluidezPartida` y conserva únicamente muestras en memoria. Se consulta desde consola mediante:
+
+```js
+darkMoonAplicacion.controladorPartida.obtenerResumenFluidez()
+```
+
+Se reinicia mediante:
+
+```js
+darkMoonAplicacion.controladorPartida.reiniciarMedicionFluidez()
+```
+
+Cada muestra separa:
+
+- duración de la lógica;
+- preparación de la presentación;
+- espera visual;
+- duración total hasta recuperar control;
+- cantidad de eventos;
+- mapa, cantidad actual de objetivos y backend visual;
+- entradas descartadas durante un bloqueo.
+
+#### Línea base reproducible de E0.1
+
+La referencia manual para comparar mediciones utiliza:
+
+```text
+?mapa=cementerio&nivel=3&semilla=prueba
+```
+
+Procedimiento:
+
+1. iniciar un personaje nuevo con esos parámetros;
+2. ejecutar `reiniciarMedicionFluidez()`;
+3. realizar diez esperas aceptadas con `Espacio`, dejando terminar la presentación entre cada una;
+4. consultar `obtenerResumenFluidez()` y conservar promedios, máximos y últimas muestras;
+5. reiniciar la medición;
+6. mantener una dirección durante una secuencia visible de enemigos y soltarla antes de que termine;
+7. comprobar que `entradasDescartadas` aumenta y que no quedan movimientos residuales después de recuperar el control.
+
+**Estado de E0.1:** implementación técnica preparada y pruebas aisladas superadas; cierre pendiente de validación manual en web y Electron. No se considera cerrada hasta completar esa validación.
+
 ---
 
 ## E0.2 — Espacio canónico, obstrucciones y línea de visión

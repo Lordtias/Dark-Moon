@@ -25,7 +25,7 @@ export class ControladorComercioDom {
     configuracionObjetos,
     configuracionRarezas,
     configuracionComercio,
-    alProcesarResultado,
+    alEjecutarAccionJugable,
   } = {}) {
     validarJuego(juego);
 
@@ -39,14 +39,14 @@ export class ControladorComercioDom {
 
     validarObjetoPlano(configuracionComercio, "configuración de comercio");
 
-    if (typeof alProcesarResultado !== "function") {
+    if (typeof alEjecutarAccionJugable !== "function") {
       throw new Error(
-        "ControladorComercioDom necesita una acción para procesar resultados.",
+        "ControladorComercioDom necesita una acción jugable centralizada.",
       );
     }
 
     this.juego = juego;
-    this.alProcesarResultado = alProcesarResultado;
+    this.alEjecutarAccionJugable = alEjecutarAccionJugable;
     this.modalComercio = modalComercio;
 
     this.gestorMercaderesPartida = gestorMercaderesPartida;
@@ -143,47 +143,58 @@ export class ControladorComercioDom {
   }
 
   comprar({ mercader, indice, cantidad }) {
-    const resultado = comprarObjetoMercader({
-      jugador: this.juego.player,
+    return this.ejecutarAccionJugable({
+      tipoEntrada: "comprar_objeto",
+      ejecutar: () =>
+        comprarObjetoMercader({
+          jugador: this.juego.player,
 
-      mercader,
+          mercader,
 
-      indiceStock: indice,
+          indiceStock: indice,
 
-      cantidad,
+          cantidad,
 
-      configuracionObjetos: this.configuracionObjetos,
+          configuracionObjetos: this.configuracionObjetos,
 
-      configuracionRarezas: this.configuracionRarezas,
+          configuracionRarezas: this.configuracionRarezas,
 
-      configuracionComercio: this.configuracionComercio,
+          configuracionComercio: this.configuracionComercio,
+        }),
     });
-
-    return this.procesarResultado(resultado);
   }
 
   vender({ mercader, indice, cantidad }) {
-    const resultado = venderObjetoMercader({
-      jugador: this.juego.player,
+    return this.ejecutarAccionJugable({
+      tipoEntrada: "vender_objeto",
+      ejecutar: () =>
+        venderObjetoMercader({
+          jugador: this.juego.player,
 
-      mercader,
+          mercader,
 
-      indiceInventario: indice,
+          indiceInventario: indice,
 
-      cantidad,
+          cantidad,
 
-      configuracionObjetos: this.configuracionObjetos,
+          configuracionObjetos: this.configuracionObjetos,
 
-      configuracionRarezas: this.configuracionRarezas,
+          configuracionRarezas: this.configuracionRarezas,
 
-      configuracionComercio: this.configuracionComercio,
+          configuracionComercio: this.configuracionComercio,
+        }),
     });
-
-    return this.procesarResultado(resultado);
   }
 
-  procesarResultado(resultado) {
-    return this.alProcesarResultado(resultado);
+  ejecutarAccionJugable({ tipoEntrada, ejecutar }) {
+    const ejecucion = this.alEjecutarAccionJugable({
+      tipoEntrada,
+      origenEntrada: "comercio_dom",
+      ejecutar,
+      procesarResultado: true,
+    });
+
+    return ejecucion.aceptada ? ejecucion.resultado : null;
   }
 
   desactivar() {

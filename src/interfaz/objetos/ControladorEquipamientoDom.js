@@ -11,7 +11,7 @@ export class ControladorEquipamientoDom {
     panelInventario,
     panelEquipamiento,
     modalDetalleObjeto,
-    alProcesarResultado,
+    alEjecutarAccionJugable,
   } = {}) {
     if (
       !juego ||
@@ -60,14 +60,14 @@ export class ControladorEquipamientoDom {
       );
     }
 
-    if (typeof alProcesarResultado !== "function") {
+    if (typeof alEjecutarAccionJugable !== "function") {
       throw new Error(
-        "ControladorEquipamientoDom necesita una acción para procesar resultados.",
+        "ControladorEquipamientoDom necesita una acción jugable centralizada.",
       );
     }
 
     this.juego = juego;
-    this.alProcesarResultado = alProcesarResultado;
+    this.alEjecutarAccionJugable = alEjecutarAccionJugable;
 
     this.panelInventario = panelInventario;
 
@@ -157,12 +157,12 @@ export class ControladorEquipamientoDom {
       accion: {
         texto: traducir("interfaz.detalleObjeto.desequipar", { respaldo: "Desequipar" }),
 
-        ejecutar: () => {
-          const resultado =
-            this.juego.desequiparObjetoAInventario(nombreRanura);
-
-          this.procesarResultado(resultado);
-        },
+        ejecutar: () =>
+          this.ejecutarAccionJugable({
+            tipoEntrada: "desequipar_objeto",
+            ejecutar: () =>
+              this.juego.desequiparObjetoAInventario(nombreRanura),
+          }),
       },
     });
   }
@@ -185,12 +185,16 @@ export class ControladorEquipamientoDom {
     return {
       texto,
 
-      ejecutar: () => {
-        const resultado =
-          this.juego.interactuarConObjetoInventario(indiceInventario);
-
-        this.procesarResultado(resultado);
-      },
+      ejecutar: () =>
+        this.ejecutarAccionJugable({
+          tipoEntrada: objeto.esConsumible
+            ? "consumir_objeto"
+            : objeto.esMunicion
+              ? "cargar_municion"
+              : "equipar_objeto",
+          ejecutar: () =>
+            this.juego.interactuarConObjetoInventario(indiceInventario),
+        }),
     };
   }
 
@@ -230,10 +234,15 @@ export class ControladorEquipamientoDom {
     return objetosEquipados;
   }
 
-  // Entrega el resultado al coordinador de la partida para que mensajes,
-  // redibujado y derrota utilicen un único camino de aplicación.
-  procesarResultado(resultado) {
-    return this.alProcesarResultado(resultado);
+  ejecutarAccionJugable({ tipoEntrada, ejecutar }) {
+    const ejecucion = this.alEjecutarAccionJugable({
+      tipoEntrada,
+      origenEntrada: "inventario_dom",
+      ejecutar,
+      procesarResultado: true,
+    });
+
+    return ejecucion.aceptada ? ejecucion.resultado : null;
   }
 }
 

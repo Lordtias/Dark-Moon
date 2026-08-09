@@ -31,6 +31,7 @@ export class AdaptadorInteraccionesDom {
     alSolicitarComercio,
     alSolicitarTransicionMapa,
     alProcesarResultado,
+    alEjecutarAccionJugable,
   } = {}) {
     if (
       !juego ||
@@ -93,6 +94,12 @@ export class AdaptadorInteraccionesDom {
       );
     }
 
+    if (typeof alEjecutarAccionJugable !== "function") {
+      throw new Error(
+        "AdaptadorInteraccionesDom necesita una acción jugable centralizada.",
+      );
+    }
+
     this.juego = juego;
     this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
     this.modalContenedorObjetos = modalContenedorObjetos;
@@ -102,6 +109,7 @@ export class AdaptadorInteraccionesDom {
     this.alSolicitarComercio = alSolicitarComercio;
     this.alSolicitarTransicionMapa = alSolicitarTransicionMapa;
     this.alProcesarResultado = alProcesarResultado;
+    this.alEjecutarAccionJugable = alEjecutarAccionJugable;
 
     // El modal de curación se crea de forma diferida.
     // Así las mazmorras que no contienen curanderas
@@ -168,17 +176,31 @@ export class AdaptadorInteraccionesDom {
       contenedorObjetos: interaccion.contenedorObjetos,
       combatiente: this.juego.player,
       alRecoger: (indiceOrigen) => {
-        const resultado = this.juego.recogerObjetoInteractuable(
-          interactuable,
-          indiceOrigen,
-        );
-        this.procesarResultado(resultado);
-        this.actualizarModalDespuesAccion(interactuable);
+        const ejecucion = this.ejecutarAccionJugable({
+          tipoEntrada: "recoger_objeto",
+          ejecutar: () =>
+            this.juego.recogerObjetoInteractuable(
+              interactuable,
+              indiceOrigen,
+            ),
+        });
+
+        if (ejecucion.aceptada) {
+          this.actualizarModalDespuesAccion(interactuable);
+        }
+        return ejecucion.aceptada ? ejecucion.resultado : null;
       },
       alRecogerTodo: () => {
-        const resultado = this.juego.recogerTodoInteractuable(interactuable);
-        this.procesarResultado(resultado);
-        this.actualizarModalDespuesAccion(interactuable);
+        const ejecucion = this.ejecutarAccionJugable({
+          tipoEntrada: "recoger_todo",
+          ejecutar: () =>
+            this.juego.recogerTodoInteractuable(interactuable),
+        });
+
+        if (ejecucion.aceptada) {
+          this.actualizarModalDespuesAccion(interactuable);
+        }
+        return ejecucion.aceptada ? ejecucion.resultado : null;
       },
     });
   }
@@ -230,14 +252,18 @@ export class AdaptadorInteraccionesDom {
           jugador: this.juego.player,
         }),
       alCurar: (tipoServicio) => {
-        const resultado = curarJugador({
-          jugador: this.juego.player,
-          curandera,
-          tipoServicio,
-          configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
+        const ejecucion = this.ejecutarAccionJugable({
+          tipoEntrada: "servicio_curacion",
+          ejecutar: () =>
+            curarJugador({
+              jugador: this.juego.player,
+              curandera,
+              tipoServicio,
+              configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
+            }),
         });
 
-        return this.procesarResultado(resultado);
+        return ejecucion.aceptada ? ejecucion.resultado : null;
       },
     });
   }
@@ -257,7 +283,14 @@ export class AdaptadorInteraccionesDom {
 
     this.modalSeleccionMazmorra.abrir({
       mazmorras,
-      alConfirmar: (seleccion) => this.alSeleccionarMazmorra(seleccion),
+      alConfirmar: (seleccion) => {
+        const ejecucion = this.ejecutarAccionJugable({
+          tipoEntrada: "seleccionar_mazmorra",
+          ejecutar: () => this.alSeleccionarMazmorra(seleccion),
+          procesarResultado: false,
+        });
+        return ejecucion.aceptada ? ejecucion.resultado : false;
+      },
     });
   }
 
@@ -291,6 +324,19 @@ export class AdaptadorInteraccionesDom {
     }
 
     this.modalContenedorObjetos.actualizar();
+  }
+
+  ejecutarAccionJugable({
+    tipoEntrada,
+    ejecutar,
+    procesarResultado = true,
+  }) {
+    return this.alEjecutarAccionJugable({
+      tipoEntrada,
+      origenEntrada: "interaccion_dom",
+      ejecutar,
+      procesarResultado,
+    });
   }
 
   procesarResultado(resultado) {

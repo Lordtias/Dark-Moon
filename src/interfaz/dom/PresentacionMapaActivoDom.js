@@ -26,6 +26,7 @@ export class PresentacionMapaActivoDom {
     alSeleccionarMazmorra,
     alSolicitarTransicionMapa,
     alProcesarResultado,
+    alEjecutarAccionJugable,
     alEjecutarComando,
     esJuegoActivo,
   } = {}) {
@@ -38,6 +39,10 @@ export class PresentacionMapaActivoDom {
     validarFuncion(alSeleccionarMazmorra, "seleccionar una mazmorra");
     validarFuncion(alSolicitarTransicionMapa, "procesar transiciones de mapa");
     validarFuncion(alProcesarResultado, "procesar resultados de acción");
+    validarFuncion(
+      alEjecutarAccionJugable,
+      "ejecutar acciones jugables centralizadas",
+    );
     validarFuncion(alEjecutarComando, "ejecutar comandos del jugador");
     validarFuncion(esJuegoActivo, "comprobar el mapa activo");
 
@@ -48,7 +53,11 @@ export class PresentacionMapaActivoDom {
     this.destruida = false;
 
     this.controladorTeclado = new ControladorTeclado({
-      alEjecutarComando,
+      alEjecutarComando: (comando) =>
+        alEjecutarComando({
+          ...comando,
+          origenEntrada: comando?.origenEntrada ?? "teclado",
+        }),
     });
 
     this.controladorEquipamiento = new ControladorEquipamientoDom({
@@ -56,7 +65,7 @@ export class PresentacionMapaActivoDom {
       panelInventario: interfazPartida.panelInventario,
       panelEquipamiento: interfazPartida.panelEquipamiento,
       modalDetalleObjeto: interfazPartida.modalDetalleObjeto,
-      alProcesarResultado,
+      alEjecutarAccionJugable,
     });
 
     this.controladorComercio = new ControladorComercioDom({
@@ -66,7 +75,7 @@ export class PresentacionMapaActivoDom {
       configuracionObjetos,
       configuracionRarezas,
       configuracionComercio,
-      alProcesarResultado,
+      alEjecutarAccionJugable,
     });
 
     this.adaptadorInteracciones = new AdaptadorInteraccionesDom({
@@ -80,6 +89,7 @@ export class PresentacionMapaActivoDom {
         this.controladorComercio.abrir(idMercader),
       alSolicitarTransicionMapa,
       alProcesarResultado,
+      alEjecutarAccionJugable,
     });
 
     this.integracionHabilidades = new IntegracionHabilidadesDom({

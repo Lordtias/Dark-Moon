@@ -21,6 +21,7 @@ import {
   crearParametroContenidoMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
+import { MedidorFluidezPartida } from "../herramientas/depuracion/MedidorFluidezPartida.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -90,6 +91,14 @@ export class ControladorPartida {
     this.configuracionComercio = null;
     this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
+
+    // E0.1: una única autoridad de aplicación gobierna si puede aceptarse
+    // una nueva entrada jugable. No se almacenan comandos descartados.
+    this.estadoEntradaJugable = "disponible";
+    this.versionSincronizacionEntrada = 0;
+    this.secuenciaEntradaJugable = 0;
+    this.entradaJugableActiva = null;
+    this.medidorFluidez = new MedidorFluidezPartida();
   }
 
   iniciar({
@@ -348,6 +357,57 @@ export class ControladorPartida {
   // El teclado DOM, la barra, el puntero, una futura escena de Phaser, la
   // consola y las pruebas deterministas utilizan el mismo camino.
   ejecutarComandoJugador(comando) {
+    const origenEntrada = comando?.origenEntrada ?? "comando";
+    const tipoEntrada = comando?.tipo ?? "comando";
+
+    const ejecucion = this.ejecutarConControlEntrada({
+      tipoEntrada,
+      origenEntrada,
+      ejecutarLogica: () => this.ejecutarComandoJugadorSinControlEntrada(comando),
+      obtenerResultadoTemporal: (contexto) => contexto?.resultado ?? null,
+      procesarResultado: (contexto) =>
+        this.procesarContextoComandoJugador(contexto),
+    });
+
+    return ejecucion.aceptada ? ejecucion.resultado : null;
+  }
+
+  // Ejecuta una mutación jugable originada fuera del traductor de comandos,
+  // por ejemplo equipamiento, botín, curación, comercio o una transición
+  // solicitada desde un modal. Todas esas rutas comparten la misma compuerta.
+  ejecutarAccionJugable({
+    tipoEntrada = "accion",
+    origenEntrada = "dom",
+    ejecutar,
+    procesarResultado = true,
+    presentarInteraccion = false,
+  } = {}) {
+    if (typeof ejecutar !== "function") {
+      throw new Error(
+        "La entrada jugable necesita una acción válida para ejecutar.",
+      );
+    }
+
+    return this.ejecutarConControlEntrada({
+      tipoEntrada,
+      origenEntrada,
+      ejecutarLogica: ejecutar,
+      obtenerResultadoTemporal: (resultado) => resultado,
+      procesarResultado: (resultado) => {
+        if (!procesarResultado) {
+          return resultado;
+        }
+
+        const resultadoProcesado = this.procesarResultadoAccion(resultado);
+        if (presentarInteraccion) {
+          this.presentarInteraccionResultado(resultadoProcesado);
+        }
+        return resultadoProcesado;
+      },
+    });
+  }
+
+  ejecutarComandoJugadorSinControlEntrada(comando) {
     if (
       !this.partidaIniciada ||
       !this.juego ||
@@ -382,6 +442,24 @@ export class ControladorPartida {
       throw error;
     }
 
+    return {
+      comando,
+      resultado,
+      contextoHabilidad,
+      contextoProcesamiento,
+      integracionHabilidades,
+    };
+  }
+
+  procesarContextoComandoJugador(contexto) {
+    const {
+      comando,
+      resultado,
+      contextoHabilidad,
+      contextoProcesamiento,
+      integracionHabilidades,
+    } = contexto;
+
     const estadoProcesamiento = contextoProcesamiento
       ? integracionHabilidades.finalizarProcesamientoComando(
           contextoProcesamiento,
@@ -402,6 +480,209 @@ export class ControladorPartida {
     const resultadoProcesado = this.procesarResultadoAccion(resultado);
     this.presentarInteraccionResultado(resultadoProcesado);
     return resultadoProcesado;
+  }
+
+  ejecutarConControlEntrada({
+    tipoEntrada,
+    origenEntrada,
+    ejecutarLogica,
+    obtenerResultadoTemporal,
+    procesarResultado,
+  }) {
+    this.validarMapaActivoParaEntrada();
+
+    const contextoMedicion = this.obtenerContextoMedicionFluidez();
+    if (!this.puedeAceptarEntradaJugable()) {
+      this.medidorFluidez.registrarEntradaDescartada({
+        tipo: tipoEntrada,
+        origen: origenEntrada,
+        contexto: contextoMedicion,
+      });
+      return { aceptada: false, resultado: null };
+    }
+
+    const tokenEntrada = this.bloquearEntradaJugable();
+    const muestra = this.medidorFluidez.iniciarMuestra({
+      tipo: tipoEntrada,
+      origen: origenEntrada,
+      contexto: contextoMedicion,
+    });
+
+    let resultadoLogico;
+    try {
+      resultadoLogico = ejecutarLogica();
+    } catch (error) {
+      this.medidorFluidez.registrarFinLogica(muestra, null);
+      this.medidorFluidez.registrarFinPreparacion(muestra);
+      this.medidorFluidez.completar(muestra, {
+        estado: "error_logica",
+        incluirEsperaVisual: false,
+      });
+      this.liberarEntradaJugable(tokenEntrada);
+      throw error;
+    }
+
+    const resultadoTemporal = obtenerResultadoTemporal(resultadoLogico);
+    this.medidorFluidez.registrarFinLogica(muestra, resultadoTemporal);
+    const consumeTurno = resultadoTemporal?.turnoConsumido === true;
+
+    let resultadoProcesado;
+    try {
+      resultadoProcesado = procesarResultado(resultadoLogico);
+      this.medidorFluidez.registrarFinPreparacion(muestra);
+    } catch (error) {
+      this.medidorFluidez.registrarFinPreparacion(muestra);
+      this.medidorFluidez.completar(muestra, {
+        estado: "error_presentacion",
+        incluirEsperaVisual: false,
+      });
+      this.liberarEntradaJugable(tokenEntrada);
+      throw error;
+    }
+
+    if (!consumeTurno) {
+      this.medidorFluidez.completar(muestra, {
+        incluirEsperaVisual: false,
+      });
+      this.liberarEntradaJugable(tokenEntrada);
+      return { aceptada: true, resultado: resultadoProcesado };
+    }
+
+    this.estadoEntradaJugable = "esperando_presentacion";
+    this.esperarPuntoSeguroPresentacion({ tokenEntrada, muestra });
+    return { aceptada: true, resultado: resultadoProcesado };
+  }
+
+  validarMapaActivoParaEntrada() {
+    if (
+      !this.partidaIniciada ||
+      !this.juego ||
+      !this.renderizador ||
+      !this.ejecutorAccionesJugador
+    ) {
+      throw new Error(
+        "No se puede ejecutar una entrada jugable sin un mapa activo.",
+      );
+    }
+  }
+
+  puedeAceptarEntradaJugable() {
+    return (
+      this.estadoEntradaJugable === "disponible" &&
+      this.entradaJugableActiva === null
+    );
+  }
+
+  bloquearEntradaJugable() {
+    const tokenEntrada = Object.freeze({
+      id: ++this.secuenciaEntradaJugable,
+      versionMapa: this.versionSincronizacionEntrada,
+    });
+
+    this.entradaJugableActiva = tokenEntrada;
+    this.estadoEntradaJugable = "resolviendo";
+    return tokenEntrada;
+  }
+
+  liberarEntradaJugable(tokenEntrada) {
+    if (!this.esTokenEntradaActivo(tokenEntrada)) {
+      return false;
+    }
+
+    this.entradaJugableActiva = null;
+    this.estadoEntradaJugable = "disponible";
+    return true;
+  }
+
+  invalidarSincronizacionEntrada() {
+    this.versionSincronizacionEntrada += 1;
+    this.entradaJugableActiva = null;
+    this.estadoEntradaJugable = "disponible";
+  }
+
+  esTokenEntradaActivo(tokenEntrada) {
+    return Boolean(
+      tokenEntrada &&
+        this.entradaJugableActiva === tokenEntrada &&
+        tokenEntrada.versionMapa === this.versionSincronizacionEntrada,
+    );
+  }
+
+  esperarPuntoSeguroPresentacion({ tokenEntrada, muestra }) {
+    // Una transición puede reemplazar el mapa durante el procesamiento del
+    // resultado. En ese caso el token anterior ya no gobierna la nueva escena.
+    if (!this.esTokenEntradaActivo(tokenEntrada)) {
+      this.medidorFluidez.completar(muestra, {
+        estado: "mapa_reemplazado",
+        incluirEsperaVisual: false,
+      });
+      return;
+    }
+
+    let esperaPresentacion = null;
+    try {
+      esperaPresentacion = this.renderizador.esperarPresentacionPendiente?.();
+    } catch (error) {
+      this.medidorFluidez.completar(muestra, {
+        estado: "error_espera_visual",
+        incluirEsperaVisual: false,
+      });
+      this.liberarEntradaJugable(tokenEntrada);
+      console.error(
+        "No se pudo consultar el punto seguro de presentación:",
+        error,
+      );
+      return;
+    }
+
+    if (!esperaPresentacion || typeof esperaPresentacion.then !== "function") {
+      this.medidorFluidez.completar(muestra, {
+        incluirEsperaVisual: false,
+      });
+      this.liberarEntradaJugable(tokenEntrada);
+      return;
+    }
+
+    const finalizarEspera = (estado = "completada") => {
+      const estadoFinal = this.esTokenEntradaActivo(tokenEntrada)
+        ? estado
+        : "mapa_reemplazado";
+      this.medidorFluidez.completar(muestra, { estado: estadoFinal });
+      this.liberarEntradaJugable(tokenEntrada);
+    };
+
+    esperaPresentacion.then(
+      () => finalizarEspera(),
+      (error) => {
+        console.error(
+          "La presentación pendiente terminó con error; se libera la entrada:",
+          error,
+        );
+        finalizarEspera("error_espera_visual");
+      },
+    );
+  }
+
+  obtenerContextoMedicionFluidez() {
+    return {
+      mapaId: this.juego?.mapaSeleccionado?.id ?? null,
+      enemigos: Array.isArray(this.juego?.objetivos)
+        ? this.juego.objetivos.length
+        : 0,
+      renderizador:
+        globalThis.darkMoonRenderizador?.tipo ?? "desconocido",
+    };
+  }
+
+  obtenerResumenFluidez() {
+    return {
+      estadoEntradaJugable: this.estadoEntradaJugable,
+      ...this.medidorFluidez.obtenerResumen(),
+    };
+  }
+
+  reiniciarMedicionFluidez() {
+    return this.medidorFluidez.reiniciar();
   }
 
   procesarResultadoAccion(resultado) {
@@ -472,6 +753,10 @@ export class ControladorPartida {
   activarMapa(configuracionMapa) {
     validarConfiguracionMapa(configuracionMapa);
 
+    // Cualquier espera perteneciente al mapa anterior deja de tener autoridad
+    // sobre la entrada del mapa que está por activarse.
+    this.invalidarSincronizacionEntrada();
+
     if (!this.interfazPartida) {
       throw new Error("No se puede activar un mapa sin una interfaz creada.");
     }
@@ -533,6 +818,10 @@ export class ControladorPartida {
         this.procesarSolicitudTransicionMapa(solicitud),
       alProcesarResultado: (resultado) =>
         this.procesarResultadoAccion(resultado),
+      alEjecutarAccionJugable: (configuracion) =>
+        this.juego === juegoActivo
+          ? this.ejecutarAccionJugable(configuracion)
+          : { aceptada: false, resultado: null },
       alEjecutarComando: (comando) =>
         this.ejecutarComandoJugador(comando),
       esJuegoActivo: () =>

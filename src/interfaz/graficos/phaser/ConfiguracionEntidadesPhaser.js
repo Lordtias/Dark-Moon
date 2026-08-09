@@ -8,6 +8,7 @@ export const CONFIGURACION_ENTIDADES_PHASER = Object.freeze({
   anclaje: "centroVisible",
   tamanoLienzo: TAMANO_CASILLA_REFERENCIA,
   opacidadEntidadMuerta: 0.42,
+  opacidadInteractuableInactivo: 0.38,
   sombra: Object.freeze({
     desplazamientoX: 0,
     desplazamientoY: 1,

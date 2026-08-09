@@ -4,8 +4,14 @@ import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js
 
 import { normalizarSolicitudTransicionMapa } from "../../partida/TransicionesMapa.js";
 
+export const RECURSO_VISUAL_PORTAL_ACTIVO_PREDETERMINADO =
+  "assets/imagenes/interactuables/portal_magico_activado.png";
+export const RECURSO_VISUAL_PORTAL_INACTIVO_PREDETERMINADO =
+  "assets/imagenes/interactuables/portal_magico_desactivado.png";
+
+// Alias de compatibilidad con el contrato anterior.
 export const RECURSO_VISUAL_PORTAL_PREDETERMINADO =
-  "assets/imagenes/interactuables/portal_magico.png";
+  RECURSO_VISUAL_PORTAL_ACTIVO_PREDETERMINADO;
 
 const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
   TIPOS_INTERACCION.TRANSICION_MAPA,
@@ -19,9 +25,10 @@ const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
 // La entrada principal de la ciudad puede solicitar primero
 // que el jugador elija una mazmorra.
 //
-// Cuando no se define una imagen concreta, utiliza
-// el portal mágico genérico. Una puerta o escalera puede
-// reemplazarlo desde su configuración mediante recursoVisual.
+// Los portales mágicos sin recurso específico disponen de sprites separados
+// para activo/inactivo. Si un consumidor proporciona un recursoVisual propio
+// (por ejemplo, una puerta de ciudad), se conserva como representación de ambos
+// estados salvo que también suministre recursoVisualInactivo explícitamente.
 export class PortalMapa extends Entidad {
   constructor({
     nombre = "Portal",
@@ -29,7 +36,9 @@ export class PortalMapa extends Entidad {
     y = 0,
     simbolo = "O",
 
-    recursoVisual = RECURSO_VISUAL_PORTAL_PREDETERMINADO,
+    recursoVisual = undefined,
+    recursoVisualActivo = undefined,
+    recursoVisualInactivo = undefined,
 
     textoInteraccion = "Usar portal",
     alcance = 1,
@@ -38,6 +47,8 @@ export class PortalMapa extends Entidad {
     tipoInteraccion = TIPOS_INTERACCION.TRANSICION_MAPA,
 
     solicitudTransicionMapa = null,
+
+    activo = true,
   } = {}) {
     super({
       nombre,
@@ -65,14 +76,8 @@ export class PortalMapa extends Entidad {
       throw new Error(`La prioridad de ${this.nombre} debe ser numérica.`);
     }
 
-    if (
-      recursoVisual !== null &&
-      (typeof recursoVisual !== "string" || recursoVisual.trim() === "")
-    ) {
-      throw new Error(
-        `El recurso visual de ${this.nombre} ` +
-          "debe ser una ruta válida o null.",
-      );
+    if (typeof activo !== "boolean") {
+      throw new Error(`El estado activo de ${this.nombre} debe ser booleano.`);
     }
 
     if (!TIPOS_INTERACCION_PORTAL_VALIDOS.has(tipoInteraccion)) {
@@ -82,7 +87,18 @@ export class PortalMapa extends Entidad {
       );
     }
 
-    this.recursoVisual = recursoVisual === null ? null : recursoVisual.trim();
+    const recursos = resolverRecursosVisualesPortal({
+      recursoVisual,
+      recursoVisualActivo,
+      recursoVisualInactivo,
+    });
+    validarRecursoVisual(recursos.activo, "activo", this.nombre);
+    validarRecursoVisual(recursos.inactivo, "inactivo", this.nombre);
+
+    this.recursoVisualActivo = normalizarRecursoVisual(recursos.activo);
+    this.recursoVisualInactivo = normalizarRecursoVisual(recursos.inactivo);
+    this.atenuarInactivo =
+      this.recursoVisualActivo === this.recursoVisualInactivo;
 
     this.textoInteraccion = textoInteraccion.trim();
 
@@ -92,15 +108,61 @@ export class PortalMapa extends Entidad {
 
     this.tipoInteraccion = tipoInteraccion;
 
+    this.activo = activo;
+
     // Solamente las transiciones inmediatas necesitan
     // contener una solicitud concreta.
+    if (
+      activo &&
+      tipoInteraccion === TIPOS_INTERACCION.TRANSICION_MAPA &&
+      solicitudTransicionMapa === null
+    ) {
+      throw new Error(
+        `${this.nombre} activo necesita una solicitud de transición válida.`,
+      );
+    }
+
     this.solicitudTransicionMapa =
-      tipoInteraccion === TIPOS_INTERACCION.TRANSICION_MAPA
+      tipoInteraccion === TIPOS_INTERACCION.TRANSICION_MAPA &&
+      solicitudTransicionMapa !== null
         ? normalizarSolicitudTransicionMapa(solicitudTransicionMapa)
         : null;
+
+    this.actualizarEstadoRepresentable();
+  }
+
+  activar() {
+    if (
+      this.tipoInteraccion === TIPOS_INTERACCION.TRANSICION_MAPA &&
+      !this.solicitudTransicionMapa
+    ) {
+      throw new Error(
+        `${this.nombre} no puede activarse sin una solicitud de transición.`,
+      );
+    }
+
+    this.activo = true;
+    this.actualizarEstadoRepresentable();
+    return this.activo;
+  }
+
+  desactivar() {
+    this.activo = false;
+    this.actualizarEstadoRepresentable();
+    return this.activo;
+  }
+
+  actualizarEstadoRepresentable() {
+    this.recursoVisual = this.activo
+      ? this.recursoVisualActivo
+      : this.recursoVisualInactivo;
   }
 
   obtenerInteracciones() {
+    if (!this.activo) {
+      return [];
+    }
+
     const interaccion = {
       tipo: this.tipoInteraccion,
 
@@ -123,4 +185,42 @@ export class PortalMapa extends Entidad {
 
     return [interaccion];
   }
+}
+
+function resolverRecursosVisualesPortal({
+  recursoVisual,
+  recursoVisualActivo,
+  recursoVisualInactivo,
+}) {
+  const hayRecursoGenerico = recursoVisual !== undefined;
+  const hayRecursoActivo = recursoVisualActivo !== undefined;
+  const activo = hayRecursoActivo
+    ? recursoVisualActivo
+    : hayRecursoGenerico
+      ? recursoVisual
+      : RECURSO_VISUAL_PORTAL_ACTIVO_PREDETERMINADO;
+
+  const inactivo =
+    recursoVisualInactivo !== undefined
+      ? recursoVisualInactivo
+      : !hayRecursoGenerico && !hayRecursoActivo
+        ? RECURSO_VISUAL_PORTAL_INACTIVO_PREDETERMINADO
+        : activo;
+
+  return { activo, inactivo };
+}
+
+function validarRecursoVisual(recurso, estado, nombre) {
+  if (
+    recurso !== null &&
+    (typeof recurso !== "string" || recurso.trim() === "")
+  ) {
+    throw new Error(
+      `El recurso visual de ${nombre} en estado ${estado} debe ser una ruta válida o null.`,
+    );
+  }
+}
+
+function normalizarRecursoVisual(recurso) {
+  return recurso === null ? null : recurso.trim();
 }

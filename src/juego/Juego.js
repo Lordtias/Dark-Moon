@@ -299,6 +299,13 @@ export class Juego {
     return this.sistemaInteraccionJugador.cancelarModoInteraccion();
   }
 
+  activarInteractuable(interaccion) {
+    const bloqueo = this.obtenerBloqueoAccionTemporal();
+    return (
+      bloqueo ?? this.sistemaInteraccionJugador.ejecutarActivacion(interaccion)
+    );
+  }
+
   establecerSelectorInteraccion(opcion) {
     return this.sistemaInteraccionJugador.establecerSelector(opcion);
   }

@@ -1104,6 +1104,16 @@ export class CompositorMundoPhaser {
     const informacionRecurso = metricas.informacionRecurso;
     const contenedor = this.escena.add.container(centro.x, centro.y);
 
+    if (
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.INTERACTUABLE &&
+      entidad.activo === false &&
+      entidad.atenuarInactivo !== false
+    ) {
+      contenedor.setAlpha(
+        CONFIGURACION_ENTIDADES_PHASER.opacidadInteractuableInactivo,
+      );
+    }
+
     if (informacionRecurso) {
       const imagen = this.escena.add.image(
         0,

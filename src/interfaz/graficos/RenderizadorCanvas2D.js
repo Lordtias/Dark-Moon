@@ -12,6 +12,8 @@ import { CargadorImagenes } from "./CargadorImagenes.js";
 //
 // Los sprites se dibujan directamente sobre el mapa,
 // sin círculos de fondo ni anillos alrededor.
+const OPACIDAD_INTERACTUABLE_INACTIVO = 0.38;
+
 const ESTILOS_ENTIDADES = {
   [TIPOS_ENTIDAD_VISUAL.JUGADOR]: {
     colorSimbolo: "#ffe66d",
@@ -1222,6 +1224,14 @@ export class RenderizadorCanvas2D {
     const centroY = pixelY + this.tileSize / 2;
 
     this.context.save();
+
+    if (
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.INTERACTUABLE &&
+      entidad.activo === false &&
+      entidad.atenuarInactivo !== false
+    ) {
+      this.context.globalAlpha = OPACIDAD_INTERACTUABLE_INACTIVO;
+    }
 
     this.dibujarSombraEntidad({
       centroX,

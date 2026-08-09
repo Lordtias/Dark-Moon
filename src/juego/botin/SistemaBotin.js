@@ -48,38 +48,14 @@ export function generarBotinEnSuelo({
   aleatorio,
   interactuables,
 } = {}) {
-  validarFuente(fuente);
-
-  validarConfiguracionObjetos(configuracionObjetos);
-
-  validarGeneradorAleatorioBotin(aleatorio);
-
   if (!Array.isArray(interactuables)) {
     throw new Error("Los interactuables deben estar dentro de una lista.");
   }
 
-  const contextoGeneracion = obtenerContextoGeneracionBotin();
-
-  const nivelBaseObjeto = obtenerNivelBaseObjeto({
+  const resultadoTabla = generarContenidoBotin({
     fuente,
-    nivelMapa: contextoGeneracion.nivelMapa,
-  });
-
-  const resultadoTabla = resolverTablaBotin({
-    tablaBotin: fuente.tablaBotin,
     configuracionObjetos,
-    configuracionGeneracionObjetos:
-      contextoGeneracion.configuracionGeneracionObjetos,
-
-    // Esta secuencia conserva las tiradas
-    // tradicionales de la tabla.
-    aleatorioBotin: aleatorio,
-
-    // Esta segunda secuencia se utiliza
-    // solamente para construir instancias.
-    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
-
-    nivelBaseObjeto,
+    aleatorio,
   });
 
   // Una tabla puede no entregar ningún objeto.
@@ -105,6 +81,38 @@ export function generarBotinEnSuelo({
     ...resultadoTabla,
     ...resultadoSuelo,
   };
+}
+
+// Resuelve el contenido de una fuente sin decidir dónde se almacena.
+//
+// Esta es la integración reutilizable por enemigos, destructibles y cofres.
+// El llamador decide si los objetos terminan en BotinSuelo, un Cofre u otro
+// contenedor futuro; rareza, nivel y afijos continúan perteneciendo al mismo
+// sistema canónico.
+export function generarContenidoBotin({
+  fuente,
+  configuracionObjetos,
+  aleatorio,
+} = {}) {
+  validarFuente(fuente);
+  validarConfiguracionObjetos(configuracionObjetos);
+  validarGeneradorAleatorioBotin(aleatorio);
+
+  const contextoGeneracion = obtenerContextoGeneracionBotin();
+  const nivelBaseObjeto = obtenerNivelBaseObjeto({
+    fuente,
+    nivelMapa: contextoGeneracion.nivelMapa,
+  });
+
+  return resolverTablaBotin({
+    tablaBotin: fuente.tablaBotin,
+    configuracionObjetos,
+    configuracionGeneracionObjetos:
+      contextoGeneracion.configuracionGeneracionObjetos,
+    aleatorioBotin: aleatorio,
+    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
+    nivelBaseObjeto,
+  });
 }
 
 // Procesa independientemente cada entrada

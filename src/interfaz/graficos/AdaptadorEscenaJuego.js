@@ -434,6 +434,11 @@ function crearEntidadVisual(entidad, tipo, juego) {
       vidaActual < vidaMaxima,
 
     recursoVisual: entidad.recursoVisual ?? null,
+    activo: typeof entidad.activo === "boolean" ? entidad.activo : null,
+    atenuarInactivo:
+      typeof entidad.atenuarInactivo === "boolean"
+        ? entidad.atenuarInactivo
+        : true,
     efectosTemporales: crearEfectosTemporalesVisuales(juego, entidad),
   };
 }

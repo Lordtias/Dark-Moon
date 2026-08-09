@@ -3,6 +3,7 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
 import { crearResultadoAccion } from "../juego/acciones/ResultadoAccion.js";
+import { TIPOS_INTERACCION } from "../juego/interacciones/TiposInteraccion.js";
 
 export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   MOVER: "mover",
@@ -200,7 +201,9 @@ export class EjecutorAccionesJugador {
 
   interactuarOConfirmar() {
     if (this.juego.modoInteraccionActivo) {
-      return this.juego.confirmarInteraccionSeleccionada();
+      return this.ejecutarInteraccionInmediataSiCorresponde(
+        this.juego.confirmarInteraccionSeleccionada(),
+      );
     }
 
     const bloqueo = this.juego.obtenerBloqueoInteraccion();
@@ -228,14 +231,24 @@ export class EjecutorAccionesJugador {
     if (opciones.length === 1) {
       const opcion = opciones[0];
 
-      return crearResultadoAccion({
-        exito: true,
-        interaccion: opcion.interaccionPrioritaria,
-        entidad: opcion.entidad,
-      });
+      return this.ejecutarInteraccionInmediataSiCorresponde(
+        crearResultadoAccion({
+          exito: true,
+          interaccion: opcion.interaccionPrioritaria,
+          entidad: opcion.entidad,
+        }),
+      );
     }
 
     return this.juego.entrarModoInteraccion();
+  }
+
+  ejecutarInteraccionInmediataSiCorresponde(resultado) {
+    if (resultado?.interaccion?.tipo !== TIPOS_INTERACCION.ACTIVAR) {
+      return resultado;
+    }
+
+    return this.juego.activarInteractuable(resultado.interaccion);
   }
 
   obtenerSistemaHabilidadesActivo() {
@@ -334,6 +347,7 @@ function validarJuego(juego) {
     "obtenerOpcionesInteraccion",
     "entrarModoInteraccion",
     "confirmarInteraccionSeleccionada",
+    "activarInteractuable",
   ];
 
   if (!juego || typeof juego !== "object") {

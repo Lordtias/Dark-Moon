@@ -363,6 +363,72 @@ export class SistemaInteraccionJugador {
     return null;
   }
 
+  // Ejecuta una interacción ACTIVAR mediante la capacidad canónica de la
+  // entidad. La interfaz nunca decide cómo cambia una puerta, palanca u otro
+  // interactuable: solamente solicita la interacción al Juego.
+  ejecutarActivacion(interaccion) {
+    const bloqueo = this.obtenerBloqueoInteraccion();
+    if (bloqueo) return bloqueo;
+
+    if (
+      !interaccion ||
+      interaccion.tipo !== TIPOS_INTERACCION.ACTIVAR ||
+      !interaccion.entidad
+    ) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: mensajeInteraccion(
+          "activacionInvalida",
+          "La activación seleccionada no es válida.",
+          TIPOS_MENSAJE_JUEGO.NEGATIVO,
+        ),
+      });
+    }
+
+    const entidad = interaccion.entidad;
+    const disponible = this.obtenerInteraccionesDisponibles().some(
+      (candidata) =>
+        candidata.entidad === entidad &&
+        candidata.tipo === TIPOS_INTERACCION.ACTIVAR,
+    );
+
+    if (!disponible) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: mensajeInteraccion(
+          "yaNoDisponible",
+          "La interacción seleccionada ya no está disponible.",
+          TIPOS_MENSAJE_JUEGO.ALERTA,
+        ),
+      });
+    }
+
+    if (typeof entidad.activar !== "function") {
+      throw new Error(
+        `${entidad.nombre ?? "La entidad"} ofrece ACTIVAR pero no implementa activar().`,
+      );
+    }
+
+    const resultadoEntidad = entidad.activar({
+      actor: this.jugador,
+      contexto: this.crearContextoInteraccion(),
+    });
+
+    const resultado = crearResultadoAccion({
+      ...(resultadoEntidad && typeof resultadoEntidad === "object"
+        ? resultadoEntidad
+        : {}),
+      exito: resultadoEntidad?.exito !== false,
+      redibujar: true,
+    });
+
+    return this.finalizarResultadoAccionJugador({
+      resultado,
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ACCION,
+      costoBase: COSTOS_TEMPORALES_BASE.accion,
+    });
+  }
+
   // Transfiere un único espacio del contenedor
   // al inventario del jugador.
   recogerObjeto(interactuable, indiceOrigen) {
@@ -567,7 +633,7 @@ export class SistemaInteraccionJugador {
       interactuable?.estaVacio === true ||
       interactuable?.contenedorObjetos?.estaVacio?.() === true;
 
-    if (!estaVacio) {
+    if (!estaVacio || interactuable?.retirarAlVaciar !== true) {
       return false;
     }
 

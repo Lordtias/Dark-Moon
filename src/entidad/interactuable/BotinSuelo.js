@@ -71,6 +71,10 @@ export class BotinSuelo extends Entidad {
     this.recursoVisual = recursoVisualFinal.trim();
 
     this.contenedorObjetos = contenedorObjetos;
+
+    // El botín de suelo sí desaparece cuando se vacía.
+    // Cofre utiliza el mismo contrato con valor false.
+    this.retirarAlVaciar = true;
   }
 
   get estaVacio() {

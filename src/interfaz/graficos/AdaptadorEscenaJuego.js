@@ -409,6 +409,8 @@ function crearEntidadVisual(entidad, tipo, juego) {
         ? "X"
         : entidad.simbolo,
     estaViva,
+    ocultablePorFov:
+      entidad instanceof Enemigo || entidad instanceof NPC,
 
     // El backend gráfico recibe un estado textual
     // en lugar del booleano propio de Enemigo.

@@ -78,6 +78,8 @@ export class Renderizador {
     // punto de partida visual, mientras Canvas 2D continúa redibujando el
     // estado final de forma inmediata.
     this.ultimaEscenaMapa = null;
+    this.ultimoDiagnosticoPresentacion = null;
+    this.secuenciaPresentacion = 0;
   }
 
   // Permite que el controlador configure
@@ -95,6 +97,12 @@ export class Renderizador {
       return null;
     }
     return this.renderizadorMapa.esperarPresentacionPendiente();
+  }
+
+  obtenerDiagnosticoUltimaPresentacion() {
+    return this.ultimoDiagnosticoPresentacion
+      ? { ...this.ultimoDiagnosticoPresentacion }
+      : null;
   }
 
   configurarAnimacionesMapa(configuracion = {}) {
@@ -144,15 +152,25 @@ export class Renderizador {
       habilidad: this.estadoVisualHabilidad,
     });
 
+    const inicioPlanificacionVisual = obtenerInstante();
     const eventosVisuales = crearPlanEventosVisuales({
       eventos,
       escenaAnterior: this.ultimaEscenaMapa,
       escenaFinal: escena,
     });
+    const duracionPlanificacionVisualMs = redondearMilisegundos(
+      obtenerInstante() - inicioPlanificacionVisual,
+    );
 
     this.renderizadorMapa.dibujar(escena, {
       escenaAnterior: this.ultimaEscenaMapa,
       eventosVisuales,
+    });
+    this.ultimoDiagnosticoPresentacion = Object.freeze({
+      idPresentacion: ++this.secuenciaPresentacion,
+      duracionPlanificacionVisualMs,
+      eventosVisualesGenerados: eventosVisuales.length,
+      ...(this.renderizadorMapa.obtenerDiagnosticoUltimaPresentacion?.() ?? {}),
     });
 
     this.ultimaEscenaMapa = escena;
@@ -318,4 +336,12 @@ function congelarListaRecorrido(lista) {
         }),
       ),
   );
+}
+
+function obtenerInstante() {
+  return globalThis.performance?.now?.() ?? Date.now();
+}
+
+function redondearMilisegundos(valor) {
+  return Math.round((Number(valor) || 0) * 100) / 100;
 }

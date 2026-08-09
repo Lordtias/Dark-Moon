@@ -1,4 +1,5 @@
 import { traducir } from "../../idiomas/ContextoIdioma.js";
+import { filtrarEventosVisualesPorVisibilidad } from "../FiltradorEventosVisualesPorVisibilidad.js";
 import { crearEscenaArranquePhaser } from "./EscenaArranquePhaser.js";
 import { inicializarPhaser } from "./InicializadorPhaser.js";
 
@@ -32,6 +33,7 @@ export class RenderizadorPhaser {
     this.canvasPhaser = null;
     this.escenaPhaser = null;
     this.ultimaEscena = null;
+    this.ultimoDiagnosticoPresentacion = null;
     this.dimensionesMapa = null;
     this.alEjecutarComando = null;
     this.juegoPhaser = null;
@@ -103,13 +105,35 @@ export class RenderizadorPhaser {
     this.escenaPhaser?.configurarDimensionesMapa(this.dimensionesMapa);
   }
 
-  dibujar(escena, { eventosVisuales = [] } = {}) {
+  dibujar(escena, { escenaAnterior = null, eventosVisuales = [] } = {}) {
     if (!escena?.mapa || !Array.isArray(escena?.entidades)) {
       throw new Error("RenderizadorPhaser necesita una escena visual válida.");
     }
 
+    const inicioFiltrado = obtenerInstante();
+    const filtrado = filtrarEventosVisualesPorVisibilidad({
+      eventosVisuales,
+      escenaAnterior: escenaAnterior ?? this.ultimaEscena,
+      escenaFinal: escena,
+    });
+    const duracionFiltradoVisualMs = redondearMilisegundos(
+      obtenerInstante() - inicioFiltrado,
+    );
+
+    this.ultimoDiagnosticoPresentacion = Object.freeze({
+      ...filtrado.diagnostico,
+      duracionFiltradoVisualMs,
+    });
     this.ultimaEscena = escena;
-    this.escenaPhaser?.actualizarEscena(escena, { eventosVisuales });
+    this.escenaPhaser?.actualizarEscena(escena, {
+      eventosVisuales: filtrado.eventosVisuales,
+    });
+  }
+
+  obtenerDiagnosticoUltimaPresentacion() {
+    return this.ultimoDiagnosticoPresentacion
+      ? { ...this.ultimoDiagnosticoPresentacion }
+      : null;
   }
 
   esperarPresentacionPendiente() {
@@ -383,4 +407,12 @@ function validarElementos({ Phaser, canvasBase, contenedor }) {
   if (!(contenedor instanceof HTMLElement)) {
     throw new Error("RenderizadorPhaser necesita el panel del mapa.");
   }
+}
+
+function obtenerInstante() {
+  return globalThis.performance?.now?.() ?? Date.now();
+}
+
+function redondearMilisegundos(valor) {
+  return Math.round((Number(valor) || 0) * 100) / 100;
 }

@@ -649,6 +649,15 @@ export class ReproductorEventosVisualesPhaser {
   }
 
   async reproducirMovimiento(evento, version) {
+    if (evento.transicionVisibilidad === "salida") {
+      await this.reproducirSalidaCampoVisible(evento, version);
+      return;
+    }
+    if (evento.transicionVisibilidad === "entrada") {
+      await this.reproducirEntradaCampoVisible(evento, version);
+      return;
+    }
+
     const nodo = this.compositor.obtenerNodoEntidad(evento.idEntidad);
     const origen = this.compositor.obtenerCentroCasilla(evento.origen);
     const destino = this.compositor.obtenerCentroCasilla(evento.destino);
@@ -703,6 +712,58 @@ export class ReproductorEventosVisualesPhaser {
     }, version);
 
     this.compositor.posicionarNodoEntidad(evento.idEntidad, destino);
+  }
+
+  async reproducirSalidaCampoVisible(evento, version) {
+    const nodo = this.compositor.obtenerNodoEntidad(evento.idEntidad);
+    if (!nodo?.contenedor) return;
+
+    if (!this.efectosReducidos) {
+      await this.crearTween({
+        targets: nodo.contenedor,
+        alpha: 0,
+        duration: this.calcularDuracion(110),
+        ease: "Sine.easeIn",
+      }, version);
+    }
+
+    if (version === this.versionCancelacion && !this.destruido) {
+      this.compositor.retirarEntidadVisual?.(evento.idEntidad);
+    }
+  }
+
+  async reproducirEntradaCampoVisible(evento, version) {
+    const entidadFinal = evento?.entidadFinal;
+    if (!entidadFinal) return;
+
+    const nodo = this.compositor.establecerEntidadVisualTemporal?.(entidadFinal);
+    if (!nodo?.contenedor) return;
+
+    const alphaSombraFinal = Number.isFinite(nodo.sombra?.alpha)
+      ? nodo.sombra.alpha
+      : 1;
+    nodo.contenedor.alpha = this.efectosReducidos ? 1 : 0;
+    if (nodo.sombra) nodo.sombra.alpha = this.efectosReducidos ? alphaSombraFinal : 0;
+
+    if (this.efectosReducidos) return;
+
+    const animaciones = [
+      this.crearTween({
+        targets: nodo.contenedor,
+        alpha: 1,
+        duration: this.calcularDuracion(110),
+        ease: "Sine.easeOut",
+      }, version),
+    ];
+    if (nodo.sombra) {
+      animaciones.push(this.crearTween({
+        targets: nodo.sombra,
+        alpha: alphaSombraFinal,
+        duration: this.calcularDuracion(110),
+        ease: "Sine.easeOut",
+      }, version));
+    }
+    await Promise.all(animaciones);
   }
 
   obtenerDuracionBaseMovimiento({
@@ -2083,6 +2144,14 @@ export class ReproductorEventosVisualesPhaser {
     this.compositor.ocultarSeleccionTemporal?.();
 
     const golpes = this.obtenerGolpesVisuales(evento);
+    if (evento.presentacionOrigenOculto === true) {
+      await this.reproducirConsecuenciaAtaqueOrigenOculto(
+        evento,
+        golpes,
+        version,
+      );
+      return;
+    }
     if (this.esAtaqueVarita(evento) && evento.ritmoVisual) {
       await this.reproducirAtaqueVarita(evento, golpes, version);
     } else if (this.esAtaqueArco(evento) && evento.ritmoVisual) {
@@ -2098,6 +2167,21 @@ export class ReproductorEventosVisualesPhaser {
         this.calcularDuracion(
           CONFIGURACION_ANIMACIONES_PHASER.pausaEntreAtaquesEnemigosMs,
         ),
+        version,
+      );
+    }
+  }
+
+  async reproducirConsecuenciaAtaqueOrigenOculto(evento, golpes, version) {
+    if (!evento.idObjetivo) return;
+
+    const golpesValidos = (Array.isArray(golpes) ? golpes : []).filter(Boolean);
+    for (let indice = 0; indice < golpesValidos.length; indice += 1) {
+      if (version !== this.versionCancelacion || this.destruido) return;
+      await this.reproducirResultadoGolpe(
+        evento,
+        golpesValidos[indice],
+        indice,
         version,
       );
     }

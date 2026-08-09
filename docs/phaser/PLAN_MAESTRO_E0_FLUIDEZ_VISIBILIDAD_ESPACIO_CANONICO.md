@@ -799,7 +799,7 @@ Decisiones implementadas:
 - Canvas2D no recibe una implementación específica de niebla;
 - Percepción se muestra antes de Alcance en el panel del personaje.
 
-**Estado de E0.3:** implementación técnica y pruebas aisladas completadas. Cierre pendiente de regresión manual dentro del juego.
+**Estado de E0.3:** cerrada y validada manualmente en `bce5d0f2e63b1342bc75e8d8db2f1a9b0080f217`.
 
 ---
 
@@ -829,6 +829,37 @@ Evitar que acciones invisibles generen coste visual, conservar la secuencia de a
 - puertas funcionales;
 - humo funcional final;
 - nuevas entidades de mazmorra.
+
+### Registro de implementación E0.4
+
+Base de implementación: `bce5d0f2e63b1342bc75e8d8db2f1a9b0080f217`.
+
+Decisiones implementadas:
+
+- filtrado de eventos aplicado únicamente en el camino Phaser, después del plan visual neutral y sin modificar eventos canónicos;
+- movimientos de enemigos totalmente fuera del FOV no entran a la cola visual;
+- salida del FOV se representa con una desaparición breve sin mostrar recorrido por casillas ocultas;
+- entrada al FOV crea la representación en la posición visible final y utiliza una aparición breve, sin revelar la trayectoria previa;
+- un ataque cuyo origen permanece oculto conserva únicamente la consecuencia visible sobre el objetivo y no expone origen, proyectil ni posición del atacante;
+- feedback, daño, estados, derrotas y activaciones locales asociados a enemigos ocultos se omiten cuando revelarían información dinámica;
+- botín y zonas temporales se preservan según el contrato funcional cerrado en E0.3;
+- impactos ocultos dentro de habilidades se retiran del plan de presentación sin alterar su resolución canónica;
+- `MedidorFluidezPartida` separa ahora IA, pathfinding, planificación visual, filtrado visual y espera visual, además de contar eventos generados/conservados/descartados;
+- la IA registra de forma diagnóstica el tiempo dedicado a BFS sin cambiar su algoritmo ni sus decisiones;
+- el parámetro de desarrollo `&enemigos=N` permite forzar entre 1 y 100 enemigos recurrentes en una copia temporal de la plantilla; jefes o especiales definidos aparte por el mapa pueden sumarse al total y la configuración persistente no se modifica;
+- Canvas2D permanece fuera del trabajo de filtrado, medición gráfica y transiciones de E0.4.
+
+Protocolo reproducible de validación E0.4:
+
+1. reiniciar `MedidorFluidezPartida` antes de cada escenario;
+2. ejecutar una muestra normal con `?mapa=cementerio&nivel=3&semilla=prueba`;
+3. ejecutar muestras de escala sobre `sala_guerra` con semillas fijas y `&enemigos=15`, `&enemigos=30` y `&enemigos=40`;
+4. comprobar que los movimientos totalmente ocultos aumenten `eventosVisualesDescartados` sin generar espera visual propia;
+5. activar agresividad de enemigos para una muestra específica de IA/pathfinding y comparar `duracionIaMs` y `duracionPathfindingMs` con `duracionLogicaMs`;
+6. validar entrada/salida de FOV, ataque desde origen oculto, habilidades, zonas, daño, muerte y botín sin revelar información dinámica de Enemigos/NPC ocultos;
+7. no interpretar `&enemigos=N` como total absoluto cuando la plantilla agrega jefes o especiales independientes.
+
+**Estado de E0.4:** implementación técnica preparada; cierre pendiente de regresión manual y mediciones comparables dentro del juego.
 
 ---
 

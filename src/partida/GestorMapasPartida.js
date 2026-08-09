@@ -169,6 +169,7 @@ export class GestorMapasPartida {
     nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
+    cantidadEnemigosForzada = null,
     ignorarNivelDesbloqueo = false,
   } = {}) {
     const configuracionMapasGeneracion =
@@ -191,6 +192,7 @@ export class GestorMapasPartida {
       nivelMapaForzado,
       botinPrueba,
       portalPrueba,
+      cantidadEnemigosForzada,
     });
 
     // Cada mazmorra recibe una salida real situada

@@ -43,6 +43,19 @@ export class MedidorFluidezPartida {
       finPreparacionMs: null,
       turnoConsumido: false,
       cantidadEventos: 0,
+      duracionIaMs: 0,
+      duracionPathfindingMs: 0,
+      accionesIaProcesadas: 0,
+      busquedasPathfinding: 0,
+      eventosVisualesGenerados: 0,
+      eventosVisualesConservados: 0,
+      eventosVisualesDescartados: 0,
+      impactosOcultosDescartados: 0,
+      transicionesEntradaFov: 0,
+      transicionesSalidaFov: 0,
+      enemigosVisibles: 0,
+      duracionPlanificacionVisualMs: 0,
+      duracionFiltradoVisualMs: 0,
       duracionLogicaMs: 0,
       duracionPreparacionMs: 0,
       duracionEsperaVisualMs: 0,
@@ -65,10 +78,21 @@ export class MedidorFluidezPartida {
     muestra.cantidadEventos = Array.isArray(resultado?.eventos)
       ? resultado.eventos.length
       : 0;
+    const diagnostico = resultado?.diagnosticoFluidez ?? null;
+    muestra.duracionIaMs = redondearMilisegundos(diagnostico?.duracionIaMs);
+    muestra.duracionPathfindingMs = redondearMilisegundos(
+      diagnostico?.duracionPathfindingMs,
+    );
+    muestra.accionesIaProcesadas = normalizarEnteroNoNegativo(
+      diagnostico?.accionesIaProcesadas,
+    );
+    muestra.busquedasPathfinding = normalizarEnteroNoNegativo(
+      diagnostico?.busquedasPathfinding,
+    );
     return true;
   }
 
-  registrarFinPreparacion(muestra) {
+  registrarFinPreparacion(muestra, diagnosticoPresentacion = null) {
     if (!esMuestraValida(muestra)) {
       return false;
     }
@@ -81,6 +105,10 @@ export class MedidorFluidezPartida {
     muestra.finPreparacionMs = instante;
     muestra.duracionPreparacionMs = redondearMilisegundos(
       instante - inicioPreparacion,
+    );
+    registrarDiagnosticoPresentacionEnMuestra(
+      muestra,
+      diagnosticoPresentacion,
     );
     return true;
   }
@@ -113,6 +141,19 @@ export class MedidorFluidezPartida {
       contexto: copiarContexto(muestra.contexto),
       turnoConsumido: muestra.turnoConsumido,
       cantidadEventos: muestra.cantidadEventos,
+      duracionIaMs: muestra.duracionIaMs,
+      duracionPathfindingMs: muestra.duracionPathfindingMs,
+      accionesIaProcesadas: muestra.accionesIaProcesadas,
+      busquedasPathfinding: muestra.busquedasPathfinding,
+      eventosVisualesGenerados: muestra.eventosVisualesGenerados,
+      eventosVisualesConservados: muestra.eventosVisualesConservados,
+      eventosVisualesDescartados: muestra.eventosVisualesDescartados,
+      impactosOcultosDescartados: muestra.impactosOcultosDescartados,
+      transicionesEntradaFov: muestra.transicionesEntradaFov,
+      transicionesSalidaFov: muestra.transicionesSalidaFov,
+      enemigosVisibles: muestra.enemigosVisibles,
+      duracionPlanificacionVisualMs: muestra.duracionPlanificacionVisualMs,
+      duracionFiltradoVisualMs: muestra.duracionFiltradoVisualMs,
       duracionLogicaMs: muestra.duracionLogicaMs,
       duracionPreparacionMs: muestra.duracionPreparacionMs,
       duracionEsperaVisualMs: muestra.duracionEsperaVisualMs,
@@ -155,6 +196,7 @@ export class MedidorFluidezPartida {
         : null,
       promediosMs: crearResumenTiempos(muestras, calcularPromedio),
       maximosMs: crearResumenTiempos(muestras, calcularMaximo),
+      totalesDiagnostico: crearTotalesDiagnostico(muestras),
       ultimasMuestras: muestras.slice(-20).map((muestra) => ({
         ...muestra,
         contexto: copiarContexto(muestra.contexto),
@@ -166,10 +208,68 @@ export class MedidorFluidezPartida {
 function crearResumenTiempos(muestras, calcular) {
   return Object.freeze({
     logica: calcular(muestras, "duracionLogicaMs"),
+    ia: calcular(muestras, "duracionIaMs"),
+    pathfinding: calcular(muestras, "duracionPathfindingMs"),
     preparacionPresentacion: calcular(muestras, "duracionPreparacionMs"),
+    planificacionVisual: calcular(muestras, "duracionPlanificacionVisualMs"),
+    filtradoVisual: calcular(muestras, "duracionFiltradoVisualMs"),
     esperaVisual: calcular(muestras, "duracionEsperaVisualMs"),
     total: calcular(muestras, "duracionTotalMs"),
   });
+}
+
+function registrarDiagnosticoPresentacionEnMuestra(muestra, diagnostico) {
+  if (!diagnostico || typeof diagnostico !== "object") return;
+  muestra.eventosVisualesGenerados = normalizarEnteroNoNegativo(
+    diagnostico.eventosVisualesGenerados,
+  );
+  muestra.eventosVisualesConservados = normalizarEnteroNoNegativo(
+    diagnostico.eventosVisualesConservados,
+  );
+  muestra.eventosVisualesDescartados = normalizarEnteroNoNegativo(
+    diagnostico.eventosVisualesDescartados,
+  );
+  muestra.impactosOcultosDescartados = normalizarEnteroNoNegativo(
+    diagnostico.impactosOcultosDescartados,
+  );
+  muestra.transicionesEntradaFov = normalizarEnteroNoNegativo(
+    diagnostico.transicionesEntrada,
+  );
+  muestra.transicionesSalidaFov = normalizarEnteroNoNegativo(
+    diagnostico.transicionesSalida,
+  );
+  muestra.enemigosVisibles = normalizarEnteroNoNegativo(
+    diagnostico.enemigosVisiblesDespues,
+  );
+  muestra.duracionPlanificacionVisualMs = redondearMilisegundos(
+    diagnostico.duracionPlanificacionVisualMs,
+  );
+  muestra.duracionFiltradoVisualMs = redondearMilisegundos(
+    diagnostico.duracionFiltradoVisualMs,
+  );
+}
+
+function crearTotalesDiagnostico(muestras) {
+  const sumar = (propiedad) => muestras.reduce(
+    (total, muestra) => total + (Number(muestra[propiedad]) || 0),
+    0,
+  );
+  return Object.freeze({
+    accionesIaProcesadas: sumar("accionesIaProcesadas"),
+    busquedasPathfinding: sumar("busquedasPathfinding"),
+    eventosCanonicos: sumar("cantidadEventos"),
+    eventosVisualesGenerados: sumar("eventosVisualesGenerados"),
+    eventosVisualesConservados: sumar("eventosVisualesConservados"),
+    eventosVisualesDescartados: sumar("eventosVisualesDescartados"),
+    impactosOcultosDescartados: sumar("impactosOcultosDescartados"),
+    transicionesEntradaFov: sumar("transicionesEntradaFov"),
+    transicionesSalidaFov: sumar("transicionesSalidaFov"),
+  });
+}
+
+function normalizarEnteroNoNegativo(valor) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? Math.max(0, Math.trunc(numero)) : 0;
 }
 
 function calcularPromedio(muestras, propiedad) {

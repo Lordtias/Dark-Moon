@@ -159,14 +159,23 @@ function evaluarAtaqueEnemigo({ enemigo, jugador, mapa, sistemaEspacial }) {
   });
 }
 
-function moverEnemigoHaciaJugador({ enemigo, jugador, sistemaEspacial }) {
+function moverEnemigoHaciaJugador({
+  enemigo,
+  jugador,
+  sistemaEspacial,
+  registrarDiagnosticoPathfinding = () => {},
+}) {
   const origen = { x: enemigo.x, y: enemigo.y };
+  const inicioPathfinding = obtenerInstante();
   const siguientePaso = buscarSiguientePaso({
     sistemaEspacial,
     origen: { x: enemigo.x, y: enemigo.y },
     destino: { x: jugador.x, y: jugador.y },
     ignorarEntidades: [enemigo, jugador],
   });
+  registrarDiagnosticoPathfinding(
+    Math.max(0, obtenerInstante() - inicioPathfinding),
+  );
 
   if (!siguientePaso) {
     return {
@@ -212,6 +221,7 @@ export function procesarAccionEnemigo({
   registrarParticipanteCombate = () => {},
   retirarParticipanteCombate = () => {},
   notificarMovimientoActor = () => ({ mensajes: [], eventos: [] }),
+  registrarDiagnosticoPathfinding = () => {},
 } = {}) {
   if (!(enemigo instanceof Enemigo)) {
     throw new Error("Se necesita un enemigo válido para procesar su acción.");
@@ -234,6 +244,9 @@ export function procesarAccionEnemigo({
   }
   if (typeof notificarMovimientoActor !== "function") {
     throw new Error("La notificación de movimiento debe ser una función.");
+  }
+  if (typeof registrarDiagnosticoPathfinding !== "function") {
+    throw new Error("El diagnóstico de pathfinding debe ser una función.");
   }
 
   const mensajes = [];
@@ -328,6 +341,7 @@ export function procesarAccionEnemigo({
     enemigo,
     jugador,
     sistemaEspacial,
+    registrarDiagnosticoPathfinding,
   });
 
   if (resultadoMovimiento.seMovio) {
@@ -359,4 +373,8 @@ export function procesarAccionEnemigo({
     mensajes,
     eventos: resultadoAgresividad.eventos,
   });
+}
+
+function obtenerInstante() {
+  return globalThis.performance?.now?.() ?? Date.now();
 }

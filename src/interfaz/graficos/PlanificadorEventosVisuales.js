@@ -760,9 +760,11 @@ function normalizarEventoEfectoTemporal(evento, entidadesPorId) {
   return Object.freeze({
     idObjetivo,
     tipoObjetivo: objetivoVisual?.tipo ?? null,
-    posicionObjetivo: objetivoVisual && esPosicion(objetivoVisual)
-      ? copiarPosicion(objetivoVisual)
-      : null,
+    posicionObjetivo: esPosicion(objetivo)
+      ? copiarPosicion(objetivo)
+      : objetivoVisual && esPosicion(objetivoVisual)
+        ? copiarPosicion(objetivoVisual)
+        : null,
     efecto: Object.freeze({
       id: evento.catalogoEfectoId ? evento.efectoId ?? null : null,
       catalogoEfectoId,
@@ -853,9 +855,11 @@ function agregarEntidadDerrotada(
       tipo: TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA,
       idEntidad,
       tipoEntidad: entidadVisual?.tipo ?? null,
-      posicion: entidadVisual && esPosicion(entidadVisual)
-        ? copiarPosicion(entidadVisual)
-        : null,
+      posicion: esPosicion(entidad)
+        ? copiarPosicion(entidad)
+        : entidadVisual && esPosicion(entidadVisual)
+          ? copiarPosicion(entidadVisual)
+          : null,
       motivo,
     }),
   );
@@ -926,9 +930,11 @@ function agregarRecursosRecuperados(plan, evento, entidadesPorId) {
     tipo: TIPOS_EVENTO_VISUAL.RECURSOS_RECUPERADOS,
     idObjetivo,
     tipoObjetivo: objetivoVisual?.tipo ?? null,
-    posicionObjetivo: objetivoVisual && esPosicion(objetivoVisual)
-      ? copiarPosicion(objetivoVisual)
-      : null,
+    posicionObjetivo: esPosicion(objetivo)
+      ? copiarPosicion(objetivo)
+      : objetivoVisual && esPosicion(objetivoVisual)
+        ? copiarPosicion(objetivoVisual)
+        : null,
     origen: evento.origen ?? "desconocido",
     fuente: evento.fuente ?? null,
     recursos: Object.freeze(evento.recursos.map((recurso) => Object.freeze({ ...recurso }))),
@@ -978,6 +984,11 @@ function agregarCambioHostilidad(plan, evento, entidadesPorId) {
       estadoAnterior: evento.estadoAnterior,
       estadoActual: evento.estadoActual,
       motivo: evento.motivo ?? null,
+      posicion: esPosicion(evento.enemigo)
+        ? copiarPosicion(evento.enemigo)
+        : entidadVisual && esPosicion(entidadVisual)
+          ? copiarPosicion(entidadVisual)
+          : null,
       ejecucionTemporal: evento.ejecucionTemporal ?? null,
     }),
   );

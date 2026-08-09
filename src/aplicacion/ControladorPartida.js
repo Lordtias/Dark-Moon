@@ -174,6 +174,7 @@ export class ControladorPartida {
         nivelMapaForzado: parametrosPrueba.nivelMapaForzado,
         botinPrueba: parametrosPrueba.botinPrueba,
         portalPrueba: parametrosPrueba.portalPrueba,
+        cantidadEnemigosForzada: parametrosPrueba.cantidadEnemigosForzada,
         // Los parámetros de URL forman parte del modo
         // de desarrollo y pueden abrir mapas bloqueados.
         ignorarNivelDesbloqueo: true,
@@ -220,6 +221,7 @@ export class ControladorPartida {
     nivelMapaForzado = null,
     botinPrueba = false,
     portalPrueba = false,
+    cantidadEnemigosForzada = null,
     ignorarNivelDesbloqueo = false,
     parametrosPrueba = null,
   } = {}) {
@@ -239,6 +241,7 @@ export class ControladorPartida {
       nivelMapaForzado,
       botinPrueba,
       portalPrueba,
+      cantidadEnemigosForzada,
       ignorarNivelDesbloqueo,
     });
 
@@ -261,11 +264,13 @@ export class ControladorPartida {
           nivelMapaForzado !== null ||
           botinPrueba ||
           portalPrueba ||
+          cantidadEnemigosForzada !== null ||
           semillaMapa !== null,
         idMapaForzado,
         nivelMapaForzado,
         botinPrueba,
         portalPrueba,
+        cantidadEnemigosForzada,
         semillaMapa,
         ignorarNivelDesbloqueo,
       },
@@ -313,6 +318,8 @@ export class ControladorPartida {
           nivelMapaForzado: solicitudNormalizada.datos.nivelMapaForzado ?? null,
           botinPrueba: solicitudNormalizada.datos.botinPrueba === true,
           portalPrueba: solicitudNormalizada.datos.portalPrueba === true,
+          cantidadEnemigosForzada:
+            solicitudNormalizada.datos.cantidadEnemigosForzada ?? null,
           ignorarNivelDesbloqueo:
             solicitudNormalizada.datos.ignorarNivelDesbloqueo === true,
         });
@@ -526,10 +533,21 @@ export class ControladorPartida {
     this.medidorFluidez.registrarFinLogica(muestra, resultadoTemporal);
     const consumeTurno = resultadoTemporal?.turnoConsumido === true;
 
+    const idPresentacionAntes =
+      this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.()?.idPresentacion ??
+      null;
     let resultadoProcesado;
     try {
       resultadoProcesado = procesarResultado(resultadoLogico);
-      this.medidorFluidez.registrarFinPreparacion(muestra);
+      const diagnosticoPresentacion =
+        this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.() ?? null;
+      const huboNuevaPresentacion =
+        diagnosticoPresentacion?.idPresentacion !== undefined &&
+        diagnosticoPresentacion.idPresentacion !== idPresentacionAntes;
+      this.medidorFluidez.registrarFinPreparacion(
+        muestra,
+        huboNuevaPresentacion ? diagnosticoPresentacion : null,
+      );
     } catch (error) {
       this.medidorFluidez.registrarFinPreparacion(muestra);
       this.medidorFluidez.completar(muestra, {
@@ -666,8 +684,11 @@ export class ControladorPartida {
   obtenerContextoMedicionFluidez() {
     return {
       mapaId: this.juego?.mapaSeleccionado?.id ?? null,
-      enemigos: Array.isArray(this.juego?.objetivos)
+      objetivosTotales: Array.isArray(this.juego?.objetivos)
         ? this.juego.objetivos.length
+        : 0,
+      entidadesConIA: Array.isArray(this.juego?.objetivos)
+        ? this.juego.objetivos.filter((entidad) => entidad?.configuracionIA).length
         : 0,
       renderizador:
         globalThis.darkMoonRenderizador?.tipo ?? "desconocido",

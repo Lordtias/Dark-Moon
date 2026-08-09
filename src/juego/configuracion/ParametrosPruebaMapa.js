@@ -14,6 +14,9 @@ const PARAMETRO_BOTIN = "botin";
 
 const PARAMETRO_PORTAL = "portal";
 
+const PARAMETRO_ENEMIGOS = "enemigos";
+const MAXIMO_ENEMIGOS_PRUEBA = 100;
+
 // Lee los parámetros opcionales de la URL.
 //
 // Cuando no existen, la partida comienza
@@ -41,11 +44,16 @@ export function leerParametrosPruebaMapa(
 
   const textoPortal = normalizarTexto(url.searchParams.get(PARAMETRO_PORTAL));
 
+  const textoEnemigos = normalizarTexto(url.searchParams.get(PARAMETRO_ENEMIGOS));
+
   const nivelMapaForzado =
     textoNivel === null ? null : convertirNivelMapa(textoNivel);
 
   const semillaMapa =
     textoSemilla === null ? null : convertirSemilla(textoSemilla);
+
+  const cantidadEnemigosForzada =
+    textoEnemigos === null ? null : convertirCantidadEnemigos(textoEnemigos);
 
   // Cualquier valor no vacío activa
   // los recursos de validación correspondientes.
@@ -59,13 +67,15 @@ export function leerParametrosPruebaMapa(
     semillaMapa,
     botinPrueba,
     portalPrueba,
+    cantidadEnemigosForzada,
 
     activo:
       idMapaForzado !== null ||
       nivelMapaForzado !== null ||
       semillaMapa !== null ||
       botinPrueba ||
-      portalPrueba,
+      portalPrueba ||
+      cantidadEnemigosForzada !== null,
   };
 }
 
@@ -109,6 +119,25 @@ function convertirSemilla(texto) {
   return texto;
 }
 
+function convertirCantidadEnemigos(texto) {
+  if (!/^\d+$/.test(texto)) {
+    throw new Error(
+      `La cantidad de enemigos "${texto}" debe ser un entero entre 1 y ${MAXIMO_ENEMIGOS_PRUEBA}.`,
+    );
+  }
+  const cantidad = Number(texto);
+  if (
+    !Number.isSafeInteger(cantidad) ||
+    cantidad < 1 ||
+    cantidad > MAXIMO_ENEMIGOS_PRUEBA
+  ) {
+    throw new Error(
+      `La cantidad de enemigos "${texto}" debe estar entre 1 y ${MAXIMO_ENEMIGOS_PRUEBA}.`,
+    );
+  }
+  return cantidad;
+}
+
 function normalizarTexto(valor) {
   if (typeof valor !== "string") {
     return null;
@@ -126,6 +155,7 @@ function crearResultadoVacio() {
     semillaMapa: null,
     botinPrueba: false,
     portalPrueba: false,
+    cantidadEnemigosForzada: null,
     activo: false,
   };
 }

@@ -183,6 +183,7 @@ export function crearConfiguracionMazmorra({
 
   botinPrueba = false,
   portalPrueba = false,
+  cantidadEnemigosForzada = null,
 } = {}) {
   validarJugador(player);
 
@@ -205,6 +206,7 @@ export function crearConfiguracionMazmorra({
     configuracionObjetos,
     botinPrueba,
     portalPrueba,
+    cantidadEnemigosForzada,
     semillaMapa,
     idMapaForzado,
     nivelMapaForzado,
@@ -265,6 +267,7 @@ function completarConfiguracionMazmorra({
   configuracionObjetos,
   botinPrueba,
   portalPrueba,
+  cantidadEnemigosForzada,
   semillaMapa,
   idMapaForzado,
   nivelMapaForzado,
@@ -281,6 +284,7 @@ function completarConfiguracionMazmorra({
   const plantillaGeneracion = crearPlantillaGeneracion({
     mapaSeleccionado,
     nivelMapaForzado,
+    cantidadEnemigosForzada,
   });
 
   const contenido = generarContenidoMapa({
@@ -328,6 +332,7 @@ function completarConfiguracionMazmorra({
 
     botinPrueba,
     portalPrueba,
+    cantidadEnemigosForzada,
 
     ancho: terreno.ancho,
 
@@ -375,19 +380,31 @@ function completarConfiguracionMazmorra({
 //
 // Las demás secciones pueden compartirse porque
 // GeneradorContenidoMapa solamente las consulta.
-function crearPlantillaGeneracion({ mapaSeleccionado, nivelMapaForzado }) {
-  if (nivelMapaForzado === null) {
+function crearPlantillaGeneracion({
+  mapaSeleccionado,
+  nivelMapaForzado,
+  cantidadEnemigosForzada,
+}) {
+  if (nivelMapaForzado === null && cantidadEnemigosForzada === null) {
     return mapaSeleccionado;
   }
 
   return {
     ...mapaSeleccionado,
-
-    niveles: {
-      minimo: nivelMapaForzado,
-
-      maximo: nivelMapaForzado,
-    },
+    niveles:
+      nivelMapaForzado === null
+        ? mapaSeleccionado.niveles
+        : { minimo: nivelMapaForzado, maximo: nivelMapaForzado },
+    enemigos:
+      cantidadEnemigosForzada === null
+        ? mapaSeleccionado.enemigos
+        : {
+            ...mapaSeleccionado.enemigos,
+            cantidad: {
+              minimo: cantidadEnemigosForzada,
+              maximo: cantidadEnemigosForzada,
+            },
+          },
   };
 }
 

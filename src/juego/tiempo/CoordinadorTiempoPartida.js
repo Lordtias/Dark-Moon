@@ -23,6 +23,12 @@ function crearAcumuladoTemporal() {
     },
     mensajes: [],
     eventos: [],
+    diagnosticoFluidez: {
+      duracionIaMs: 0,
+      duracionPathfindingMs: 0,
+      accionesIaProcesadas: 0,
+      busquedasPathfinding: 0,
+    },
   };
 }
 function acumularResultadoTemporal(destino, origen) {
@@ -32,6 +38,10 @@ function acumularResultadoTemporal(destino, origen) {
     origen.recuperacionJugador?.manaRecuperado ?? 0;
   destino.mensajes.push(...(origen.mensajes ?? []));
   destino.eventos.push(...(origen.eventos ?? []));
+  acumularDiagnosticoFluidez(
+    destino.diagnosticoFluidez,
+    origen.diagnosticoFluidez,
+  );
   return destino;
 }
 export class CoordinadorTiempoPartida {
@@ -689,6 +699,7 @@ export class CoordinadorTiempoPartida {
         break;
       }
       const enemigo = avance.actor;
+      const inicioIa = obtenerInstante();
       const resultadoEnemigo = procesarAccionEnemigo({
         enemigo,
         jugador: this.jugador,
@@ -701,7 +712,17 @@ export class CoordinadorTiempoPartida {
           this.retirarParticipanteCombate(participante, motivo),
         notificarMovimientoActor: (movimiento) =>
           this.notificarMovimientoActor(movimiento),
+        registrarDiagnosticoPathfinding: (duracionMs) => {
+          acumulado.diagnosticoFluidez.duracionPathfindingMs +=
+            Number.isFinite(duracionMs) ? duracionMs : 0;
+          acumulado.diagnosticoFluidez.busquedasPathfinding += 1;
+        },
       });
+      acumulado.diagnosticoFluidez.duracionIaMs += Math.max(
+        0,
+        obtenerInstante() - inicioIa,
+      );
+      acumulado.diagnosticoFluidez.accionesIaProcesadas += 1;
       acumulado.mensajes.push(...resultadoEnemigo.mensajes);
       let eventosAccionEnemigo = resultadoEnemigo.eventos ?? [];
       if (enemigo.estaVivo) {
@@ -738,6 +759,9 @@ export class CoordinadorTiempoPartida {
       mensaje: acumulado.mensajes.filter(Boolean),
       recuperacionJugador: acumulado.recuperacionJugador,
       eventos: acumulado.eventos,
+      diagnosticoFluidez: congelarDiagnosticoFluidez(
+        acumulado.diagnosticoFluidez,
+      ),
     };
   }
   crearMensajeRegeneracion(regeneracion) {
@@ -805,6 +829,7 @@ export class CoordinadorTiempoPartida {
       turnoConsumido: true,
       redibujar: true,
       eventos: [...eventosAccionJugador, ...resultadoTemporal.eventos],
+      diagnosticoFluidez: resultadoTemporal.diagnosticoFluidez ?? null,
     };
   }
 
@@ -825,6 +850,34 @@ export class CoordinadorTiempoPartida {
     this.sistemaTiempo.registros.clear();
     this.destruido = true;
   }
+}
+
+function acumularDiagnosticoFluidez(destino, origen) {
+  if (!destino || !origen) return destino;
+  destino.duracionIaMs += Number(origen.duracionIaMs) || 0;
+  destino.duracionPathfindingMs += Number(origen.duracionPathfindingMs) || 0;
+  destino.accionesIaProcesadas += Number(origen.accionesIaProcesadas) || 0;
+  destino.busquedasPathfinding += Number(origen.busquedasPathfinding) || 0;
+  return destino;
+}
+
+function congelarDiagnosticoFluidez(diagnostico) {
+  return Object.freeze({
+    duracionIaMs: redondearMilisegundos(diagnostico?.duracionIaMs),
+    duracionPathfindingMs: redondearMilisegundos(
+      diagnostico?.duracionPathfindingMs,
+    ),
+    accionesIaProcesadas: Math.max(0, diagnostico?.accionesIaProcesadas ?? 0),
+    busquedasPathfinding: Math.max(0, diagnostico?.busquedasPathfinding ?? 0),
+  });
+}
+
+function redondearMilisegundos(valor) {
+  return Math.round((Number(valor) || 0) * 100) / 100;
+}
+
+function obtenerInstante() {
+  return globalThis.performance?.now?.() ?? Date.now();
 }
 
 function estaActorVivo(actor) {

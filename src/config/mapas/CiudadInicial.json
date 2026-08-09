@@ -4,6 +4,10 @@
   "tipo": "fijo",
   "bioma": "ciudad",
   "nivel": 1,
+  "visibilidad": {
+    "descubrimiento": false,
+    "campoVisible": false
+  },
   "apariencia": {
     "colorSuelo": "#6f716d",
     "colorPared": "#596273",

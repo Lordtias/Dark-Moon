@@ -749,7 +749,7 @@ Las pruebas aisladas realizadas sobre la implementación verifican:
 - caminar hacia un enemigo continúa entrando en combate;
 - dos bloqueos laterales sólidos impiden el paso diagonal.
 
-**Estado de E0.2:** implementación técnica y pruebas aisladas completadas. Cierre pendiente de regresión manual dentro del juego; no se considera cerrada hasta validar movimiento, combate, Barril, Nube tóxica, persecución/pathfinding y diagonales en ejecución real.
+**Estado de E0.2:** cerrada y validada manualmente en `ae6a457d73ae187ed281ab370932782560ecd626`.
 
 ---
 
@@ -770,11 +770,36 @@ Introducir Percepción base 10 y un sistema canónico de visibilidad del jugador
 - casillas descubiertas;
 - reacción ante cambios de posición y obstrucción;
 - integración visual de no descubierto / descubierto no visible / visible;
-- enemigos no visibles no representados como información actual.
+- enemigos y NPC no visibles no representados como información actual;
+- Barriles, botín, portales y zonas temporales no se filtran por FOV.
 
-### Restricción crítica
+### Restricciones críticas
 
-El radio de visión no se configura en el mapa ni en Phaser.
+- El radio de visión no se configura en el mapa ni en Phaser.
+- Canvas2D queda fuera del alcance de E0.3; la nueva representación de niebla se implementa únicamente en Phaser.
+- En el panel del personaje, Percepción se presenta inmediatamente antes de Alcance.
+
+### Registro de implementación E0.3
+
+Base de implementación: `ae6a457d73ae187ed281ab370932782560ecd626`.
+
+Decisiones implementadas:
+
+- Percepción base 10 independiente de nivel y atributos principales;
+- vía genérica para registrar y retirar modificadores de Percepción;
+- alcance visual 1:1 con Percepción actual usando distancia Chebyshev;
+- `SistemaVisibilidadJugador` reutilizando la LOS y `SistemaEspacial` de E0.2;
+- estado runtime de casillas visibles y descubiertas por mapa activo;
+- descubrimiento de contorno no recursivo: una casilla de terreno transitable realmente visible descubre las paredes ortogonales y diagonales adyacentes sin volverlas visibles ni alterar la LOS;
+- mazmorras actuales con `campoVisible=true` y `descubrimiento=true`;
+- Ciudad inicial con ambos indicadores desactivados;
+- escena neutral filtra únicamente Enemigos y NPC fuera del FOV;
+- Barriles, botín, portales y zonas temporales permanecen representables fuera del FOV según la decisión funcional de E0.3;
+- Phaser incorpora una capa de niebla sobre terreno/decoración y por debajo de zonas y entidades;
+- Canvas2D no recibe una implementación específica de niebla;
+- Percepción se muestra antes de Alcance en el panel del personaje.
+
+**Estado de E0.3:** implementación técnica y pruebas aisladas completadas. Cierre pendiente de regresión manual dentro del juego.
 
 ---
 
@@ -827,7 +852,7 @@ E0 no puede cerrarse si no se comprueba como mínimo:
 - los modificadores de Percepción pueden incorporarse mediante una vía genérica;
 - un mapa con FOV/descubrimiento activo funciona correctamente;
 - un mapa con ambos desactivados no aplica niebla artificial;
-- una entidad fuera de visión no se revela mediante la capa gráfica;
+- un Enemigo o NPC fuera de visión no se revela mediante la capa gráfica;
 - el terreno descubierto pero no visible no revela el estado dinámico actual de enemigos;
 - entrada y salida del campo visual se representan correctamente.
 

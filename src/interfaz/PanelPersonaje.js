@@ -216,6 +216,7 @@ export class PanelPersonaje {
       bloqueo: `${this.formatear(estadisticas.probabilidadBloqueo)}%`,
       "regen-vida": this.formatear(estadisticas.regeneracionVida),
       "regen-mana": this.formatear(estadisticas.regeneracionMana),
+      percepcion: this.formatear(player.percepcion),
       alcance: player.alcanceAtaque,
       "danio-magico": this.formatearMultiplicador(
         estadisticas.multiplicadorDanioMagico,

@@ -4,6 +4,10 @@
       "nombre": "Alcantarilla",
       "descripcion": "Túneles húmedos y estrechos infestados de alimañas. En ocasiones, un hombre rata saqueador se aventura entre los conductos en busca de objetos abandonados.",
       "bioma": "alcantarilla",
+      "visibilidad": {
+        "descubrimiento": true,
+        "campoVisible": true
+      },
       "recursoVisual": "assets/imagenes/mapas/alcantarilla.png",
       "nivelDesbloqueo": 1,
       "pesoSeleccion": 5,
@@ -164,6 +168,10 @@
       "nombre": "Cementerio",
       "descripcion": "Un camposanto abandonado donde guardias y arqueros esqueleto patrullan entre criptas. Un zombi puede emerger como encuentro poco frecuente.",
       "bioma": "cementerio",
+      "visibilidad": {
+        "descubrimiento": true,
+        "campoVisible": true
+      },
       "recursoVisual": "assets/imagenes/mapas/cementerio.png",
       "nivelDesbloqueo": 2,
       "pesoSeleccion": 4,
@@ -335,6 +343,10 @@
       "nombre": "Casa del Guerrero",
       "descripcion": "Una antigua residencia militar convertida en campo de entrenamiento para guerreros no muertos. En ocasiones, un Caballero Óseo protege sus salones.",
       "bioma": "casa_guerrero",
+      "visibilidad": {
+        "descubrimiento": true,
+        "campoVisible": true
+      },
       "recursoVisual": "assets/imagenes/mapas/casa_guerrero.png",
       "nivelDesbloqueo": 4,
       "pesoSeleccion": 2,
@@ -500,6 +512,10 @@
       "nombre": "Fortaleza abandonada",
       "descripcion": "Una fortificación derruida ocupada por ladrones y lanceros que aprovechan sus corredores defensivos. Un Comandante puede organizar la resistencia.",
       "bioma": "fortaleza_abandonada",
+      "visibilidad": {
+        "descubrimiento": true,
+        "campoVisible": true
+      },
       "recursoVisual": "assets/imagenes/mapas/fortaleza_abandonada.png",
       "nivelDesbloqueo": 6,
       "pesoSeleccion": 1.5,
@@ -665,6 +681,10 @@
       "nombre": "Sala de guerra",
       "descripcion": "El núcleo militar de la fortaleza, donde combatientes de expediciones anteriores convergen bajo las órdenes del Señor de la Guerra.",
       "bioma": "sala_guerra",
+      "visibilidad": {
+        "descubrimiento": true,
+        "campoVisible": true
+      },
       "recursoVisual": "assets/imagenes/mapas/sala_guerra.png",
       "nivelDesbloqueo": 8,
       "pesoSeleccion": 1,

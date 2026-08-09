@@ -31,6 +31,9 @@ const COLOR_FONDO_MUNDO = 0x0b120f;
 const COLOR_SELECTOR_VALIDO = 0xffe66d;
 const COLOR_SELECTOR_INVALIDO = 0xff705c;
 const OPACIDAD_REJILLA_RESPALDO = 0.2;
+const COLOR_NIEBLA = 0x020403;
+const OPACIDAD_NO_DESCUBIERTO = 0.96;
+const OPACIDAD_DESCUBIERTO_NO_VISIBLE = 0.58;
 
 const TIPOS_DECORACION = Object.freeze({
   CHARCO: 0,
@@ -62,6 +65,9 @@ export class CompositorMundoPhaser {
     this.capaFondo = escena.add.container(0, 0).setDepth(0);
     this.capaTerreno = escena.add.container(0, 0).setDepth(10);
     this.capaDecoracion = escena.add.container(0, 0).setDepth(20);
+    // La niebla oscurece solamente terreno/decoración. Zonas y entidades que
+    // no deben ocultarse por FOV permanecen por encima de esta capa.
+    this.capaVisibilidad = escena.add.container(0, 0).setDepth(25);
     this.capaZonas = escena.add.container(0, 0).setDepth(30);
     this.capaSombras = escena.add.container(0, 0).setDepth(40);
     this.capaSeleccion = escena.add.container(0, 0).setDepth(50);
@@ -98,6 +104,7 @@ export class CompositorMundoPhaser {
       this.dibujarBaseMundo();
     }
 
+    this.dibujarVisibilidad();
     this.dibujarZonas();
     this.dibujarSombrasEntidades();
     this.dibujarSeleccion();
@@ -875,6 +882,57 @@ export class CompositorMundoPhaser {
     }
   }
 
+  dibujarVisibilidad() {
+    this.capaVisibilidad.removeAll(true);
+
+    if (!this.escenaDarkMoon || !this.geometria) {
+      return;
+    }
+
+    const visibilidad = this.escenaDarkMoon.mapa?.visibilidad ?? {};
+    const campoVisible = visibilidad.campoVisible === true;
+    const descubrimiento = visibilidad.descubrimiento === true;
+
+    if (!campoVisible && !descubrimiento) {
+      return;
+    }
+
+    const visibles = new Set(
+      (visibilidad.casillasVisibles ?? []).map(({ x, y }) => `${x},${y}`),
+    );
+    const descubiertas = new Set(
+      (visibilidad.casillasDescubiertas ?? []).map(({ x, y }) => `${x},${y}`),
+    );
+    const graficos = this.escena.add.graphics();
+
+    for (let y = 0; y < this.geometria.filas; y++) {
+      for (let x = 0; x < this.geometria.columnas; x++) {
+        const clave = `${x},${y}`;
+        if (visibles.has(clave)) continue;
+
+        const fueDescubierta = descubiertas.has(clave);
+        const opacidad =
+          descubrimiento && fueDescubierta
+            ? OPACIDAD_DESCUBIERTO_NO_VISIBLE
+            : OPACIDAD_NO_DESCUBIERTO;
+        const pixelX =
+          this.geometria.origenX + x * TAMANO_CASILLA_REFERENCIA;
+        const pixelY =
+          this.geometria.origenY + y * TAMANO_CASILLA_REFERENCIA;
+
+        graficos.fillStyle(COLOR_NIEBLA, opacidad);
+        graficos.fillRect(
+          pixelX,
+          pixelY,
+          TAMANO_CASILLA_REFERENCIA,
+          TAMANO_CASILLA_REFERENCIA,
+        );
+      }
+    }
+
+    this.capaVisibilidad.add(graficos);
+  }
+
   dibujarZonas() {
     this.reconciliarZonasTemporales(
       this.escenaDarkMoon?.zonasTemporales ?? [],
@@ -1397,6 +1455,7 @@ export class CompositorMundoPhaser {
     this.capaFondo.destroy(true);
     this.capaTerreno.destroy(true);
     this.capaDecoracion.destroy(true);
+    this.capaVisibilidad.destroy(true);
     this.capaZonas.destroy(true);
     this.capaSombras.destroy(true);
     this.capaSeleccion.destroy(true);

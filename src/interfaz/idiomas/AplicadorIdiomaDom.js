@@ -41,6 +41,7 @@ const MAPEO_TEXTOS = Object.freeze({
   "Bloqueo": "interfaz.personaje.bloqueo",
   "Regen. vida": "interfaz.personaje.regenVida",
   "Regen. maná": "interfaz.personaje.regenMana",
+  "Percepción": "interfaz.personaje.percepcion",
   "Alcance": "interfaz.personaje.alcance",
   "Resistencias": "interfaz.personaje.resistencias",
   "Fuego": "interfaz.personaje.fuego",

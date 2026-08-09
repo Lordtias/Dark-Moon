@@ -1,6 +1,7 @@
 import { NPC } from "../../entidad/interactuable/NPC.js";
 
 import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
+import { normalizarConfiguracionVisibilidad } from "../visibilidad/ConfiguracionVisibilidad.js";
 
 const TIPOS_ENTIDAD_CIUDAD = Object.freeze({
   NPC: "npc",
@@ -58,6 +59,8 @@ export function crearConfiguracionCiudad({
     bioma: configuracion.bioma,
 
     apariencia: copiarApariencia(configuracion.apariencia),
+
+    visibilidad: normalizarConfiguracionVisibilidad(configuracion.visibilidad),
 
     // Conservamos el mismo bloque utilizado por
     // las mazmorras para que herramientas visuales
@@ -202,6 +205,8 @@ function validarConfiguracionCiudad(configuracion) {
   validarTexto(configuracion.tipo, "tipo de mapa de la ciudad");
 
   validarTexto(configuracion.bioma, "bioma de la ciudad");
+
+  normalizarConfiguracionVisibilidad(configuracion.visibilidad);
 
   validarTerreno(configuracion);
 

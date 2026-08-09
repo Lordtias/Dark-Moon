@@ -15,6 +15,7 @@ import {
   crearProgresoMagicoParaPersonaje,
   obtenerConfiguracionProgresoMagico,
 } from "../../../juego/maestrias/ContextoProgresoMagico.js";
+import { PercepcionJugador } from "../../../juego/visibilidad/PercepcionJugador.js";
 
 const ATRIBUTOS_VALIDOS = [
   "fuerza",
@@ -125,6 +126,11 @@ export class Player extends Combatiente {
       estadoInicial: estadoProgresoMagico,
     });
 
+    // Percepción es independiente del nivel y de los seis atributos
+    // principales. Sus modificadores futuros se administran por una vía
+    // genérica para pasivas, auras, objetos o profesiones.
+    this.sistemaPercepcion = new PercepcionJugador();
+
     if (experiencia > 0) {
       this.ganarExperiencia(experiencia);
     }
@@ -148,6 +154,26 @@ export class Player extends Combatiente {
 
   get puntosHabilidadUniversales() {
     return this.progresoMagico.obtenerPuntosUniversales();
+  }
+
+  get percepcion() {
+    return this.sistemaPercepcion.actual;
+  }
+
+  get percepcionBase() {
+    return this.sistemaPercepcion.base;
+  }
+
+  registrarModificadorPercepcion(configuracion) {
+    return this.sistemaPercepcion.registrarModificador(configuracion);
+  }
+
+  retirarModificadorPercepcion(id) {
+    return this.sistemaPercepcion.retirarModificador(id);
+  }
+
+  obtenerResumenPercepcion() {
+    return this.sistemaPercepcion.obtenerResumen();
   }
 
   agregarOro(cantidad) {

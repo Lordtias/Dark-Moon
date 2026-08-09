@@ -1,4 +1,5 @@
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
+import { NPC } from "../../entidad/interactuable/NPC.js";
 import { obtenerPerfilEstadoTemporalVisual } from "./ContextoPerfilesEstadosTemporalesVisuales.js";
 import { obtenerPerfilZonaTemporalVisual } from "./ContextoPerfilesZonasTemporalesVisuales.js";
 
@@ -49,6 +50,11 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
   const interaccionActiva = juego.modoInteraccionActivo === true;
   const habilidadActiva = habilidad?.activo === true;
 
+  const visibilidad = obtenerVisibilidadEscena(juego);
+  const casillasVisibles = new Set(
+    visibilidad.casillasVisibles.map(({ x, y }) => `${x},${y}`),
+  );
+
   // RenderizadorCanvas2D recibe los selectores dentro del bloque "combate".
   // El adaptador reutiliza ese contrato visual sin mezclar las reglas de los
   // tres modos de interacción.
@@ -65,6 +71,7 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
       apariencia: {
         ...juego.mapaSeleccionado?.apariencia,
       },
+      visibilidad,
     },
 
     zonasTemporales: copiarZonasTemporales(
@@ -94,17 +101,21 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
         ? copiarPosiciones(habilidad.casillasAfectadas)
         : [],
       objetivosAfectados: habilidadActiva
-        ? copiarObjetivosHabilidad(habilidad.objetivosAfectados)
+        ? copiarObjetivosHabilidadVisibles({
+            juego,
+            lista: habilidad.objetivosAfectados,
+            casillasVisibles,
+          })
         : [],
       recorrido: habilidadActiva
         ? copiarObjetivosHabilidad(habilidad.recorrido)
         : [],
       selector: combateActivo
-        ? crearSelectorCombateVisual(juego)
+        ? crearSelectorCombateVisual(juego, casillasVisibles)
         : interaccionActiva
-          ? crearSelectorInteraccionVisual(juego)
+          ? crearSelectorInteraccionVisual(juego, casillasVisibles)
           : habilidadActiva
-            ? crearSelectorHabilidadVisual(habilidad)
+            ? crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles)
             : null,
     },
 
@@ -112,12 +123,27 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
     // El jugador queda al final para conservarse
     // visible cuando comparte una casilla con botín.
     entidades: [
-      ...juego.interactuables.map((interactuable) =>
-        crearEntidadVisual(interactuable, TIPOS_ENTIDAD_VISUAL.INTERACTUABLE, juego),
-      ),
+      ...juego.interactuables
+        .filter(
+          (interactuable) =>
+            !(interactuable instanceof NPC) ||
+            casillasVisibles.has(`${interactuable.x},${interactuable.y}`),
+        )
+        .map((interactuable) =>
+          crearEntidadVisual(
+            interactuable,
+            TIPOS_ENTIDAD_VISUAL.INTERACTUABLE,
+            juego,
+          ),
+        ),
 
       ...juego.objetivos
         .filter((objetivo) => objetivo.estaDestruido !== true)
+        .filter(
+          (objetivo) =>
+            !(objetivo instanceof Enemigo) ||
+            casillasVisibles.has(`${objetivo.x},${objetivo.y}`),
+        )
         .map((objetivo) =>
           crearEntidadVisual(
             objetivo,
@@ -131,6 +157,37 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
       crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR, juego),
     ],
   };
+}
+
+function obtenerVisibilidadEscena(juego) {
+  const estado =
+    typeof juego.obtenerEstadoVisibilidadJugador === "function"
+      ? juego.obtenerEstadoVisibilidadJugador()
+      : {
+          campoVisible: false,
+          descubrimiento: false,
+          alcance: null,
+          casillasVisibles: obtenerTodasLasCasillas(juego.map),
+          casillasDescubiertas: obtenerTodasLasCasillas(juego.map),
+        };
+
+  return {
+    campoVisible: estado.campoVisible === true,
+    descubrimiento: estado.descubrimiento === true,
+    alcance: Number.isFinite(estado.alcance) ? estado.alcance : null,
+    casillasVisibles: copiarPosiciones(estado.casillasVisibles),
+    casillasDescubiertas: copiarPosiciones(estado.casillasDescubiertas),
+  };
+}
+
+function obtenerTodasLasCasillas(mapa) {
+  const casillas = [];
+  for (let y = 0; y < mapa.length; y++) {
+    for (let x = 0; x < mapa[y].length; x++) {
+      casillas.push({ x, y });
+    }
+  }
+  return casillas;
 }
 
 // Comprueba que el adaptador haya recibido
@@ -180,7 +237,7 @@ function obtenerCasillasAtacables(juego) {
 
 // Convierte el selector interno del combate
 // en una representación gráfica independiente.
-function crearSelectorCombateVisual(juego) {
+function crearSelectorCombateVisual(juego, casillasVisibles) {
   const selector = juego.selectorCombate;
 
   if (!selector) {
@@ -190,7 +247,9 @@ function crearSelectorCombateVisual(juego) {
   return {
     x: selector.x,
     y: selector.y,
-    esValido: juego.esCasillaAtacable(selector.x, selector.y),
+    esValido:
+      !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y) &&
+      juego.esCasillaAtacable(selector.x, selector.y),
   };
 }
 
@@ -199,10 +258,17 @@ function crearSelectorCombateVisual(juego) {
 //
 // Las opciones del selector siempre representan
 // entidades interactuables válidas.
-function crearSelectorInteraccionVisual(juego) {
+function crearSelectorInteraccionVisual(juego, casillasVisibles) {
   const selector = juego.selectorInteraccion;
 
   if (!selector || !selector.entidad) {
+    return null;
+  }
+
+  if (
+    selector.entidad instanceof NPC &&
+    !casillasVisibles.has(`${selector.x},${selector.y}`)
+  ) {
     return null;
   }
 
@@ -216,7 +282,7 @@ function crearSelectorInteraccionVisual(juego) {
 // Convierte la selección de una habilidad en el contrato visual común.
 // La casilla se marca como válida únicamente cuando contiene un objetivo y
 // también cumple alcance, patrón y línea de visión.
-function crearSelectorHabilidadVisual(habilidad) {
+function crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles) {
   const selector = habilidad?.selector;
 
   if (!selector) {
@@ -226,7 +292,9 @@ function crearSelectorHabilidadVisual(habilidad) {
   return {
     x: selector.x,
     y: selector.y,
-    esValido: selector.puedeEjecutar === true,
+    esValido:
+      selector.puedeEjecutar === true &&
+      !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y),
   };
 }
 
@@ -262,6 +330,32 @@ function copiarPosiciones(lista) {
 function copiarObjetivosHabilidad(lista) {
   if (!Array.isArray(lista)) return [];
   return lista.map(({ x, y, orden = 0 }) => ({ x, y, orden }));
+}
+
+function copiarObjetivosHabilidadVisibles({
+  juego,
+  lista,
+  casillasVisibles,
+}) {
+  if (!Array.isArray(lista)) return [];
+
+  return copiarObjetivosHabilidad(
+    lista.filter(
+      ({ x, y }) => !hayEnemigoOcultoEn(juego, casillasVisibles, x, y),
+    ),
+  );
+}
+
+function hayEnemigoOcultoEn(juego, casillasVisibles, x, y) {
+  const enemigo = juego.objetivos.find(
+    (objetivo) =>
+      objetivo instanceof Enemigo &&
+      objetivo.estaDestruido !== true &&
+      objetivo.x === x &&
+      objetivo.y === y,
+  );
+
+  return Boolean(enemigo) && !casillasVisibles.has(`${x},${y}`);
 }
 
 function copiarZonasTemporales(lista) {

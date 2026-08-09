@@ -3,6 +3,7 @@ import { SistemaCombateJugador } from "./combate/SistemaCombateJugador.js";
 import { SistemaInteraccionJugador } from "./interacciones/SistemaInteraccionJugador.js";
 import { SistemaMovimientoJugador } from "./movimiento/SistemaMovimientoJugador.js";
 import { SistemaEspacial } from "./espacio/SistemaEspacial.js";
+import { SistemaVisibilidadJugador } from "./visibilidad/SistemaVisibilidadJugador.js";
 import {
   crearMensajeTraducible,
   TIPOS_MENSAJE_JUEGO,
@@ -80,6 +81,16 @@ export class Juego {
       sistemaEspacial: this.sistemaEspacial,
     });
 
+    // La visibilidad pertenece al mapa activo y reutiliza la misma autoridad
+    // espacial que movimiento, pathfinding y LOS. El radio proviene siempre
+    // de la Percepción actual del jugador, nunca de la configuración del mapa.
+    this.sistemaVisibilidadJugador = new SistemaVisibilidadJugador({
+      mapa: this.map,
+      jugador: this.player,
+      sistemaEspacial: this.sistemaEspacial,
+      configuracion: this.mapaSeleccionado.visibilidad,
+    });
+
     const semillaMapa =
       this.mapaSeleccionado.generacionActual?.semilla ?? "partida";
     this.sistemaCombateJugador = new SistemaCombateJugador({
@@ -151,6 +162,18 @@ export class Juego {
 
   get tiempoActual() {
     return this.coordinadorTiempo.tiempoActual;
+  }
+
+  esCasillaVisibleJugador(x, y) {
+    return this.sistemaVisibilidadJugador.esCasillaVisible(x, y);
+  }
+
+  esCasillaDescubiertaJugador(x, y) {
+    return this.sistemaVisibilidadJugador.esCasillaDescubierta(x, y);
+  }
+
+  obtenerEstadoVisibilidadJugador() {
+    return this.sistemaVisibilidadJugador.obtenerEstado();
   }
 
   get estaEnCombate() {

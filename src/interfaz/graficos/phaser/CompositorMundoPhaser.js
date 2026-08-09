@@ -1142,6 +1142,11 @@ export class CompositorMundoPhaser {
         ? this.agregarAgresividad(contenedor)
         : null;
 
+    const indicadorVariante =
+      entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
+        ? this.agregarIndicadorVariante(contenedor, entidad.idVariante)
+        : null;
+
     const barraVida =
       entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
         ? this.agregarBarraVida(contenedor, entidad)
@@ -1159,6 +1164,7 @@ export class CompositorMundoPhaser {
         contenedor,
         barraVida,
         indicadorAgresividad,
+        indicadorVariante,
         estadosTemporales,
       };
     }
@@ -1170,6 +1176,7 @@ export class CompositorMundoPhaser {
       contenedor,
       barraVida,
       indicadorAgresividad,
+      indicadorVariante,
       estadosTemporales,
     };
     this.nodosEntidades.set(idVisual, nodo);
@@ -1271,6 +1278,70 @@ export class CompositorMundoPhaser {
       .setOrigin(0.5);
 
     indicador.add([graficos, texto]);
+    contenedor.add(indicador);
+    return indicador;
+  }
+
+  agregarIndicadorVariante(contenedor, idVariante) {
+    const estilos = {
+      enfermo: {
+        forma: "gota",
+        relleno: 0x4ecf69,
+        borde: 0x173f21,
+      },
+      gigante: {
+        forma: "rombo",
+        relleno: 0xff9d3f,
+        borde: 0x5c2f0d,
+      },
+      elite: {
+        forma: "estrella",
+        relleno: 0xffe66d,
+        borde: 0x6b5412,
+      },
+    };
+    const estilo = estilos[idVariante];
+    if (!estilo) return null;
+
+    const configuracion = CONFIGURACION_ENTIDADES_PHASER.indicadorVariante;
+    const indicador = this.escena.add.container(
+      configuracion.desplazamientoX,
+      configuracion.desplazamientoY,
+    );
+    const graficos = this.escena.add.graphics();
+    const radio = configuracion.tamano / 2;
+
+    graficos.fillStyle(estilo.relleno, 1);
+    graficos.lineStyle(configuracion.grosorBorde, estilo.borde, 1);
+    graficos.beginPath();
+
+    if (estilo.forma === "rombo") {
+      graficos.moveTo(0, -radio);
+      graficos.lineTo(radio, 0);
+      graficos.lineTo(0, radio);
+      graficos.lineTo(-radio, 0);
+    } else if (estilo.forma === "gota") {
+      graficos.moveTo(0, -radio);
+      graficos.lineTo(radio * 0.72, radio * 0.25);
+      graficos.lineTo(radio * 0.45, radio * 0.75);
+      graficos.lineTo(0, radio);
+      graficos.lineTo(-radio * 0.45, radio * 0.75);
+      graficos.lineTo(-radio * 0.72, radio * 0.25);
+    } else {
+      for (let indice = 0; indice < 10; indice += 1) {
+        const angulo = -Math.PI / 2 + indice * (Math.PI / 5);
+        const radioPunto = indice % 2 === 0 ? radio : radio * 0.44;
+        const x = Math.cos(angulo) * radioPunto;
+        const y = Math.sin(angulo) * radioPunto;
+        if (indice === 0) graficos.moveTo(x, y);
+        else graficos.lineTo(x, y);
+      }
+    }
+
+    graficos.closePath();
+    graficos.fillPath();
+    graficos.strokePath();
+    indicador.add(graficos);
     contenedor.add(indicador);
     return indicador;
   }

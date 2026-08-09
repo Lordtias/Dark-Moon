@@ -272,11 +272,15 @@ function validarGeneracion(idPlantilla, generacion, dimensiones) {
 function validarEnemigos(idPlantilla, enemigos) {
   validarObjeto(enemigos, `los enemigos de "${idPlantilla}"`);
 
-  validarRangoEntero({
-    rango: enemigos.cantidad,
-    descripcion: `la cantidad de enemigos de "${idPlantilla}"`,
-    minimoPermitido: 0,
-  });
+  validarNumeroMayorQueCero(
+    enemigos.densidadPor100Casillas,
+    `la densidad de enemigos por 100 casillas de "${idPlantilla}"`,
+  );
+
+  validarPorcentaje(
+    enemigos.probabilidadZonaPoblada,
+    `la probabilidad de poblar una zona normal de "${idPlantilla}"`,
+  );
 
   validarEnteroMinimo(
     enemigos.distanciaSeguraJugador,

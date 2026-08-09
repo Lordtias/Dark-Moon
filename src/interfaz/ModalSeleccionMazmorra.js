@@ -434,7 +434,7 @@ export class ModalSeleccionMazmorra {
     agregarDato({
       lista: datos,
 
-      termino: traducir("interfaz.mazmorras.cantidad", { respaldo: "Cantidad" }),
+      termino: traducir("interfaz.mazmorras.poblacion", { respaldo: "Población" }),
 
       valor: crearTextoCantidadEnemigos(mazmorra),
     });
@@ -825,11 +825,15 @@ function crearTextoEnemigos(mazmorra) {
 }
 
 function crearTextoCantidadEnemigos(mazmorra) {
-  return crearTextoRango(
-    mazmorra.cantidadEnemigosMinima,
-
-    mazmorra.cantidadEnemigosMaxima,
-  );
+  return traducir("interfaz.mazmorras.poblacionVariable", {
+    parametros: {
+      densidad: mazmorra.densidadEnemigosPor100Casillas,
+      probabilidad: mazmorra.probabilidadZonaPoblada,
+    },
+    respaldo:
+      `${mazmorra.densidadEnemigosPor100Casillas} por 100 casillas · ` +
+      `${mazmorra.probabilidadZonaPoblada}% de zonas`,
+  });
 }
 
 function crearTextoRango(minimo, maximo) {
@@ -897,8 +901,6 @@ function validarMazmorra(mazmorra) {
     "anchoMaximo",
     "altoMinimo",
     "altoMaximo",
-    "cantidadEnemigosMinima",
-    "cantidadEnemigosMaxima",
   ];
 
   for (const propiedad of enteros) {
@@ -907,6 +909,25 @@ function validarMazmorra(mazmorra) {
         `La mazmorra necesita un valor entero en "${propiedad}".`,
       );
     }
+  }
+
+  if (
+    !Number.isFinite(mazmorra.densidadEnemigosPor100Casillas) ||
+    mazmorra.densidadEnemigosPor100Casillas <= 0
+  ) {
+    throw new Error(
+      `La mazmorra "${mazmorra.nombre}" necesita una densidad de enemigos válida.`,
+    );
+  }
+
+  if (
+    !Number.isFinite(mazmorra.probabilidadZonaPoblada) ||
+    mazmorra.probabilidadZonaPoblada < 0 ||
+    mazmorra.probabilidadZonaPoblada > 100
+  ) {
+    throw new Error(
+      `La mazmorra "${mazmorra.nombre}" necesita una probabilidad de población válida.`,
+    );
   }
 
   if (

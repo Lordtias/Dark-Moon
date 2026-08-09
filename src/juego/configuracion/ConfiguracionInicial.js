@@ -373,6 +373,8 @@ function completarConfiguracionMazmorra({
 
     variantes: contenido.resumen.variantes,
 
+    poblacionEnemigos: contenido.resumen.poblacionEnemigos,
+
     cantidadDestructibles: contenido.resumen.cantidadDestructibles,
 
     porcentajeDestructibles: contenido.resumen.porcentajeDestructibles,
@@ -428,10 +430,10 @@ function crearPlantillaGeneracion({
         ? mapaSeleccionado.enemigos
         : {
             ...mapaSeleccionado.enemigos,
-            cantidad: {
-              minimo: cantidadEnemigosForzada,
-              maximo: cantidadEnemigosForzada,
-            },
+            // Override exclusivo de desarrollo. La configuración canónica
+            // normal escala por densidad; este campo temporal conserva
+            // &enemigos=N para pruebas reproducibles de carga/fluidez.
+            cantidadPrueba: cantidadEnemigosForzada,
           },
   };
 }

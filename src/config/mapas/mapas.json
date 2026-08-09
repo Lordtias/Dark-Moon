@@ -135,10 +135,8 @@
         "intentosMaximos": 100
       },
       "enemigos": {
-        "cantidad": {
-          "minimo": 4,
-          "maximo": 6
-        },
+        "densidadPor100Casillas": 8,
+        "probabilidadZonaPoblada": 75,
         "distanciaSeguraJugador": 4,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
@@ -312,10 +310,8 @@
         "intentosMaximos": 100
       },
       "enemigos": {
-        "cantidad": {
-          "minimo": 3,
-          "maximo": 5
-        },
+        "densidadPor100Casillas": 7.5,
+        "probabilidadZonaPoblada": 75,
         "distanciaSeguraJugador": 4,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
@@ -509,10 +505,8 @@
         "intentosMaximos": 110
       },
       "enemigos": {
-        "cantidad": {
-          "minimo": 4,
-          "maximo": 6
-        },
+        "densidadPor100Casillas": 7,
+        "probabilidadZonaPoblada": 75,
         "distanciaSeguraJugador": 4,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
@@ -700,10 +694,8 @@
         "intentosMaximos": 130
       },
       "enemigos": {
-        "cantidad": {
-          "minimo": 5,
-          "maximo": 7
-        },
+        "densidadPor100Casillas": 6,
+        "probabilidadZonaPoblada": 78,
         "distanciaSeguraJugador": 5,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [
@@ -891,10 +883,8 @@
         "intentosMaximos": 140
       },
       "enemigos": {
-        "cantidad": {
-          "minimo": 6,
-          "maximo": 8
-        },
+        "densidadPor100Casillas": 5.5,
+        "probabilidadZonaPoblada": 80,
         "distanciaSeguraJugador": 5,
         "distanciaMinimaEntreEnemigos": 2,
         "permitidos": [

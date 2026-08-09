@@ -26,6 +26,12 @@ export const CONFIGURACION_ENTIDADES_PHASER = Object.freeze({
     grosorBorde: 1,
     tamanoTexto: "8px",
   }),
+  indicadorVariante: Object.freeze({
+    desplazamientoX: -TAMANO_CASILLA_REFERENCIA / 2 + 6,
+    desplazamientoY: -TAMANO_CASILLA_REFERENCIA / 2 + 7,
+    tamano: 8,
+    grosorBorde: 1,
+  }),
   respaldo: Object.freeze({
     tamano: 24,
   }),

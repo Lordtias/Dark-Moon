@@ -330,7 +330,9 @@
       "entrarBoton": "Enter",
       "tamano": "Size",
       "enemigos": "Enemies",
-      "cantidad": "Count"
+      "cantidad": "Count",
+      "poblacion": "Population",
+      "poblacionVariable": "{densidad} per 100 tiles · {probabilidad}% of zones"
     },
     "comercio": {
       "subtitulo": "Buy supplies or sell loot from your expeditions.",

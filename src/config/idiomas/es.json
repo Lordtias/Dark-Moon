@@ -330,7 +330,9 @@
       "entrarBoton": "Entrar",
       "tamano": "Tamaño",
       "enemigos": "Enemigos",
-      "cantidad": "Cantidad"
+      "cantidad": "Cantidad",
+      "poblacion": "Población",
+      "poblacionVariable": "{densidad} por 100 casillas · {probabilidad}% de zonas"
     },
     "comercio": {
       "subtitulo": "Comprá provisiones o vendé el botín de tus expediciones.",

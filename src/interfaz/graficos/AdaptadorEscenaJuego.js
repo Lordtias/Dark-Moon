@@ -433,6 +433,11 @@ function crearEntidadVisual(entidad, tipo, juego) {
       vidaActual > 0 &&
       vidaActual < vidaMaxima,
 
+    idVariante:
+      tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO
+        ? entidad.idVariante ?? null
+        : null,
+
     recursoVisual: entidad.recursoVisual ?? null,
     activo: typeof entidad.activo === "boolean" ? entidad.activo : null,
     atenuarInactivo:

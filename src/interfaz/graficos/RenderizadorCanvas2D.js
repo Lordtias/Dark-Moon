@@ -14,6 +14,26 @@ import { CargadorImagenes } from "./CargadorImagenes.js";
 // sin círculos de fondo ni anillos alrededor.
 const OPACIDAD_INTERACTUABLE_INACTIVO = 0.38;
 
+const INDICADORES_VARIANTE_ENEMIGO = {
+  enfermo: {
+    forma: "gota",
+    colorPrincipal: "#4ecf69",
+    colorBorde: "#173f21",
+  },
+
+  gigante: {
+    forma: "rombo",
+    colorPrincipal: "#ff9d3f",
+    colorBorde: "#5c2f0d",
+  },
+
+  elite: {
+    forma: "estrella",
+    colorPrincipal: "#ffe66d",
+    colorBorde: "#6b5412",
+  },
+};
+
 const ESTILOS_ENTIDADES = {
   [TIPOS_ENTIDAD_VISUAL.JUGADOR]: {
     colorSimbolo: "#ffe66d",
@@ -1261,6 +1281,14 @@ export class RenderizadorCanvas2D {
       centroY,
     });
 
+    if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO) {
+      this.dibujarIndicadorVarianteEnemigo({
+        entidad,
+        pixelX,
+        pixelY,
+      });
+    }
+
     if (
       entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
       entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
@@ -1603,6 +1631,99 @@ export class RenderizadorCanvas2D {
     this.context.fillText("!", centroIndicadorX, centroIndicadorY + 0.5);
 
     this.context.restore();
+  }
+
+  dibujarIndicadorVarianteEnemigo({ entidad, pixelX, pixelY }) {
+    const indicador = INDICADORES_VARIANTE_ENEMIGO[entidad.idVariante];
+
+    if (!indicador) {
+      return;
+    }
+
+    const tamano = Math.max(7, Math.floor(this.tileSize * 0.24));
+    const centroX = pixelX + Math.ceil(this.tileSize * 0.24);
+    const centroY = pixelY + Math.ceil(this.tileSize * 0.25);
+
+    this.context.save();
+    this.context.lineCap = "round";
+    this.context.lineJoin = "round";
+    this.context.fillStyle = indicador.colorPrincipal;
+    this.context.strokeStyle = indicador.colorBorde;
+    this.context.lineWidth = Math.max(1.5, Math.floor(this.tileSize / 18));
+    this.context.shadowColor = "rgba(0, 0, 0, 0.45)";
+    this.context.shadowBlur = 1;
+    this.context.shadowOffsetX = 0;
+    this.context.shadowOffsetY = 1;
+
+    if (indicador.forma === "rombo") {
+      this.dibujarRomboMarcador({ centroX, centroY, tamano });
+    } else if (indicador.forma === "gota") {
+      this.dibujarGotaMarcador({ centroX, centroY, tamano });
+    } else {
+      this.dibujarEstrellaMarcador({ centroX, centroY, tamano });
+    }
+
+    this.context.restore();
+  }
+
+  dibujarRomboMarcador({ centroX, centroY, tamano }) {
+    this.context.beginPath();
+    this.context.moveTo(centroX, centroY - tamano / 2);
+    this.context.lineTo(centroX + tamano / 2, centroY);
+    this.context.lineTo(centroX, centroY + tamano / 2);
+    this.context.lineTo(centroX - tamano / 2, centroY);
+    this.context.closePath();
+    this.context.fill();
+    this.context.stroke();
+  }
+
+  dibujarGotaMarcador({ centroX, centroY, tamano }) {
+    const radio = tamano * 0.28;
+    const puntaY = centroY - tamano / 2;
+    const baseY = centroY + tamano * 0.24;
+
+    this.context.beginPath();
+    this.context.moveTo(centroX, puntaY);
+    this.context.quadraticCurveTo(
+      centroX + tamano * 0.42,
+      centroY - tamano * 0.14,
+      centroX + radio,
+      baseY,
+    );
+    this.context.arc(centroX, baseY, radio, 0, Math.PI, true);
+    this.context.quadraticCurveTo(
+      centroX - tamano * 0.42,
+      centroY - tamano * 0.14,
+      centroX,
+      puntaY,
+    );
+    this.context.closePath();
+    this.context.fill();
+    this.context.stroke();
+  }
+
+  dibujarEstrellaMarcador({ centroX, centroY, tamano }) {
+    const radioExterior = tamano / 2;
+    const radioInterior = tamano * 0.22;
+
+    this.context.beginPath();
+
+    for (let indice = 0; indice < 10; indice += 1) {
+      const angulo = -Math.PI / 2 + indice * (Math.PI / 5);
+      const radio = indice % 2 === 0 ? radioExterior : radioInterior;
+      const x = centroX + Math.cos(angulo) * radio;
+      const y = centroY + Math.sin(angulo) * radio;
+
+      if (indice === 0) {
+        this.context.moveTo(x, y);
+      } else {
+        this.context.lineTo(x, y);
+      }
+    }
+
+    this.context.closePath();
+    this.context.fill();
+    this.context.stroke();
   }
 
   // Agrupa varias cargas terminadas dentro

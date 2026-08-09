@@ -128,9 +128,11 @@ export class GestorMapasPartida {
 
           altoMaximo: plantilla.dimensiones.alto.maximo,
 
-          cantidadEnemigosMinima: plantilla.enemigos.cantidad.minimo,
+          densidadEnemigosPor100Casillas:
+            plantilla.enemigos.densidadPor100Casillas,
 
-          cantidadEnemigosMaxima: plantilla.enemigos.cantidad.maximo,
+          probabilidadZonaPoblada:
+            plantilla.enemigos.probabilidadZonaPoblada,
 
           enemigos: plantilla.enemigos.permitidos.map((enemigo) => enemigo.id),
         };

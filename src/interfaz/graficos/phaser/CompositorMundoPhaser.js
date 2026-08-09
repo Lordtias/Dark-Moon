@@ -31,8 +31,8 @@ const COLOR_FONDO_MUNDO = 0x0b120f;
 const COLOR_SELECTOR_VALIDO = 0xffe66d;
 const COLOR_SELECTOR_INVALIDO = 0xff705c;
 const OPACIDAD_REJILLA_RESPALDO = 0.2;
-const COLOR_NIEBLA = 0x020403;
-const OPACIDAD_NO_DESCUBIERTO = 0.96;
+const COLOR_NIEBLA = 0x000000;
+const OPACIDAD_NO_DESCUBIERTO = 1;
 const OPACIDAD_DESCUBIERTO_NO_VISIBLE = 0.58;
 
 const TIPOS_DECORACION = Object.freeze({
@@ -65,15 +65,15 @@ export class CompositorMundoPhaser {
     this.capaFondo = escena.add.container(0, 0).setDepth(0);
     this.capaTerreno = escena.add.container(0, 0).setDepth(10);
     this.capaDecoracion = escena.add.container(0, 0).setDepth(20);
-    // La niebla oscurece solamente terreno/decoración. Zonas y entidades que
-    // no deben ocultarse por FOV permanecen por encima de esta capa.
-    this.capaVisibilidad = escena.add.container(0, 0).setDepth(25);
     this.capaZonas = escena.add.container(0, 0).setDepth(30);
     this.capaSombras = escena.add.container(0, 0).setDepth(40);
     this.capaSeleccion = escena.add.container(0, 0).setDepth(50);
     this.capaEntidades = escena.add.container(0, 0).setDepth(60);
     this.capaIluminacion = escena.add.container(0, 0).setDepth(70);
     this.capaEfectos = escena.add.container(0, 0).setDepth(80);
+    // La visibilidad es la máscara final del mundo. Una casilla nunca
+    // descubierta debe ocultar terreno, zonas, selección, entidades y efectos.
+    this.capaVisibilidad = escena.add.container(0, 0).setDepth(90);
     this.creadorEstadosTemporales = new CreadorEstadosTemporalesPhaser({
       escena,
       compositor: this,

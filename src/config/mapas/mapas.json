@@ -91,12 +91,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 18,
-          "maximo": 24
+          "minimo": 38,
+          "maximo": 46
         },
         "alto": {
-          "minimo": 10,
-          "maximo": 14
+          "minimo": 24,
+          "maximo": 30
         }
       },
       "niveles": {
@@ -107,22 +107,22 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 3,
-            "maximo": 4
+            "minimo": 6,
+            "maximo": 8
           },
           "separacion": {
-            "minimo": 2,
-            "maximo": 5
+            "minimo": 3,
+            "maximo": 7
           }
         },
         "habitaciones": {
           "ancho": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 4,
+            "maximo": 6
           },
           "alto": {
             "minimo": 3,
-            "maximo": 4
+            "maximo": 5
           }
         },
         "pasillos": {
@@ -132,7 +132,7 @@
             "maximo": 1
           }
         },
-        "intentosMaximos": 50
+        "intentosMaximos": 100
       },
       "enemigos": {
         "cantidad": {
@@ -268,12 +268,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 18,
-          "maximo": 24
+          "minimo": 38,
+          "maximo": 46
         },
         "alto": {
-          "minimo": 10,
-          "maximo": 14
+          "minimo": 24,
+          "maximo": 30
         }
       },
       "niveles": {
@@ -284,32 +284,32 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 7,
+            "maximo": 9
           },
           "separacion": {
-            "minimo": 1,
-            "maximo": 4
+            "minimo": 2,
+            "maximo": 6
           }
         },
         "habitaciones": {
           "ancho": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 4,
+            "maximo": 7
           },
           "alto": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 4,
+            "maximo": 7
           }
         },
         "pasillos": {
           "ancho": 1,
           "conexionesExtra": {
-            "minimo": 0,
-            "maximo": 1
+            "minimo": 1,
+            "maximo": 2
           }
         },
-        "intentosMaximos": 50
+        "intentosMaximos": 100
       },
       "enemigos": {
         "cantidad": {
@@ -465,12 +465,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 20,
-          "maximo": 26
+          "minimo": 36,
+          "maximo": 44
         },
         "alto": {
-          "minimo": 12,
-          "maximo": 16
+          "minimo": 24,
+          "maximo": 30
         }
       },
       "niveles": {
@@ -481,32 +481,32 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 4,
-            "maximo": 5
+            "minimo": 7,
+            "maximo": 9
           },
           "separacion": {
             "minimo": 1,
-            "maximo": 2
+            "maximo": 3
           }
         },
         "habitaciones": {
           "ancho": {
-            "minimo": 4,
-            "maximo": 6
+            "minimo": 5,
+            "maximo": 8
           },
           "alto": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 4,
+            "maximo": 6
           }
         },
         "pasillos": {
           "ancho": 1,
           "conexionesExtra": {
-            "minimo": 1,
-            "maximo": 2
+            "minimo": 2,
+            "maximo": 3
           }
         },
-        "intentosMaximos": 60
+        "intentosMaximos": 110
       },
       "enemigos": {
         "cantidad": {
@@ -656,12 +656,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 22,
-          "maximo": 28
+          "minimo": 44,
+          "maximo": 54
         },
         "alto": {
-          "minimo": 13,
-          "maximo": 17
+          "minimo": 28,
+          "maximo": 36
         }
       },
       "niveles": {
@@ -672,32 +672,32 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 4,
-            "maximo": 6
+            "minimo": 9,
+            "maximo": 12
           },
           "separacion": {
-            "minimo": 1,
-            "maximo": 3
+            "minimo": 2,
+            "maximo": 4
           }
         },
         "habitaciones": {
           "ancho": {
-            "minimo": 4,
-            "maximo": 7
+            "minimo": 5,
+            "maximo": 9
           },
           "alto": {
-            "minimo": 3,
-            "maximo": 5
+            "minimo": 4,
+            "maximo": 7
           }
         },
         "pasillos": {
           "ancho": 1,
           "conexionesExtra": {
-            "minimo": 1,
-            "maximo": 2
+            "minimo": 2,
+            "maximo": 4
           }
         },
-        "intentosMaximos": 70
+        "intentosMaximos": 130
       },
       "enemigos": {
         "cantidad": {
@@ -847,12 +847,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 24,
-          "maximo": 30
+          "minimo": 48,
+          "maximo": 58
         },
         "alto": {
-          "minimo": 15,
-          "maximo": 19
+          "minimo": 30,
+          "maximo": 38
         }
       },
       "niveles": {
@@ -863,32 +863,32 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 4,
-            "maximo": 6
+            "minimo": 9,
+            "maximo": 12
           },
           "separacion": {
             "minimo": 1,
-            "maximo": 2
+            "maximo": 3
           }
         },
         "habitaciones": {
           "ancho": {
-            "minimo": 5,
-            "maximo": 7
+            "minimo": 6,
+            "maximo": 10
           },
           "alto": {
-            "minimo": 4,
-            "maximo": 6
+            "minimo": 5,
+            "maximo": 8
           }
         },
         "pasillos": {
           "ancho": 1,
           "conexionesExtra": {
-            "minimo": 2,
-            "maximo": 3
+            "minimo": 3,
+            "maximo": 5
           }
         },
-        "intentosMaximos": 80
+        "intentosMaximos": 140
       },
       "enemigos": {
         "cantidad": {

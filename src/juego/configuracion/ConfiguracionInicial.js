@@ -354,6 +354,17 @@ function completarConfiguracionMazmorra({
       (conexion) => conexion.tipo === "extra",
     ).length,
 
+    salidaEstructural: {
+      idHabitacion: terreno.salidaEstructural.idHabitacion,
+      posicionPortal: { ...terreno.salidaEstructural.posicionPortal },
+      posicionAcceso: { ...terreno.salidaEstructural.posicionAcceso },
+      lado: terreno.salidaEstructural.lado,
+      longitudConexion:
+        terreno.salidaEstructural.casillasConexionBorde.length,
+    },
+
+    casillasReservadasContenido: terreno.casillasReservadasContenido.length,
+
     nivelMapa: contenido.resumen.nivelMapa,
 
     cantidadEnemigos: contenido.resumen.cantidadEnemigos,
@@ -372,7 +383,16 @@ function completarConfiguracionMazmorra({
   };
 
   return {
-    map: terreno.celdas,
+    // El runtime histórico consume filas mutables. Antes de E1.B esa
+    // conversión ocurría de forma accidental cuando GeneradorSalidaMapa
+    // copiaba el terreno para excavar el corredor. Ahora la hacemos de forma
+    // explícita al adaptar el plano estructural al mapa jugable.
+    map: terreno.celdas.map((fila) => Array.from(fila)),
+
+    // El plano se conserva como contrato descriptivo para los consumidores
+    // de integración del mapa. Juego y Phaser continúan recibiendo únicamente
+    // la matriz y el estado canónico que ya utilizaban.
+    planoMazmorra: terreno,
 
     mapaSeleccionado,
     player,

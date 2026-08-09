@@ -65,11 +65,23 @@ export function generarContenidoMapa({
     plantilla.niveles.maximo,
   );
 
-  // Mezclamos las casillas una vez y eliminamos
-  // la posición ocupada por el jugador.
+  // Mezclamos las casillas una vez y eliminamos tanto la posición ocupada
+  // por el jugador como las reservas estructurales del plano (entrada y
+  // acceso de salida). E1.B conserva así una zona inicial segura y evita que
+  // el contenido vigente bloquee la transición sin introducir todavía reglas
+  // de población por habitaciones de E2.
+  const clavesReservadas = new Set(
+    (terreno.casillasReservadasContenido ?? []).map((posicion) =>
+      crearClave(posicion),
+    ),
+  );
   const posicionesDisponibles = aleatorio
     .mezclar(terreno.casillasCaminables)
-    .filter((posicion) => !sonMismaPosicion(posicion, posicionJugador));
+    .filter(
+      (posicion) =>
+        !sonMismaPosicion(posicion, posicionJugador) &&
+        !clavesReservadas.has(crearClave(posicion)),
+    );
 
   const resultadoRecurrentes = generarEnemigosRecurrentes({
     plantilla,

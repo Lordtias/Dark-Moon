@@ -12,7 +12,8 @@
     "aplicaA": {
       "tipos": ["arma"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasExcluidas": ["varita"]
     },
     "efectos": [
       {

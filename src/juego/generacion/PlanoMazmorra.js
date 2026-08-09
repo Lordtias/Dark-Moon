@@ -14,6 +14,7 @@ export function crearPlanoMazmorra({
   puntosConexion,
   conexiones,
   zonaEntrada,
+  salidaEstructural,
   zonasCandidatasSalida,
   zonasCandidatasPoblacion,
   porcentajeNoCaminableReal,
@@ -27,6 +28,7 @@ export function crearPlanoMazmorra({
   validarLista(puntosConexion, "puntos de conexión");
   validarLista(conexiones, "conexiones");
   validarZonaEntrada(zonaEntrada);
+  validarSalidaEstructural(salidaEstructural);
   validarLista(zonasCandidatasSalida, "zonas candidatas de salida");
   validarLista(zonasCandidatasPoblacion, "zonas candidatas de población");
 
@@ -40,6 +42,10 @@ export function crearPlanoMazmorra({
   const posicionInicialSugerida = {
     ...zonaEntrada.posicionSugerida,
   };
+  const casillasReservadasContenido = deduplicarCasillas([
+    ...(zonaEntrada.casillasReservadas ?? []),
+    ...(salidaEstructural.casillasReservadas ?? []),
+  ]);
 
   return {
     celdas: [...celdas],
@@ -52,8 +58,11 @@ export function crearPlanoMazmorra({
     conexiones,
 
     zonaEntrada,
+    salidaEstructural,
     zonasCandidatasSalida,
     zonasCandidatasPoblacion,
+
+    casillasReservadasContenido,
 
     casillasTransitables,
     casillasBloqueadas,
@@ -108,6 +117,42 @@ function validarZonaEntrada(zonaEntrada) {
   ) {
     throw new Error("La zona de entrada necesita una posición sugerida válida.");
   }
+}
+
+function validarSalidaEstructural(salidaEstructural) {
+  if (!salidaEstructural || typeof salidaEstructural !== "object") {
+    throw new Error("El plano debe declarar una salida estructural.");
+  }
+
+  for (const nombre of ["posicionPortal", "posicionAcceso"]) {
+    const posicion = salidaEstructural[nombre];
+
+    if (
+      !posicion ||
+      !Number.isInteger(posicion.x) ||
+      !Number.isInteger(posicion.y)
+    ) {
+      throw new Error(`La salida estructural necesita ${nombre} válida.`);
+    }
+  }
+
+  if (!Array.isArray(salidaEstructural.casillasReservadas)) {
+    throw new Error("La salida estructural debe reservar sus casillas de acceso.");
+  }
+}
+
+function deduplicarCasillas(casillas) {
+  const claves = new Set();
+  const resultado = [];
+
+  for (const casilla of casillas) {
+    const clave = `${casilla.x},${casilla.y}`;
+    if (claves.has(clave)) continue;
+    claves.add(clave);
+    resultado.push({ x: casilla.x, y: casilla.y });
+  }
+
+  return resultado;
 }
 
 function obtenerCasillas(celdas, simbolo) {

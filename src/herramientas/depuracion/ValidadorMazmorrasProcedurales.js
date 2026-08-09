@@ -27,6 +27,7 @@ export function validarMazmorraProcedural({ plano, plantilla } = {}) {
   validarConexiones({ plano, errores });
   validarPuntosConexion({ plano, errores });
   validarEntrada({ plano, errores });
+  validarSalidaEstructural({ plano, errores });
   validarZonasCandidatas({ plano, errores });
   validarCasillas({ plano, errores });
 
@@ -53,7 +54,9 @@ export function exigirMazmorraProceduralValida({ plano, plantilla } = {}) {
 export function calcularMetricasMazmorra(plano) {
   validarObjeto(plano, "el plano de mazmorra");
 
-  const longitudesPasillos = plano.pasillos.map((pasillo) => pasillo.longitud);
+  const longitudesPasillos = plano.pasillos
+    .filter((pasillo) => pasillo.tipo !== "salida")
+    .map((pasillo) => pasillo.longitud);
   const areasHabitaciones = plano.habitaciones.map(
     (habitacion) => habitacion.ancho * habitacion.alto,
   );
@@ -68,6 +71,7 @@ export function calcularMetricasMazmorra(plano) {
       (conexion) => conexion.tipo === "extra",
     ).length,
     puntosConexion: plano.puntosConexion.length,
+    longitudSalida: plano.salidaEstructural?.casillasConexionBorde?.length ?? 0,
     longitudPasilloMedia: promedio(longitudesPasillos),
     longitudPasilloMaxima: maximo(longitudesPasillos),
     areaHabitacionMedia: promedio(areasHabitaciones),
@@ -232,6 +236,7 @@ function validarPuntosConexion({ plano, errores }) {
     "acceso_habitacion",
     "giro_pasillo",
     "cruce_pasillos",
+    "zona_transicion",
   ]);
 
   for (const punto of plano.puntosConexion) {
@@ -243,6 +248,63 @@ function validarPuntosConexion({ plano, errores }) {
     comprobar(
       plano.celdas[punto.y]?.[punto.x] === SUELO,
       `${punto.id} no está ubicado sobre terreno transitable.`,
+      errores,
+    );
+  }
+}
+
+function validarSalidaEstructural({ plano, errores }) {
+  const salida = plano.salidaEstructural;
+  const portal = salida?.posicionPortal;
+  const acceso = salida?.posicionAcceso;
+  const habitacion = plano.habitaciones.find(
+    (item) => item.id === salida?.idHabitacion,
+  );
+  const pasillo = plano.pasillos.find((item) => item.id === salida?.idPasillo);
+
+  comprobar(Boolean(salida), "El plano debe declarar una salida estructural.", errores);
+  comprobar(Boolean(habitacion), "La salida referencia una habitación inválida.", errores);
+  comprobar(
+    Boolean(pasillo) && pasillo.tipo === "salida",
+    "La salida debe referenciar su pasillo estructural de transición.",
+    errores,
+  );
+
+  if (!portal || !acceso) return;
+
+  const portalEnBorde =
+    portal.x === 0 ||
+    portal.y === 0 ||
+    portal.x === plano.ancho - 1 ||
+    portal.y === plano.alto - 1;
+
+  comprobar(portalEnBorde, "El portal estructural debe quedar sobre el borde.", errores);
+  comprobar(
+    plano.celdas[portal.y]?.[portal.x] !== SUELO,
+    "La casilla del portal estructural debe conservarse bloqueada.",
+    errores,
+  );
+  comprobar(
+    plano.celdas[acceso.y]?.[acceso.x] === SUELO,
+    "El acceso de salida debe ser transitable.",
+    errores,
+  );
+  comprobar(
+    Math.abs(portal.x - acceso.x) + Math.abs(portal.y - acceso.y) === 1,
+    "El acceso de salida debe ser adyacente al portal.",
+    errores,
+  );
+  comprobar(
+    Array.isArray(salida.casillasConexionBorde) &&
+      salida.casillasConexionBorde.length > 0,
+    "La salida debe conservar las casillas de su conexión al borde.",
+    errores,
+  );
+
+  for (const casilla of salida.casillasConexionBorde ?? []) {
+    comprobar(
+      plano.celdas[casilla.y]?.[casilla.x] === SUELO,
+      "La conexión estructural de salida contiene una casilla no transitable.",
       errores,
     );
   }
@@ -322,6 +384,21 @@ function validarCasillas({ plano, errores }) {
     "La posición inicial compatible debe derivar de la zona de entrada.",
     errores,
   );
+
+  const clavesReservadas = plano.casillasReservadasContenido.map(crearClave);
+  comprobar(
+    new Set(clavesReservadas).size === clavesReservadas.length,
+    "Las reservas estructurales de contenido contienen duplicados.",
+    errores,
+  );
+
+  for (const posicion of plano.casillasReservadasContenido) {
+    comprobar(
+      plano.celdas[posicion.y]?.[posicion.x] === SUELO,
+      "Una reserva estructural de contenido no es transitable.",
+      errores,
+    );
+  }
 }
 
 function comprobarRango(valor, rango, descripcion, errores) {

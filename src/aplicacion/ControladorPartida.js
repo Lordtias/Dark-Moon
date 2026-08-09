@@ -682,8 +682,14 @@ export class ControladorPartida {
   }
 
   obtenerContextoMedicionFluidez() {
+    const filasMapa = Array.isArray(this.juego?.map) ? this.juego.map.length : 0;
+    const columnasMapa = filasMapa > 0 ? this.juego.map[0]?.length ?? 0 : 0;
+
     return {
       mapaId: this.juego?.mapaSeleccionado?.id ?? null,
+      columnasMapa,
+      filasMapa,
+      casillasMapa: columnasMapa * filasMapa,
       objetivosTotales: Array.isArray(this.juego?.objetivos)
         ? this.juego.objetivos.length
         : 0,

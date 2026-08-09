@@ -1,4 +1,5 @@
 import { crearPlanoMazmorra } from "./PlanoMazmorra.js";
+import { planificarSalidaEstructural } from "./PlanificadorSalidaEstructural.js";
 
 const PARED = "#";
 const SUELO = ".";
@@ -92,6 +93,41 @@ function generarIntento({ ancho, alto, configuracion, aleatorio, intento }) {
   }
 
   const { pasillos, conexiones, puntosConexion } = resultadoPasillos;
+
+  const zonaEntrada = crearZonaEntrada(habitaciones[0]);
+  const distanciasEstructurales = calcularDistanciasEstructurales({
+    habitaciones,
+    conexiones,
+    idEntrada: habitaciones[0].id,
+  });
+  const zonasCandidatasSalida = crearZonasCandidatasSalida({
+    habitaciones,
+    conexiones,
+    distanciasEstructurales,
+    idEntrada: habitaciones[0].id,
+  });
+
+  const resultadoSalida = planificarSalidaEstructural({
+    celdas,
+    habitaciones,
+    zonasCandidatasSalida,
+    ancho,
+    alto,
+  });
+
+  if (resultadoSalida === null) {
+    return null;
+  }
+
+  pasillos.push(resultadoSalida.pasillo);
+
+  for (const punto of resultadoSalida.puntosConexion) {
+    puntosConexion.push({
+      ...punto,
+      id: `punto_${puntosConexion.length + 1}`,
+    });
+  }
+
   const celdasTexto = celdas.map((fila) => fila.join(""));
   const casillasTransitables = obtenerCasillas(celdas, SUELO);
   const porcentajeConectado = calcularPorcentajeConectado(
@@ -109,20 +145,6 @@ function generarIntento({ ancho, alto, configuracion, aleatorio, intento }) {
     1,
   );
 
-  const zonaEntrada = crearZonaEntrada(habitaciones[0]);
-  const distanciasEstructurales = calcularDistanciasEstructurales({
-    habitaciones,
-    conexiones,
-    idEntrada: habitaciones[0].id,
-  });
-
-  const zonasCandidatasSalida = crearZonasCandidatasSalida({
-    habitaciones,
-    conexiones,
-    distanciasEstructurales,
-    idEntrada: habitaciones[0].id,
-  });
-
   const zonasCandidatasPoblacion = habitaciones
     .filter((habitacion) => habitacion.id !== habitaciones[0].id)
     .map((habitacion) => crearZonaDesdeHabitacion(habitacion));
@@ -136,6 +158,7 @@ function generarIntento({ ancho, alto, configuracion, aleatorio, intento }) {
     puntosConexion,
     conexiones,
     zonaEntrada,
+    salidaEstructural: resultadoSalida.salidaEstructural,
     zonasCandidatasSalida,
     zonasCandidatasPoblacion,
     porcentajeNoCaminableReal,

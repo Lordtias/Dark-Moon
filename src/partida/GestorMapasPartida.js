@@ -195,16 +195,13 @@ export class GestorMapasPartida {
       cantidadEnemigosForzada,
     });
 
-    // Cada mazmorra recibe una salida real situada
-    // sobre uno de sus bordes.
-    //
-    // Si el terreno no alcanza el borde, el generador
-    // abre un corredor conectado sin colocar enemigos
-    // ni destructibles sobre las casillas nuevas.
+    // Cada mazmorra recibe una salida real situada sobre el acceso que E1.B
+    // ya reservó dentro del plano estructural. La población recibe el mapa con
+    // la topología definitiva y este paso solamente materializa el portal.
     const salida = generarSalidaMazmorra({
       mapa: configuracionMapa.map,
 
-      jugador: this.estadoPartida.jugador,
+      planoMazmorra: configuracionMapa.planoMazmorra,
 
       entidadesOcupantes: [
         ...configuracionMapa.objetivos,
@@ -214,8 +211,6 @@ export class GestorMapasPartida {
         this.estadoPartida.jugador,
       ],
     });
-
-    configuracionMapa.map = salida.mapa;
 
     // La salida se dibuja debajo del resto
     // de interactuables, pero continúa disponible
@@ -237,13 +232,6 @@ export class GestorMapasPartida {
 
       casillasAbiertas: salida.casillasAbiertas.length,
     };
-
-    // El corredor puede convertir algunas paredes
-    // en suelo, por eso actualizamos el porcentaje
-    // mostrado en el resumen de generación.
-    generacion.porcentajeNoCaminableReal = calcularPorcentajeNoCaminable(
-      configuracionMapa.map,
-    );
 
     // Los drops deben utilizar la semilla y el nivel
     // correspondientes al mapa que acaba de activarse.
@@ -323,27 +311,6 @@ export class GestorMapasPartida {
 
 function limitarNumero({ valor, minimo, maximo }) {
   return Math.max(minimo, Math.min(maximo, valor));
-}
-
-function calcularPorcentajeNoCaminable(mapa) {
-  let cantidadTotal = 0;
-  let cantidadParedes = 0;
-
-  for (const fila of mapa) {
-    for (const casilla of fila) {
-      cantidadTotal++;
-
-      if (casilla === "#") {
-        cantidadParedes++;
-      }
-    }
-  }
-
-  if (cantidadTotal === 0) {
-    return 0;
-  }
-
-  return Number(((cantidadParedes / cantidadTotal) * 100).toFixed(2));
 }
 
 function validarEstadoPartida(estadoPartida) {

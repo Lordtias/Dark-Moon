@@ -1661,7 +1661,7 @@
       "ciudadRegreso": "You returned to {mapa}.",
       "ciudadAyuda": "Move close to the merchant and press R to trade. The dungeon entrance is to the north.",
       "mapaGenerado": "Map generated: {mapa}.",
-      "mapaResumen": "Biome: {bioma}. Selected level: {nivel}. Seed: {semilla}. Size: {ancho} × {alto}. Walls: {paredes}% (target {objetivoParedes}%). Enemies: {enemigos} ({tipos}). Variants: {variantes}.",
+      "mapaResumen": "Biome: {bioma}. Selected level: {nivel}. Seed: {semilla}. Size: {ancho} × {alto}. Walls: {paredes}%. Connectivity: {conectividad}%. Structure: {habitaciones} rooms, {pasillos} corridors, {puntosConexion} connection points. Enemies: {enemigos} ({tipos}). Variants: {variantes}.",
       "mapaResumenFinal": "Destructibles: {destructibles}. The exit to the city is located on a map edge.",
       "modoPrueba": "Test mode active.",
       "botinPrueba": "Test loot active: move close and press R to inspect it.",

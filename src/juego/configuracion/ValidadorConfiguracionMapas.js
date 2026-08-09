@@ -84,7 +84,7 @@ function validarPlantilla(idPlantilla, plantilla) {
     niveles: plantilla.niveles,
   });
 
-  validarGeneracion(idPlantilla, plantilla.generacion);
+  validarGeneracion(idPlantilla, plantilla.generacion, plantilla.dimensiones);
 
   const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
 
@@ -167,7 +167,7 @@ function validarCoherenciaNiveles({ idPlantilla, nivelDesbloqueo, niveles }) {
   }
 }
 
-function validarGeneracion(idPlantilla, generacion) {
+function validarGeneracion(idPlantilla, generacion, dimensiones) {
   validarObjeto(generacion, `la generación de "${idPlantilla}"`);
 
   if (!TIPOS_GENERACION_VALIDOS.includes(generacion.tipo)) {
@@ -177,15 +177,90 @@ function validarGeneracion(idPlantilla, generacion) {
     );
   }
 
-  validarRangoPorcentaje(
-    generacion.porcentajeNoCaminable,
-    `el porcentaje no caminable de "${idPlantilla}"`,
+  validarObjeto(generacion.sectores, `los sectores de "${idPlantilla}"`);
+
+  validarRangoEntero({
+    rango: generacion.sectores.cantidad,
+    descripcion: `la cantidad de sectores de "${idPlantilla}"`,
+    minimoPermitido: 2,
+  });
+
+  validarRangoEntero({
+    rango: generacion.sectores.separacion,
+    descripcion: `la separación de sectores de "${idPlantilla}"`,
+    minimoPermitido: 0,
+  });
+
+  validarObjeto(
+    generacion.habitaciones,
+    `las habitaciones de "${idPlantilla}"`,
   );
 
-  validarPorcentaje(
-    generacion.porcentajeMinimoConectado,
-    `el porcentaje conectado de "${idPlantilla}"`,
+  validarRangoEntero({
+    rango: generacion.habitaciones.ancho,
+    descripcion: `el ancho de habitación de "${idPlantilla}"`,
+    minimoPermitido: 3,
+  });
+
+  validarRangoEntero({
+    rango: generacion.habitaciones.alto,
+    descripcion: `el alto de habitación de "${idPlantilla}"`,
+    minimoPermitido: 3,
+  });
+
+  if (generacion.habitaciones.ancho.maximo > dimensiones.ancho.minimo - 2) {
+    throw new Error(
+      `El ancho máximo de habitación de "${idPlantilla}" no cabe ` +
+        "dentro del ancho mínimo del mapa.",
+    );
+  }
+
+  if (generacion.habitaciones.alto.maximo > dimensiones.alto.minimo - 2) {
+    throw new Error(
+      `El alto máximo de habitación de "${idPlantilla}" no cabe ` +
+        "dentro del alto mínimo del mapa.",
+    );
+  }
+
+  validarObjeto(generacion.pasillos, `los pasillos de "${idPlantilla}"`);
+
+  validarEnteroMinimo(
+    generacion.pasillos.ancho,
+    1,
+    `el ancho de pasillo de "${idPlantilla}"`,
   );
+
+  if (generacion.pasillos.ancho > 3) {
+    throw new Error(
+      `El ancho de pasillo de "${idPlantilla}" no puede superar 3 casillas.`,
+    );
+  }
+
+  validarRangoEntero({
+    rango: generacion.pasillos.conexionesExtra,
+    descripcion: `las conexiones extra de "${idPlantilla}"`,
+    minimoPermitido: 0,
+  });
+
+  const maximoConexionesPosibles =
+    (generacion.sectores.cantidad.minimo *
+      (generacion.sectores.cantidad.minimo - 1)) /
+    2;
+  const conexionesPrincipalesNecesarias =
+    generacion.sectores.cantidad.minimo - 1;
+
+  const maximoConexionesExtraDisponibles =
+    maximoConexionesPosibles - conexionesPrincipalesNecesarias;
+
+  if (
+    generacion.pasillos.conexionesExtra.maximo >
+    maximoConexionesExtraDisponibles
+  ) {
+    throw new Error(
+      `Las conexiones extra máximas de "${idPlantilla}" superan ` +
+        "las conexiones disponibles para su cantidad mínima de sectores.",
+    );
+  }
 
   validarEnteroMinimo(
     generacion.intentosMaximos,

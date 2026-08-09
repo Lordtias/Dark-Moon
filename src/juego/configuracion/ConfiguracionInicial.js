@@ -338,13 +338,21 @@ function completarConfiguracionMazmorra({
 
     alto: terreno.alto,
 
-    porcentajeNoCaminableObjetivo: terreno.porcentajeNoCaminableObjetivo,
-
     porcentajeNoCaminableReal: terreno.porcentajeNoCaminableReal,
 
     porcentajeConectado: terreno.porcentajeConectado,
 
     intentoExitoso: terreno.intentoExitoso,
+
+    cantidadHabitaciones: terreno.habitaciones.length,
+
+    cantidadPasillos: terreno.pasillos.length,
+
+    cantidadPuntosConexion: terreno.puntosConexion.length,
+
+    cantidadConexionesExtra: terreno.conexiones.filter(
+      (conexion) => conexion.tipo === "extra",
+    ).length,
 
     nivelMapa: contenido.resumen.nivelMapa,
 

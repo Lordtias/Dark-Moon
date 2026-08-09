@@ -105,11 +105,33 @@
       },
       "generacion": {
         "tipo": "habitaciones",
-        "porcentajeNoCaminable": {
-          "minimo": 30,
-          "maximo": 45
+        "sectores": {
+          "cantidad": {
+            "minimo": 3,
+            "maximo": 4
+          },
+          "separacion": {
+            "minimo": 2,
+            "maximo": 5
+          }
         },
-        "porcentajeMinimoConectado": 90,
+        "habitaciones": {
+          "ancho": {
+            "minimo": 3,
+            "maximo": 5
+          },
+          "alto": {
+            "minimo": 3,
+            "maximo": 4
+          }
+        },
+        "pasillos": {
+          "ancho": 1,
+          "conexionesExtra": {
+            "minimo": 0,
+            "maximo": 1
+          }
+        },
         "intentosMaximos": 50
       },
       "enemigos": {
@@ -260,11 +282,33 @@
       },
       "generacion": {
         "tipo": "habitaciones",
-        "porcentajeNoCaminable": {
-          "minimo": 35,
-          "maximo": 50
+        "sectores": {
+          "cantidad": {
+            "minimo": 3,
+            "maximo": 5
+          },
+          "separacion": {
+            "minimo": 1,
+            "maximo": 4
+          }
         },
-        "porcentajeMinimoConectado": 90,
+        "habitaciones": {
+          "ancho": {
+            "minimo": 3,
+            "maximo": 5
+          },
+          "alto": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        },
+        "pasillos": {
+          "ancho": 1,
+          "conexionesExtra": {
+            "minimo": 0,
+            "maximo": 1
+          }
+        },
         "intentosMaximos": 50
       },
       "enemigos": {
@@ -435,11 +479,33 @@
       },
       "generacion": {
         "tipo": "habitaciones",
-        "porcentajeNoCaminable": {
-          "minimo": 30,
-          "maximo": 48
+        "sectores": {
+          "cantidad": {
+            "minimo": 4,
+            "maximo": 5
+          },
+          "separacion": {
+            "minimo": 1,
+            "maximo": 2
+          }
         },
-        "porcentajeMinimoConectado": 90,
+        "habitaciones": {
+          "ancho": {
+            "minimo": 4,
+            "maximo": 6
+          },
+          "alto": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        },
+        "pasillos": {
+          "ancho": 1,
+          "conexionesExtra": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        },
         "intentosMaximos": 60
       },
       "enemigos": {
@@ -604,11 +670,33 @@
       },
       "generacion": {
         "tipo": "habitaciones",
-        "porcentajeNoCaminable": {
-          "minimo": 34,
-          "maximo": 50
+        "sectores": {
+          "cantidad": {
+            "minimo": 4,
+            "maximo": 6
+          },
+          "separacion": {
+            "minimo": 1,
+            "maximo": 3
+          }
         },
-        "porcentajeMinimoConectado": 92,
+        "habitaciones": {
+          "ancho": {
+            "minimo": 4,
+            "maximo": 7
+          },
+          "alto": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        },
+        "pasillos": {
+          "ancho": 1,
+          "conexionesExtra": {
+            "minimo": 1,
+            "maximo": 2
+          }
+        },
         "intentosMaximos": 70
       },
       "enemigos": {
@@ -773,11 +861,33 @@
       },
       "generacion": {
         "tipo": "habitaciones",
-        "porcentajeNoCaminable": {
-          "minimo": 30,
-          "maximo": 46
+        "sectores": {
+          "cantidad": {
+            "minimo": 4,
+            "maximo": 6
+          },
+          "separacion": {
+            "minimo": 1,
+            "maximo": 2
+          }
         },
-        "porcentajeMinimoConectado": 94,
+        "habitaciones": {
+          "ancho": {
+            "minimo": 5,
+            "maximo": 7
+          },
+          "alto": {
+            "minimo": 4,
+            "maximo": 6
+          }
+        },
+        "pasillos": {
+          "ancho": 1,
+          "conexionesExtra": {
+            "minimo": 2,
+            "maximo": 3
+          }
+        },
         "intentosMaximos": 80
       },
       "enemigos": {

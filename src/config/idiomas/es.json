@@ -1661,7 +1661,7 @@
       "ciudadRegreso": "Regresaste a {mapa}.",
       "ciudadAyuda": "Acercate al mercader y presioná R para comerciar. La entrada a las mazmorras se encuentra al norte.",
       "mapaGenerado": "Mapa generado: {mapa}.",
-      "mapaResumen": "Bioma: {bioma}. Nivel seleccionado: {nivel}. Semilla: {semilla}. Tamaño: {ancho} × {alto}. Paredes: {paredes}% (objetivo {objetivoParedes}%). Enemigos: {enemigos} ({tipos}). Variantes: {variantes}.",
+      "mapaResumen": "Bioma: {bioma}. Nivel seleccionado: {nivel}. Semilla: {semilla}. Tamaño: {ancho} × {alto}. Paredes: {paredes}%. Conectividad: {conectividad}%. Estructura: {habitaciones} habitaciones, {pasillos} pasillos, {puntosConexion} puntos de conexión. Enemigos: {enemigos} ({tipos}). Variantes: {variantes}.",
       "mapaResumenFinal": "Destructibles: {destructibles}. La salida hacia la ciudad está ubicada en un borde del mapa.",
       "modoPrueba": "Modo de prueba activo.",
       "botinPrueba": "Botín de prueba activo: acercate y presioná R para revisarlo.",

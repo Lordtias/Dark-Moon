@@ -32,23 +32,23 @@ function formatearDanio(valor) {
 export async function reproducirAtaqueResuelto(reproductor, evento, version) {
   reproductor.compositor.ocultarSeleccionTemporal?.();
 
-  const golpes = reproductor.obtenerGolpesVisuales(evento);
+  const golpes = obtenerGolpesVisuales(reproductor, evento);
   if (evento.presentacionOrigenOculto === true) {
-    await reproductor.reproducirConsecuenciaAtaqueOrigenOculto(
+    await reproducirConsecuenciaAtaqueOrigenOculto(reproductor,
       evento,
       golpes,
       version,
     );
     return;
   }
-  if (reproductor.esAtaqueVarita(evento) && evento.ritmoVisual) {
-    await reproductor.reproducirAtaqueVarita(evento, golpes, version);
-  } else if (reproductor.esAtaqueArco(evento) && evento.ritmoVisual) {
-    await reproductor.reproducirAtaqueArco(evento, golpes, version);
-  } else if (reproductor.esAtaqueCuerpoACuerpo(evento) && evento.ritmoVisual) {
-    await reproductor.reproducirAtaqueCuerpoACuerpo(evento, golpes, version);
+  if (esAtaqueVarita(reproductor, evento) && evento.ritmoVisual) {
+    await reproducirAtaqueVarita(reproductor, evento, golpes, version);
+  } else if (esAtaqueArco(reproductor, evento) && evento.ritmoVisual) {
+    await reproducirAtaqueArco(reproductor, evento, golpes, version);
+  } else if (esAtaqueCuerpoACuerpo(reproductor, evento) && evento.ritmoVisual) {
+    await reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes, version);
   } else {
-    await reproductor.reproducirAtaqueProvisional(evento, golpes, version);
+    await reproducirAtaqueProvisional(reproductor, evento, golpes, version);
   }
 
   if (evento.esAtaqueEnemigo) {
@@ -66,7 +66,7 @@ export async function reproducirConsecuenciaAtaqueOrigenOculto(reproductor, even
   const golpesValidos = (Array.isArray(golpes) ? golpes : []).filter(Boolean);
   for (let indice = 0; indice < golpesValidos.length; indice += 1) {
     if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
-    await reproductor.reproducirResultadoGolpe(
+    await reproducirResultadoGolpe(reproductor,
       evento,
       golpesValidos[indice],
       indice,
@@ -101,7 +101,7 @@ export function esAtaqueVarita(reproductor, evento) {
 export async function reproducirAtaqueProvisional(reproductor, evento, golpes, version) {
   for (let indice = 0; indice < golpes.length; indice += 1) {
     if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
-    await reproductor.reproducirGolpeProvisional(
+    await reproducirGolpeProvisional(reproductor,
       evento,
       golpes[indice],
       indice,
@@ -134,12 +134,12 @@ export async function reproducirAtaqueArco(reproductor, evento, golpes, version)
     !centroObjetivo ||
     !municion?.recursoVisual
   ) {
-    await reproductor.reproducirAtaqueProvisional(evento, golpes, version);
+    await reproducirAtaqueProvisional(reproductor, evento, golpes, version);
     return;
   }
 
   const golpe = golpes[0] ?? null;
-  const perfil = reproductor.obtenerPerfilGolpe(evento, golpe, 0);
+  const perfil = obtenerPerfilGolpe(reproductor, evento, golpe, 0);
   const fases = evento.ritmoVisual?.fases ?? {};
   const direccion = normalizarDireccionImpacto({
     origen: centroBase,
@@ -158,7 +158,7 @@ export async function reproducirAtaqueArco(reproductor, evento, golpes, version)
     y: centroBase.y - direccion.y * 3,
   };
 
-  await reproductor.moverNodoAtaque({
+  await moverNodoAtaque(reproductor, {
     nodo,
     destino: centroPreparado,
     duracion: reproductor.calcularDuracion(
@@ -245,7 +245,7 @@ export async function reproducirAtaqueArco(reproductor, evento, golpes, version)
   const resultadosPendientes = [];
   if (golpe) {
     resultadosPendientes.push(
-      reproductor.reproducirResultadoGolpe(evento, golpe, 0, version, {
+      reproducirResultadoGolpe(reproductor, evento, golpe, 0, version, {
         esperarDecorativos: false,
       }),
     );
@@ -262,14 +262,14 @@ export async function reproducirAtaqueArco(reproductor, evento, golpes, version)
   proyectil?.destroy?.();
 
   await Promise.all([
-    reproductor.moverNodoAtaque({
+    moverNodoAtaque(reproductor, {
       nodo,
       destino: centroBase,
       duracion: reproductor.calcularDuracion(fases.retorno ?? 1),
       ease: "Sine.easeInOut",
       version,
     }),
-    reproductor.animarEfectoAtaque(
+    animarEfectoAtaque(reproductor,
       impacto,
       Math.max(1, Math.round(duracionTrayectoria * 0.65)),
       version,
@@ -288,7 +288,7 @@ export async function reproducirAtaqueVarita(reproductor, evento, golpes, versio
   const centroObjetivo = reproductor.compositor.obtenerCentroCasilla(
     evento.posicionObjetivo,
   );
-  const disparos = reproductor.obtenerDisparosVarita(evento, golpes);
+  const disparos = obtenerDisparosVarita(reproductor, evento, golpes);
 
   if (
     !nodo?.contenedor ||
@@ -296,7 +296,7 @@ export async function reproducirAtaqueVarita(reproductor, evento, golpes, versio
     !centroObjetivo ||
     disparos.length === 0
   ) {
-    await reproductor.reproducirAtaqueProvisional(evento, golpes, version);
+    await reproducirAtaqueProvisional(reproductor, evento, golpes, version);
     return;
   }
 
@@ -466,11 +466,11 @@ export async function reproducirAtaqueVarita(reproductor, evento, golpes, versio
 
     await Promise.all([
       golpe
-        ? reproductor.reproducirResultadoGolpe(evento, golpe, indice, version, {
+        ? reproducirResultadoGolpe(reproductor, evento, golpe, indice, version, {
             esperarDecorativos: false,
           })
         : Promise.resolve(),
-      reproductor.animarEfectoAtaque(
+      animarEfectoAtaque(reproductor,
         impacto,
         Math.max(1, Math.round(duracionTrayectoria * 0.72)),
         version,
@@ -520,7 +520,7 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
   );
 
   if (!nodo?.contenedor || !centroBase || !centroObjetivo) {
-    await reproductor.reproducirAtaqueProvisional(evento, golpes, version);
+    await reproducirAtaqueProvisional(reproductor, evento, golpes, version);
     return;
   }
 
@@ -530,14 +530,14 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
   });
   const resultadosPendientes = [];
   const fases = evento.ritmoVisual?.fases ?? {};
-  const perfilInicial = reproductor.obtenerPerfilGolpe(evento, golpes[0], 0);
-  const avanceInicial = reproductor.obtenerAvancePixeles(perfilInicial);
+  const perfilInicial = obtenerPerfilGolpe(reproductor, evento, golpes[0], 0);
+  const avanceInicial = obtenerAvancePixeles(reproductor, perfilInicial);
   const centroPreparado = {
     x: centroBase.x - direccion.x * avanceInicial * 0.22,
     y: centroBase.y - direccion.y * avanceInicial * 0.22,
   };
 
-  await reproductor.moverNodoAtaque({
+  await moverNodoAtaque(reproductor, {
     nodo,
     destino: centroPreparado,
     duracion: reproductor.calcularDuracion(
@@ -553,7 +553,7 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
   }
 
   if (evento.ritmoVisual.secuencia === "estocada") {
-    await reproductor.reproducirEstocada({
+    await reproducirEstocada(reproductor, {
       evento,
       golpe: golpes[0],
       perfil: perfilInicial,
@@ -570,13 +570,13 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
     for (let indice = 0; indice < golpes.length; indice += 1) {
       if (version !== reproductor.versionCancelacion || reproductor.destruido) break;
       const golpe = golpes[indice];
-      const perfil = reproductor.obtenerPerfilGolpe(evento, golpe, indice);
+      const perfil = obtenerPerfilGolpe(reproductor, evento, golpe, indice);
       const idFase = evento.ritmoVisual.secuencia === "dual"
         ? indice === 0
           ? "golpePrincipal"
           : "golpeSecundario"
         : "accion";
-      await reproductor.reproducirGolpeFisico({
+      await reproducirGolpeFisico(reproductor, {
         evento,
         golpe,
         indiceGolpe: indice,
@@ -601,7 +601,7 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
     }
   }
 
-  await reproductor.moverNodoAtaque({
+  await moverNodoAtaque(reproductor, {
     nodo,
     destino: centroBase,
     duracion: reproductor.calcularDuracion(
@@ -626,7 +626,7 @@ export async function reproducirGolpeFisico(reproductor, {
   resultadosPendientes,
   version,
 }) {
-  const avance = reproductor.obtenerAvancePixeles(perfil);
+  const avance = obtenerAvancePixeles(reproductor, perfil);
   const lateral = { x: -direccion.y, y: direccion.x };
   const signoMano = golpe?.mano === "secundaria" ? -1 : 1;
   const centroAtaque = {
@@ -636,7 +636,7 @@ export async function reproducirGolpeFisico(reproductor, {
   const ida = Math.max(1, Math.round(duracion * 0.55));
   const vuelta = Math.max(1, duracion - ida);
 
-  await reproductor.moverNodoAtaque({
+  await moverNodoAtaque(reproductor, {
     nodo,
     destino: centroAtaque,
     duracion: ida,
@@ -659,7 +659,7 @@ export async function reproducirGolpeFisico(reproductor, {
       });
   if (golpe) {
     resultadosPendientes.push(
-      reproductor.reproducirResultadoGolpe(
+      reproducirResultadoGolpe(reproductor,
         evento,
         golpe,
         indiceGolpe,
@@ -670,14 +670,14 @@ export async function reproducirGolpeFisico(reproductor, {
   }
 
   await Promise.all([
-    reproductor.moverNodoAtaque({
+    moverNodoAtaque(reproductor, {
       nodo,
       destino: centroPreparado,
       duracion: vuelta,
       ease: "Sine.easeIn",
       version,
     }),
-    reproductor.animarEfectoAtaque(efecto, duracion, version, {
+    animarEfectoAtaque(reproductor, efecto, duracion, version, {
       critico: golpe?.critico === true,
     }),
   ]);
@@ -695,7 +695,7 @@ export async function reproducirEstocada(reproductor, {
   resultadosPendientes,
   version,
 }) {
-  const fuente = reproductor.obtenerFuenteGolpe(evento, golpe, 0);
+  const fuente = obtenerFuenteGolpe(reproductor, evento, golpe, 0);
   const recursoVisual = fuente?.recursoVisual ?? null;
   const dxCasillas =
     (evento.posicionObjetivo?.x ?? 0) -
@@ -774,7 +774,7 @@ export async function reproducirEstocada(reproductor, {
 
   if (golpe) {
     resultadosPendientes.push(
-      reproductor.reproducirResultadoGolpe(evento, golpe, 0, version, {
+      reproducirResultadoGolpe(reproductor, evento, golpe, 0, version, {
         esperarDecorativos: false,
       }),
     );
@@ -797,7 +797,7 @@ export async function reproducirEstocada(reproductor, {
   reproductor.compositor.posicionarNodoEntidad(evento.idAtacante, centroPreparado);
 }
 export function obtenerPerfilGolpe(reproductor, evento, golpe, indiceGolpe) {
-  const fuente = reproductor.obtenerFuenteGolpe(evento, golpe, indiceGolpe);
+  const fuente = obtenerFuenteGolpe(reproductor, evento, golpe, indiceGolpe);
   return obtenerPerfilAtaque({
     familiaObjeto: fuente?.familiaObjeto ?? null,
     esAtaqueNatural: fuente?.esAtaqueNatural === true || fuente === null,
@@ -827,7 +827,7 @@ export function moverNodoAtaque(reproductor, { nodo, destino, duracion, ease, ve
     ease,
   }, version);
 }
-export async function animarEfectoAtaque(reproductor, 
+export async function animarEfectoAtaque(reproductor,
   efecto,
   duracion,
   version,
@@ -910,7 +910,7 @@ export async function reproducirGolpeProvisional(reproductor, evento, golpe, ind
         ease: "Sine.easeIn",
       }, version),
       golpe
-        ? reproductor.reproducirResultadoGolpe(
+        ? reproducirResultadoGolpe(reproductor,
             evento,
             golpe,
             indiceGolpe,
@@ -928,11 +928,11 @@ export async function reproducirGolpeProvisional(reproductor, evento, golpe, ind
   await Promise.all([
     reproductor.esperar(duracion, version),
     golpe
-      ? reproductor.reproducirResultadoGolpe(evento, golpe, indiceGolpe, version)
+      ? reproducirResultadoGolpe(reproductor, evento, golpe, indiceGolpe, version)
       : Promise.resolve(),
   ]);
 }
-export async function reproducirResultadoGolpe(reproductor, 
+export async function reproducirResultadoGolpe(reproductor,
   evento,
   golpe,
   indiceGolpe,
@@ -945,7 +945,7 @@ export async function reproducirResultadoGolpe(reproductor,
   const decorativos = [];
 
   if (golpe.impacto !== true) {
-    esenciales.push(reproductor.reproducirFalloObjetivo(evento, version));
+    esenciales.push(reproducirFalloObjetivo(reproductor, evento, version));
     decorativos.push(
       reproductor.reproducirTextoResultado({
         evento,
@@ -956,7 +956,7 @@ export async function reproducirResultadoGolpe(reproductor,
       }),
     );
     await Promise.all(esenciales);
-    await reproductor.resolverDecorativos(decorativos, esperarDecorativos);
+    await resolverDecorativos(reproductor, decorativos, esperarDecorativos);
     return;
   }
 
@@ -964,7 +964,7 @@ export async function reproducirResultadoGolpe(reproductor,
 
   if (danio > 0) {
     esenciales.push(
-      reproductor.reproducirImpactoObjetivo(evento, golpe, version),
+      reproducirImpactoObjetivo(reproductor, evento, golpe, version),
       reproductor.reproducirCambioVida(evento, golpe, version),
     );
     decorativos.push(
@@ -1006,7 +1006,7 @@ export async function reproducirResultadoGolpe(reproductor,
   }
 
   await Promise.all(esenciales);
-  await reproductor.resolverDecorativos(decorativos, esperarDecorativos);
+  await resolverDecorativos(reproductor, decorativos, esperarDecorativos);
 }
 export function resolverDecorativos(reproductor, promesas, esperar) {
   const grupo = Promise.all(promesas);
@@ -1064,7 +1064,7 @@ export async function reproducirImpactoObjetivo(reproductor, evento, golpe, vers
   const factorCritico = golpe.critico === true
     ? CONFIGURACION_EFECTOS_COMBATE_PHASER.golpe.impactoCriticoEscala
     : 1;
-  const usarMarcaGenerica = reproductor.debeUsarMarcaImpactoGenerica(evento);
+  const usarMarcaGenerica = debeUsarMarcaImpactoGenerica(reproductor, evento);
   const marca = reproductor.efectosReducidos || !usarMarcaGenerica
     ? null
     : reproductor.creadorEfectos?.crearMarcaImpacto({
@@ -1120,8 +1120,8 @@ export async function reproducirImpactoObjetivo(reproductor, evento, golpe, vers
 }
 export function debeUsarMarcaImpactoGenerica(reproductor, evento) {
   if (evento?.esHabilidad === true) return false;
-  if (reproductor.esAtaqueArco(evento) || reproductor.esAtaqueVarita(evento)) return false;
-  if (!reproductor.esAtaqueCuerpoACuerpo(evento)) return true;
+  if (esAtaqueArco(reproductor, evento) || esAtaqueVarita(reproductor, evento)) return false;
+  if (!esAtaqueCuerpoACuerpo(reproductor, evento)) return true;
 
   const fuentes = evento?.configuracionAtaque?.fuentes ?? [];
   return !fuentes.some((fuente) => {

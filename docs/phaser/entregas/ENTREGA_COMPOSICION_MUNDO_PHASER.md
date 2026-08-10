@@ -99,4 +99,4 @@ Validar al menos:
 
 ## Estado
 
-Implementación y regresión automática completadas. Pendiente de aprobación manual antes de continuar con la siguiente responsabilidad de presentación.
+Implementación y regresión automática aprobadas manualmente. La entrega quedó cerrada y commiteada en `3c3bd183ddf4d4073b4f5b81da9894b497173543`. La siguiente responsabilidad autorizada es la coordinación de eventos visuales, con análisis e implementación separados.

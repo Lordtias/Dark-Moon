@@ -3,8 +3,9 @@ import {
   PATRONES_VISUALES_HABILIDAD,
   resolverContratoPatronVisualHabilidad,
 } from "../../PatronesVisualesHabilidades.js";
-import { TIPOS_EVENTO_VISUAL } from "../../PlanificadorEventosVisuales.js";
+import { TIPOS_EVENTO_VISUAL } from "../../TiposEventosVisuales.js";
 import { TAMANO_CASILLA_REFERENCIA } from "../ConfiguracionPhaser.js";
+import { reproducirResultadoGolpe } from "./ReproductorAtaquesPhaser.js";
 
 // Reproducción visual de habilidades ya resueltas por el motor de juego.
 
@@ -101,22 +102,22 @@ export async function reproducirHabilidadResuelta(reproductor, evento, version) 
   reproductor.compositor.ocultarSeleccionTemporal?.();
 
   if (evento?.ritmoVisual?.secuencia === "area_conjurada") {
-    await reproductor.reproducirHabilidadArea(evento, version);
+    await reproducirHabilidadArea(reproductor, evento, version);
     return;
   }
 
   if (evento?.ritmoVisual?.secuencia === "cadena_conjurada") {
-    await reproductor.reproducirHabilidadCadena(evento, version);
+    await reproducirHabilidadCadena(reproductor, evento, version);
     return;
   }
 
   if (evento?.ritmoVisual?.secuencia === "linea_conjurada") {
-    await reproductor.reproducirHabilidadLinea(evento, version);
+    await reproducirHabilidadLinea(reproductor, evento, version);
     return;
   }
 
   if (evento?.ritmoVisual?.secuencia === "zona_conjurada") {
-    await reproductor.reproducirHabilidadZona(evento, version);
+    await reproducirHabilidadZona(reproductor, evento, version);
     return;
   }
 
@@ -131,11 +132,11 @@ export async function reproducirHabilidadResuelta(reproductor, evento, version) 
   }
 
   const impacto = evento.impactos?.[0] ?? null;
-  const centroActor = reproductor.obtenerCentroActorHabilidad(evento);
-  const centroObjetivo = reproductor.obtenerCentroImpactoHabilidad(evento, impacto);
+  const centroActor = obtenerCentroActorHabilidad(reproductor, evento);
+  const centroObjetivo = obtenerCentroImpactoHabilidad(reproductor, evento, impacto);
   if (!centroActor || !centroObjetivo) {
     if (impacto) {
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
     }
     return;
   }
@@ -310,7 +311,7 @@ export async function reproducirHabilidadResuelta(reproductor, evento, version) 
   }
   if (impacto) {
     promesasImpacto.push(
-      reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+      reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version),
     );
   }
   if (promesasImpacto.length > 0) await Promise.all(promesasImpacto);
@@ -370,15 +371,15 @@ export async function reproducirHabilidadLinea(reproductor, evento, version) {
 
   if (recorrido.length === 0) {
     for (const impacto of impactos) {
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
     }
     return;
   }
 
-  const centroActor = reproductor.obtenerCentroActorHabilidad(evento);
+  const centroActor = obtenerCentroActorHabilidad(reproductor, evento);
   if (!centroActor) {
     for (const impacto of impactos) {
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
     }
     return;
   }
@@ -556,7 +557,7 @@ export async function reproducirHabilidadLinea(reproductor, evento, version) {
         }, version).then(() => efectoImpacto.destroy?.()));
       }
       animaciones.push(
-        reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+        reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version),
       );
     }
 
@@ -574,7 +575,7 @@ export async function reproducirHabilidadLinea(reproductor, evento, version) {
 
   for (const impacto of impactos) {
     if (procesados.has(impacto)) continue;
-    await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+    await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
   }
 
   await reproductor.esperar(reproductor.calcularDuracion(fases.impacto ?? 1), version);
@@ -642,7 +643,7 @@ export async function reproducirHabilidadZona(reproductor, evento, version) {
     return;
   }
 
-  const centroActor = reproductor.obtenerCentroActorHabilidad(evento);
+  const centroActor = obtenerCentroActorHabilidad(reproductor, evento);
   const grado = evento.habilidad?.grado ?? 1;
   const fases = evento.ritmoVisual?.fases ?? {};
   const nodoActor = reproductor.compositor.obtenerNodoEntidad(evento.idActor);
@@ -734,7 +735,7 @@ export async function reproducirHabilidadZona(reproductor, evento, version) {
     (a, b) => (a.orden ?? 0) - (b.orden ?? 0),
   );
   const reacciones = impactos.map((impacto) =>
-    reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+    reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version),
   );
   if (reacciones.length > 0) {
     await Promise.all([
@@ -802,10 +803,10 @@ export async function reproducirHabilidadCadena(reproductor, evento, version) {
   );
   if (impactos.length === 0) return;
 
-  const centroActor = reproductor.obtenerCentroActorHabilidad(evento);
+  const centroActor = obtenerCentroActorHabilidad(reproductor, evento);
   if (!centroActor) {
     for (const impacto of impactos) {
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
     }
     return;
   }
@@ -887,9 +888,9 @@ export async function reproducirHabilidadCadena(reproductor, evento, version) {
   for (let indice = 0; indice < impactos.length; indice += 1) {
     if (version !== reproductor.versionCancelacion || reproductor.destruido) break;
     const impacto = impactos[indice];
-    const destinoSalto = reproductor.obtenerCentroImpactoHabilidad(evento, impacto);
+    const destinoSalto = obtenerCentroImpactoHabilidad(reproductor, evento, impacto);
     if (!destinoSalto) {
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
       origenSalto = reproductor.compositor.obtenerCentroCasilla(
         impacto.posicionObjetivo,
       ) ?? origenSalto;
@@ -977,7 +978,7 @@ export async function reproducirHabilidadCadena(reproductor, evento, version) {
           indiceSalto: indice,
         });
     const reacciones = [
-      reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version),
+      reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version),
     ];
     if (descarga) {
       reacciones.push(reproductor.crearTween({
@@ -1060,15 +1061,15 @@ export async function reproducirHabilidadArea(reproductor, evento, version) {
     return;
   }
 
-  const centroActor = reproductor.obtenerCentroActorHabilidad(evento);
-  const centroArea = reproductor.obtenerCentroAreaHabilidad(
+  const centroActor = obtenerCentroActorHabilidad(reproductor, evento);
+  const centroArea = obtenerCentroAreaHabilidad(reproductor,
     evento,
     contratoVisual,
   );
   if (!centroArea) {
     for (const impacto of evento.impactos ?? []) {
       if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
-      await reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version);
+      await reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version);
     }
     return;
   }
@@ -1140,7 +1141,7 @@ export async function reproducirHabilidadArea(reproductor, evento, version) {
     return;
   }
 
-  const grupos = reproductor.agruparAreaPorAnillos(evento, contratoVisual);
+  const grupos = agruparAreaPorAnillos(reproductor, evento, contratoVisual);
   const duracionExpansion = reproductor.calcularDuracion(fases.expansion ?? 1);
   const cantidadAnillos = Math.max(1, grupos.length);
   const duracionAnillo = Math.max(60, Math.round(duracionExpansion / cantidadAnillos));
@@ -1202,7 +1203,7 @@ export async function reproducirHabilidadArea(reproductor, evento, version) {
     }
 
     for (const impacto of grupo.impactos) {
-      const centroObjetivo = reproductor.obtenerCentroImpactoHabilidad(evento, impacto);
+      const centroObjetivo = obtenerCentroImpactoHabilidad(reproductor, evento, impacto);
       const pulso = reproductor.efectosReducidos || !centroObjetivo
         ? null
         : reproductor.creadorAreasHabilidades?.crearPulsoObjetivo({
@@ -1224,7 +1225,7 @@ export async function reproducirHabilidadArea(reproductor, evento, version) {
           ease: "Quad.easeOut",
         }, version).then(() => pulso.destroy?.()));
       }
-      animaciones.push(reproductor.reproducirResultadoImpactoHabilidad(evento, impacto, version));
+      animaciones.push(reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version));
     }
 
     if (animaciones.length > 0) await Promise.all(animaciones);
@@ -1272,7 +1273,7 @@ export async function reproducirHabilidadArea(reproductor, evento, version) {
 }
 export function obtenerCentroAreaHabilidad(reproductor, evento, contratoVisual) {
   if (contratoVisual?.centroVisual === CENTROS_VISUALES_HABILIDAD.ACTOR) {
-    return reproductor.obtenerCentroActorHabilidad(evento);
+    return obtenerCentroActorHabilidad(reproductor, evento);
   }
   if (
     contratoVisual?.centroVisual ===
@@ -1355,7 +1356,7 @@ export async function reproducirResultadoImpactoHabilidad(reproductor, evento, i
     vidaObjetivoDespues: impacto.danio?.vidaObjetivoDespues ?? null,
     vidaObjetivoMaxima: impacto.danio?.vidaObjetivoMaxima ?? null,
   };
-  await reproductor.reproducirResultadoGolpe(
+  await reproducirResultadoGolpe(reproductor,
     eventoResultado,
     golpe,
     impacto.orden ?? 0,

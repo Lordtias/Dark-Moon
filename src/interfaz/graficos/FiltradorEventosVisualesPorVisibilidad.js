@@ -1,4 +1,4 @@
-import { TIPOS_EVENTO_VISUAL } from "./PlanificadorEventosVisuales.js";
+import { TIPOS_EVENTO_VISUAL } from "./TiposEventosVisuales.js";
 import { TIPOS_ENTIDAD_VISUAL } from "./TiposEscena.js";
 
 const TRANSICIONES_VISIBILIDAD = Object.freeze({

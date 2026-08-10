@@ -2,7 +2,6 @@ import {
   ESTADOS_HOSTILIDAD_VISUAL,
   TIPOS_ENTIDAD_VISUAL,
 } from "../../TiposEscena.js";
-import { TIPOS_EVENTO_VISUAL } from "../../PlanificadorEventosVisuales.js";
 import {
   calcularDuracionAnimacionPhaser,
   CONFIGURACION_ANIMACIONES_PHASER,
@@ -24,11 +23,11 @@ export function reproducirCambioHostilidad(reproductor, evento) {
 }
 export async function reproducirMovimiento(reproductor, evento, version) {
   if (evento.transicionVisibilidad === "salida") {
-    await reproductor.reproducirSalidaCampoVisible(evento, version);
+    await reproducirSalidaCampoVisible(reproductor, evento, version);
     return;
   }
   if (evento.transicionVisibilidad === "entrada") {
-    await reproductor.reproducirEntradaCampoVisible(evento, version);
+    await reproducirEntradaCampoVisible(reproductor, evento, version);
     return;
   }
 
@@ -50,7 +49,7 @@ export async function reproducirMovimiento(reproductor, evento, version) {
     evento.tipoEntidad === TIPOS_ENTIDAD_VISUAL.JUGADOR
       ? reproductor.obtenerRachaMovimientosJugadorPendientes()
       : 0;
-  const duracionBaseMovimiento = reproductor.obtenerDuracionBaseMovimiento({
+  const duracionBaseMovimiento = obtenerDuracionBaseMovimiento(reproductor, {
     tipoEntidad: evento.tipoEntidad,
     movimientosJugadorPendientes,
   });
@@ -160,24 +159,4 @@ export function obtenerDuracionBaseMovimiento(reproductor, {
   }
 
   return CONFIGURACION_ANIMACIONES_PHASER.movimientoJugadorCasillaMs;
-}
-export function obtenerRachaMovimientosJugadorPendientes(reproductor) {
-  let cantidad = 0;
-
-  for (const actualizacion of reproductor.cola) {
-    const eventos = actualizacion?.eventosVisuales ?? [];
-    if (eventos.length === 0) break;
-
-    for (const evento of eventos) {
-      if (
-        evento?.tipo !== TIPOS_EVENTO_VISUAL.MOVIMIENTO_ENTIDAD ||
-        evento.tipoEntidad !== TIPOS_ENTIDAD_VISUAL.JUGADOR
-      ) {
-        return cantidad;
-      }
-      cantidad += 1;
-    }
-  }
-
-  return cantidad;
 }

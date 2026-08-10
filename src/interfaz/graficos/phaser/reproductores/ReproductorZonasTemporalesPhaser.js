@@ -1,3 +1,5 @@
+import { reproducirResultadoImpactoHabilidad } from "./ReproductorHabilidadesPhaser.js";
+
 // Reproducción de zonas temporales. Opera sobre el coordinador recibido y no
 // modifica reglas de juego ni el orden de la cola visual.
 
@@ -135,7 +137,7 @@ export async function reproducirZonaTemporalActivada(reproductor, evento, versio
   }
 
   animaciones.push(
-    reproductor.reproducirResultadoImpactoHabilidad(
+    reproducirResultadoImpactoHabilidad(reproductor,
       {
         ...evento,
         idActor: null,

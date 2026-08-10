@@ -7,7 +7,7 @@ export async function reproducirEfectoTemporalAplicado(reproductor, evento, vers
     evento.idObjetivo,
     evento.efecto,
   );
-  const centro = reproductor.obtenerCentroEventoEfecto(evento);
+  const centro = obtenerCentroEventoEfecto(reproductor, evento);
   const entrada = reproductor.efectosReducidos
     ? null
     : reproductor.creadorEstadosTemporales?.crearEntrada({
@@ -17,9 +17,9 @@ export async function reproducirEfectoTemporalAplicado(reproductor, evento, vers
 
   await Promise.all([
     entrada
-      ? reproductor.animarEntradaEstado(entrada, version)
+      ? animarEntradaEstado(reproductor, entrada, version)
       : Promise.resolve(),
-    reproductor.reproducirFeedbackTextoEstado(evento, version),
+    reproducirFeedbackTextoEstado(reproductor, evento, version),
   ]);
 }
 export async function reproducirEfectoTemporalActualizado(reproductor, evento, version) {
@@ -27,7 +27,7 @@ export async function reproducirEfectoTemporalActualizado(reproductor, evento, v
     evento.idObjetivo,
     evento.efecto,
   ) === true;
-  const centro = reproductor.obtenerCentroEventoEfecto(evento);
+  const centro = obtenerCentroEventoEfecto(reproductor, evento);
   const pulso =
     actualizado && !reproductor.efectosReducidos
       ? reproductor.creadorEstadosTemporales?.crearPulsoActualizacion({
@@ -37,14 +37,14 @@ export async function reproducirEfectoTemporalActualizado(reproductor, evento, v
       : null;
 
   await Promise.all([
-    reproductor.reproducirFeedbackTextoEstado(evento, version),
-    pulso ? reproductor.animarPulsoEstado(pulso, version) : Promise.resolve(),
+    reproducirFeedbackTextoEstado(reproductor, evento, version),
+    pulso ? animarPulsoEstado(reproductor, pulso, version) : Promise.resolve(),
   ]);
   return actualizado;
 }
 export async function reproducirEfectoTemporalTick(reproductor, evento, version) {
   if (reproductor.efectosReducidos) return;
-  const centro = reproductor.obtenerCentroEventoEfecto(evento);
+  const centro = obtenerCentroEventoEfecto(reproductor, evento);
   const pulso = reproductor.creadorEstadosTemporales?.crearPulsoTick({
     centro,
     efecto: evento.efecto,
@@ -86,7 +86,7 @@ export async function animarEntradaEstado(reproductor, entrada, version) {
   entrada.destroy?.();
 }
 export async function reproducirFeedbackTextoEstado(reproductor, evento, version) {
-  const centro = reproductor.obtenerCentroEventoEfecto(evento);
+  const centro = obtenerCentroEventoEfecto(reproductor, evento);
   const feedback = reproductor.creadorEstadosTemporales?.crearFeedbackEstado({
     centro,
     efecto: evento.efecto,
@@ -108,7 +108,7 @@ export async function reproducirFeedbackTextoEstado(reproductor, evento, version
 }
 export async function reproducirEfectoTemporalNoAplicado(reproductor, evento, version) {
   if (reproductor.efectosReducidos) return;
-  const centro = reproductor.obtenerCentroEventoEfecto(evento);
+  const centro = obtenerCentroEventoEfecto(reproductor, evento);
   const feedback = reproductor.creadorEstadosTemporales?.crearNoAplicado({
     centro,
     feedback: evento.feedback,

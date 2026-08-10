@@ -377,9 +377,12 @@ export class CompositorMundoPhaser {
     const rutas = [
       ...obtenerRutasRecursosTerreno(configuracionTerrenos),
       ...obtenerRutasRecursosPared(configuracionPared),
-      ...(escenaDarkMoon.entidades ?? []).map(
-        (entidad) => entidad.recursoVisual,
-      ),
+      ...(escenaDarkMoon.entidades ?? []).flatMap((entidad) => [
+        entidad.recursoVisual,
+        ...(Array.isArray(entidad.recursosVisualesPrecarga)
+          ? entidad.recursosVisualesPrecarga
+          : []),
+      ]),
     ].filter(Boolean);
 
     this.gestorRecursos.precargar(rutas);

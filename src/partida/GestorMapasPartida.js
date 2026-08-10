@@ -2,8 +2,6 @@ import { crearConfiguracionMazmorra } from "../juego/configuracion/Configuracion
 
 import { crearConfiguracionCiudad } from "../juego/configuracion/ConfiguracionCiudad.js";
 
-import { configurarContextoGeneracionBotin } from "../juego/botin/ContextoGeneracionBotin.js";
-
 import { generarSalidaMazmorra } from "../juego/generacion/GeneradorSalidaMapa.js";
 
 import {
@@ -187,6 +185,8 @@ export class GestorMapasPartida {
 
       configuracionObjetos: this.configuracionObjetos,
 
+      configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
+
       configuracionMapas: configuracionMapasGeneracion,
 
       semillaMapa,
@@ -235,15 +235,10 @@ export class GestorMapasPartida {
       casillasAbiertas: salida.casillasAbiertas.length,
     };
 
-    // Los drops deben utilizar la semilla y el nivel
-    // correspondientes al mapa que acaba de activarse.
-    configurarContextoGeneracionBotin({
-      configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
-
-      semillaMapa: generacion.semilla,
-
-      nivelMapa: generacion.nivelMapa,
-    });
+    // El contexto de botín ya fue configurado durante la población de la
+    // mazmorra, antes de resolver los cofres procedurales. No se reinicia
+    // aquí: hacerlo repetiría la secuencia dedicada a rarezas/afijos y haría
+    // que futuros drops reutilizaran resultados ya consumidos por cofres.
 
     // El contador se incrementa únicamente después
     // de que la generación haya finalizado correctamente.

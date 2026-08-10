@@ -439,6 +439,7 @@ function crearEntidadVisual(entidad, tipo, juego) {
         : null,
 
     recursoVisual: entidad.recursoVisual ?? null,
+    recursosVisualesPrecarga: obtenerRecursosVisualesPrecarga(entidad),
     activo: typeof entidad.activo === "boolean" ? entidad.activo : null,
     atenuarInactivo:
       typeof entidad.atenuarInactivo === "boolean"
@@ -446,6 +447,27 @@ function crearEntidadVisual(entidad, tipo, juego) {
         : true,
     efectosTemporales: crearEfectosTemporalesVisuales(juego, entidad),
   };
+}
+
+function obtenerRecursosVisualesPrecarga(entidad) {
+  const candidatas = [
+    entidad?.recursoVisual,
+    entidad?.recursoVisualCerrada,
+    entidad?.recursoVisualAbierta,
+    entidad?.recursoVisualCerrado,
+    entidad?.recursoVisualAbierto,
+    entidad?.recursoVisualActivo,
+    entidad?.recursoVisualInactivo,
+  ];
+
+  return [
+    ...new Set(
+      candidatas
+        .filter((ruta) => typeof ruta === "string")
+        .map((ruta) => ruta.trim())
+        .filter(Boolean),
+    ),
+  ];
 }
 
 function crearEfectosTemporalesVisuales(juego, entidad) {

@@ -299,6 +299,8 @@ export class RenderizadorCanvas2D {
       this.actualizarFeedbackEstadosTemporales(eventosVisuales);
     }
 
+    this.precargarRecursosEntidades(escena.entidades);
+
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.dibujarMapa(escena.mapa);
@@ -342,6 +344,23 @@ export class RenderizadorCanvas2D {
         escena.combate.selector,
         escena.combate.habilidad,
       );
+    }
+  }
+
+  precargarRecursosEntidades(entidades = []) {
+    for (const entidad of entidades) {
+      const rutas = [
+        entidad?.recursoVisual,
+        ...(Array.isArray(entidad?.recursosVisualesPrecarga)
+          ? entidad.recursosVisualesPrecarga
+          : []),
+      ];
+
+      for (const ruta of rutas) {
+        if (typeof ruta === "string" && ruta.trim() !== "") {
+          this.cargadorImagenes.obtener(ruta);
+        }
+      }
     }
   }
 

@@ -27,6 +27,7 @@ import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
+import { configurarContextoGeneracionBotin } from "../botin/ContextoGeneracionBotin.js";
 
 export const TILE_SIZE = 32;
 
@@ -170,6 +171,7 @@ export function crearConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionGeneracionObjetos,
   configuracionMapas,
 
   // Los valores son opcionales.
@@ -204,6 +206,7 @@ export function crearConfiguracionMazmorra({
     player,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionGeneracionObjetos,
     botinPrueba,
     portalPrueba,
     cantidadEnemigosForzada,
@@ -265,6 +268,7 @@ function completarConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionGeneracionObjetos,
   botinPrueba,
   portalPrueba,
   cantidadEnemigosForzada,
@@ -287,6 +291,21 @@ function completarConfiguracionMazmorra({
     cantidadEnemigosForzada,
   });
 
+  // E2.B.2 necesita resolver el contenido de los cofres durante la propia
+  // población procedural. El nivel del mapa se determina aquí, antes de
+  // crear entidades, para que SistemaBotin disponga del mismo contexto
+  // canónico que utilizarán después enemigos y destructibles.
+  const nivelMapa = aleatorio.entero(
+    plantillaGeneracion.niveles.minimo,
+    plantillaGeneracion.niveles.maximo,
+  );
+
+  configurarContextoGeneracionBotin({
+    configuracionGeneracionObjetos,
+    semillaMapa: aleatorio.semilla,
+    nivelMapa,
+  });
+
   const contenido = generarContenidoMapa({
     plantilla: plantillaGeneracion,
 
@@ -301,9 +320,10 @@ function completarConfiguracionMazmorra({
     aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
+    nivelMapa,
   });
 
-  const interactuables = crearInteractuablesIniciales({
+  const interactuablesPrueba = crearInteractuablesIniciales({
     botinPrueba,
     portalPrueba,
 
@@ -313,8 +333,15 @@ function completarConfiguracionMazmorra({
 
     objetivos: contenido.objetivos,
 
+    interactuablesExistentes: contenido.interactuables ?? [],
+
     configuracionObjetos,
   });
+
+  const interactuables = [
+    ...(contenido.interactuables ?? []),
+    ...interactuablesPrueba,
+  ];
 
   // SelectorMapa siempre devuelve una copia,
   // por lo que esta información pertenece
@@ -382,6 +409,8 @@ function completarConfiguracionMazmorra({
     detalleEnemigos: contenido.resumen.detalleEnemigos,
 
     detalleDestructibles: contenido.resumen.detalleDestructibles,
+
+    interactuablesProcedurales: contenido.resumen.interactuablesProcedurales,
   };
 
   return {
@@ -475,10 +504,15 @@ function crearInteractuablesIniciales({
   mapa,
   player,
   objetivos,
+  interactuablesExistentes = [],
   configuracionObjetos,
 }) {
   const interactuables = [];
-  const posicionesOcupadas = [];
+  const posicionesOcupadas = interactuablesExistentes
+    .filter(
+      (entidad) => Number.isInteger(entidad?.x) && Number.isInteger(entidad?.y),
+    )
+    .map((entidad) => ({ x: entidad.x, y: entidad.y }));
 
   if (botinPrueba) {
     const objetos = crearObjetosDesdeDefiniciones({

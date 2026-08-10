@@ -171,17 +171,64 @@
           "elite": 5
         }
       },
-      "destructibles": {
-        "porcentajeCasillasCaminables": {
-          "minimo": 3,
-          "maximo": 6
+      "interactuables": {
+        "portalEntrada": {
+          "habilitado": true
         },
-        "permitidos": [
-          {
-            "id": "barril",
-            "peso": 100
+        "puertas": {
+          "probabilidadPorPasillo": 35
+        },
+        "barriles": {
+          "densidadPor100Casillas": 6,
+          "permitidos": [
+            {
+              "id": "barril",
+              "peso": 100
+            }
+          ]
+        },
+        "cofres": {
+          "moderados": {
+            "probabilidadPorHabitacion": 20,
+            "tablaBotin": [
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 45,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 50,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 10
+              }
+            ]
+          },
+          "importante": {
+            "tablaBotin": [
+              {
+                "idObjeto": "espada_larga",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1,
+                "rarezaForzada": "magico"
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
           }
-        ]
+        }
       }
     },
     "cementerio": {
@@ -366,17 +413,64 @@
           "elite": 5
         }
       },
-      "destructibles": {
-        "porcentajeCasillasCaminables": {
-          "minimo": 2,
-          "maximo": 5
+      "interactuables": {
+        "portalEntrada": {
+          "habilitado": true
         },
-        "permitidos": [
-          {
-            "id": "barril",
-            "peso": 100
+        "puertas": {
+          "probabilidadPorPasillo": 40
+        },
+        "barriles": {
+          "densidadPor100Casillas": 5,
+          "permitidos": [
+            {
+              "id": "barril",
+              "peso": 100
+            }
+          ]
+        },
+        "cofres": {
+          "moderados": {
+            "probabilidadPorHabitacion": 25,
+            "tablaBotin": [
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 45,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 50,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 10
+              }
+            ]
+          },
+          "importante": {
+            "tablaBotin": [
+              {
+                "idObjeto": "hacha_mano",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1,
+                "rarezaForzada": "magico"
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
           }
-        ]
+        }
       }
     },
     "casa_guerrero": {
@@ -555,17 +649,64 @@
           "elite": 10
         }
       },
-      "destructibles": {
-        "porcentajeCasillasCaminables": {
-          "minimo": 4,
-          "maximo": 8
+      "interactuables": {
+        "portalEntrada": {
+          "habilitado": true
         },
-        "permitidos": [
-          {
-            "id": "barril",
-            "peso": 100
+        "puertas": {
+          "probabilidadPorPasillo": 45
+        },
+        "barriles": {
+          "densidadPor100Casillas": 8,
+          "permitidos": [
+            {
+              "id": "barril",
+              "peso": 100
+            }
+          ]
+        },
+        "cofres": {
+          "moderados": {
+            "probabilidadPorHabitacion": 30,
+            "tablaBotin": [
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 45,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 50,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 10
+              }
+            ]
+          },
+          "importante": {
+            "tablaBotin": [
+              {
+                "idObjeto": "mandoble_hierro",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1,
+                "rarezaForzada": "magico"
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
           }
-        ]
+        }
       }
     },
     "fortaleza_abandonada": {
@@ -744,17 +885,64 @@
           "elite": 20
         }
       },
-      "destructibles": {
-        "porcentajeCasillasCaminables": {
-          "minimo": 5,
-          "maximo": 9
+      "interactuables": {
+        "portalEntrada": {
+          "habilitado": true
         },
-        "permitidos": [
-          {
-            "id": "barril",
-            "peso": 100
+        "puertas": {
+          "probabilidadPorPasillo": 50
+        },
+        "barriles": {
+          "densidadPor100Casillas": 9,
+          "permitidos": [
+            {
+              "id": "barril",
+              "peso": 100
+            }
+          ]
+        },
+        "cofres": {
+          "moderados": {
+            "probabilidadPorHabitacion": 35,
+            "tablaBotin": [
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 45,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 50,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 10
+              }
+            ]
+          },
+          "importante": {
+            "tablaBotin": [
+              {
+                "idObjeto": "espada_acero",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1,
+                "rarezaForzada": "magico"
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
           }
-        ]
+        }
       }
     },
     "sala_guerra": {
@@ -994,17 +1182,64 @@
           "elite": 0
         }
       },
-      "destructibles": {
-        "porcentajeCasillasCaminables": {
-          "minimo": 5,
-          "maximo": 10
+      "interactuables": {
+        "portalEntrada": {
+          "habilitado": true
         },
-        "permitidos": [
-          {
-            "id": "barril",
-            "peso": 100
+        "puertas": {
+          "probabilidadPorPasillo": 55
+        },
+        "barriles": {
+          "densidadPor100Casillas": 10,
+          "permitidos": [
+            {
+              "id": "barril",
+              "peso": 100
+            }
+          ]
+        },
+        "cofres": {
+          "moderados": {
+            "probabilidadPorHabitacion": 40,
+            "tablaBotin": [
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 45,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 50,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 10
+              }
+            ]
+          },
+          "importante": {
+            "tablaBotin": [
+              {
+                "idObjeto": "mandoble_acero",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1,
+                "rarezaForzada": "magico"
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
           }
-        ]
+        }
       }
     }
   }

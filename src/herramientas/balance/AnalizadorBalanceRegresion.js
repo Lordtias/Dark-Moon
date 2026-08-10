@@ -60,6 +60,7 @@ export function crearInformeBalanceRegresion({
     configuracionPersonaje,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionGeneracionObjetos,
     configuracionMapas,
     progresion,
     objetivos,
@@ -149,6 +150,7 @@ function analizarRutaGenerada({
   configuracionPersonaje,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionGeneracionObjetos,
   configuracionMapas,
   progresion,
   objetivos,
@@ -166,6 +168,7 @@ function analizarRutaGenerada({
         player: jugador,
         configuracionEnemigos,
         configuracionObjetos,
+        configuracionGeneracionObjetos,
         configuracionMapas,
         semillaMapa:
           `balance-regresion:${tramo.idMapa}:${tramo.nivelMapa}:${indice}`,

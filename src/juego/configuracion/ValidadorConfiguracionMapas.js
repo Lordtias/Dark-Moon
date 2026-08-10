@@ -100,7 +100,7 @@ function validarPlantilla(idPlantilla, plantilla) {
     idsExcluidos: unirConjuntos(idsRecurrentes, idsEspeciales),
   });
 
-  validarDestructibles(idPlantilla, plantilla.destructibles);
+  validarInteractuables(idPlantilla, plantilla.interactuables);
 }
 
 function validarRutaRecursoVisual({ ruta, idPlantilla }) {
@@ -401,18 +401,77 @@ function validarIdsExcluidos({
   }
 }
 
-function validarDestructibles(idPlantilla, destructibles) {
-  validarObjeto(destructibles, `los destructibles de "${idPlantilla}"`);
+function validarInteractuables(idPlantilla, interactuables) {
+  validarObjeto(interactuables, `los interactuables de "${idPlantilla}"`);
 
-  validarRangoPorcentaje(
-    destructibles.porcentajeCasillasCaminables,
-    `el porcentaje de destructibles de "${idPlantilla}"`,
+  validarObjeto(
+    interactuables.portalEntrada,
+    `el portal de entrada de "${idPlantilla}"`,
+  );
+  if (interactuables.portalEntrada.habilitado !== true) {
+    throw new Error(
+      `El portal de entrada de "${idPlantilla}" debe permanecer habilitado.`,
+    );
+  }
+
+  validarObjeto(interactuables.puertas, `las puertas de "${idPlantilla}"`);
+  validarPorcentaje(
+    interactuables.puertas.probabilidadPorPasillo,
+    `la probabilidad de puerta por pasillo de "${idPlantilla}"`,
   );
 
+  validarObjeto(interactuables.barriles, `los barriles de "${idPlantilla}"`);
+  if (
+    !Number.isFinite(interactuables.barriles.densidadPor100Casillas) ||
+    interactuables.barriles.densidadPor100Casillas < 0
+  ) {
+    throw new Error(
+      `La densidad de barriles por 100 casillas de "${idPlantilla}" debe ser un número no negativo.`,
+    );
+  }
   validarListaPonderada(
-    destructibles.permitidos,
-    `los destructibles permitidos de "${idPlantilla}"`,
+    interactuables.barriles.permitidos,
+    `los barriles permitidos de "${idPlantilla}"`,
   );
+
+  validarObjeto(interactuables.cofres, `los cofres de "${idPlantilla}"`);
+  validarObjeto(
+    interactuables.cofres.moderados,
+    `los cofres moderados de "${idPlantilla}"`,
+  );
+  validarPorcentaje(
+    interactuables.cofres.moderados.probabilidadPorHabitacion,
+    `la probabilidad de cofre moderado por habitación de "${idPlantilla}"`,
+  );
+  validarTablaBotinAdicional({
+    tabla: interactuables.cofres.moderados.tablaBotin,
+    descripcion: `la tabla de cofres moderados de "${idPlantilla}"`,
+  });
+  validarTablaConEntradaGarantizada({
+    tabla: interactuables.cofres.moderados.tablaBotin,
+    descripcion: `la tabla de cofres moderados de "${idPlantilla}"`,
+  });
+
+  validarObjeto(
+    interactuables.cofres.importante,
+    `el cofre importante de "${idPlantilla}"`,
+  );
+  validarTablaBotinAdicional({
+    tabla: interactuables.cofres.importante.tablaBotin,
+    descripcion: `la tabla del cofre importante de "${idPlantilla}"`,
+  });
+  validarTablaConEntradaGarantizada({
+    tabla: interactuables.cofres.importante.tablaBotin,
+    descripcion: `la tabla del cofre importante de "${idPlantilla}"`,
+  });
+}
+
+function validarTablaConEntradaGarantizada({ tabla, descripcion }) {
+  if (!tabla.some((entrada) => entrada.probabilidad === 100)) {
+    throw new Error(
+      `${descripcion} debe incluir al menos una entrada con probabilidad 100 para evitar cofres vacíos.`,
+    );
+  }
 }
 
 function validarListaPonderada(

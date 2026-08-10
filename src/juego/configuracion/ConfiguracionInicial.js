@@ -1,17 +1,6 @@
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
 
-import { BotinSuelo } from "../../entidad/interactuable/BotinSuelo.js";
-
-import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
-
-import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
-
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
-
-import {
-  crearSolicitudTransicionMapa,
-  TIPOS_TRANSICION_MAPA,
-} from "../interacciones/TransicionesMapa.js";
 
 import {
   seleccionarPlantillaMapa,
@@ -26,60 +15,9 @@ import {
 import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
-import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
 import { configurarContextoGeneracionBotin } from "../botin/ContextoGeneracionBotin.js";
 
 export const TILE_SIZE = 32;
-
-const DEFINICIONES_BOTIN_PRUEBA = Object.freeze([
-  {
-    id: "pocion_curacion",
-    cantidad: 1,
-  },
-  {
-    id: "flecha_madera",
-    cantidad: 8,
-  },
-  {
-    id: "daga_hierro",
-    cantidad: 1,
-  },
-]);
-
-const DIRECCIONES_INTERACTUABLES_PRUEBA = Object.freeze([
-  {
-    x: 0,
-    y: -1,
-  },
-  {
-    x: 1,
-    y: 0,
-  },
-  {
-    x: 0,
-    y: 1,
-  },
-  {
-    x: -1,
-    y: 0,
-  },
-  {
-    x: 1,
-    y: -1,
-  },
-  {
-    x: 1,
-    y: 1,
-  },
-  {
-    x: -1,
-    y: 1,
-  },
-  {
-    x: -1,
-    y: -1,
-  },
-]);
 
 // Crea al jugador una única vez al comenzar
 // una partida completa.
@@ -183,9 +121,7 @@ export function crearConfiguracionMazmorra({
   idMapaForzado = null,
   nivelMapaForzado = null,
 
-  botinPrueba = false,
-  portalPrueba = false,
-  cantidadEnemigosForzada = null,
+  cantidadEnemigosRecurrentes = null,
 } = {}) {
   validarJugador(player);
 
@@ -207,9 +143,7 @@ export function crearConfiguracionMazmorra({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
-    botinPrueba,
-    portalPrueba,
-    cantidadEnemigosForzada,
+    cantidadEnemigosRecurrentes,
     semillaMapa,
     idMapaForzado,
     nivelMapaForzado,
@@ -232,8 +166,8 @@ function prepararGeneracionMazmorra({
   // Durante una partida normal se utiliza
   // la selección ponderada.
   //
-  // Desde la ciudad o mediante parámetros
-  // de prueba puede solicitarse una plantilla concreta.
+  // Desde la ciudad o desde una herramienta externa
+  // puede solicitarse una plantilla concreta.
   const mapaSeleccionado =
     idMapaForzado !== null
       ? obtenerPlantillaMapa(configuracionMapas, idMapaForzado)
@@ -261,17 +195,14 @@ function prepararGeneracionMazmorra({
   };
 }
 
-// Agrega enemigos, destructibles, interactuables
-// de prueba y el resumen de generación
-// al terreno preparado.
+// Agrega enemigos, destructibles, interactuables procedurales
+// y el resumen de generación al terreno preparado.
 function completarConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
-  botinPrueba,
-  portalPrueba,
-  cantidadEnemigosForzada,
+  cantidadEnemigosRecurrentes,
   semillaMapa,
   idMapaForzado,
   nivelMapaForzado,
@@ -288,7 +219,6 @@ function completarConfiguracionMazmorra({
   const plantillaGeneracion = crearPlantillaGeneracion({
     mapaSeleccionado,
     nivelMapaForzado,
-    cantidadEnemigosForzada,
   });
 
   // El contenido de los cofres se resuelve durante la propia población.
@@ -321,27 +251,8 @@ function completarConfiguracionMazmorra({
     configuracionEnemigos,
     configuracionObjetos,
     nivelMapa,
+    cantidadEnemigosRecurrentes,
   });
-
-  const interactuablesPrueba = crearInteractuablesIniciales({
-    botinPrueba,
-    portalPrueba,
-
-    mapa: terreno.celdas,
-
-    player,
-
-    objetivos: contenido.objetivos,
-
-    interactuablesExistentes: contenido.interactuables ?? [],
-
-    configuracionObjetos,
-  });
-
-  const interactuables = [
-    ...(contenido.interactuables ?? []),
-    ...interactuablesPrueba,
-  ];
 
   // SelectorMapa siempre devuelve una copia,
   // por lo que esta información pertenece
@@ -356,10 +267,6 @@ function completarConfiguracionMazmorra({
     nivelSolicitado: nivelMapaForzado,
 
     semillaForzada: semillaMapa !== null,
-
-    botinPrueba,
-    portalPrueba,
-    cantidadEnemigosForzada,
 
     ancho: terreno.ancho,
 
@@ -429,7 +336,7 @@ function completarConfiguracionMazmorra({
 
     objetivos: contenido.objetivos,
 
-    interactuables,
+    interactuables: contenido.interactuables ?? [],
   };
 }
 
@@ -441,28 +348,14 @@ function completarConfiguracionMazmorra({
 function crearPlantillaGeneracion({
   mapaSeleccionado,
   nivelMapaForzado,
-  cantidadEnemigosForzada,
 }) {
-  if (nivelMapaForzado === null && cantidadEnemigosForzada === null) {
+  if (nivelMapaForzado === null) {
     return mapaSeleccionado;
   }
 
   return {
     ...mapaSeleccionado,
-    niveles:
-      nivelMapaForzado === null
-        ? mapaSeleccionado.niveles
-        : { minimo: nivelMapaForzado, maximo: nivelMapaForzado },
-    enemigos:
-      cantidadEnemigosForzada === null
-        ? mapaSeleccionado.enemigos
-        : {
-            ...mapaSeleccionado.enemigos,
-            // Override exclusivo de desarrollo. La configuración canónica
-            // normal escala por densidad; este campo temporal conserva
-            // &enemigos=N para pruebas reproducibles de carga/fluidez.
-            cantidadPrueba: cantidadEnemigosForzada,
-          },
+    niveles: { minimo: nivelMapaForzado, maximo: nivelMapaForzado },
   };
 }
 
@@ -493,141 +386,6 @@ function validarNivelMapaForzado({ nivelMapaForzado, mapaSeleccionado }) {
         `Se solicitó el nivel ${nivelMapaForzado}.`,
     );
   }
-}
-
-// Crea recursos controlados mediante parámetros
-// de prueba en la URL.
-function crearInteractuablesIniciales({
-  botinPrueba,
-  portalPrueba,
-  mapa,
-  player,
-  objetivos,
-  interactuablesExistentes = [],
-  configuracionObjetos,
-}) {
-  const interactuables = [];
-  const posicionesOcupadas = interactuablesExistentes
-    .filter(
-      (entidad) => Number.isInteger(entidad?.x) && Number.isInteger(entidad?.y),
-    )
-    .map((entidad) => ({ x: entidad.x, y: entidad.y }));
-
-  if (botinPrueba) {
-    const objetos = crearObjetosDesdeDefiniciones({
-      configuracionObjetos,
-
-      definiciones: DEFINICIONES_BOTIN_PRUEBA,
-    });
-
-    const posicion = obtenerPosicionInteractuablePrueba({
-      mapa,
-      player,
-      objetivos,
-      posicionesOcupadas,
-    });
-
-    const botin = new BotinSuelo({
-      nombre: "Botín de prueba",
-
-      x: posicion.x,
-
-      y: posicion.y,
-
-      contenedorObjetos: new ContenedorObjetos({
-        capacidad: 6,
-        objetosIniciales: objetos,
-      }),
-    });
-
-    interactuables.push(botin);
-
-    posicionesOcupadas.push(posicion);
-  }
-
-  if (portalPrueba) {
-    const posicion = obtenerPosicionInteractuablePrueba({
-      mapa,
-      player,
-      objetivos,
-      posicionesOcupadas,
-    });
-
-    const portal = new PortalMapa({
-      nombre: "Portal inestable",
-
-      x: posicion.x,
-
-      y: posicion.y,
-
-      simbolo: "O",
-
-      textoInteraccion: "Atravesar portal",
-
-      solicitudTransicionMapa: crearSolicitudTransicionMapa({
-        tipo: TIPOS_TRANSICION_MAPA.NUEVA_EXPEDICION,
-
-        // El nuevo mapa también incluirá
-        // un portal para repetir la prueba.
-        datos: {
-          portalPrueba: true,
-        },
-      }),
-    });
-
-    interactuables.push(portal);
-
-    posicionesOcupadas.push(posicion);
-  }
-
-  return interactuables;
-}
-
-// Busca una casilla próxima que sea caminable,
-// no esté ocupada por objetivos y no haya sido
-// utilizada por otro interactuable de prueba.
-//
-// Si ninguna está disponible, puede utilizarse
-// la posición del jugador porque estos elementos
-// no bloquean el movimiento.
-function obtenerPosicionInteractuablePrueba({
-  mapa,
-  player,
-  objetivos,
-  posicionesOcupadas,
-}) {
-  for (const direccion of DIRECCIONES_INTERACTUABLES_PRUEBA) {
-    const x = player.x + direccion.x;
-
-    const y = player.y + direccion.y;
-
-    const terreno = consultarTerrenoMapa(mapa, x, y);
-    if (!terreno.dentroMapa || terreno.bloqueaMovimiento) {
-      continue;
-    }
-
-    const ocupadoPorObjetivo = objetivos.some(
-      (objetivo) =>
-        objetivo.estaDestruido !== true && objetivo.x === x && objetivo.y === y,
-    );
-
-    const ocupadoPorInteractuable = posicionesOcupadas.some(
-      (posicion) => posicion.x === x && posicion.y === y,
-    );
-
-    if (!ocupadoPorObjetivo && !ocupadoPorInteractuable) {
-      return {
-        x,
-        y,
-      };
-    }
-  }
-
-  return {
-    x: player.x,
-
-    y: player.y,
-  };
 }
 
 function posicionarJugador(player, posicion) {

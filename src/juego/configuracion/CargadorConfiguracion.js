@@ -1,3 +1,5 @@
+import { cargarJson } from "../../utilidades/CargadorJson.js";
+
 import { validarConfiguracionMapas } from "./ValidadorConfiguracionMapas.js";
 
 import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfiguracionGeneracionObjetos.js";
@@ -104,31 +106,11 @@ const CATALOGOS_OBJETOS = Object.freeze([
   },
 ]);
 
-// Lee un archivo JSON y devuelve su contenido
-// convertido en un objeto de JavaScript.
-async function cargarArchivoJson(ruta, descripcion) {
-  const respuesta = await fetch(ruta);
-
-  if (!respuesta.ok) {
-    throw new Error(
-      `No se pudo cargar ${descripcion}. ` + `Código HTTP: ${respuesta.status}`,
-    );
-  }
-
-  try {
-    return await respuesta.json();
-  } catch (error) {
-    throw new Error(
-      `El archivo de ${descripcion} no contiene ` +
-        `un JSON válido. ${error.message}`,
-    );
-  }
-}
 
 // Carga la configuración utilizada durante
 // la creación del personaje.
 export function cargarConfiguracionPersonaje() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_CONFIGURACION_PERSONAJE,
     "la configuración del personaje",
   );
@@ -149,13 +131,13 @@ export async function cargarConfiguracionEnemigos() {
     Promise.all(
       CATALOGOS_ENEMIGOS.map(async (catalogo) => ({
         ...catalogo,
-        configuracion: await cargarArchivoJson(
+        configuracion: await cargarJson(
           catalogo.ruta,
           catalogo.descripcion,
         ),
       })),
     ),
-    cargarArchivoJson(RUTA_VARIANTES_ENEMIGOS, "las variantes de enemigos"),
+    cargarJson(RUTA_VARIANTES_ENEMIGOS, "las variantes de enemigos"),
   ]);
 
   const plantillas = combinarCatalogosPlantillas({
@@ -183,7 +165,7 @@ export async function cargarConfiguracionObjetos() {
   const catalogosCargados = await Promise.all(
     CATALOGOS_OBJETOS.map(async (catalogo) => ({
       ...catalogo,
-      configuracion: await cargarArchivoJson(
+      configuracion: await cargarJson(
         catalogo.ruta,
         catalogo.descripcion,
       ),
@@ -203,19 +185,19 @@ export async function cargarConfiguracionObjetos() {
 // - Prefijos y sufijos disponibles.
 export async function cargarConfiguracionGeneracionObjetos() {
   const [reglas, rarezas, prefijos, sufijos] = await Promise.all([
-    cargarArchivoJson(
+    cargarJson(
       RUTA_REGLAS_GENERACION_OBJETOS,
       "las reglas generales de generación de objetos",
     ),
-    cargarArchivoJson(
+    cargarJson(
       RUTA_RAREZAS_OBJETOS,
       "el catálogo de rarezas de objetos",
     ),
-    cargarArchivoJson(
+    cargarJson(
       RUTA_PREFIJOS_OBJETOS,
       "el catálogo de prefijos de objetos",
     ),
-    cargarArchivoJson(
+    cargarJson(
       RUTA_SUFIJOS_OBJETOS,
       "el catálogo de sufijos de objetos",
     ),
@@ -232,7 +214,7 @@ export async function cargarConfiguracionGeneracionObjetos() {
 // Carga y valida las reglas de precio y los perfiles
 // económicos de los mercaderes.
 export async function cargarConfiguracionComercio() {
-  const configuracion = await cargarArchivoJson(
+  const configuracion = await cargarJson(
     RUTA_CONFIGURACION_COMERCIO,
     "la configuración de comercio",
   );
@@ -241,7 +223,7 @@ export async function cargarConfiguracionComercio() {
 }
 
 export async function cargarConfiguracionHabilidadesNPC() {
-  const configuracion = await cargarArchivoJson(
+  const configuracion = await cargarJson(
     RUTA_HABILIDADES_NPC,
     "el catálogo de habilidades NPC",
   );
@@ -250,28 +232,28 @@ export async function cargarConfiguracionHabilidadesNPC() {
 }
 
 export function cargarPerfilesAtaquePorFamilia() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_PERFILES_ATAQUE_POR_FAMILIA,
     "los perfiles de ataque por familia",
   );
 }
 
 export function cargarPerfilesHabilidadesVisuales() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_PERFILES_HABILIDADES_VISUALES,
     "los perfiles visuales de habilidades",
   );
 }
 
 export function cargarPerfilesEstadosTemporalesVisuales() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_PERFILES_ESTADOS_TEMPORALES_VISUALES,
     "los perfiles visuales de estados temporales",
   );
 }
 
 export function cargarPerfilesZonasTemporalesVisuales() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_PERFILES_ZONAS_TEMPORALES_VISUALES,
     "los perfiles visuales de zonas temporales",
   );
@@ -426,7 +408,7 @@ function normalizarIdConfiguracion(idOriginal, descripcionCatalogo) {
 // Carga y valida las plantillas utilizadas
 // para generar mapas procedurales.
 export async function cargarConfiguracionMapas() {
-  const configuracion = await cargarArchivoJson(
+  const configuracion = await cargarJson(
     RUTA_MAPAS,
     "la configuración de mapas",
   );
@@ -440,7 +422,7 @@ export async function cargarConfiguracionMapas() {
 // posiciones y entidades se ejecuta al construir
 // la ciudad dentro de ConfiguracionCiudad.
 export function cargarConfiguracionCiudad() {
-  return cargarArchivoJson(
+  return cargarJson(
     RUTA_CIUDAD_INICIAL,
     "la configuración de la ciudad inicial",
   );

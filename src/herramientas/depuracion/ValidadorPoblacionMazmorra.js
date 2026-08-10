@@ -7,6 +7,7 @@ export function validarPoblacionMazmorra({
   plantilla,
   contenido,
   posicionJugador = plano?.posicionInicialSugerida,
+  cantidadEnemigosRecurrentesEsperada = null,
 } = {}) {
   validarObjeto(plano, "el plano de mazmorra");
   validarObjeto(plantilla, "la plantilla de mapa");
@@ -117,8 +118,10 @@ export function validarPoblacionMazmorra({
     plano,
     posicionJugador,
   });
-  const cantidadObjetivo = Number.isInteger(plantilla.enemigos?.cantidadPrueba)
-    ? plantilla.enemigos.cantidadPrueba
+  const cantidadObjetivo = Number.isInteger(
+    cantidadEnemigosRecurrentesEsperada,
+  )
+    ? cantidadEnemigosRecurrentesEsperada
     : Math.max(
         1,
         Math.round(

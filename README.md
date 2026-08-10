@@ -85,7 +85,7 @@ No es necesario instalar dependencias.
 
 ### Parámetros de desarrollo para mapas
 
-`src/juego/configuracion/ParametrosPruebaMapa.js` permite iniciar una partida directamente en una expedición determinada:
+`src/herramientas/depuracion/ParametrosPruebaMapa.js` permite iniciar una partida directamente en una expedición determinada. Los recursos especiales se materializan desde `src/herramientas/depuracion/RecursosPruebaMapa.js`, fuera de la configuración canónica del mapa:
 
 ```text
 http://localhost:8000/index.html?mapa=cementerio&nivel=3&semilla=prueba
@@ -100,6 +100,7 @@ Parámetros disponibles:
 | `semilla` | Semilla numérica o textual. |
 | `botin` | Activa recursos especiales para validar botín. Cualquier valor no vacío lo activa. |
 | `portal` | Activa recursos especiales para validar portales. Cualquier valor no vacío lo activa. |
+| `enemigos` | Fuerza una cantidad controlada de enemigos recurrentes para pruebas de carga y fluidez. |
 
 El modo por URL puede ignorar el nivel de desbloqueo porque está destinado a pruebas.
 
@@ -392,6 +393,8 @@ Una presentación futura puede conectar otro adaptador sin modificar las reglas 
 - `src/aplicacion/` coordina casos de uso y resultados, sin depender de `document`, Canvas o Phaser.
 - `src/interfaz/` construye la presentación DOM/Canvas actual y puede ser reemplazada o combinada con otro backend gráfico.
 - `src/controles/` traduce teclado o puntero a comandos compartidos; no decide reglas jugables.
+- `src/utilidades/` contiene primitivas técnicas neutrales reutilizables, sin reglas de dominio; actualmente centraliza carga JSON y almacenamiento JSON clave/valor.
+- `src/herramientas/depuracion/` concentra soporte explícito de diagnóstico y pruebas; los recursos de prueba de mapas ya no se fabrican desde la configuración canónica.
 - `assets/estilos/` concentra todas las hojas CSS, organizadas por responsabilidad.
 - Los nombres, descripciones, costes y ejecuciones de habilidades provienen de las configuraciones JSON; la interfaz no mantiene catálogos paralelos.
 
@@ -929,7 +932,7 @@ src/config/objetos/afijos/Sufijos.json
 
 ### Carga de catálogos
 
-`CargadorConfiguracion.js` carga cada categoría por separado y las combina en un único catálogo en memoria. Los IDs deben ser únicos entre archivos.
+`CargadorConfiguracion.js` carga cada categoría por separado y las combina en un único catálogo en memoria. Los IDs deben ser únicos entre archivos. El transporte HTTP y el parseo JSON común se concentran en `src/utilidades/CargadorJson.js`; cada catálogo conserva en su propio módulo la validación de sus reglas.
 
 El resto del juego no debe depender de qué archivo físico contiene un objeto.
 
@@ -1162,6 +1165,8 @@ Las zonas pertenecen al `Juego` activo. Al cambiar de mapa se destruyen junto co
 ```text
 src/partida/PersistenciaJugador.js
 ```
+
+El acceso técnico compartido a almacenamiento JSON vive en `src/utilidades/AlmacenamientoJson.js`. `PersistenciaJugador`, `PersistenciaBarraHabilidades` y la persistencia de preferencias continúan siendo responsables de sus propias claves, versiones, validaciones y políticas ante ausencia de almacenamiento.
 
 Clave de `localStorage`:
 

@@ -1,3 +1,10 @@
+import {
+  eliminarClaveAlmacenada,
+  existeClaveAlmacenada,
+  guardarJsonAlmacenado,
+  leerJsonAlmacenado,
+  validarAlmacenamientoClaveValor,
+} from "../utilidades/AlmacenamientoJson.js";
 import { Player } from "../entidad/destructible/combatiente/Player.js";
 import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
@@ -67,9 +74,13 @@ export function guardarJugadorDurable({
   jugador,
   almacenamiento = globalThis.localStorage,
 } = {}) {
-  validarAlmacenamiento(almacenamiento);
+  validarAlmacenamientoClaveValor(almacenamiento);
   const snapshot = crearSnapshotJugador(jugador);
-  almacenamiento.setItem(CLAVE_GUARDADO_JUGADOR, JSON.stringify(snapshot));
+  guardarJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_GUARDADO_JUGADOR,
+    valor: snapshot,
+  });
 
   return {
     exito: true,
@@ -85,27 +96,25 @@ export function existeGuardadoJugador({
     return false;
   }
 
-  validarAlmacenamiento(almacenamiento);
-  return almacenamiento.getItem(CLAVE_GUARDADO_JUGADOR) !== null;
+  validarAlmacenamientoClaveValor(almacenamiento);
+  return existeClaveAlmacenada({
+    almacenamiento,
+    clave: CLAVE_GUARDADO_JUGADOR,
+  });
 }
 
 export function leerSnapshotJugador({
   almacenamiento = globalThis.localStorage,
 } = {}) {
-  validarAlmacenamiento(almacenamiento);
-  const contenido = almacenamiento.getItem(CLAVE_GUARDADO_JUGADOR);
+  validarAlmacenamientoClaveValor(almacenamiento);
+  const snapshot = leerJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_GUARDADO_JUGADOR,
+    descripcion: "El guardado del jugador",
+  });
 
-  if (contenido === null) {
+  if (snapshot === null) {
     return null;
-  }
-
-  let snapshot;
-  try {
-    snapshot = JSON.parse(contenido);
-  } catch (error) {
-    throw new Error(
-      `El guardado del jugador no contiene JSON válido. ${error.message}`,
-    );
   }
 
   validarRaizSnapshot(snapshot);
@@ -119,9 +128,11 @@ export function eliminarGuardadoJugador({
     return { exito: false, eliminado: false };
   }
 
-  validarAlmacenamiento(almacenamiento);
-  const existia = almacenamiento.getItem(CLAVE_GUARDADO_JUGADOR) !== null;
-  almacenamiento.removeItem(CLAVE_GUARDADO_JUGADOR);
+  validarAlmacenamientoClaveValor(almacenamiento);
+  const existia = eliminarClaveAlmacenada({
+    almacenamiento,
+    clave: CLAVE_GUARDADO_JUGADOR,
+  });
 
   return {
     exito: true,
@@ -450,16 +461,6 @@ function validarJugador(jugador) {
   }
 }
 
-function validarAlmacenamiento(almacenamiento) {
-  if (
-    !almacenamiento ||
-    typeof almacenamiento.getItem !== "function" ||
-    typeof almacenamiento.setItem !== "function" ||
-    typeof almacenamiento.removeItem !== "function"
-  ) {
-    throw new Error("No existe un almacenamiento durable compatible.");
-  }
-}
 
 function validarObjetoPlano(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {

@@ -167,9 +167,7 @@ export class GestorMapasPartida {
     semillaMapa = null,
     idMapaForzado = null,
     nivelMapaForzado = null,
-    botinPrueba = false,
-    portalPrueba = false,
-    cantidadEnemigosForzada = null,
+    cantidadEnemigosRecurrentes = null,
     ignorarNivelDesbloqueo = false,
   } = {}) {
     const configuracionMapasGeneracion =
@@ -192,9 +190,7 @@ export class GestorMapasPartida {
       semillaMapa,
       idMapaForzado,
       nivelMapaForzado,
-      botinPrueba,
-      portalPrueba,
-      cantidadEnemigosForzada,
+      cantidadEnemigosRecurrentes,
     });
 
     // Cada mazmorra recibe una salida real situada sobre el acceso reservado

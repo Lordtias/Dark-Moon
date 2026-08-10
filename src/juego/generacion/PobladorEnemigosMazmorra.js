@@ -357,10 +357,6 @@ export function calcularCantidadEnemigosRecurrentes({
   configuracion,
   contextoPoblacion,
 }) {
-  if (Number.isInteger(configuracion.cantidadPrueba)) {
-    return configuracion.cantidadPrueba;
-  }
-
   const cantidadCalculada = Math.round(
     contextoPoblacion.cantidadCasillasCandidatas *
       (configuracion.densidadPor100Casillas / 100),
@@ -383,7 +379,6 @@ export function crearResumenPoblacionEnemigos({
 
   return {
     estrategia: "densidad_por_zonas",
-    cantidadForzadaPrueba: configuracion.cantidadPrueba ?? null,
     densidadPor100Casillas: configuracion.densidadPor100Casillas,
     probabilidadZonaPoblada: configuracion.probabilidadZonaPoblada,
     cantidadCasillasCandidatas: contextoPoblacion.cantidadCasillasCandidatas,

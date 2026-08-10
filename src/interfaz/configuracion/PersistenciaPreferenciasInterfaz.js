@@ -1,21 +1,23 @@
+import {
+  eliminarClaveAlmacenada,
+  guardarJsonAlmacenado,
+  leerJsonAlmacenado,
+  obtenerAlmacenamientoLocalSeguro,
+} from "../../utilidades/AlmacenamientoJson.js";
+
 const CLAVE_PREFERENCIAS_INTERFAZ = "dark-moon:preferencias-interfaz";
 
 export function leerPreferenciasInterfazPersistidas({
-  almacenamiento = obtenerAlmacenamientoPredeterminado(),
+  almacenamiento = obtenerAlmacenamientoLocalSeguro(),
 } = {}) {
   if (!almacenamiento) return null;
 
-  const contenido = almacenamiento.getItem(CLAVE_PREFERENCIAS_INTERFAZ);
-  if (contenido === null) return null;
-
-  let datos;
-  try {
-    datos = JSON.parse(contenido);
-  } catch (error) {
-    throw new Error(
-      `Las preferencias guardadas no contienen JSON válido. ${error.message}`,
-    );
-  }
+  const datos = leerJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_PREFERENCIAS_INTERFAZ,
+    descripcion: "Las preferencias guardadas",
+  });
+  if (datos === null) return null;
 
   if (
     datos === null ||
@@ -39,7 +41,7 @@ export function leerPreferenciasInterfazPersistidas({
 export function guardarPreferenciasInterfazPersistidas({
   version,
   preferencias,
-  almacenamiento = obtenerAlmacenamientoPredeterminado(),
+  almacenamiento = obtenerAlmacenamientoLocalSeguro(),
 } = {}) {
   if (!almacenamiento) return false;
   if (!Number.isInteger(version) || version <= 0) {
@@ -55,32 +57,31 @@ export function guardarPreferenciasInterfazPersistidas({
 
   const claves = Object.keys(preferencias);
   if (claves.length === 0) {
-    almacenamiento.removeItem(CLAVE_PREFERENCIAS_INTERFAZ);
+    eliminarClaveAlmacenada({
+      almacenamiento,
+      clave: CLAVE_PREFERENCIAS_INTERFAZ,
+    });
     return true;
   }
 
-  almacenamiento.setItem(
-    CLAVE_PREFERENCIAS_INTERFAZ,
-    JSON.stringify({
+  guardarJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_PREFERENCIAS_INTERFAZ,
+    valor: {
       version,
       preferencias,
-    }),
-  );
+    },
+  });
   return true;
 }
 
 export function eliminarPreferenciasInterfazPersistidas({
-  almacenamiento = obtenerAlmacenamientoPredeterminado(),
+  almacenamiento = obtenerAlmacenamientoLocalSeguro(),
 } = {}) {
   if (!almacenamiento) return false;
-  almacenamiento.removeItem(CLAVE_PREFERENCIAS_INTERFAZ);
+  eliminarClaveAlmacenada({
+    almacenamiento,
+    clave: CLAVE_PREFERENCIAS_INTERFAZ,
+  });
   return true;
-}
-
-function obtenerAlmacenamientoPredeterminado() {
-  try {
-    return globalThis.localStorage ?? null;
-  } catch {
-    return null;
-  }
 }

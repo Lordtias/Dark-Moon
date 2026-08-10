@@ -1,3 +1,9 @@
+import {
+  eliminarClaveAlmacenada,
+  guardarJsonAlmacenado,
+  leerJsonAlmacenado,
+  validarAlmacenamientoClaveValor,
+} from "../../utilidades/AlmacenamientoJson.js";
 import { normalizarRanurasBarra } from "./ContratoBarraHabilidades.js";
 
 export const CLAVE_BARRA_HABILIDADES = "dark-moon:barra-habilidades:v1";
@@ -9,32 +15,31 @@ export function guardarConfiguracionBarraHabilidades({
   ranuras,
   almacenamiento = globalThis.localStorage,
 } = {}) {
-  validarAlmacenamiento(almacenamiento);
+  validarAlmacenamientoClaveValor(almacenamiento);
   const normalizadas = normalizarRanurasBarra(ranuras);
   const snapshot = {
     version: VERSION_BARRA_HABILIDADES,
     guardadoEn: new Date().toISOString(),
     ranuras: normalizadas,
   };
-  almacenamiento.setItem(CLAVE_BARRA_HABILIDADES, JSON.stringify(snapshot));
+  guardarJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_BARRA_HABILIDADES,
+    valor: snapshot,
+  });
   return { exito: true, clave: CLAVE_BARRA_HABILIDADES, snapshot };
 }
 
 export function leerConfiguracionBarraHabilidades({
   almacenamiento = globalThis.localStorage,
 } = {}) {
-  validarAlmacenamiento(almacenamiento);
-  const contenido = almacenamiento.getItem(CLAVE_BARRA_HABILIDADES);
-  if (contenido === null) return null;
-
-  let snapshot;
-  try {
-    snapshot = JSON.parse(contenido);
-  } catch (error) {
-    throw new Error(
-      `La barra guardada no contiene JSON válido. ${error.message}`,
-    );
-  }
+  validarAlmacenamientoClaveValor(almacenamiento);
+  const snapshot = leerJsonAlmacenado({
+    almacenamiento,
+    clave: CLAVE_BARRA_HABILIDADES,
+    descripcion: "La barra guardada",
+  });
+  if (snapshot === null) return null;
 
   const ranuras = validarSnapshot(snapshot);
   return {
@@ -50,9 +55,11 @@ export function eliminarConfiguracionBarraHabilidades({
   if (!almacenamiento) {
     return { exito: false, eliminado: false };
   }
-  validarAlmacenamiento(almacenamiento);
-  const existia = almacenamiento.getItem(CLAVE_BARRA_HABILIDADES) !== null;
-  almacenamiento.removeItem(CLAVE_BARRA_HABILIDADES);
+  validarAlmacenamientoClaveValor(almacenamiento);
+  const existia = eliminarClaveAlmacenada({
+    almacenamiento,
+    clave: CLAVE_BARRA_HABILIDADES,
+  });
   return {
     exito: true,
     eliminado: existia,
@@ -70,15 +77,4 @@ function validarSnapshot(snapshot) {
     );
   }
   return normalizarRanurasBarra(snapshot.ranuras);
-}
-
-function validarAlmacenamiento(almacenamiento) {
-  if (
-    !almacenamiento ||
-    typeof almacenamiento.getItem !== "function" ||
-    typeof almacenamiento.setItem !== "function" ||
-    typeof almacenamiento.removeItem !== "function"
-  ) {
-    throw new Error("No existe un almacenamiento durable compatible.");
-  }
 }

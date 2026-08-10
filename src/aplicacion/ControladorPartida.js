@@ -15,7 +15,8 @@ import {
   EjecutorAccionesJugador,
   TIPOS_COMANDO_JUGADOR,
 } from "./EjecutorAccionesJugador.js";
-import { leerParametrosPruebaMapa } from "../juego/configuracion/ParametrosPruebaMapa.js";
+import { leerParametrosPruebaMapa } from "../herramientas/depuracion/ParametrosPruebaMapa.js";
+import { agregarRecursosPruebaMapa } from "../herramientas/depuracion/RecursosPruebaMapa.js";
 import {
   crearMensajeTraducible,
   crearParametroContenidoMensaje,
@@ -242,11 +243,18 @@ export class ControladorPartida {
       semillaMapa,
       idMapaForzado,
       nivelMapaForzado,
-      botinPrueba,
-      portalPrueba,
-      cantidadEnemigosForzada,
+      cantidadEnemigosRecurrentes: cantidadEnemigosForzada,
       ignorarNivelDesbloqueo,
     });
+
+    if (botinPrueba || portalPrueba) {
+      agregarRecursosPruebaMapa({
+        configuracionMapa,
+        configuracionObjetos: this.configuracionObjetos,
+        botinPrueba,
+        portalPrueba,
+      });
+    }
 
     this.activarMapa(configuracionMapa);
 

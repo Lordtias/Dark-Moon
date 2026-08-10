@@ -1,3 +1,4 @@
+import { cargarJson as cargarJsonComun } from "../../utilidades/CargadorJson.js";
 import {
   cargarConfiguracionEnemigos,
   cargarConfiguracionGeneracionObjetos,
@@ -112,12 +113,10 @@ async function cargarBalance() {
   }
 }
 
-async function cargarJson(ruta) {
-  const respuesta = await fetch(ruta, { cache: "no-store" });
-  if (!respuesta.ok) {
-    throw new Error(`No se pudo cargar "${ruta}" (${respuesta.status}).`);
-  }
-  return respuesta.json();
+function cargarJson(ruta) {
+  return cargarJsonComun(ruta, `el archivo "${ruta}"`, {
+    cache: "no-store",
+  });
 }
 
 function dibujarInforme(informe) {

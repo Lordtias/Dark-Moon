@@ -33,6 +33,7 @@ export function generarContenidoMapa({
   configuracionEnemigos,
   configuracionObjetos,
   nivelMapa = null,
+  cantidadEnemigosRecurrentes = null,
 } = {}) {
   validarParametros({
     plantilla,
@@ -41,6 +42,7 @@ export function generarContenidoMapa({
     aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
+    cantidadEnemigosRecurrentes,
   });
 
   // Todos los enemigos de la expedición se crean
@@ -79,10 +81,13 @@ export function generarContenidoMapa({
 
   const posicionesEnemigos = [];
 
-  const cantidadEnemigosRecurrentes = calcularCantidadEnemigosRecurrentes({
-    configuracion: plantilla.enemigos,
-    contextoPoblacion,
-  });
+  const cantidadEnemigosRecurrentesResuelta =
+    Number.isInteger(cantidadEnemigosRecurrentes)
+      ? cantidadEnemigosRecurrentes
+      : calcularCantidadEnemigosRecurrentes({
+          configuracion: plantilla.enemigos,
+          contextoPoblacion,
+        });
 
   // Los enemigos únicos se resuelven primero para garantizar que la zona
   // especial preserve espacio para su objetivo principal. El orden lógico
@@ -99,7 +104,7 @@ export function generarContenidoMapa({
     aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
-    numeroDetalleInicial: cantidadEnemigosRecurrentes + 1,
+    numeroDetalleInicial: cantidadEnemigosRecurrentesResuelta + 1,
   });
 
   const resultadoEspecial = generarEnemigoUnicoEnZona({
@@ -115,7 +120,7 @@ export function generarContenidoMapa({
     configuracionEnemigos,
     configuracionObjetos,
     numeroDetalleInicial:
-      cantidadEnemigosRecurrentes + resultadoJefe.enemigos.length + 1,
+      cantidadEnemigosRecurrentesResuelta + resultadoJefe.enemigos.length + 1,
   });
 
   const resultadoRecurrentes = generarEnemigosRecurrentes({
@@ -123,7 +128,7 @@ export function generarContenidoMapa({
     nivelMapa: nivelMapaResuelto,
     posicionJugador,
     contextoPoblacion,
-    cantidadObjetivo: cantidadEnemigosRecurrentes,
+    cantidadObjetivo: cantidadEnemigosRecurrentesResuelta,
     posicionesEnemigos,
     aleatorio,
     configuracionEnemigos,
@@ -157,7 +162,7 @@ export function generarContenidoMapa({
   const poblacionEnemigos = crearResumenPoblacionEnemigos({
     configuracion: plantilla.enemigos,
     contextoPoblacion,
-    cantidadObjetivo: cantidadEnemigosRecurrentes,
+    cantidadObjetivo: cantidadEnemigosRecurrentesResuelta,
     resultadoRecurrentes,
   });
 
@@ -237,6 +242,7 @@ function validarParametros({
   aleatorio,
   configuracionEnemigos,
   configuracionObjetos,
+  cantidadEnemigosRecurrentes,
 }) {
   if (!plantilla || typeof plantilla !== "object") {
     throw new Error(
@@ -275,5 +281,15 @@ function validarParametros({
 
   if (!configuracionObjetos || typeof configuracionObjetos !== "object") {
     throw new Error("Se necesita la configuración de objetos.");
+  }
+
+  if (
+    cantidadEnemigosRecurrentes !== null &&
+    (!Number.isInteger(cantidadEnemigosRecurrentes) ||
+      cantidadEnemigosRecurrentes < 0)
+  ) {
+    throw new Error(
+      "La cantidad de enemigos recurrentes debe ser un entero igual o mayor que 0.",
+    );
   }
 }

@@ -1,3 +1,5 @@
+import { cargarJson } from "../../utilidades/CargadorJson.js";
+
 const RUTA_PREFERENCIAS_INTERFAZ =
   "./src/config/presentacion/PreferenciasInterfaz.json";
 const VERSION_SOPORTADA = 2;
@@ -10,9 +12,9 @@ const CLAVES_PREFERENCIAS = Object.freeze([
 ]);
 
 export async function cargarConfiguracionPreferenciasInterfaz({
-  cargarJson = cargarJsonPorFetch,
+  cargarJson: cargarConfiguracion = cargarJson,
 } = {}) {
-  const configuracion = await cargarJson(
+  const configuracion = await cargarConfiguracion(
     RUTA_PREFERENCIAS_INTERFAZ,
     "las preferencias canónicas de interfaz",
   );
@@ -306,22 +308,6 @@ function redondearDecimal(valor) {
   return Math.round(valor * 1000000) / 1000000;
 }
 
-async function cargarJsonPorFetch(ruta, descripcion) {
-  const respuesta = await fetch(ruta);
-  if (!respuesta.ok) {
-    throw new Error(
-      `No se pudo cargar ${descripcion}. Código HTTP: ${respuesta.status}`,
-    );
-  }
-
-  try {
-    return await respuesta.json();
-  } catch (error) {
-    throw new Error(
-      `El archivo de ${descripcion} no contiene un JSON válido. ${error.message}`,
-    );
-  }
-}
 
 function esObjetoPlano(valor) {
   return (

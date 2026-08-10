@@ -1,3 +1,4 @@
+import { cargarJson } from "../../utilidades/CargadorJson.js";
 import { validarConfiguracionEjecucionHabilidades } from "../habilidades/ValidadorConfiguracionEjecucionHabilidades.js";
 import { validarConfiguracionProgresoMagico } from "./ValidadorConfiguracionProgresoMagico.js";
 import { ProgresoMagicoJugador } from "./ProgresoMagicoJugador.js";
@@ -14,35 +15,14 @@ let configuracionEjecucionActiva = null;
 // La integración con el Juego activo se realiza explícitamente desde
 // ControladorPartida, sin instaladores dinámicos ni modificaciones de prototipo.
 export async function cargarYConfigurarProgresoMagico() {
-  const [respuestaMaestrias, respuestaHabilidades, respuestaEfectos] =
-    await Promise.all([
-      fetch(RUTA_MAESTRIAS),
-      fetch(RUTA_HABILIDADES),
-      fetch(RUTA_EFECTOS),
-    ]);
-  if (!respuestaMaestrias.ok) {
-    throw new Error(
-      `No se pudo cargar Maestrias.json (${respuestaMaestrias.status}).`,
-    );
-  }
-  if (!respuestaHabilidades.ok) {
-    throw new Error(
-      `No se pudo cargar Habilidades.json (${respuestaHabilidades.status}).`,
-    );
-  }
-  if (!respuestaEfectos.ok) {
-    throw new Error(
-      `No se pudo cargar Efectos.json (${respuestaEfectos.status}).`,
-    );
-  }
   const [
     configuracionMaestrias,
     configuracionHabilidades,
     configuracionEfectos,
   ] = await Promise.all([
-    respuestaMaestrias.json(),
-    respuestaHabilidades.json(),
-    respuestaEfectos.json(),
+    cargarJson(RUTA_MAESTRIAS, "Maestrias.json"),
+    cargarJson(RUTA_HABILIDADES, "Habilidades.json"),
+    cargarJson(RUTA_EFECTOS, "Efectos.json"),
   ]);
   configuracionActiva = validarConfiguracionProgresoMagico({
     configuracionMaestrias,

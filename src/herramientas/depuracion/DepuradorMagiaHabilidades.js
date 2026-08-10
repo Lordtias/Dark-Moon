@@ -1,3 +1,4 @@
+import { cargarJson } from "../../utilidades/CargadorJson.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
   obtenerConfiguracionProgresoMagico,
@@ -398,16 +399,12 @@ function crearAccesoBalance(contexto) {
   });
 }
 
-async function cargarObjetivosBalance() {
-  const respuesta = await fetch("./src/herramientas/balance/ObjetivosBalance.json", {
-    cache: "no-store",
-  });
-  if (!respuesta.ok) {
-    throw new Error(
-      `No se pudo cargar ObjetivosBalance.json (${respuesta.status}).`,
-    );
-  }
-  return respuesta.json();
+function cargarObjetivosBalance() {
+  return cargarJson(
+    "./src/herramientas/balance/ObjetivosBalance.json",
+    "ObjetivosBalance.json",
+    { cache: "no-store" },
+  );
 }
 
 function crearAccesoContexto(obtenerAplicacion) {

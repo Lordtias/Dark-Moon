@@ -622,8 +622,8 @@ Cada cambio debe ser pequeño, justificable por responsabilidad y validado contr
 **Avance interno del bloque:**
 
 - contratos de habilidades y espacio: cerrado y validado en `83ca2967f14a6fbc025b5b649996a505dc1dd28e`;
-- aplicación y persistencia: siguiente entrega operativa, enfocada en retirar persistencia durable del DOM y aislar la compuerta de entrada jugable;
-- infraestructura común y soporte de prueba: pendiente después de validar aplicación y persistencia.
+- aplicación y persistencia: cerrado y validado en `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa`;
+- infraestructura común y soporte de prueba: implementado sobre `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa` y pendiente de validación manual antes del cierre del bloque.
 
 ### Bloque C — Refactors grandes de presentación
 
@@ -1214,13 +1214,11 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `83ca2967f14a6fbc025b5b649996a505dc1dd28e`.
+El estado operativo actual parte del commit validado `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa`.
 
-Las Etapas 1 y 2 están cerradas y el **Bloque B — Deuda estructural local** está en curso. La consolidación de contratos de habilidades y espacio ya fue validada. El siguiente trabajo es aplicación y persistencia: retirar accesos directos del DOM al guardado durable y aislar la compuerta de entrada jugable del controlador de sesión.
+Las Etapas 1 y 2 están cerradas y el **Bloque B — Deuda estructural local** está en su última entrega. Contratos/espacio y aplicación/persistencia ya fueron validados. La infraestructura común de carga/almacenamiento y la separación del soporte de pruebas quedaron implementadas sobre esa base y deben validarse manualmente antes de considerar cerrado el bloque.
 
-Después de validar esa entrega quedará pendiente dentro del mismo bloque la infraestructura común de carga/almacenamiento y la separación del soporte de pruebas incrustado en configuración.
-
-Solamente cuando la deuda estructural local completa quede cerrada se realizará el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
+Una vez aprobada y commiteada esta última entrega, el siguiente trabajo será el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
 
 Solamente cuando ambos bloques estén cerrados se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 

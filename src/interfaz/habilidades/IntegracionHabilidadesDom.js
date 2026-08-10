@@ -1,6 +1,5 @@
 import { BarraHabilidades } from "./BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "./PanelHabilidadesMaestrias.js";
-import { ControladorPunteroHabilidades } from "../../controles/ControladorPunteroHabilidades.js";
 import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
 import { suscribirCambiosProgresoMagico } from "../../juego/habilidades/ObservadorProgresoMagico.js";
 import {
@@ -96,12 +95,6 @@ export class IntegracionHabilidadesDom {
       configuracionEjecucion,
       familiasArmas: obtenerFamiliasArmas(this.configuracionObjetos),
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
-    });
-
-    this.puntero = new ControladorPunteroHabilidades({
-      sistemaHabilidades: this.sistema,
-      esJuegoActivo: () => Boolean(this.obtenerSistemaParaEntrada()),
-      alEjecutarComando: (comando) => this.alEjecutarComando(comando),
     });
 
     this.desuscribirSistema = this.sistema.suscribirCambio(() => {
@@ -254,7 +247,6 @@ export class IntegracionHabilidadesDom {
 
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
-    this.puntero?.destruir();
     this.barra?.destruir();
     this.panel?.destruir();
     this.sistema?.destruir();

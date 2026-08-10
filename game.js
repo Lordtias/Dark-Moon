@@ -1,10 +1,6 @@
 // Aplicacion coordina la carga inicial, los menús y la partida.
 import { Aplicacion } from "./src/aplicacion/Aplicacion.js";
 import { PresentacionAplicacionDom } from "./src/interfaz/dom/PresentacionAplicacionDom.js";
-import {
-  resolverTipoRenderizador,
-  utilizaPhaser,
-} from "./src/interfaz/graficos/SelectorRenderizador.js";
 import { cargarPhaser } from "./src/interfaz/graficos/phaser/CargadorPhaser.js";
 import { crearDepuradorMagiaHabilidades } from "./src/herramientas/depuracion/DepuradorMagiaHabilidades.js";
 import { VERSION_APLICACION } from "./src/config/VersionAplicacion.js";
@@ -12,17 +8,9 @@ import { VERSION_APLICACION } from "./src/config/VersionAplicacion.js";
 iniciarDarkMoon();
 
 async function iniciarDarkMoon() {
-  const tipoRenderizador = resolverTipoRenderizador();
-
   try {
-    const Phaser = utilizaPhaser(tipoRenderizador)
-      ? await cargarPhaser()
-      : null;
-
-    const presentacion = new PresentacionAplicacionDom({
-      tipoRenderizador,
-      Phaser,
-    });
+    const Phaser = await cargarPhaser();
+    const presentacion = new PresentacionAplicacionDom({ Phaser });
 
     const aplicacion = new Aplicacion({
       presentacion,
@@ -30,12 +18,12 @@ async function iniciarDarkMoon() {
 
     // La referencia pública es deliberadamente pequeña y sirve para
     // validaciones manuales. La lógica real continúa dentro de los módulos de
-    // dominio, independientemente del backend visual elegido.
+    // dominio y Phaser se limita a la presentación gráfica.
     globalThis.darkMoonAplicacion = aplicacion;
     globalThis.darkMoonVersion = VERSION_APLICACION;
     globalThis.darkMoonRenderizador = Object.freeze({
-      tipo: tipoRenderizador,
-      phaser: Phaser?.VERSION ?? null,
+      tipo: "phaser",
+      phaser: Phaser.VERSION,
     });
     globalThis.darkMoonDebug = crearDepuradorMagiaHabilidades({
       obtenerAplicacion: () => aplicacion,

@@ -41,8 +41,23 @@ export function obtenerIdVisualEntidad(entidad) {
 // - Selector de habilidad.
 // - Entidades visibles.
 //
-// Los selectores reutilizan el mismo contrato visual
-// de esquinas que ya posee Canvas.
+// Los selectores comparten un único contrato visual neutral de esquinas.
+export function crearRecursosVisualesMapa(juego) {
+  validarJuego(juego);
+
+  const entidades = [
+    juego.player,
+    ...(Array.isArray(juego.interactuables) ? juego.interactuables : []),
+    ...(Array.isArray(juego.objetivos) ? juego.objetivos : []),
+  ];
+
+  return Object.freeze([
+    ...new Set(
+      entidades.flatMap((entidad) => obtenerRecursosVisualesPrecarga(entidad)),
+    ),
+  ]);
+}
+
 export function crearEscenaJuego(juego, { habilidad = null } = {}) {
   validarJuego(juego);
 
@@ -55,9 +70,8 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
     visibilidad.casillasVisibles.map(({ x, y }) => `${x},${y}`),
   );
 
-  // RenderizadorCanvas2D recibe los selectores dentro del bloque "combate".
-  // El adaptador reutiliza ese contrato visual sin mezclar las reglas de los
-  // tres modos de interacción.
+  // El bloque visual "combate" conserva un contrato común para los selectores
+  // sin mezclar las reglas de combate, interacción y habilidades.
   const selectorMapaActivo =
     combateActivo || interaccionActiva || habilidadActiva;
 

@@ -62,6 +62,53 @@ export class GestorRecursosPhaser {
     }
   }
 
+  async precargarYEsperar(rutas, { alProgreso = null } = {}) {
+    if (alProgreso !== null && typeof alProgreso !== "function") {
+      throw new Error("El progreso de precarga Phaser debe ser una función.");
+    }
+
+    const rutasUnicas = [
+      ...new Set(
+        (rutas ?? [])
+          .map((ruta) => normalizarRuta(ruta))
+          .filter(Boolean),
+      ),
+    ];
+    const total = rutasUnicas.length;
+    let completados = 0;
+    let cargados = 0;
+    let fallidos = 0;
+
+    const informar = () => {
+      alProgreso?.({
+        total,
+        completados,
+        cargados,
+        fallidos,
+        progreso: total === 0 ? 1 : completados / total,
+      });
+    };
+
+    informar();
+
+    await Promise.all(
+      rutasUnicas.map(async (ruta) => {
+        const informacion = await this.obtenerInformacionAsync(ruta);
+        completados += 1;
+        if (informacion) cargados += 1;
+        else fallidos += 1;
+        informar();
+      }),
+    );
+
+    return Object.freeze({
+      total,
+      completados,
+      cargados,
+      fallidos,
+    });
+  }
+
   iniciarCarga(ruta) {
     const claveTextura = crearClaveTextura(ruta);
     const imagen = new Image();

@@ -15,6 +15,8 @@ No conserva la crónica detallada de P0–P7. Esa historia permanece disponible 
 
 Cuando una etapa se cierre, su detalle reproducible se registrará en una entrega específica dentro de `docs/electron/entregas/` mientras resulte útil para el hito actual.
 
+> **Actualización arquitectónica posterior:** Dark Moon retiró su renderizador Canvas 2D propio después de certificar la cobertura de Phaser. Phaser 4.2.1 es ahora el único renderizador mantenido por la aplicación y conserva `Phaser.AUTO` para elegir internamente WebGL o Canvas. Las referencias a Canvas 2D dentro de evidencias históricas de E0 describen el estado que existía cuando esas pruebas fueron realizadas, no la arquitectura vigente.
+
 ---
 
 ## 2. Estado de partida
@@ -40,8 +42,8 @@ Características relevantes de la base actual:
 
 - `index.html` continúa siendo la entrada web;
 - `game.js` inicia la aplicación mediante módulos ES del navegador;
-- Phaser es el backend visual predeterminado;
-- Canvas 2D permanece como fallback técnico explícito mediante `?render=canvas2d`;
+- Phaser 4.2.1 es el único renderizador gráfico canónico mantenido por Dark Moon;
+- el parámetro histórico `render` ya no selecciona un backend alternativo;
 - Phaser está incluido localmente en `assets/vendor/phaser/4.2.1/phaser.min.js`;
 - no existe dependencia de CDN para ejecutar el juego;
 - la publicación web utiliza rutas relativas compatibles con un subdirectorio como `/Dark-Moon/`;
@@ -81,7 +83,7 @@ Electron debe actuar como **contenedor de escritorio e infraestructura**, no com
 3. No se avanza automáticamente a la etapa siguiente.
 4. La lógica jugable canónica no se duplica en Electron.
 5. Phaser continúa representando resultados; no resuelve reglas de juego.
-6. Canvas 2D continúa siendo fallback mientras aporte valor diagnóstico.
+6. Phaser continúa siendo una capa de presentación y no una autoridad de reglas; no se mantiene un segundo renderizador propio como fallback.
 7. La versión web debe continuar funcionando después de los cambios de Electron.
 8. Electron no debe recibir privilegios que Dark Moon no necesite.
 9. No se agregan dependencias sin explicar previamente función, versión, impacto y alternativa.
@@ -415,7 +417,7 @@ E0 debe:
 - crear el proceso principal Electron;
 - cargar Dark Moon desde recursos locales;
 - iniciar con Phaser predeterminado;
-- conservar Canvas 2D como fallback;
+- conservar la separación entre Phaser y las reglas canónicas;
 - validar módulos ES;
 - validar `fetch()` de JSON y catálogos;
 - validar imágenes y CSS;
@@ -474,7 +476,6 @@ Como mínimo:
 - configuración;
 - persistencia tras cerrar y reabrir;
 - Phaser;
-- fallback Canvas 2D;
 - ejecución offline.
 
 ### Web
@@ -483,7 +484,7 @@ Después de incorporar Electron debe repetirse una regresión suficiente para co
 
 - `index.html` continúa arrancando;
 - Phaser continúa siendo predeterminado;
-- `?render=canvas2d` continúa funcionando;
+- una URL histórica con `render` no altera el arranque Phaser;
 - rutas relativas continúan válidas;
 - GitHub Pages no depende de Electron, Node ni npm en tiempo de ejecución.
 
@@ -618,7 +619,7 @@ Quedó validado:
 - CSP restrictiva compatible con el juego actual;
 - `require` y `process` no expuestos al renderer;
 - paquete Windows x64 ejecutable fuera del repositorio;
-- continuidad del destino web con Phaser y Canvas 2D.
+- continuidad del destino web con la arquitectura gráfica existente en ese momento. El fallback Canvas 2D fue retirado posteriormente tras certificar Phaser.
 
 No se requiere migrar `localStorage` en esta etapa. No se requiere servidor local para el ejecutable. No se requiere Node/npm en el equipo del jugador.
 

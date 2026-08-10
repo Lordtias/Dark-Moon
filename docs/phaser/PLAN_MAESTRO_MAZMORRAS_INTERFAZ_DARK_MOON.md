@@ -1,9 +1,9 @@
 # PLAN MAESTRO — MAZMORRAS EXPANDIDAS E INTERFAZ FULLSCREEN
 
-**Proyecto:** Dark Moon  
-**Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.  
-**Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.  
-**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecutará una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. Higiene y consolidación canónica fue validada en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`. La deuda estructural local está en curso: contratos de habilidades y espacio fueron validados en `83ca2967f14a6fbc025b5b649996a505dc1dd28e`; aplicación y persistencia constituyen el trabajo operativo actual.  
+**Proyecto:** Dark Moon
+**Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.
+**Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.
+**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecuta una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. Higiene y consolidación canónica fue validada en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`; la deuda estructural local quedó cerrada en `cf72a5193921dea38bc59971edd8e7d18f4b5e02`. El trabajo operativo actual es el Bloque C — refactors grandes de presentación: cobertura Phaser certificada, retiro del backend Canvas 2D implementado y cierre pendiente de Loading + precarga contextual de mapas antes de reevaluar los módulos grandes Phaser.
 
 ---
 
@@ -63,8 +63,8 @@ Evento o estado visual
 Phaser o HTML representa el resultado
 ```
 
-**Phaser no decide reglas del juego.**  
-**HTML no decide reglas del juego.**  
+**Phaser no decide reglas del juego.**
+**HTML no decide reglas del juego.**
 Ambos representan resultados producidos por la lógica canónica.
 
 ---
@@ -623,7 +623,9 @@ Cada cambio debe ser pequeño, justificable por responsabilidad y validado contr
 
 - contratos de habilidades y espacio: cerrado y validado en `83ca2967f14a6fbc025b5b649996a505dc1dd28e`;
 - aplicación y persistencia: cerrado y validado en `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa`;
-- infraestructura común y soporte de prueba: implementado sobre `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa` y pendiente de validación manual antes del cierre del bloque.
+- infraestructura común y soporte de prueba: cerrado y validado en `cf72a5193921dea38bc59971edd8e7d18f4b5e02`.
+
+**Estado del bloque:** cerrado. La Deuda estructural local quedó completada en `cf72a5193921dea38bc59971edd8e7d18f4b5e02`.
 
 ### Bloque C — Refactors grandes de presentación
 
@@ -643,7 +645,28 @@ La retirada deberá hacerse solamente después de comprobar explícitamente que 
 - carga dinámica de recursos visuales;
 - versión web y Electron cuando corresponda.
 
-Una vez validada la cobertura de Phaser se eliminarán de forma controlada el renderizador Canvas 2D legacy, su selector o parámetro de activación, configuraciones exclusivas, adaptadores y código que exista únicamente para sostener ambos backends. No se mantendrá una segunda implementación “por seguridad”.
+La cobertura de Phaser fue certificada técnicamente y aprobada manualmente sobre `cf72a5193921dea38bc59971edd8e7d18f4b5e02`. La validación incluyó arranque, mapas, cámara/zoom, FOV, enemigos, interactuables, ataques, habilidades, estados, zonas, muerte, botín, paneles y persistencia.
+
+Con esa puerta aprobada, el retiro del renderizador Canvas 2D legacy se implementa de forma controlada: desaparecen el selector/parámetro de backend, el canvas base, el cargador de imágenes exclusivo, el adaptador de puntero legacy y las configuraciones que solo existían para sostener dos implementaciones. Phaser queda como único renderizador propio de Dark Moon; `Phaser.AUTO` conserva internamente la elección WebGL/Canvas del motor.
+
+El parámetro histórico `render` deja de tener efecto. No se mantiene una capa de compatibilidad que pueda reactivar el backend retirado.
+
+**Preparación visual de mapas — Loading + precarga contextual.** La validación manual del retiro del backend legacy detectó que una entidad oculta podía descubrirse antes de que su PNG terminara de cargar y mostrar brevemente el fallback textual. Para cerrar esa frontera, toda **activación de un mapa jugable** debe atravesar una preparación visual genérica antes de entregar control al jugador. Esta regla aplica a nueva partida, Continuar, ciudad → mazmorra, mazmorra → ciudad, mazmorra → siguiente mazmorra y cualquier transición futura equivalente.
+
+La preparación debe cumplir el siguiente contrato:
+
+- mostrar una pantalla global de Loading antes de generar o preparar el nuevo mapa y mantenerla visible **como mínimo 1 segundo**;
+- suspender la entrada del mapa anterior antes de ceder el primer frame al Loading y habilitar la entrada del nuevo mapa únicamente después de ocultarlo;
+- generar el mapa y su población mientras el Loading está visible;
+- construir un manifiesto visual de recursos persistentes del mapa ya generado y precargarlos antes de exponer la primera escena jugable;
+- incluir terrenos, paredes, jugador, enemigos y variantes realmente presentes, NPC, destructibles e interactuables, junto con estados gráficos previsibles como puerta abierta/cerrada, cofre abierto/cerrado o portal activo/inactivo;
+- permitir que una entidad todavía oculta por FOV aporte solamente sus **rutas de recursos** al manifiesto: su posición, identidad jugable y presencia visual continúan ocultas hasta que el contrato de visibilidad la revele;
+- no precargar de forma indiscriminada todo el catálogo del juego ni trasladar efectos transitorios de ataques/habilidades a este contrato sin evidencia de necesidad;
+- tratar un error real de imagen como un fallo recuperable: la preparación finaliza, se informa el error y el compositor puede usar el fallback; «todavía cargando» no es una razón válida para mostrar el fallback;
+- dibujar la primera escena completa bajo la pantalla de Loading y retirar el overlay solamente cuando la preparación lógica y visual terminó y se cumplió la duración mínima;
+- mantener la duración mínima como una decisión exclusivamente visual: no consume turnos, no avanza `SistemaTiempo` y no altera reglas de simulación.
+
+La pantalla de Loading es una presentación DOM genérica y no decide cuándo el mapa está listo. La autoridad de aplicación coordina la preparación y Phaser informa cuándo sus recursos contextuales terminaron de cargarse. Las preparaciones deben identificarse para impedir que una carga antigua complete o oculte la pantalla correspondiente a una transición más nueva.
 
 El commit `04a4f3de83bf8805badc8ae9d73103d34cf36fbb` ya adelantó la separación de `ReproductorEventosVisualesPhaser` en reproductores funcionales. Después de retirar Canvas 2D, la revisión de este bloque deberá partir del estado real resultante y decidir qué deuda permanece, especialmente alrededor de composición del mundo y planificación visual.
 
@@ -654,11 +677,17 @@ No se forzará una división de `CompositorMundoPhaser` u otros módulos si el a
 ```text
 Etapas 1 y 2 cerradas
         ↓
-Higiene y consolidación canónica
+Higiene y consolidación canónica ✅
         ↓
-Deuda estructural local
+Deuda estructural local ✅
         ↓
-Refactors grandes de presentación
+Cobertura Phaser certificada ✅
+        ↓
+Retiro Canvas 2D + Loading/precarga contextual
+        ↓
+Reevaluación de módulos grandes Phaser
+        ↓
+Cierre y regresión del Bloque C
         ↓
 Etapa 3 — Interfaz fullscreen
 ```
@@ -1214,13 +1243,15 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `39ee92e6d5bbb36c22fb27e8b4d2bb202b452afa`.
+El estado operativo actual parte del commit validado `cf72a5193921dea38bc59971edd8e7d18f4b5e02`.
 
-Las Etapas 1 y 2 están cerradas y el **Bloque B — Deuda estructural local** está en su última entrega. Contratos/espacio y aplicación/persistencia ya fueron validados. La infraestructura común de carga/almacenamiento y la separación del soporte de pruebas quedaron implementadas sobre esa base y deben validarse manualmente antes de considerar cerrado el bloque.
+Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada y aprobada manualmente sobre esa base.
 
-Una vez aprobada y commiteada esta última entrega, el siguiente trabajo será el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
+El trabajo actual es el **Bloque C — Refactors grandes de presentación**. La cobertura Phaser ya fue certificada y el retiro del renderizador Canvas 2D legacy está implementado. Antes de cerrar esa eliminación debe completarse y validarse la nueva preparación genérica de mapas: pantalla de Loading con mínimo visual de 1 segundo, precarga contextual de recursos persistentes y habilitación de entrada solamente cuando la primera escena esté lista. El mismo contrato cubre nueva partida, Continuar y todas las transiciones entre mapas jugables.
 
-Solamente cuando ambos bloques estén cerrados se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
+Después de validar este cierre se reevaluarán los grandes módulos Phaser resultantes —composición del mundo, planificación y reproducción visual— y solo se dividirán responsabilidades realmente mezcladas. No se forzarán particiones por tamaño de archivo.
+
+Solamente cuando el Bloque C esté cerrado se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 
 ---
 

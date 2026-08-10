@@ -1,7 +1,4 @@
-import {
-  crearJugadorInicial,
-  TILE_SIZE,
-} from "../juego/configuracion/ConfiguracionInicial.js";
+import { crearJugadorInicial } from "../juego/configuracion/ConfiguracionInicial.js";
 import { Juego } from "../juego/Juego.js";
 import { EstadoPartida } from "../partida/EstadoPartida.js";
 import { GestorMapasPartida } from "../partida/GestorMapasPartida.js";
@@ -35,6 +32,7 @@ import { CoordinadorEntradaJugable } from "./CoordinadorEntradaJugable.js";
 export class ControladorPartida {
   constructor({
     controladorPantallas,
+    presentadorCargaMapa,
     alJugadorDerrotado,
     crearInterfazPartida,
     crearPresentacionMapaActivo,
@@ -45,6 +43,18 @@ export class ControladorPartida {
     ) {
       throw new Error(
         "ControladorPartida necesita un controlador de pantallas.",
+      );
+    }
+
+    if (
+      !presentadorCargaMapa ||
+      typeof presentadorCargaMapa.mostrar !== "function" ||
+      typeof presentadorCargaMapa.actualizar !== "function" ||
+      typeof presentadorCargaMapa.esperarPintadoMapa !== "function" ||
+      typeof presentadorCargaMapa.ocultar !== "function"
+    ) {
+      throw new Error(
+        "ControladorPartida necesita un presentador de carga de mapa.",
       );
     }
 
@@ -67,6 +77,7 @@ export class ControladorPartida {
     }
 
     this.controladorPantallas = controladorPantallas;
+    this.presentadorCargaMapa = presentadorCargaMapa;
     this.alJugadorDerrotado = alJugadorDerrotado;
     this.crearInterfazPartida = crearInterfazPartida;
     this.crearPresentacionMapaActivo = crearPresentacionMapaActivo;
@@ -92,6 +103,12 @@ export class ControladorPartida {
     this.configuracionComercio = null;
     this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
+
+    // La preparación de mapas es asíncrona y versionada para impedir que una
+    // carga anterior active su mapa después de una solicitud más reciente.
+    this.versionPreparacionMapa = 0;
+    this.preparacionMapaActiva = null;
+    this.promesaPreparacionMapa = null;
 
     // La compuerta de entrada jugable vive en un coordinador dedicado.
     // ControladorPartida aporta solamente el contexto del mapa y la espera
@@ -159,13 +176,11 @@ export class ControladorPartida {
     this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
 
     this.interfazPartida = this.crearInterfazPartida({
-      tileSize: TILE_SIZE,
       configuracionRarezas: this.configuracionRarezas,
     });
 
     this.renderizador = this.interfazPartida.renderizador;
     this.partidaIniciada = true;
-    this.controladorPantallas.mostrarPartida();
 
     // Continuar siempre reconstruye una sesión segura desde la ciudad. La
     // expedición interrumpida no forma parte del guardado durable. Los
@@ -191,6 +206,10 @@ export class ControladorPartida {
       });
     }
 
+    // La cobertura de Loading ya fue mostrada sincrónicamente por la
+    // preparación del mapa. Recién entonces exponemos el contenedor de juego,
+    // que permanecerá cubierto hasta completar recursos y primer pintado.
+    this.controladorPantallas.mostrarPartida();
     return true;
   }
 
@@ -204,14 +223,11 @@ export class ControladorPartida {
       );
     }
 
-    const configuracionMapa = this.gestorMapasPartida.crearCiudad({
-      puntoEntrada,
-    });
-
-    this.activarMapa(configuracionMapa);
-
-    this.mostrarResumenCiudad({
-      esInicioPartida,
+    this.iniciarPreparacionMapa({
+      crearConfiguracionMapa: () =>
+        this.gestorMapasPartida.crearCiudad({ puntoEntrada }),
+      alMapaActivado: () =>
+        this.mostrarResumenCiudad({ esInicioPartida }),
     });
 
     return true;
@@ -239,51 +255,57 @@ export class ControladorPartida {
       );
     }
 
-    const configuracionMapa = this.gestorMapasPartida.crearMazmorra({
-      semillaMapa,
-      idMapaForzado,
-      nivelMapaForzado,
-      cantidadEnemigosRecurrentes: cantidadEnemigosForzada,
-      ignorarNivelDesbloqueo,
-    });
+    this.iniciarPreparacionMapa({
+      crearConfiguracionMapa: () => {
+        const configuracionMapa = this.gestorMapasPartida.crearMazmorra({
+          semillaMapa,
+          idMapaForzado,
+          nivelMapaForzado,
+          cantidadEnemigosRecurrentes: cantidadEnemigosForzada,
+          ignorarNivelDesbloqueo,
+        });
 
-    if (botinPrueba || portalPrueba) {
-      agregarRecursosPruebaMapa({
-        configuracionMapa,
-        configuracionObjetos: this.configuracionObjetos,
-        botinPrueba,
-        portalPrueba,
-      });
-    }
+        if (botinPrueba || portalPrueba) {
+          agregarRecursosPruebaMapa({
+            configuracionMapa,
+            configuracionObjetos: this.configuracionObjetos,
+            botinPrueba,
+            portalPrueba,
+          });
+        }
 
-    this.activarMapa(configuracionMapa);
+        return configuracionMapa;
+      },
+      alMapaActivado: (configuracionMapa) => {
+        const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
 
-    const generacion = configuracionMapa.mapaSeleccionado.generacionActual;
+        // La siguiente visita a la ciudad encontrará stock generado con el
+        // nivel de esta expedición. Se ejecuta recién cuando el nuevo mapa
+        // quedó preparado y tomó autoridad.
+        this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
+          semillaMapa: generacion.semilla,
+          nivelMapa: generacion.nivelMapa,
+          numeroExpedicion: this.estadoPartida.expedicionesRealizadas,
+        });
 
-    // La siguiente visita a la ciudad encontrará
-    // stock generado con el nivel de esta expedición.
-    this.gestorMercaderesPartida.renovarStocksTrasExpedicion({
-      semillaMapa: generacion.semilla,
-      nivelMapa: generacion.nivelMapa,
-      numeroExpedicion: this.estadoPartida.expedicionesRealizadas,
-    });
-
-    this.mostrarResumenMazmorra({
-      parametrosPrueba: parametrosPrueba ?? {
-        activo:
-          idMapaForzado !== null ||
-          nivelMapaForzado !== null ||
-          botinPrueba ||
-          portalPrueba ||
-          cantidadEnemigosForzada !== null ||
-          semillaMapa !== null,
-        idMapaForzado,
-        nivelMapaForzado,
-        botinPrueba,
-        portalPrueba,
-        cantidadEnemigosForzada,
-        semillaMapa,
-        ignorarNivelDesbloqueo,
+        this.mostrarResumenMazmorra({
+          parametrosPrueba: parametrosPrueba ?? {
+            activo:
+              idMapaForzado !== null ||
+              nivelMapaForzado !== null ||
+              botinPrueba ||
+              portalPrueba ||
+              cantidadEnemigosForzada !== null ||
+              semillaMapa !== null,
+            idMapaForzado,
+            nivelMapaForzado,
+            botinPrueba,
+            portalPrueba,
+            cantidadEnemigosForzada,
+            semillaMapa,
+            ignorarNivelDesbloqueo,
+          },
+        });
       },
     });
 
@@ -631,19 +653,116 @@ export class ControladorPartida {
     return { procesado: true, resultado };
   }
 
-  activarMapa(configuracionMapa) {
-    validarConfiguracionMapa(configuracionMapa);
+  iniciarPreparacionMapa({
+    crearConfiguracionMapa,
+    alMapaActivado = null,
+  } = {}) {
+    if (typeof crearConfiguracionMapa !== "function") {
+      throw new Error("La preparación de mapa necesita una fábrica válida.");
+    }
+    if (alMapaActivado !== null && typeof alMapaActivado !== "function") {
+      throw new Error("El cierre de preparación de mapa debe ser una función.");
+    }
 
-    // Cualquier espera perteneciente al mapa anterior deja de tener autoridad
-    // sobre la entrada del mapa que está por activarse.
+    const token = Object.freeze({ id: ++this.versionPreparacionMapa });
+    this.preparacionMapaActiva = token;
+
+    // Se corta la entrada antes de ceder el hilo al navegador. Así no existe
+    // una ventana donde el jugador o un clic tardío puedan actuar bajo Loading.
     this.coordinadorEntradaJugable.invalidarSincronizacion();
+    this.presentacionMapaActivo?.suspender?.();
+
+    const promesa = this.ejecutarPreparacionMapa({
+      token,
+      crearConfiguracionMapa,
+      alMapaActivado,
+    }).catch((error) => this.manejarErrorPreparacionMapa({ token, error }));
+
+    this.promesaPreparacionMapa = promesa;
+    return true;
+  }
+
+  async ejecutarPreparacionMapa({
+    token,
+    crearConfiguracionMapa,
+    alMapaActivado,
+  }) {
+    await this.presentadorCargaMapa.mostrar({ idCarga: token });
+    if (!this.esPreparacionMapaActiva(token)) return false;
+
+    const configuracionMapa = crearConfiguracionMapa();
+    validarConfiguracionMapa(configuracionMapa);
+    this.presentadorCargaMapa.actualizar({ idCarga: token, progreso: 0.12 });
+
+    await this.activarMapaPreparado(configuracionMapa, {
+      token,
+      alProgreso: ({ progreso = 0 } = {}) => {
+        if (!this.esPreparacionMapaActiva(token)) return;
+        this.presentadorCargaMapa.actualizar({
+          idCarga: token,
+          progreso: 0.12 + Math.min(1, Math.max(0, progreso)) * 0.78,
+        });
+      },
+    });
+
+    if (!this.esPreparacionMapaActiva(token)) return false;
+    alMapaActivado?.(configuracionMapa);
+    this.presentadorCargaMapa.actualizar({ idCarga: token, progreso: 1 });
+
+    // El mapa ya fue compuesto. Mantenemos la cobertura durante al menos un
+    // pintado real y durante el mínimo visual acordado de un segundo.
+    await this.presentadorCargaMapa.esperarPintadoMapa({ idCarga: token });
+    if (!this.esPreparacionMapaActiva(token)) return false;
+    await this.presentadorCargaMapa.ocultar({ idCarga: token });
+    if (!this.esPreparacionMapaActiva(token)) return false;
+
+    this.presentacionMapaActivo?.activar();
+    this.preparacionMapaActiva = null;
+    return true;
+  }
+
+  async manejarErrorPreparacionMapa({ token, error }) {
+    console.error("No se pudo preparar el mapa:", error);
+    if (!this.esPreparacionMapaActiva(token)) return false;
+
+    try {
+      await this.presentadorCargaMapa.ocultar({ idCarga: token });
+    } catch (errorOcultando) {
+      console.error("No se pudo cerrar la pantalla de carga:", errorOcultando);
+    }
+
+    // Si el mapa anterior todavía conserva su presentación puede recuperar la
+    // entrada. En un fallo durante el primer mapa se vuelve al menú principal.
+    if (this.presentacionMapaActivo) {
+      this.presentacionMapaActivo.activar();
+    } else {
+      this.controladorPantallas.mostrarMenuPrincipal?.();
+    }
+
+    this.preparacionMapaActiva = null;
+    return false;
+  }
+
+  esPreparacionMapaActiva(token) {
+    return this.preparacionMapaActiva === token;
+  }
+
+  esperarPreparacionMapa() {
+    return this.promesaPreparacionMapa ?? Promise.resolve(true);
+  }
+
+  async activarMapaPreparado(configuracionMapa, {
+    token,
+    alProgreso = null,
+  } = {}) {
+    validarConfiguracionMapa(configuracionMapa);
 
     if (!this.interfazPartida) {
       throw new Error("No se puede activar un mapa sin una interfaz creada.");
     }
 
-    // La presentación pertenece al mapa activo. Debe destruirse antes que el
-    // Juego anterior para retirar listeners, observadores, ventanas e intervalos.
+    // La presentación pertenece al mapa activo. Se destruye únicamente cuando
+    // la nueva configuración ya fue generada correctamente.
     this.presentacionMapaActivo?.destruir();
     this.presentacionMapaActivo = null;
     this.ejecutorAccionesJugador = null;
@@ -656,7 +775,6 @@ export class ControladorPartida {
     });
 
     const { renderizador } = this.interfazPartida;
-
     const cantidadFilas = configuracionMapa.map.length;
     const cantidadColumnas = configuracionMapa.map[0].length;
 
@@ -674,12 +792,19 @@ export class ControladorPartida {
     this.juego = juego;
     this.renderizador = renderizador;
 
+    // La precarga recibe un manifiesto visual neutral. Los enemigos ocultos
+    // aportan sus rutas, nunca sus posiciones ni su estado de visibilidad.
+    await renderizador.prepararMapa(juego, { alProgreso });
+    if (!this.esPreparacionMapaActiva(token)) {
+      juego.destruir({ preservarEfectosJugador: true });
+      return false;
+    }
+
     const ejecutorAccionesJugador = new EjecutorAccionesJugador({
       juego,
       obtenerSistemaHabilidades: () =>
         this.presentacionMapaActivo?.obtenerSistemaHabilidades() ?? null,
     });
-
     this.ejecutorAccionesJugador = ejecutorAccionesJugador;
 
     const juegoActivo = juego;
@@ -712,8 +837,8 @@ export class ControladorPartida {
     });
 
     this.presentacionMapaActivo = presentacionMapaActivo;
-    this.presentacionMapaActivo.activar();
     this.renderizador.dibujarJuego(this.juego);
+    return true;
   }
 
   obtenerContextoDiagnostico() {

@@ -17,7 +17,6 @@ import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 import { configurarContextoGeneracionBotin } from "../botin/ContextoGeneracionBotin.js";
 
-export const TILE_SIZE = 32;
 
 // Crea al jugador una única vez al comenzar
 // una partida completa.

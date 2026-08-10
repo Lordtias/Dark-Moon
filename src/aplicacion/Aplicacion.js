@@ -115,6 +115,7 @@ export class Aplicacion {
 
     this.controladorPartida = new ControladorPartida({
       controladorPantallas: this.controladorPantallas,
+      presentadorCargaMapa: this.presentacion.crearPresentadorCargaMapa(),
       alJugadorDerrotado: (detalle) =>
         this.presentacion.presentarDerrota(detalle),
       crearInterfazPartida: (configuracion) =>
@@ -502,6 +503,7 @@ function validarPresentacion(presentacion) {
     "crearMenuCreacionPersonaje",
     "crearInterfazPartida",
     "crearPresentacionMapaActivo",
+    "crearPresentadorCargaMapa",
     "presentarDerrota",
     "mostrarErrorInicio",
   ];

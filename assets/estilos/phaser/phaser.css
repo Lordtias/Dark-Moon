@@ -1,7 +1,4 @@
-/* Phaser crea su propio canvas dentro del panel central porque Phaser.AUTO no
- * admite reutilizar un canvas externo. El canvas original se conserva para el
- * backend Canvas 2D, pero queda oculto e inactivo únicamente en modo Phaser.
- */
+/* Phaser crea y administra su canvas dentro del panel central de la partida. */
 .panel-mapa--phaser {
   position: relative;
   padding: 10px;
@@ -31,9 +28,6 @@
   box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.55);
 }
 
-.panel-mapa--phaser .game-canvas--oculto-phaser {
-  display: none !important;
-}
 
 .host-phaser-dark-moon {
   position: relative;
@@ -77,9 +71,8 @@
   cursor: grabbing;
 }
 
-/* En ventanas bajas, el diseño general deja de comprimir el mapa hasta casi
- * desaparecer. Solo el modo Phaser adopta desplazamiento vertical; Canvas 2D
- * conserva exactamente su comportamiento histórico.
+/* En ventanas bajas, el diseño deja de comprimir el mapa hasta casi
+ * desaparecer y permite desplazamiento vertical de la pantalla de partida.
  */
 @media (max-height: 760px) {
   .pantalla-juego--phaser {

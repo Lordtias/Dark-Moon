@@ -4,8 +4,8 @@ export const RUTA_PHASER =
 
 const ID_SCRIPT_PHASER = "dependencia-phaser";
 
-// Phaser se carga únicamente cuando el selector solicita ese backend.
-// Canvas 2D no descarga ni evalúa la dependencia.
+// Phaser es la dependencia gráfica canónica de Dark Moon y se carga desde la
+// copia local versionada antes de construir la presentación de la aplicación.
 export async function cargarPhaser({
   documento = globalThis.document,
   ambitoGlobal = globalThis,

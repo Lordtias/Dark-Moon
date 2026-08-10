@@ -1,10 +1,5 @@
 import { configurarContextoPresentacionObjetos } from "../objetos/ContextoPresentacionObjetos.js";
 import { Renderizador } from "../Renderizador.js";
-import { RenderizadorCanvas2D } from "../graficos/RenderizadorCanvas2D.js";
-import {
-  TIPO_RENDERIZADOR_CANVAS_2D,
-  TIPO_RENDERIZADOR_PHASER,
-} from "../graficos/SelectorRenderizador.js";
 import { RenderizadorPhaser } from "../graficos/phaser/RenderizadorPhaser.js";
 import { PanelPersonaje } from "../PanelPersonaje.js";
 import { PanelInventario } from "../PanelInventario.js";
@@ -20,7 +15,7 @@ import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
 //
 // Esta fábrica centraliza:
 //
-// - La tecnología gráfica del mapa.
+// - El renderizador Phaser del mapa.
 // - Los paneles HTML.
 // - Las ventanas modales.
 // - Las referencias obligatorias del documento.
@@ -28,34 +23,21 @@ import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
 // La presentación de cada mapa recibe componentes ya construidos
 // y no necesita conocer su estructura HTML interna.
 export function crearInterfazPartidaDom({
-  tileSize,
   configuracionRarezas,
-  tipoRenderizador = TIPO_RENDERIZADOR_PHASER,
   Phaser = null,
   preferenciasInterfaz = null,
   obtenerContextoDiagnostico = () => ({}),
 } = {}) {
-  if (!Number.isInteger(tileSize) || tileSize <= 0) {
-    throw new Error("La interfaz necesita un tamaño de casilla válido.");
-  }
-
   configurarContextoPresentacionObjetos({ configuracionRarezas });
 
-  const canvas = obtenerElementoObligatorio("gameCanvas", "canvas del mapa");
+  const panelMapa = obtenerElementoObligatorio(
+    "gameMapPanel",
+    "panel del mapa",
+  );
 
-  const panelMapa = canvas.closest(".panel-mapa");
-
-  if (!panelMapa) {
-    throw new Error("No se encontró el panel que contiene el canvas del mapa.");
-  }
-
-  // Backend gráfico intercambiable.
-  const renderizadorMapa = crearRenderizadorMapa({
-    tipoRenderizador,
+  const renderizadorMapa = new RenderizadorPhaser({
     Phaser,
-    canvas,
-    panelMapa,
-    tileSize,
+    contenedor: panelMapa,
     preferenciasInterfaz,
   });
 
@@ -138,42 +120,6 @@ export function crearInterfazPartidaDom({
     modalComercio,
     modalAyudaJuego,
   };
-}
-
-function crearRenderizadorMapa({
-  tipoRenderizador,
-  Phaser,
-  canvas,
-  panelMapa,
-  tileSize,
-  preferenciasInterfaz,
-}) {
-  canvas.classList.remove("game-canvas--oculto-phaser");
-  canvas.removeAttribute("aria-hidden");
-  canvas.style.removeProperty("width");
-  canvas.style.removeProperty("height");
-
-  switch (tipoRenderizador) {
-    case TIPO_RENDERIZADOR_PHASER:
-      return new RenderizadorPhaser({
-        Phaser,
-        canvasBase: canvas,
-        contenedor: panelMapa,
-        preferenciasInterfaz,
-      });
-
-    case TIPO_RENDERIZADOR_CANVAS_2D:
-      return new RenderizadorCanvas2D({
-        canvas,
-        contenedor: panelMapa,
-        tileSize,
-      });
-
-    default:
-      throw new Error(
-        `No existe una fábrica para el renderizador "${tipoRenderizador}".`,
-      );
-  }
 }
 
 // Busca un elemento del HTML y genera

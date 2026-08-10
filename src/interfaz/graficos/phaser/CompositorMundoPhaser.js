@@ -9,17 +9,16 @@ import {
 } from "./ConfiguracionPhaser.js";
 import {
   normalizarConfiguracionAutotilingPared,
-  obtenerRutasRecursosPared,
   resolverCasillaParedAutotiling,
   resolverCasillaSueloAutotiling,
 } from "../mapas/ResolutorAutotilingParedes.js";
 import {
   crearPredicadoParedTerrenos,
   normalizarConfiguracionTerrenosMapa,
-  obtenerRutasRecursosTerreno,
   resolverCasillaTerreno,
 } from "../mapas/ResolutorTerrenosMapa.js";
 import { CreadorEstadosTemporalesPhaser } from "./CreadorEstadosTemporalesPhaser.js";
+import { obtenerRutasRecursosMapaPhaser } from "./RecursosMapaPhaser.js";
 import { CreadorZonasTemporalesPhaser } from "./CreadorZonasTemporalesPhaser.js";
 import {
   calcularPresentacionEntidadPhaser,
@@ -366,25 +365,7 @@ export class CompositorMundoPhaser {
   }
 
   precargarRecursos(escenaDarkMoon) {
-    const apariencia = escenaDarkMoon.mapa.apariencia ?? {};
-    const aparienciaPhaser = apariencia.phaser ?? {};
-    const configuracionPared = normalizarConfiguracionAutotilingPared(
-      aparienciaPhaser.pared,
-    );
-    const configuracionTerrenos = normalizarConfiguracionTerrenosMapa(
-      apariencia,
-    );
-    const rutas = [
-      ...obtenerRutasRecursosTerreno(configuracionTerrenos),
-      ...obtenerRutasRecursosPared(configuracionPared),
-      ...(escenaDarkMoon.entidades ?? []).flatMap((entidad) => [
-        entidad.recursoVisual,
-        ...(Array.isArray(entidad.recursosVisualesPrecarga)
-          ? entidad.recursosVisualesPrecarga
-          : []),
-      ]),
-    ].filter(Boolean);
-
+    const rutas = obtenerRutasRecursosMapaPhaser({ escena: escenaDarkMoon });
     this.gestorRecursos.precargar(rutas);
   }
 

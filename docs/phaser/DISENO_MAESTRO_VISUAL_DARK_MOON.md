@@ -3,8 +3,10 @@
 Proyecto: Dark Moon
 Versión del documento: 1.2
 Fecha inicial: 30 de julio de 2026
-Última actualización: 31 de julio de 2026
+Última actualización: 10 de agosto de 2026
 Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
+
+> **Estado gráfico vigente:** Phaser 4.2.1 es el único renderizador propio mantenido por Dark Moon. La implementación Canvas 2D legacy fue retirada después de certificar la cobertura funcional y visual de Phaser. Las referencias a Canvas 2D dentro de la crónica de P5, P6 y P7 se conservan como contexto histórico de esas validaciones y no describen el runtime actual.
 
 ---
 
@@ -1964,7 +1966,7 @@ P6 fue validada manualmente y cerrada en `c48335220712a8bff1d3907176f8ea1b7fac75
 
 ### P7.1 — Entrada visual de beta y continuidad
 
-La beta web debe abrir directamente con Phaser para que un tester vea la presentación integrada de P6 sin conocer parámetros de desarrollo. Canvas 2D conserva su valor como respaldo técnico mediante `?render=canvas2d`, pero no debe ser el camino accidental de un usuario normal.
+La beta web abre directamente con Phaser para que un tester vea la presentación integrada de P6 sin conocer parámetros de desarrollo. El fallback Canvas 2D que existía durante P7 fue retirado posteriormente tras certificar que Phaser cubría el flujo funcional y visual requerido.
 
 El menú principal mantiene la composición existente y suma **Continuar** entre Nueva partida y Configuración. El botón deshabilitado debe leerse como una opción no disponible, no como un error. Cuando un guardado no puede validarse, el menú muestra un mensaje breve y legible sin bloquear Nueva partida ni borrar datos automáticamente. La versión `0.7.0-beta.1` aparece de forma discreta cerca del título para poder identificar capturas y reportes.
 
@@ -1990,3 +1992,13 @@ La velocidad utiliza un selector de tres niveles (`normal`, `rapida`, `muy-rapid
 Pantalla completa debe afectar a la aplicación web completa, no solo al canvas, para conservar paneles HTML, modales y HUD. El botón refleja el estado real mediante `fullscreenchange` y no promete restauración automática tras una recarga.
 
 `PreferenciasInterfaz.json` es el origen canónico de defaults y límites configurables. Los overrides persistidos pertenecen a presentación y no al personaje. En P7.3 el idioma se agregará a este mismo contrato, pero únicamente modificará textos visibles: la estructura, código e IDs internos permanecerán en español.
+
+## V-034 — Preparación visual y pantalla de carga de mapas
+
+Toda activación de un mapa jugable debe quedar cubierta por una pantalla global de **Loading** antes de que el usuario pueda ver o controlar la nueva escena. El contrato es genérico y se aplica a nueva partida, Continuar, ciudad → mazmorra, mazmorra → ciudad, transiciones entre mazmorras y futuros cambios equivalentes. La pantalla utiliza inicialmente una composición sobria: fondo oscuro, título **Dark Moon**, texto localizado de carga y barra de progreso. Su apariencia podrá evolucionar sin cambiar el contrato de preparación.
+
+El Loading permanece visible **como mínimo 1 segundo**. Esa duración mínima pertenece exclusivamente a presentación: si la preparación real tarda más, la pantalla espera el tiempo real; si tarda menos, completa el mínimo visual sin avanzar turnos ni `SistemaTiempo`. El mapa anterior deja de aceptar entrada antes de iniciar la preparación y el nuevo mapa no la recibe hasta que el overlay se haya retirado.
+
+Phaser debe precargar de forma contextual los recursos persistentes que el mapa generado puede mostrar: terrenos, paredes, jugador, enemigos y variantes presentes, NPC, destructibles e interactuables y sus estados previsibles —por ejemplo puerta abierta/cerrada o cofre abierto/cerrado—. Una entidad todavía oculta por FOV puede aportar la ruta de su recurso a la precarga, pero nunca su posición ni información visual jugable. Precargar no equivale a descubrir.
+
+La primera composición del mundo debe realizarse mientras el Loading todavía cubre la pantalla. Un recurso correctamente configurado no debe aparecer primero como letra o forma de fallback por estar aún cargando. El fallback se reserva para recursos ausentes o que hayan fallado realmente; un fallo de imagen no debe dejar la carga bloqueada indefinidamente. Los efectos transitorios de ataques y habilidades permanecen fuera de esta precarga global mientras no exista evidencia de que necesiten formar parte del manifiesto de mapa.

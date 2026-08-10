@@ -5,12 +5,13 @@ import { ControladorCamaraPhaser } from "./ControladorCamaraPhaser.js";
 import { ControladorEntradaJugablePhaser } from "./ControladorEntradaJugablePhaser.js";
 import { ConversorCoordenadasPhaser } from "./ConversorCoordenadasPhaser.js";
 import { GestorRecursosPhaser } from "./GestorRecursosPhaser.js";
+import { obtenerRutasRecursosMapaPhaser } from "./RecursosMapaPhaser.js";
 import {
   ReproductorEventosVisualesPhaser,
 } from "./ReproductorEventosVisualesPhaser.js";
 
-// La clase se crea después de cargar Phaser para no introducir una dependencia
-// global durante el arranque del modo Canvas 2D.
+// La clase se crea después de validar la dependencia Phaser para mantener su
+// acceso explícito y evitar dependencias globales ocultas entre módulos.
 export function crearEscenaArranquePhaser({
   Phaser,
   alPreparar,
@@ -142,6 +143,23 @@ export function crearEscenaArranquePhaser({
 
     esperarPresentacionPendiente() {
       return this.reproductorEventosVisuales?.esperarInactividad() ?? null;
+    }
+
+    async prepararRecursosMapa({
+      escena,
+      recursosEntidades = [],
+      alProgreso = null,
+    } = {}) {
+      if (!this.gestorRecursos) {
+        throw new Error("La escena Phaser todavía no preparó su gestor de recursos.");
+      }
+
+      const rutas = obtenerRutasRecursosMapaPhaser({
+        escena,
+        recursosEntidades,
+      });
+
+      return this.gestorRecursos.precargarYEsperar(rutas, { alProgreso });
     }
 
     aplicarEscenaInmediata(escena) {

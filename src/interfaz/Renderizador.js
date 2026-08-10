@@ -2,7 +2,10 @@ import { obtenerInstante, redondearMilisegundos } from "../utilidades/TiempoEjec
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
 import { resolverPresentacionMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
 
-import { crearEscenaJuego } from "./graficos/AdaptadorEscenaJuego.js";
+import {
+  crearEscenaJuego,
+  crearRecursosVisualesMapa,
+} from "./graficos/AdaptadorEscenaJuego.js";
 import { crearPlanEventosVisuales } from "./graficos/PlanificadorEventosVisuales.js";
 
 const MAXIMO_MENSAJES_REGISTRO = 120;
@@ -72,12 +75,11 @@ export class Renderizador {
     this.registroInicializado = false;
 
     // La selección de habilidades es una capa visual del renderizador y no
-    // modifica la instancia de Juego ni el contrato del backend Canvas.
+    // modifica la instancia de Juego ni sus contratos canónicos.
     this.estadoVisualHabilidad = crearEstadoVisualHabilidad();
 
-    // Conserva la última escena neutral creada. Phaser puede utilizarla como
-    // punto de partida visual, mientras Canvas 2D continúa redibujando el
-    // estado final de forma inmediata.
+    // Conserva la última escena neutral creada para planificar y reconciliar la
+    // presentación Phaser sin entregar referencias de dominio al renderizador.
     this.ultimaEscenaMapa = null;
     this.ultimoDiagnosticoPresentacion = null;
     this.secuenciaPresentacion = 0;
@@ -90,6 +92,23 @@ export class Renderizador {
     this.renderizadorMapa.configurarDimensiones({
       columnas,
       filas,
+    });
+  }
+
+  async prepararMapa(juego, { alProgreso = null } = {}) {
+    if (typeof this.renderizadorMapa.prepararMapa !== "function") {
+      return Object.freeze({ total: 0, completados: 0, cargados: 0, fallidos: 0 });
+    }
+
+    const escena = crearEscenaJuego(juego, {
+      habilidad: null,
+    });
+    const recursosEntidades = crearRecursosVisualesMapa(juego);
+
+    return this.renderizadorMapa.prepararMapa({
+      escena,
+      recursosEntidades,
+      alProgreso,
     });
   }
 

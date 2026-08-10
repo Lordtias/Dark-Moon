@@ -488,10 +488,8 @@ main {
   gap: 12px;
 }
 
-/* El panel centra el mapa dentro del espacio disponible.
- *
- * El tamaño concreto del canvas es calculado por
- * RenderizadorCanvas2D para conservar su proporción.
+/* El panel reserva y centra el área gráfica dentro del espacio disponible.
+ * Phaser administra el tamaño visible de su canvas dentro de este contenedor.
  */
 .panel-mapa {
   min-height: 0;
@@ -501,12 +499,7 @@ main {
   overflow: hidden;
 }
 
-/* No forzamos el ancho ni la altura desde CSS.
- *
- * El backend gráfico aplica ambos valores utilizando
- * exactamente la misma escala, manteniendo cuadradas
- * todas las casillas.
- */
+/* El canvas creado por Phaser conserva su propia escala y proporción. */
 .panel-mapa canvas {
   display: block;
   flex: 0 0 auto;
@@ -1494,4 +1487,57 @@ main {
     top: 10px;
     right: 10px;
   }
+}
+
+/* Cobertura global durante la preparación lógica y visual de un mapa. */
+.pantalla-carga-mapa {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(36, 49, 42, 0.38), transparent 48%),
+    #070b09;
+  color: #edf4ee;
+}
+
+.pantalla-carga-mapa.oculto {
+  display: none;
+}
+
+.pantalla-carga-mapa__contenido {
+  width: min(420px, calc(100vw - 48px));
+  text-align: center;
+}
+
+.pantalla-carga-mapa__titulo {
+  margin: 0 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pantalla-carga-mapa__texto {
+  margin: 0 0 16px;
+  font-size: 1rem;
+}
+
+.pantalla-carga-mapa__barra {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(237, 244, 238, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pantalla-carga-mapa__progreso {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  transition: width 120ms linear;
 }

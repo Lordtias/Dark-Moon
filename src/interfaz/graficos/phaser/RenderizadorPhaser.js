@@ -5,7 +5,6 @@ import { crearEscenaArranquePhaser } from "./EscenaArranquePhaser.js";
 import { inicializarPhaser } from "./InicializadorPhaser.js";
 
 const CLASE_PANEL_PHASER = "panel-mapa--phaser";
-const CLASE_CANVAS_BASE_OCULTO = "game-canvas--oculto-phaser";
 const CLASE_HOST_PHASER = "host-phaser-dark-moon";
 const CLASE_CANVAS_PHASER = "game-canvas--phaser";
 const CLASE_INTERFAZ_PHASER = "interfaz-partida--phaser";
@@ -13,26 +12,28 @@ const CLASE_PANTALLA_PHASER = "pantalla-juego--phaser";
 const MAX_REINTENTOS_AJUSTE_ESCALA = 20;
 const RETARDO_REINTENTO_AJUSTE_ESCALA_MS = 50;
 
-// Backend visual que consume el mismo contrato neutral que Canvas 2D.
-// No recibe Juego, no ejecuta comandos y no contiene reglas jugables.
+// Renderizador visual canónico del mapa. Consume un contrato neutral, no recibe
+// Juego, no ejecuta reglas jugables y delega la interacción en los controladores.
 export class RenderizadorPhaser {
   constructor({
     Phaser,
-    canvasBase,
     contenedor,
     preferenciasInterfaz,
   } = {}) {
-    validarElementos({ Phaser, canvasBase, contenedor });
+    validarElementos({ Phaser, contenedor });
     validarPreferenciasInterfaz(preferenciasInterfaz);
 
     this.Phaser = Phaser;
-    this.canvasBase = canvasBase;
     this.contenedor = contenedor;
     this.host = null;
     this.interfazPartida = null;
     this.pantallaJuego = null;
     this.canvasPhaser = null;
     this.escenaPhaser = null;
+    this.resolverEscenaPreparada = null;
+    this.promesaEscenaPreparada = new Promise((resolver) => {
+      this.resolverEscenaPreparada = resolver;
+    });
     this.ultimaEscena = null;
     this.ultimoDiagnosticoPresentacion = null;
     this.dimensionesMapa = null;
@@ -58,6 +59,8 @@ export class RenderizadorPhaser {
       alPreparar: (escenaPhaser) => {
         this.escenaPhaser = escenaPhaser;
         this.escenaPhaser.configurarAnimaciones(this.configuracionAnimaciones);
+        this.resolverEscenaPreparada?.(escenaPhaser);
+        this.resolverEscenaPreparada = null;
         this.sincronizarEscena();
       },
     });
@@ -131,6 +134,27 @@ export class RenderizadorPhaser {
     });
   }
 
+  async prepararMapa({
+    escena,
+    recursosEntidades = [],
+    alProgreso = null,
+  } = {}) {
+    if (!escena?.mapa) {
+      throw new Error("RenderizadorPhaser necesita una escena para preparar el mapa.");
+    }
+
+    const escenaPhaser = this.escenaPhaser ?? await this.promesaEscenaPreparada;
+    if (!escenaPhaser) {
+      throw new Error("La escena Phaser no pudo prepararse para cargar el mapa.");
+    }
+
+    return escenaPhaser.prepararRecursosMapa({
+      escena,
+      recursosEntidades,
+      alProgreso,
+    });
+  }
+
   obtenerDiagnosticoUltimaPresentacion() {
     return this.ultimoDiagnosticoPresentacion
       ? { ...this.ultimoDiagnosticoPresentacion }
@@ -179,6 +203,8 @@ export class RenderizadorPhaser {
     this.juegoPhaser?.destroy(true);
     this.juegoPhaser = null;
     this.escenaPhaser = null;
+    this.resolverEscenaPreparada?.(null);
+    this.resolverEscenaPreparada = null;
     this.canvasPhaser = null;
     this.restaurarContenedor();
   }
@@ -360,9 +386,6 @@ export class RenderizadorPhaser {
     this.interfazPartida?.classList.add(CLASE_INTERFAZ_PHASER);
     this.pantallaJuego?.classList.add(CLASE_PANTALLA_PHASER);
     this.contenedor.classList.add(CLASE_PANEL_PHASER);
-    this.canvasBase.classList.add(CLASE_CANVAS_BASE_OCULTO);
-    this.canvasBase.setAttribute("aria-hidden", "true");
-
     this.host = document.createElement("div");
     this.host.className = CLASE_HOST_PHASER;
     this.host.setAttribute("aria-live", "polite");
@@ -377,8 +400,6 @@ export class RenderizadorPhaser {
     this.pantallaJuego?.classList.remove(CLASE_PANTALLA_PHASER);
     this.interfazPartida = null;
     this.pantallaJuego = null;
-    this.canvasBase.classList.remove(CLASE_CANVAS_BASE_OCULTO);
-    this.canvasBase.removeAttribute("aria-hidden");
   }
 }
 
@@ -396,13 +417,9 @@ function validarPreferenciasInterfaz(preferencias) {
   }
 }
 
-function validarElementos({ Phaser, canvasBase, contenedor }) {
+function validarElementos({ Phaser, contenedor }) {
   if (!Phaser?.Game || !Phaser?.Scene) {
     throw new Error("RenderizadorPhaser necesita Phaser cargado.");
-  }
-
-  if (!(canvasBase instanceof HTMLCanvasElement)) {
-    throw new Error("RenderizadorPhaser necesita el canvas base del mapa.");
   }
 
   if (!(contenedor instanceof HTMLElement)) {

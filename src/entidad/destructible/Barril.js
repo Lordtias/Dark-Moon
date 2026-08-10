@@ -48,8 +48,7 @@ export class Barril extends Destructible {
       bloqueaVision: false,
     });
 
-    // RenderizadorCanvas2D consulta esta propiedad
-    // antes de utilizar el símbolo de respaldo.
+    // La presentación consulta esta ruta antes de utilizar el símbolo de respaldo.
     this.recursoVisual = recursoVisual === null ? null : recursoVisual.trim();
   }
 }

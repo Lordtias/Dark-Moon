@@ -136,6 +136,18 @@ export class PresentacionMapaActivoDom {
     }
   }
 
+  suspender() {
+    if (this.destruida || !this.estaActiva) {
+      return false;
+    }
+
+    this.interfazPartida.renderizador.conectarEntradaMapa(null);
+    this.controladorTeclado.desactivar();
+    this.controladorEquipamiento.desactivar();
+    this.estaActiva = false;
+    return true;
+  }
+
   presentarInteraccion(interaccion) {
     if (this.destruida) {
       throw new Error(
@@ -161,6 +173,7 @@ export class PresentacionMapaActivoDom {
 
     // Se desconecta primero la entrada del mapa para que ningún clic tardío
     // alcance la instancia de Juego que está por destruirse.
+    this.suspender();
     this.interfazPartida.renderizador.conectarEntradaMapa(null);
 
     // Se retiran después observadores y listeners de habilidades, igual que en

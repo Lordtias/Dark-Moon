@@ -583,6 +583,11 @@
         "ciudad": "city",
         "mazmorra": "dungeon"
       }
+    },
+    "cargaMapa": {
+      "aria": "Preparing Dark Moon map",
+      "cargando": "Loading...",
+      "progreso": "Loading {porcentaje} %"
     }
   },
   "contenido": {

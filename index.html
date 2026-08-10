@@ -15,11 +15,40 @@
     <!-- Estilos específicos del panel del personaje. -->
     <link rel="stylesheet" href="./assets/estilos/paneles/panel-personaje.css" />
 
-    <!-- Ajuste del backend Phaser cuando se selecciona por URL. -->
+    <!-- Estilos del mapa y la cámara Phaser. -->
     <link rel="stylesheet" href="./assets/estilos/phaser/phaser.css" />
   </head>
 
   <body>
+    <section
+      id="mapLoadingOverlay"
+      class="pantalla-carga-mapa oculto"
+      aria-live="polite"
+      aria-busy="false"
+      aria-label="Cargando mapa"
+      data-i18n-aria-label="interfaz.cargaMapa.aria"
+    >
+      <div class="pantalla-carga-mapa__contenido">
+        <h1 class="pantalla-carga-mapa__titulo">Dark Moon</h1>
+        <p id="mapLoadingText" class="pantalla-carga-mapa__texto" data-i18n="interfaz.cargaMapa.cargando">
+          Cargando...
+        </p>
+        <div
+          id="mapLoadingProgress"
+          class="pantalla-carga-mapa__barra"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <span
+            id="mapLoadingProgressFill"
+            class="pantalla-carga-mapa__progreso"
+          ></span>
+        </div>
+      </div>
+    </section>
+
     <main>
       <!-- ============================================
       MENÚ PRINCIPAL
@@ -220,9 +249,7 @@
           ></aside>
 
           <section class="zona-central-partida">
-            <div class="panel-juego panel-mapa">
-              <canvas id="gameCanvas"></canvas>
-            </div>
+            <div id="gameMapPanel" class="panel-juego panel-mapa"></div>
 
             <div class="zona-acciones-partida">
               <button

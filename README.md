@@ -30,12 +30,12 @@ La versión actual incluye:
 - doce habilidades jugables;
 - efectos temporales, resistencias e inmunidades;
 - zonas temporales persistentes dentro del mapa activo;
-- interfaz HTML con Phaser como backend visual predeterminado y Canvas 2D como respaldo explícito;
+- interfaz HTML con Phaser 4.2.1 como único renderizador gráfico canónico;
 - persistencia durable del jugador y de la barra de habilidades;
 - depurador accesible desde la consola;
 - balanceador independiente en `balance.html`.
 
-No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Phaser 4.2.1 es el backend visual predeterminado de la beta web. Canvas 2D continúa operativo como respaldo explícito y no carga Phaser cuando se solicita `?render=canvas2d`.
+No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Phaser 4.2.1 es el único renderizador gráfico mantenido por Dark Moon. Phaser puede elegir internamente WebGL o Canvas mediante `Phaser.AUTO`, pero la aplicación ya no mantiene un segundo renderizador propio.
 
 ---
 
@@ -55,25 +55,13 @@ En Windows también puede funcionar:
 python -m http.server 8000
 ```
 
-Abrir en el navegador con Phaser, que es el backend predeterminado de la beta web:
+Abrir en el navegador:
 
 ```text
 http://localhost:8000/index.html
 ```
 
-Phaser también puede solicitarse de forma explícita:
-
-```text
-http://localhost:8000/index.html?render=phaser
-```
-
-Canvas 2D permanece disponible como respaldo explícito:
-
-```text
-http://localhost:8000/index.html?render=canvas2d
-```
-
-Phaser se carga desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN, cuando el backend seleccionado es Phaser. `?render=canvas2d` evita su carga. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. En Phaser, `I`, `J`, `K` y `L` desplazan únicamente la cámara; `+` y `-` cambian el zoom; `H` vuelve al personaje y reactiva el seguimiento. La rueda también cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el desplazamiento manual. Los controles de cámara se ignoran mientras se escribe en un campo editable.
+Phaser se carga siempre desde `assets/vendor/phaser/4.2.1/phaser.min.js`, sin CDN. El parámetro histórico `render` ya no selecciona backends y, si aparece en una URL antigua, no modifica el arranque. La copia local puede ejecutarse sin internet mediante un servidor HTTP. El backend refresca automáticamente `Phaser.Scale.FIT` cuando la pantalla de la partida pasa de oculta a visible, por lo que no necesita un redimensionamiento manual para mostrar el mapa. El movimiento, el combate, las habilidades y las interacciones continúan entrando por los controladores canónicos del juego. En Phaser, `I`, `J`, `K` y `L` desplazan únicamente la cámara; `+` y `-` cambian el zoom; `H` vuelve al personaje y reactiva el seguimiento. La rueda también cambia el zoom, el arrastre con botón derecho o central desplaza la cámara y el doble clic izquierdo vuelve al personaje. Durante una selección táctica la cámara se fija en el personaje, conserva ese centro al cambiar zoom y bloquea el desplazamiento manual. Los controles de cámara se ignoran mientras se escribe en un campo editable.
 
 Balanceador:
 
@@ -118,7 +106,7 @@ index.html
       └─ src/aplicacion/Aplicacion.js
 ```
 
-`game.js` resuelve `?render=canvas2d|phaser`, carga Phaser solamente cuando corresponde, crea la presentación DOM, la inyecta en una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
+`game.js` carga y valida la copia local de Phaser, crea la presentación DOM, la inyecta en una única instancia de `Aplicacion`, publica las herramientas de consola y comienza el arranque:
 
 ```js
 globalThis.darkMoonAplicacion
@@ -256,7 +244,7 @@ Concentra la composición HTML actual:
 - localiza y valida los elementos iniciales del documento;
 - crea `ControladorPantallasDom`;
 - crea el menú de personaje;
-- entrega la fábrica de interfaz persistente y el backend de mapa seleccionado;
+- entrega la fábrica de interfaz persistente basada en Phaser;
 - construye `PresentacionMapaActivoDom` para cada mapa activado;
 - presenta la derrota mediante `AdaptadorDerrotaDom`;
 - muestra errores de inicio en la pantalla de creación.
@@ -273,7 +261,7 @@ Agrupa los componentes visuales y de entrada que existen solamente mientras un m
 - inventario y equipamiento;
 - comercio;
 - contenedores, curación y transiciones;
-- barra, panel y puntero de habilidades.
+- barra y panel de habilidades; la selección de casillas del mapa entra por el controlador Phaser.
 
 Se crea nuevamente al entrar en una ciudad o mazmorra y se destruye antes de retirar el `Juego` anterior. De esta forma, `ControladorPartida` no elige controladores DOM concretos ni administra sus listeners y modales de manera individual.
 
@@ -307,7 +295,7 @@ Administra una sola compuerta de entrada para teclado, mouse, barra y acciones D
 
 `src/aplicacion/EjecutorAccionesJugador.js`
 
-Ejecuta comandos jugables sin conocer teclado, DOM, Canvas o Phaser:
+Ejecuta comandos jugables sin conocer teclado, DOM ni Phaser:
 
 - movimiento del jugador o del selector activo;
 - espera;
@@ -317,7 +305,7 @@ Ejecuta comandos jugables sin conocer teclado, DOM, Canvas o Phaser:
 - inicio y confirmación de interacciones;
 - cancelación de combate o interacción.
 
-El teclado DOM, la barra, el puntero, una futura escena de Phaser, la consola y las pruebas pueden reutilizar el mismo punto de entrada mediante `ControladorPartida.ejecutarComandoJugador()`.
+El teclado DOM, la barra, la entrada del mapa Phaser, la consola y las pruebas reutilizan el mismo punto de entrada mediante `ControladorPartida.ejecutarComandoJugador()`.
 
 #### `EstadoPartida`
 
@@ -361,7 +349,7 @@ Representa el mapa activo y es la fachada jugable utilizada por los controladore
 Actualiza la presentación general:
 
 - crea la escena visual a partir de `Juego`;
-- entrega el mapa al backend Canvas 2D o Phaser seleccionado;
+- entrega la escena neutral al renderizador Phaser;
 - actualiza panel de personaje, inventario y equipamiento;
 - administra el registro de mensajes.
 
@@ -391,7 +379,7 @@ Una presentación futura puede conectar otro adaptador sin modificar las reglas 
 
 - `src/juego/` y `src/objetos/` contienen reglas y estado autoritativo, no componentes visuales.
 - `src/aplicacion/` coordina casos de uso y resultados, sin depender de `document`, Canvas o Phaser.
-- `src/interfaz/` construye la presentación DOM/Canvas actual y puede ser reemplazada o combinada con otro backend gráfico.
+- `src/interfaz/` construye la presentación DOM y Phaser actual. Las reglas del juego permanecen separadas de esa presentación.
 - `src/controles/` traduce teclado o puntero a comandos compartidos; no decide reglas jugables.
 - `src/utilidades/` contiene primitivas técnicas neutrales reutilizables, sin reglas de dominio; actualmente centraliza carga JSON y almacenamiento JSON clave/valor.
 - `src/herramientas/depuracion/` concentra soporte explícito de diagnóstico y pruebas; los recursos de prueba de mapas ya no se fabrican desde la configuración canónica.
@@ -546,7 +534,7 @@ Inventario, equipamiento, comercio, curación y paneles se operan mediante la in
 
 `src/controles/ControladorTeclado.js` es el único adaptador global de teclado jugable: reconoce movimiento, espera, confirmación, cancelación, respaldo, interacción con `R` y ranuras `1–0`, pero no conoce `Juego`, el sistema de habilidades, el renderizador ni sus reglas.
 
-`src/controles/ControladorPunteroHabilidades.js` convierte clics sobre casillas DOM o Canvas 2D en coordenadas de mapa. `src/interfaz/graficos/phaser/ControladorEntradaJugablePhaser.js` convierte el clic izquierdo sobre Phaser mediante la cámara y el zoom reales. Ambos emiten `SELECCIONAR_CASILLA`; ninguno decide alcance, objetivos, interacción ni ejecución. `src/interfaz/habilidades/BarraHabilidades.js` entrega la ranura elegida mediante un callback.
+`src/interfaz/graficos/phaser/ControladorEntradaJugablePhaser.js` convierte el clic izquierdo sobre el mapa en una casilla utilizando la cámara y el zoom reales y emite `SELECCIONAR_CASILLA`. No decide alcance, objetivos, interacción ni ejecución. `src/interfaz/habilidades/BarraHabilidades.js` entrega la ranura elegida mediante un callback.
 
 `src/aplicacion/EjecutorAccionesJugador.js` resuelve todos esos comandos sobre el mapa activo y respeta la prioridad habilidad → interacción → combate → movimiento. `ControladorPartida` coordina mensajes, redibujados y derrota sin duplicarlos.
 
@@ -1057,7 +1045,6 @@ src/juego/habilidades/EstadoSesionHabilidades.js
 src/juego/habilidades/GeometriaHabilidades.js
 src/juego/habilidades/MotorDanioHabilidad.js
 src/juego/habilidades/MotorEfectosHabilidad.js
-src/controles/ControladorPunteroHabilidades.js
 src/juego/habilidades/ObservadorProgresoMagico.js
 ```
 
@@ -1069,9 +1056,8 @@ src/juego/habilidades/ObservadorProgresoMagico.js
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
 - `MotorEfectosHabilidad`: aplicación de efectos.
-- `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel, puntero y comandos; cuando cambia el progreso solicita el guardado a la autoridad de partida mediante callback.
+- `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel y comandos; cuando cambia el progreso solicita el guardado a la autoridad de partida mediante callback.
 - `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
-- `ControladorPunteroHabilidades`: adaptación DOM de clics a coordenadas del selector.
 - `PanelHabilidadesMaestrias`: presentación y mejora de habilidades.
 
 La ejecución de una habilidad no debe depender de que el personaje equipe una varita o bastón. El equipamiento puede aportar potencia y configurar ataques básicos mágicos, pero no habilita o deshabilita el uso de las habilidades aprendidas.
@@ -1232,6 +1218,8 @@ El proyecto posee funciones para:
 
 El menú principal ofrece **Continuar** cuando existe un guardado durable válido. Continuar reconstruye el personaje y comienza una nueva sesión segura desde la ciudad; no restaura posición, enemigos, botín de suelo, agenda temporal ni la expedición interrumpida. Un guardado inválido deshabilita Continuar sin borrarse automáticamente. Crear un personaje nuevo solicita confirmación antes de reemplazar un guardado existente y solo lo elimina al confirmar la nueva aventura.
 
+La activación de cualquier mapa jugable —incluidas nueva partida, Continuar y las transiciones entre ciudad y mazmorras— utiliza una preparación visual común. La aplicación muestra un Loading global durante al menos 1 segundo, prepara el mapa y precarga con Phaser sus recursos persistentes contextuales antes de dibujar la primera escena y habilitar la entrada. Las entidades ocultas por FOV solo aportan rutas de recursos al manifiesto de precarga; no revelan posiciones ni estado jugable. Un recurso que falla realmente puede caer al fallback visual, pero una textura que todavía está cargando no debe mostrarse primero como fallback.
+
 No debe modificarse una clave, versión, ID de profesión, ID de objeto, ID de afijo o estructura persistida sin revisar la compatibilidad.
 
 ---
@@ -1357,16 +1345,18 @@ AdaptadorEscenaJuego
   ↓
 objeto de escena plano
   ↓
-RenderizadorCanvas2D
+Renderizador
+  ↓
+RenderizadorPhaser
 ```
 
-Archivos:
+Archivos principales:
 
 ```text
 src/interfaz/graficos/AdaptadorEscenaJuego.js
 src/interfaz/graficos/TiposEscena.js
-src/interfaz/graficos/RenderizadorCanvas2D.js
-src/interfaz/graficos/CargadorImagenes.js
+src/interfaz/Renderizador.js
+src/interfaz/graficos/phaser/RenderizadorPhaser.js
 ```
 
 La escena visual contiene:
@@ -1380,7 +1370,7 @@ La escena visual contiene:
 - selección y geometría de habilidades;
 - zonas temporales.
 
-Este contrato es el principal punto de entrada para una futura capa Phaser.
+Este contrato neutral evita que Phaser conozca entidades o reglas de dominio directamente.
 
 ### Recursos
 
@@ -1545,13 +1535,13 @@ Los métodos que alteran Maná, enemigos, resistencias, inmunidades o tiradas es
 
 ## 24. Integración actual con Phaser
 
-Phaser está incorporado como backend visual del mapa y no reemplaza las reglas del juego. Es el backend predeterminado de la beta web; Canvas 2D continúa operativo mediante `?render=canvas2d`.
+Phaser es el único renderizador gráfico canónico del mapa y no reemplaza las reglas del juego. La implementación Canvas 2D propia de Dark Moon fue retirada después de certificar manualmente la cobertura funcional y visual de Phaser.
 
 Arquitectura vigente:
 
 ```text
 Teclado jugable DOM ───────────────┐
-Puntero DOM / Canvas 2D ───────────┼─> comando compartido
+Barra y acciones DOM ──────────────┼─> comando compartido
 Puntero del mapa Phaser ───────────┘           ↓
                                       ControladorPartida
                                               ↓
@@ -1564,9 +1554,9 @@ Puntero del mapa Phaser ───────────┘           ↓
                              estado final          eventos ordenados
                                   └───────────┬───────────┘
                                       escena neutral
-                                        ┌─────┴─────┐
-                                   Canvas 2D     Phaser
-                                                    ↓
+                                              ↓
+                                           Phaser
+                                              ↓
                                       cola visual no autoritativa
 ```
 
@@ -1586,9 +1576,10 @@ El teclado jugable permanece centralizado en `ControladorTeclado`. Phaser conser
 
 ### Estado del corte visual
 
-El backend Phaser, predeterminado sin parámetro o seleccionable con `?render=phaser`, utiliza actualmente:
+El renderizador Phaser utiliza actualmente:
 
-- `GestorRecursosPhaser` para cargar imágenes locales y calcular los límites alfa, la base y el centro visible de cada PNG;
+- `GestorRecursosPhaser` para cargar imágenes locales, precargar lotes contextuales y calcular los límites alfa, la base y el centro visible de cada PNG;
+- `RecursosMapaPhaser` para reunir y deduplicar el manifiesto visual persistente requerido por el mapa activo sin conocer reglas de FOV ni posiciones ocultas;
 - `ConfiguracionEntidadesPhaser` como única fuente de presentación cenital de entidades dentro de Phaser;
 - `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades, iluminación ambiental y efectos temporales;
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
@@ -1613,7 +1604,7 @@ Los perfiles de presentación se mantienen en configuraciones visuales validadas
 
 La cola dispone de velocidades internas `normal`, `rapida` y `muy-rapida`, aceleración automática cuando se acumulan eventos y una opción de efectos reducidos. Las preferencias de presentación se cargan desde la configuración canónica y se aplican sin alterar el tiempo jugable.
 
-Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador equivalente.
+Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos.
 
 ### Lo que Phaser no debe contener
 
@@ -1867,4 +1858,4 @@ Para comprender una modificación, seguir este orden:
 6. comprobar persistencia, balanceador y depurador;
 7. realizar la prueba desde `index.html`, no solamente desde funciones aisladas.
 
-La lógica jugable debe permanecer independiente del backend gráfico. Phaser y Canvas 2D consumen el mismo estado y los mismos eventos resueltos; cualquier cambio de presentación debe conservar esa separación y reutilizar los contratos canónicos existentes antes de introducir nuevas abstracciones.
+La lógica jugable debe permanecer independiente del renderizador gráfico. Phaser consume escenas neutrales y eventos ya resueltos; cualquier cambio de presentación debe conservar esa separación y reutilizar los contratos canónicos existentes antes de introducir nuevas abstracciones.

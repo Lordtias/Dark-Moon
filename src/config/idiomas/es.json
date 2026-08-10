@@ -583,6 +583,11 @@
         "ciudad": "ciudad",
         "mazmorra": "mazmorra"
       }
+    },
+    "cargaMapa": {
+      "aria": "Preparando mapa de Dark Moon",
+      "cargando": "Cargando...",
+      "progreso": "Carga {porcentaje} %"
     }
   },
   "contenido": {

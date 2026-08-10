@@ -6,6 +6,7 @@ import { ControladorPantallasDom } from "./ControladorPantallasDom.js";
 import { ControladorConfiguracionDom } from "./ControladorConfiguracionDom.js";
 import { ControladorIdiomaDom } from "./ControladorIdiomaDom.js";
 import { AplicadorIdiomaDom } from "../idiomas/AplicadorIdiomaDom.js";
+import { PresentadorCargaMapaDom } from "./PresentadorCargaMapaDom.js";
 import { configurarTraductorActivo, traducir } from "../idiomas/ContextoIdioma.js";
 
 // Construye y conecta la presentación HTML actual de Dark Moon.
@@ -13,9 +14,8 @@ import { configurarTraductorActivo, traducir } from "../idiomas/ContextoIdioma.j
 // La capa de aplicación solicita componentes mediante este contrato y no
 // necesita conocer elementos, selectores o clases concretas del DOM.
 export class PresentacionAplicacionDom {
-  constructor({ tipoRenderizador = "phaser", Phaser = null } = {}) {
+  constructor({ Phaser = null } = {}) {
     this.adaptadorDerrota = null;
-    this.tipoRenderizador = tipoRenderizador;
     this.Phaser = Phaser;
     this.traductor = null;
     this.aplicadorIdioma = null;
@@ -156,7 +156,7 @@ export class PresentacionAplicacionDom {
 
   obtenerInformacionRenderizador() {
     return {
-      tipo: this.tipoRenderizador,
+      tipo: "phaser",
       phaserVersion: this.Phaser?.VERSION ?? null,
     };
   }
@@ -164,13 +164,33 @@ export class PresentacionAplicacionDom {
   crearInterfazPartida(configuracion) {
     return crearInterfazPartidaDom({
       ...configuracion,
-      tipoRenderizador: this.tipoRenderizador,
       Phaser: this.Phaser,
     });
   }
 
   crearPresentacionMapaActivo(configuracion) {
     return new PresentacionMapaActivoDom(configuracion);
+  }
+
+  crearPresentadorCargaMapa() {
+    return new PresentadorCargaMapaDom({
+      contenedor: obtenerElementoObligatorio(
+        "mapLoadingOverlay",
+        "pantalla de carga del mapa",
+      ),
+      texto: obtenerElementoObligatorio(
+        "mapLoadingText",
+        "texto de carga del mapa",
+      ),
+      barra: obtenerElementoObligatorio(
+        "mapLoadingProgress",
+        "barra de progreso de carga",
+      ),
+      progreso: obtenerElementoObligatorio(
+        "mapLoadingProgressFill",
+        "indicador de progreso de carga",
+      ),
+    });
   }
 
   presentarDerrota(detalle) {

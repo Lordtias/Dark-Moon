@@ -615,15 +615,6 @@ function unirConjuntos(conjuntoA, conjuntoB) {
   return new Set([...conjuntoA, ...conjuntoB]);
 }
 
-function validarRangoPorcentaje(rango, descripcion) {
-  validarRangoEntero({
-    rango,
-    descripcion,
-    minimoPermitido: 0,
-    maximoPermitido: 100,
-  });
-}
-
 function validarRangoEntero({
   rango,
   descripcion,

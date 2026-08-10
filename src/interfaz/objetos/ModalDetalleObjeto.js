@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos } from "../dom/UtilidadesDom.js";
 import { crearPresentacionObjeto } from "./PresentadorObjeto.js";
 
 import { VistaDetalleObjeto } from "./VistaDetalleObjeto.js";
@@ -28,7 +29,7 @@ const ESTADOS_MODAL = Object.freeze({
 // Comparar no consume tiempo ni modifica el equipamiento.
 export class ModalDetalleObjeto {
   constructor() {
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({ id: ID_HOJA_ESTILOS, ruta: RUTA_HOJA_ESTILOS });
 
     this.vistaDetalle = new VistaDetalleObjeto();
 
@@ -469,20 +470,4 @@ function crearBoton(texto, modificador) {
   boton.textContent = texto;
 
   return boton;
-}
-
-function asegurarHojaEstilos() {
-  if (document.getElementById(ID_HOJA_ESTILOS)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = ID_HOJA_ESTILOS;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = RUTA_HOJA_ESTILOS;
-
-  document.head.appendChild(enlace);
 }

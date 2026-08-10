@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 const ANCLAJES_RECURSO = Object.freeze({
   CENTRO: "centro",
   INICIO: "inicio",
@@ -87,8 +88,4 @@ function resolverOrigen({ anclaje, informacion }) {
     x: (limites?.centroX ?? ancho / 2) / ancho,
     y: centroY / alto,
   });
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }

@@ -242,7 +242,7 @@ export class Juego {
   }
 
   // Fachada prevista para que la curandera pueda restaurar estados en una
-  // etapa posterior sin conocer la implementación interna del motor.
+  // otro consumidor sin conocer la implementación interna del motor.
   retirarEfectosNegativos(objetivo = this.player, opciones = {}) {
     return this.coordinadorTiempo.retirarEfectosNegativos(objetivo, opciones);
   }

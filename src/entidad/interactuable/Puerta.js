@@ -22,11 +22,6 @@ export const RECURSOS_VISUALES_PUERTA_PREDETERMINADOS = Object.freeze({
   }),
 });
 
-// Alias de compatibilidad para cualquier consumidor que todavía importe el
-// nombre anterior. El nuevo contrato selecciona el recurso por orientación.
-export const RECURSO_VISUAL_PUERTA_CERRADA_PREDETERMINADO =
-  RECURSOS_VISUALES_PUERTA_PREDETERMINADOS[ORIENTACIONES_PUERTA.VERTICAL].cerrada;
-
 // Puerta interactuable integrada al sistema espacial canónico.
 //
 // Cerrada:
@@ -38,7 +33,7 @@ export const RECURSO_VISUAL_PUERTA_CERRADA_PREDETERMINADO =
 // - permite visión.
 //
 // La orientación es un dato representable y no modifica las reglas espaciales.
-// E2.B podrá decidirla a partir del acceso estructural sin que Phaser tenga que
+// Se decide a partir del acceso estructural para que Phaser no tenga que
 // inferirla desde el mapa.
 export class Puerta extends Entidad {
   constructor({

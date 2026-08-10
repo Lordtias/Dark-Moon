@@ -1,3 +1,4 @@
+import { crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 // Representa exclusivamente accesos rápidos. El contenido de cada habilidad,
@@ -217,18 +218,4 @@ function obtenerDescripcionHabilidad(ranura) {
     "descripcion",
     ranura.descripcion ?? "",
   );
-}
-
-function crearElemento(etiqueta, clase = "", texto = "") {
-  const elemento = document.createElement(etiqueta);
-
-  if (clase) {
-    elemento.className = clase;
-  }
-
-  if (texto !== "") {
-    elemento.textContent = texto;
-  }
-
-  return elemento;
 }

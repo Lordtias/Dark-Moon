@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalDerrota";
@@ -19,7 +20,7 @@ let siguienteIdModal = 1;
 // - Oro.
 export class ModalDerrota {
   constructor() {
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({ id: ID_HOJA_ESTILOS, ruta: RUTA_HOJA_ESTILOS });
 
     this.idTitulo = `tituloModalDerrota${siguienteIdModal}`;
 
@@ -226,18 +227,6 @@ function agregarDatoResumen({ lista, etiqueta, claseAdicional = null }) {
   return valor;
 }
 
-function crearElemento(etiqueta, clase, texto = "") {
-  const elemento = document.createElement(etiqueta);
-
-  elemento.classList.add(clase);
-
-  if (texto !== "") {
-    elemento.textContent = texto;
-  }
-
-  return elemento;
-}
-
 function formatearNumero(valor) {
   return new Intl.NumberFormat("es-UY").format(valor);
 }
@@ -261,20 +250,4 @@ function validarApertura({ jugador, alVolverMenu }) {
   if (typeof alVolverMenu !== "function") {
     throw new Error("ModalDerrota necesita una acción para volver al menú.");
   }
-}
-
-function asegurarHojaEstilos() {
-  if (document.getElementById(ID_HOJA_ESTILOS)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = ID_HOJA_ESTILOS;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = RUTA_HOJA_ESTILOS;
-
-  document.head.appendChild(enlace);
 }

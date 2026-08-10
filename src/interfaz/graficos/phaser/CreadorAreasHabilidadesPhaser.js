@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 // Construye áreas transitorias para habilidades ya resueltas. Recibe casillas
 // canónicas y perfiles de presentación; no calcula radio, obstáculos, daño ni
 // objetivos.
@@ -239,10 +240,6 @@ function dibujarBroteFuegoCasilla(
   grafico.fillStyle?.(secundario, 0.62);
   grafico.fillCircle?.(-mitad * 0.55, -mitad * 0.48, 1.2);
   grafico.fillCircle?.(mitad * 0.48, -mitad * 0.22, 1);
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }
 
 function convertirColor(valor, fallback = 0xffffff) {

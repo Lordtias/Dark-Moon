@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir } from "../idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS_ECONOMICOS = "hojaEstilosDetalleEconomicoObjeto";
@@ -12,7 +13,7 @@ let siguienteIdVista = 1;
 // equipamiento, comparaciones ni acciones del juego.
 export class VistaDetalleObjeto {
   constructor() {
-    asegurarHojaEstilosEconomicos();
+    asegurarHojaEstilos({ id: ID_HOJA_ESTILOS_ECONOMICOS, ruta: RUTA_HOJA_ESTILOS_ECONOMICOS });
 
     this.idTitulo = `tituloDetalleObjeto${siguienteIdVista}`;
 
@@ -423,18 +424,6 @@ function formatearEfecto(efecto) {
   return "";
 }
 
-function crearElemento(etiqueta, clase, texto = "") {
-  const elemento = document.createElement(etiqueta);
-
-  elemento.classList.add(clase);
-
-  if (texto !== "") {
-    elemento.textContent = texto;
-  }
-
-  return elemento;
-}
-
 function formatearIdentificador(valor) {
   if (typeof valor !== "string" || valor.trim() === "") {
     return "—";
@@ -460,20 +449,4 @@ function validarPresentacion(presentacion) {
   ) {
     throw new Error("VistaDetalleObjeto necesita una presentación válida.");
   }
-}
-
-function asegurarHojaEstilosEconomicos() {
-  if (document.getElementById(ID_HOJA_ESTILOS_ECONOMICOS)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = ID_HOJA_ESTILOS_ECONOMICOS;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = RUTA_HOJA_ESTILOS_ECONOMICOS;
-
-  document.head.appendChild(enlace);
 }

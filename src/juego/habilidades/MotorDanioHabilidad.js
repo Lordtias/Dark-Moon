@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { resolverPaqueteDanio } from "../combate/ComponentesDanio.js";
 import { obtenerDesgloseProbabilidadImpacto } from "../combate/SistemaCombate.js";
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
@@ -484,8 +485,4 @@ function estaDerrotado(objetivo) {
   }
   const vida = objetivo?.vidaActual ?? objetivo?.vida;
   return Number.isFinite(vida) ? vida <= 0 : false;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }

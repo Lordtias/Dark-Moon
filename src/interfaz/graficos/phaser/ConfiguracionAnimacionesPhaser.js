@@ -1,4 +1,4 @@
-export const VELOCIDADES_ANIMACION_PHASER = Object.freeze({
+const VELOCIDADES_ANIMACION_PHASER = Object.freeze({
   NORMAL: "normal",
   RAPIDA: "rapida",
   MUY_RAPIDA: "muy-rapida",

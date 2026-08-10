@@ -1,3 +1,4 @@
+import { obtenerInstante, redondearMilisegundos } from "../../../utilidades/TiempoEjecucion.js";
 import { traducir } from "../../idiomas/ContextoIdioma.js";
 import { filtrarEventosVisualesPorVisibilidad } from "../FiltradorEventosVisualesPorVisibilidad.js";
 import { crearEscenaArranquePhaser } from "./EscenaArranquePhaser.js";
@@ -407,12 +408,4 @@ function validarElementos({ Phaser, canvasBase, contenedor }) {
   if (!(contenedor instanceof HTMLElement)) {
     throw new Error("RenderizadorPhaser necesita el panel del mapa.");
   }
-}
-
-function obtenerInstante() {
-  return globalThis.performance?.now?.() ?? Date.now();
-}
-
-function redondearMilisegundos(valor) {
-  return Math.round((Number(valor) || 0) * 100) / 100;
 }

@@ -696,7 +696,7 @@ function crearConclusiones({ ruta, recompensas, fallos, cobertura }) {
         : "Se detectó una duplicación o una recompensa ausente.",
       recomendacion: recompensasCorrectas
         ? "Conservar el resolutor canónico sin excepciones por habilidad."
-        : "Corregir el resolutor antes de finalizar la etapa.",
+        : "Corregir el resolutor antes de considerar válida la regresión.",
     },
     {
       id: "regresion_fallos",

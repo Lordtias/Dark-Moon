@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import {
   obtenerConfiguracionRitmoVisual,
   obtenerPerfilAtaque,
@@ -112,7 +113,7 @@ export function crearPlanRitmoVisualMovimiento({ ejecucionTemporal } = {}) {
   });
 }
 
-export function convertirCostoFinalADuracionVisual(costoFinal) {
+function convertirCostoFinalADuracionVisual(costoFinal) {
   if (!Number.isInteger(costoFinal) || costoFinal <= 0) {
     throw new Error(
       "El ritmo visual necesita un costoFinal entero mayor que 0.",
@@ -175,8 +176,4 @@ function distribuirDuracionPorFases({
   });
 
   return Object.freeze(fases);
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.min(maximo, Math.max(minimo, valor));
 }

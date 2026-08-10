@@ -35,7 +35,7 @@ La versión actual incluye:
 - depurador accesible desde la consola;
 - balanceador independiente en `balance.html`.
 
-No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Desde P7.1, Phaser 4.2.1 es el backend visual predeterminado de la beta web. Canvas 2D continúa operativo como respaldo explícito y no carga Phaser cuando se solicita `?render=canvas2d`.
+No se utiliza un empaquetador, servidor de aplicación ni framework de interfaz. Phaser 4.2.1 es el backend visual predeterminado de la beta web. Canvas 2D continúa operativo como respaldo explícito y no carga Phaser cuando se solicita `?render=canvas2d`.
 
 ---
 
@@ -158,7 +158,8 @@ Dark-Moon/
 │  ├─ entidad/                   Entidades del mundo y combatientes.
 │  ├─ interfaz/                  Composición DOM, paneles, modales y representación visual.
 │  ├─ juego/                     Motores y reglas jugables.
-│  ├─ herramientas/              Balance y depuración para desarrollo.
+│  ├─ herramientas/              Balance y diagnóstico para desarrollo.
+│  ├─ utilidades/                Primitivas neutrales compartidas sin reglas de juego.
 │  └─ objetos/                   Modelo base de objetos, inventario y equipo.
 ├─ index.html                    Página principal del juego.
 ├─ balance.html                  Herramienta de análisis de balance.
@@ -780,12 +781,14 @@ Código principal:
 
 ```text
 src/partida/GestorMapasPartida.js
-src/partida/TransicionesMapa.js
+src/juego/interacciones/TransicionesMapa.js
 src/juego/configuracion/SelectorMapa.js
 src/juego/configuracion/ReglasAccesoMapas.js
 src/juego/configuracion/ValidadorConfiguracionMapas.js
 src/juego/generacion/GeneradorTerreno.js
 src/juego/generacion/GeneradorContenidoMapa.js
+src/juego/generacion/PobladorEnemigosMazmorra.js
+src/juego/generacion/PobladorInteractuablesMazmorra.js
 src/juego/generacion/GeneradorSalidaMapa.js
 ```
 
@@ -800,6 +803,8 @@ src/juego/generacion/GeneradorSalidaMapa.js
 | `sala_guerra` | Sala de guerra | 8 | 8–10 |
 
 La Sala de guerra genera al Señor de la Guerra como jefe obligatorio.
+
+`GeneradorTerreno` produce el `PlanoMazmorra` estructural: habitaciones, pasillos, accesos, entrada, salida y casillas transitables. `GeneradorContenidoMapa` conserva la orquestación de contenido, pero delega la población de enemigos y la colocación de interactuables en colaboradores independientes. La habitación inicial permanece segura, la habitación asociada a la salida actúa como zona especial y la población recurrente escala por densidad sobre habitaciones candidatas. Puertas, cofres, barriles y el portal de entrada se materializan desde la estructura existente sin excavar rutas alternativas.
 
 ### Ciclo de una transición
 
@@ -839,7 +844,9 @@ Entidad
   └─ Interactuables
      ├─ BotinSuelo
      ├─ NPC
-     └─ PortalMapa
+     ├─ PortalMapa
+     ├─ Puerta
+     └─ Cofre
 ```
 
 Configuraciones:
@@ -1210,7 +1217,7 @@ El proyecto posee funciones para:
 - reconstruir un `Player` real;
 - restaurar inventario y equipamiento.
 
-Desde P7.1 el menú principal ofrece **Continuar** cuando existe un guardado durable válido. Continuar reconstruye el personaje y comienza una nueva sesión segura desde la ciudad; no restaura posición, enemigos, botín de suelo, agenda temporal ni la expedición interrumpida. Un guardado inválido deshabilita Continuar sin borrarse automáticamente. Crear un personaje nuevo solicita confirmación antes de reemplazar un guardado existente y solo lo elimina al confirmar la nueva aventura.
+El menú principal ofrece **Continuar** cuando existe un guardado durable válido. Continuar reconstruye el personaje y comienza una nueva sesión segura desde la ciudad; no restaura posición, enemigos, botín de suelo, agenda temporal ni la expedición interrumpida. Un guardado inválido deshabilita Continuar sin borrarse automáticamente. Crear un personaje nuevo solicita confirmación antes de reemplazar un guardado existente y solo lo elimina al confirmar la nueva aventura.
 
 No debe modificarse una clave, versión, ID de profesión, ID de objeto, ID de afijo o estructura persistida sin revisar la compatibilidad.
 
@@ -1525,7 +1532,7 @@ Los métodos que alteran Maná, enemigos, resistencias, inmunidades o tiradas es
 
 ## 24. Integración actual con Phaser
 
-Phaser está incorporado como backend visual del mapa y no reemplaza las reglas del juego. Desde P7.1 es el backend predeterminado de la beta web; Canvas 2D continúa operativo mediante `?render=canvas2d`.
+Phaser está incorporado como backend visual del mapa y no reemplaza las reglas del juego. Es el backend predeterminado de la beta web; Canvas 2D continúa operativo mediante `?render=canvas2d`.
 
 Arquitectura vigente:
 
@@ -1576,7 +1583,7 @@ El backend Phaser, predeterminado sin parámetro o seleccionable con `?render=ph
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
 - `EventosAccion` para conservar movimientos, ataques y cambios de hostilidad ya resueltos sin repetir reglas;
 - `PlanificadorEventosVisuales` para reemplazar referencias del dominio por identidades visuales en memoria;
-- `ReproductorEventosVisualesPhaser` para interpolar desplazamientos y reproducir las acciones enemigas en el orden canónico;
+- `ReproductorEventosVisualesPhaser` como coordinador de la cola visual y reproductores especializados para movimiento, ataques, habilidades, estados y zonas;
 - recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`, incluida la familia cenital de `cenital/`;
 - `AnalizadorVecindadTerreno` y `ResolutorAutotilingParedes` como contrato genérico de ocho vecinos para muros y suelos;
 - paredes representadas como una masa continua, con bordes expuestos y esquinas interiores definidos por la configuración del bioma;
@@ -1587,52 +1594,13 @@ El backend Phaser, predeterminado sin parámetro o seleccionable con `?render=ph
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
 
-P5.2 dejó preparado el soporte técnico global de entidades sin agregar `aparienciaVisual` al dominio. P5.3 amplió el mismo enfoque al resto del mundo: Phaser resuelve suelos por símbolo de casilla, la ciudad distingue adoquín, césped, madera y tierra, y cada bioma dispone de su propia familia de pisos, masas de pared, bordes, esquinas internas y sombras de contacto.
+La presentación temporal consume exclusivamente resultados ya resueltos por el dominio. Movimiento, ataques físicos, proyectiles, habilidades, estados temporales, zonas, recuperaciones, derrotas, botín y cambios de hostilidad se convierten en eventos visuales ordenados sin recalcular daño, costes, resistencias, IA ni progresión. `PlanificadorRitmoVisual` convierte el tiempo jugable a duración de presentación y `ReproductorEventosVisualesPhaser` coordina la cola visual; los reproductores especializados por familia delegan la representación concreta sin convertirse en autoridades de reglas.
 
-P5.4 cierra técnicamente la etapa P5. Los PNG activos de Guerrero, Rogue y Mago fueron auditados en dimensiones, transparencia, centro visible, escala, sombra y lectura sobre todos los biomas. El resto de enemigos, destructibles, botín, portales y NPC continúa como arte provisional, pero todas sus rutas existen y el contrato gráfico ya permite reemplazarlos sin modificar `Player`, `Enemigo`, fábricas, combate o persistencia. La sustitución artística pendiente no bloquea P6.
+Los perfiles de presentación se mantienen en configuraciones visuales validadas. Los proyectiles conservan el recurso exacto ya consumido o equipado; las habilidades transportan sus impactos y objetivos resueltos; los estados persistentes se adjuntan a la entidad visual correspondiente; y el botín aparece después de la derrota que lo produjo. La derrota del jugador es inmediata en el dominio, aunque la interfaz puede esperar a que finalice la presentación visual pendiente antes de mostrar el modal.
 
-P6.1 incorpora el primer contrato de presentación temporal. Cada movimiento conserva origen, destino y entidad; cada ataque conserva atacante, objetivo y el resultado ya calculado. Phaser transforma esos hechos en una cola visual, interpola jugador y enemigos junto con sus sombras, acelera recorridos largos y separa las acciones ofensivas enemigas mediante una señal breve y una pausa. Los impactos con daño generan una reacción visual genérica tanto sobre el jugador como sobre los enemigos. La Vida, los turnos y el orden continúan resolviéndose inmediatamente en el dominio; la duración visual nunca decide resultados.
+La cola dispone de velocidades internas `normal`, `rapida` y `muy-rapida`, aceleración automática cuando se acumulan eventos y una opción de efectos reducidos. Las preferencias de presentación se cargan desde la configuración canónica y se aplican sin alterar el tiempo jugable.
 
-P6.2A amplía ese contrato para conservar la configuración visual y el resultado individual de cada golpe. Phaser muestra números de daño por golpe, `FALLO`, `BLOQUEO` y `CRÍTICO`, y reduce progresivamente la barra de Vida de los enemigos sin recalcular combate. Los ataques duales no muestran un total duplicado y una casilla vacía no genera un objetivo o resultado ficticio. El pulso ofensivo de P6.1 continúa siendo provisional hasta incorporar cuerpo a cuerpo en P6.2B y proyectiles en P6.2C.
-
-P6.2B.1 conecta cada acción con el `costoFinal` que ya registró `SistemaTiempo`. `CoordinadorTiempoPartida` asocia ese resultado temporal con los eventos del mismo actor y `PlanificadorRitmoVisual` realiza una única conversión de presentación desde unidades temporales a milisegundos. Las proporciones de preparación, acción, pausa y retorno se alojan en `PerfilesAtaquePorFamilia.json`; las familias solamente definen forma, tamaño, sentido y futuros IDs de sonido. Ninguna familia recalcula velocidad ni incorpora multiplicadores temporales propios.
-
-P6.2B.2 consume esos perfiles para reemplazar el pulso provisional por preparación, avance, corte, golpe contundente o estocada y retorno. Daga, espada, hacha, mandoble, bastón, lanza y ataque natural comparten la misma arquitectura para jugador y enemigos; las dos manos conservan su familia y la pausa proporcional de la secuencia dual. El bastón usa una estrella contundente grande con centro grueso y los críticos intensifican el efecto propio del arma sin agregar una estrella independiente. Los cambios de hostilidad se representan como eventos ordenados: el indicador `!` aparece antes de un avance agresivo, desaparece antes de una acción pasiva y aparece después del ataque con el que el jugador provoca a un enemigo. El indicador también se redujo para no cubrir la barra de Vida. Las derrotas directas o periódicas retiran la entidad antes de continuar con la siguiente acción; la aparición inmediata del botín queda para P6.4.
-
-P6.2C.1 reemplaza los ataques provisionales de arco por proyectiles que utilizan la munición exacta consumida. El resultado canónico conserva `idObjeto`, `tipoMunicion` y `recursoVisual`; Phaser recibe esos datos ya resueltos y no consulta el catálogo de municiones. La flecha horizontal se orienta hacia la casilla seleccionada y distribuye el ritmo visual en preparación 40 %, lanzamiento 15 %, trayectoria 25 % y retorno 20 %. La lanza utiliza el PNG exacto del arma equipada, permanece visualmente larga y no adelanta al combatiente: a alcance uno nace sobre el atacante y a alcance dos se centra en la casilla intermedia. El selector automático prioriza enemigos atacables y solo propone destructibles cuando no existe ninguno.
-
-P6.2C.2 reemplaza la presentación provisional de varitas por proyectiles básicos de fuego, frío, rayo y veneno. Cada fuente conserva su elemento y mano; una varita utiliza la secuencia `proyectil` y dos varitas utilizan `proyectil_dual`, distribuyendo una única duración derivada de `costoFinal`. Los disparos se reproducen por mano, admiten elementos diferentes, casilla vacía, fallo, bloqueo, crítico y muerte con el primer golpe sin inventar un segundo proyectil. Las formas elementales son procedurales y no alteran Maná, daño, resistencias ni reglas de doble varita.
-
-P6.2D cierra el feedback de recuperaciones explícitas y resultados meta básicos. El consumible exacto conserva ID y ruta visual, mientras `SistemaTiempo` aporta el `costoFinal` ya ajustado por `factorTiempo` y `factorConsumo`. La imagen del consumible sigue esa duración canónica; el texto, las partículas y el aura de recuperación usan una duración fija y legible en paralelo. Vida utiliza rojo, Maná azul-violeta y el texto muestra la cantidad realmente aplicada. Se agrega una poción de Maná provisional disponible en Edran y `CreadorRecursosVisualesPhaser` queda como punto genérico para sprites temporales. `nivel_aumentado` se conserva desde la derrota hasta Phaser y genera un aura blanca vertical tipo energía/ki: solo su entrada bloquea brevemente la cola y el resto desaparece en paralelo. La regeneración pasiva continúa sin evento visual y Lythra queda reservada para presentación mágica en P6.3. P6.2 queda cerrada y validada manualmente en `046a1d5391800ea827bdc71613eed5776d6f4dab`.
-
-P6.3A introduce `habilidad_resuelta`, un contrato universal para ejecutores de tipo jugador, enemigo o NPC. La primera implementación conecta Ascua, Esquirla de hielo, Chispa y Aguijón tóxico sin agregar IA o contenido nuevo. Cada impacto conserva objetivo, posición, daño, crítico, derrota y Vida anterior/posterior; los eventos producidos por efectos temporales continúan hacia la cola visual. `PerfilesHabilidadesVisuales.json` valida las doce habilidades canónicas y separa forma, textura, movimiento, estela, impacto y secuencia del tiempo jugable. Phaser reproduce conjuración, proyectil, trayectoria, resultado y retorno usando la duración derivada del `costoFinal`; Canvas 2D y Phaser conservan una selección elemental diferenciada. Los estados persistentes se analizarán en P6.3B y Lythra se incorporará después mediante habilidades canónicas de NPC no aprendibles por el jugador. Como ajuste visual aprobado, Chispa adopta la descarga completa anclada en zig-zag que antes utilizaba la varita eléctrica, mientras la varita eléctrica adopta la chispa compacta ramificada, su estela nerviosa y su impacto cruzado. El intercambio no modifica ninguna regla canónica. P6.3A fue validada manualmente y cerrada en `113130c8b0d6cc1d4e79a07709d7e814ab25d87d`.
-
-P6.3B.1 incorpora contratos y representación persistente para Ralentización, Electrización, Congelamiento, Aturdimiento, Envenenamiento y Quemadura. Cada entidad de la escena neutral transporta sus instancias activas con ID, intensidad, cantidad y tiempos canónicos, además del perfil visual ya resuelto. Phaser adjunta la representación al contenedor del actor para que acompañe movimientos y desaparezca con la entidad; Canvas 2D conserva marcas estáticas equivalentes. Al aplicar un estado aparece su nombre (`RALENTIZADO`, `ELECTRIZADO`, `CONGELADO`, `ATURDIDO`, `ENVENENADO` o `QUEMADO`); las renovaciones agregan `RENOVADO` y las intensificaciones muestran `×N`. La Ralentización de Esquirla usa factores 1.40–1.55 y Nova de escarcha 1.60–1.70; la animación de movimiento escala con `costoFinal / costoBase`, por lo que el efecto también se percibe durante el desplazamiento. La escena final reconcilia estados después de cancelaciones y cambios de mapa. P6.3D.3 reemplaza posteriormente aquella reserva: Congelamiento se consolida como bloqueo total sin inmunidad al daño. P6.3B.1 fue validada manualmente y cerrada en `0c61b97269509d8be8ac35c2e5af78c3a84800ba`.
-
-P6.3B.2 completa el ciclo visual de los estados temporales. `efecto_tick` se convierte en un evento visual propio que precede al daño periódico: Envenenamiento utiliza burbujas que se inflan y estallan, mientras Quemadura utiliza una llamarada ascendente. Las renovaciones actualizan la misma instancia gráfica y realizan un pulso breve sin destruirla; intensidad y cantidad modifican densidad y muestran un indicador persistente `×2` o `×3`. Phaser y Canvas 2D conservan canales espaciales separados para permitir la coexistencia de varios estados sin cubrir el sprite. El evento de daño periódico continúa siendo la única autoridad para el número, la barra de Vida y la derrota. P6.3B.2 fue validada manualmente y cerrada en `ec5933cd5090042f1be6511cbd5ad12ac5a65be3`.
-
-P6.3C.1A abre la representación de habilidades intermedias de área. `habilidad_resuelta` transporta `idEjecucion` para correlacionar los estados derivados y conserva explícitamente el objetivo primario cuando la casilla seleccionada contiene una entidad. `ResolucionEspacialHabilidades` centraliza las políticas canónicas de obstáculos y reutiliza `evaluarLineaVision`: las formas de radio usan `vision_desde_centro`, por lo que la vista previa, el daño, las zonas futuras y la presentación reciben la misma lista de casillas recortada por paredes. `PatronesVisualesHabilidades` separa los patrones reutilizables (`proyectil`, `area_instantanea`, `cadena`, `zona_persistente` y `linea`) de la apariencia concreta definida en `PerfilesHabilidadesVisuales.json`. Phaser incorpora el patrón `area_conjurada` mediante `CreadorAreasHabilidadesPhaser`: Explosión ígnea siempre centra el núcleo en la casilla elegida y muestra fuego en cada casilla afectada; solamente amplifica el golpe sobre una entidad cuando esa entidad fue realmente el objetivo primario. Nova de escarcha nace en el jugador, dibuja fracturas y cristales en todas las casillas canónicas y sincroniza `RALENTIZADO`, renovación o resistencia después del daño correspondiente. Canvas 2D permanece como respaldo funcional sin absorber reglas nuevas. P6.3C.1A fue validada manualmente y cerrada en `8bf47e50eb70ebc552649716a61eb5bbef829f5d`.
-
-P6.3C.1B completa las habilidades intermedias no persistentes mediante Cadena de rayos. `ResolucionEspacialHabilidades` concentra ahora la elección del recorrido: cada salto limita alcance, excluye visitados, reutiliza la línea de visión canónica y elige el candidato visible más cercano con desempate estable. Los tres grados declaran `vision_entre_saltos`, por lo que ningún tramo atraviesa paredes, aunque la cadena puede rodearlas mediante objetivos intermedios visibles. `CreadorCadenasHabilidadesPhaser` representa carga, arcos quebrados, núcleos viajeros e impactos; el objetivo primario recibe énfasis real y los saltos posteriores conservan legibilidad según el multiplicador ya resuelto. Daño, fallo, crítico, Electrización y derrota se reproducen antes de iniciar el siguiente salto. Una muerte retira la entidad y la cadena continúa desde su posición congelada, sin duplicar la derrota ni recalcular el recorrido en Phaser. P6.3C.1B fue validada manualmente y cerrada en `e2e2b859f2e3e25989a73ab057b5f11195e32a0e`.
-
-P6.3C.2A incorpora la representación persistente y reutilizable de zonas temporales. `PerfilesZonasTemporalesVisuales.json` separa las apariencias de veneno, fuego, frío, electricidad y zona genérica de las reglas canónicas. La escena neutral transporta identidad, grado, casillas, tiempos y perfil ya resuelto; `CompositorMundoPhaser` conserva un objeto por `zonaId`, actualiza renovaciones sin duplicar y reconcilia creación, vencimiento, cancelación y cambio de mapa. Nube tóxica reemplaza los rectángulos verdes por manchas, vapor ondulante y burbujas en cada casilla canónica, manteniendo entidades y barras por encima. `zona_conjurada` muestra el despliegue inicial y los resultados ya resueltos; las activaciones posteriores por entrada e intervalo quedan para P6.3C.2B. Canvas 2D conserva una versión simplificada y pulsos de creación, renovación y vencimiento. P6.3C.2A fue validada manualmente y cerrada en `4c124b9b45489dba723f9a70848c59d316229e0c`.
-
-P6.3C.2B completa el ciclo visual de zonas temporales. Cada activación conserva `idEjecucion`, objetivo, posición, daño, Vida anterior/posterior, efectos y derrota; los eventos derivados se colocan inmediatamente después y el planificador los correlaciona con el impacto correcto. `al_crear` reutiliza los impactos de `habilidad_resuelta` sin duplicar daño o Envenenamiento. `al_entrar` reproduce movimiento, remolino local, impacto y estado. `por_intervalo` genera un pulso global aun con la zona vacía y después procesa los ocupantes en orden canónico. Phaser y Canvas 2D presentan estos hechos sin calcular duración, intervalos, objetivos, daño, resistencias o superposición. P6.3C.2B fue validada manualmente y cerrada en `69a400a87c00cb7d3c85c36d3753a8f6e9a90e0a`.
-
-P6.3D.1 inicia las habilidades avanzadas con Incinerar y Descarga fulminante. `ResolucionEspacialHabilidades` construye una línea discreta que pasa realmente por la casilla seleccionada, continúa hasta la longitud canónica y se detiene ante la primera pared mediante `detener_en_obstaculo`. La misma lista ordenada gobierna vista previa, objetivos, daño y presentación. `CreadorLineasHabilidadesPhaser` dibuja un tramo y una marca temática en cada casilla, incluso vacía: Incinerar deja llamaradas, brasas y suelo encendido; Descarga fulminante conserva una descarga gruesa con núcleo blanco y ramificaciones. Los objetivos reciben daño, fallo, crítico, Quemadura o Aturdimiento y posible derrota al alcanzar su casilla. El objetivo usado para orientar la línea no recibe énfasis artificial. La habilidad avanzada de Frío quedó reservada para el análisis específico realizado en P6.3D.3.
-
-P6.3D.2 representa Plaga corrosiva reutilizando el patrón `proyectil` sin crear un reproductor exclusivo. El despacho deja de depender del nivel visual `basica` y valida el contrato `patronVisual = proyectil` junto con la secuencia compatible. `CreadorEfectosHabilidadesPhaser` interpreta la masa corrosiva, textura burbujeante, movimiento pesado, gotas corrosivas e impacto expansivo ya declarados en el perfil. Los eventos correlacionados de Envenenamiento entregan intensidad y máximo canónicos para aumentar únicamente densidad, radio y cantidad de burbujas o salpicaduras; Phaser no calcula acumulación ni daño periódico. Fallo, crítico, resistencia, inmunidad y derrota permanecen ordenados por el dominio, y la derrota de proyectiles queda integrada en el impacto para evitar una segunda reproducción. Canvas 2D conserva una única instancia y el indicador `×N`. P6.3D.1 quedó cerrada en `b88c2c57c30c438d21223c9487ff08629b2ab335` y P6.3D.2 fue validada manualmente y cerrada en `f5edc8d61776a21a15e627289faeab20f3e00b7e`.
-
-P6.3D.3 reemplaza Prisión glacial por Ráfaga glacial. Conserva daño, Maná, tiempo y alcance, establece 60 % de probabilidad base de Congelamiento y deja la duración final en 200/250/300 por grado. Congelamiento y Aturdimiento pasan al contrato reutilizable `bloqueo_total`; Parálisis queda preparada con el mismo contrato y Silencio con `bloqueo_habilidades`. El sistema de efectos interpreta genéricamente `eliminaEfectosAlAplicarse`: Quemadura y Congelamiento se retiran mutuamente solo cuando la nueva aplicación fue aceptada. No existe bloque físico, invulnerabilidad, colisión ni ruptura por daño. Phaser presenta Ráfaga glacial como múltiples fragmentos pequeños de hielo dirigidos a un único objetivo, con impacto compacto de escarcha; el estado persistente usa escarcha inmovilizante y Canvas 2D conserva una marca equivalente. Los guardados anteriores que referencian `prision_glacial` se migran a `rafaga_glacial`. P6.3D.3 fue validada manualmente y cerrada en `0bc9026ac1eac07c5f0d059e9842f3a834e7ed42`.
-
-P6.3E incorpora las primeras habilidades canónicas de NPC: `Curación lunar` y `Restauración lunar`, exclusivas de Lythra y separadas del aprendizaje, maestrías y barra del jugador. El servicio económico existente continúa calculando precio, pago y recuperación completa; después de una transacción aceptada emite `habilidad_resuelta` con `tipoActor: npc` y `recursosObjetivo` con valores anterior, posterior, máximo y cantidad real. El servicio «Ambos» reutiliza las dos habilidades en orden y omite cualquier recurso que ya estuviera completo. Phaser usa una presentación mágica propia desde Lythra hacia el jugador, sin sprite de poción, y reutiliza el feedback genérico `+N VIDA` / `+N MANÁ`. Estas habilidades utilizan una duración puramente visual, por lo que no consumen Maná, cooldown ni tiempo jugable. Canvas 2D continúa mostrando inmediatamente el estado canónico final. P6.3E fue validada manualmente y cerrada en `4ab9d468db5e77547a85be7dd4f23bd01028be42`.
-
-P6.3F ejecuta la regresión transversal de cierre de P6.3 sin agregar mecánicas nuevas. Se comprueban las doce habilidades del jugador, sus cuarenta grados, las dos habilidades NPC, los ocho contratos de efectos temporales, zonas, contraefectos, intensificación, bloqueos, recuperación, derrotas integradas y los cinco patrones visuales reutilizables. La herramienta de balance corrige únicamente un falso negativo de diagnóstico: las zonas persistentes pasan a ser informativas en la tabla general de una sola activación y conservan su evaluación definitiva en la prueba focalizada de ciclo completo; no se cambia ningún valor de balance. El analizador termina sin resultados incorrectos y conserva como advertencia real Incinerar G3. Canvas 2D sigue siendo el renderizador predeterminado y Phaser continúa como presentación opcional sin reglas jugables propias. La validación técnica queda completa sobre `4ab9d468db5e77547a85be7dd4f23bd01028be42`; el cierre definitivo de P6.3 requiere la validación visual manual de esta entrega y su commit.
-
-
-La cola dispone de velocidades internas `normal`, `rapida` y `muy-rapida`, aceleración automática cuando se acumulan eventos y una opción de efectos reducidos. P6.1 prepara estas opciones como contrato programático; la pantalla de configuración para el jugador pertenece a una etapa posterior.
-
-Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador histórico.
+Durante combate, interacción o selección de habilidad, el clic izquierdo sobre Phaser mueve el selector canónico y `F` o `R` continúan confirmando. El clic no camina, no inspecciona entidades y no ejecuta acciones automáticamente. Sin un modo de selección activo no emite comandos jugables. El doble clic conserva el recentrado únicamente fuera de esos modos y Canvas 2D mantiene su adaptador equivalente.
 
 ### Lo que Phaser no debe contener
 
@@ -1886,76 +1854,4 @@ Para comprender una modificación, seguir este orden:
 6. comprobar persistencia, balanceador y depurador;
 7. realizar la prueba desde `index.html`, no solamente desde funciones aisladas.
 
-La arquitectura actual ya permite que la lógica principal continúe independiente del backend gráfico. La prioridad para incorporar Phaser debe ser conservar esa separación y reemplazar gradualmente entrada y representación, no reescribir el juego.
-
-### P6.4A — Muerte y aparición inmediata de botín
-
-P6.3 quedó cerrada y validada manualmente en `2ef2697ae2de753c305dac00082199c2e6505e63`. P6.4A mantiene `SistemaBotin` como única autoridad para tablas, probabilidades, cantidades, rarezas y consolidación de pilas, pero incorpora el hecho canónico `botin_generado` para transportar a presentación una recompensa ya resuelta. El plan visual correlaciona ese hecho con la derrota concreta y Phaser representa primero la desaparición del derrotado y, a continuación, la creación o actualización del botín, sin esperar al final de toda la cola.
-
-En ataques simples la secuencia visual es impacto → derrota → botín. En habilidades con impactos internos, incluidas cadenas, líneas, áreas y zonas temporales, la recompensa queda asociada al impacto que produjo la muerte para no retrasarse hasta el cierre de la habilidad. Una pila nueva entra con un `pop` breve; una pila ya existente pulsa y continúa como una única entidad. Si la tabla no genera objetos no existe evento de botín ni animación falsa. La escena final continúa siendo autoritativa y reconcilia la entidad sin duplicarla.
-
-La derrota del jugador también coordina presentación y aplicación: Canvas 2D puede notificar el modal inmediatamente, mientras Phaser espera a que finalice su cola visual pendiente antes de abrir `ModalDerrota`. Esta espera pertenece exclusivamente a presentación; el jugador ya está derrotado en el dominio y ninguna regla jugable depende de la animación.
-
-
-### P6.4B — Regresión integral y cierre general de P6
-
-P6.4A fue validada manualmente y cerrada en `bea2da38aad72f27a4bad4e7d491524a51289446`. P6.4B no agrega mecánicas ni balance: ejecuta la regresión transversal de P6 para confirmar que movimiento, tiempo, combate físico, consumibles, las doce habilidades del jugador, las dos habilidades NPC de Lythra, estados, zonas, muerte y botín continúan compartiendo una única autoridad jugable fuera de Phaser.
-
-La regresión automatizada confirma 12 habilidades y 40 grados, 2 habilidades NPC, 8 efectos temporales, 14 perfiles visuales de habilidad, 8 perfiles de estado y 5 perfiles de zona. El analizador conserva 0 resultados incorrectos en habilidades, pruebas focalizadas, efectos y regresión general. Ráfaga glacial mantiene 60 % de Congelamiento y duraciones 200/250/300; el bloqueo total continúa dependiendo del sistema temporal y no concede inmunidad al daño.
-
-Los contratos de P6.4A mantienen el orden ataque/impacto → derrota → botín. En habilidades secuenciales el botín queda dentro del impacto que produjo la muerte y no reaparece como evento tardío. La derrota del jugador sigue siendo lógica e inmediata, pero el modal puede esperar la finalización de la presentación Phaser. Canvas 2D continúa siendo el backend seguro por defecto y `?render=phaser` selecciona Phaser sin cambiar reglas del dominio.
-
-La auditoría de dependencias confirma que los módulos de `src/interfaz/graficos/phaser/` no importan motores de daño, efectos, botín, XP, alcance o resistencias. La persistencia tampoco contiene IDs, tweens o colas puramente visuales. Phaser responde a la pregunta «cómo representar el resultado» y no a «qué resultado debe ocurrir».
-
-P6.4B fue validada y publicada en `c48335220712a8bff1d3907176f8ea1b7fac75ad`. Con ese commit P6 quedó formalmente cerrada y la continuación operativa es P7 — candidato visual para beta web.
-
-
-### P7.1 — Entrada de beta y continuidad
-
-P7.1 abre el hito de candidato visual para beta web. La versión visible se centraliza en `src/config/VersionAplicacion.js` como `0.7.0-beta.1`; Phaser pasa a ser el backend predeterminado, mientras Canvas 2D queda disponible mediante `?render=canvas2d`. El menú incorpora **Continuar**, habilitado únicamente cuando el guardado durable puede validarse y reconstruirse con los catálogos actuales. Continuar conserva personaje, nivel, XP, atributos, recursos, oro, inventario, equipamiento y progreso mágico, pero inicia en la ciudad y no intenta reanudar una expedición interrumpida. Los guardados dañados no se borran automáticamente y una partida nueva exige confirmación antes de reemplazar progreso existente.
-
-La internacionalización no forma parte de P7.1. El plan incorpora P7.3 como etapa específica bilingüe Español/Inglés: únicamente se traducirá el texto presentado al usuario; código, nombres técnicos e IDs canónicos permanecerán en español.
-
-
-### P7.2 — Configuración visual persistente
-
-P7.1 fue validada y cerrada en `9d7938fc0d92c5735a9df81dddd42834903bac68`. P7.2 reemplaza el placeholder de Configuración por opciones reales de presentación: velocidad de animaciones, efectos reducidos, zoom inicial y pantalla completa.
-
-Los valores iniciales no están hardcodeados en la persistencia. `src/config/presentacion/PreferenciasInterfaz.json` es la fuente canónica; `PersistenciaPreferenciasInterfaz` guarda solamente las decisiones del usuario que difieren de esos defaults. Si el usuario nunca modifica una opción no se crea una copia innecesaria en `localStorage`, y **Restablecer valores predeterminados** elimina los overrides para volver al JSON canónico vigente.
-
-La persistencia de preferencias es independiente de `PersistenciaJugador`: crear/reemplazar un personaje no elimina velocidad, efectos o zoom. Pantalla completa no se persiste porque el navegador exige una interacción explícita para activarla. Phaser recibe las preferencias efectivas desde la aplicación; no lee `localStorage` ni decide valores iniciales. Canvas 2D continúa disponible mediante `?render=canvas2d`.
-
-La mejora adicional del autosave del personaje queda pospuesta. P7.3 utilizará la misma infraestructura para incorporar la preferencia de idioma, traduciendo únicamente texto presentado y conservando código e IDs canónicos en español.
-
-### P7.3A — Infraestructura bilingüe y contenido localizado
-
-P7.2 fue validada y cerrada en `93cbd48cb29c77c9af8f3de222e13437971abb32`. P7.3 se divide en dos subetapas para separar infraestructura/contenido de los mensajes dinámicos. P7.3A incorpora los catálogos `src/config/idiomas/es.json` y `en.json`, el traductor común, el selector **ES / EN** del menú y Configuración, y `idioma` como preferencia de interfaz con Español como valor canónico inicial. Cambiar idioma no recarga la página, actualiza `lang` del documento y solo persiste un override cuando el usuario elige un idioma distinto del default.
-
-Los JSON jugables continúan siendo únicos y conservan sus IDs, `nombre` y `descripcion` en español. La interfaz localiza contenido mediante el ID canónico; si una traducción del idioma activo falta, `Traductor.traducirContenido()` utiliza primero el `nombre`/`descripcion` original de la definición como respaldo seguro y emite una advertencia de desarrollo. No existen campos `nombreEN`/`descripcionEN` ni copias inglesas de Armas, Habilidades, Efectos u otros catálogos funcionales.
-
-P7.3A cubre menú, Configuración, creación de personaje, HUD/panel de personaje, inventario/equipamiento, detalle y comparación de objetos, contenedores, comercio, Lythra, selector de mazmorra, habilidades/maestrías y los nombres/descripciones de objetos, afijos, profesiones, mapas, enemigos, efectos y demás contenido con ID canónico. P7.3B queda reservada para convertir mensajes dinámicos y feedback textual de combate/acciones a contratos semánticos, eliminando dependencias que todavía clasifican resultados a partir de frases españolas.
-
-### P7.3B — Mensajes dinámicos y cierre bilingüe
-
-P7.3A fue validada y cerrada en `f3d27b64b782a1f9b61d1b0b3ee5486c419c67b0`. P7.3B completa la arquitectura bilingüe trasladando los resultados visibles de ejecución a contratos semánticos: el dominio conserva qué ocurrió, parámetros e intención visual (`sistema`, `positivo`, `alerta`, `negativo`), mientras la presentación resuelve el texto en el idioma activo. `MensajesJuego.js` ya no clasifica resultados buscando palabras o frases españolas.
-
-La migración cubre combate, movimiento, IA, interacciones, inventario/equipamiento, consumibles, comercio, Lythra, habilidades, estados, zonas, progreso, muerte y botín. Phaser y Canvas 2D resuelven también sus etiquetas transitorias mediante los mismos catálogos (`MISS/FALLO`, `CRITICAL/CRÍTICO`, estados, resistencia, inmunidad y renovación). Los nombres de entidades, objetos y habilidades viajan mediante referencias a IDs canónicos; los datos jugables, código e IDs continúan exclusivamente en español. Los textos técnicos de excepciones y diagnóstico permanecen fuera de la internacionalización.
-
-### P7.4 — Experiencia de tester y registro analítico
-
-P7.3B fue validada y cerrada en `497af6b1fe8c86c16c2d08a7d488e34b9a5e8d09`. P7.4 prepara la experiencia de prueba sin incorporar mecánicas nuevas: agrega **Ayuda del juego / Game Help** como acceso explícito e independiente de la barra de habilidades, un modal grande bilingüe con representaciones de teclado y mouse y un diagnóstico copiable de versión, renderizador, idioma, preferencias, ubicación y entorno del navegador.
-
-Las instrucciones permanentes de controles y el overlay técnico de cámara Phaser se retiran; los cambios de zoom se informan solamente con feedback temporal. Phaser queda consolidado como backend predeterminado de la beta web y Canvas 2D continúa como fallback técnico explícito mediante `?render=canvas2d`.
-
-El registro de eventos elimina ruido rutinario —movimiento del jugador, avance de enemigos, espera y colisiones sin información— sin eliminar los eventos canónicos que necesitan el juego o la presentación. A cambio, los resultados de combate se vuelven más analíticos: el daño final aparece destacado y los mensajes detallan las ecuaciones con los operandos realmente utilizados para impacto, crítico, bloqueo, Armadura, resistencias, daño físico/elemental, habilidades, daño periódico y aplicación o rechazo de efectos. La presentación no recalcula reglas: recibe instantáneas de cálculo generadas por los sistemas canónicos y únicamente las formatea en Español o Inglés.
-
-
-### P7.5 — Candidato beta web y regresión final de P7
-
-P7.4 fue validada y cerrada en `c9a84e48007e6bdd59e12edea357b1f0ec7f6764`. P7.5 no incorpora mecánicas ni balance: convierte el estado actual en el candidato `0.7.0-beta.2` y ejecuta una regresión transversal antes de la publicación para testers.
-
-La candidata mantiene Phaser como renderizador predeterminado y `?render=canvas2d` como fallback técnico. La auditoría de publicación verifica imports ES, JSON, recursos visuales, rutas con capitalización exacta y carga relativa desde un subdirectorio equivalente a GitHub Pages (`/Dark-Moon/`). La persistencia durable se valida mediante guardado/restauración real de personaje, inventario, equipamiento, recursos, oro y progreso mágico; **Continuar** reconstruye una sesión nueva en `ciudad_inicial` y no intenta persistir una expedición interrumpida.
-
-La regresión canónica de motores conserva 12 habilidades y 40 grados, 45 generaciones deterministas de mapa y 0 resultados incorrectos en la regresión general. Español e Inglés mantienen paridad estructural y de placeholders. P7.5 corrige únicamente bloqueantes o regresiones; rediseño de UI, tooltips, balance, contenido nuevo, persistencia de expedición, audio y Electron continúan fuera de este cierre.
-
-El detalle reproducible de pruebas y la checklist manual del candidato se registra en `docs/phaser/entregas/ENTREGA_P7_5.md`.
+La lógica jugable debe permanecer independiente del backend gráfico. Phaser y Canvas 2D consumen el mismo estado y los mismos eventos resueltos; cualquier cambio de presentación debe conservar esa separación y reutilizar los contratos canónicos existentes antes de introducir nuevas abstracciones.

@@ -1,3 +1,4 @@
+import { obtenerInstante, redondearMilisegundos } from "../../utilidades/TiempoEjecucion.js";
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { asociarEjecucionTemporalAEventos } from "../acciones/EventosAccion.js";
@@ -870,14 +871,6 @@ function congelarDiagnosticoFluidez(diagnostico) {
     accionesIaProcesadas: Math.max(0, diagnostico?.accionesIaProcesadas ?? 0),
     busquedasPathfinding: Math.max(0, diagnostico?.busquedasPathfinding ?? 0),
   });
-}
-
-function redondearMilisegundos(valor) {
-  return Math.round((Number(valor) || 0) * 100) / 100;
-}
-
-function obtenerInstante() {
-  return globalThis.performance?.now?.() ?? Date.now();
 }
 
 function estaActorVivo(actor) {

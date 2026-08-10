@@ -1,3 +1,4 @@
+import { obtenerInstante } from "../../utilidades/TiempoEjecucion.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   crearEventoAtaqueResuelto,
@@ -373,8 +374,4 @@ export function procesarAccionEnemigo({
     mensajes,
     eventos: resultadoAgresividad.eventos,
   });
-}
-
-function obtenerInstante() {
-  return globalThis.performance?.now?.() ?? Date.now();
 }

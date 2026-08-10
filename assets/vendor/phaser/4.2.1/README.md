@@ -16,7 +16,7 @@ Verificación de origen:
 - SHA-256 de la copia incorporada: `66348b1b5141e49b7d5ebbe688cddcb502eab1cb00f21c538686a5b2c5abe4de`;
 - licencia: MIT, conservada en `LICENSE.md`.
 
-Desde P7.1 la dependencia se carga al abrir Dark Moon normalmente porque
-Phaser es el backend visual predeterminado. Canvas 2D permanece disponible
+La dependencia se carga al abrir Dark Moon normalmente porque Phaser es el
+backend visual predeterminado. Canvas 2D permanece disponible
 como respaldo técnico explícito mediante `?render=canvas2d`, ruta que no
 descarga ni evalúa Phaser.

@@ -1,3 +1,4 @@
+import { obtenerInstante, redondearMilisegundos } from "../../utilidades/TiempoEjecucion.js";
 const CANTIDAD_MAXIMA_MUESTRAS = 200;
 
 // Registra tiempos de aplicación sin participar de ninguna regla jugable.
@@ -314,12 +315,4 @@ function normalizarTexto(valor, respaldo) {
   return typeof valor === "string" && valor.trim() !== ""
     ? valor.trim()
     : respaldo;
-}
-
-function redondearMilisegundos(valor) {
-  return Math.round((Number(valor) || 0) * 100) / 100;
-}
-
-function obtenerInstante() {
-  return globalThis.performance?.now?.() ?? Date.now();
 }

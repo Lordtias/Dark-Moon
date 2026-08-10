@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 import { traducir, traducirContenido } from "../../idiomas/ContextoIdioma.js";
 // Construye representaciones de estados ya resueltos por el dominio. Los
 // objetos persistentes se adjuntan al contenedor de la entidad; las entradas,
@@ -458,10 +459,6 @@ function convertirColor(color) {
   const normalizado = color.trim().replace(/^#/, "");
   const convertido = Number.parseInt(normalizado, 16);
   return Number.isInteger(convertido) ? convertido : 0xffffff;
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }
 
 function resolverTextoNoAplicado({ feedback, motivo }) {

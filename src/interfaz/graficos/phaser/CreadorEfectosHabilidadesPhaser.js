@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 // Construye formas transitorias para habilidades ya resueltas. No consulta
 // catálogos jugables ni interpreta daño, objetivos, resistencias o tiempo.
 export class CreadorEfectosHabilidadesPhaser {
@@ -896,8 +897,4 @@ function convertirColor(valor) {
   if (typeof valor !== "string") return 0xffffff;
   const numero = Number.parseInt(valor.replace(/^#/, ""), 16);
   return Number.isInteger(numero) ? numero : 0xffffff;
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }

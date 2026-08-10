@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos } from "./dom/UtilidadesDom.js";
 import { agregarRepresentacionObjeto } from "./RepresentacionObjeto.js";
 import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
@@ -27,7 +28,7 @@ export class PanelInventario {
       throw new Error("PanelInventario necesita un mensaje vacío.");
     }
 
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({ id: ID_HOJA_ESTILOS, ruta: RUTA_HOJA_ESTILOS });
 
     this.cuadricula = cuadricula;
     this.mensajeVacio = mensajeVacio;
@@ -376,18 +377,4 @@ function formatearPeso(cantidad) {
 
 function formatearCantidadMonedas(cantidad) {
   return new Intl.NumberFormat("es-UY").format(cantidad);
-}
-
-function asegurarHojaEstilos() {
-  if (document.getElementById(ID_HOJA_ESTILOS)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = ID_HOJA_ESTILOS;
-  enlace.rel = "stylesheet";
-  enlace.href = RUTA_HOJA_ESTILOS;
-
-  document.head.appendChild(enlace);
 }

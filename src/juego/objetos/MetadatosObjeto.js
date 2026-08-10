@@ -33,7 +33,8 @@ export function normalizarTierBase(valor = 1) {
 // en sistemas como drops, comercio y generación aleatoria.
 //
 // Este metadato todavía no bloquea la creación explícita.
-// Esa restricción se conectará en la etapa de progresión.
+// Esta metadata queda disponible para que la progresión aplique la restricción
+// cuando corresponda.
 export function normalizarNivelMinimoGeneracion(valor = 1) {
   if (!Number.isInteger(valor) || valor < 1) {
     throw new Error(

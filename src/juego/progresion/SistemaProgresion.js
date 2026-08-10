@@ -14,7 +14,7 @@ export const CONFIGURACION_PROGRESION = Object.freeze({
   exponenteCrecimiento: 1.35,
   puntosAtributoPorNivel: 1,
   // Alias conservados para analizadores existentes. La bonificación queda
-  // desactivada expresamente desde esta etapa.
+  // permanece desactivada por la regla vigente de progresión.
   puntosPorNivel: 1,
   intervaloPuntosExtra: null,
   puntosExtra: 0,

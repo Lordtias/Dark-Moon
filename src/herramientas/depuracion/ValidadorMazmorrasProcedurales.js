@@ -374,8 +374,8 @@ function validarCasillas({ plano, errores }) {
     errores,
   );
   comprobar(
-    plano.casillasCaminables === plano.casillasTransitables,
-    "El alias casillasCaminables debe derivar de casillasTransitables.",
+    !("casillasCaminables" in plano),
+    "El plano no debe exponer aliases legacy de las casillas transitables.",
     errores,
   );
   comprobar(

@@ -1,3 +1,4 @@
+import { limitar } from "../../../utilidades/Numeros.js";
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
 import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
@@ -21,10 +22,6 @@ import {
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
-}
 
 function sumarPropiedad(objetos, propiedad) {
   return objetos.reduce((total, objeto) => {

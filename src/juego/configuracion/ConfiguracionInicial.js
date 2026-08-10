@@ -11,7 +11,7 @@ import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 import {
   crearSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../../partida/TransicionesMapa.js";
+} from "../interacciones/TransicionesMapa.js";
 
 import {
   seleccionarPlantillaMapa,
@@ -291,10 +291,10 @@ function completarConfiguracionMazmorra({
     cantidadEnemigosForzada,
   });
 
-  // E2.B.2 necesita resolver el contenido de los cofres durante la propia
-  // población procedural. El nivel del mapa se determina aquí, antes de
-  // crear entidades, para que SistemaBotin disponga del mismo contexto
-  // canónico que utilizarán después enemigos y destructibles.
+  // El contenido de los cofres se resuelve durante la propia población.
+  // El nivel del mapa se determina aquí, antes de crear entidades, para que
+  // SistemaBotin disponga del mismo contexto canónico que utilizarán después
+  // enemigos y destructibles.
   const nivelMapa = aleatorio.entero(
     plantillaGeneracion.niveles.minimo,
     plantillaGeneracion.niveles.maximo,
@@ -414,10 +414,9 @@ function completarConfiguracionMazmorra({
   };
 
   return {
-    // El runtime histórico consume filas mutables. Antes de E1.B esa
-    // conversión ocurría de forma accidental cuando GeneradorSalidaMapa
-    // copiaba el terreno para excavar el corredor. Ahora la hacemos de forma
-    // explícita al adaptar el plano estructural al mapa jugable.
+    // El runtime consume filas mutables. La conversión se realiza de forma
+    // explícita al adaptar el plano estructural al mapa jugable, sin modificar
+    // la fuente descriptiva del terreno.
     map: terreno.celdas.map((fila) => Array.from(fila)),
 
     // El plano se conserva como contrato descriptivo para los consumidores

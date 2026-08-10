@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos } from "./dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
 const ID_HOJA_ESTILOS = "hojaEstilosModalSeleccionMazmorra";
@@ -963,20 +964,4 @@ function validarMazmorra(mazmorra) {
       `El nivel sugerido de "${mazmorra.nombre}" está fuera de su rango.`,
     );
   }
-}
-
-function asegurarHojaEstilos({ id, ruta }) {
-  if (document.getElementById(id)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = id;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = ruta;
-
-  document.head.appendChild(enlace);
 }

@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { agregarRepresentacionObjeto } from "../RepresentacionObjeto.js";
 
 import { crearPresentacionObjeto } from "../objetos/PresentadorObjeto.js";
@@ -1044,18 +1045,6 @@ function crearBotonCantidad(texto, etiquetaAccesible) {
   return boton;
 }
 
-function crearElemento(etiqueta, clase, texto = "") {
-  const elemento = document.createElement(etiqueta);
-
-  elemento.classList.add(clase);
-
-  if (texto !== "") {
-    elemento.textContent = texto;
-  }
-
-  return elemento;
-}
-
 function obtenerPrimerIndiceOcupado(contenedor) {
   const espacios = contenedor.obtenerEspacios();
 
@@ -1099,18 +1088,4 @@ function validarApertura({
   if (callbacks.some((callback) => typeof callback !== "function")) {
     throw new Error("ModalComercio necesita todas sus acciones comerciales.");
   }
-}
-
-function asegurarHojaEstilos({ id, ruta }) {
-  if (document.getElementById(id)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = id;
-  enlace.rel = "stylesheet";
-  enlace.href = ruta;
-
-  document.head.appendChild(enlace);
 }

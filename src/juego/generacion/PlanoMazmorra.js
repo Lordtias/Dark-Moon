@@ -67,15 +67,68 @@ export function crearPlanoMazmorra({
     casillasTransitables,
     casillasBloqueadas,
 
-    // Alias de compatibilidad con consumidores previos a E1.
-    // Ambos se derivan del mismo plano y no constituyen
-    // una segunda fuente de verdad.
-    casillasCaminables: casillasTransitables,
     posicionInicialSugerida,
 
     porcentajeNoCaminableReal,
     porcentajeConectado,
     intentoExitoso,
+  };
+}
+
+export function contieneCasillaHabitacion(habitacion, posicion) {
+  if (!habitacion || !posicion) return false;
+
+  return (
+    posicion.x >= habitacion.x &&
+    posicion.x < habitacion.x + habitacion.ancho &&
+    posicion.y >= habitacion.y &&
+    posicion.y < habitacion.y + habitacion.alto
+  );
+}
+
+// Describe la geometría de un punto situado sobre el límite de una habitación.
+// No decide si allí debe existir una puerta u otro interactuable.
+export function analizarAccesoHabitacion({ punto, habitacion } = {}) {
+  if (!punto || !habitacion) return null;
+
+  let direccionInterior = null;
+  let ejeLimite = null;
+
+  if (punto.x < habitacion.x) {
+    direccionInterior = { x: 1, y: 0 };
+    ejeLimite = "vertical";
+  } else if (punto.x >= habitacion.x + habitacion.ancho) {
+    direccionInterior = { x: -1, y: 0 };
+    ejeLimite = "vertical";
+  } else if (punto.y < habitacion.y) {
+    direccionInterior = { x: 0, y: 1 };
+    ejeLimite = "horizontal";
+  } else if (punto.y >= habitacion.y + habitacion.alto) {
+    direccionInterior = { x: 0, y: -1 };
+    ejeLimite = "horizontal";
+  } else {
+    return null;
+  }
+
+  return {
+    ejeLimite,
+    direccionInterior,
+    haciaHabitacion: {
+      x: punto.x + direccionInterior.x,
+      y: punto.y + direccionInterior.y,
+    },
+    haciaExterior: {
+      x: punto.x - direccionInterior.x,
+      y: punto.y - direccionInterior.y,
+    },
+    lateralA: {
+      x: punto.x + direccionInterior.y,
+      y: punto.y + direccionInterior.x,
+    },
+    lateralB: {
+      x: punto.x - direccionInterior.y,
+      y: punto.y - direccionInterior.x,
+    },
   };
 }
 

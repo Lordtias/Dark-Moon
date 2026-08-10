@@ -94,7 +94,7 @@ function filtrarEvento(evento, contexto) {
 
     default:
       // Botín, zonas, recursos del jugador y el resto de presentaciones no se
-      // ocultan por FOV según el contrato funcional de E0.3.
+      // se ocultan por FOV según el contrato funcional de visibilidad.
       return Object.freeze({ evento });
   }
 }
@@ -295,7 +295,7 @@ function esMovimientoOcultable(evento, contexto) {
 
   if (evento.tipoEntidad === TIPOS_ENTIDAD_VISUAL.ENEMIGO) return true;
 
-  // Los únicos actores móviles omitidos de ambas escenas por E0.3 son
+  // Los únicos actores móviles omitidos de ambas escenas por visibilidad son
   // enemigos fuera del campo visible.
   return !entidadAntes && !entidadDespues;
 }
@@ -322,7 +322,7 @@ function esEntidadOcultablePorId(contexto, idEntidad, tipoDeclarado = null) {
     null;
   if (entidad) return entidad.ocultablePorFov === true;
 
-  // Si la escena neutral omite la entidad en ambos extremos, E0.3 la ha
+  // Si la escena neutral omite la entidad en ambos extremos, el filtrado la ha
   // ocultado por FOV (enemigos/NPC). Las entidades no ocultables permanecen
   // siempre en la escena aunque la casilla no sea visible.
   return true;

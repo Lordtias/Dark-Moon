@@ -619,22 +619,6 @@ function mensajeCuracionTraducible(
   });
 }
 
-function crearMensajeRecursoCompleto(tipoServicio) {
-  switch (tipoServicio) {
-    case TIPOS_SERVICIO_CURACION.VIDA:
-      return "Tu Vida ya está completa.";
-
-    case TIPOS_SERVICIO_CURACION.MANA:
-      return "Tu Maná ya está completo.";
-
-    case TIPOS_SERVICIO_CURACION.AMBOS:
-      return "Tu Vida y tu Maná ya están completos.";
-
-    default:
-      return "No necesitás recuperación.";
-  }
-}
-
 function crearMensajeCuracion({ vidaRecuperada, manaRecuperado, precio }) {
   const recuperaciones = [];
 

@@ -22,11 +22,7 @@ import {
   ORIGENES_PUNTO_HABILIDAD,
   ProgresoMagicoJugador,
 } from "../../juego/maestrias/ProgresoMagicoJugador.js";
-import {
-  calcularExperienciaAcumuladaParaNivel,
-  calcularExperienciaNecesaria,
-  crearTablaProgresion,
-} from "../../juego/progresion/SistemaProgresion.js";
+import { crearTablaProgresion } from "../../juego/progresion/SistemaProgresion.js";
 import { TIEMPO_REFERENCIA } from "../../juego/tiempo/SistemaTiempo.js";
 
 const NIVELES_RECURSOS_DESTACADOS = Object.freeze([1, 3, 6, 10]);

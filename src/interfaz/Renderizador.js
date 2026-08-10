@@ -1,3 +1,4 @@
+import { obtenerInstante, redondearMilisegundos } from "../utilidades/TiempoEjecucion.js";
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
 import { resolverPresentacionMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
 
@@ -336,12 +337,4 @@ function congelarListaRecorrido(lista) {
         }),
       ),
   );
-}
-
-function obtenerInstante() {
-  return globalThis.performance?.now?.() ?? Date.now();
-}
-
-function redondearMilisegundos(valor) {
-  return Math.round((Number(valor) || 0) * 100) / 100;
 }

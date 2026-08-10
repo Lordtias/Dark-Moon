@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
 const CATEGORIAS = Object.freeze([
@@ -31,7 +32,7 @@ export class PanelHabilidadesMaestrias {
     this.maestriaActiva = "fuego";
     this.idHabilidadSeleccionada = null;
     this.manejadores = [];
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
     this.botonAbrir = this.crearBotonAbrir();
     this.dialogo = this.crearDialogo();
     this.instalarEventosGlobales();
@@ -76,7 +77,7 @@ export class PanelHabilidadesMaestrias {
         traducir("interfaz.habilidades.maestriasArmadurasTitulo", { respaldo: "Maestrías de armaduras" }),
         ["liviana", "media", "pesada"],
         traducir("interfaz.habilidades.maestriasArmadurasDetalle", {
-          respaldo: "La progresión por uso y mitigación de armaduras se diseñará en un hito futuro.",
+          respaldo: "La progresión por uso y mitigación de armaduras no está disponible actualmente.",
         }),
       );
     }
@@ -718,7 +719,7 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "seccion-en-construccion__detalle",
-        traducir("interfaz.habilidades.generalesDetalle", { respaldo: "Esta sección queda preparada como recordatorio visual para futuras acciones como Descansar, Investigar y otras dinámicas generales." }),
+        traducir("interfaz.habilidades.generalesDetalle", { respaldo: "Esta sección está reservada para acciones generales como Descansar, Investigar y otras dinámicas que todavía no están disponibles." }),
       ),
       crearElemento(
         "strong",
@@ -734,7 +735,7 @@ export class PanelHabilidadesMaestrias {
       crearElemento(
         "p",
         "seccion-en-construccion__etiqueta",
-        traducir("interfaz.habilidades.extensionFutura", { respaldo: "Extensión futura" }),
+        traducir("interfaz.habilidades.extensionFutura", { respaldo: "No disponible" }),
       ),
       crearElemento("h3", "", titulo),
       crearElemento("p", "", descripcion),
@@ -744,7 +745,7 @@ export class PanelHabilidadesMaestrias {
       const tarjeta = crearElemento("article", "familia-en-construccion");
       tarjeta.append(
         crearElemento("strong", "", formatearNombre(familia)),
-        crearElemento("span", "", traducir("interfaz.habilidades.enConstruccion", { respaldo: "En construcción" })),
+        crearElemento("span", "", traducir("interfaz.habilidades.enConstruccion", { respaldo: "No disponible" })),
       );
       lista.append(tarjeta);
     });
@@ -841,7 +842,7 @@ function crearDetalleEjecucion({ ejecucion, grado }) {
     agregarDato(
       lista,
       traducir("interfaz.habilidades.lanzamiento", { respaldo: "Lanzamiento" }),
-      traducir("interfaz.habilidades.pendienteContenido", { respaldo: "Pendiente de una etapa de contenido" }),
+      traducir("interfaz.habilidades.pendienteContenido", { respaldo: "No disponible actualmente" }),
     );
     return lista;
   }
@@ -1094,22 +1095,6 @@ function traducirMotivo(motivo) {
     parametros: { motivo },
     respaldo: `No se pudo completar la operación (${motivo}).`,
   });
-}
-function asegurarHojaEstilos() {
-  if (document.getElementById("estilosHabilidadesMaestrias")) {
-    return;
-  }
-  const enlace = document.createElement("link");
-  enlace.id = "estilosHabilidadesMaestrias";
-  enlace.rel = "stylesheet";
-  enlace.href = "./assets/estilos/paneles/habilidades-maestrias.css";
-  document.head.append(enlace);
-}
-function crearElemento(etiqueta, clase = "", texto = "") {
-  const elemento = document.createElement(etiqueta);
-  if (clase) elemento.className = clase;
-  if (texto !== "") elemento.textContent = texto;
-  return elemento;
 }
 function formatearDanioBase(componentes) {
   if (!Array.isArray(componentes) || componentes.length === 0) {

@@ -1,3 +1,4 @@
+import { crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir } from "../idiomas/ContextoIdioma.js";
 
 let siguienteIdComparacion = 1;
@@ -498,18 +499,6 @@ function formatearEfecto(efecto) {
   }
 
   return "";
-}
-
-function crearElemento(etiqueta, clase, texto = "") {
-  const elemento = document.createElement(etiqueta);
-
-  elemento.classList.add(clase);
-
-  if (texto !== "") {
-    elemento.textContent = texto;
-  }
-
-  return elemento;
 }
 
 function validarPresentacionResumen(presentacion, nombre) {

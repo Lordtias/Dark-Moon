@@ -197,9 +197,9 @@ export class GestorMapasPartida {
       cantidadEnemigosForzada,
     });
 
-    // Cada mazmorra recibe una salida real situada sobre el acceso que E1.B
-    // ya reservó dentro del plano estructural. La población recibe el mapa con
-    // la topología definitiva y este paso solamente materializa el portal.
+    // Cada mazmorra recibe una salida real situada sobre el acceso reservado
+    // dentro del plano estructural. La población recibe el mapa con la topología
+    // definitiva y este paso solamente materializa el portal.
     const salida = generarSalidaMazmorra({
       mapa: configuracionMapa.map,
 

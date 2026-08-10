@@ -55,22 +55,24 @@ const jugador = {
   percepcion: 10,
 };
 
-validarAssetsVisualesE2A();
-validarPuertaYEspacio();
-validarPuertaYFov();
-validarPuertaNoCierraSobreOcupante();
-validarInteraccionTemporalPuerta();
-validarContenedoresPersistentes();
-validarPortalInactivo();
-validarPortalCiudadVigente();
-validarFabricaGenerica();
-validarCofreConBotinCanonico();
-validarEjecucionInmediataActivacion();
-validarContratoVisualPortalInactivo();
+export function validarInfraestructuraEntidades() {
+  validarAssetsVisualesEntidadesMazmorra();
+  validarPuertaYEspacio();
+  validarPuertaYFov();
+  validarPuertaNoCierraSobreOcupante();
+  validarInteraccionTemporalPuerta();
+  validarContenedoresPersistentes();
+  validarPortalInactivo();
+  validarPortalCiudadVigente();
+  validarFabricaGenerica();
+  validarCofreConBotinCanonico();
+  validarEjecucionInmediataActivacion();
+  validarContratoVisualPortalInactivo();
 
-console.log("E2.A infraestructura de entidades: OK");
+  return { valido: true };
+}
 
-function validarAssetsVisualesE2A() {
+function validarAssetsVisualesEntidadesMazmorra() {
   const rutas = [
     RECURSO_VISUAL_COFRE_CERRADO_PREDETERMINADO,
     RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO,

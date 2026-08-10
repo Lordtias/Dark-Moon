@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 import { obtenerPerfilProyectilElemental } from "../ContextoPerfilesAtaquePorFamilia.js";
 
 // Construye formas mágicas temporales para ataques básicos de varita. No
@@ -336,8 +337,4 @@ function convertirColor(valor) {
   const limpio = valor.trim().replace(/^#/, "");
   const numero = Number.parseInt(limpio, 16);
   return Number.isInteger(numero) ? numero : 0xffffff;
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }

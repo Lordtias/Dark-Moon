@@ -1,3 +1,4 @@
+import { limitar } from "../../../utilidades/Numeros.js";
 import {
   ALTO_REFERENCIA_PHASER,
   ANCHO_REFERENCIA_PHASER,
@@ -632,8 +633,4 @@ function esElementoEditable(elemento) {
 
 function redondearZoom(valor) {
   return Math.round(valor * 10) / 10;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }

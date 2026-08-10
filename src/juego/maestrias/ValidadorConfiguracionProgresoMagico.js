@@ -105,7 +105,7 @@ function normalizarMaestrias(maestrias) {
 
   if (JSON.stringify(idsRecibidos) !== JSON.stringify(idsEsperados)) {
     throw new Error(
-      "La etapa necesita exactamente las maestrías Fuego, Frío, Rayo y Veneno.",
+      "La configuración necesita exactamente las maestrías Fuego, Frío, Rayo y Veneno.",
     );
   }
 

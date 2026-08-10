@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 // Construye representaciones persistentes y transitorias de zonas ya resueltas.
 // No consulta duración, activadores, objetivos, daño ni reglas de superposición.
 export class CreadorZonasTemporalesPhaser {
@@ -314,10 +315,6 @@ function esZonaValida(zona) {
     zona.perfilVisual &&
     typeof zona.perfilVisual === "object"
   );
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }
 
 function esPosicionValida(posicion) {

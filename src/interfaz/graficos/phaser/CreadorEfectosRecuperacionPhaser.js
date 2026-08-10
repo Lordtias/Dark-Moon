@@ -1,3 +1,5 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
+import { limitar } from "../../../utilidades/Numeros.js";
 import {
   CONFIGURACION_EFECTOS_RECUPERACION_PHASER,
   obtenerPerfilRecuperacion,
@@ -140,12 +142,4 @@ function formatearCantidad(cantidad) {
 
 function convertirHexCss(numero) {
   return `#${Math.max(0, numero).toString(16).padStart(6, "0")}`;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.min(maximo, Math.max(minimo, valor));
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }

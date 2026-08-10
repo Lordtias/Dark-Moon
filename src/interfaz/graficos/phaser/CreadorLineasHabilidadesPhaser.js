@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 // Construye recursos transitorios para líneas ya resueltas. Recibe el
 // recorrido canónico y perfiles de presentación; no calcula dirección,
 // obstáculos, daño, objetivos ni estados temporales.
@@ -394,10 +395,6 @@ function dibujarLlamasImpacto(grafico, tamano, principal, secundario, indice) {
       1.2,
     );
   }
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }
 
 function convertirColor(valor, fallback = 0xffffff) {

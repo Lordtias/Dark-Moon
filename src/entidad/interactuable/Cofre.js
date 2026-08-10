@@ -7,9 +7,6 @@ export const RECURSO_VISUAL_COFRE_CERRADO_PREDETERMINADO =
 export const RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO =
   "assets/imagenes/interactuables/cofre_abierto.png";
 
-// Alias de compatibilidad con el primer contrato de E2.A.
-export const RECURSO_VISUAL_COFRE_PREDETERMINADO =
-  RECURSO_VISUAL_COFRE_CERRADO_PREDETERMINADO;
 
 // Cofre persistente del mapa.
 //

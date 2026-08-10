@@ -3,16 +3,16 @@ import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
 import {
   crearSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../../partida/TransicionesMapa.js";
+} from "../interacciones/TransicionesMapa.js";
 
 const SIMBOLO_PARED = "#";
 const SIMBOLO_CAMINO = ".";
 
 // Materializa el portal jugable sobre la salida que ya forma parte del plano.
 //
-// E1.B elimina la antigua responsabilidad de excavar terreno después de haber
-// poblado el mapa. La topología llega cerrada desde GeneradorTerreno y este
-// componente solamente crea la entidad de transición vigente.
+// La salida no excava terreno después de haber poblado el mapa. La topología
+// llega cerrada desde GeneradorTerreno y este componente solamente crea la
+// entidad de transición vigente.
 export function generarSalidaMazmorra({
   mapa,
   planoMazmorra,
@@ -62,7 +62,7 @@ export function generarSalidaMazmorra({
     lado: salida.lado,
 
     // Compatibilidad diagnóstica con el contrato anterior. La lista debe
-    // permanecer vacía porque ninguna casilla se modifica en esta etapa.
+    // permanecer vacía porque la materialización no modifica casillas.
     casillasAbiertas: [],
   };
 }

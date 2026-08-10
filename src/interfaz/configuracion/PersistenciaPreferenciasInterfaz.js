@@ -77,10 +77,6 @@ export function eliminarPreferenciasInterfazPersistidas({
   return true;
 }
 
-export function obtenerClavePreferenciasInterfaz() {
-  return CLAVE_PREFERENCIAS_INTERFAZ;
-}
-
 function obtenerAlmacenamientoPredeterminado() {
   try {
     return globalThis.localStorage ?? null;

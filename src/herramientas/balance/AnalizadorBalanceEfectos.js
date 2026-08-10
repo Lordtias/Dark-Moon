@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemporales.js";
@@ -1024,10 +1025,6 @@ function congelarProfundamente(valor) {
   if (!valor || typeof valor !== "object" || Object.isFrozen(valor)) return valor;
   for (const contenido of Object.values(valor)) congelarProfundamente(contenido);
   return Object.freeze(valor);
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function redondear(valor) {

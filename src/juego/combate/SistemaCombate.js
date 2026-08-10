@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 import {
@@ -14,10 +15,6 @@ import {
 } from "./ComponentesDanio.js";
 
 export { calcularReduccionArmadura } from "./ComponentesDanio.js";
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
-}
 
 function tirarRango(minimo, maximo) {
   if (!Number.isFinite(minimo) || !Number.isFinite(maximo)) {

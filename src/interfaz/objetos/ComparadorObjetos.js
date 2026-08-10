@@ -1,4 +1,4 @@
-export const TENDENCIAS_COMPARACION_OBJETO = Object.freeze({
+const TENDENCIAS_COMPARACION_OBJETO = Object.freeze({
   MEJORA: "mejora",
   EMPEORA: "empeora",
   IGUAL: "igual",

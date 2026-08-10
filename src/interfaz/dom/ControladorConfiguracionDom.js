@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { traducir } from "../idiomas/ContextoIdioma.js";
 
 const CLAVES_VELOCIDAD = Object.freeze({
@@ -238,10 +239,6 @@ function validarElemento(elemento, descripcion) {
     throw new Error(`No se encontró ${descripcion}.`);
   }
   return elemento;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function redondear(valor) {

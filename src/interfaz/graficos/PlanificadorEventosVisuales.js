@@ -920,7 +920,8 @@ function crearEventoVisualBotin(evento, entidadesPorId) {
 }
 
 function agregarRecursosRecuperados(plan, evento, entidadesPorId) {
-  const idObjetivo = obtenerIdSeguro(evento.objetivo);
+  const objetivo = evento.objetivo ?? null;
+  const idObjetivo = obtenerIdSeguro(objetivo);
   const objetivoVisual = entidadesPorId.get(idObjetivo) ?? null;
   if (!idObjetivo || !Array.isArray(evento.recursos) || evento.recursos.length === 0) {
     return;

@@ -3,7 +3,7 @@ import {
   PATRONES_ATAQUE,
   normalizarPatronAtaque,
 } from "../juego/combate/PatronesAtaque.js";
-import { TIPOS_EFECTO_CONSUMIBLE } from "../juego/inventario/SistemaConsumibles.js";
+import { TIPOS_EFECTO_CONSUMIBLE } from "./EfectosConsumibles.js";
 import {
   RAREZAS_OBJETO,
   TIPOS_AFIJO_OBJETO,

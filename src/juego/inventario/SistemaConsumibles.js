@@ -5,20 +5,7 @@ import {
   crearParametroTraduccionMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
-// Tipos de efectos que actualmente pueden
-// aplicar los objetos consumibles.
-//
-// La lista puede ampliarse en el futuro con:
-//
-// - Estados temporales.
-// - Daño elemental.
-// - Teletransporte.
-// - Identificación de objetos.
-// - Efectos propios de pergaminos.
-export const TIPOS_EFECTO_CONSUMIBLE = Object.freeze({
-  RECUPERAR_VIDA: "recuperarVida",
-  RECUPERAR_MANA: "recuperarMana",
-});
+import { TIPOS_EFECTO_CONSUMIBLE } from "../../objetos/EfectosConsumibles.js";
 
 // Comprueba que el jugador tenga las capacidades
 // necesarias para utilizar consumibles.
@@ -104,26 +91,6 @@ function aplicarEfectoConsumible(player, evaluacion) {
 
 // Construye el mensaje correspondiente
 // a los efectos que fueron aplicados.
-function crearMensajeEfectos(efectosAplicados) {
-  const partes = [];
-
-  for (const efecto of efectosAplicados) {
-    if (efecto.cantidadAplicada <= 0) {
-      continue;
-    }
-
-    if (efecto.tipo === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_VIDA) {
-      partes.push(`${efecto.cantidadAplicada} de Vida`);
-    }
-
-    if (efecto.tipo === TIPOS_EFECTO_CONSUMIBLE.RECUPERAR_MANA) {
-      partes.push(`${efecto.cantidadAplicada} de Maná`);
-    }
-  }
-
-  return partes;
-}
-
 // Crea un mensaje útil cuando ninguno
 // de los efectos puede aplicarse.
 function crearMensajeSinEfecto(objeto) {

@@ -2,16 +2,12 @@ import { Entidad } from "../Entidad.js";
 
 import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js";
 
-import { normalizarSolicitudTransicionMapa } from "../../partida/TransicionesMapa.js";
+import { normalizarSolicitudTransicionMapa } from "../../juego/interacciones/TransicionesMapa.js";
 
 export const RECURSO_VISUAL_PORTAL_ACTIVO_PREDETERMINADO =
   "assets/imagenes/interactuables/portal_magico_activado.png";
 export const RECURSO_VISUAL_PORTAL_INACTIVO_PREDETERMINADO =
   "assets/imagenes/interactuables/portal_magico_desactivado.png";
-
-// Alias de compatibilidad con el contrato anterior.
-export const RECURSO_VISUAL_PORTAL_PREDETERMINADO =
-  RECURSO_VISUAL_PORTAL_ACTIVO_PREDETERMINADO;
 
 const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
   TIPOS_INTERACCION.TRANSICION_MAPA,

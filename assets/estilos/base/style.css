@@ -1299,7 +1299,7 @@ main {
 }
 
 /* =========================================================
-   P7.1 — ENTRADA DE BETA Y CONTINUIDAD
+   MENÚ PRINCIPAL Y CONTINUIDAD
    ========================================================= */
 .version-menu-principal {
   margin: -18px 0 24px;
@@ -1434,7 +1434,7 @@ main {
 }
 
 /* =========================================================
-   SELECTOR DE IDIOMA — P7.3A
+   SELECTOR DE IDIOMA
    ========================================================= */
 .selector-idioma {
   display: inline-flex;

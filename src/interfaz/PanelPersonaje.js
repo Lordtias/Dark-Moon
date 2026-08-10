@@ -64,7 +64,7 @@ export class PanelPersonaje {
     });
   }
 
-  // Agrega solamente los dos derivados mágicos necesarios para esta etapa.
+  // Agrega solamente los dos derivados mágicos visibles en este panel.
   // El Maná máximo y su regeneración ya permanecen visibles en la plantilla.
   crearSeccionMagia() {
     const seccion = document.createElement("section");

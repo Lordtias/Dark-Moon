@@ -1,3 +1,14 @@
+import {
+  validarObjetoPlano,
+  validarTextoNoVacio,
+  validarNumeroFinito,
+  validarNumeroPositivo,
+  validarNumeroNoNegativo,
+  validarEnteroPositivo,
+  validarNumeroEnRango,
+  congelarProfundamente,
+} from "./ValidacionesConfiguracionVisual.js";
+
 const VERSION_SOPORTADA = 1;
 const SECUENCIAS_OBLIGATORIAS = Object.freeze([
   "simple",
@@ -323,64 +334,4 @@ function validarConexionFamilias({
       );
     }
   }
-}
-
-function validarObjetoPlano(valor, descripcion) {
-  if (
-    valor === null ||
-    typeof valor !== "object" ||
-    Array.isArray(valor)
-  ) {
-    throw new Error(`Se necesita un objeto válido para ${descripcion}.`);
-  }
-}
-
-function validarTextoNoVacio(valor, descripcion) {
-  if (typeof valor !== "string" || valor.trim() === "") {
-    throw new Error(`${descripcion} debe ser un texto no vacío.`);
-  }
-}
-
-function validarNumeroFinito(valor, descripcion) {
-  if (!Number.isFinite(valor)) {
-    throw new Error(`${descripcion} debe ser un número finito.`);
-  }
-}
-
-function validarNumeroPositivo(valor, descripcion) {
-  if (!Number.isFinite(valor) || valor <= 0) {
-    throw new Error(`${descripcion} debe ser un número mayor que 0.`);
-  }
-}
-
-function validarNumeroNoNegativo(valor, descripcion) {
-  if (!Number.isFinite(valor) || valor < 0) {
-    throw new Error(`${descripcion} debe ser un número mayor o igual que 0.`);
-  }
-}
-
-function validarEnteroPositivo(valor, descripcion) {
-  if (!Number.isInteger(valor) || valor <= 0) {
-    throw new Error(`${descripcion} debe ser un entero mayor que 0.`);
-  }
-}
-
-function validarNumeroEnRango(valor, minimo, maximo, descripcion) {
-  if (!Number.isFinite(valor) || valor < minimo || valor > maximo) {
-    throw new Error(
-      `${descripcion} debe estar entre ${minimo} y ${maximo}.`,
-    );
-  }
-}
-
-function congelarProfundamente(valor) {
-  if (valor === null || typeof valor !== "object" || Object.isFrozen(valor)) {
-    return valor;
-  }
-
-  for (const contenido of Object.values(valor)) {
-    congelarProfundamente(contenido);
-  }
-
-  return Object.freeze(valor);
 }

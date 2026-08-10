@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { Player } from "../../entidad/destructible/combatiente/Player.js";
 import {
   obtenerConfiguracionAtaque,
@@ -18,6 +19,7 @@ import {
 import { prepararEfectosHabilidad } from "../../juego/habilidades/MotorEfectosHabilidad.js";
 import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemporales.js";
 import { SistemaZonasTemporales } from "../../juego/zonas/SistemaZonasTemporales.js";
+import { SistemaEspacial } from "../../juego/espacio/SistemaEspacial.js";
 import {
   calcularPotenciaHabilidadObjetos,
   esBaston,
@@ -2457,8 +2459,13 @@ function simularZonaConPatron({
       );
     }
   };
+  const sistemaEspacial = new SistemaEspacial({
+    mapa,
+    obtenerEntidades: () => objetivos,
+  });
   const sistemaZonas = new SistemaZonasTemporales({
     mapa,
+    sistemaEspacial,
     obtenerTiempoActual: () => tiempoActual,
     obtenerActores: () => objetivos,
     esObjetivoValido: () => true,
@@ -2578,8 +2585,13 @@ function probarEntradaTardiaZona({
     obtenerTiempoActual: () => tiempoActual,
   });
   let aplicaciones = 0;
+  const sistemaEspacial = new SistemaEspacial({
+    mapa,
+    obtenerEntidades: () => [objetivo],
+  });
   const sistemaZonas = new SistemaZonasTemporales({
     mapa,
+    sistemaEspacial,
     obtenerTiempoActual: () => tiempoActual,
     obtenerActores: () => [objetivo],
     esObjetivoValido: () => true,
@@ -3401,10 +3413,6 @@ function mediana(valores) {
 function promedio(valores) {
   if (!Array.isArray(valores) || valores.length === 0) return 0;
   return valores.reduce((total, valor) => total + valor, 0) / valores.length;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function redondear(valor) {

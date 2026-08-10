@@ -1,3 +1,5 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
+import { limitar } from "../../../utilidades/Numeros.js";
 // Construye recursos transitorios para cadenas ya resueltas. No selecciona
 // objetivos, no consulta paredes y no interpreta daño o efectos temporales.
 export class CreadorCadenasHabilidadesPhaser {
@@ -265,10 +267,6 @@ function dibujarRamas({
   }
 }
 
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
-}
-
 function convertirColor(valor, fallback = 0xffffff) {
   if (typeof valor !== "string" || !valor.trim().startsWith("#")) {
     return fallback;
@@ -283,8 +281,4 @@ function obtenerEscalaGrado(perfil, grado) {
     : [];
   const indice = Math.max(0, Math.min(escalas.length - 1, Number(grado) - 1));
   return Number.isFinite(escalas[indice]) ? escalas[indice] : 1;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }

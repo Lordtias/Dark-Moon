@@ -7,14 +7,6 @@ import { obtenerPresentacionRarezaObjeto } from "./ContextoPresentacionObjetos.j
 import { RANGOS_DANIO_ELEMENTAL_LOCAL } from "../../juego/combate/ComponentesDanio.js";
 import { idiomaActivo, traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
-const ETIQUETAS_TIPO = Object.freeze({
-  arma: "Arma",
-  armadura: "Armadura",
-  quiver: "Carcaj",
-  municion: "Munición",
-  consumible: "Consumible",
-  material: "Material",
-});
 const ETIQUETAS_ATRIBUTO = Object.freeze({
   fuerza: "Fuerza",
   destreza: "Destreza",
@@ -22,10 +14,6 @@ const ETIQUETAS_ATRIBUTO = Object.freeze({
   inteligencia: "Inteligencia",
   sabiduria: "Sabiduría",
   carisma: "Carisma",
-});
-const ETIQUETAS_TIPO_ATAQUE = Object.freeze({
-  cuerpoACuerpo: "Cuerpo a cuerpo",
-  distancia: "Distancia",
 });
 const ETIQUETAS_PATRON_ATAQUE = Object.freeze({
   adyacente: "Adyacente",
@@ -37,10 +25,6 @@ const ETIQUETAS_ELEMENTO = Object.freeze({
   frio: "Frío",
   rayo: "Rayo",
   veneno: "Veneno",
-});
-const ETIQUETAS_EFECTO = Object.freeze({
-  recuperarVida: "Recupera Vida",
-  recuperarMana: "Recupera Maná",
 });
 
 const RANGOS_ELEMENTALES_LOCALES = RANGOS_DANIO_ELEMENTAL_LOCAL;

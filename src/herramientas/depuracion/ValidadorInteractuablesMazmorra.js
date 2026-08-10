@@ -4,6 +4,10 @@ import {
   ORIENTACIONES_PUERTA,
   Puerta,
 } from "../../entidad/interactuable/Puerta.js";
+import {
+  analizarAccesoHabitacion,
+  contieneCasillaHabitacion,
+} from "../../juego/generacion/PlanoMazmorra.js";
 
 const DIRECCIONES_CARDINALES = [
   { x: 1, y: 0 },
@@ -12,7 +16,8 @@ const DIRECCIONES_CARDINALES = [
   { x: 0, y: -1 },
 ];
 
-// Valida los invariantes estructurales de E2.B.2 sin participar del runtime.
+// Valida los invariantes estructurales de los interactuables procedurales sin
+// participar del runtime.
 export function validarInteractuablesMazmorra({
   plano,
   contenido,
@@ -88,24 +93,12 @@ export function validarInteractuablesMazmorra({
       const punto = puntos.find((entrada) => entrada.x === puerta.x && entrada.y === puerta.y);
       const habitacion = (plano.habitaciones ?? []).find((entrada) => entrada.id === punto.idHabitacion);
       if (habitacion) {
-        const orientacionEsperada =
-          puerta.x < habitacion.x || puerta.x >= habitacion.x + habitacion.ancho
-            ? ORIENTACIONES_PUERTA.VERTICAL
-            : ORIENTACIONES_PUERTA.HORIZONTAL;
-        comprobar(
-          puerta.orientacion === orientacionEsperada,
-          `La puerta en ${crearClave(puerta)} tiene orientación incorrecta.`,
+        validarGeometriaPuerta({
+          puerta,
+          habitacion,
+          celdas: plano.celdas,
           errores,
-        );
-        comprobar(
-          esUmbralPuertaValido({
-            puerta,
-            habitacion,
-            celdas: plano.celdas,
-          }),
-          `La puerta en ${crearClave(puerta)} no ocupa un umbral geométrico válido.`,
-          errores,
-        );
+        });
       }
     }
     comprobar(puerta.abierta === false, `La puerta en ${crearClave(puerta)} debe comenzar cerrada.`, errores);
@@ -214,7 +207,7 @@ function tieneAccesoCardinal({ entidad, plano, objetivos, interactuables }) {
 }
 
 function comprobarConectividad({ plano, bloqueosPersistentes, posicionJugador }) {
-  const caminables = new Set((plano.casillasCaminables ?? []).map(crearClave));
+  const caminables = new Set((plano.casillasTransitables ?? []).map(crearClave));
   const inicio = crearClave(posicionJugador);
   if (!caminables.has(inicio) || bloqueosPersistentes.has(inicio)) return false;
   const pendientes = [{ ...posicionJugador }];
@@ -236,55 +229,49 @@ function distanciaCuadricula(a, b) {
   return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 }
 
-function esUmbralPuertaValido({ puerta, habitacion, celdas }) {
-  if (celdas?.[puerta.y]?.[puerta.x] !== ".") return false;
-
-  const direccionHabitacion = obtenerDireccionHaciaHabitacion({
-    punto: puerta,
-    habitacion,
-  });
-  if (!direccionHabitacion) return false;
-
-  const haciaHabitacion = {
-    x: puerta.x + direccionHabitacion.x,
-    y: puerta.y + direccionHabitacion.y,
-  };
-  const haciaPasillo = {
-    x: puerta.x - direccionHabitacion.x,
-    y: puerta.y - direccionHabitacion.y,
-  };
-  const perpendicularA = {
-    x: puerta.x + direccionHabitacion.y,
-    y: puerta.y + direccionHabitacion.x,
-  };
-  const perpendicularB = {
-    x: puerta.x - direccionHabitacion.y,
-    y: puerta.y - direccionHabitacion.x,
-  };
-
-  return (
-    contieneHabitacion(habitacion, haciaHabitacion) &&
-    celdas?.[haciaHabitacion.y]?.[haciaHabitacion.x] === "." &&
-    celdas?.[haciaPasillo.y]?.[haciaPasillo.x] === "." &&
-    celdas?.[perpendicularA.y]?.[perpendicularA.x] !== "." &&
-    celdas?.[perpendicularB.y]?.[perpendicularB.x] !== "."
+function validarGeometriaPuerta({ puerta, habitacion, celdas, errores }) {
+  const geometria = analizarAccesoHabitacion({ punto: puerta, habitacion });
+  comprobar(
+    Boolean(geometria),
+    `La puerta en ${crearClave(puerta)} debe estar situada sobre el límite de su habitación.`,
+    errores,
   );
-}
+  if (!geometria) return;
 
-function obtenerDireccionHaciaHabitacion({ punto, habitacion }) {
-  if (punto.x < habitacion.x) return { x: 1, y: 0 };
-  if (punto.x >= habitacion.x + habitacion.ancho) return { x: -1, y: 0 };
-  if (punto.y < habitacion.y) return { x: 0, y: 1 };
-  if (punto.y >= habitacion.y + habitacion.alto) return { x: 0, y: -1 };
-  return null;
-}
-
-function contieneHabitacion(habitacion, posicion) {
-  return (
-    posicion.x >= habitacion.x &&
-    posicion.x < habitacion.x + habitacion.ancho &&
-    posicion.y >= habitacion.y &&
-    posicion.y < habitacion.y + habitacion.alto
+  const orientacionEsperada =
+    geometria.ejeLimite === "vertical"
+      ? ORIENTACIONES_PUERTA.VERTICAL
+      : ORIENTACIONES_PUERTA.HORIZONTAL;
+  comprobar(
+    puerta.orientacion === orientacionEsperada,
+    `La puerta en ${crearClave(puerta)} tiene orientación incorrecta.`,
+    errores,
+  );
+  comprobar(
+    celdas?.[puerta.y]?.[puerta.x] === ".",
+    `La puerta en ${crearClave(puerta)} no está sobre suelo transitable.`,
+    errores,
+  );
+  comprobar(
+    contieneCasillaHabitacion(habitacion, geometria.haciaHabitacion),
+    `La puerta en ${crearClave(puerta)} no comunica con el interior de su habitación.`,
+    errores,
+  );
+  comprobar(
+    celdas?.[geometria.haciaHabitacion.y]?.[geometria.haciaHabitacion.x] === ".",
+    `La puerta en ${crearClave(puerta)} no tiene suelo transitable hacia la habitación.`,
+    errores,
+  );
+  comprobar(
+    celdas?.[geometria.haciaExterior.y]?.[geometria.haciaExterior.x] === ".",
+    `La puerta en ${crearClave(puerta)} no tiene suelo transitable hacia el pasillo.`,
+    errores,
+  );
+  comprobar(
+    celdas?.[geometria.lateralA.y]?.[geometria.lateralA.x] !== "." &&
+      celdas?.[geometria.lateralB.y]?.[geometria.lateralB.x] !== ".",
+    `La puerta en ${crearClave(puerta)} debe ocupar un umbral de una sola casilla de ancho.`,
+    errores,
   );
 }
 

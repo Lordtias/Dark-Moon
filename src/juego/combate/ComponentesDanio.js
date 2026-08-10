@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { normalizarPropiedadesResistenciasEfectos } from "../efectos/ResistenciasEfectos.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
@@ -56,10 +57,6 @@ export const RANGOS_DANIO_ELEMENTAL_LOCAL = Object.freeze([
     propiedadMaximo: "danioVenenoLocalMaximo",
   }),
 ]);
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
-}
 
 function validarNumeroFinito(valor, descripcion) {
   if (!Number.isFinite(valor)) {

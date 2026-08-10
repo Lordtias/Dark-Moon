@@ -1,9 +1,18 @@
 import { calcularDatosEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
+import { crearGeneradorAleatorio } from "../../juego/generacion/GeneradorAleatorio.js";
+import { generarTerreno } from "../../juego/generacion/GeneradorTerreno.js";
+import {
+  calcularCantidadEnemigosRecurrentes,
+  crearContextoPoblacion,
+} from "../../juego/generacion/PobladorEnemigosMazmorra.js";
 import {
   CONFIGURACION_RECOMPENSAS_EXPERIENCIA,
   calcularExperienciaNecesaria,
   calcularRecompensaExperiencia,
 } from "../../juego/progresion/SistemaProgresion.js";
+
+const CANTIDAD_MUESTRAS_POBLACION = 24;
+const cacheCantidadRecurrenteEsperada = new WeakMap();
 
 const ESTADOS_BALANCE = Object.freeze({
   CORRECTO: "correcto",
@@ -56,7 +65,7 @@ export function analizarBalanceProgresion({
 
 // Calcula la XP esperada de una expedición concreta. El resultado es exacto
 // para cada combinación enemigo/variante y estadístico solo al promediar las
-// cantidades y probabilidades configuradas en el mapa.
+// densidad estructural y probabilidades configuradas en el mapa.
 export function calcularExperienciaEsperadaMapa({
   plantillaMapa,
   nivelMapa,
@@ -68,6 +77,7 @@ export function calcularExperienciaEsperadaMapa({
   validarConfiguracionEnemigos(configuracionEnemigos);
 
   const recurrentes = calcularPoblacionRecurrente({
+    plantillaMapa,
     configuracion: plantillaMapa.enemigos,
     nivelMapa,
     nivelJugador,
@@ -206,6 +216,7 @@ function crearFilasRutaRecomendada({
 }
 
 function calcularPoblacionRecurrente({
+  plantillaMapa,
   configuracion,
   nivelMapa,
   nivelJugador,
@@ -216,10 +227,10 @@ function calcularPoblacionRecurrente({
     descripcion: "la población recurrente",
   });
 
-  const cantidadEsperada = promedio(
-    configuracion.cantidad.minimo,
-    configuracion.cantidad.maximo,
-  );
+  const cantidadEsperada = calcularCantidadRecurrenteEsperada({
+    plantillaMapa,
+    configuracion,
+  });
   const porEnemigo = calcularValoresPonderadosEnemigo({
     permitidos: configuracion.permitidos,
     probabilidadesVariantes: configuracion.probabilidadesVariantes,
@@ -243,6 +254,50 @@ function calcularPoblacionRecurrente({
   });
 }
 
+function calcularCantidadRecurrenteEsperada({
+  plantillaMapa,
+  configuracion,
+}) {
+  if (!plantillaMapa || typeof plantillaMapa !== "object") {
+    throw new Error(
+      "El análisis de población necesita la plantilla estructural del mapa.",
+    );
+  }
+
+  const cacheada = cacheCantidadRecurrenteEsperada.get(plantillaMapa);
+  if (Number.isFinite(cacheada)) {
+    return cacheada;
+  }
+
+  let total = 0;
+  const identidadMapa =
+    typeof plantillaMapa.nombre === "string" && plantillaMapa.nombre.trim() !== ""
+      ? plantillaMapa.nombre.trim()
+      : "mapa";
+
+  for (let indice = 0; indice < CANTIDAD_MUESTRAS_POBLACION; indice += 1) {
+    const aleatorio = crearGeneradorAleatorio(
+      `balance:poblacion:${identidadMapa}:${indice}`,
+    );
+    const terreno = generarTerreno({ plantilla: plantillaMapa, aleatorio });
+    const contextoPoblacion = crearContextoPoblacion({
+      terreno,
+      posicionJugador: terreno.posicionInicialSugerida,
+      aleatorio,
+      configuracion,
+    });
+
+    total += calcularCantidadEnemigosRecurrentes({
+      configuracion,
+      contextoPoblacion,
+    });
+  }
+
+  const cantidadEsperada = total / CANTIDAD_MUESTRAS_POBLACION;
+  cacheCantidadRecurrenteEsperada.set(plantillaMapa, cantidadEsperada);
+  return cantidadEsperada;
+}
+
 function calcularPoblacionUnica({
   configuracion,
   nivelMapa,
@@ -264,7 +319,7 @@ function calcularPoblacionUnica({
   validarConfiguracionPoblacion({
     configuracion,
     descripcion: "la población única",
-    requiereCantidad: false,
+    requiereDensidad: false,
   });
   const probabilidadAparicion = configuracion.probabilidadAparicion;
   const cantidadEsperada = probabilidadAparicion / 100;
@@ -506,22 +561,27 @@ function validarConfiguracionEnemigos(configuracionEnemigos) {
 function validarConfiguracionPoblacion({
   configuracion,
   descripcion,
-  requiereCantidad = true,
+  requiereDensidad = true,
 }) {
   validarObjeto({ valor: configuracion, descripcion });
   validarListaPonderada(configuracion.permitidos);
   validarProbabilidadesVariantes(configuracion.probabilidadesVariantes);
 
-  if (requiereCantidad) {
-    const cantidad = configuracion.cantidad;
+  if (requiereDensidad) {
     if (
-      !cantidad ||
-      !Number.isInteger(cantidad.minimo) ||
-      !Number.isInteger(cantidad.maximo) ||
-      cantidad.minimo < 0 ||
-      cantidad.maximo < cantidad.minimo
+      !Number.isFinite(configuracion.densidadPor100Casillas) ||
+      configuracion.densidadPor100Casillas < 0
     ) {
-      throw new Error(`La cantidad de ${descripcion} no es válida.`);
+      throw new Error(`La densidad de ${descripcion} no es válida.`);
+    }
+    if (
+      !Number.isFinite(configuracion.probabilidadZonaPoblada) ||
+      configuracion.probabilidadZonaPoblada < 0 ||
+      configuracion.probabilidadZonaPoblada > 100
+    ) {
+      throw new Error(
+        `La probabilidad de zona poblada de ${descripcion} no es válida.`,
+      );
     }
     return;
   }
@@ -594,10 +654,6 @@ function validarObjeto({ valor, descripcion }) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
     throw new Error(`Se necesita ${descripcion} válida.`);
   }
-}
-
-function promedio(minimo, maximo) {
-  return (minimo + maximo) / 2;
 }
 
 function numeroFinitoRedondeado(valor) {

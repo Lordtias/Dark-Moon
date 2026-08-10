@@ -181,7 +181,7 @@ function validarRarezaForzadaNoEquipable(rarezaForzada) {
     rarezaForzada.trim().toLowerCase() !== RAREZAS_OBJETO.COMUN
   ) {
     throw new Error(
-      "Los objetos no equipables solamente pueden ser comunes en esta etapa.",
+      "Los objetos no equipables solamente pueden ser de rareza común.",
     );
   }
 }

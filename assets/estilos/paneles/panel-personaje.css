@@ -219,7 +219,7 @@
   }
 }
 
-/* P7.3B: separa resistencias de daño y de efectos sin alterar sus valores. */
+/* Separa visualmente resistencias de daño y resistencias de efectos. */
 .seccion-resistencias-personaje .grupo-resistencias-personaje + .grupo-resistencias-personaje {
   margin-top: 10px;
 }

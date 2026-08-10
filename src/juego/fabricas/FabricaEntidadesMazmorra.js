@@ -11,7 +11,7 @@ export const DESTINOS_ENTIDAD_MAZMORRA = Object.freeze({
 });
 
 // Relación única entre IDs estables de población y clases concretas.
-// El poblador de E2.B no necesitará conocer constructores ni decidir en qué
+// Los pobladores no necesitan conocer constructores ni decidir en qué
 // colección runtime debe registrarse cada entidad.
 const CREADORES_ENTIDADES_MAZMORRA = Object.freeze({
   barril(parametros) {

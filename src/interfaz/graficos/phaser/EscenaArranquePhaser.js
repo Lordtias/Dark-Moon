@@ -202,19 +202,48 @@ export function crearEscenaArranquePhaser({
     }
 
     solicitarRedibujo() {
-      if (
-        this.redibujoPendiente ||
-        this.destruida ||
-        this.reproductorEventosVisuales?.estaActivo()
-      ) {
+      if (this.redibujoPendiente || this.destruida) {
         return;
       }
 
       this.redibujoPendiente = true;
-      requestAnimationFrame(() => {
-        this.redibujoPendiente = false;
-        this.redibujar();
-      });
+
+      const programarRedibujo = () => {
+        if (this.destruida) {
+          this.redibujoPendiente = false;
+          return;
+        }
+
+        requestAnimationFrame(() => {
+          this.redibujoPendiente = false;
+
+          if (this.destruida) {
+            return;
+          }
+
+          // Una textura puede terminar de cargar mientras se reproduce una
+          // actualización visual. Redibujar en ese instante reemplazaría nodos
+          // que todavía están siendo animados, pero descartar la solicitud deja
+          // la nueva textura sin aplicar hasta la siguiente acción jugable.
+          // Si apareció otra animación entre la espera y este frame, diferimos
+          // nuevamente el redibujo hasta que el reproductor quede inactivo.
+          if (this.reproductorEventosVisuales?.estaActivo()) {
+            this.solicitarRedibujo();
+            return;
+          }
+
+          this.redibujar();
+        });
+      };
+
+      if (this.reproductorEventosVisuales?.estaActivo()) {
+        this.reproductorEventosVisuales
+          .esperarInactividad()
+          .then(programarRedibujo);
+        return;
+      }
+
+      programarRedibujo();
     }
 
     mostrarFeedbackCamara(estado, motivo) {

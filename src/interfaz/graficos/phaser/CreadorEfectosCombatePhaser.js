@@ -1,3 +1,4 @@
+import { esCentroValido } from "./GeometriaVisualPhaser.js";
 import {
   CONFIGURACION_EFECTOS_COMBATE_PHASER,
   obtenerEstiloFeedbackCombate,
@@ -303,8 +304,4 @@ export class CreadorEfectosCombatePhaser {
     return grafico;
   }
 
-}
-
-function esCentroValido(centro) {
-  return Number.isFinite(centro?.x) && Number.isFinite(centro?.y);
 }

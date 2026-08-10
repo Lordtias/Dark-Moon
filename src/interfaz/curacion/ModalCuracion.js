@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos } from "../dom/UtilidadesDom.js";
 import { TIPOS_SERVICIO_CURACION } from "../../juego/curacion/ConfiguracionCuracion.js";
 import { idiomaActivo, traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 import { resolverTextoMensajesJuego } from "../idiomas/PresentadorMensajesJuego.js";
@@ -17,7 +18,7 @@ let siguienteIdModal = 1;
 // y ejecutar la operación seleccionada.
 export class ModalCuracion {
   constructor() {
-    asegurarHojaEstilos();
+    asegurarHojaEstilos({ id: ID_HOJA_ESTILOS, ruta: RUTA_HOJA_ESTILOS });
 
     this.idTitulo = `tituloModalCuracion${siguienteIdModal}`;
 
@@ -429,20 +430,4 @@ function validarEstadoCuracion(estado) {
   ) {
     throw new Error("El estado recibido por ModalCuracion " + "no es válido.");
   }
-}
-
-function asegurarHojaEstilos() {
-  if (document.getElementById(ID_HOJA_ESTILOS)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = ID_HOJA_ESTILOS;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = RUTA_HOJA_ESTILOS;
-
-  document.head.appendChild(enlace);
 }

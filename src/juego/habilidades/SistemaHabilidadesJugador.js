@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   crearEventoHabilidadResuelta,
@@ -1284,8 +1285,4 @@ function copiarSimple(valor) {
   return Object.fromEntries(
     Object.entries(valor).map(([clave, actual]) => [clave, copiarSimple(actual)]),
   );
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }

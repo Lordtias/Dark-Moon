@@ -487,7 +487,7 @@ export function calcularDatosEnemigo({
       equipamiento.objetosIniciales ?? [],
     ),
 
-    // El botín continúa fuera de este hito.
+    // El botín se resuelve fuera de la fábrica de enemigos.
     tablaBotin: clonarConfiguracion(plantilla.tablaBotin ?? []),
 
     configuracionIA: clonarConfiguracion(plantilla.ia),

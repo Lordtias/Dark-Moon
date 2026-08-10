@@ -1,3 +1,13 @@
+import {
+  validarObjetoPlano,
+  validarTextoNoVacio,
+  validarColorHexadecimal,
+  validarFraccion,
+  validarEnteroPositivo,
+  validarNumeroPositivo,
+  congelarProfundamente,
+} from "./ValidacionesConfiguracionVisual.js";
+
 const VERSION_SOPORTADA = 1;
 const APARIENCIAS_MINIMAS = Object.freeze([
   "veneno",
@@ -56,50 +66,4 @@ export function validarPerfilesZonasTemporalesVisuales(configuracion) {
   }
 
   return congelarProfundamente(configuracion);
-}
-
-function validarObjetoPlano(valor, descripcion) {
-  if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
-    throw new Error(`Se necesita un objeto válido para ${descripcion}.`);
-  }
-}
-
-function validarTextoNoVacio(valor, descripcion) {
-  if (typeof valor !== "string" || valor.trim() === "") {
-    throw new Error(`${descripcion} debe ser un texto no vacío.`);
-  }
-}
-
-function validarColorHexadecimal(valor, descripcion) {
-  if (typeof valor !== "string" || !/^#[0-9a-f]{6}$/i.test(valor)) {
-    throw new Error(`${descripcion} debe usar el formato hexadecimal #RRGGBB.`);
-  }
-}
-
-function validarFraccion(valor, descripcion) {
-  if (!Number.isFinite(valor) || valor <= 0 || valor > 1) {
-    throw new Error(`${descripcion} debe ser mayor que 0 y menor o igual que 1.`);
-  }
-}
-
-function validarEnteroPositivo(valor, descripcion) {
-  if (!Number.isInteger(valor) || valor <= 0) {
-    throw new Error(`${descripcion} debe ser un entero mayor que 0.`);
-  }
-}
-
-function validarNumeroPositivo(valor, descripcion) {
-  if (!Number.isFinite(valor) || valor <= 0) {
-    throw new Error(`${descripcion} debe ser un número mayor que 0.`);
-  }
-}
-
-function congelarProfundamente(valor) {
-  if (valor === null || typeof valor !== "object" || Object.isFrozen(valor)) {
-    return valor;
-  }
-  for (const contenido of Object.values(valor)) {
-    congelarProfundamente(contenido);
-  }
-  return Object.freeze(valor);
 }

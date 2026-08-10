@@ -1,3 +1,4 @@
+import { asegurarHojaEstilos } from "../dom/UtilidadesDom.js";
 import { agregarRepresentacionObjeto } from "../RepresentacionObjeto.js";
 
 import { crearPresentacionObjeto } from "./PresentadorObjeto.js";
@@ -531,20 +532,4 @@ function validarApertura({
   if (typeof alRecoger !== "function" || typeof alRecogerTodo !== "function") {
     throw new Error("El modal necesita acciones válidas para recoger objetos.");
   }
-}
-
-function asegurarHojaEstilos({ id, ruta }) {
-  if (document.getElementById(id)) {
-    return;
-  }
-
-  const enlace = document.createElement("link");
-
-  enlace.id = id;
-
-  enlace.rel = "stylesheet";
-
-  enlace.href = ruta;
-
-  document.head.appendChild(enlace);
 }

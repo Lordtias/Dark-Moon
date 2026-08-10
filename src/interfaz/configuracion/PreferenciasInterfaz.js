@@ -20,7 +20,7 @@ export async function cargarConfiguracionPreferenciasInterfaz({
   return validarConfiguracionPreferenciasInterfaz(configuracion);
 }
 
-export function validarConfiguracionPreferenciasInterfaz(configuracion) {
+function validarConfiguracionPreferenciasInterfaz(configuracion) {
   if (!esObjetoPlano(configuracion)) {
     throw new Error("Las preferencias de interfaz deben ser un objeto.");
   }
@@ -170,22 +170,6 @@ export function crearOverridesPreferenciasInterfaz({
   }
 
   return Object.freeze(overrides);
-}
-
-export function obtenerOpcionesPreferenciasInterfaz(configuracion) {
-  const canonica = validarConfiguracionPreferenciasInterfaz(configuracion);
-  const velocidad = canonica.preferencias.velocidadAnimaciones;
-  const zoom = canonica.preferencias.zoomInicial;
-
-  return Object.freeze({
-    velocidadesAnimacion: Object.freeze([...velocidad.opciones]),
-    zoom: Object.freeze({
-      minimo: zoom.minimo,
-      maximo: zoom.maximo,
-      paso: zoom.paso,
-    }),
-    idiomas: Object.freeze([...canonica.preferencias.idioma.opciones]),
-  });
 }
 
 function resolverValorPreferencia({

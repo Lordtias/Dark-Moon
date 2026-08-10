@@ -1,3 +1,4 @@
+import { limitar } from "../../utilidades/Numeros.js";
 import {
   CONFIGURACION_EFECTOS_TEMPORALES,
 } from "../../config/ConfiguracionEfectosTemporales.js";
@@ -106,10 +107,6 @@ function obtenerEscalaAcumulacion(efecto) {
   if (efecto.escalaPorIntensidad) return efecto.intensidad;
   if (efecto.escalaPorCantidad) return efecto.cantidad;
   return 1;
-}
-
-function limitar(valor, minimo, maximo) {
-  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function obtenerEstadisticasObjetivo(objetivo) {

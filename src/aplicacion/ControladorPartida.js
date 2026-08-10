@@ -9,7 +9,7 @@ import { GestorMercaderesPartida } from "../partida/GestorMercaderesPartida.js";
 import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
-} from "../partida/TransicionesMapa.js";
+} from "../juego/interacciones/TransicionesMapa.js";
 import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
 import {
   EjecutorAccionesJugador,
@@ -21,7 +21,7 @@ import {
   crearParametroContenidoMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
-import { MedidorFluidezPartida } from "../herramientas/depuracion/MedidorFluidezPartida.js";
+import { MedidorFluidezPartida } from "./diagnostico/MedidorFluidezPartida.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -92,7 +92,7 @@ export class ControladorPartida {
     this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
 
-    // E0.1: una única autoridad de aplicación gobierna si puede aceptarse
+    // Una única autoridad de aplicación gobierna si puede aceptarse
     // una nueva entrada jugable. No se almacenan comandos descartados.
     this.estadoEntradaJugable = "disponible";
     this.versionSincronizacionEntrada = 0;

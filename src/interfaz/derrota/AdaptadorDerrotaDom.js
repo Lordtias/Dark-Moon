@@ -1,4 +1,3 @@
-import { eliminarGuardadoJugador } from "../../partida/PersistenciaJugador.js";
 import { ModalDerrota } from "./ModalDerrota.js";
 
 // Presenta mediante DOM el cierre de una partida derrotada.
@@ -45,20 +44,8 @@ export class AdaptadorDerrotaDom {
   }
 
   volverAlMenuPrincipal() {
-    // La muerte cierra el ciclo roguelike. Ningún inventario, oro o progreso
-    // durable del personaje derrotado debe reaparecer.
-    try {
-      eliminarGuardadoJugador();
-    } catch (error) {
-      // La limpieza durable es obligatoria cuando el almacenamiento está
-      // disponible, pero una política del navegador no debe bloquear el
-      // regreso al menú principal.
-      console.warn(
-        "No se pudo limpiar el guardado del personaje derrotado:",
-        error,
-      );
-    }
-
+    // La limpieza durable ya fue resuelta por la capa de partida al detectar
+    // la derrota. Este adaptador solamente navega hacia el menú principal.
     const ubicacionActual = globalThis.location;
     if (
       !ubicacionActual?.href ||

@@ -1,4 +1,7 @@
-import { guardarJugadorDurable } from "./PersistenciaJugador.js";
+import {
+  eliminarGuardadoJugador,
+  guardarJugadorDurable,
+} from "./PersistenciaJugador.js";
 
 export const TIPOS_UBICACION_PARTIDA = Object.freeze({
   CIUDAD: "ciudad",
@@ -81,6 +84,21 @@ export class EstadoPartida {
       console.warn("No se pudo guardar durablemente al jugador:", error);
       return {
         exito: false,
+        error,
+      };
+    }
+  }
+
+  eliminarEstadoDurable() {
+    try {
+      return eliminarGuardadoJugador();
+    } catch (error) {
+      // La derrota debe poder continuar hacia su presentación aunque una
+      // política del navegador impida acceder al almacenamiento local.
+      console.warn("No se pudo eliminar el guardado durable del jugador:", error);
+      return {
+        exito: false,
+        eliminado: false,
         error,
       };
     }

@@ -1,4 +1,3 @@
-import { guardarJugadorDurable } from "../../partida/PersistenciaJugador.js";
 import { BarraHabilidades } from "./BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "./PanelHabilidadesMaestrias.js";
 import { ControladorPunteroHabilidades } from "../../controles/ControladorPunteroHabilidades.js";
@@ -22,6 +21,7 @@ export class IntegracionHabilidadesDom {
     configuracionObjetos,
     esJuegoActivo,
     alEjecutarComando,
+    alSolicitarGuardadoJugador,
   } = {}) {
     if (!juego || typeof esJuegoActivo !== "function") {
       throw new Error(
@@ -46,6 +46,12 @@ export class IntegracionHabilidadesDom {
       );
     }
 
+    if (typeof alSolicitarGuardadoJugador !== "function") {
+      throw new Error(
+        "La integración DOM de habilidades necesita una función para solicitar el guardado del jugador.",
+      );
+    }
+
     if (!juego.player || !juego.map) {
       throw new Error(
         "La integración DOM de habilidades necesita un Juego activo con jugador y mapa.",
@@ -61,6 +67,7 @@ export class IntegracionHabilidadesDom {
       configuracionObjetos ?? juego.configuracionObjetos;
     this.esJuegoActivo = esJuegoActivo;
     this.alEjecutarComando = alEjecutarComando;
+    this.alSolicitarGuardadoJugador = alSolicitarGuardadoJugador;
     this.destruida = false;
     this.contextoProcesamientoComando = null;
 
@@ -190,9 +197,9 @@ export class IntegracionHabilidadesDom {
 
   guardarJugador() {
     try {
-      return guardarJugadorDurable({ jugador: this.jugador });
+      return this.alSolicitarGuardadoJugador();
     } catch (error) {
-      console.warn("No se pudo guardar el jugador después del cambio:", error);
+      console.warn("No se pudo solicitar el guardado del jugador después del cambio:", error);
       return { exito: false, error };
     }
   }

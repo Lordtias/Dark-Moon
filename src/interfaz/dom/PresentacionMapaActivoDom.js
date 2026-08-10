@@ -28,6 +28,7 @@ export class PresentacionMapaActivoDom {
     alProcesarResultado,
     alEjecutarAccionJugable,
     alEjecutarComando,
+    alSolicitarGuardadoJugador,
     esJuegoActivo,
   } = {}) {
     validarJuego(juego);
@@ -44,6 +45,10 @@ export class PresentacionMapaActivoDom {
       "ejecutar acciones jugables centralizadas",
     );
     validarFuncion(alEjecutarComando, "ejecutar comandos del jugador");
+    validarFuncion(
+      alSolicitarGuardadoJugador,
+      "solicitar el guardado del jugador",
+    );
     validarFuncion(esJuegoActivo, "comprobar el mapa activo");
 
     this.juego = juego;
@@ -100,6 +105,7 @@ export class PresentacionMapaActivoDom {
       configuracionObjetos,
       esJuegoActivo,
       alEjecutarComando,
+      alSolicitarGuardadoJugador,
     });
   }
 

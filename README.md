@@ -209,6 +209,7 @@ game.js
           ↓
    ControladorPartida
       ├─ EstadoPartida + gestores persistentes
+      ├─ CoordinadorEntradaJugable
       ├─ EjecutorAccionesJugador
       ├─ Juego del mapa activo
       │      ↓
@@ -290,9 +291,16 @@ Coordina toda la sesión:
 - crea el ejecutor compartido de comandos para el mapa activo;
 - solicita a la presentación una composición nueva para cada mapa;
 - procesa en un único punto los resultados de acciones, inventario, equipamiento, comercio e interacciones;
+- delega en `CoordinadorEntradaJugable` la compuerta de entrada y la espera visual entre acciones;
 - entrega las interacciones resueltas a la presentación activa;
-- notifica la derrota mediante un callback de presentación;
+- elimina el guardado durable al confirmar la derrota y luego la notifica mediante un callback de presentación;
 - destruye primero la presentación y después los sistemas del mapa anterior.
+
+#### `CoordinadorEntradaJugable`
+
+`src/aplicacion/CoordinadorEntradaJugable.js`
+
+Administra una sola compuerta de entrada para teclado, mouse, barra y acciones DOM. Mantiene el estado `disponible → resolviendo → esperando_presentacion → disponible`, descarta entradas concurrentes y espera el punto seguro del renderizador cuando una acción consume turno. También concentra la medición de fluidez de ese ciclo. No interpreta comandos ni contiene reglas del juego.
 
 #### `EjecutorAccionesJugador`
 
@@ -321,7 +329,7 @@ Conserva aquello que debe sobrevivir al cambio de mapa:
 - ID del mapa actual;
 - cantidad de expediciones realizadas.
 
-Cada transición válida de mapa intenta guardar el estado durable del jugador.
+Cada transición válida de mapa intenta guardar el estado durable del jugador. La misma autoridad recibe las solicitudes de guardado originadas por cambios de progreso y elimina el guardado cuando la partida termina por derrota. Los componentes DOM no escriben ni borran directamente el estado durable del personaje.
 
 #### `Juego`
 
@@ -764,7 +772,7 @@ La resolución centralizada evita que ataques básicos, habilidades, efectos o z
 
 Los sistemas nuevos que puedan matar una entidad deben notificar el daño al motor real y permitir que el resolutor procese la derrota. No deben otorgar experiencia u oro directamente.
 
-Cuando el jugador muere, `ProcesadorResultadoAccion` notifica la derrota una sola vez por instancia de `Juego`. `ControladorPartida` entrega esa notificación a `AdaptadorDerrotaDom`, que cierra otros diálogos y muestra `ModalDerrota`.
+Cuando el jugador muere, `ProcesadorResultadoAccion` notifica la derrota una sola vez por instancia de `Juego`. `ControladorPartida` solicita a `EstadoPartida` eliminar el guardado durable y recién después delega la presentación en `AdaptadorDerrotaDom`, que cierra otros diálogos y muestra `ModalDerrota`. El adaptador visual no accede a `localStorage`.
 
 ---
 
@@ -1058,7 +1066,7 @@ src/juego/habilidades/ObservadorProgresoMagico.js
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
 - `MotorEfectosHabilidad`: aplicación de efectos.
-- `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel, puntero, comandos y persistencia.
+- `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel, puntero y comandos; cuando cambia el progreso solicita el guardado a la autoridad de partida mediante callback.
 - `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
 - `ControladorPunteroHabilidades`: adaptación DOM de clics a coordenadas del selector.
 - `PanelHabilidadesMaestrias`: presentación y mejora de habilidades.

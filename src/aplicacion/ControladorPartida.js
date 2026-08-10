@@ -21,7 +21,7 @@ import {
   crearParametroContenidoMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
-import { MedidorFluidezPartida } from "./diagnostico/MedidorFluidezPartida.js";
+import { CoordinadorEntradaJugable } from "./CoordinadorEntradaJugable.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -92,13 +92,16 @@ export class ControladorPartida {
     this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
 
-    // Una única autoridad de aplicación gobierna si puede aceptarse
-    // una nueva entrada jugable. No se almacenan comandos descartados.
-    this.estadoEntradaJugable = "disponible";
-    this.versionSincronizacionEntrada = 0;
-    this.secuenciaEntradaJugable = 0;
-    this.entradaJugableActiva = null;
-    this.medidorFluidez = new MedidorFluidezPartida();
+    // La compuerta de entrada jugable vive en un coordinador dedicado.
+    // ControladorPartida aporta solamente el contexto del mapa y la espera
+    // visual del renderizador activo.
+    this.coordinadorEntradaJugable = new CoordinadorEntradaJugable({
+      obtenerContexto: () => this.obtenerContextoMedicionFluidez(),
+      obtenerDiagnosticoPresentacion: () =>
+        this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.() ?? null,
+      esperarPresentacionPendiente: () =>
+        this.renderizador?.esperarPresentacionPendiente?.() ?? null,
+    });
   }
 
   iniciar({
@@ -498,77 +501,13 @@ export class ControladorPartida {
   }) {
     this.validarMapaActivoParaEntrada();
 
-    const contextoMedicion = this.obtenerContextoMedicionFluidez();
-    if (!this.puedeAceptarEntradaJugable()) {
-      this.medidorFluidez.registrarEntradaDescartada({
-        tipo: tipoEntrada,
-        origen: origenEntrada,
-        contexto: contextoMedicion,
-      });
-      return { aceptada: false, resultado: null };
-    }
-
-    const tokenEntrada = this.bloquearEntradaJugable();
-    const muestra = this.medidorFluidez.iniciarMuestra({
-      tipo: tipoEntrada,
-      origen: origenEntrada,
-      contexto: contextoMedicion,
+    return this.coordinadorEntradaJugable.ejecutar({
+      tipoEntrada,
+      origenEntrada,
+      ejecutarLogica,
+      obtenerResultadoTemporal,
+      procesarResultado,
     });
-
-    let resultadoLogico;
-    try {
-      resultadoLogico = ejecutarLogica();
-    } catch (error) {
-      this.medidorFluidez.registrarFinLogica(muestra, null);
-      this.medidorFluidez.registrarFinPreparacion(muestra);
-      this.medidorFluidez.completar(muestra, {
-        estado: "error_logica",
-        incluirEsperaVisual: false,
-      });
-      this.liberarEntradaJugable(tokenEntrada);
-      throw error;
-    }
-
-    const resultadoTemporal = obtenerResultadoTemporal(resultadoLogico);
-    this.medidorFluidez.registrarFinLogica(muestra, resultadoTemporal);
-    const consumeTurno = resultadoTemporal?.turnoConsumido === true;
-
-    const idPresentacionAntes =
-      this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.()?.idPresentacion ??
-      null;
-    let resultadoProcesado;
-    try {
-      resultadoProcesado = procesarResultado(resultadoLogico);
-      const diagnosticoPresentacion =
-        this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.() ?? null;
-      const huboNuevaPresentacion =
-        diagnosticoPresentacion?.idPresentacion !== undefined &&
-        diagnosticoPresentacion.idPresentacion !== idPresentacionAntes;
-      this.medidorFluidez.registrarFinPreparacion(
-        muestra,
-        huboNuevaPresentacion ? diagnosticoPresentacion : null,
-      );
-    } catch (error) {
-      this.medidorFluidez.registrarFinPreparacion(muestra);
-      this.medidorFluidez.completar(muestra, {
-        estado: "error_presentacion",
-        incluirEsperaVisual: false,
-      });
-      this.liberarEntradaJugable(tokenEntrada);
-      throw error;
-    }
-
-    if (!consumeTurno) {
-      this.medidorFluidez.completar(muestra, {
-        incluirEsperaVisual: false,
-      });
-      this.liberarEntradaJugable(tokenEntrada);
-      return { aceptada: true, resultado: resultadoProcesado };
-    }
-
-    this.estadoEntradaJugable = "esperando_presentacion";
-    this.esperarPuntoSeguroPresentacion({ tokenEntrada, muestra });
-    return { aceptada: true, resultado: resultadoProcesado };
   }
 
   validarMapaActivoParaEntrada() {
@@ -582,103 +521,6 @@ export class ControladorPartida {
         "No se puede ejecutar una entrada jugable sin un mapa activo.",
       );
     }
-  }
-
-  puedeAceptarEntradaJugable() {
-    return (
-      this.estadoEntradaJugable === "disponible" &&
-      this.entradaJugableActiva === null
-    );
-  }
-
-  bloquearEntradaJugable() {
-    const tokenEntrada = Object.freeze({
-      id: ++this.secuenciaEntradaJugable,
-      versionMapa: this.versionSincronizacionEntrada,
-    });
-
-    this.entradaJugableActiva = tokenEntrada;
-    this.estadoEntradaJugable = "resolviendo";
-    return tokenEntrada;
-  }
-
-  liberarEntradaJugable(tokenEntrada) {
-    if (!this.esTokenEntradaActivo(tokenEntrada)) {
-      return false;
-    }
-
-    this.entradaJugableActiva = null;
-    this.estadoEntradaJugable = "disponible";
-    return true;
-  }
-
-  invalidarSincronizacionEntrada() {
-    this.versionSincronizacionEntrada += 1;
-    this.entradaJugableActiva = null;
-    this.estadoEntradaJugable = "disponible";
-  }
-
-  esTokenEntradaActivo(tokenEntrada) {
-    return Boolean(
-      tokenEntrada &&
-        this.entradaJugableActiva === tokenEntrada &&
-        tokenEntrada.versionMapa === this.versionSincronizacionEntrada,
-    );
-  }
-
-  esperarPuntoSeguroPresentacion({ tokenEntrada, muestra }) {
-    // Una transición puede reemplazar el mapa durante el procesamiento del
-    // resultado. En ese caso el token anterior ya no gobierna la nueva escena.
-    if (!this.esTokenEntradaActivo(tokenEntrada)) {
-      this.medidorFluidez.completar(muestra, {
-        estado: "mapa_reemplazado",
-        incluirEsperaVisual: false,
-      });
-      return;
-    }
-
-    let esperaPresentacion = null;
-    try {
-      esperaPresentacion = this.renderizador.esperarPresentacionPendiente?.();
-    } catch (error) {
-      this.medidorFluidez.completar(muestra, {
-        estado: "error_espera_visual",
-        incluirEsperaVisual: false,
-      });
-      this.liberarEntradaJugable(tokenEntrada);
-      console.error(
-        "No se pudo consultar el punto seguro de presentación:",
-        error,
-      );
-      return;
-    }
-
-    if (!esperaPresentacion || typeof esperaPresentacion.then !== "function") {
-      this.medidorFluidez.completar(muestra, {
-        incluirEsperaVisual: false,
-      });
-      this.liberarEntradaJugable(tokenEntrada);
-      return;
-    }
-
-    const finalizarEspera = (estado = "completada") => {
-      const estadoFinal = this.esTokenEntradaActivo(tokenEntrada)
-        ? estado
-        : "mapa_reemplazado";
-      this.medidorFluidez.completar(muestra, { estado: estadoFinal });
-      this.liberarEntradaJugable(tokenEntrada);
-    };
-
-    esperaPresentacion.then(
-      () => finalizarEspera(),
-      (error) => {
-        console.error(
-          "La presentación pendiente terminó con error; se libera la entrada:",
-          error,
-        );
-        finalizarEspera("error_espera_visual");
-      },
-    );
   }
 
   obtenerContextoMedicionFluidez() {
@@ -702,14 +544,11 @@ export class ControladorPartida {
   }
 
   obtenerResumenFluidez() {
-    return {
-      estadoEntradaJugable: this.estadoEntradaJugable,
-      ...this.medidorFluidez.obtenerResumen(),
-    };
+    return this.coordinadorEntradaJugable.obtenerResumen();
   }
 
   reiniciarMedicionFluidez() {
-    return this.medidorFluidez.reiniciar();
+    return this.coordinadorEntradaJugable.reiniciarMedicion();
   }
 
   procesarResultadoAccion(resultado) {
@@ -717,8 +556,15 @@ export class ControladorPartida {
       resultado,
       juego: this.juego,
       renderizador: this.renderizador,
-      alJugadorDerrotado: this.alJugadorDerrotado,
+      alJugadorDerrotado: (detalle) => this.procesarJugadorDerrotado(detalle),
     });
+  }
+
+  procesarJugadorDerrotado(detalle) {
+    // La derrota cierra el guardado durable desde la capa de partida antes de
+    // delegar cualquier decisión de presentación al adaptador visual.
+    this.estadoPartida?.eliminarEstadoDurable();
+    return this.alJugadorDerrotado(detalle);
   }
 
   presentarInteraccionResultado(resultado) {
@@ -782,7 +628,7 @@ export class ControladorPartida {
 
     // Cualquier espera perteneciente al mapa anterior deja de tener autoridad
     // sobre la entrada del mapa que está por activarse.
-    this.invalidarSincronizacionEntrada();
+    this.coordinadorEntradaJugable.invalidarSincronizacion();
 
     if (!this.interfazPartida) {
       throw new Error("No se puede activar un mapa sin una interfaz creada.");
@@ -851,6 +697,8 @@ export class ControladorPartida {
           : { aceptada: false, resultado: null },
       alEjecutarComando: (comando) =>
         this.ejecutarComandoJugador(comando),
+      alSolicitarGuardadoJugador: () =>
+        this.estadoPartida.guardarEstadoDurable(),
       esJuegoActivo: () =>
         this.partidaIniciada === true && this.juego === juegoActivo,
     });

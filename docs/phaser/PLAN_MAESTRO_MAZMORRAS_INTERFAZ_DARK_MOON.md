@@ -3,7 +3,7 @@
 **Proyecto:** Dark Moon  
 **Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.  
 **Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.  
-**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecutará una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. El primer bloque fue validado en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`; el segundo es el próximo trabajo operativo.  
+**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecutará una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. Higiene y consolidación canónica fue validada en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`. La deuda estructural local está en curso: contratos de habilidades y espacio fueron validados en `83ca2967f14a6fbc025b5b649996a505dc1dd28e`; aplicación y persistencia constituyen el trabajo operativo actual.  
 
 ---
 
@@ -619,6 +619,12 @@ Prioridades:
 
 Cada cambio debe ser pequeño, justificable por responsabilidad y validado contra los contratos existentes. No se crearán archivos, clases o funciones con nombres ligados a etapas o hitos de desarrollo.
 
+**Avance interno del bloque:**
+
+- contratos de habilidades y espacio: cerrado y validado en `83ca2967f14a6fbc025b5b649996a505dc1dd28e`;
+- aplicación y persistencia: siguiente entrega operativa, enfocada en retirar persistencia durable del DOM y aislar la compuerta de entrada jugable;
+- infraestructura común y soporte de prueba: pendiente después de validar aplicación y persistencia.
+
 ### Bloque C — Refactors grandes de presentación
 
 Una vez cerrada la deuda estructural local, se revisarán los módulos grandes de presentación antes del fullscreen.
@@ -1208,20 +1214,13 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`.
+El estado operativo actual parte del commit validado `83ca2967f14a6fbc025b5b649996a505dc1dd28e`.
 
-Las Etapas 1 y 2 están cerradas. El próximo trabajo es el **Bloque B — Deuda estructural local** de la puerta de preparación previa a la Etapa 3.
+Las Etapas 1 y 2 están cerradas y el **Bloque B — Deuda estructural local** está en curso. La consolidación de contratos de habilidades y espacio ya fue validada. El siguiente trabajo es aplicación y persistencia: retirar accesos directos del DOM al guardado durable y aislar la compuerta de entrada jugable del controlador de sesión.
 
-Antes de implementarlo deberá:
+Después de validar esa entrega quedará pendiente dentro del mismo bloque la infraestructura común de carga/almacenamiento y la separación del soporte de pruebas incrustado en configuración.
 
-- analizar nuevamente el repositorio real;
-- confirmar qué deuda permanece después de la higienización ya realizada;
-- evitar repetir refactors que el commit actual ya incorporó;
-- presentar una propuesta priorizada por responsabilidad, riesgo y beneficio;
-- preservar comportamiento funcional, balance, orden temporal, seeds y contratos canónicos;
-- recibir aprobación explícita del usuario.
-
-Después de validar ese bloque se realizará el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
+Solamente cuando la deuda estructural local completa quede cerrada se realizará el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
 
 Solamente cuando ambos bloques estén cerrados se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 

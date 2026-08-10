@@ -668,9 +668,13 @@ La preparación debe cumplir el siguiente contrato:
 
 La pantalla de Loading es una presentación DOM genérica y no decide cuándo el mapa está listo. La autoridad de aplicación coordina la preparación y Phaser informa cuándo sus recursos contextuales terminaron de cargarse. Las preparaciones deben identificarse para impedir que una carga antigua complete o oculte la pantalla correspondiente a una transición más nueva.
 
-El commit `04a4f3de83bf8805badc8ae9d73103d34cf36fbb` ya adelantó la separación de `ReproductorEventosVisualesPhaser` en reproductores funcionales. Después de retirar Canvas 2D, la revisión de este bloque deberá partir del estado real resultante y decidir qué deuda permanece, especialmente alrededor de composición del mundo y planificación visual.
+El commit `04a4f3de83bf8805badc8ae9d73103d34cf36fbb` ya adelantó la separación de `ReproductorEventosVisualesPhaser` en reproductores funcionales. Después de retirar Canvas 2D, la revisión de este bloque debe partir del estado real resultante y decidir qué deuda permanece, especialmente alrededor de composición del mundo y planificación visual.
 
-No se forzará una división de `CompositorMundoPhaser` u otros módulos si el análisis demuestra que mantienen una responsabilidad coherente.
+El retiro de Canvas 2D, la preparación genérica de mapas, el Loading y la precarga contextual quedaron validados y cerrados en `a233242d6fb6c19b3491bb00877573e76591d490`.
+
+La reevaluación posterior confirmó deuda real en la composición del mundo: `CompositorMundoPhaser` mezclaba coordinación general con dibujo de terreno, representación de entidades y feedback táctico de selección. La primera intervención de esta reevaluación mantiene `CompositorMundoPhaser` como fachada pública y separa esas responsabilidades en compositores funcionales de terreno, entidades y selección. La visibilidad final, zonas temporales, iluminación, geometría general, capas y coordinación permanecen en la fachada.
+
+La misma reevaluación identificó trabajo posterior alrededor de coordinación/reproducción de eventos, ataques y habilidades. Ese trabajo debe abordarse en entregas separadas y solamente después de validar la composición del mundo. No se forzará la división de módulos que, aun siendo grandes, mantengan una responsabilidad coherente.
 
 ## 7.C.2 Orden obligatorio
 
@@ -683,9 +687,10 @@ Deuda estructural local ✅
         ↓
 Cobertura Phaser certificada ✅
         ↓
-Retiro Canvas 2D + Loading/precarga contextual
+Retiro Canvas 2D + Loading/precarga contextual ✅
         ↓
 Reevaluación de módulos grandes Phaser
+  └─ composición del mundo: en validación
         ↓
 Cierre y regresión del Bloque C
         ↓
@@ -1243,13 +1248,13 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `cf72a5193921dea38bc59971edd8e7d18f4b5e02`.
+El estado operativo actual parte del commit validado `a233242d6fb6c19b3491bb00877573e76591d490`.
 
-Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada y aprobada manualmente sobre esa base.
+Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada y el retiro del renderizador Canvas 2D legacy, junto con Loading y precarga contextual, quedó validado y cerrado en esa base.
 
-El trabajo actual es el **Bloque C — Refactors grandes de presentación**. La cobertura Phaser ya fue certificada y el retiro del renderizador Canvas 2D legacy está implementado. Antes de cerrar esa eliminación debe completarse y validarse la nueva preparación genérica de mapas: pantalla de Loading con mínimo visual de 1 segundo, precarga contextual de recursos persistentes y habilitación de entrada solamente cuando la primera escena esté lista. El mismo contrato cubre nueva partida, Continuar y todas las transiciones entre mapas jugables.
+El trabajo actual es el **Bloque C — Refactors grandes de presentación**, dentro de la reevaluación de los módulos Phaser resultantes. La primera entrega separa internamente la composición de terreno, entidades y selección táctica detrás de la fachada estable `CompositorMundoPhaser`. Debe validarse antes de avanzar a la coordinación de eventos visuales o a la separación de reproductores de ataques/habilidades.
 
-Después de validar este cierre se reevaluarán los grandes módulos Phaser resultantes —composición del mundo, planificación y reproducción visual— y solo se dividirán responsabilidades realmente mezcladas. No se forzarán particiones por tamaño de archivo.
+Después de esa validación se continuará únicamente con las responsabilidades que el análisis haya demostrado realmente mezcladas. No se forzarán particiones por tamaño de archivo.
 
 Solamente cuando el Bloque C esté cerrado se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 

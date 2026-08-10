@@ -163,4 +163,4 @@ No se ejecutó Electron porque el ZIP no contiene `node_modules` y no se instala
 
 ## Estado
 
-Implementación de Canvas 2D + Loading/precarga contextual completada localmente. Pendiente de validación manual del flujo corregido antes de cerrar C.1B y continuar con la reevaluación de los grandes módulos Phaser.
+Entrega validada manualmente y cerrada en `a233242d6fb6c19b3491bb00877573e76591d490`. Phaser queda como único backend gráfico propio de Dark Moon y la preparación genérica de mapas con Loading + precarga contextual forma parte del contrato vigente antes de habilitar entrada.

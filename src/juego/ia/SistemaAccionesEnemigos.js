@@ -9,9 +9,9 @@ import {
 import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
   calcularDistanciaCuadricula,
-  evaluarAtaqueCasilla,
-  evaluarLineaVision,
-} from "../combate/SistemaAlcanceAtaque.js";
+  evaluarLineaVisionCuadricula,
+} from "../espacio/GeometriaCuadricula.js";
+import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import {
   COSTOS_TEMPORALES_BASE,
   TIPOS_ACCION_TEMPORAL,
@@ -26,7 +26,6 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
 
-export { calcularDistanciaCuadricula } from "../combate/SistemaAlcanceAtaque.js";
 
 function actualizarAgresividad({
   enemigo,
@@ -50,7 +49,7 @@ function actualizarAgresividad({
     tipoAgresividad === "activa" &&
     distancia <= percepcion
   ) {
-    puedeDetectar = evaluarLineaVision({
+    puedeDetectar = evaluarLineaVisionCuadricula({
       mapa,
       sistemaEspacial,
       origen: { x: enemigo.x, y: enemigo.y },

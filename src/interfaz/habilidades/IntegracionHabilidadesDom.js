@@ -46,10 +46,14 @@ export class IntegracionHabilidadesDom {
       );
     }
 
-    normalizarFachadaJuego(juego);
+    if (!juego.player || !juego.map) {
+      throw new Error(
+        "La integración DOM de habilidades necesita un Juego activo con jugador y mapa.",
+      );
+    }
 
     this.juego = juego;
-    this.jugador = juego.jugador;
+    this.jugador = juego.player;
     this.renderizador = renderizador;
     this.configuracionEjecucion = configuracionEjecucion;
     this.configuracionProgreso = configuracionProgreso;
@@ -251,37 +255,6 @@ export class IntegracionHabilidadesDom {
 
     return true;
   }
-}
-
-function normalizarFachadaJuego(juego) {
-  if (!juego || typeof juego !== "object") {
-    throw new Error(
-      "La integración DOM de habilidades recibió una instancia de Juego inválida.",
-    );
-  }
-
-  definirAliasLectura(juego, "jugador", "player");
-  definirAliasLectura(juego, "mapa", "map");
-  definirAliasLectura(juego, "modoCombate", "modoCombateActivo");
-  definirAliasLectura(juego, "modoInteraccion", "modoInteraccionActivo");
-
-  if (!juego.jugador || !juego.mapa) {
-    throw new Error("Juego no expone jugador y mapa para las habilidades.");
-  }
-
-  return juego;
-}
-
-function definirAliasLectura(objeto, alias, propiedadReal) {
-  if (alias in objeto || !(propiedadReal in objeto)) return;
-
-  Object.defineProperty(objeto, alias, {
-    configurable: true,
-    enumerable: false,
-    get() {
-      return this[propiedadReal];
-    },
-  });
 }
 
 function obtenerFamiliasArmas(configuracionObjetos) {

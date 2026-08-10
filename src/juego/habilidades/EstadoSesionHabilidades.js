@@ -1,4 +1,8 @@
-const CANTIDAD_RANURAS = 10;
+import {
+  crearRanurasBarraVacias,
+  validarIndiceRanuraBarra,
+} from "./ContratoBarraHabilidades.js";
+
 const estadosPorJugador = new WeakMap();
 
 // Mantiene únicamente estado transitorio de sesión. Los grados y puntos no se
@@ -11,7 +15,7 @@ export function obtenerEstadoSesionHabilidades(jugador) {
   }
   if (!estadosPorJugador.has(jugador)) {
     estadosPorJugador.set(jugador, {
-      asignaciones: Array(CANTIDAD_RANURAS).fill(null),
+      asignaciones: crearRanurasBarraVacias(),
       contadorEjecuciones: 0,
       ultimaEjecucion: null,
     });
@@ -30,13 +34,7 @@ export function obtenerAsignacionesHabilidades(jugador) {
 }
 
 export function asignarHabilidadARanura(jugador, indiceRanura, idHabilidad) {
-  if (
-    !Number.isInteger(indiceRanura) ||
-    indiceRanura < 0 ||
-    indiceRanura >= CANTIDAD_RANURAS
-  ) {
-    throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
-  }
+  validarIndiceRanuraBarra(indiceRanura);
   const estado = obtenerEstadoSesionHabilidades(jugador);
   const idNormalizado = idHabilidad
     ? String(idHabilidad).trim().toLowerCase()

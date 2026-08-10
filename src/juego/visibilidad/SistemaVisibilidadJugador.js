@@ -1,4 +1,7 @@
-import { evaluarLineaVision } from "../combate/SistemaAlcanceAtaque.js";
+import {
+  calcularDistanciaCuadricula,
+  evaluarLineaVisionCuadricula,
+} from "../espacio/GeometriaCuadricula.js";
 import { normalizarConfiguracionVisibilidad } from "./ConfiguracionVisibilidad.js";
 
 // Calcula qué casillas puede ver actualmente el jugador y cuáles descubrió
@@ -84,10 +87,7 @@ export class SistemaVisibilidadJugador {
 
     for (let y = minimoY; y <= maximoY; y++) {
       for (let x = minimoX; x <= maximoX; x++) {
-        const distancia = Math.max(
-          Math.abs(x - origen.x),
-          Math.abs(y - origen.y),
-        );
+        const distancia = calcularDistanciaCuadricula(origen, { x, y });
         if (distancia > alcance) continue;
 
         if (x === origen.x && y === origen.y) {
@@ -95,7 +95,7 @@ export class SistemaVisibilidadJugador {
           continue;
         }
 
-        const lineaVision = evaluarLineaVision({
+        const lineaVision = evaluarLineaVisionCuadricula({
           mapa: this.mapa,
           sistemaEspacial: this.sistemaEspacial,
           origen,

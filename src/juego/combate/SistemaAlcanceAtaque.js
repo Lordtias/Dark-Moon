@@ -1,18 +1,14 @@
 import { crearMensajeTraducible, TIPOS_MENSAJE_JUEGO } from "../mensajes/MensajesJuego.js";
 import { SistemaEspacial } from "../espacio/SistemaEspacial.js";
+import {
+  calcularDistanciaCuadricula,
+  evaluarLineaVisionCuadricula,
+  MOTIVOS_LINEA_VISION,
+} from "../espacio/GeometriaCuadricula.js";
 import { PATRONES_ATAQUE, esPatronAtaqueValido } from "./PatronesAtaque.js";
 
-// Centraliza las reglas de alcance y línea de visión.
-//
-// Este sistema será utilizado tanto por el jugador como por enemigos,
-// habilidades y hechizos futuros.
-export function calcularDistanciaCuadricula(origen, destino) {
-  return Math.max(
-    Math.abs(destino.x - origen.x),
-    Math.abs(destino.y - origen.y),
-  );
-}
-
+// Resuelve reglas específicas de alcance de ataques. La geometría común de
+// cuadrícula y línea de visión pertenece al dominio espacial.
 export function evaluarAtaqueCasilla({
   atacante,
   xObjetivo,
@@ -104,12 +100,14 @@ export function evaluarAtaqueCasilla({
     };
   }
 
-  const lineaVision = evaluarLineaVision({
-    mapa,
-    sistemaEspacial: espacio,
-    origen,
-    destino,
-  });
+  const lineaVision = crearResultadoLineaVisionAtaque(
+    evaluarLineaVisionCuadricula({
+      mapa,
+      sistemaEspacial: espacio,
+      origen,
+      destino,
+    }),
+  );
   if (!lineaVision.despejada) {
     return {
       puedeAtacar: false,
@@ -188,93 +186,23 @@ function estaEnDireccionLineal(origen, destino) {
   );
 }
 
-// Recorre todas las casillas atravesadas por la trayectoria.
-//
-// Cuando la trayectoria cruza exactamente una esquina, solamente se bloquea
-// si ambos lados están cerrados por paredes. La función se exporta para que la
-// percepción enemiga pueda usar la misma regla geométrica que los ataques sin
-// convertir la percepción en un ataque ficticio.
-export function evaluarLineaVision({
-  mapa,
-  sistemaEspacial = null,
-  origen,
-  destino,
-} = {}) {
-  const espacio = resolverSistemaEspacial({ mapa, sistemaEspacial });
-  if (
-    !origen ||
-    !destino ||
-    !Number.isInteger(origen.x) ||
-    !Number.isInteger(origen.y) ||
-    !Number.isInteger(destino.x) ||
-    !Number.isInteger(destino.y)
-  ) {
-    throw new Error("La línea de visión necesita posiciones enteras válidas.");
-  }
-  if (
-    !espacio.estaDentroMapa(origen.x, origen.y) ||
-    !espacio.estaDentroMapa(destino.x, destino.y)
-  ) {
-    return {
-      despejada: false,
-      mensaje: "La trayectoria sale del mapa.",
-      mensajePresentacion: crearMensajeAlcance("mensajes.alcance.saleMapa"),
-    };
-  }
-
-  const diferenciaX = destino.x - origen.x;
-  const diferenciaY = destino.y - origen.y;
-  const cantidadX = Math.abs(diferenciaX);
-  const cantidadY = Math.abs(diferenciaY);
-  const direccionX = Math.sign(diferenciaX);
-  const direccionY = Math.sign(diferenciaY);
-  let x = origen.x;
-  let y = origen.y;
-  let pasosX = 0;
-  let pasosY = 0;
-
-  while (pasosX < cantidadX || pasosY < cantidadY) {
-    const decision =
-      (1 + 2 * pasosX) * cantidadY - (1 + 2 * pasosY) * cantidadX;
-
-    if (decision === 0) {
-      const lateralHorizontal = { x: x + direccionX, y };
-      const lateralVertical = { x, y: y + direccionY };
-      const horizontalBloqueado = espacio.bloqueaVision(
-        lateralHorizontal.x,
-        lateralHorizontal.y,
-      );
-      const verticalBloqueado = espacio.bloqueaVision(
-        lateralVertical.x,
-        lateralVertical.y,
-      );
-
-      if (horizontalBloqueado && verticalBloqueado) {
-        return {
-          despejada: false,
-          mensaje: "Dos obstrucciones bloquean la trayectoria diagonal.",
-          mensajePresentacion: crearMensajeAlcance(
-            "mensajes.alcance.dosObstruccionesDiagonal",
-          ),
-        };
-      }
-
-      x += direccionX;
-      y += direccionY;
-      pasosX++;
-      pasosY++;
-    } else if (decision < 0) {
-      x += direccionX;
-      pasosX++;
-    } else {
-      y += direccionY;
-      pasosY++;
-    }
-
-    const esDestino = x === destino.x && y === destino.y;
-    // La casilla destino no bloquea la visión hacia sí misma. Solamente se
-    // evalúan obstrucciones intermedias de terreno, entidades y zonas.
-    if (!esDestino && espacio.bloqueaVision(x, y)) {
+function crearResultadoLineaVisionAtaque(resultadoEspacial) {
+  switch (resultadoEspacial.motivo) {
+    case MOTIVOS_LINEA_VISION.FUERA_MAPA:
+      return {
+        despejada: false,
+        mensaje: "La trayectoria sale del mapa.",
+        mensajePresentacion: crearMensajeAlcance("mensajes.alcance.saleMapa"),
+      };
+    case MOTIVOS_LINEA_VISION.DOS_OBSTRUCCIONES_DIAGONAL:
+      return {
+        despejada: false,
+        mensaje: "Dos obstrucciones bloquean la trayectoria diagonal.",
+        mensajePresentacion: crearMensajeAlcance(
+          "mensajes.alcance.dosObstruccionesDiagonal",
+        ),
+      };
+    case MOTIVOS_LINEA_VISION.OBSTRUCCION:
       return {
         despejada: false,
         mensaje: "Una obstrucción bloquea la trayectoria.",
@@ -282,14 +210,17 @@ export function evaluarLineaVision({
           "mensajes.alcance.obstruccionBloquea",
         ),
       };
-    }
+    case MOTIVOS_LINEA_VISION.DESPEJADA:
+      return {
+        despejada: true,
+        mensaje: null,
+        mensajePresentacion: null,
+      };
+    default:
+      throw new Error(
+        `La línea de visión devolvió el motivo desconocido "${resultadoEspacial.motivo}".`,
+      );
   }
-
-  return {
-    despejada: true,
-    mensaje: null,
-    mensajePresentacion: null,
-  };
 }
 
 function resolverSistemaEspacial({ mapa, sistemaEspacial }) {

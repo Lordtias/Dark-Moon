@@ -18,10 +18,8 @@ import {
 } from "../mensajes/MensajesCombate.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
-import {
-  calcularDistanciaCuadricula,
-  evaluarAtaqueCasilla,
-} from "./SistemaAlcanceAtaque.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
+import { evaluarAtaqueCasilla } from "./SistemaAlcanceAtaque.js";
 import {
   seleccionarObjetivoPrioritario,
 } from "./SelectorObjetivoPrioritario.js";

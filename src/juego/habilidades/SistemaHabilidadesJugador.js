@@ -1,4 +1,5 @@
 import { limitar } from "../../utilidades/Numeros.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   crearEventoHabilidadResuelta,
@@ -41,7 +42,11 @@ import {
   prepararEfectosHabilidad,
   validarDisponibilidadEfectosHabilidad,
 } from "./MotorEfectosHabilidad.js";
-import { validarBarraContraJugador } from "./PersistenciaBarraHabilidades.js";
+import {
+  CANTIDAD_RANURAS_BARRA,
+  validarBarraContraJugador,
+  validarIndiceRanuraBarra,
+} from "./ContratoBarraHabilidades.js";
 
 const MOTIVOS = Object.freeze({
   OK: "OK",
@@ -62,14 +67,14 @@ const MOTIVOS = Object.freeze({
 
 export class SistemaHabilidadesJugador {
   constructor({ juego, configuracionEjecucion }) {
-    if (!juego?.jugador || !juego?.mapa) {
+    if (!juego?.player || !juego?.map) {
       throw new Error("El sistema de habilidades necesita un Juego activo.");
     }
     if (!configuracionEjecucion?.habilidades) {
       throw new Error("Falta la configuración de ejecución de habilidades.");
     }
     this.juego = juego;
-    this.jugador = juego.jugador;
+    this.jugador = juego.player;
     this.configuracion = configuracionEjecucion;
     this.seleccion = null;
     this.oyentesCambio = new Set();
@@ -121,7 +126,7 @@ export class SistemaHabilidadesJugador {
       habilidades: this.configuracion.habilidades,
       obtenerGrado: (idHabilidad) => this.obtenerGrado(idHabilidad),
     });
-    for (let indice = 0; indice < 10; indice += 1) {
+    for (let indice = 0; indice < CANTIDAD_RANURAS_BARRA; indice += 1) {
       asignarHabilidadARanura(this.jugador, indice, null);
     }
     validadas.forEach((idHabilidad, indice) => {
@@ -135,7 +140,7 @@ export class SistemaHabilidadesJugador {
 
   vaciarBarra() {
     if (this.modoHabilidad) this.cancelar();
-    for (let indice = 0; indice < 10; indice += 1) {
+    for (let indice = 0; indice < CANTIDAD_RANURAS_BARRA; indice += 1) {
       asignarHabilidadARanura(this.jugador, indice, null);
     }
     this.emitirCambio();
@@ -143,7 +148,7 @@ export class SistemaHabilidadesJugador {
   }
 
   desasignarHabilidad(indiceRanura) {
-    validarIndiceRanura(indiceRanura);
+    validarIndiceRanuraBarra(indiceRanura);
     if (this.seleccion?.indiceRanura === indiceRanura) this.seleccion = null;
     asignarHabilidadARanura(this.jugador, indiceRanura, null);
     this.emitirCambio();
@@ -151,7 +156,7 @@ export class SistemaHabilidadesJugador {
   }
 
   asignarHabilidad(indiceRanura, idHabilidad) {
-    validarIndiceRanura(indiceRanura);
+    validarIndiceRanuraBarra(indiceRanura);
     const habilidad = this.configuracion.habilidades[idHabilidad];
     if (!habilidad) {
       throw new Error(`La habilidad "${idHabilidad}" no existe.`);
@@ -254,7 +259,7 @@ export class SistemaHabilidadesJugador {
       };
     }
 
-    const limites = obtenerLimitesMapa(this.juego.mapa);
+    const limites = obtenerLimitesMapa(this.juego.map);
     this.seleccion.x = limitar(this.seleccion.x + dx, 0, limites.ancho - 1);
     this.seleccion.y = limitar(this.seleccion.y + dy, 0, limites.alto - 1);
     this.emitirCambio();
@@ -284,7 +289,7 @@ export class SistemaHabilidadesJugador {
       this.seleccion.x = this.jugador.x;
       this.seleccion.y = this.jugador.y;
     } else {
-      const limites = obtenerLimitesMapa(this.juego.mapa);
+      const limites = obtenerLimitesMapa(this.juego.map);
       this.seleccion.x = limitar(x, 0, limites.ancho - 1);
       this.seleccion.y = limitar(y, 0, limites.alto - 1);
     }
@@ -556,7 +561,7 @@ export class SistemaHabilidadesJugador {
     const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
     const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
     const vistaPrevia = crearVistaPreviaHabilidad({
-      mapa: this.juego.mapa,
+      mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       objetivos: obtenerObjetivosVivos(this.juego),
@@ -659,7 +664,7 @@ export class SistemaHabilidadesJugador {
     }
     const gradoConfig = habilidad.ejecucion.grados[grado];
     const vistaPrevia = crearVistaPreviaHabilidad({
-      mapa: this.juego.mapa,
+      mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       objetivos: obtenerObjetivosVivos(this.juego),
@@ -770,7 +775,7 @@ export class SistemaHabilidadesJugador {
   }
 
   validarBloqueosDeSeleccion() {
-    if (this.juego.modoInteraccion) {
+    if (this.juego.modoInteraccionActivo) {
       return crearRechazo(
         MOTIVOS.MODO_INTERACCION_ACTIVO,
         "Cerrá la interacción antes de seleccionar una habilidad.",
@@ -787,7 +792,7 @@ export class SistemaHabilidadesJugador {
 
     const gradoConfig = habilidad.ejecucion.grados[grado];
     const casillasSeleccionables = obtenerCasillasSeleccionablesHabilidad({
-      mapa: this.juego.mapa,
+      mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,
       jugador: this.jugador,
       habilidad,
@@ -808,13 +813,13 @@ export class SistemaHabilidadesJugador {
     }
 
     const cercana = casillasSeleccionables.sort((a, b) => {
-      const distanciaA = distanciaCuadricula(this.jugador, a);
-      const distanciaB = distanciaCuadricula(this.jugador, b);
+      const distanciaA = calcularDistanciaCuadricula(this.jugador, a);
+      const distanciaB = calcularDistanciaCuadricula(this.jugador, b);
       return distanciaA - distanciaB || a.y - b.y || a.x - b.x;
     })[0];
     if (cercana) return { ...cercana };
 
-    const limites = obtenerLimitesMapa(this.juego.mapa);
+    const limites = obtenerLimitesMapa(this.juego.map);
     return {
       x: limitar(this.jugador.x + 1, 0, limites.ancho - 1),
       y: limitar(this.jugador.y, 0, limites.alto - 1),
@@ -1259,19 +1264,6 @@ function crearRechazo(motivo, mensaje) {
 function encontrarMetodoDanio(objetivo) {
   return ["recibirDanio", "recibirDaño", "aplicarDanio", "aplicarDaño"].find(
     (nombre) => typeof objetivo?.[nombre] === "function",
-  );
-}
-
-function validarIndiceRanura(indiceRanura) {
-  if (!Number.isInteger(indiceRanura) || indiceRanura < 0 || indiceRanura > 9) {
-    throw new Error("La ranura de habilidad debe estar entre 0 y 9.");
-  }
-}
-
-function distanciaCuadricula(origen, destino) {
-  return Math.max(
-    Math.abs(destino.x - origen.x),
-    Math.abs(destino.y - origen.y),
   );
 }
 

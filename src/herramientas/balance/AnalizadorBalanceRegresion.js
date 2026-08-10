@@ -399,7 +399,6 @@ function analizarCasosFallidos({
     },
     configuracionObjetos,
   });
-  normalizarFachadaJuegoPrueba(juego);
   const sistema = new SistemaHabilidadesJugador({
     juego,
     configuracionEjecucion: configuracionEjecucionHabilidades,
@@ -791,26 +790,6 @@ function crearPerfilCreacionDeterminista({ configuracionPersonaje, profesion }) 
 function obtenerAtributoPrioritario(profesion) {
   return Object.entries(profesion.pesosAtributos)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
-}
-
-function normalizarFachadaJuegoPrueba(juego) {
-  for (const [alias, propiedadReal] of [
-    ["jugador", "player"],
-    ["mapa", "map"],
-    ["modoCombate", "modoCombateActivo"],
-    ["modoInteraccion", "modoInteraccionActivo"],
-  ]) {
-    if (!(alias in juego) && propiedadReal in juego) {
-      Object.defineProperty(juego, alias, {
-        configurable: true,
-        enumerable: false,
-        get() {
-          return this[propiedadReal];
-        },
-      });
-    }
-  }
-  return juego;
 }
 
 function crearMapaAbierto(ancho, alto) {

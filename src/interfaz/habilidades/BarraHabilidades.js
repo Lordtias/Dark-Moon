@@ -1,3 +1,4 @@
+import { CANTIDAD_RANURAS_BARRA } from "../../juego/habilidades/ContratoBarraHabilidades.js";
 import { crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
@@ -137,9 +138,9 @@ function obtenerRanuras(contenedor) {
     contenedor.querySelectorAll(
       "[data-ranura-habilidad], .ranura-habilidad, .slot-habilidad, .habilidad-slot",
     ),
-  ).slice(0, 10);
+  ).slice(0, CANTIDAD_RANURAS_BARRA);
 
-  if (ranuras.length !== 10) {
+  if (ranuras.length !== CANTIDAD_RANURAS_BARRA) {
     throw new Error(
       "La barra declarada debe contener exactamente diez ranuras.",
     );

@@ -1,3 +1,4 @@
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
 import { resolverEncuentroEspecial } from "./GeneradorEncuentroEspecial.js";
 import { crearClave, seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
@@ -514,14 +515,6 @@ function incrementarConteo(conteo, clave) {
   conteo[clave] = (conteo[clave] ?? 0) + 1;
 }
 
-// Utilizamos distancia Chebyshev porque coincide
-// con el movimiento en ocho direcciones.
-function calcularDistanciaCuadricula(origen, destino) {
-  return Math.max(
-    Math.abs(destino.x - origen.x),
-    Math.abs(destino.y - origen.y),
-  );
-}
 function sonMismaPosicion(posicionA, posicionB) {
   return posicionA.x === posicionB.x && posicionA.y === posicionB.y;
 }

@@ -1,5 +1,6 @@
 import { evaluarAtaqueCasilla } from "../combate/SistemaAlcanceAtaque.js";
 import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import {
   POLITICAS_OBSTACULOS_HABILIDAD,
   resolverCasillasRadioConObstaculos,
@@ -358,7 +359,7 @@ function resolverPorCasillas({
     .filter((objetivo) => clavesAfectadas.has(crearClaveCasilla(objetivo)))
     .sort((a, b) => {
       const diferenciaDistancia =
-        distanciaCuadricula(centro, a) - distanciaCuadricula(centro, b);
+        calcularDistanciaCuadricula(centro, a) - calcularDistanciaCuadricula(centro, b);
       return diferenciaDistancia || compararCasillas(a, b);
     })
     .map((objetivo, orden) => crearObjetivoAfectado(objetivo, orden, 1));
@@ -416,8 +417,8 @@ function crearCasillasLinea({
   }
 
   return [...casillas.values()].sort((a, b) => {
-    const da = distanciaCuadricula(jugador, a);
-    const db = distanciaCuadricula(jugador, b);
+    const da = calcularDistanciaCuadricula(jugador, a);
+    const db = calcularDistanciaCuadricula(jugador, b);
     return da - db || compararCasillas(a, b);
   });
 }
@@ -447,7 +448,7 @@ function resolverLinea({ jugador, objetivos, casillasAfectadas }) {
       x,
       y,
       orden: Number.isInteger(orden) ? orden : indice,
-      distancia: distanciaCuadricula(jugador, { x, y }),
+      distancia: calcularDistanciaCuadricula(jugador, { x, y }),
     })),
   };
 }
@@ -602,13 +603,6 @@ function agregarCasillaSiSuelo(
 ) {
   if (!esCasillaSuelo(mapa, casilla.x, casilla.y, sistemaEspacial)) return;
   destino.set(crearClaveCasilla(casilla), casilla);
-}
-
-function distanciaCuadricula(origen, destino) {
-  return Math.max(
-    Math.abs(destino.x - origen.x),
-    Math.abs(destino.y - origen.y),
-  );
 }
 
 function esCasillaSuelo(mapa, x, y, sistemaEspacial) {

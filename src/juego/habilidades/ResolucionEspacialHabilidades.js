@@ -1,7 +1,7 @@
 import {
   calcularDistanciaCuadricula,
-  evaluarLineaVision,
-} from "../combate/SistemaAlcanceAtaque.js";
+  evaluarLineaVisionCuadricula,
+} from "../espacio/GeometriaCuadricula.js";
 import { consultarTerrenoMapa } from "../espacio/SistemaEspacial.js";
 
 // Políticas canónicas para resolver cómo una forma de habilidad interactúa con
@@ -132,7 +132,7 @@ export function resolverLineaHastaObstaculo({
     x: destino.x - origen.x,
     y: destino.y - origen.y,
   };
-  const distancia = Math.max(Math.abs(diferencia.x), Math.abs(diferencia.y));
+  const distancia = calcularDistanciaCuadricula(origen, destino);
   if (distancia === 0) return [];
 
   const direccion = {
@@ -153,7 +153,7 @@ export function resolverLineaHastaObstaculo({
     if (!esCasillaSuelo(mapa, eje.x, eje.y, sistemaEspacial)) break;
     if (
       politicaObstaculos !== POLITICAS_OBSTACULOS_HABILIDAD.IGNORAR &&
-      !evaluarLineaVision({
+      !evaluarLineaVisionCuadricula({
         mapa,
         sistemaEspacial,
         origen,
@@ -204,7 +204,7 @@ export function esCasillaAlcanzablePorPolitica({
       POLITICAS_OBSTACULOS_HABILIDAD.DETENER_EN_OBSTACULO
   ) {
     return (
-      evaluarLineaVision({ mapa, sistemaEspacial, origen, destino }).despejada ===
+      evaluarLineaVisionCuadricula({ mapa, sistemaEspacial, origen, destino }).despejada ===
       true
     );
   }

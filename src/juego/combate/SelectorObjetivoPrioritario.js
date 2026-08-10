@@ -1,4 +1,4 @@
-import { calcularDistanciaCuadricula } from "./SistemaAlcanceAtaque.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 
 // Selecciona un objetivo con la prioridad canónica usada por el jugador:
 // 1) menor distancia; 2) menor Vida actual; 3) orden estable de la lista.

@@ -3,6 +3,7 @@
 **Proyecto:** Dark Moon  
 **Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.  
 **Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.  
+**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecutará una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. El primer bloque fue validado en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`; el segundo es el próximo trabajo operativo.  
 
 ---
 
@@ -151,6 +152,7 @@ La Etapa 2 tendrá dos bloques internos para separar responsabilidades, pero seg
 |---|---|---|
 | **1** | Generación estructural | Mazmorras grandes, parametrizables y conectadas |
 | **2** | Entidades y población | Enemigos, puertas, cofres, barriles, portal, zona especial y salida |
+| **Puerta previa a 3** | Preparación arquitectónica | Higiene, deuda estructural local y saneamiento de presentación antes del fullscreen |
 | **3** | Interfaz fullscreen | Canvas completo + HUD gráfico + paneles superpuestos |
 | **4** | Integración y cierre | Regresión, balance, rendimiento, web y Electron cuando corresponda |
 
@@ -576,7 +578,102 @@ La etapa no se considera terminada hasta demostrar que:
 
 ---
 
-# 8. ETAPA 3 — CANVAS FULLSCREEN E INTERFAZ DE VIDEOJUEGO
+# 7.C — PUERTA DE PREPARACIÓN ARQUITECTÓNICA PREVIA A LA ETAPA 3
+
+## 7.C.1 Propósito
+
+Antes de transformar la interfaz a fullscreen, el repositorio debe atravesar una preparación arquitectónica explícita.
+
+Esta puerta **no agrega contenido ni cambia reglas jugables**. Su objetivo es reducir deuda técnica, consolidar contratos canónicos y evitar que la Etapa 3 se construya sobre duplicaciones, acoplamientos innecesarios o responsabilidades mal ubicadas.
+
+La preparación se divide en tres bloques secuenciales. No forman nuevas etapas funcionales del juego: son condiciones técnicas previas a la Etapa 3.
+
+### Bloque A — Higiene y consolidación canónica
+
+Incluye, entre otros trabajos aprobados:
+
+- retirar referencias históricas del proceso de desarrollo dentro del código permanente;
+- eliminar código muerto confirmado, imports, exports y aliases legacy sin consumidores reales;
+- consolidar nombres y contratos canónicos vigentes;
+- corregir comentarios y documentación técnica que ya no representen el comportamiento real;
+- reducir duplicaciones locales de utilidades cuando exista una responsabilidad común clara.
+
+**Estado:** cerrado y validado en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`.
+
+El commit de cierre también adelantó algunos trabajos que originalmente pertenecían a los bloques siguientes —por ejemplo la separación de población procedural, movimientos de contratos y parte de la reproducción visual Phaser—. Esos cambios se consideran ya realizados y no deben repetirse artificialmente.
+
+### Bloque B — Deuda estructural local
+
+Debe revisar y corregir responsabilidades locales que todavía contradigan la arquitectura canónica sin rediseñar el juego.
+
+Prioridades:
+
+- eliminar adaptaciones dinámicas o mutaciones de objetos de dominio realizadas desde la presentación;
+- ubicar primitivas espaciales compartidas en una autoridad neutral, evitando que visibilidad, IA o habilidades dependan de combate solamente para reutilizar geometría;
+- separar contratos funcionales de sus mecanismos de persistencia;
+- reducir accesos directos a persistencia desde componentes DOM cuando exista una autoridad de aplicación o partida apropiada;
+- aislar la coordinación de entrada jugable cuando esté mezclada con demasiadas responsabilidades del controlador de sesión;
+- consolidar carga de JSON y almacenamiento durable cuando varias capas repitan la misma infraestructura;
+- separar infraestructura de prueba/desarrollo que haya quedado incrustada en módulos productivos;
+- mantener exactamente los mismos resultados funcionales, orden temporal y reproducibilidad.
+
+Cada cambio debe ser pequeño, justificable por responsabilidad y validado contra los contratos existentes. No se crearán archivos, clases o funciones con nombres ligados a etapas o hitos de desarrollo.
+
+### Bloque C — Refactors grandes de presentación
+
+Una vez cerrada la deuda estructural local, se revisarán los módulos grandes de presentación antes del fullscreen.
+
+El objetivo no es dividir archivos por cantidad de líneas, sino corregir responsabilidades realmente mezcladas y asegurar límites claros entre coordinación visual, reproducción de eventos y composición del mundo.
+
+La **primera acción de este bloque será retirar el renderizador Canvas 2D propio de Dark Moon** y dejar Phaser como único backend de renderizado de la aplicación. Esta eliminación no afecta la capacidad interna de Phaser de utilizar WebGL o Canvas según su propio motor; lo que se retira es la implementación paralela mantenida por Dark Moon fuera de Phaser.
+
+La retirada deberá hacerse solamente después de comprobar explícitamente que Phaser cubre el flujo funcional y visual que todavía pudiera depender del backend anterior. Antes de borrar archivos o rutas de compatibilidad se verificará, como mínimo:
+
+- inicio y carga de partida;
+- mapa, FOV, cámara, zoom y redimensionamiento;
+- enemigos normales, especiales y jefes;
+- interactuables, puertas, cofres, barriles, portal y salida;
+- ataques, habilidades, estados, zonas temporales, muerte y botín;
+- carga dinámica de recursos visuales;
+- versión web y Electron cuando corresponda.
+
+Una vez validada la cobertura de Phaser se eliminarán de forma controlada el renderizador Canvas 2D legacy, su selector o parámetro de activación, configuraciones exclusivas, adaptadores y código que exista únicamente para sostener ambos backends. No se mantendrá una segunda implementación “por seguridad”.
+
+El commit `04a4f3de83bf8805badc8ae9d73103d34cf36fbb` ya adelantó la separación de `ReproductorEventosVisualesPhaser` en reproductores funcionales. Después de retirar Canvas 2D, la revisión de este bloque deberá partir del estado real resultante y decidir qué deuda permanece, especialmente alrededor de composición del mundo y planificación visual.
+
+No se forzará una división de `CompositorMundoPhaser` u otros módulos si el análisis demuestra que mantienen una responsabilidad coherente.
+
+## 7.C.2 Orden obligatorio
+
+```text
+Etapas 1 y 2 cerradas
+        ↓
+Higiene y consolidación canónica
+        ↓
+Deuda estructural local
+        ↓
+Refactors grandes de presentación
+        ↓
+Etapa 3 — Interfaz fullscreen
+```
+
+La Etapa 3 no debe comenzar hasta cerrar y validar los bloques B y C.
+
+## 7.C.3 Criterios de cierre de la puerta previa
+
+La preparación se considera cerrada cuando:
+
+- no quedan adaptaciones locales conocidas que contradigan contratos canónicos;
+- las dependencias compartidas importantes están ubicadas en módulos funcionalmente correctos;
+- presentación y DOM no poseen responsabilidades de dominio o persistencia que puedan delegarse a autoridades existentes;
+- los coordinadores principales tienen límites comprensibles y verificables;
+- no se introdujeron motores, estados ni configuraciones paralelas;
+- las regresiones funcionales, visuales y procedurales continúan pasando;
+- los refactors grandes de presentación necesarios fueron ejecutados o descartados explícitamente con justificación técnica.
+
+---
+
+# 8. ETAPA 3 — CANVAS PHASER FULLSCREEN E INTERFAZ DE VIDEOJUEGO
 
 ## 8.1 Objetivo
 
@@ -590,7 +687,7 @@ El objetivo es:
 
 ---
 
-## 8.2 Canvas
+## 8.2 Canvas administrado por Phaser
 
 El área jugable debe ocupar conceptualmente:
 
@@ -942,6 +1039,16 @@ La duración visual no debe ser la regla real del sistema salvo que exista una d
 
 # 12. Metodología de trabajo obligatoria para cada etapa
 
+Cada etapa deberá seguir este flujo. Como protocolo operativo obligatorio, antes de modificar código se trabajará siempre sobre el ZIP completo entregado para la etapa, conservando su `.git`, y se verificará ruta real, rama, HEAD, `git status` e historial reciente. Si el ZIP no contiene `.git` o la copia local no puede verificarse correctamente, no se implementará ningún cambio.
+
+El estado local y el estado publicado se tratarán como fuentes diferentes. Una conexión remota nunca sustituirá `git status` ni las comprobaciones de la copia local. Los cambios de finales de línea u otras diferencias mecánicas deberán distinguirse de modificaciones reales antes de tocar archivos.
+
+No se realizará implementación sin propuesta previa y aprobación explícita. Tampoco se realizarán commits, pushes, instalaciones de dependencias ni cambios directos en GitHub salvo autorización expresa. Los nombres de etapas o hitos pueden aparecer en documentos de planificación y entrega, pero no en archivos, clases, funciones o identificadores de producción.
+
+Cuando se retire una implementación anterior —como el renderizador Canvas 2D legacy— primero deberá demostrarse que su reemplazo canónico cubre el flujo afectado; la eliminación será posterior a esa validación y nunca una sustitución a ciegas.
+
+La entrega de cada bloque o etapa implementada deberá incluir pruebas reproducibles, resultado esperado y obtenido, riesgos o pendientes, `git status` final, archivos completos para reemplazar/agregar, documento de entrega correspondiente y Conventional Commit propuesto. No se avanzará automáticamente al siguiente trabajo.
+
 Cada etapa deberá seguir este flujo:
 
 ## Paso 1 — Análisis del repositorio real
@@ -1101,22 +1208,22 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-La primera acción del hito será **analizar el repositorio real para preparar la propuesta técnica de la Etapa 1**.
+El estado operativo actual parte del commit validado `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`.
 
-Ese análisis deberá concentrarse en:
+Las Etapas 1 y 2 están cerradas. El próximo trabajo es el **Bloque B — Deuda estructural local** de la puerta de preparación previa a la Etapa 3.
 
-- estructura actual de `Mapas.json`;
-- generador de mapas vigente;
-- representación actual de suelo, paredes y colisiones;
-- cámara, zoom y límites del mundo;
-- seeds;
-- creación y ubicación actual del jugador;
-- creación actual de enemigos;
-- contratos de pathfinding y línea de visión;
-- recursos gráficos de mapas;
-- puntos donde Phaser consume el resultado del mapa.
+Antes de implementarlo deberá:
 
-La implementación de la Etapa 1 comenzará únicamente después de presentar dicho análisis y recibir aprobación explícita.
+- analizar nuevamente el repositorio real;
+- confirmar qué deuda permanece después de la higienización ya realizada;
+- evitar repetir refactors que el commit actual ya incorporó;
+- presentar una propuesta priorizada por responsabilidad, riesgo y beneficio;
+- preservar comportamiento funcional, balance, orden temporal, seeds y contratos canónicos;
+- recibir aprobación explícita del usuario.
+
+Después de validar ese bloque se realizará el **Bloque C — Refactors grandes de presentación**. Su primera acción será validar la cobertura completa de Phaser y, una vez demostrada, retirar el renderizador Canvas 2D legacy y toda la infraestructura mantenida exclusivamente para sostener ese backend paralelo. Después continuará la revisión de los grandes módulos de presentación que todavía lo requieran.
+
+Solamente cuando ambos bloques estén cerrados se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 
 ---
 

@@ -5,7 +5,15 @@ import {
 } from "../../PatronesVisualesHabilidades.js";
 import { TIPOS_EVENTO_VISUAL } from "../../TiposEventosVisuales.js";
 import { TAMANO_CASILLA_REFERENCIA } from "../ConfiguracionPhaser.js";
-import { reproducirResultadoGolpe } from "./ReproductorAtaquesPhaser.js";
+import { obtenerCentroEntidadVisual } from "../GeometriaVisualPhaser.js";
+import {
+  reproducirBotinAparecido,
+  reproducirEntidadDerrotada,
+  reproducirResultadoGolpe,
+} from "./ReproductorResultadosVisualesPhaser.js";
+import {
+  reproducirRecuperacionHabilidad,
+} from "./ReproductorRecuperacionesPhaser.js";
 
 // Reproducción visual de habilidades ya resueltas por el motor de juego.
 
@@ -1328,15 +1336,10 @@ export function obtenerCentroActorHabilidad(reproductor, evento) {
   return reproductor.compositor.obtenerCentroCasilla(evento.origenActor);
 }
 export function obtenerCentroImpactoHabilidad(reproductor, evento, impacto) {
-  const nodo = impacto?.idObjetivo
-    ? reproductor.compositor.obtenerNodoEntidad(impacto.idObjetivo)
-    : null;
-  if (nodo?.contenedor) {
-    return { x: nodo.contenedor.x, y: nodo.contenedor.y };
-  }
-  return reproductor.compositor.obtenerCentroCasilla(
-    impacto?.posicionObjetivo ?? evento.posicionObjetivo,
-  );
+  return obtenerCentroEntidadVisual(reproductor, {
+    idEntidad: impacto?.idObjetivo,
+    posicion: impacto?.posicionObjetivo ?? evento.posicionObjetivo,
+  });
 }
 export async function reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version) {
   const eventoResultado = {
@@ -1356,19 +1359,23 @@ export async function reproducirResultadoImpactoHabilidad(reproductor, evento, i
     vidaObjetivoDespues: impacto.danio?.vidaObjetivoDespues ?? null,
     vidaObjetivoMaxima: impacto.danio?.vidaObjetivoMaxima ?? null,
   };
-  await reproducirResultadoGolpe(reproductor,
+  await reproducirResultadoGolpe(
+    reproductor,
     eventoResultado,
     golpe,
     impacto.orden ?? 0,
     version,
-    { esperarDecorativos: false },
+    {
+      esperarDecorativos: false,
+      usarMarcaImpactoGenerica: false,
+    },
   );
 
   const recursosRecuperados = convertirCambiosRecursosARecuperacion(
     impacto.recursosObjetivo,
   );
   if (recursosRecuperados.length > 0) {
-    await reproductor.reproducirRecuperacionHabilidad({
+    await reproducirRecuperacionHabilidad(reproductor, {
       evento,
       impacto,
       recursos: recursosRecuperados,
@@ -1382,9 +1389,9 @@ export async function reproducirResultadoImpactoHabilidad(reproductor, evento, i
   }
 
   if (impacto.derrotaVisual) {
-    await reproductor.reproducirEntidadDerrotada(impacto.derrotaVisual, version);
+    await reproducirEntidadDerrotada(reproductor, impacto.derrotaVisual, version);
   }
   if (impacto.botinVisual) {
-    await reproductor.reproducirBotinAparecido(impacto.botinVisual, version);
+    await reproducirBotinAparecido(reproductor, impacto.botinVisual, version);
   }
 }

@@ -674,7 +674,9 @@ El retiro de Canvas 2D, la preparación genérica de mapas, el Loading y la prec
 
 La reevaluación posterior confirmó deuda real en la composición del mundo: `CompositorMundoPhaser` mezclaba coordinación general con dibujo de terreno, representación de entidades y feedback táctico de selección. Esa separación quedó validada y cerrada en `3c3bd183ddf4d4073b4f5b81da9894b497173543`: `CompositorMundoPhaser` permanece como fachada pública y delega terreno, entidades y selección en compositores funcionales sin alterar el contrato de sus consumidores. La visibilidad final, zonas temporales, iluminación, geometría general, capas y coordinación permanecen en la fachada.
 
-La reevaluación de coordinación/reproducción de eventos confirmó una segunda deuda: `ReproductorEventosVisualesPhaser` todavía mezclaba cola, cancelación y aplicación de escenas finales con infraestructura común de ejecución y una gran superficie de métodos puente hacia reproductores especializados. La corrección se divide de forma conservadora. Primero se separan el contrato neutral de tipos, el contexto común de ejecución y el despacho tipo → reproductor, manteniendo resultados visuales y recuperaciones dentro del coordinador hasta una entrega posterior. Después se extraerán esas consecuencias y recuperaciones, y recién entonces se reevaluará la división interna de ataques y habilidades. No se forzará la división de módulos que, aun siendo grandes, mantengan una responsabilidad coherente.
+La reevaluación de coordinación/reproducción de eventos confirmó una segunda deuda: `ReproductorEventosVisualesPhaser` todavía mezclaba cola, cancelación y aplicación de escenas finales con infraestructura común de ejecución y una gran superficie de métodos puente hacia reproductores especializados. La primera separación quedó validada y cerrada en `26d7f59423f9e181ea0842f50eea6eb7830b2deb`: el coordinador conserva cola, orden, inactividad, cancelación y aplicación de escena final; `ContextoReproduccionVisualPhaser` concentra la infraestructura común de ejecución; `DespachadorEventosVisualesPhaser` traduce tipo de evento a reproductor funcional; y `TiposEventosVisuales.js` posee el contrato neutral compartido.
+
+La segunda intervención de esta deuda extrae del coordinador los resultados de combate/derrota/botín y las recuperaciones ya resueltas. `ReproductorResultadosVisualesPhaser` pasa a representar daño, fallo, bloqueo, crítico, barra de vida, daño periódico, muerte y botín sin calcular reglas; `ReproductorRecuperacionesPhaser` representa recuperación de recursos, curación de habilidad y subida de nivel. El contexto común deja de actuar como localizador de servicios de resultados y el despachador deja de recibir callbacks locales. Ataques y habilidades comparten esos reproductores sin dependencia `Habilidades → Ataques` para resultados. La geometría visual común concentra la normalización de dirección y la resolución de centros de entidades. Recién después de validar esta separación se reevaluará la división interna de ataques y habilidades. No se forzará la división de módulos que, aun siendo grandes, mantengan una responsabilidad coherente.
 
 ## 7.C.2 Orden obligatorio
 
@@ -691,8 +693,8 @@ Retiro Canvas 2D + Loading/precarga contextual ✅
         ↓
 Reevaluación de módulos grandes Phaser
   ├─ composición del mundo ✅
-  ├─ coordinación de eventos: contexto + despacho (implementada; pendiente validación manual)
-  ├─ resultados/recuperaciones: pendiente
+  ├─ coordinación de eventos: contexto + despacho ✅
+  ├─ resultados/recuperaciones: implementada; pendiente validación manual
   └─ ataques/habilidades: pendiente de reevaluación final
         ↓
 Cierre y regresión del Bloque C
@@ -1251,13 +1253,13 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `3c3bd183ddf4d4073b4f5b81da9894b497173543`.
+El estado operativo actual parte del commit validado `26d7f59423f9e181ea0842f50eea6eb7830b2deb`.
 
-Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada; el retiro del renderizador Canvas 2D legacy con Loading/precarga contextual quedó cerrado en `a233242d6fb6c19b3491bb00877573e76591d490`, y la composición modular del mundo quedó validada y cerrada en la base operativa actual.
+Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada; el retiro del renderizador Canvas 2D legacy con Loading/precarga contextual quedó cerrado en `a233242d6fb6c19b3491bb00877573e76591d490`, la composición modular del mundo quedó cerrada en `3c3bd183ddf4d4073b4f5b81da9894b497173543` y la coordinación base de eventos visuales quedó cerrada en la base operativa actual.
 
-El trabajo actual es el **Bloque C — Refactors grandes de presentación**, en la coordinación de eventos visuales. La intervención en curso separa contrato de tipos, contexto común de ejecución y despacho de eventos, conservando `ReproductorEventosVisualesPhaser` como autoridad de cola, orden, inactividad, cancelación de actualizaciones y aplicación de escena final. Los resultados de combate/derrota/botín y recuperaciones permanecen temporalmente en el coordinador hasta su extracción validada por separado.
+El trabajo actual es el **Bloque C — Refactors grandes de presentación**, en la extracción de resultados visuales y recuperaciones. `ReproductorEventosVisualesPhaser` conserva exclusivamente el ciclo de coordinación; resultados y recuperaciones se delegan a reproductores funcionales que consumen hechos ya resueltos y reutilizan el contexto común de ejecución. Esta intervención no altera daño, resistencias, progresión, persistencia ni tiempos jugables.
 
-Después de validar esta coordinación se continuará únicamente con las responsabilidades que el análisis haya demostrado realmente mezcladas. No se forzarán particiones por tamaño de archivo.
+Después de validar resultados/recuperaciones se reevaluará la división interna de ataques y habilidades sobre el estado real resultante. No se forzarán particiones por tamaño de archivo.
 
 Solamente cuando el Bloque C esté cerrado se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 

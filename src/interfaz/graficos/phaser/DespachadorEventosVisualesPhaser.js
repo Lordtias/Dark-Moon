@@ -1,10 +1,15 @@
 import { TIPOS_EVENTO_VISUAL } from "../TiposEventosVisuales.js";
+import { reproducirAtaqueResuelto } from "./reproductores/ReproductorAtaquesPhaser.js";
+import { reproducirHabilidadResuelta } from "./reproductores/ReproductorHabilidadesPhaser.js";
 import {
-  reproducirAtaqueResuelto,
-} from "./reproductores/ReproductorAtaquesPhaser.js";
+  reproducirBotinAparecido,
+  reproducirDanioPeriodico,
+  reproducirEntidadDerrotada,
+} from "./reproductores/ReproductorResultadosVisualesPhaser.js";
 import {
-  reproducirHabilidadResuelta,
-} from "./reproductores/ReproductorHabilidadesPhaser.js";
+  reproducirNivelAumentado,
+  reproducirRecursosRecuperados,
+} from "./reproductores/ReproductorRecuperacionesPhaser.js";
 import {
   reproducirActorEntroZonaTemporal,
   reproducirZonaTemporalActivada,
@@ -28,25 +33,11 @@ import {
 // Traduce exclusivamente tipo de evento -> reproductor funcional. No administra
 // cola, tiempos del juego ni estado de dominio.
 export class DespachadorEventosVisualesPhaser {
-  constructor({
-    contexto,
-    reproducirDanioPeriodico,
-    reproducirEntidadDerrotada,
-    reproducirBotinAparecido,
-    reproducirRecursosRecuperados,
-    reproducirNivelAumentado,
-  } = {}) {
+  constructor({ contexto } = {}) {
     if (!contexto) {
       throw new Error("El despachador visual necesita un contexto de reproducción.");
     }
     this.contexto = contexto;
-    this.reproductoresLocales = Object.freeze({
-      reproducirDanioPeriodico,
-      reproducirEntidadDerrotada,
-      reproducirBotinAparecido,
-      reproducirRecursosRecuperados,
-      reproducirNivelAumentado,
-    });
   }
 
   async reproducir(evento, version) {
@@ -75,11 +66,11 @@ export class DespachadorEventosVisualesPhaser {
       case TIPOS_EVENTO_VISUAL.EFECTO_TEMPORAL_RETIRADO:
         return await reproducirEfectoTemporalRetirado(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.DANIO_PERIODICO:
-        return await this.reproducirLocal("reproducirDanioPeriodico", evento, version);
+        return await reproducirDanioPeriodico(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.ENTIDAD_DERROTADA:
-        return await this.reproducirLocal("reproducirEntidadDerrotada", evento, version);
+        return await reproducirEntidadDerrotada(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.BOTIN_APARECIDO:
-        return await this.reproducirLocal("reproducirBotinAparecido", evento, version);
+        return await reproducirBotinAparecido(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_CREADA:
         return await reproducirZonaTemporalCreada(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_RENOVADA:
@@ -93,22 +84,15 @@ export class DespachadorEventosVisualesPhaser {
       case TIPOS_EVENTO_VISUAL.ZONA_TEMPORAL_ACTIVADA:
         return await reproducirZonaTemporalActivada(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.RECURSOS_RECUPERADOS:
-        return await this.reproducirLocal("reproducirRecursosRecuperados", evento, version);
+        return await reproducirRecursosRecuperados(contexto, evento, version);
       case TIPOS_EVENTO_VISUAL.NIVEL_AUMENTADO:
-        return await this.reproducirLocal("reproducirNivelAumentado", evento, version);
+        return await reproducirNivelAumentado(contexto, evento, version);
       default:
         return undefined;
     }
   }
 
-  async reproducirLocal(nombre, evento, version) {
-    const reproducir = this.reproductoresLocales?.[nombre];
-    if (typeof reproducir !== "function") return;
-    return await reproducir(evento, version);
-  }
-
   destruir() {
     this.contexto = null;
-    this.reproductoresLocales = null;
   }
 }

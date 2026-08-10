@@ -1,33 +1,16 @@
-import { traducir } from "../../../idiomas/ContextoIdioma.js";
 import { obtenerPerfilAtaque } from "../../ContextoPerfilesAtaquePorFamilia.js";
 import { CONFIGURACION_ANIMACIONES_PHASER } from "../ConfiguracionAnimacionesPhaser.js";
 import { TAMANO_CASILLA_REFERENCIA } from "../ConfiguracionPhaser.js";
 import { ANCLAJES_RECURSO } from "../CreadorRecursosVisualesPhaser.js";
 import {
   CONFIGURACION_EFECTOS_COMBATE_PHASER,
-  TIPOS_FEEDBACK_COMBATE,
 } from "../ConfiguracionEfectosCombatePhaser.js";
+import { normalizarDireccionVisual } from "../GeometriaVisualPhaser.js";
+import {
+  reproducirResultadoGolpe as reproducirResultadoGolpeCompartido,
+} from "./ReproductorResultadosVisualesPhaser.js";
 
 // Reproducción visual de ataques ya resueltos por el sistema de combate.
-
-function normalizarDireccionImpacto({ origen, destino } = {}) {
-  const diferenciaX = Number(destino?.x) - Number(origen?.x);
-  const diferenciaY = Number(destino?.y) - Number(origen?.y);
-  const longitud = Math.hypot(diferenciaX, diferenciaY);
-
-  if (!Number.isFinite(longitud) || longitud === 0) {
-    return Object.freeze({ x: 0, y: -1 });
-  }
-
-  return Object.freeze({
-    x: diferenciaX / longitud,
-    y: diferenciaY / longitud,
-  });
-}
-
-function formatearDanio(valor) {
-  return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
-}
 
 export async function reproducirAtaqueResuelto(reproductor, evento, version) {
   reproductor.compositor.ocultarSeleccionTemporal?.();
@@ -141,7 +124,7 @@ export async function reproducirAtaqueArco(reproductor, evento, golpes, version)
   const golpe = golpes[0] ?? null;
   const perfil = obtenerPerfilGolpe(reproductor, evento, golpe, 0);
   const fases = evento.ritmoVisual?.fases ?? {};
-  const direccion = normalizarDireccionImpacto({
+  const direccion = normalizarDireccionVisual({
     origen: centroBase,
     destino: centroObjetivo,
   });
@@ -303,7 +286,7 @@ export async function reproducirAtaqueVarita(reproductor, evento, golpes, versio
   const fases = evento.ritmoVisual?.fases ?? {};
   const fuentesCanalizacion = (evento?.configuracionAtaque?.fuentes ?? [])
     .filter((fuente) => fuente?.familiaObjeto === "varita");
-  const direccion = normalizarDireccionImpacto({
+  const direccion = normalizarDireccionVisual({
     origen: centroBase,
     destino: centroObjetivo,
   });
@@ -524,7 +507,7 @@ export async function reproducirAtaqueCuerpoACuerpo(reproductor, evento, golpes,
     return;
   }
 
-  const direccion = normalizarDireccionImpacto({
+  const direccion = normalizarDireccionVisual({
     origen: centroBase,
     destino: centroObjetivo,
   });
@@ -932,192 +915,27 @@ export async function reproducirGolpeProvisional(reproductor, evento, golpe, ind
       : Promise.resolve(),
   ]);
 }
-export async function reproducirResultadoGolpe(reproductor,
+async function reproducirResultadoGolpe(
+  reproductor,
   evento,
   golpe,
   indiceGolpe,
   version,
-  { esperarDecorativos = true } = {},
+  opciones = {},
 ) {
-  if (!evento.idObjetivo) return;
-
-  const esenciales = [];
-  const decorativos = [];
-
-  if (golpe.impacto !== true) {
-    esenciales.push(reproducirFalloObjetivo(reproductor, evento, version));
-    decorativos.push(
-      reproductor.reproducirTextoResultado({
-        evento,
-        texto: traducir("mensajes.feedback.fallo", { respaldo: "FALLO" }),
-        tipo: TIPOS_FEEDBACK_COMBATE.FALLO,
-        indiceGolpe,
-        version,
-      }),
-    );
-    await Promise.all(esenciales);
-    await resolverDecorativos(reproductor, decorativos, esperarDecorativos);
-    return;
-  }
-
-  const danio = Math.max(0, Number(golpe.danio) || 0);
-
-  if (danio > 0) {
-    esenciales.push(
-      reproducirImpactoObjetivo(reproductor, evento, golpe, version),
-      reproductor.reproducirCambioVida(evento, golpe, version),
-    );
-    decorativos.push(
-      reproductor.reproducirTextoResultado({
-        evento,
-        texto: `${formatearDanio(danio)}`,
-        tipo: TIPOS_FEEDBACK_COMBATE.DANIO,
-        indiceGolpe,
-        version,
-      }),
-    );
-  }
-
-  if (golpe.bloqueado === true) {
-    decorativos.push(
-      reproductor.reproducirBloqueo(evento, indiceGolpe, version),
-      reproductor.reproducirTextoResultado({
-        evento,
-        texto: traducir("mensajes.feedback.bloqueo", { respaldo: "BLOQUEO" }),
-        tipo: TIPOS_FEEDBACK_COMBATE.BLOQUEO,
-        indiceGolpe,
-        desplazamientoY: 8,
-        version,
-      }),
-    );
-  }
-
-  if (golpe.critico === true) {
-    decorativos.push(
-      reproductor.reproducirTextoResultado({
-        evento,
-        texto: traducir("mensajes.feedback.critico", { respaldo: "CRÍTICO" }),
-        tipo: TIPOS_FEEDBACK_COMBATE.CRITICO,
-        indiceGolpe,
-        desplazamientoY: -8,
-        version,
-      }),
-    );
-  }
-
-  await Promise.all(esenciales);
-  await resolverDecorativos(reproductor, decorativos, esperarDecorativos);
-}
-export function resolverDecorativos(reproductor, promesas, esperar) {
-  const grupo = Promise.all(promesas);
-  if (esperar) {
-    return grupo;
-  }
-  void grupo.catch(() => {});
-  return Promise.resolve();
-}
-export async function reproducirFalloObjetivo(reproductor, evento, version) {
-  const nodo = reproductor.compositor.obtenerNodoEntidad(evento.idObjetivo);
-  if (!nodo?.contenedor || reproductor.efectosReducidos) return;
-
-  const contenedor = nodo.contenedor;
-  const posicionInicial = { x: contenedor.x, y: contenedor.y };
-  const direccion = normalizarDireccionImpacto({
-    origen: evento.origenAtacante,
-    destino: evento.posicionObjetivo,
-  });
-  const lateral = { x: -direccion.y, y: direccion.x };
-  const desplazamiento =
-    CONFIGURACION_EFECTOS_COMBATE_PHASER.esquiva.desplazamientoPx;
-
-  await reproductor.crearTween({
-    targets: contenedor,
-    x: posicionInicial.x + lateral.x * desplazamiento,
-    y: posicionInicial.y + lateral.y * desplazamiento,
-    duration: reproductor.calcularDuracion(
-      CONFIGURACION_EFECTOS_COMBATE_PHASER.esquiva.duracionMs,
-    ),
-    yoyo: true,
-    ease: "Sine.easeOut",
-  }, version);
-
-  contenedor.x = posicionInicial.x;
-  contenedor.y = posicionInicial.y;
-}
-export async function reproducirImpactoObjetivo(reproductor, evento, golpe, version) {
-  const nodoObjetivo = reproductor.compositor.obtenerNodoEntidad(evento.idObjetivo);
-  if (!nodoObjetivo?.contenedor) return;
-
-  const contenedor = nodoObjetivo.contenedor;
-  const posicionInicial = {
-    x: contenedor.x,
-    y: contenedor.y,
-    alpha: contenedor.alpha ?? 1,
-  };
-  const direccion = normalizarDireccionImpacto({
-    origen: evento.origenAtacante,
-    destino: evento.posicionObjetivo,
-  });
-  const duracion = reproductor.calcularDuracion(
-    CONFIGURACION_ANIMACIONES_PHASER.impactoObjetivoMs,
+  return await reproducirResultadoGolpeCompartido(
+    reproductor,
+    evento,
+    golpe,
+    indiceGolpe,
+    version,
+    {
+      ...opciones,
+      usarMarcaImpactoGenerica: debeUsarMarcaImpactoGenerica(reproductor, evento),
+    },
   );
-  const factorCritico = golpe.critico === true
-    ? CONFIGURACION_EFECTOS_COMBATE_PHASER.golpe.impactoCriticoEscala
-    : 1;
-  const usarMarcaGenerica = debeUsarMarcaImpactoGenerica(reproductor, evento);
-  const marca = reproductor.efectosReducidos || !usarMarcaGenerica
-    ? null
-    : reproductor.creadorEfectos?.crearMarcaImpacto({
-        centro: posicionInicial,
-        critico: golpe.critico === true,
-      });
-
-  if (marca) {
-    marca.setScale?.(
-      CONFIGURACION_ANIMACIONES_PHASER.escalaMarcaImpactoInicial,
-    );
-  }
-
-  const promesas = [
-    reproductor.crearTween({
-      targets: contenedor,
-      x:
-        posicionInicial.x +
-        direccion.x *
-          CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx *
-          factorCritico,
-      y:
-        posicionInicial.y +
-        direccion.y *
-          CONFIGURACION_ANIMACIONES_PHASER.desplazamientoImpactoPx *
-          factorCritico,
-      alpha: reproductor.efectosReducidos ? 0.72 : golpe.critico ? 0.4 : 0.52,
-      duration: Math.max(1, Math.round(duracion / 2)),
-      yoyo: true,
-      ease: "Quad.easeOut",
-    }, version),
-  ];
-
-  if (marca) {
-    promesas.push(
-      reproductor.crearTween({
-        targets: marca,
-        scaleX: CONFIGURACION_ANIMACIONES_PHASER.escalaMarcaImpactoFinal,
-        scaleY: CONFIGURACION_ANIMACIONES_PHASER.escalaMarcaImpactoFinal,
-        alpha: 0,
-        duration: duracion,
-        ease: "Quad.easeOut",
-      }, version),
-    );
-  }
-
-  await Promise.all(promesas);
-
-  contenedor.x = posicionInicial.x;
-  contenedor.y = posicionInicial.y;
-  contenedor.alpha = posicionInicial.alpha;
-  marca?.destroy?.();
 }
+
 export function debeUsarMarcaImpactoGenerica(reproductor, evento) {
   if (evento?.esHabilidad === true) return false;
   if (esAtaqueArco(reproductor, evento) || esAtaqueVarita(reproductor, evento)) return false;

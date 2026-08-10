@@ -25,7 +25,6 @@ export class ContextoReproduccionVisualPhaser {
     obtenerCantidadEventosPendientes = null,
     obtenerRachaMovimientosJugadorPendientes = null,
     despacharEvento = null,
-    serviciosResultados = {},
   } = {}) {
     if (!escena?.tweens || !escena?.time || !compositor || !gestorRecursos) {
       throw new Error(
@@ -53,7 +52,6 @@ export class ContextoReproduccionVisualPhaser {
         : () => 0;
     this.despacharEventoCallback =
       typeof despacharEvento === "function" ? despacharEvento : null;
-    this.serviciosResultados = { ...serviciosResultados };
 
     this.creadorEfectos = new CreadorEfectosCombatePhaser({ escena, compositor });
     this.creadorEfectosHabilidades = new CreadorEfectosHabilidadesPhaser({
@@ -198,39 +196,6 @@ export class ContextoReproduccionVisualPhaser {
     return await this.despacharEventoCallback(evento, version);
   }
 
-  reproducirCambioVida(...argumentos) {
-    return this.ejecutarServicioResultado("reproducirCambioVida", argumentos);
-  }
-
-  reproducirBloqueo(...argumentos) {
-    return this.ejecutarServicioResultado("reproducirBloqueo", argumentos);
-  }
-
-  reproducirTextoResultado(...argumentos) {
-    return this.ejecutarServicioResultado("reproducirTextoResultado", argumentos);
-  }
-
-  reproducirRecuperacionHabilidad(...argumentos) {
-    return this.ejecutarServicioResultado(
-      "reproducirRecuperacionHabilidad",
-      argumentos,
-    );
-  }
-
-  reproducirEntidadDerrotada(...argumentos) {
-    return this.ejecutarServicioResultado("reproducirEntidadDerrotada", argumentos);
-  }
-
-  reproducirBotinAparecido(...argumentos) {
-    return this.ejecutarServicioResultado("reproducirBotinAparecido", argumentos);
-  }
-
-  ejecutarServicioResultado(nombre, argumentos) {
-    const servicio = this.serviciosResultados?.[nombre];
-    if (typeof servicio !== "function") return undefined;
-    return servicio(...argumentos);
-  }
-
   destruir() {
     if (this.destruido) return;
     this.destruido = true;
@@ -250,7 +215,6 @@ export class ContextoReproduccionVisualPhaser {
     this.gestorRecursos = null;
     this.alMoverJugadorVisual = null;
     this.despacharEventoCallback = null;
-    this.serviciosResultados = null;
     this.creadorEfectos = null;
     this.creadorEfectosHabilidades = null;
     this.creadorAreasHabilidades = null;

@@ -18,7 +18,14 @@ export class ModalAyudaJuego {
     this.diagnostico = this.elemento.querySelector("[data-ayuda-diagnostico]");
     this.mensajeCopia = this.elemento.querySelector("[data-ayuda-mensaje-copia]");
     this.alAbrir = () => this.abrir();
+    this.alEscape = (evento) => {
+      if (evento.key !== "Escape" || !this.estaAbierto()) return;
+      evento.preventDefault();
+      evento.stopImmediatePropagation();
+      this.cerrar();
+    };
     this.botonAbrir.addEventListener("click", this.alAbrir);
+    window.addEventListener("keydown", this.alEscape, true);
     this.desuscribirIdioma = obtenerTraductorActivo()?.suscribir?.(() => {
       if (this.estaAbierto()) this.actualizarTextos();
     }) ?? (() => {});
@@ -66,15 +73,13 @@ export class ModalAyudaJuego {
 
   abrir() {
     this.actualizarTextos();
-    document.body.classList.add("modal-ayuda-juego-abierta");
     this.elemento.classList.remove("oculto");
     this.elemento.querySelector("[data-ayuda-cerrar]")?.focus();
   }
 
-  cerrar() {
+  cerrar({ devolverFoco = true } = {}) {
     this.elemento.classList.add("oculto");
-    document.body.classList.remove("modal-ayuda-juego-abierta");
-    this.botonAbrir.focus();
+    if (devolverFoco) this.botonAbrir.focus();
   }
 
   estaAbierto() {
@@ -118,6 +123,13 @@ export class ModalAyudaJuego {
       );
       this.mensajeCopia.classList.toggle("error", !copiado);
     }
+  }
+
+  destruir() {
+    this.botonAbrir.removeEventListener("click", this.alAbrir);
+    window.removeEventListener("keydown", this.alEscape, true);
+    this.desuscribirIdioma?.();
+    this.elemento?.remove();
   }
 }
 

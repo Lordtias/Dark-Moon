@@ -1,4 +1,5 @@
 import { TIPOS_COMANDO_JUGADOR } from "../../../aplicacion/EjecutorAccionesJugador.js";
+import { estaEntradaJugableCapturada } from "../../../controles/ContextoEntradaInterfaz.js";
 import { CONFIGURACION_CAMARA_PHASER } from "./ConfiguracionPhaser.js";
 
 const MODOS_SELECCION_JUGABLE = new Set([
@@ -50,7 +51,11 @@ export class ControladorEntradaJugablePhaser {
   }
 
   manejarPointerDown(pointer) {
-    if (this.destruido || pointer?.button !== 0) {
+    if (
+      this.destruido ||
+      pointer?.button !== 0 ||
+      estaEntradaJugableCapturada(this.escena?.game?.canvas?.ownerDocument)
+    ) {
       return;
     }
 

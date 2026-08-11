@@ -1,0 +1,443 @@
+/* =========================================================
+   MARCO FULLSCREEN DE LA PARTIDA
+   ========================================================= */
+.pantalla-juego {
+  padding: 0;
+  background: #050907;
+}
+
+.pantalla-juego .interfaz-partida {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.pantalla-juego .panel-mapa {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #07100c;
+}
+
+.pantalla-juego .panel-mapa canvas {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HUD PERMANENTE
+   ========================================================= */
+.hud-partida {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  width: min(calc(100% - 28px), 1000px);
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: auto minmax(480px, 720px) auto;
+  justify-content: center;
+  align-items: end;
+  gap: 8px;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.72));
+}
+
+.hud-recurso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hud-recurso--vida { justify-self: start; }
+.hud-recurso--mana { justify-self: end; }
+
+.hud-orbe {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 5px solid #6d6048;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.11), transparent 42%),
+    #11130f;
+  box-shadow:
+    inset 0 0 0 3px #242217,
+    inset 0 0 18px rgba(0, 0, 0, 0.85),
+    0 0 0 2px rgba(10, 12, 8, 0.9),
+    0 7px 18px rgba(0, 0, 0, 0.7);
+}
+
+.hud-orbe__relleno {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;
+  transition: height 180ms ease-out;
+}
+
+.hud-orbe__relleno--vida {
+  background:
+    linear-gradient(to top, rgba(80, 0, 0, 0.9), rgba(190, 36, 38, 0.95) 70%, rgba(242, 78, 69, 0.96));
+}
+
+.hud-orbe__relleno--mana {
+  background:
+    linear-gradient(to top, rgba(7, 39, 83, 0.95), rgba(28, 93, 181, 0.96) 70%, rgba(66, 147, 236, 0.96));
+}
+
+.hud-orbe__valor {
+  position: relative;
+  z-index: 2;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.56);
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.hud-recurso__etiqueta {
+  padding: 2px 8px;
+  border: 1px solid rgba(183, 163, 115, 0.48);
+  border-radius: 999px;
+  background: rgba(9, 12, 9, 0.86);
+  color: #e8dfc7;
+  font: 700 11px/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hud-centro {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  justify-items: stretch;
+  pointer-events: none;
+}
+
+.hud-experiencia {
+  width: min(100%, 560px);
+  justify-self: center;
+  padding: 5px 9px 7px;
+  border: 1px solid rgba(183, 163, 115, 0.5);
+  border-radius: 7px;
+  background: linear-gradient(rgba(20, 24, 18, 0.93), rgba(8, 11, 8, 0.95));
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.58);
+}
+
+.hud-experiencia__cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+  color: #e7dfc7;
+  font-size: 11px;
+}
+
+.hud-experiencia__barra {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid #655c3f;
+  border-radius: 999px;
+  background: #11140f;
+  box-shadow: inset 0 0 5px #000;
+}
+
+.hud-experiencia__relleno {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8b742a, #d4b54f 70%, #f0dd83);
+  box-shadow: 0 0 8px rgba(218, 187, 82, 0.42);
+  transition: width 180ms ease-out;
+}
+
+.hud-centro .barra-habilidades {
+  width: max-content;
+  max-width: 100%;
+  justify-self: center;
+  padding: 7px;
+  border-color: #6b6044;
+  border-radius: 8px;
+  background: rgba(9, 12, 10, 0.9);
+  overflow-x: auto;
+  pointer-events: auto;
+}
+
+.barra-paneles-partida {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0 2px 2px;
+  pointer-events: auto;
+}
+
+.boton-panel-partida,
+.boton-menu-partida,
+.panel-superpuesto-partida__cerrar {
+  border: 1px solid #756a4a;
+  border-radius: 5px;
+  background: linear-gradient(#27291f, #11140f);
+  color: #eee6d1;
+  font: 700 12px/1.2 Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.boton-panel-partida {
+  min-height: 31px;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+.boton-panel-partida:hover,
+.boton-panel-partida:focus-visible,
+.boton-panel-partida--activo,
+.boton-menu-partida:hover,
+.boton-menu-partida:focus-visible,
+.panel-superpuesto-partida__cerrar:hover,
+.panel-superpuesto-partida__cerrar:focus-visible {
+  border-color: #c7b36f;
+  background: linear-gradient(#49432d, #1a1d15);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(199, 179, 111, 0.18);
+}
+
+/* =========================================================
+   PANELES SUPERPUESTOS
+   ========================================================= */
+.capa-paneles-partida {
+  position: absolute;
+  z-index: 40;
+  inset: 0 0 174px;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 34px);
+  background: rgba(2, 5, 4, 0);
+  pointer-events: none;
+  transition: background 120ms ease-out;
+}
+
+.capa-paneles-partida--activa {
+  background: rgba(2, 5, 4, 0.56);
+  pointer-events: auto;
+}
+
+.panel-superpuesto-partida {
+  width: min(1100px, 94vw);
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 2px solid #756a4a;
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 75% -20%, rgba(113, 105, 71, 0.18), transparent 42%),
+    #0d120e;
+  box-shadow: 0 24px 68px rgba(0, 0, 0, 0.78);
+  color: #e9eadf;
+  pointer-events: auto;
+}
+
+.panel-superpuesto-partida[hidden] {
+  display: none;
+}
+
+.panel-superpuesto-partida--menu {
+  width: min(520px, 92vw);
+}
+
+.panel-superpuesto-partida__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(150, 139, 91, 0.46);
+  background: rgba(7, 10, 8, 0.92);
+}
+
+.panel-superpuesto-partida__cabecera h2 {
+  margin: 0;
+  color: #efe6ca;
+  font: 700 clamp(18px, 2vw, 24px)/1.2 Georgia, "Times New Roman", serif;
+}
+
+.panel-superpuesto-partida__cerrar {
+  width: 38px;
+  height: 34px;
+  font: 700 22px/1 sans-serif;
+}
+
+.panel-superpuesto-partida__contenido {
+  min-height: 0;
+  padding: 14px;
+  overflow: auto;
+}
+
+.panel-superpuesto-partida__contenido--doble {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: 14px;
+  overflow: hidden;
+}
+
+.panel-superpuesto-partida .panel-juego {
+  min-height: 0;
+  border-color: #4b5546;
+  background: rgba(13, 20, 16, 0.96);
+}
+
+.panel-superpuesto-partida .panel-personaje,
+.panel-superpuesto-partida .panel-inventario,
+.panel-superpuesto-partida .panel-equipamiento,
+.panel-superpuesto-partida .panel-registro {
+  max-height: 100%;
+  overflow: auto;
+}
+
+.panel-superpuesto-partida .panel-registro {
+  height: min(560px, 62vh);
+}
+
+.panel-menu-partida {
+  display: grid;
+  gap: 16px;
+}
+
+.panel-menu-partida > p {
+  margin: 0;
+  color: #bbc4b6;
+}
+
+.boton-menu-partida {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 16px;
+  font-size: 15px;
+}
+
+/* =========================================================
+   ADAPTACIÓN A VENTANAS PEQUEÑAS
+   ========================================================= */
+@media (max-width: 980px) {
+  .hud-partida {
+    left: 50%;
+    right: auto;
+    bottom: 8px;
+    width: calc(100% - 20px);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .hud-orbe {
+    width: 104px;
+    height: 104px;
+    border-width: 3px;
+  }
+
+  .hud-orbe__valor { font-size: 11px; }
+  .hud-recurso__etiqueta { font-size: 9px; }
+
+  .hud-centro .barra-habilidades {
+    grid-template-columns: repeat(10, 40px);
+  }
+
+  .hud-centro .slot-habilidad {
+    width: 40px;
+    height: 40px;
+  }
+
+  .capa-paneles-partida { inset: 0 0 154px; }
+  .panel-superpuesto-partida__contenido--doble {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .hud-partida {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .hud-orbe {
+    width: 82px;
+    height: 82px;
+  }
+
+  .hud-orbe__valor {
+    padding: 2px 3px;
+    font-size: 9px;
+  }
+
+  .hud-recurso__etiqueta { display: none; }
+  .hud-experiencia__cabecera { font-size: 9px; }
+  .hud-centro .barra-habilidades {
+    justify-self: stretch;
+    width: 100%;
+    justify-content: start;
+  }
+  .barra-paneles-partida { justify-content: start; }
+  .boton-panel-partida { padding-inline: 9px; }
+
+  .capa-paneles-partida {
+    inset: 0 0 146px;
+    padding: 8px;
+  }
+
+  .panel-superpuesto-partida {
+    width: 100%;
+    max-height: 100%;
+  }
+}
+
+@media (max-height: 680px) {
+  .hud-orbe {
+    width: 88px;
+    height: 88px;
+  }
+
+  .hud-centro .barra-habilidades {
+    grid-template-columns: repeat(10, 38px);
+  }
+
+  .hud-centro .slot-habilidad {
+    width: 38px;
+    height: 38px;
+  }
+
+  .capa-paneles-partida { inset: 0 0 144px; }
+}
+
+/* Mientras un panel consume la entrada, la barra rápida continúa visible como
+ * contexto del HUD pero no puede emitir acciones por clic. */
+body.interfaz-captura-entrada .barra-habilidades {
+  pointer-events: none;
+  opacity: 0.72;
+}

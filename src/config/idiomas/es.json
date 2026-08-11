@@ -588,6 +588,25 @@
       "aria": "Preparando mapa de Dark Moon",
       "cargando": "Cargando...",
       "progreso": "Carga {porcentaje} %"
+    },
+    "hud": {
+      "aria": "Estado del personaje",
+      "experiencia": "Experiencia",
+      "habilidadesRapidas": "Habilidades rápidas"
+    },
+    "navegacion": {
+      "aria": "Paneles de la partida",
+      "personaje": "Personaje",
+      "inventario": "Inventario",
+      "habilidades": "Habilidades",
+      "registro": "Registro",
+      "menu": "Menú",
+      "personajeEquipamiento": "Personaje y equipamiento",
+      "cerrar": "Cerrar panel"
+    },
+    "menuPartida": {
+      "titulo": "Menú",
+      "descripcion": "Opciones de la partida."
     }
   },
   "contenido": {

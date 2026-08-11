@@ -1,4 +1,5 @@
 import { limitar } from "../../../utilidades/Numeros.js";
+import { estaEntradaJugableCapturada } from "../../../controles/ContextoEntradaInterfaz.js";
 import {
   ALTO_REFERENCIA_PHASER,
   ANCHO_REFERENCIA_PHASER,
@@ -185,7 +186,7 @@ export class ControladorCamaraPhaser {
   }
 
   actualizar(deltaMs) {
-    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+    if (estaEntradaJugableCapturada(this.documento)) {
       this.limpiarTeclasDireccion();
       return;
     }
@@ -308,7 +309,7 @@ export class ControladorCamaraPhaser {
   }
 
   manejarKeyDown(evento) {
-    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+    if (estaEntradaJugableCapturada(this.documento)) {
       return;
     }
 
@@ -356,7 +357,7 @@ export class ControladorCamaraPhaser {
 
   manejarKeyUp(evento) {
     if (!DIRECCIONES_CAMARA_POR_TECLA[evento.code]) return;
-    if (this.documento.body?.classList.contains("modal-ayuda-juego-abierta")) {
+    if (estaEntradaJugableCapturada(this.documento)) {
       this.teclasDireccionActivas.delete(evento.code);
       return;
     }

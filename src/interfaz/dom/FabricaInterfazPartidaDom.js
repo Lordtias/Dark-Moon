@@ -9,19 +9,12 @@ import { ModalContenedorObjetos } from "../objetos/ModalContenedorObjetos.js";
 import { ModalSeleccionMazmorra } from "../ModalSeleccionMazmorra.js";
 import { ModalComercio } from "../comercio/ModalComercio.js";
 import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
+import { GestorPanelesPartidaDom } from "./GestorPanelesPartidaDom.js";
+import { HudPartidaDom } from "./HudPartidaDom.js";
 
-// Crea los componentes visuales persistentes
-// utilizados durante toda una partida.
-//
-// Esta fábrica centraliza:
-//
-// - El renderizador Phaser del mapa.
-// - Los paneles HTML.
-// - Las ventanas modales.
-// - Las referencias obligatorias del documento.
-//
-// La presentación de cada mapa recibe componentes ya construidos
-// y no necesita conocer su estructura HTML interna.
+// Crea los componentes visuales persistentes utilizados durante toda una
+// partida. La fábrica no crea reglas jugables: solamente conecta las vistas
+// HTML persistentes y el backend Phaser con sus contratos de presentación.
 export function crearInterfazPartidaDom({
   configuracionRarezas,
   Phaser = null,
@@ -30,11 +23,7 @@ export function crearInterfazPartidaDom({
 } = {}) {
   configurarContextoPresentacionObjetos({ configuracionRarezas });
 
-  const panelMapa = obtenerElementoObligatorio(
-    "gameMapPanel",
-    "panel del mapa",
-  );
-
+  const panelMapa = obtenerElementoObligatorio("gameMapPanel", "panel del mapa");
   const renderizadorMapa = new RenderizadorPhaser({
     Phaser,
     contenedor: panelMapa,
@@ -42,11 +31,7 @@ export function crearInterfazPartidaDom({
   });
 
   const panelPersonaje = new PanelPersonaje({
-    contenedor: obtenerElementoObligatorio(
-      "panelPersonaje",
-      "panel del personaje",
-    ),
-
+    contenedor: obtenerElementoObligatorio("panelPersonaje", "panel del personaje"),
     plantilla: obtenerElementoObligatorio(
       "plantillaPanelPersonaje",
       "plantilla del panel del personaje",
@@ -58,7 +43,6 @@ export function crearInterfazPartidaDom({
       "cuadriculaInventario",
       "cuadrícula del inventario",
     ),
-
     mensajeVacio: obtenerElementoObligatorio(
       "mensajeInventario",
       "mensaje del inventario",
@@ -72,29 +56,71 @@ export function crearInterfazPartidaDom({
     ),
   });
 
-  // El modal de detalle se utiliza desde
-  // inventario y equipamiento.
+  const hudPartida = new HudPartidaDom({
+    elementos: {
+      vidaTexto: obtenerElementoObligatorio("hudVidaTexto", "valor de Vida del HUD"),
+      vidaRelleno: obtenerElementoObligatorio("hudVidaRelleno", "relleno de Vida del HUD"),
+      manaTexto: obtenerElementoObligatorio("hudManaTexto", "valor de Maná del HUD"),
+      manaRelleno: obtenerElementoObligatorio("hudManaRelleno", "relleno de Maná del HUD"),
+      experienciaTexto: obtenerElementoObligatorio(
+        "hudExperienciaTexto",
+        "experiencia del HUD",
+      ),
+      experienciaRelleno: obtenerElementoObligatorio(
+        "hudExperienciaRelleno",
+        "barra de experiencia del HUD",
+      ),
+      nivelTexto: obtenerElementoObligatorio("hudNivelTexto", "nivel del HUD"),
+    },
+  });
+
   const modalDetalleObjeto = new ModalDetalleObjeto();
-
-  // La ventana de contenedores se utiliza
-  // para botines, cofres y almacenamientos.
   const modalContenedorObjetos = new ModalContenedorObjetos();
-
-  // La selección de destino se reutiliza
-  // en cada regreso a la ciudad.
   const modalSeleccionMazmorra = new ModalSeleccionMazmorra();
-
-  // El comercio tiene su propia ventana porque
-  // muestra simultáneamente inventario, detalle
-  // y stock persistente.
   const modalComercio = new ModalComercio();
 
   const modalAyudaJuego = new ModalAyudaJuego({
     botonAbrir: obtenerElementoObligatorio(
       "gameHelpButton",
-      "botón de ayuda del juego",
+      "botón de ayuda del menú de partida",
     ),
     obtenerContextoDiagnostico,
+  });
+
+  const gestorPaneles = new GestorPanelesPartidaDom({
+    capa: obtenerElementoObligatorio("capaPanelesPartida", "capa de paneles de partida"),
+    botones: {
+      personaje: obtenerElementoObligatorio("botonPanelPersonaje", "botón Personaje"),
+      inventario: obtenerElementoObligatorio("botonPanelInventario", "botón Inventario"),
+      habilidades: obtenerElementoObligatorio("botonPanelHabilidades", "botón Habilidades"),
+      registro: obtenerElementoObligatorio("botonPanelRegistro", "botón Registro"),
+      menu: obtenerElementoObligatorio("botonPanelMenu", "botón Menú"),
+    },
+    paneles: {
+      personaje: obtenerElementoObligatorio(
+        "panelSuperpuestoPersonaje",
+        "panel superpuesto de personaje",
+      ),
+      inventario: obtenerElementoObligatorio(
+        "panelSuperpuestoInventario",
+        "panel superpuesto de inventario",
+      ),
+      registro: obtenerElementoObligatorio(
+        "panelSuperpuestoRegistro",
+        "panel superpuesto de registro",
+      ),
+      menu: {
+        elemento: obtenerElementoObligatorio(
+          "panelSuperpuestoMenu",
+          "panel superpuesto de menú",
+        ),
+        alCerrar: () => {
+          if (modalAyudaJuego.estaAbierto()) {
+            modalAyudaJuego.cerrar({ devolverFoco: false });
+          }
+        },
+      },
+    },
   });
 
   const combatLogText = obtenerElementoObligatorio(
@@ -107,6 +133,7 @@ export function crearInterfazPartidaDom({
     panelPersonaje,
     panelInventario,
     panelEquipamiento,
+    hudPartida,
     combatLogText,
   });
 
@@ -114,6 +141,7 @@ export function crearInterfazPartidaDom({
     renderizador,
     panelInventario,
     panelEquipamiento,
+    gestorPaneles,
     modalDetalleObjeto,
     modalContenedorObjetos,
     modalSeleccionMazmorra,
@@ -122,14 +150,10 @@ export function crearInterfazPartidaDom({
   };
 }
 
-// Busca un elemento del HTML y genera
-// un error claro cuando no existe.
 function obtenerElementoObligatorio(id, descripcion) {
   const elemento = document.getElementById(id);
-
   if (!elemento) {
     throw new Error(`No se encontró ${descripcion} con id "${id}".`);
   }
-
   return elemento;
 }

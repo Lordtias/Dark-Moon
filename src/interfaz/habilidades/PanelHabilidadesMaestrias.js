@@ -16,6 +16,7 @@ export class PanelHabilidadesMaestrias {
     configuracionEjecucion,
     familiasArmas = [],
     alGuardarCambios = null,
+    alSolicitarCierre = null,
   } = {}) {
     if (!sistemaHabilidades || !jugador || !configuracionProgreso) {
       throw new Error(
@@ -28,14 +29,14 @@ export class PanelHabilidadesMaestrias {
     this.configuracionEjecucion = configuracionEjecucion;
     this.familiasArmas = [...new Set(familiasArmas)].sort();
     this.alGuardarCambios = alGuardarCambios;
+    this.alSolicitarCierre =
+      typeof alSolicitarCierre === "function" ? alSolicitarCierre : null;
     this.categoriaActiva = "magicas";
     this.maestriaActiva = "fuego";
     this.idHabilidadSeleccionada = null;
     this.manejadores = [];
     asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
-    this.botonAbrir = this.crearBotonAbrir();
     this.dialogo = this.crearDialogo();
-    this.instalarEventosGlobales();
     this.renderizar();
   }
   estaAbierto() {
@@ -54,6 +55,22 @@ export class PanelHabilidadesMaestrias {
     if (this.dialogo.open) {
       this.dialogo.close();
     }
+  }
+
+  solicitarCierre() {
+    if (this.alSolicitarCierre) {
+      this.alSolicitarCierre();
+      return;
+    }
+    this.cerrar();
+  }
+
+  manejarEscape() {
+    if (!this.capaAccion.hidden) {
+      this.cerrarCapaAccion();
+      return true;
+    }
+    return false;
   }
   renderizar() {
     const resumen = obtenerResumenProgreso(this.jugador);
@@ -91,34 +108,7 @@ export class PanelHabilidadesMaestrias {
       elemento.removeEventListener(tipo, manejador, opciones);
     });
     this.manejadores = [];
-    this.separadorBarra?.remove();
-    this.botonAbrir?.remove();
     this.dialogo?.remove();
-  }
-  crearBotonAbrir() {
-    const barra = document.querySelector(
-      "#barra-habilidades, .barra-habilidades, [data-barra-habilidades]",
-    );
-    if (!barra) {
-      throw new Error("No se encontró la barra donde ubicar Habilidades.");
-    }
-    document.getElementById("botonHabilidadesMaestrias")?.remove();
-    barra
-      .querySelectorAll(".barra-habilidades__separador")
-      .forEach((elemento) => elemento.remove());
-    const separador = crearElemento("span", "barra-habilidades__separador");
-    separador.setAttribute("aria-hidden", "true");
-    const boton = crearElemento(
-      "button",
-      "boton-habilidades-maestrias",
-      traducir("interfaz.habilidades.abrir", { respaldo: "Habilidades" }),
-    );
-    boton.id = "botonHabilidadesMaestrias";
-    boton.type = "button";
-    boton.title = traducir("interfaz.habilidades.abrirTitulo", { respaldo: "Abrir habilidades y maestrías" });
-    barra.append(separador, boton);
-    this.separadorBarra = separador;
-    return boton;
   }
   crearDialogo() {
     document.getElementById("modalHabilidadesMaestrias")?.remove();
@@ -157,39 +147,17 @@ export class PanelHabilidadesMaestrias {
     marco.append(cabecera, cuerpo, this.mensaje, this.capaAccion);
     dialogo.append(marco);
     document.body.append(dialogo);
-    this.escuchar(cerrar, "click", () => this.cerrar());
+    this.escuchar(cerrar, "click", () => this.solicitarCierre());
     this.escuchar(dialogo, "cancel", (evento) => {
       evento.preventDefault();
-      this.cerrar();
+      this.solicitarCierre();
     });
     this.escuchar(dialogo, "click", (evento) => {
       if (evento.target === dialogo) {
-        this.cerrar();
+        this.solicitarCierre();
       }
     });
     return dialogo;
-  }
-  instalarEventosGlobales() {
-    this.escuchar(this.botonAbrir, "click", () => this.abrir());
-    this.escuchar(
-      window,
-      "keydown",
-      (evento) => {
-        if (!this.estaAbierto()) {
-          return;
-        }
-        if (evento.key === "Escape") {
-          evento.preventDefault();
-          evento.stopImmediatePropagation();
-          if (!this.capaAccion.hidden) {
-            this.cerrarCapaAccion();
-          } else {
-            this.cerrar();
-          }
-        }
-      },
-      true,
-    );
   }
   renderizarCabecera(resumen) {
     this.resumenPuntos.replaceChildren(

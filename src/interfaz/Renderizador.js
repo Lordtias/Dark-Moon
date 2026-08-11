@@ -30,6 +30,7 @@ export class Renderizador {
     combatLogText,
     panelInventario,
     panelEquipamiento,
+    hudPartida,
   } = {}) {
     if (
       !renderizadorMapa ||
@@ -56,6 +57,10 @@ export class Renderizador {
       throw new Error("Renderizador necesita un PanelEquipamiento.");
     }
 
+    if (!hudPartida || typeof hudPartida.actualizar !== "function") {
+      throw new Error("Renderizador necesita el HUD de la partida.");
+    }
+
     if (!combatLogText) {
       throw new Error("Renderizador necesita el registro de combate.");
     }
@@ -64,6 +69,7 @@ export class Renderizador {
     this.panelPersonaje = panelPersonaje;
     this.panelInventario = panelInventario;
     this.panelEquipamiento = panelEquipamiento;
+    this.hudPartida = hudPartida;
     this.combatLogText = combatLogText;
 
     // Se utiliza para interpretar correctamente
@@ -198,6 +204,7 @@ export class Renderizador {
     // Los paneles HTML continúan siendo
     // independientes del backend del mapa.
     this.panelPersonaje.actualizar(juego.player);
+    this.hudPartida.actualizar(juego.player);
 
     // PanelInventario recibe también al jugador
     // porque el oro no forma parte del contenedor

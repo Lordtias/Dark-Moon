@@ -1,4 +1,5 @@
 import { TIPOS_COMANDO_JUGADOR } from "../aplicacion/EjecutorAccionesJugador.js";
+import { estaEntradaJugableCapturada } from "./ContextoEntradaInterfaz.js";
 
 const MOVIMIENTOS_POR_TECLA = {
   ArrowUp: { x: 0, y: -1 },
@@ -59,7 +60,7 @@ export class ControladorTeclado {
   }
 
   manejarTecla(evento) {
-    if (document.body?.classList.contains("modal-ayuda-juego-abierta")) {
+    if (estaEntradaJugableCapturada(document)) {
       return;
     }
 

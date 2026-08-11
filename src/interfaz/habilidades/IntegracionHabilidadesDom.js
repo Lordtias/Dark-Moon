@@ -18,6 +18,7 @@ export class IntegracionHabilidadesDom {
     configuracionEjecucion,
     configuracionProgreso,
     configuracionObjetos,
+    gestorPaneles,
     esJuegoActivo,
     alEjecutarComando,
     alSolicitarGuardadoJugador,
@@ -64,6 +65,16 @@ export class IntegracionHabilidadesDom {
     this.configuracionProgreso = configuracionProgreso;
     this.configuracionObjetos =
       configuracionObjetos ?? juego.configuracionObjetos;
+    if (
+      !gestorPaneles ||
+      typeof gestorPaneles.registrarPanelDinamico !== "function" ||
+      typeof gestorPaneles.cerrar !== "function"
+    ) {
+      throw new Error(
+        "La integración DOM de habilidades necesita el gestor de paneles de la partida.",
+      );
+    }
+    this.gestorPaneles = gestorPaneles;
     this.esJuegoActivo = esJuegoActivo;
     this.alEjecutarComando = alEjecutarComando;
     this.alSolicitarGuardadoJugador = alSolicitarGuardadoJugador;
@@ -95,7 +106,10 @@ export class IntegracionHabilidadesDom {
       configuracionEjecucion,
       familiasArmas: obtenerFamiliasArmas(this.configuracionObjetos),
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
+      alSolicitarCierre: () => this.gestorPaneles.cerrar("habilidades"),
     });
+
+    this.gestorPaneles.registrarPanelDinamico("habilidades", this.panel);
 
     this.desuscribirSistema = this.sistema.suscribirCambio(() => {
       this.actualizarSeleccionVisual();
@@ -247,6 +261,7 @@ export class IntegracionHabilidadesDom {
 
     this.desuscribirProgreso?.();
     this.desuscribirSistema?.();
+    this.gestorPaneles?.desregistrarPanelDinamico?.("habilidades", this.panel);
     this.barra?.destruir();
     this.panel?.destruir();
     this.sistema?.destruir();

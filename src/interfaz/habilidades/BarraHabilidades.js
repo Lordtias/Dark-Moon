@@ -1,4 +1,5 @@
 import { CANTIDAD_RANURAS_BARRA } from "../../juego/habilidades/ContratoBarraHabilidades.js";
+import { estaEntradaJugableCapturada } from "../../controles/ContextoEntradaInterfaz.js";
 import { crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
@@ -97,6 +98,10 @@ export class BarraHabilidades {
   instalarEventos() {
     for (const [indice, ranura] of this.ranuras.entries()) {
       const seleccionar = (evento) => {
+        if (estaEntradaJugableCapturada(document)) {
+          return;
+        }
+
         if (
           evento.type === "keydown" &&
           evento.key !== "Enter" &&

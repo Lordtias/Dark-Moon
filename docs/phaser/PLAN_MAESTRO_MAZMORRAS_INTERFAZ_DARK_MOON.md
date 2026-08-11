@@ -3,7 +3,7 @@
 **Proyecto:** Dark Moon
 **Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.
 **Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.
-**Estado operativo actual:** Etapas 1 y 2 cerradas. La puerta previa a la Etapa 3 mantiene cerrados higiene/consolidación canónica y deuda estructural local, y se encuentra en la certificación final del Bloque C — refactors grandes de presentación. Composición del mundo, coordinación de eventos, resultados/recuperaciones, corrección canónica del cruce diagonal, modularización de ataques y modularización de habilidades ya fueron validadas y commiteadas. La regresión automática integral del Bloque C se ejecutó sobre `26309e265068c55d0c84dc989c5d09c0762e0000` sin detectar defectos de producción; queda pendiente únicamente la validación manual integral antes de declarar el bloque cerrado y habilitar la Etapa 3.
+**Estado operativo actual:** Etapas 1 y 2 cerradas. La puerta previa a la Etapa 3 fue certificada y cerrada en `95393b5f75f40515288caa6c253c8e95895087a1`. La Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego — fue implementada sobre esa base con canvas dominante, HUD permanente, barra horizontal de experiencia, navegación unificada y paneles superpuestos. La validación técnica reproducible fue superada y el usuario informó validación manual satisfactoria dentro del juego el 11/08/2026. La Etapa 3 queda cerrada; permanece pendiente únicamente realizar el commit cuando el usuario lo solicite.
 
 ---
 
@@ -705,12 +705,12 @@ Reevaluación de módulos grandes Phaser
   ├─ ataques: modularización validada ✅ `a212ddc071ed1322bd0e17faf5687e07a4ec035e`
   └─ habilidades: modularización validada ✅ `26309e265068c55d0c84dc989c5d09c0762e0000`
         ↓
-Cierre y regresión del Bloque C: automática superada; pendiente validación manual integral
+Cierre y certificación del Bloque C ✅ `95393b5f75f40515288caa6c253c8e95895087a1`
         ↓
-Etapa 3 — Interfaz fullscreen
+Etapa 3 — Interfaz fullscreen ✅ validación técnica + manual satisfactoria; pendiente commit
 ```
 
-La Etapa 3 no debe comenzar hasta cerrar y validar los bloques B y C.
+Los bloques B y C fueron cerrados y certificados antes de iniciar la Etapa 3.
 
 ## 7.C.3 Criterios de cierre de la puerta previa
 
@@ -772,19 +772,25 @@ Debe mantenerse lectura numérica suficiente cuando sea necesaria para la jugabi
 
 La estética nunca puede degradar la comprensión.
 
+### Experiencia
+
+El HUD permanente incorpora además una **barra horizontal de experiencia**. Debe representar exclusivamente el progreso canónico del jugador —nivel, experiencia actual y experiencia necesaria— sin recalcular progresión ni conservar un estado paralelo.
+
 ---
 
 ## 8.4 Botones de menú
 
 Los accesos permanentes deben usar botones gráficos o iconográficos integrados a la barra/HUD.
 
-Funciones esperadas, según los sistemas reales existentes:
+Funciones aprobadas para la estructura de la Etapa 3:
 
+- Personaje / Equipamiento, conservando dentro de ese panel las estadísticas actuales;
 - Inventario;
-- Personaje / Equipamiento;
 - Habilidades / Maestrías;
-- Estadísticas;
-- opciones adicionales justificadas por el juego.
+- Registro;
+- Menú.
+
+El Menú incorpora inicialmente **Ayuda del juego** como función disponible. Sus futuras capacidades —por ejemplo configuración, retorno al inicio o salida de la aplicación— no forman parte de esta etapa y requerirán diseño y aprobación propios.
 
 Los botones deberían contemplar al menos:
 
@@ -803,6 +809,8 @@ No debe utilizarse el texto visible del botón como identificador lógico intern
 No se migrarán inventario, equipamiento, habilidades o estadísticas a Phaser solamente para afirmar que “están en Phaser”.
 
 Si HTML/CSS sigue siendo la tecnología más adecuada, deberá reutilizarse.
+
+La Etapa 3 transforma la **estructura general** y adapta los paneles existentes al nuevo sistema de overlays. El rediseño profundo del contenido, distribución y experiencia interna de Personaje/Equipamiento, Inventario, Habilidades/Maestrías, Registro y Menú queda expresamente fuera de alcance y deberá abordarse mediante hitos independientes posteriores.
 
 La transformación principal será de estructura y contrato:
 
@@ -883,7 +891,9 @@ La etapa no se considera terminada hasta validar:
 - canvas fullscreen real;
 - HUD correctamente superpuesto;
 - vida/maná con diseño gráfico aprobado y legible;
-- botones de menú gráficos;
+- experiencia representada mediante barra horizontal legible y alimentada por el progreso canónico;
+- botones de navegación gráficos para Personaje/Equipamiento, Inventario, Habilidades/Maestrías, Registro y Menú;
+- Ayuda accesible desde el Menú sin introducir todavía funciones futuras no aprobadas;
 - apertura y cierre coherente de paneles;
 - inventario sigue usando el estado canónico;
 - equipamiento sigue usando el estado canónico;
@@ -1261,15 +1271,21 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `26309e265068c55d0c84dc989c5d09c0762e0000`.
+La base Git validada de la Etapa 3 es `95393b5f75f40515288caa6c253c8e95895087a1`. La Etapa 3 fue implementada sobre esa base sin modificar reglas canónicas, persistencia, Electron ni dependencias.
 
-Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada; el retiro del renderizador Canvas 2D legacy con Loading/precarga contextual quedó cerrado en `a233242d6fb6c19b3491bb00877573e76591d490`, la composición modular del mundo quedó cerrada en `3c3bd183ddf4d4073b4f5b81da9894b497173543`, la coordinación base de eventos visuales quedó cerrada en `26d7f59423f9e181ea0842f50eea6eb7830b2deb`, la separación de resultados/recuperaciones quedó cerrada en `eaa5eff179f2fcba37c9a5bed55835a63d8b3920` y la corrección canónica del cruce diagonal quedó cerrada en `63b0b53d21648304c5a616e0ec9c60526c8d2596`.
+La validación técnica reproducible de E3 fue superada y el usuario informó el **11/08/2026** que las pruebas manuales resultaron satisfactorias. Por tanto, **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego queda cerrada**, a la espera únicamente del commit explícitamente solicitado por el usuario.
 
-La modularización de ataques quedó validada y cerrada en `a212ddc071ed1322bd0e17faf5687e07a4ec035e` manteniendo `reproducirAtaqueResuelto` como fachada estable. La modularización de habilidades quedó validada y cerrada en `26309e265068c55d0c84dc989c5d09c0762e0000`, manteniendo `reproducirHabilidadResuelta` como fachada estable y separando proyectil, línea, área instantánea, cadena y zona persistente por contrato visual, no por habilidad concreta.
+La estructura heredada para trabajos posteriores es:
 
-La reevaluación final no identificó otra responsabilidad mezclada que justifique un refactor grande antes del fullscreen. La regresión automática integral del Bloque C superó sintaxis, grafo de imports, JSON, paridad ES/EN, infraestructura de entidades, generación procedural reproducible, precarga contextual sin revelar FOV, espacio/pathfinding, persistencia, HTTP/offline y pipeline visual representativo, incluida cancelación/destrucción. Los módulos de planificación, composición y Loading previamente certificados no recibieron cambios posteriores a sus respectivas validaciones.
+- Phaser ocupa la superficie visual dominante mediante `RESIZE`;
+- `HudPartidaDom` representa Vida, Maná y Experiencia sin conservar reglas ni estado paralelo;
+- `GestorPanelesPartidaDom` es la autoridad de apertura/cierre de paneles primarios;
+- `ContextoEntradaInterfaz` centraliza la captura visual de entrada;
+- Personaje/Equipamiento, Inventario, Habilidades/Maestrías, Registro y Menú permanecen en HTML/CSS y consumen los estados canónicos existentes;
+- Ayuda está integrada inicialmente dentro de Menú;
+- el rediseño profundo de cada panel quedó expresamente diferido.
 
-Queda pendiente una única pasada manual integral de cierre. Solamente si esa validación es satisfactoria se declarará cerrado el Bloque C y se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
+El próximo trabajo deberá definirse como **un hito independiente de rediseño de panel**, escogiendo explícitamente cuál abordar primero. No se fija aquí un orden entre Personaje/Equipamiento, Inventario, Habilidades/Maestrías, Registro o Menú y no debe iniciarse ninguno sin nueva propuesta y aprobación.
 
 ---
 

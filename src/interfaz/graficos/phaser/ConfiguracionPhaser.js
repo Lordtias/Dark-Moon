@@ -43,11 +43,11 @@ export function crearConfiguracionPhaser({
       pointerEvents: "auto",
     },
     scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
+      mode: Phaser.Scale.RESIZE,
+      autoCenter: Phaser.Scale.NO_CENTER,
       width: ANCHO_REFERENCIA_PHASER,
       height: ALTO_REFERENCIA_PHASER,
-      expandParent: false,
+      expandParent: true,
     },
     callbacks: {
       postBoot: (juegoPhaser) => {
@@ -65,8 +65,8 @@ function validarDependencias({ Phaser, host, Escena }) {
     !Phaser?.Game ||
     !Phaser?.Scale ||
     Phaser.AUTO === undefined ||
-    Phaser.Scale.FIT === undefined ||
-    Phaser.Scale.CENTER_BOTH === undefined
+    Phaser.Scale.RESIZE === undefined ||
+    Phaser.Scale.NO_CENTER === undefined
   ) {
     throw new Error("Se necesita una instalación válida de Phaser.");
   }

@@ -2,37 +2,10 @@
    BARRA DE HABILIDADES
 ========================================================= */
 .barra-habilidades[data-barra-habilidades="activa"] {
-  grid-template-columns: repeat(10, 48px) 18px max-content;
+  grid-template-columns: repeat(10, 48px);
   grid-template-rows: 48px;
   align-items: center;
   justify-content: safe center;
-}
-
-.barra-habilidades__separador {
-  width: 1px;
-  height: 38px;
-  justify-self: center;
-  background: linear-gradient(transparent, #5666ca, transparent);
-}
-
-.boton-habilidades-maestrias {
-  min-height: 42px;
-  padding: 0 16px;
-  border: 2px solid #7586ff;
-  border-radius: 5px;
-  background: linear-gradient(#232a4d, #11162d);
-  color: #eef0ff;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.boton-habilidades-maestrias:hover,
-.boton-habilidades-maestrias:focus-visible {
-  border-color: #aeb8ff;
-  box-shadow: 0 0 10px rgba(117, 134, 255, 0.55);
-  outline: none;
 }
 
 [data-ranura-habilidad] {

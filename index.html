@@ -15,6 +15,9 @@
     <!-- Estilos específicos del panel del personaje. -->
     <link rel="stylesheet" href="./assets/estilos/paneles/panel-personaje.css" />
 
+    <!-- Estructura fullscreen de la partida. -->
+    <link rel="stylesheet" href="./assets/estilos/pantallas/interfaz-partida.css" />
+
     <!-- Estilos del mapa y la cámara Phaser. -->
     <link rel="stylesheet" href="./assets/estilos/phaser/phaser.css" />
   </head>
@@ -234,115 +237,115 @@
       PANTALLA DE LA PARTIDA
       ============================================= -->
       <section id="gameContainer" class="pantalla-juego oculto">
-        <header class="cabecera-partida">
-          <div>
-            <h1>Dark Moon</h1>
-          </div>
-        </header>
-
         <div class="interfaz-partida">
-          <!-- El contenido de este panel se obtiene
-          desde plantillaPanelPersonaje. -->
-          <aside
-            id="panelPersonaje"
-            class="panel-juego panel-personaje"
-          ></aside>
+          <div id="gameMapPanel" class="panel-mapa"></div>
 
-          <section class="zona-central-partida">
-            <div id="gameMapPanel" class="panel-juego panel-mapa"></div>
-
-            <div class="zona-acciones-partida">
-              <button
-                id="gameHelpButton"
-                class="boton-ayuda-juego"
-                type="button"
-                data-i18n="interfaz.ayuda.boton"
-              >
-                Ayuda del juego
-              </button>
-
-              <div class="panel-juego barra-habilidades">
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">1</span>
+          <section class="hud-partida" aria-label="Estado del personaje" data-i18n-aria-label="interfaz.hud.aria">
+            <div class="hud-recurso hud-recurso--vida">
+              <div class="hud-orbe" aria-label="Vida" data-i18n-aria-label="interfaz.personaje.vida">
+                <span id="hudVidaRelleno" class="hud-orbe__relleno hud-orbe__relleno--vida"></span>
+                <strong id="hudVidaTexto" class="hud-orbe__valor">0 / 0</strong>
               </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">2</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">3</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">4</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">5</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">6</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">7</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">8</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">9</span>
-              </div>
-
-              <div class="slot-habilidad">
-                <span class="tecla-habilidad">0</span>
-              </div>
-            </div>
+              <span class="hud-recurso__etiqueta" data-i18n="interfaz.personaje.vida">Vida</span>
             </div>
 
-            <section class="panel-juego panel-registro">
-              <h2>Registro de eventos</h2>
-
-              <div
-                id="combatLog"
-                role="log"
-                aria-live="polite"
-                aria-relevant="additions"
-              >
-                <p class="mensaje-registro mensaje-registro--sistema">
-                  Comenzá la aventura y explorá el mapa.
-                </p>
+            <div class="hud-centro">
+              <div class="hud-experiencia">
+                <div class="hud-experiencia__cabecera">
+                  <strong id="hudNivelTexto">Nivel 1</strong>
+                  <span id="hudExperienciaTexto">0 / 0 PX</span>
+                </div>
+                <div class="hud-experiencia__barra" role="progressbar" aria-label="Experiencia" data-i18n-aria-label="interfaz.hud.experiencia">
+                  <span id="hudExperienciaRelleno" class="hud-experiencia__relleno"></span>
+                </div>
               </div>
-            </section>
+
+              <div class="barra-habilidades panel-juego" aria-label="Habilidades rápidas" data-i18n-aria-label="interfaz.hud.habilidadesRapidas">
+                <div class="slot-habilidad"><span class="tecla-habilidad">1</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">2</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">3</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">4</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">5</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">6</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">7</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">8</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">9</span></div>
+                <div class="slot-habilidad"><span class="tecla-habilidad">0</span></div>
+              </div>
+
+              <nav class="barra-paneles-partida" aria-label="Paneles de la partida" data-i18n-aria-label="interfaz.navegacion.aria">
+                <button id="botonPanelPersonaje" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.personaje">Personaje</button>
+                <button id="botonPanelInventario" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.inventario">Inventario</button>
+                <button id="botonPanelHabilidades" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.habilidades">Habilidades</button>
+                <button id="botonPanelRegistro" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.registro">Registro</button>
+                <button id="botonPanelMenu" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.menu">Menú</button>
+              </nav>
+            </div>
+
+            <div class="hud-recurso hud-recurso--mana">
+              <div class="hud-orbe" aria-label="Maná" data-i18n-aria-label="interfaz.personaje.mana">
+                <span id="hudManaRelleno" class="hud-orbe__relleno hud-orbe__relleno--mana"></span>
+                <strong id="hudManaTexto" class="hud-orbe__valor">0 / 0</strong>
+              </div>
+              <span class="hud-recurso__etiqueta" data-i18n="interfaz.personaje.mana">Maná</span>
+            </div>
           </section>
 
-          <aside class="zona-lateral-derecha">
-            <section class="panel-juego panel-inventario">
-              <h2>Inventario</h2>
-
-              <p id="mensajeInventario" class="mensaje-vacio">
-                El inventario está vacío.
-              </p>
-
-              <div
-                id="cuadriculaInventario"
-                class="cuadricula-inventario"
-              ></div>
+          <div id="capaPanelesPartida" class="capa-paneles-partida" aria-hidden="true">
+            <section id="panelSuperpuestoPersonaje" class="panel-superpuesto-partida" hidden>
+              <header class="panel-superpuesto-partida__cabecera">
+                <h2 data-i18n="interfaz.navegacion.personajeEquipamiento">Personaje y equipamiento</h2>
+                <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
+              </header>
+              <div class="panel-superpuesto-partida__contenido panel-superpuesto-partida__contenido--doble">
+                <aside id="panelPersonaje" class="panel-juego panel-personaje"></aside>
+                <section class="panel-juego panel-equipamiento">
+                  <h2 data-i18n="interfaz.juego.equipamiento">Equipamiento</h2>
+                  <div id="cuadriculaEquipamiento" class="cuadricula-equipamiento"></div>
+                </section>
+              </div>
             </section>
 
-            <section class="panel-juego panel-equipamiento">
-              <h2>Equipamiento</h2>
-
-              <div
-                id="cuadriculaEquipamiento"
-                class="cuadricula-equipamiento"
-              ></div>
+            <section id="panelSuperpuestoInventario" class="panel-superpuesto-partida" hidden>
+              <header class="panel-superpuesto-partida__cabecera">
+                <h2 data-i18n="interfaz.juego.inventario">Inventario</h2>
+                <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
+              </header>
+              <div class="panel-superpuesto-partida__contenido">
+                <section class="panel-juego panel-inventario">
+                  <h2 data-i18n="interfaz.juego.inventario">Inventario</h2>
+                  <p id="mensajeInventario" class="mensaje-vacio" data-i18n="interfaz.juego.inventarioVacio">El inventario está vacío.</p>
+                  <div id="cuadriculaInventario" class="cuadricula-inventario"></div>
+                </section>
+              </div>
             </section>
-          </aside>
+
+            <section id="panelSuperpuestoRegistro" class="panel-superpuesto-partida" hidden>
+              <header class="panel-superpuesto-partida__cabecera">
+                <h2 data-i18n="interfaz.juego.registro">Registro de eventos</h2>
+                <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
+              </header>
+              <div class="panel-superpuesto-partida__contenido">
+                <section class="panel-juego panel-registro">
+                  <h2 data-i18n="interfaz.juego.registro">Registro de eventos</h2>
+                  <div id="combatLog" role="log" aria-live="polite" aria-relevant="additions">
+                    <p class="mensaje-registro mensaje-registro--sistema" data-i18n="interfaz.juego.mensajeInicial">Comenzá la aventura y explorá el mapa.</p>
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            <section id="panelSuperpuestoMenu" class="panel-superpuesto-partida panel-superpuesto-partida--menu" hidden>
+              <header class="panel-superpuesto-partida__cabecera">
+                <h2 data-i18n="interfaz.menuPartida.titulo">Menú</h2>
+                <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
+              </header>
+              <div class="panel-superpuesto-partida__contenido panel-menu-partida">
+                <p data-i18n="interfaz.menuPartida.descripcion">Opciones de la partida.</p>
+                <button id="gameHelpButton" class="boton-menu-partida" type="button" data-i18n="interfaz.ayuda.boton">Ayuda del juego</button>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
     </main>

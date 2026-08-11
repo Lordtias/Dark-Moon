@@ -3,7 +3,7 @@
 **Proyecto:** Dark Moon
 **Idioma obligatorio:** Español para código, comentarios, documentación, configuraciones y nombres técnicos nuevos.
 **Estado:** Plan maestro de trabajo — sujeto a validación técnica sobre el repositorio real antes de cada implementación.
-**Estado operativo actual:** Etapas 1 y 2 cerradas. Antes de iniciar la Etapa 3 se ejecuta una puerta de preparación arquitectónica en tres bloques: higiene y consolidación canónica, deuda estructural local y refactors grandes de presentación. Higiene y consolidación canónica fue validada en `04a4f3de83bf8805badc8ae9d73103d34cf36fbb`; la deuda estructural local quedó cerrada en `cf72a5193921dea38bc59971edd8e7d18f4b5e02`. El trabajo operativo actual es el Bloque C — refactors grandes de presentación: cobertura Phaser certificada, retiro del backend Canvas 2D implementado y cierre pendiente de Loading + precarga contextual de mapas antes de reevaluar los módulos grandes Phaser.
+**Estado operativo actual:** Etapas 1 y 2 cerradas. La puerta previa a la Etapa 3 mantiene cerrados higiene/consolidación canónica y deuda estructural local, y se encuentra en la parte final del Bloque C — refactors grandes de presentación. Composición del mundo, coordinación de eventos, resultados/recuperaciones, corrección canónica del cruce diagonal y modularización de ataques ya fueron validadas. La intervención operativa actual modulariza la reproducción de habilidades por patrones visuales canónicos sobre `a212ddc071ed1322bd0e17faf5687e07a4ec035e`; queda pendiente su validación manual antes de la regresión final del Bloque C.
 
 ---
 
@@ -680,7 +680,9 @@ La segunda intervención de esta deuda quedó validada y cerrada en `eaa5eff179f
 
 Durante la regresión manual de ese cierre se detectó una deuda funcional previa e independiente en el espacio canónico: un actor lateral combinado con una pared podía bloquear incorrectamente un movimiento diagonal hacia una casilla libre porque la regla de esquina reutilizaba `bloqueaMovimiento`. La corrección quedó validada y cerrada en `63b0b53d21648304c5a616e0ec9c60526c8d2596`: el contrato espacial distingue ocupación de casilla (`bloqueaMovimiento`) de sellado físico de esquina (`bloqueaCruceDiagonal`) y reutiliza la misma autoridad tanto para movimiento del jugador como para pathfinding.
 
-La reevaluación posterior de ataques confirmó una responsabilidad monolítica real en `ReproductorAtaquesPhaser`: clasificación/fallback, ataques a distancia, ataques cuerpo a cuerpo y soporte común compartían un único módulo aunque su único consumidor externo requiere solamente `reproducirAtaqueResuelto`. La primera intervención de esta reevaluación separa esas responsabilidades manteniendo esa fachada pública y sin introducir módulos por arma concreta. La implementación está preparada para validación manual antes de abordar la separación de habilidades.
+La reevaluación posterior de ataques confirmó una responsabilidad monolítica real en `ReproductorAtaquesPhaser`: clasificación/fallback, ataques a distancia, ataques cuerpo a cuerpo y soporte común compartían un único módulo aunque su único consumidor externo requiere solamente `reproducirAtaqueResuelto`. La modularización quedó validada y cerrada en `a212ddc071ed1322bd0e17faf5687e07a4ec035e`: `ReproductorAtaquesPhaser` conserva la fachada pública y delega contrato/clasificación, distancia, cuerpo a cuerpo y soporte común sin introducir módulos por arma concreta ni alterar reglas, perfiles o timings.
+
+La reevaluación de habilidades confirmó la última responsabilidad monolítica relevante del bloque: `ReproductorHabilidadesPhaser` concentraba en un único archivo los cinco patrones visuales canónicos ya definidos por contrato — proyectil, línea, área instantánea, cadena y zona persistente — además de geometría compartida y adaptación de resultados. La intervención actual mantiene `reproducirHabilidadResuelta` como fachada estable, separa cada patrón en un reproductor funcional configurable, extrae geometría visual neutral compartida y traslada `reproducirResultadoImpactoHabilidad` a `ReproductorResultadosVisualesPhaser`. Con esto `ReproductorZonasTemporalesPhaser` deja de depender del reproductor completo de habilidades para representar una activación ya resuelta. La implementación queda pendiente de validación manual antes de la regresión final del Bloque C.
 
 ## 7.C.2 Orden obligatorio
 
@@ -700,8 +702,8 @@ Reevaluación de módulos grandes Phaser
   ├─ coordinación de eventos: contexto + despacho ✅
   ├─ resultados/recuperaciones ✅
   ├─ corrección canónica de cruce diagonal ✅ `63b0b53d21648304c5a616e0ec9c60526c8d2596`
-  ├─ ataques: modularización implementada; pendiente validación manual
-  └─ habilidades: pendiente de reevaluación/implementación
+  ├─ ataques: modularización validada ✅ `a212ddc071ed1322bd0e17faf5687e07a4ec035e`
+  └─ habilidades: modularización implementada; pendiente validación manual
         ↓
 Cierre y regresión del Bloque C
         ↓
@@ -1259,13 +1261,15 @@ El hito se considerará exitoso si se cumplen simultáneamente estas condiciones
 
 # 16. Próximo paso operativo
 
-El estado operativo actual parte del commit validado `63b0b53d21648304c5a616e0ec9c60526c8d2596`.
+El estado operativo actual parte del commit validado `a212ddc071ed1322bd0e17faf5687e07a4ec035e`.
 
 Las Etapas 1 y 2 y el **Bloque B — Deuda estructural local** están cerrados. La cobertura funcional y visual de Phaser fue certificada; el retiro del renderizador Canvas 2D legacy con Loading/precarga contextual quedó cerrado en `a233242d6fb6c19b3491bb00877573e76591d490`, la composición modular del mundo quedó cerrada en `3c3bd183ddf4d4073b4f5b81da9894b497173543`, la coordinación base de eventos visuales quedó cerrada en `26d7f59423f9e181ea0842f50eea6eb7830b2deb`, la separación de resultados/recuperaciones quedó cerrada en `eaa5eff179f2fcba37c9a5bed55835a63d8b3920` y la corrección canónica del cruce diagonal quedó cerrada en `63b0b53d21648304c5a616e0ec9c60526c8d2596`.
 
-La reevaluación real de presentación confirmó que `ReproductorAtaquesPhaser` todavía mezcla responsabilidades independientes. La modularización de ataques conserva `reproducirAtaqueResuelto` como única fachada consumida por el dispatcher y separa contrato/clasificación, distancia, cuerpo a cuerpo y soporte común sin alterar reglas, perfiles ni timings. Esta intervención queda pendiente de validación manual.
+La modularización de ataques quedó validada y cerrada en `a212ddc071ed1322bd0e17faf5687e07a4ec035e` manteniendo `reproducirAtaqueResuelto` como fachada estable.
 
-Después de validar ataques se realizará la intervención equivalente de habilidades por patrones visuales canónicos. No se forzarán particiones por tamaño de archivo.
+La intervención operativa actual aplica el mismo criterio funcional a habilidades: `ReproductorHabilidadesPhaser` queda como fachada estable y los patrones proyectil, línea, área instantánea, cadena y zona persistente se reproducen en módulos especializados por contrato visual, no por habilidad concreta. También se neutraliza la geometría compartida y se elimina la dependencia `ReproductorZonasTemporalesPhaser → ReproductorHabilidadesPhaser` para resultados ya resueltos. Esta intervención queda pendiente de validación manual.
+
+Después de aprobarla corresponde realizar la reevaluación/regresión final del Bloque C; no se forzarán particiones adicionales por tamaño de archivo.
 
 Solamente cuando el Bloque C esté cerrado se iniciará la **Etapa 3 — Canvas Phaser fullscreen e interfaz de videojuego**.
 

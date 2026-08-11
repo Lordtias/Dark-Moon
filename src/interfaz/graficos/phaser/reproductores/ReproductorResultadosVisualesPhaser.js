@@ -8,6 +8,7 @@ import {
   normalizarDireccionVisual,
   obtenerCentroEntidadVisual,
 } from "../GeometriaVisualPhaser.js";
+import { reproducirRecuperacionHabilidad } from "./ReproductorRecuperacionesPhaser.js";
 
 // Representa resultados ya resueltos por combate, habilidades y estados. No
 // calcula daño, críticos, bloqueo, muerte ni botín.
@@ -471,4 +472,79 @@ export function obtenerCentroObjetivo(contexto, evento) {
 
 function formatearDanio(valor) {
   return Number.isInteger(valor) ? `${valor}` : valor.toFixed(1);
+}
+// Adapta el resultado ya resuelto de una habilidad o zona a las primitivas
+// visuales compartidas de daño, recuperación, estados, muerte y botín.
+export async function reproducirResultadoImpactoHabilidad(reproductor, evento, impacto, version) {
+  const eventoResultado = {
+    ...evento,
+    esHabilidad: true,
+    idAtacante: evento.idActor,
+    idObjetivo: impacto.idObjetivo,
+    origenAtacante: evento.origenActor,
+    posicionObjetivo: impacto.posicionObjetivo ?? evento.posicionObjetivo,
+  };
+  const golpe = {
+    impacto: impacto.impacto === true,
+    bloqueado: false,
+    critico: impacto.critico === true,
+    danio: Math.max(0, Number(impacto.danio?.cantidad) || 0),
+    vidaObjetivoAntes: impacto.danio?.vidaObjetivoAntes ?? null,
+    vidaObjetivoDespues: impacto.danio?.vidaObjetivoDespues ?? null,
+    vidaObjetivoMaxima: impacto.danio?.vidaObjetivoMaxima ?? null,
+  };
+  await reproducirResultadoGolpe(
+    reproductor,
+    eventoResultado,
+    golpe,
+    impacto.orden ?? 0,
+    version,
+    {
+      esperarDecorativos: false,
+      usarMarcaImpactoGenerica: false,
+    },
+  );
+
+  const recursosRecuperados = convertirCambiosRecursosARecuperacion(
+    impacto.recursosObjetivo,
+  );
+  if (recursosRecuperados.length > 0) {
+    await reproducirRecuperacionHabilidad(reproductor, {
+      evento,
+      impacto,
+      recursos: recursosRecuperados,
+      version,
+    });
+  }
+
+  for (const eventoEfecto of impacto.eventosEfectos ?? []) {
+    if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
+    await reproductor.reproducirEventoVisual(eventoEfecto, version);
+  }
+
+  if (impacto.derrotaVisual) {
+    await reproducirEntidadDerrotada(reproductor, impacto.derrotaVisual, version);
+  }
+  if (impacto.botinVisual) {
+    await reproducirBotinAparecido(reproductor, impacto.botinVisual, version);
+  }
+}
+
+function convertirCambiosRecursosARecuperacion(recursos) {
+  if (!Array.isArray(recursos)) return [];
+  return recursos
+    .map((recurso) => {
+      const cantidadAplicada = Math.max(0, Number(recurso?.cantidadReal) || 0);
+      const valorMaximo = Math.max(0, Number(recurso?.valorMaximo) || 0);
+      if (cantidadAplicada <= 0 || valorMaximo <= 0) return null;
+      return {
+        recurso: recurso?.recurso === "mana" ? "mana" : "vida",
+        cantidadAplicada,
+        valorAntes: Math.max(0, Number(recurso?.valorAntes) || 0),
+        valorDespues: Math.max(0, Number(recurso?.valorDespues) || 0),
+        valorMaximo,
+        proporcionRecuperada: Math.min(1, cantidadAplicada / valorMaximo),
+      };
+    })
+    .filter(Boolean);
 }

@@ -1,4 +1,4 @@
-import { reproducirResultadoImpactoHabilidad } from "./ReproductorHabilidadesPhaser.js";
+import { reproducirResultadoImpactoHabilidad } from "./ReproductorResultadosVisualesPhaser.js";
 
 // Reproducción de zonas temporales. Opera sobre el coordinador recibido y no
 // modifica reglas de juego ni el orden de la cola visual.

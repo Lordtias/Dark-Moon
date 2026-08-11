@@ -1581,13 +1581,15 @@ El renderizador Phaser utiliza actualmente:
 - `GestorRecursosPhaser` para cargar imágenes locales, precargar lotes contextuales y calcular los límites alfa, la base y el centro visible de cada PNG;
 - `RecursosMapaPhaser` para reunir y deduplicar el manifiesto visual persistente requerido por el mapa activo sin conocer reglas de FOV ni posiciones ocultas;
 - `ConfiguracionEntidadesPhaser` como única fuente de presentación cenital de entidades dentro de Phaser;
-- `CompositorMundoPhaser` para suelo, paredes, cuadrícula, decoración, sombras, selección, entidades, iluminación ambiental y efectos temporales;
+- `CompositorMundoPhaser` como fachada de composición del mapa: delega terreno, entidades y selección en `CompositorTerrenoPhaser`, `CompositorEntidadesPhaser` y `CompositorSeleccionPhaser`, y conserva la coordinación transversal de visibilidad final, zonas temporales e iluminación;
 - `ControladorCamaraPhaser` para seguimiento, zoom y desplazamiento visual;
 - `ConversorCoordenadasPhaser` como contrato único entre pantalla, mundo y casilla;
 - `ControladorEntradaJugablePhaser` para traducir el clic izquierdo a `SELECCIONAR_CASILLA` solamente cuando existe un modo de selección;
 - `EventosAccion` para conservar movimientos, ataques y cambios de hostilidad ya resueltos sin repetir reglas;
 - `PlanificadorEventosVisuales` para reemplazar referencias del dominio por identidades visuales en memoria;
-- `ReproductorEventosVisualesPhaser` como coordinador de la cola visual y reproductores especializados para movimiento, ataques, habilidades, estados y zonas;
+- `ReproductorEventosVisualesPhaser` como coordinador exclusivo de cola, orden, cancelación, inactividad y aplicación de escena final; `DespachadorEventosVisualesPhaser` enruta cada tipo y `ContextoReproduccionVisualPhaser` concentra la infraestructura temporal compartida;
+- reproductores visuales funcionales para movimiento, estados y zonas, más `ReproductorResultadosVisualesPhaser` y `ReproductorRecuperacionesPhaser` para representar resultados ya resueltos sin recalcular reglas;
+- `ReproductorAtaquesPhaser` y `ReproductorHabilidadesPhaser` como fachadas estables: ataques delega distancia/cuerpo a cuerpo y habilidades delega los patrones canónicos proyectil, línea, área instantánea, cadena y zona persistente;
 - recursos ambientales de Alcantarilla en `assets/imagenes/mundo/alcantarilla/`, incluida la familia cenital de `cenital/`;
 - `AnalizadorVecindadTerreno` y `ResolutorAutotilingParedes` como contrato genérico de ocho vecinos para muros y suelos;
 - paredes representadas como una masa continua, con bordes expuestos y esquinas interiores definidos por la configuración del bioma;
@@ -1598,7 +1600,7 @@ El renderizador Phaser utiliza actualmente:
 - cámara centrada y sin arrastre manual mientras existe una selección de ataque, interacción o habilidad;
 - una adaptación exclusiva del modo Phaser para impedir que ventanas bajas compriman el mapa hasta volverlo ilegible.
 
-La presentación temporal consume exclusivamente resultados ya resueltos por el dominio. Movimiento, ataques físicos, proyectiles, habilidades, estados temporales, zonas, recuperaciones, derrotas, botín y cambios de hostilidad se convierten en eventos visuales ordenados sin recalcular daño, costes, resistencias, IA ni progresión. `PlanificadorRitmoVisual` convierte el tiempo jugable a duración de presentación y `ReproductorEventosVisualesPhaser` coordina la cola visual; los reproductores especializados por familia delegan la representación concreta sin convertirse en autoridades de reglas.
+La presentación temporal consume exclusivamente resultados ya resueltos por el dominio. Movimiento, ataques físicos, proyectiles, habilidades, estados temporales, zonas, recuperaciones, derrotas, botín y cambios de hostilidad se convierten en eventos visuales ordenados sin recalcular daño, costes, resistencias, IA ni progresión. `PlanificadorRitmoVisual` convierte el tiempo jugable a duración de presentación; `ReproductorEventosVisualesPhaser` coordina la cola, `DespachadorEventosVisualesPhaser` selecciona el reproductor funcional y `ContextoReproduccionVisualPhaser` aporta temporización/cancelación compartida. Ataques se separan por familia visual de distancia o cuerpo a cuerpo y habilidades por los patrones canónicos configurables, sin crear motores por arma o habilidad concreta.
 
 Los perfiles de presentación se mantienen en configuraciones visuales validadas. Los proyectiles conservan el recurso exacto ya consumido o equipado; las habilidades transportan sus impactos y objetivos resueltos; los estados persistentes se adjuntan a la entidad visual correspondiente; y el botín aparece después de la derrota que lo produjo. La derrota del jugador es inmediata en el dominio, aunque la interfaz puede esperar a que finalice la presentación visual pendiente antes de mostrar el modal.
 

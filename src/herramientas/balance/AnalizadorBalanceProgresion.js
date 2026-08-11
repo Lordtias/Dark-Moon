@@ -281,10 +281,10 @@ function calcularCantidadRecurrenteEsperada({
     );
     const terreno = generarTerreno({ plantilla: plantillaMapa, aleatorio });
     const contextoPoblacion = crearContextoPoblacion({
+      plantilla: plantillaMapa,
       terreno,
       posicionJugador: terreno.posicionInicialSugerida,
       aleatorio,
-      configuracion,
     });
 
     total += calcularCantidadEnemigosRecurrentes({

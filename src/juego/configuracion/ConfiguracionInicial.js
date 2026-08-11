@@ -317,6 +317,8 @@ function completarConfiguracionMazmorra({
     detalleDestructibles: contenido.resumen.detalleDestructibles,
 
     interactuablesProcedurales: contenido.resumen.interactuablesProcedurales,
+
+    planPoblacion: contenido.resumen.planPoblacion,
   };
 
   return {

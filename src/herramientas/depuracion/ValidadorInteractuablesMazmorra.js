@@ -38,6 +38,11 @@ export function validarInteractuablesMazmorra({
   const idHabitacionEntrada = plano.zonaEntrada?.idHabitacion ?? null;
   const idHabitacionEspecial = plano.salidaEstructural?.idHabitacion ?? null;
   const idPasilloSalida = plano.salidaEstructural?.idPasillo ?? "pasillo_salida";
+  const idsHabitacionesAmbientales = new Set(
+    plano.planPoblacion?.idsHabitacionesAmbientales ??
+      contenido.resumen?.planPoblacion?.idsHabitacionesAmbientales ??
+      [],
+  );
 
   comprobar(portales.length === 1, "Debe existir exactamente un portal de entrada procedural.", errores);
   if (portales[0]) {
@@ -131,6 +136,21 @@ export function validarInteractuablesMazmorra({
     errores,
   );
 
+  for (const detalleCofre of resumen.cofresModerados ?? []) {
+    comprobar(
+      !idsHabitacionesAmbientales.has(detalleCofre.idHabitacion),
+      `El cofre moderado en ${crearClave(detalleCofre)} ocupa una habitación ambiental.`,
+      errores,
+    );
+  }
+  for (const destructible of contenido.resumen?.detalleDestructibles ?? []) {
+    comprobar(
+      !idsHabitacionesAmbientales.has(destructible.idHabitacion),
+      `El destructible en ${crearClave(destructible)} ocupa una habitación ambiental.`,
+      errores,
+    );
+  }
+
   for (const cofre of cofres) {
     comprobar(
       tieneAccesoCardinal({ entidad: cofre, plano, objetivos, interactuables }),
@@ -178,6 +198,7 @@ export function validarInteractuablesMazmorra({
       cofres: cofres.length,
       cofresModerados: resumen.cantidadCofresModerados ?? 0,
       barriles: resumen.cantidadBarriles ?? 0,
+      habitacionesAmbientales: idsHabitacionesAmbientales.size,
       idHabitacionEspecial,
     },
   };

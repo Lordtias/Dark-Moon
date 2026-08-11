@@ -4,6 +4,12 @@ import {
   analizarAccesoHabitacion,
   contieneCasillaHabitacion,
 } from "./PlanoMazmorra.js";
+import {
+  calcularCostoCofrePoblacion,
+  calcularCostoDestructiblePoblacion,
+  consumirPresupuesto,
+  puedeConsumirPresupuesto,
+} from "./PlanificadorPoblacionMazmorra.js";
 import { crearClave, seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
 
 const DIRECCIONES_CARDINALES = [
@@ -129,6 +135,7 @@ export function generarBarrilesProcedurales({
   aleatorio,
 }) {
   const configuracion = plantilla.interactuables.barriles;
+  const costoPoblacion = calcularCostoDestructiblePoblacion();
   const cantidadCalculada = Math.round(
     contextoPoblacion.cantidadCasillasCandidatas *
       (configuracion.densidadPor100Casillas / 100),
@@ -162,6 +169,11 @@ export function generarBarrilesProcedurales({
     if (barriles.length >= cantidadObjetivo) break;
 
     const clave = crearClave(posicion);
+    const zona = zonaPorClave.get(clave);
+    if (!zona || !puedeConsumirPresupuesto(zona, costoPoblacion)) {
+      continue;
+    }
+
     posicionesBloqueadasPersistentes.add(clave);
     const mantieneConectividad = comprobarConectividad({
       clavesCaminables,
@@ -182,7 +194,17 @@ export function generarBarrilesProcedurales({
       objetivos,
       interactuables,
     });
-    const zona = zonaPorClave.get(clave);
+    if (
+      !consumirPresupuesto({
+        zona,
+        costo: costoPoblacion,
+        origen: "destructible",
+      })
+    ) {
+      throw new Error(
+        `La habitación "${zona.idHabitacion}" perdió disponibilidad de presupuesto durante la colocación de un destructible.`,
+      );
+    }
 
     barriles.push(resultado.entidad);
     detalle.push({
@@ -192,7 +214,8 @@ export function generarBarrilesProcedurales({
       x: posicion.x,
       y: posicion.y,
       idHabitacion: zona?.idHabitacion ?? null,
-      zonaEspecial: zona?.esEspecial === true,
+      zonaEspecial: zona.esEspecial === true,
+      costoPoblacion: resumirCosto(costoPoblacion),
     });
   }
 
@@ -200,7 +223,7 @@ export function generarBarrilesProcedurales({
   if (cantidadNoColocada > 0) {
     console.warn(
       `[Mapa] "${plantilla.nombre}" colocó ${barriles.length} de ` +
-        `${cantidadObjetivo} barriles para conservar la conectividad.`,
+        `${cantidadObjetivo} barriles tras aplicar presupuesto y conectividad.`,
     );
   }
 
@@ -405,6 +428,20 @@ function generarCofreEnZona({
   posicionesReservadasAcceso,
   posicionJugador,
 }) {
+  const costoPoblacion = calcularCostoCofrePoblacion({
+    tablaBotin: configuracion.tablaBotin,
+    configuracionObjetos,
+  });
+
+  if (!puedeConsumirPresupuesto(zona, costoPoblacion)) {
+    if (obligatorio) {
+      throw new Error(
+        `La habitación "${zona.idHabitacion}" no tiene presupuesto suficiente para el cofre ${tipo} obligatorio.`,
+      );
+    }
+    return null;
+  }
+
   const posicion = extraerPosicionBloqueanteValida({
     zona,
     clavesCaminables,
@@ -440,6 +477,18 @@ function generarCofreEnZona({
     return null;
   }
 
+  if (
+    !consumirPresupuesto({
+      zona,
+      costo: costoPoblacion,
+      origen: tipo === "importante" ? "cofre_importante" : "cofre_moderado",
+    })
+  ) {
+    throw new Error(
+      `La habitación "${zona.idHabitacion}" perdió disponibilidad de presupuesto durante la colocación de un cofre.`,
+    );
+  }
+
   const resultado = incorporarEntidadMazmorra({
     id: "cofre",
     nombre,
@@ -471,8 +520,17 @@ function generarCofreEnZona({
     cantidadPilas: resultado.resultadoBotin.cantidadPilas,
     cantidadUnidades: resultado.resultadoBotin.cantidadUnidades,
     botin: resultado.resultadoBotin.resumen,
+    costoPoblacion: resumirCosto(costoPoblacion),
   };
 }
+function resumirCosto(costo) {
+  return {
+    ocupacion: costo.ocupacion,
+    amenaza: costo.amenaza,
+    valorRecompensa: costo.valorRecompensa,
+  };
+}
+
 function reservarAccesoCofre({
   zona,
   posicionCofre,

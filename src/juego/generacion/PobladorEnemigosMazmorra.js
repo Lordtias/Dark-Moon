@@ -1,7 +1,13 @@
 import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { crearEnemigo } from "../fabricas/FabricaEnemigos.js";
 import { resolverEncuentroEspecial } from "./GeneradorEncuentroEspecial.js";
-import { crearClave, seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
+import {
+  calcularCostoEnemigoPoblacion,
+  consumirPresupuesto,
+  crearPlanPoblacionMazmorra,
+  puedeConsumirPresupuesto,
+} from "./PlanificadorPoblacionMazmorra.js";
+import { seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
 
 export const TIPOS_ENEMIGO_UNICO = Object.freeze({
   ESPECIAL: "especial",
@@ -36,8 +42,23 @@ export function generarEnemigosRecurrentes({
   );
   const zonasActivadasPorCapacidad = [];
   let indiceZonaSiguiente = 0;
+  let cantidadNoColocadaPorPresupuesto = 0;
 
   for (let indice = 0; indice < cantidadObjetivo; indice++) {
+    const candidato = seleccionarCandidatoEnemigoConPresupuesto({
+      configuracion,
+      nivelMapa,
+      zonas: [...zonasActivas, ...zonasReserva],
+      aleatorio,
+      configuracionEnemigos,
+      configuracionObjetos,
+    });
+
+    if (!candidato) {
+      cantidadNoColocadaPorPresupuesto = cantidadObjetivo - enemigos.length;
+      break;
+    }
+
     let ubicacion = buscarUbicacionEnZonas({
       zonas: zonasActivas,
       indiceInicial: indiceZonaSiguiente,
@@ -45,6 +66,7 @@ export function generarEnemigosRecurrentes({
       posicionesEnemigos,
       distanciaSeguraJugador: configuracion.distanciaSeguraJugador,
       distanciaMinimaEntreEnemigos: configuracion.distanciaMinimaEntreEnemigos,
+      costoPoblacion: candidato.costoPoblacion,
     });
 
     while (ubicacion === null && zonasReserva.length > 0) {
@@ -60,39 +82,40 @@ export function generarEnemigosRecurrentes({
         posicionesEnemigos,
         distanciaSeguraJugador: configuracion.distanciaSeguraJugador,
         distanciaMinimaEntreEnemigos: configuracion.distanciaMinimaEntreEnemigos,
+        costoPoblacion: candidato.costoPoblacion,
       });
     }
 
     if (ubicacion === null) {
       throw new Error(
-        `El mapa "${plantilla.nombre}" no tiene espacio ` +
-          `para colocar ${cantidadObjetivo} enemigos recurrentes ` +
-          "respetando las zonas y distancias configuradas.",
+        `El mapa "${plantilla.nombre}" conserva presupuesto para un enemigo ` +
+          "pero no tiene una posición física válida respetando las distancias configuradas.",
       );
     }
 
     const { zona, indicePosicion, indiceZona } = ubicacion;
     const [posicion] = zona.posicionesDisponibles.splice(indicePosicion, 1);
-    indiceZonaSiguiente = zonasActivas.length > 0
-      ? (indiceZona + 1) % zonasActivas.length
-      : 0;
+    indiceZonaSiguiente =
+      zonasActivas.length > 0 ? (indiceZona + 1) % zonasActivas.length : 0;
 
-    const enemigoPermitido = seleccionarPonderado(
-      configuracion.permitidos,
-      aleatorio,
-    );
-
-    const idVariante = seleccionarVariante(
-      configuracion.probabilidadesVariantes,
-      aleatorio,
-    );
+    if (
+      !consumirPresupuesto({
+        zona,
+        costo: candidato.costoPoblacion,
+        origen: "enemigo_recurrente",
+      })
+    ) {
+      throw new Error(
+        `La habitación "${zona.idHabitacion}" perdió disponibilidad de presupuesto durante la colocación de un enemigo.`,
+      );
+    }
 
     const enemigo = crearEnemigo({
       configuracionEnemigos,
       configuracionObjetos,
-      idPlantilla: enemigoPermitido.id,
+      idPlantilla: candidato.enemigoPermitido.id,
       nivel: nivelMapa,
-      idVariante,
+      idVariante: candidato.idVariante,
       x: posicion.x,
       y: posicion.y,
     });
@@ -101,14 +124,14 @@ export function generarEnemigosRecurrentes({
     posicionesEnemigos.push({ ...posicion });
     zona.cantidadEnemigosRecurrentes += 1;
 
-    incrementarConteo(enemigosPorTipo, enemigoPermitido.id);
-    incrementarConteo(variantes, idVariante ?? "normal");
+    incrementarConteo(enemigosPorTipo, candidato.enemigoPermitido.id);
+    incrementarConteo(variantes, candidato.idVariante ?? "normal");
 
     detalle.push({
-      numero: indice + 1,
+      numero: enemigos.length,
       nombre: enemigo.nombre,
-      tipo: enemigoPermitido.id,
-      variante: idVariante ?? "normal",
+      tipo: candidato.enemigoPermitido.id,
+      variante: candidato.idVariante ?? "normal",
       nivel: nivelMapa,
       x: posicion.x,
       y: posicion.y,
@@ -116,6 +139,7 @@ export function generarEnemigosRecurrentes({
       zonaEspecial: zona.esEspecial,
       esEncuentroEspecial: false,
       esJefe: false,
+      costoPoblacion: resumirCosto(candidato.costoPoblacion),
     });
   }
 
@@ -126,6 +150,7 @@ export function generarEnemigosRecurrentes({
     enemigosPorTipo,
     variantes,
     zonasActivadasPorCapacidad,
+    cantidadNoColocadaPorPresupuesto,
   };
 }
 
@@ -174,6 +199,7 @@ export function generarEnemigoUnicoEnZona({
     tiradaExitosa: resolucion.aparece,
     colocado: false,
     omitidoPorEspacio: false,
+    omitidoPorPresupuesto: false,
     idEnemigo: resolucion.idEnemigo,
     nombre: null,
     variante: resolucion.variante,
@@ -200,6 +226,29 @@ export function generarEnemigoUnicoEnZona({
       `El mapa "${plantilla.nombre}" no tiene una zona especial válida ` +
         `para colocar ${esJefe ? "su jefe" : "el encuentro especial"}.`,
     );
+  }
+
+  const costoPoblacion = calcularCostoEnemigoPoblacion({
+    configuracionEnemigos,
+    configuracionObjetos,
+    idPlantilla: resolucion.idEnemigo,
+    nivel: nivelMapa,
+    idVariante: resolucion.idVariante,
+    tablaBotinAdicional: resolucion.tablaBotinAdicional,
+  });
+
+  if (!puedeConsumirPresupuesto(zona, costoPoblacion)) {
+    if (obligatorio) {
+      throw new Error(
+        `La habitación especial "${zona.idHabitacion}" no tiene presupuesto suficiente para el jefe obligatorio de "${plantilla.nombre}".`,
+      );
+    }
+
+    return crearResultadoEnemigoUnicoVacio({
+      ...resumenBase,
+      omitidoPorPresupuesto: true,
+      costoPoblacion: resumirCosto(costoPoblacion),
+    });
   }
 
   const configuracionPosicion = plantilla.enemigos;
@@ -234,6 +283,18 @@ export function generarEnemigoUnicoEnZona({
   }
 
   const [posicion] = zona.posicionesDisponibles.splice(indicePosicion, 1);
+
+  if (
+    !consumirPresupuesto({
+      zona,
+      costo: costoPoblacion,
+      origen: esJefe ? "jefe" : "encuentro_especial",
+    })
+  ) {
+    throw new Error(
+      `La habitación especial "${zona.idHabitacion}" perdió disponibilidad de presupuesto durante la colocación de un enemigo único.`,
+    );
+  }
 
   const enemigo = crearEnemigo({
     configuracionEnemigos,
@@ -272,6 +333,7 @@ export function generarEnemigoUnicoEnZona({
         probabilidadEncuentro: resolucion.probabilidadAparicion,
         tiradaEncuentro: resolucion.tirada,
         cantidadEntradasBotinAdicional: resolucion.tablaBotinAdicional.length,
+        costoPoblacion: resumirCosto(costoPoblacion),
       },
     ],
     enemigosPorTipo: {
@@ -286,73 +348,24 @@ export function generarEnemigoUnicoEnZona({
       nombre: enemigo.nombre,
       x: posicion.x,
       y: posicion.y,
+      costoPoblacion: resumirCosto(costoPoblacion),
     },
   };
 }
 export function crearContextoPoblacion({
+  plantilla,
   terreno,
   posicionJugador,
   aleatorio,
-  configuracion,
-}) {
-  const idHabitacionEspecial = terreno.salidaEstructural?.idHabitacion;
-
-  if (
-    typeof idHabitacionEspecial !== "string" ||
-    idHabitacionEspecial.trim() === ""
-  ) {
-    throw new Error(
-      "El plano necesita identificar la habitación asociada a la salida estructural.",
-    );
-  }
-
-  const clavesReservadas = new Set(
-    (terreno.casillasReservadasContenido ?? []).map((posicion) =>
-      crearClave(posicion),
-    ),
-  );
-
-  const zonas = (terreno.zonasCandidatasPoblacion ?? []).map((zona) => {
-    const esEspecial = zona.idHabitacion === idHabitacionEspecial;
-    const posicionesDisponibles = aleatorio.mezclar(
-      (zona.casillas ?? []).filter(
-        (posicion) =>
-          !sonMismaPosicion(posicion, posicionJugador) &&
-          !clavesReservadas.has(crearClave(posicion)),
-      ),
-    );
-
-    return {
-      idHabitacion: zona.idHabitacion,
-      esEspecial,
-      activaInicial:
-        esEspecial ||
-        aleatorio.siguiente() * 100 < configuracion.probabilidadZonaPoblada,
-      activadaPorCapacidad: false,
-      cantidadEnemigosRecurrentes: 0,
-      cantidadEnemigosUnicos: 0,
-      cantidadCasillasCandidatas: posicionesDisponibles.length,
-      posicionesDisponibles,
-    };
+} = {}) {
+  return crearPlanPoblacionMazmorra({
+    plantilla,
+    terreno,
+    posicionJugador,
+    aleatorio,
   });
-
-  const zonasEspeciales = zonas.filter((zona) => zona.esEspecial);
-
-  if (zonasEspeciales.length !== 1) {
-    throw new Error(
-      "El plano debe producir exactamente una zona de población asociada a la salida estructural.",
-    );
-  }
-
-  return {
-    zonaEspecial: zonasEspeciales[0],
-    zonasNormales: zonas.filter((zona) => !zona.esEspecial),
-    cantidadCasillasCandidatas: zonas.reduce(
-      (total, zona) => total + zona.cantidadCasillasCandidatas,
-      0,
-    ),
-  };
 }
+
 export function calcularCantidadEnemigosRecurrentes({
   configuracion,
   contextoPoblacion,
@@ -378,21 +391,26 @@ export function crearResumenPoblacionEnemigos({
   ];
 
   return {
-    estrategia: "densidad_por_zonas",
+    estrategia: "presupuesto_por_habitacion",
     densidadPor100Casillas: configuracion.densidadPor100Casillas,
     probabilidadZonaPoblada: configuracion.probabilidadZonaPoblada,
     cantidadCasillasCandidatas: contextoPoblacion.cantidadCasillasCandidatas,
     cantidadObjetivoRecurrentes: cantidadObjetivo,
+    cantidadNoColocadaPorPresupuesto:
+      resultadoRecurrentes.cantidadNoColocadaPorPresupuesto ?? 0,
     idHabitacionZonaEspecial: contextoPoblacion.zonaEspecial.idHabitacion,
     cantidadZonasNormales: contextoPoblacion.zonasNormales.length,
+    cantidadZonasAmbientales: contextoPoblacion.zonasAmbientales.length,
     cantidadZonasActivasIniciales: zonas.filter((zona) => zona.activaInicial)
       .length,
     zonasActivadasPorCapacidad: [
       ...resultadoRecurrentes.zonasActivadasPorCapacidad,
     ],
-    detalleZonas: zonas.map((zona) => ({
+    detalleZonas: contextoPoblacion.zonas.map((zona) => ({
       idHabitacion: zona.idHabitacion,
+      tipoUso: zona.tipoUso,
       zonaEspecial: zona.esEspecial,
+      ambiental: zona.esAmbiental,
       activaInicial: zona.activaInicial,
       activadaPorCapacidad: zona.activadaPorCapacidad,
       cantidadCasillasCandidatas: zona.cantidadCasillasCandidatas,
@@ -401,6 +419,7 @@ export function crearResumenPoblacionEnemigos({
     })),
   };
 }
+
 function crearResultadoEnemigoUnicoVacio(resumen) {
   return {
     enemigos: [],
@@ -421,6 +440,53 @@ function agregarBotinAdicional({ enemigo, tablaBotinAdicional, descripcion }) {
     })),
   );
 }
+function seleccionarCandidatoEnemigoConPresupuesto({
+  configuracion,
+  nivelMapa,
+  zonas,
+  aleatorio,
+  configuracionEnemigos,
+  configuracionObjetos,
+}) {
+  const intentosMaximos = Math.max(4, configuracion.permitidos.length * 4);
+
+  for (let intento = 0; intento < intentosMaximos; intento++) {
+    const enemigoPermitido = seleccionarPonderado(
+      configuracion.permitidos,
+      aleatorio,
+    );
+    const idVariante = seleccionarVariante(
+      configuracion.probabilidadesVariantes,
+      aleatorio,
+    );
+    const costoPoblacion = calcularCostoEnemigoPoblacion({
+      configuracionEnemigos,
+      configuracionObjetos,
+      idPlantilla: enemigoPermitido.id,
+      nivel: nivelMapa,
+      idVariante,
+    });
+
+    if (zonas.some((zona) => puedeConsumirPresupuesto(zona, costoPoblacion))) {
+      return {
+        enemigoPermitido,
+        idVariante,
+        costoPoblacion,
+      };
+    }
+  }
+
+  return null;
+}
+
+function resumirCosto(costo) {
+  return {
+    ocupacion: costo.ocupacion,
+    amenaza: costo.amenaza,
+    valorRecompensa: costo.valorRecompensa,
+  };
+}
+
 function buscarUbicacionEnZonas({
   zonas,
   indiceInicial,
@@ -428,6 +494,7 @@ function buscarUbicacionEnZonas({
   posicionesEnemigos,
   distanciaSeguraJugador,
   distanciaMinimaEntreEnemigos,
+  costoPoblacion,
 }) {
   if (!Array.isArray(zonas) || zonas.length === 0) {
     return null;
@@ -436,6 +503,9 @@ function buscarUbicacionEnZonas({
   for (let desplazamiento = 0; desplazamiento < zonas.length; desplazamiento++) {
     const indiceZona = (indiceInicial + desplazamiento) % zonas.length;
     const zona = zonas[indiceZona];
+    if (!puedeConsumirPresupuesto(zona, costoPoblacion)) {
+      continue;
+    }
     const indicePosicion = buscarIndicePosicionEnemigo({
       posicionesDisponibles: zona.posicionesDisponibles,
       posicionJugador,
@@ -510,9 +580,6 @@ function incrementarConteo(conteo, clave) {
   conteo[clave] = (conteo[clave] ?? 0) + 1;
 }
 
-function sonMismaPosicion(posicionA, posicionB) {
-  return posicionA.x === posicionB.x && posicionA.y === posicionB.y;
-}
 function validarTipoEnemigoUnico({ tipo, obligatorio }) {
   if (!Object.values(TIPOS_ENEMIGO_UNICO).includes(tipo)) {
     throw new Error(`El tipo de enemigo único "${tipo}" no es válido.`);

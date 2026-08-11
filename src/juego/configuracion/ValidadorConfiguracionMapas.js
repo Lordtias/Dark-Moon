@@ -86,6 +86,12 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarGeneracion(idPlantilla, plantilla.generacion, plantilla.dimensiones);
 
+  validarPoblacion(
+    idPlantilla,
+    plantilla.poblacion,
+    plantilla.generacion,
+  );
+
   const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
 
   const idsEspeciales = validarEncuentroEspecial({
@@ -266,6 +272,61 @@ function validarGeneracion(idPlantilla, generacion, dimensiones) {
     generacion.intentosMaximos,
     1,
     `los intentos máximos de "${idPlantilla}"`,
+  );
+}
+
+function validarPoblacion(idPlantilla, poblacion, generacion) {
+  validarObjeto(poblacion, `la población de "${idPlantilla}"`);
+  validarRangoEntero({
+    rango: poblacion.habitacionesAmbientales,
+    descripcion: `las habitaciones ambientales de "${idPlantilla}"`,
+    minimoPermitido: 1,
+    maximoPermitido: 3,
+  });
+
+  const cantidadMinimaSectores = generacion.sectores.cantidad.minimo;
+  if (
+    poblacion.habitacionesAmbientales.maximo >
+    cantidadMinimaSectores - 2
+  ) {
+    throw new Error(
+      `La reserva ambiental máxima de "${idPlantilla}" debe dejar al menos una habitación de entrada y una habitación especial.`,
+    );
+  }
+
+  validarObjeto(
+    poblacion.presupuestoHabitacion,
+    `el presupuesto por habitación de "${idPlantilla}"`,
+  );
+
+  for (const dimension of ["ocupacion", "amenaza", "valorRecompensa"]) {
+    const regla = poblacion.presupuestoHabitacion[dimension];
+    validarObjeto(
+      regla,
+      `el presupuesto de ${dimension} de "${idPlantilla}"`,
+    );
+    validarNumeroMayorQueCero(
+      regla.por100Casillas,
+      `el presupuesto de ${dimension} por 100 casillas de "${idPlantilla}"`,
+    );
+    if (!Number.isFinite(regla.minimo) || regla.minimo < 0) {
+      throw new Error(
+        `El mínimo de presupuesto de ${dimension} de "${idPlantilla}" debe ser un número no negativo.`,
+      );
+    }
+    if (
+      regla.maximo !== undefined &&
+      (!Number.isFinite(regla.maximo) || regla.maximo < regla.minimo)
+    ) {
+      throw new Error(
+        `El máximo de presupuesto de ${dimension} de "${idPlantilla}" debe ser un número igual o mayor que su mínimo.`,
+      );
+    }
+  }
+
+  validarNumeroMayorQueCero(
+    poblacion.multiplicadorHabitacionEspecial,
+    `el multiplicador de la habitación especial de "${idPlantilla}"`,
   );
 }
 

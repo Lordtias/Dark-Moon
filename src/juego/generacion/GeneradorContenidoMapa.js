@@ -11,6 +11,7 @@ import {
   generarBarrilesProcedurales,
   generarInteractuablesPrevios,
 } from "./PobladorInteractuablesMazmorra.js";
+import { crearResumenPlanPoblacion } from "./PlanificadorPoblacionMazmorra.js";
 
 // Genera todas las entidades que ocuparán
 // el terreno procedural.
@@ -55,10 +56,10 @@ export function generarContenidoMapa({
       );
 
   const contextoPoblacion = crearContextoPoblacion({
+    plantilla,
     terreno,
     posicionJugador,
     aleatorio,
-    configuracion: plantilla.enemigos,
   });
 
   const objetivosProcedurales = [];
@@ -182,6 +183,12 @@ export function generarContenidoMapa({
     resultadoPrevio: resultadoInteractuablesPrevios,
     resultadoBarriles,
   });
+  const planPoblacion = crearResumenPlanPoblacion(contextoPoblacion);
+
+  // El plano estructural sigue siendo la única fuente de geometría. Esta
+  // metainformación se adjunta después de generarlo para que futuros perfiles,
+  // NPC o quests puedan reutilizar la clasificación canónica de habitaciones.
+  terreno.planPoblacion = planPoblacion;
 
   return {
     nivelMapa: nivelMapaResuelto,
@@ -209,6 +216,7 @@ export function generarContenidoMapa({
       detalleEnemigos,
       detalleDestructibles: resultadoBarriles.detalle,
       interactuablesProcedurales: resumenInteractuables,
+      planPoblacion,
     },
   };
 }

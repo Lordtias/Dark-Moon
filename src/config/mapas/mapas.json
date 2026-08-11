@@ -91,12 +91,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 38,
-          "maximo": 46
+          "minimo": 48,
+          "maximo": 60
         },
         "alto": {
-          "minimo": 24,
-          "maximo": 30
+          "minimo": 30,
+          "maximo": 38
         }
       },
       "niveles": {
@@ -107,8 +107,8 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 6,
-            "maximo": 8
+            "minimo": 8,
+            "maximo": 11
           },
           "separacion": {
             "minimo": 3,
@@ -133,6 +133,30 @@
           }
         },
         "intentosMaximos": 100
+      },
+      "poblacion": {
+        "habitacionesAmbientales": {
+          "minimo": 1,
+          "maximo": 2
+        },
+        "presupuestoHabitacion": {
+          "ocupacion": {
+            "por100Casillas": 10,
+            "minimo": 1,
+            "maximo": 4
+          },
+          "amenaza": {
+            "por100Casillas": 60,
+            "minimo": 12,
+            "maximo": 30
+          },
+          "valorRecompensa": {
+            "por100Casillas": 250,
+            "minimo": 50,
+            "maximo": 140
+          }
+        },
+        "multiplicadorHabitacionEspecial": 3
       },
       "enemigos": {
         "densidadPor100Casillas": 8,
@@ -313,12 +337,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 38,
-          "maximo": 46
+          "minimo": 50,
+          "maximo": 62
         },
         "alto": {
-          "minimo": 24,
-          "maximo": 30
+          "minimo": 32,
+          "maximo": 40
         }
       },
       "niveles": {
@@ -329,8 +353,8 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 7,
-            "maximo": 9
+            "minimo": 9,
+            "maximo": 12
           },
           "separacion": {
             "minimo": 2,
@@ -355,6 +379,30 @@
           }
         },
         "intentosMaximos": 100
+      },
+      "poblacion": {
+        "habitacionesAmbientales": {
+          "minimo": 1,
+          "maximo": 2
+        },
+        "presupuestoHabitacion": {
+          "ocupacion": {
+            "por100Casillas": 10,
+            "minimo": 1,
+            "maximo": 4
+          },
+          "amenaza": {
+            "por100Casillas": 180,
+            "minimo": 35,
+            "maximo": 90
+          },
+          "valorRecompensa": {
+            "por100Casillas": 300,
+            "minimo": 60,
+            "maximo": 180
+          }
+        },
+        "multiplicadorHabitacionEspecial": 3
       },
       "enemigos": {
         "densidadPor100Casillas": 7.5,
@@ -555,12 +603,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 36,
-          "maximo": 44
+          "minimo": 48,
+          "maximo": 60
         },
         "alto": {
-          "minimo": 24,
-          "maximo": 30
+          "minimo": 30,
+          "maximo": 38
         }
       },
       "niveles": {
@@ -571,8 +619,8 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 7,
-            "maximo": 9
+            "minimo": 9,
+            "maximo": 12
           },
           "separacion": {
             "minimo": 1,
@@ -597,6 +645,30 @@
           }
         },
         "intentosMaximos": 110
+      },
+      "poblacion": {
+        "habitacionesAmbientales": {
+          "minimo": 1,
+          "maximo": 2
+        },
+        "presupuestoHabitacion": {
+          "ocupacion": {
+            "por100Casillas": 10,
+            "minimo": 1,
+            "maximo": 4
+          },
+          "amenaza": {
+            "por100Casillas": 200,
+            "minimo": 40,
+            "maximo": 100
+          },
+          "valorRecompensa": {
+            "por100Casillas": 420,
+            "minimo": 80,
+            "maximo": 220
+          }
+        },
+        "multiplicadorHabitacionEspecial": 3
       },
       "enemigos": {
         "densidadPor100Casillas": 7,
@@ -791,12 +863,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 44,
-          "maximo": 54
+          "minimo": 58,
+          "maximo": 72
         },
         "alto": {
-          "minimo": 28,
-          "maximo": 36
+          "minimo": 38,
+          "maximo": 48
         }
       },
       "niveles": {
@@ -807,8 +879,8 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 9,
-            "maximo": 12
+            "minimo": 12,
+            "maximo": 16
           },
           "separacion": {
             "minimo": 2,
@@ -833,6 +905,30 @@
           }
         },
         "intentosMaximos": 130
+      },
+      "poblacion": {
+        "habitacionesAmbientales": {
+          "minimo": 2,
+          "maximo": 3
+        },
+        "presupuestoHabitacion": {
+          "ocupacion": {
+            "por100Casillas": 10,
+            "minimo": 1,
+            "maximo": 4
+          },
+          "amenaza": {
+            "por100Casillas": 260,
+            "minimo": 50,
+            "maximo": 140
+          },
+          "valorRecompensa": {
+            "por100Casillas": 550,
+            "minimo": 100,
+            "maximo": 260
+          }
+        },
+        "multiplicadorHabitacionEspecial": 3
       },
       "enemigos": {
         "densidadPor100Casillas": 6,
@@ -1027,12 +1123,12 @@
       },
       "dimensiones": {
         "ancho": {
-          "minimo": 48,
-          "maximo": 58
+          "minimo": 64,
+          "maximo": 80
         },
         "alto": {
-          "minimo": 30,
-          "maximo": 38
+          "minimo": 42,
+          "maximo": 52
         }
       },
       "niveles": {
@@ -1043,8 +1139,8 @@
         "tipo": "habitaciones",
         "sectores": {
           "cantidad": {
-            "minimo": 9,
-            "maximo": 12
+            "minimo": 13,
+            "maximo": 17
           },
           "separacion": {
             "minimo": 1,
@@ -1069,6 +1165,30 @@
           }
         },
         "intentosMaximos": 140
+      },
+      "poblacion": {
+        "habitacionesAmbientales": {
+          "minimo": 2,
+          "maximo": 3
+        },
+        "presupuestoHabitacion": {
+          "ocupacion": {
+            "por100Casillas": 10,
+            "minimo": 1,
+            "maximo": 4
+          },
+          "amenaza": {
+            "por100Casillas": 320,
+            "minimo": 60,
+            "maximo": 180
+          },
+          "valorRecompensa": {
+            "por100Casillas": 800,
+            "minimo": 120,
+            "maximo": 320
+          }
+        },
+        "multiplicadorHabitacionEspecial": 3
       },
       "enemigos": {
         "densidadPor100Casillas": 5.5,

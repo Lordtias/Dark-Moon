@@ -1,7 +1,6 @@
-// Valida la población de enemigos generada sobre un PlanoMazmorra.
-//
-// Es una herramienta de diagnóstico: no participa del runtime, combate,
-// IA, movimiento, LOS, FOV ni resolución de botín.
+// Valida la población de enemigos y el plan canónico de uso de habitaciones.
+// Es una herramienta de diagnóstico: no participa del runtime, combate, IA,
+// movimiento, LOS, FOV ni resolución real de botín.
 export function validarPoblacionMazmorra({
   plano,
   plantilla,
@@ -19,6 +18,8 @@ export function validarPoblacionMazmorra({
   const detalle = Array.isArray(resumen.detalleEnemigos)
     ? resumen.detalleEnemigos
     : [];
+  const poblacion = resumen.poblacionEnemigos ?? {};
+  const plan = resumen.planPoblacion ?? plano.planPoblacion ?? {};
   const idHabitacionEspecial = plano.salidaEstructural?.idHabitacion ?? null;
   const zonas = Array.isArray(plano.zonasCandidatasPoblacion)
     ? plano.zonasCandidatasPoblacion
@@ -33,6 +34,15 @@ export function validarPoblacionMazmorra({
     errores,
   );
 
+  validarPlanHabitaciones({
+    plano,
+    plantilla,
+    plan,
+    idHabitacionEspecial,
+    errores,
+  });
+
+  const idsAmbientales = new Set(plan.idsHabitacionesAmbientales ?? []);
   const clavesReservadas = new Set(
     (plano.casillasReservadasContenido ?? []).map(crearClave),
   );
@@ -51,6 +61,7 @@ export function validarPoblacionMazmorra({
 
   for (const enemigo of enemigos) {
     const clave = crearClave(enemigo);
+    const idHabitacion = habitacionPorCasilla.get(clave);
     comprobar(
       Number.isInteger(enemigo.x) && Number.isInteger(enemigo.y),
       `Existe un enemigo con posición inválida (${enemigo.x}, ${enemigo.y}).`,
@@ -64,6 +75,11 @@ export function validarPoblacionMazmorra({
     comprobar(
       habitacionPorCasilla.has(clave),
       `El enemigo en ${clave} quedó fuera de las zonas de habitación poblables.`,
+      errores,
+    );
+    comprobar(
+      !idsAmbientales.has(idHabitacion),
+      `El enemigo en ${clave} ocupa la habitación ambiental "${idHabitacion}".`,
       errores,
     );
     comprobar(
@@ -89,7 +105,6 @@ export function validarPoblacionMazmorra({
     "El resumen no coincide con la cantidad real de enemigos.",
     errores,
   );
-
   comprobar(
     detalle.length === enemigos.length,
     "El detalle de enemigos no coincide con la población real.",
@@ -101,6 +116,11 @@ export function validarPoblacionMazmorra({
     comprobar(
       entrada.idHabitacion === habitacionReal,
       `El detalle del enemigo ${entrada.numero ?? "?"} declara una habitación incorrecta.`,
+      errores,
+    );
+    comprobar(
+      !idsAmbientales.has(entrada.idHabitacion),
+      `El detalle del enemigo ${entrada.numero ?? "?"} referencia una habitación ambiental.`,
       errores,
     );
 
@@ -117,29 +137,38 @@ export function validarPoblacionMazmorra({
   const cantidadCandidatas = contarCasillasCandidatas({
     plano,
     posicionJugador,
+    idsAmbientales,
   });
   const cantidadObjetivo = Number.isInteger(
     cantidadEnemigosRecurrentesEsperada,
   )
     ? cantidadEnemigosRecurrentesEsperada
-    : Math.max(
-        1,
-        Math.round(
-          cantidadCandidatas *
-            ((plantilla.enemigos?.densidadPor100Casillas ?? 0) / 100),
-        ),
-      );
+    : cantidadCandidatas > 0
+      ? Math.max(
+          1,
+          Math.round(
+            cantidadCandidatas *
+              ((plantilla.enemigos?.densidadPor100Casillas ?? 0) / 100),
+          ),
+        )
+      : 0;
+  const cantidadRecurrentes = resumen.cantidadEnemigosRecurrentes ?? 0;
+  const omitidosPorPresupuesto =
+    poblacion.cantidadNoColocadaPorPresupuesto ?? 0;
 
   comprobar(
-    resumen.cantidadEnemigosRecurrentes === cantidadObjetivo,
-    `La población recurrente esperada era ${cantidadObjetivo} y se generaron ${resumen.cantidadEnemigosRecurrentes}.`,
+    cantidadRecurrentes <= cantidadObjetivo,
+    `La población recurrente generada (${cantidadRecurrentes}) supera el objetivo de densidad (${cantidadObjetivo}).`,
     errores,
   );
-
-  const poblacion = resumen.poblacionEnemigos ?? {};
   comprobar(
-    poblacion.estrategia === "densidad_por_zonas",
-    "El resumen debe identificar la estrategia de densidad por zonas.",
+    cantidadRecurrentes + omitidosPorPresupuesto === cantidadObjetivo,
+    "La diferencia entre densidad objetivo y población recurrente real debe explicarse por el presupuesto canónico.",
+    errores,
+  );
+  comprobar(
+    poblacion.estrategia === "presupuesto_por_habitacion",
+    "El resumen debe identificar la estrategia canónica de presupuesto por habitación.",
     errores,
   );
   comprobar(
@@ -149,7 +178,7 @@ export function validarPoblacionMazmorra({
   );
   comprobar(
     poblacion.cantidadCasillasCandidatas === cantidadCandidatas,
-    "El resumen de población no coincide con las casillas candidatas reales.",
+    "El resumen de población no coincide con las casillas candidatas poblables reales.",
     errores,
   );
 
@@ -158,16 +187,18 @@ export function validarPoblacionMazmorra({
     errores,
     metricas: {
       enemigosTotales: enemigos.length,
-      enemigosRecurrentes: resumen.cantidadEnemigosRecurrentes ?? 0,
+      enemigosRecurrentes: cantidadRecurrentes,
       enemigosEspeciales: resumen.cantidadEnemigosEspeciales ?? 0,
       jefes: resumen.cantidadJefes ?? 0,
       cantidadCasillasCandidatas: cantidadCandidatas,
       densidadPor100Casillas:
         plantilla.enemigos?.densidadPor100Casillas ?? null,
       idHabitacionZonaEspecial: idHabitacionEspecial,
-      zonasNormales: Math.max(0, zonas.length - zonasEspeciales.length),
+      habitacionesAmbientales: idsAmbientales.size,
+      zonasNormales: poblacion.cantidadZonasNormales ?? 0,
       zonasActivadasPorCapacidad:
         poblacion.zonasActivadasPorCapacidad?.length ?? 0,
+      enemigosOmitidosPorPresupuesto: omitidosPorPresupuesto,
     },
   };
 }
@@ -185,13 +216,93 @@ export function exigirPoblacionMazmorraValida(parametros = {}) {
   return resultado;
 }
 
-function contarCasillasCandidatas({ plano, posicionJugador }) {
+function validarPlanHabitaciones({
+  plano,
+  plantilla,
+  plan,
+  idHabitacionEspecial,
+  errores,
+}) {
+  comprobar(
+    plan.estrategia === "presupuesto_por_habitacion",
+    "El plano debe conservar el plan canónico de población por habitación.",
+    errores,
+  );
+
+  const idsAmbientales = Array.isArray(plan.idsHabitacionesAmbientales)
+    ? plan.idsHabitacionesAmbientales
+    : [];
+  const rango = plantilla.poblacion?.habitacionesAmbientales ?? {};
+  comprobar(
+    idsAmbientales.length >= (rango.minimo ?? 1) &&
+      idsAmbientales.length <= (rango.maximo ?? 3),
+    "La cantidad de habitaciones ambientales no respeta el rango configurado del mapa.",
+    errores,
+  );
+  comprobar(
+    new Set(idsAmbientales).size === idsAmbientales.length,
+    "La reserva ambiental contiene habitaciones repetidas.",
+    errores,
+  );
+  comprobar(
+    !idsAmbientales.includes(idHabitacionEspecial),
+    "La habitación especial no puede reservarse como ambiental.",
+    errores,
+  );
+  comprobar(
+    !idsAmbientales.includes(plano.zonaEntrada?.idHabitacion),
+    "La habitación de entrada no puede reservarse como ambiental.",
+    errores,
+  );
+
+  const idsHabitaciones = new Set(
+    (plano.habitaciones ?? []).map((habitacion) => habitacion.id),
+  );
+  for (const id of idsAmbientales) {
+    comprobar(
+      idsHabitaciones.has(id),
+      `La reserva ambiental referencia la habitación inexistente "${id}".`,
+      errores,
+    );
+  }
+
+  const detalle = Array.isArray(plan.habitaciones) ? plan.habitaciones : [];
+  for (const habitacion of detalle) {
+    for (const dimension of ["ocupacion", "amenaza", "valorRecompensa"]) {
+      const inicial = habitacion.presupuestoInicial?.[dimension];
+      const consumido = habitacion.presupuestoConsumido?.[dimension];
+      comprobar(
+        Number.isFinite(inicial) && inicial >= 0,
+        `El presupuesto inicial de ${dimension} de "${habitacion.idHabitacion}" no es válido.`,
+        errores,
+      );
+      comprobar(
+        Number.isFinite(consumido) && consumido >= 0 && consumido <= inicial + 1e-9,
+        `El consumo de ${dimension} de "${habitacion.idHabitacion}" supera su presupuesto.`,
+        errores,
+      );
+    }
+
+    if (habitacion.ambiental) {
+      comprobar(
+        habitacion.presupuestoConsumido?.ocupacion === 0 &&
+          habitacion.presupuestoConsumido?.amenaza === 0 &&
+          habitacion.presupuestoConsumido?.valorRecompensa === 0,
+        `La habitación ambiental "${habitacion.idHabitacion}" consumió presupuesto de contenido.`,
+        errores,
+      );
+    }
+  }
+}
+
+function contarCasillasCandidatas({ plano, posicionJugador, idsAmbientales }) {
   const reservadas = new Set(
     (plano.casillasReservadasContenido ?? []).map(crearClave),
   );
   let total = 0;
 
   for (const zona of plano.zonasCandidatasPoblacion ?? []) {
+    if (idsAmbientales.has(zona.idHabitacion)) continue;
     for (const casilla of zona.casillas ?? []) {
       if (
         esMismaPosicion(casilla, posicionJugador) ||

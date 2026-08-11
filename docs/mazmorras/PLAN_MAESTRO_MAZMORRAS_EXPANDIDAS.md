@@ -77,7 +77,9 @@ Estos elementos pueden aportar identidad sin requerir una entidad jugable indepe
 
 ### 2.4. Habitaciones ambientales reservadas
 
-Cada mazmorra generada debe disponer, como regla objetivo, de **2 o 3 habitaciones ambientales sin contenido de valor inmediato**.
+Cada plantilla de mazmorra debe declarar en su JSON un rango de **1 a 3 habitaciones ambientales sin contenido de valor inmediato**. El mínimo nunca puede ser menor que 1 y el máximo nunca puede superar 3. Cuando mínimo y máximo coinciden, la cantidad queda fijada; por ejemplo, `2/2` obliga a reservar exactamente 2 habitaciones.
+
+La selección debe ser reproducible por semilla y formar parte del contrato canónico de población, tanto para las cinco mazmorras actuales como para cualquier mazmorra futura que utilice esta infraestructura.
 
 Estas habitaciones pueden tener:
 
@@ -145,6 +147,20 @@ El presupuesto debe contemplar, como mínimo:
 - debe considerar contenido directo y, cuando corresponda, drops esperados.
 
 Los valores concretos no quedan fijados en este Plan Maestro. Deben definirse y probarse durante las etapas correspondientes.
+
+### 3.1.1. Ecuación canónica y extensible
+
+El presupuesto debe resolverse mediante un único contrato reutilizable. Cada contenido expresa uno o más componentes de coste y la ecuación canónica suma sus contribuciones sobre las mismas dimensiones de ocupación, amenaza y valor/recompensa.
+
+Conceptualmente:
+
+**coste total del contenido = suma de componentes de coste**
+
+**presupuesto de habitación = capacidad por tamaño, respetando mínimo, máximo y multiplicadores configurados**
+
+El máximo por habitación es parte del mismo contrato y evita que una habitación muy grande multiplique contenido de forma indefinida solo por disponer de más superficie.
+
+Una mejora futura puede agregar nuevos componentes de coste, pero debe hacerlo extendiendo esta ecuación compartida y no creando cálculos paralelos dentro de enemigos, cofres, destructibles, mapas o perfiles concretos.
 
 ### 3.2. Objetivo del presupuesto
 
@@ -309,7 +325,7 @@ La arquitectura nueva no debe bloquear estos contenidos futuros, pero tampoco de
 
 ### Objetivo
 
-Aumentar transversalmente la escala y capacidad de contenido de las cinco mazmorras, dejando una base común para los cinco hitos temáticos posteriores.
+Aumentar transversalmente la escala y capacidad de contenido de las cinco mazmorras, dejando una base canónica común para los cinco hitos temáticos posteriores y para futuras mazmorras que reutilicen el mismo contrato de generación y población.
 
 ### Alcance
 
@@ -323,7 +339,7 @@ Aumentar transversalmente la escala y capacidad de contenido de las cinco mazmor
 - comprobar IA y rendimiento en mapas mayores;
 - identificar habitaciones de forma estable dentro del plano generado;
 - permitir clasificación o metadatos de habitación;
-- reservar 2 o 3 habitaciones ambientales por mazmorra;
+- reservar por mazmorra la cantidad de habitaciones ambientales indicada en su JSON, siempre dentro del rango canónico de 1 a 3;
 - introducir capacidad o presupuesto por habitación/sección;
 - contemplar ocupación, amenaza y valor/recompensa;
 - evitar que las densidades globales multipliquen ciegamente enemigos e interactuables;
@@ -344,7 +360,7 @@ Aumentar transversalmente la escala y capacidad de contenido de las cinco mazmor
 
 ### Criterio de cierre
 
-La etapa puede marcarse **Cerrada** cuando las cinco mazmorras soporten satisfactoriamente la nueva escala, sus habitaciones estén identificadas y preparadas para perfiles/presupuestos, existan 2–3 habitaciones ambientales reservadas, las rutas continúen siendo válidas y no se detecten regresiones relevantes en generación, movimiento, cámara, FOV, IA, transición, guardado/carga o rendimiento.
+La etapa puede marcarse **Cerrada** cuando las cinco mazmorras soporten satisfactoriamente la nueva escala, sus habitaciones estén identificadas y preparadas para perfiles/presupuestos, cada mapa respete su rango configurado de 1 a 3 habitaciones ambientales reservadas, las rutas continúen siendo válidas y no se detecten regresiones relevantes en generación, movimiento, cámara, FOV, IA, transición, guardado/carga o rendimiento.
 
 ---
 

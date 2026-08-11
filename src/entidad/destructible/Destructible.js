@@ -23,6 +23,7 @@ export class Destructible extends Entidad {
     tablaBotin = [],
     bloqueaMovimiento = true,
     bloqueaVision = false,
+    bloqueaCruceDiagonal = true,
   } = {}) {
     if (!Number.isInteger(vidaMaxima) || vidaMaxima <= 0) {
       throw new Error(
@@ -65,6 +66,7 @@ export class Destructible extends Entidad {
       simbolo,
       bloqueaMovimiento,
       bloqueaVision,
+      bloqueaCruceDiagonal,
     });
 
     this.vidaMaxima = vidaMaxima;

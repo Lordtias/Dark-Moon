@@ -10,6 +10,7 @@ export class Entidad {
         simbolo = "?",
         bloqueaMovimiento = false,
         bloqueaVision = false,
+        bloqueaCruceDiagonal = false,
     } = {}) {
         // Toda entidad debe tener un nombre de texto
         // y no puede estar vacío.
@@ -60,12 +61,14 @@ export class Entidad {
         this.configurarObstruccionEspacial({
             bloqueaMovimiento,
             bloqueaVision,
+            bloqueaCruceDiagonal,
         });
     }
 
     configurarObstruccionEspacial({
         bloqueaMovimiento = this.bloqueaMovimiento,
         bloqueaVision = this.bloqueaVision,
+        bloqueaCruceDiagonal = this.bloqueaCruceDiagonal,
     } = {}) {
         if (typeof bloqueaMovimiento !== "boolean") {
             throw new Error(
@@ -77,13 +80,20 @@ export class Entidad {
                 `bloqueaVision de ${this.nombre} debe ser booleano.`
             );
         }
+        if (typeof bloqueaCruceDiagonal !== "boolean") {
+            throw new Error(
+                `bloqueaCruceDiagonal de ${this.nombre} debe ser booleano.`
+            );
+        }
 
         this.bloqueaMovimiento = bloqueaMovimiento;
         this.bloqueaVision = bloqueaVision;
+        this.bloqueaCruceDiagonal = bloqueaCruceDiagonal;
 
         return {
             bloqueaMovimiento: this.bloqueaMovimiento,
             bloqueaVision: this.bloqueaVision,
+            bloqueaCruceDiagonal: this.bloqueaCruceDiagonal,
         };
     }
 }

@@ -26,11 +26,13 @@ export const RECURSOS_VISUALES_PUERTA_PREDETERMINADOS = Object.freeze({
 //
 // Cerrada:
 // - bloquea movimiento;
-// - bloquea visión.
+// - bloquea visión;
+// - sella el cruce diagonal de una esquina.
 //
 // Abierta:
 // - permite movimiento;
-// - permite visión.
+// - permite visión;
+// - no sella el cruce diagonal.
 //
 // La orientación es un dato representable y no modifica las reglas espaciales.
 // Se decide a partir del acceso estructural para que Phaser no tenga que
@@ -81,6 +83,7 @@ export class Puerta extends Entidad {
       simbolo: abierta ? simboloAbierta : simboloCerrada,
       bloqueaMovimiento: !abierta,
       bloqueaVision: !abierta,
+      bloqueaCruceDiagonal: !abierta,
     });
 
     this.abierta = abierta;
@@ -178,6 +181,7 @@ export class Puerta extends Entidad {
     this.configurarObstruccionEspacial({
       bloqueaMovimiento: !this.abierta,
       bloqueaVision: !this.abierta,
+      bloqueaCruceDiagonal: !this.abierta,
     });
 
     this.simbolo = this.abierta ? this.simboloAbierta : this.simboloCerrada;

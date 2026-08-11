@@ -1,7 +1,8 @@
 // Centraliza las consultas espaciales canónicas del mapa activo.
 //
 // Su responsabilidad es responder qué existe en una posición y si ese
-// contenido bloquea movimiento o visión. No mueve actores, no resuelve
+// contenido bloquea movimiento, visión o el cruce físico de una esquina.
+// No mueve actores, no resuelve
 // combate y no conoce nombres concretos de entidades, habilidades o mapas.
 export class SistemaEspacial {
   constructor({
@@ -46,6 +47,10 @@ export class SistemaEspacial {
       terreno.bloqueaVision ||
       entidades.some((entidad) => entidad?.bloqueaVision === true) ||
       zonas.some((zona) => zona?.bloqueaVision === true);
+    const bloqueaCruceDiagonal =
+      terreno.bloqueaCruceDiagonal ||
+      entidades.some((entidad) => entidad?.bloqueaCruceDiagonal === true) ||
+      zonas.some((zona) => zona?.bloqueaCruceDiagonal === true);
 
     return {
       x,
@@ -56,6 +61,7 @@ export class SistemaEspacial {
       zonas,
       bloqueaMovimiento,
       bloqueaVision,
+      bloqueaCruceDiagonal,
     };
   }
 
@@ -65,6 +71,10 @@ export class SistemaEspacial {
 
   bloqueaVision(x, y, opciones = {}) {
     return this.consultarPosicion(x, y, opciones).bloqueaVision;
+  }
+
+  bloqueaCruceDiagonal(x, y, opciones = {}) {
+    return this.consultarPosicion(x, y, opciones).bloqueaCruceDiagonal;
   }
 
   bloqueaPasoDiagonal({
@@ -83,12 +93,12 @@ export class SistemaEspacial {
       Math.abs(movimientoX) === 1 && Math.abs(movimientoY) === 1;
     if (!esDiagonal) return false;
 
-    const horizontalBloqueada = this.bloqueaMovimiento(
+    const horizontalBloqueada = this.bloqueaCruceDiagonal(
       origen.x + movimientoX,
       origen.y,
       { ignorarEntidades },
     );
-    const verticalBloqueada = this.bloqueaMovimiento(
+    const verticalBloqueada = this.bloqueaCruceDiagonal(
       origen.x,
       origen.y + movimientoY,
       { ignorarEntidades },
@@ -151,6 +161,7 @@ export function consultarTerrenoMapa(mapa, x, y) {
       simbolo: null,
       bloqueaMovimiento: true,
       bloqueaVision: true,
+      bloqueaCruceDiagonal: true,
     };
   }
 
@@ -163,6 +174,7 @@ export function consultarTerrenoMapa(mapa, x, y) {
     simbolo,
     bloqueaMovimiento: esPared,
     bloqueaVision: esPared,
+    bloqueaCruceDiagonal: esPared,
   };
 }
 

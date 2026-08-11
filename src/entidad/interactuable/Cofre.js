@@ -27,6 +27,7 @@ export class Cofre extends Entidad {
     contenedorObjetos,
     bloqueaMovimiento = true,
     bloqueaVision = false,
+    bloqueaCruceDiagonal = true,
     alcance = 1,
     prioridad = 95,
   } = {}) {
@@ -58,6 +59,7 @@ export class Cofre extends Entidad {
       simbolo,
       bloqueaMovimiento,
       bloqueaVision,
+      bloqueaCruceDiagonal,
     });
 
     this.recursoVisualCerrado = normalizarRecursoVisual(recursoCerradoResuelto);

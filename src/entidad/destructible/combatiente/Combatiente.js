@@ -325,6 +325,10 @@ export class Combatiente extends Destructible {
       capacidadContenedor,
       objetosIniciales,
       tablaBotin,
+      // Un combatiente ocupa su casilla, pero no sella una esquina como un
+      // obstáculo estructural. La casilla destino continúa bloqueada por la
+      // regla normal de ocupación.
+      bloqueaCruceDiagonal: false,
     });
     this.nivel = nivel;
     this.atributos = atributosNormalizados;

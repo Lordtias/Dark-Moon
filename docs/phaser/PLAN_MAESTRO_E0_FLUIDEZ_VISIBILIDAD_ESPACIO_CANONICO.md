@@ -707,19 +707,27 @@ La implementación introduce `SistemaEspacial` como única autoridad de consulta
 - entidades;
 - zonas temporales activas.
 
-Cada fuente puede aportar de forma independiente `bloqueaMovimiento` y `bloqueaVision`. El significado espacial actual del símbolo de pared `#` queda encapsulado en el resolutor de terreno del sistema espacial, de modo que movimiento, pathfinding y línea de visión dejan de interpretar ese símbolo por separado.
+Cada fuente puede aportar de forma independiente `bloqueaMovimiento` y `bloqueaVision`. El contrato espacial actual agrega además `bloqueaCruceDiagonal` para distinguir ocupar una casilla de sellar físicamente una esquina. El significado espacial del símbolo de pared `#` queda encapsulado en el resolutor de terreno del sistema espacial, de modo que movimiento, pathfinding y línea de visión dejan de interpretar ese símbolo por separado.
 
-`Entidad` admite ahora las propiedades genéricas `bloqueaMovimiento` y `bloqueaVision`, además de actualización dinámica mediante `configurarObstruccionEspacial()`. Los destructibles actuales conservan el comportamiento de bloqueo de movimiento sin bloquear visión; esto mantiene a Barril como caso real de la combinación `sí/no` sin introducir una excepción por nombre.
+`Entidad` admite las propiedades genéricas `bloqueaMovimiento`, `bloqueaVision` y `bloqueaCruceDiagonal`, además de actualización dinámica mediante `configurarObstruccionEspacial()`. Los obstáculos físicos pueden bloquear movimiento sin bloquear visión y aun así sellar una esquina; los actores pueden ocupar su casilla sin sellarla. Ninguna de estas decisiones depende del nombre visible de la entidad.
 
-Los NPC pasan a declarar `bloqueaMovimiento = true` y `bloqueaVision = false`. De este modo ocupan físicamente su casilla tanto para el jugador como para el pathfinding, pero continúan siendo visibles a través de otros NPC y siguen interactuándose desde las casillas permitidas por su alcance. La regla pertenece a la entidad NPC y no introduce excepciones por nombre, rol o mapa.
+Los NPC declaran `bloqueaMovimiento = true`, `bloqueaVision = false` y `bloqueaCruceDiagonal = false`. De este modo ocupan físicamente su casilla tanto para el jugador como para el pathfinding, pero no se comportan como una pared al combinarse con otro lateral durante un movimiento diagonal. La regla pertenece al contrato espacial del actor y no introduce excepciones por nombre, rol o mapa.
 
 La línea de visión existente `evaluarLineaVision()` conserva su geometría y pasa a consultar `SistemaEspacial.bloqueaVision()`. No se crea una segunda LOS. Ataques y habilidades que ya reutilizaban esa geometría reciben la misma autoridad espacial del mapa activo. La casilla destino conserva la regla existente de no bloquear la visión hacia sí misma.
 
 El pathfinding conserva BFS y cambia únicamente la fuente de obstrucciones: consulta `SistemaEspacial.bloqueaMovimiento()` y la misma regla diagonal. Se elimina la necesidad de construir una representación paralela de posiciones bloqueadas para el cálculo del camino. El actor que se mueve y el jugador cuando es destino pueden ignorarse explícitamente mediante el contrato genérico de consulta.
 
-El movimiento del jugador también consulta la autoridad espacial sin alterar la regla de combate existente: intentar desplazarse hacia un `Combatiente` continúa entrando en modo combate en lugar de convertir al enemigo en un bloqueo previo que impida esa interacción. La regla diagonal queda generalizada a bloqueos reales de movimiento: dos obstáculos laterales impiden atravesar diagonalmente entre ellos, mientras uno solo mantiene el comportamiento permitido.
+El movimiento del jugador también consulta la autoridad espacial sin alterar la regla de combate existente: intentar desplazarse hacia un `Combatiente` continúa entrando en modo combate en lugar de convertir al enemigo en un bloqueo previo que impida esa interacción.
 
-Las zonas temporales pueden declarar las dos propiedades espaciales. `Nube tóxica` queda configurada de forma declarativa como:
+### Corrección posterior del cruce diagonal
+
+La regresión manual posterior a la consolidación de presentación detectó que la regla diagonal estaba utilizando `bloqueaMovimiento` para decidir si cada lateral sellaba una esquina. Eso hacía que una pared junto a un enemigo, NPC u otro actor se comportara como dos obstáculos estructurales y bloqueara una diagonal cuyo destino estaba libre.
+
+El contrato queda corregido separando explícitamente `bloqueaCruceDiagonal` de `bloqueaMovimiento`: paredes, barriles, cofres y puertas cerradas sellan la esquina; combatientes y NPC ocupan su propia casilla pero no la sellan. Una puerta abierta deja de bloquear las tres propiedades. `SistemaEspacial.bloqueaPasoDiagonal()` continúa siendo la única regla compartida por movimiento del jugador y BFS, pero consulta la propiedad específica de cruce en sus dos laterales. La casilla destino sigue validándose de forma independiente mediante `bloqueaMovimiento`.
+
+Esto preserva los casos estructurales (`pared + pared`, `pared + barril`, `pared + cofre`, `pared + puerta cerrada`) y permite rodear actores mediante una diagonal libre (`pared + combatiente`, `pared + NPC`, `combatiente + combatiente`). La línea de visión no cambia y continúa dependiendo exclusivamente de `bloqueaVision`.
+
+Las zonas temporales pueden declarar propiedades espaciales de forma declarativa. Las configuraciones actuales de `Nube tóxica` utilizan:
 
 ```text
 bloqueaMovimiento = no

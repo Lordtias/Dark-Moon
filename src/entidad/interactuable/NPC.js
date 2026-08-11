@@ -63,10 +63,11 @@ export class NPC extends Entidad {
       y,
       simbolo,
       // Los NPC ocupan físicamente su casilla, pero no actúan como una
-      // obstrucción visual. Movimiento, pathfinding y futuros consumidores
-      // espaciales respetan estas propiedades sin conocer qué tipo de NPC es.
+      // obstrucción visual ni sellan una esquina como un obstáculo estructural.
+      // Movimiento y pathfinding respetan estas propiedades sin conocer roles.
       bloqueaMovimiento: true,
       bloqueaVision: false,
+      bloqueaCruceDiagonal: false,
     });
 
     validarId(id);

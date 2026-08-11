@@ -133,6 +133,7 @@ export class ControladorPartida {
     configuracionCiudad,
     configuracionComercio,
     configuracionHabilidadesNPC,
+    configuracionEntidadesMazmorra,
   } = {}) {
     if (this.partidaIniciada) {
       return false;
@@ -168,6 +169,7 @@ export class ControladorPartida {
       configuracionGeneracionObjetos,
       configuracionMapas,
       configuracionCiudad,
+      configuracionEntidadesMazmorra,
     });
 
     this.configuracionObjetos = configuracionObjetos;

@@ -70,7 +70,81 @@
             "colorMetal": "#45504b",
             "colorOxido": "#9a6338",
             "colorEscombro": "#858d7f",
-            "colorMancha": "#172a23"
+            "colorMancha": "#172a23",
+            "perfiles": {
+              "deposito": {
+                "densidad": 0.13,
+                "pesos": {
+                  "charco": 10,
+                  "rejilla": 10,
+                  "escombros": 55,
+                  "mancha": 25
+                }
+              },
+              "almacen": {
+                "densidad": 0.12,
+                "pesos": {
+                  "charco": 10,
+                  "rejilla": 15,
+                  "escombros": 45,
+                  "mancha": 30
+                }
+              },
+              "desague": {
+                "densidad": 0.24,
+                "pesos": {
+                  "charco": 35,
+                  "rejilla": 40,
+                  "escombros": 5,
+                  "mancha": 20
+                }
+              },
+              "camara_inundada": {
+                "densidad": 0.3,
+                "pesos": {
+                  "charco": 65,
+                  "rejilla": 10,
+                  "escombros": 5,
+                  "mancha": 20
+                }
+              },
+              "mantenimiento": {
+                "densidad": 0.16,
+                "pesos": {
+                  "charco": 15,
+                  "rejilla": 35,
+                  "escombros": 25,
+                  "mancha": 25
+                }
+              },
+              "desperdicios": {
+                "densidad": 0.24,
+                "pesos": {
+                  "charco": 15,
+                  "rejilla": 5,
+                  "escombros": 45,
+                  "mancha": 35
+                }
+              },
+              "guarida": {
+                "densidad": 0.2,
+                "pesos": {
+                  "charco": 15,
+                  "rejilla": 5,
+                  "escombros": 35,
+                  "mancha": 45
+                }
+              },
+              "ambiental": {
+                "densidad": 0.28,
+                "pesos": {
+                  "charco": 35,
+                  "rejilla": 20,
+                  "escombros": 20,
+                  "mancha": 25
+                }
+              }
+            }
           },
           "sombras": {
             "color": "#06100c",
@@ -156,7 +230,134 @@
             "maximo": 140
           }
         },
-        "multiplicadorHabitacionEspecial": 3
+        "multiplicadorHabitacionEspecial": 3,
+        "perfilesHabitacion": {
+          "ambiental": {
+            "id": "ambiental"
+          },
+          "especial": {
+            "id": "guarida",
+            "multiplicadorContenido": 0.75,
+            "permitidos": [
+              {
+                "id": "barril_madera",
+                "peso": 45
+              },
+              {
+                "id": "restos_abandonados",
+                "peso": 55
+              }
+            ]
+          },
+          "normales": [
+            {
+              "id": "deposito",
+              "peso": 20,
+              "multiplicadorContenido": 0.8,
+              "permitidos": [
+                {
+                  "id": "barril_madera",
+                  "peso": 45
+                },
+                {
+                  "id": "caja_humeda",
+                  "peso": 40
+                },
+                {
+                  "id": "restos_abandonados",
+                  "peso": 15
+                }
+              ]
+            },
+            {
+              "id": "almacen",
+              "peso": 18,
+              "multiplicadorContenido": 0.8,
+              "permitidos": [
+                {
+                  "id": "caja_humeda",
+                  "peso": 45
+                },
+                {
+                  "id": "suministros_mantenimiento",
+                  "peso": 30
+                },
+                {
+                  "id": "barril_madera",
+                  "peso": 25
+                }
+              ]
+            },
+            {
+              "id": "desague",
+              "peso": 16,
+              "multiplicadorContenido": 0,
+              "permitidos": [
+                {
+                  "id": "restos_abandonados",
+                  "peso": 60
+                },
+                {
+                  "id": "barril_madera",
+                  "peso": 40
+                }
+              ]
+            },
+            {
+              "id": "camara_inundada",
+              "peso": 14,
+              "multiplicadorContenido": 0,
+              "permitidos": [
+                {
+                  "id": "restos_abandonados",
+                  "peso": 70
+                },
+                {
+                  "id": "barril_madera",
+                  "peso": 30
+                }
+              ]
+            },
+            {
+              "id": "mantenimiento",
+              "peso": 17,
+              "multiplicadorContenido": 0.8,
+              "permitidos": [
+                {
+                  "id": "suministros_mantenimiento",
+                  "peso": 45
+                },
+                {
+                  "id": "caja_humeda",
+                  "peso": 30
+                },
+                {
+                  "id": "barricada_improvisada",
+                  "peso": 25
+                }
+              ]
+            },
+            {
+              "id": "desperdicios",
+              "peso": 15,
+              "multiplicadorContenido": 0.8,
+              "permitidos": [
+                {
+                  "id": "restos_abandonados",
+                  "peso": 55
+                },
+                {
+                  "id": "barril_madera",
+                  "peso": 25
+                },
+                {
+                  "id": "caja_humeda",
+                  "peso": 20
+                }
+              ]
+            }
+          ]
+        }
       },
       "enemigos": {
         "densidadPor100Casillas": 8,
@@ -202,15 +403,6 @@
         "puertas": {
           "probabilidadPorPasillo": 35
         },
-        "barriles": {
-          "densidadPor100Casillas": 6,
-          "permitidos": [
-            {
-              "id": "barril",
-              "peso": 100
-            }
-          ]
-        },
         "cofres": {
           "moderados": {
             "probabilidadPorHabitacion": 20,
@@ -247,6 +439,91 @@
               {
                 "idObjeto": "pocion_curacion",
                 "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              }
+            ]
+          }
+        },
+        "destructibles": {
+          "densidadPor100Casillas": 10,
+          "permitidos": [
+            {
+              "id": "barril_madera",
+              "peso": 28,
+              "idTablaContenido": "basico"
+            },
+            {
+              "id": "caja_humeda",
+              "peso": 24,
+              "idTablaContenido": "basico"
+            },
+            {
+              "id": "suministros_mantenimiento",
+              "peso": 16,
+              "idTablaContenido": "mantenimiento"
+            },
+            {
+              "id": "barricada_improvisada",
+              "peso": 16
+            },
+            {
+              "id": "restos_abandonados",
+              "peso": 16,
+              "idTablaBotin": "restos"
+            }
+          ],
+          "tablasBotin": {
+            "basico": [
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 100,
+                "cantidadMinima": 2,
+                "cantidadMaxima": 5
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 20,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 15,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ],
+            "mantenimiento": [
+              {
+                "idObjeto": "flecha_madera",
+                "probabilidad": 100,
+                "cantidadMinima": 4,
+                "cantidadMaxima": 8
+              },
+              {
+                "idObjeto": "pocion_curacion",
+                "probabilidad": 35,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              },
+              {
+                "idObjeto": "pocion_mana",
+                "probabilidad": 25,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 1
+              }
+            ],
+            "restos": [
+              {
+                "idObjeto": "cola_rata",
+                "probabilidad": 100,
+                "cantidadMinima": 1,
+                "cantidadMaxima": 2
+              },
+              {
+                "idObjeto": "carne_putrefacta",
+                "probabilidad": 45,
                 "cantidadMinima": 1,
                 "cantidadMaxima": 2
               }
@@ -468,15 +745,6 @@
         "puertas": {
           "probabilidadPorPasillo": 40
         },
-        "barriles": {
-          "densidadPor100Casillas": 5,
-          "permitidos": [
-            {
-              "id": "barril",
-              "peso": 100
-            }
-          ]
-        },
         "cofres": {
           "moderados": {
             "probabilidadPorHabitacion": 25,
@@ -518,6 +786,15 @@
               }
             ]
           }
+        },
+        "destructibles": {
+          "densidadPor100Casillas": 5,
+          "permitidos": [
+            {
+              "id": "barril_madera",
+              "peso": 100
+            }
+          ]
         }
       }
     },
@@ -728,15 +1005,6 @@
         "puertas": {
           "probabilidadPorPasillo": 45
         },
-        "barriles": {
-          "densidadPor100Casillas": 8,
-          "permitidos": [
-            {
-              "id": "barril",
-              "peso": 100
-            }
-          ]
-        },
         "cofres": {
           "moderados": {
             "probabilidadPorHabitacion": 30,
@@ -778,6 +1046,15 @@
               }
             ]
           }
+        },
+        "destructibles": {
+          "densidadPor100Casillas": 8,
+          "permitidos": [
+            {
+              "id": "barril_madera",
+              "peso": 100
+            }
+          ]
         }
       }
     },
@@ -988,15 +1265,6 @@
         "puertas": {
           "probabilidadPorPasillo": 50
         },
-        "barriles": {
-          "densidadPor100Casillas": 9,
-          "permitidos": [
-            {
-              "id": "barril",
-              "peso": 100
-            }
-          ]
-        },
         "cofres": {
           "moderados": {
             "probabilidadPorHabitacion": 35,
@@ -1038,6 +1306,15 @@
               }
             ]
           }
+        },
+        "destructibles": {
+          "densidadPor100Casillas": 9,
+          "permitidos": [
+            {
+              "id": "barril_madera",
+              "peso": 100
+            }
+          ]
         }
       }
     },
@@ -1309,15 +1586,6 @@
         "puertas": {
           "probabilidadPorPasillo": 55
         },
-        "barriles": {
-          "densidadPor100Casillas": 10,
-          "permitidos": [
-            {
-              "id": "barril",
-              "peso": 100
-            }
-          ]
-        },
         "cofres": {
           "moderados": {
             "probabilidadPorHabitacion": 40,
@@ -1359,6 +1627,15 @@
               }
             ]
           }
+        },
+        "destructibles": {
+          "densidadPor100Casillas": 10,
+          "permitidos": [
+            {
+              "id": "barril_madera",
+              "peso": 100
+            }
+          ]
         }
       }
     }

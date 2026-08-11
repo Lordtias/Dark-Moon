@@ -108,6 +108,15 @@ export class ContenedorObjetos {
     return objeto;
   }
 
+  // Vacía el contenedor transfiriendo la propiedad de sus objetos al llamador.
+  // Se utiliza, por ejemplo, cuando un recipiente físico es destruido y su
+  // contenido restante debe materializarse en el suelo sin volver a generarlo.
+  extraerTodos() {
+    const objetos = this.obtenerObjetos();
+    this.espacios.fill(null);
+    return objetos;
+  }
+
   buscarPrimerObjeto(criterio) {
     if (typeof criterio !== "function") {
       throw new Error("La búsqueda necesita una función de criterio.");

@@ -3,6 +3,7 @@ import {
   cargarConfiguracionEnemigos,
   cargarConfiguracionGeneracionObjetos,
   cargarConfiguracionMapas,
+  cargarConfiguracionEntidadesMazmorra,
   cargarConfiguracionObjetos,
   cargarConfiguracionPersonaje,
 } from "../../juego/configuracion/CargadorConfiguracion.js";
@@ -79,6 +80,7 @@ async function cargarBalance() {
       configuracionObjetosSinValidar,
       configuracionGeneracionObjetos,
       configuracionMapas,
+      configuracionEntidadesMazmorra,
       configuracionProgresoMagico,
       objetivosBalance,
     ] = await Promise.all([
@@ -87,6 +89,7 @@ async function cargarBalance() {
       cargarConfiguracionObjetos(),
       cargarConfiguracionGeneracionObjetos(),
       cargarConfiguracionMapas(),
+      cargarConfiguracionEntidadesMazmorra(),
       cargarYConfigurarProgresoMagico(),
       cargarJson(RUTA_OBJETIVOS),
     ]);
@@ -99,6 +102,7 @@ async function cargarBalance() {
       configuracionObjetos,
       configuracionGeneracionObjetos,
       configuracionMapas,
+      configuracionEntidadesMazmorra,
       configuracionProgresoMagico,
       configuracionEjecucionHabilidades:
         obtenerConfiguracionEjecucionHabilidades(),

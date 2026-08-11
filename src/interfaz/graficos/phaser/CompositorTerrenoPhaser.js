@@ -64,6 +64,11 @@ export class CompositorTerrenoPhaser {
     const configuracionDecoracion = normalizarConfiguracionDecoracion(
       aparienciaPhaser.decoracion,
     );
+    const configuracionesDecoracionPerfil =
+      crearConfiguracionesDecoracionPorPerfil({
+        base: aparienciaPhaser.decoracion,
+        perfiles: escenaDarkMoon.mapa.perfilesHabitacion,
+      });
     const configuracionGrilla = normalizarConfiguracionGrilla(
       aparienciaPhaser.grilla,
     );
@@ -177,7 +182,9 @@ export class CompositorTerrenoPhaser {
           y,
           pixelX,
           pixelY,
-          configuracion: configuracionDecoracion,
+          configuracion:
+            configuracionesDecoracionPerfil.get(`${x},${y}`) ??
+            configuracionDecoracion,
         });
       }
     }
@@ -488,7 +495,10 @@ export class CompositorTerrenoPhaser {
       return;
     }
 
-    const tipo = Math.floor(hash / 1000) % 4;
+    const tipo = resolverTipoDecoracion({
+      hash,
+      pesos: configuracion.pesos,
+    });
     const desplazamientoX = 5 + (hash % 15);
     const desplazamientoY = 7 + (Math.floor(hash / 17) % 13);
 
@@ -594,7 +604,56 @@ function normalizarConfiguracionDecoracion(configuracion = {}) {
     colorOxido: convertirColor(configuracion.colorOxido, 0x9a6338),
     colorEscombro: convertirColor(configuracion.colorEscombro, 0x858d7f),
     colorMancha: convertirColor(configuracion.colorMancha, 0x172a23),
+    pesos: normalizarPesosDecoracion(configuracion.pesos),
   });
+}
+
+function crearConfiguracionesDecoracionPorPerfil({ base, perfiles }) {
+  const resultado = new Map();
+  if (!Array.isArray(perfiles) || perfiles.length === 0) return resultado;
+
+  const definiciones = base?.perfiles ?? {};
+  for (const habitacion of perfiles) {
+    const ajuste = definiciones[habitacion.perfil];
+    if (!ajuste) continue;
+    const configuracion = normalizarConfiguracionDecoracion({
+      ...base,
+      ...ajuste,
+      perfiles: undefined,
+    });
+    for (const posicion of habitacion.casillas ?? []) {
+      resultado.set(`${posicion.x},${posicion.y}`, configuracion);
+    }
+  }
+  return resultado;
+}
+
+function normalizarPesosDecoracion(pesos = {}) {
+  const valores = [
+    ["charco", TIPOS_DECORACION.CHARCO],
+    ["rejilla", TIPOS_DECORACION.REJILLA],
+    ["escombros", TIPOS_DECORACION.ESCOMBROS],
+    ["mancha", TIPOS_DECORACION.MANCHA],
+  ].map(([id, tipo]) => ({
+    id,
+    tipo,
+    peso: Number.isFinite(pesos?.[id]) && pesos[id] > 0 ? pesos[id] : 1,
+  }));
+  return Object.freeze(valores);
+}
+
+function resolverTipoDecoracion({ hash, pesos }) {
+  const lista = Array.isArray(pesos) && pesos.length > 0
+    ? pesos
+    : normalizarPesosDecoracion();
+  const total = lista.reduce((acumulado, entrada) => acumulado + entrada.peso, 0);
+  const valor = ((Math.floor(hash / 1000) % 10000) / 10000) * total;
+  let acumulado = 0;
+  for (const entrada of lista) {
+    acumulado += entrada.peso;
+    if (valor < acumulado) return entrada.tipo;
+  }
+  return lista[lista.length - 1].tipo;
 }
 
 function normalizarConfiguracionGrilla(configuracion = {}) {

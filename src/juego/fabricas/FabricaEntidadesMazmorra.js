@@ -2,29 +2,23 @@ import { Cofre } from "../../entidad/interactuable/Cofre.js";
 import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
 import { Puerta } from "../../entidad/interactuable/Puerta.js";
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
+import {
+  FAMILIAS_ENTIDAD_MAZMORRA,
+  obtenerEntidadMazmorraConfigurada,
+} from "../configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import { crearDestructible } from "./FabricaDestructibles.js";
 import { generarContenidoBotin } from "../botin/SistemaBotin.js";
 
 export const DESTINOS_ENTIDAD_MAZMORRA = Object.freeze({
   OBJETIVOS: "objetivos",
   INTERACTUABLES: "interactuables",
+  AMBOS: "ambos",
 });
 
-// Relación única entre IDs estables de población y clases concretas.
-// Los pobladores no necesitan conocer constructores ni decidir en qué
-// colección runtime debe registrarse cada entidad.
-const CREADORES_ENTIDADES_MAZMORRA = Object.freeze({
-  barril(parametros) {
-    return {
-      destino: DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS,
-      entidad: crearDestructible({
-        id: "barril",
-        x: parametros.x,
-        y: parametros.y,
-      }),
-    };
-  },
-
+// Las entidades estructurales conservan creadores explícitos porque su
+// comportamiento es singular. Los objetos ambientales configurables se
+// resuelven por catálogo y no necesitan un creador por variante visual.
+const CREADORES_ENTIDADES_ESTRUCTURALES = Object.freeze({
   puerta(parametros) {
     return {
       destino: DESTINOS_ENTIDAD_MAZMORRA.INTERACTUABLES,
@@ -33,8 +27,12 @@ const CREADORES_ENTIDADES_MAZMORRA = Object.freeze({
   },
 
   cofre(parametros) {
-    const { contenedorObjetos, resultadoBotin } =
-      resolverContenidoCofre(parametros);
+    const { contenedorObjetos, resultadoBotin } = resolverContenidoContenedor({
+      ...parametros,
+      tablaContenido: parametros.tablaBotin,
+      nombreFuente: parametros.nombre ?? "Cofre",
+      capacidadMinima: 6,
+    });
 
     return {
       destino: DESTINOS_ENTIDAD_MAZMORRA.INTERACTUABLES,
@@ -70,16 +68,46 @@ export function crearEntidadMazmorra({ id, ...parametros } = {}) {
   const idNormalizado = validarId(id);
   validarPosicion(parametros.x, parametros.y, idNormalizado);
 
-  const creador = CREADORES_ENTIDADES_MAZMORRA[idNormalizado];
-  if (!creador) {
-    throw new Error(
-      `No existe una entidad de mazmorra registrada como "${idNormalizado}".`,
-    );
+  const creadorEstructural = CREADORES_ENTIDADES_ESTRUCTURALES[idNormalizado];
+  if (creadorEstructural) {
+    const resultado = creadorEstructural(parametros);
+    validarResultadoFabrica(resultado, idNormalizado);
+    return resultado;
   }
 
-  const resultado = creador(parametros);
-  validarResultadoFabrica(resultado, idNormalizado);
-  return resultado;
+  const configuracionEntidadesMazmorra =
+    parametros.configuracionEntidadesMazmorra;
+  const definicion = obtenerEntidadMazmorraConfigurada(
+    configuracionEntidadesMazmorra,
+    idNormalizado,
+  );
+  const esRecipiente =
+    definicion.familia === FAMILIAS_ENTIDAD_MAZMORRA.RECIPIENTE;
+  const contenido = esRecipiente
+    ? resolverContenidoContenedor({
+        ...parametros,
+        nombreFuente: definicion.nombre,
+        capacidadMinima: definicion.capacidadContenedor,
+      })
+    : { contenedorObjetos: null, resultadoBotin: null };
+
+  const entidad = crearDestructible({
+    id: idNormalizado,
+    x: parametros.x,
+    y: parametros.y,
+    configuracionEntidadesMazmorra,
+    objetosIniciales:
+      contenido.contenedorObjetos?.obtenerObjetos?.() ?? [],
+    tablaBotin: parametros.tablaBotin ?? [],
+  });
+
+  return {
+    destino: esRecipiente
+      ? DESTINOS_ENTIDAD_MAZMORRA.AMBOS
+      : DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS,
+    entidad,
+    resultadoBotin: contenido.resultadoBotin,
+  };
 }
 
 export function incorporarEntidadMazmorra({
@@ -95,51 +123,70 @@ export function incorporarEntidadMazmorra({
   }
 
   const resultado = crearEntidadMazmorra({ id, ...parametros });
-  const destino =
-    resultado.destino === DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS
-      ? objetivos
-      : interactuables;
 
-  destino.push(resultado.entidad);
+  if (
+    resultado.destino === DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS ||
+    resultado.destino === DESTINOS_ENTIDAD_MAZMORRA.AMBOS
+  ) {
+    objetivos.push(resultado.entidad);
+  }
+  if (
+    resultado.destino === DESTINOS_ENTIDAD_MAZMORRA.INTERACTUABLES ||
+    resultado.destino === DESTINOS_ENTIDAD_MAZMORRA.AMBOS
+  ) {
+    interactuables.push(resultado.entidad);
+  }
+
   return resultado;
 }
 
-function resolverContenidoCofre(parametros) {
-  if (parametros.contenedorObjetos instanceof ContenedorObjetos) {
-    return {
-      contenedorObjetos: parametros.contenedorObjetos,
-      resultadoBotin: null,
-    };
+function resolverContenidoContenedor({
+  contenedorObjetos,
+  objetosIniciales = null,
+  tablaContenido = null,
+  nombreFuente,
+  x,
+  y,
+  nivel = null,
+  configuracionObjetos,
+  aleatorio,
+  capacidad = null,
+  capacidadMinima = 6,
+} = {}) {
+  if (contenedorObjetos instanceof ContenedorObjetos) {
+    return { contenedorObjetos, resultadoBotin: null };
   }
 
-  let objetosIniciales = parametros.objetosIniciales ?? null;
+  let objetosResueltos = objetosIniciales;
   let resultadoBotin = null;
 
-  if (objetosIniciales === null && Array.isArray(parametros.tablaBotin)) {
+  if (objetosResueltos === null && Array.isArray(tablaContenido)) {
     resultadoBotin = generarContenidoBotin({
       fuente: {
-        nombre: parametros.nombre ?? "Cofre",
-        x: parametros.x,
-        y: parametros.y,
-        nivel: parametros.nivel ?? null,
-        tablaBotin: parametros.tablaBotin,
+        nombre: nombreFuente ?? "Contenedor",
+        x,
+        y,
+        nivel,
+        tablaBotin: tablaContenido,
       },
-      configuracionObjetos: parametros.configuracionObjetos,
-      aleatorio: parametros.aleatorio,
+      configuracionObjetos,
+      aleatorio,
     });
-    objetosIniciales = resultadoBotin.objetosGenerados;
+    objetosResueltos = resultadoBotin.objetosGenerados;
   }
 
-  objetosIniciales ??= [];
-  if (!Array.isArray(objetosIniciales)) {
-    throw new Error("Los objetos iniciales del cofre deben ser una lista.");
+  objetosResueltos ??= [];
+  if (!Array.isArray(objetosResueltos)) {
+    throw new Error("Los objetos iniciales del contenedor deben ser una lista.");
   }
 
-  const capacidad = parametros.capacidad ?? Math.max(6, objetosIniciales.length);
+  const capacidadResuelta =
+    capacidad ?? Math.max(capacidadMinima, objetosResueltos.length);
+
   return {
     contenedorObjetos: new ContenedorObjetos({
-      capacidad,
-      objetosIniciales,
+      capacidad: capacidadResuelta,
+      objetosIniciales: objetosResueltos,
     }),
     resultadoBotin,
   };
@@ -151,7 +198,7 @@ function validarId(id) {
       "Se necesita un ID interno válido para crear una entidad de mazmorra.",
     );
   }
-  return id.trim();
+  return id.trim().toLowerCase();
 }
 
 function validarPosicion(x, y, id) {

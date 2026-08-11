@@ -155,6 +155,8 @@ export function validarPoblacionMazmorra({
   const cantidadRecurrentes = resumen.cantidadEnemigosRecurrentes ?? 0;
   const omitidosPorPresupuesto =
     poblacion.cantidadNoColocadaPorPresupuesto ?? 0;
+  const omitidosPorCapacidadFisica =
+    poblacion.cantidadNoColocadaPorCapacidadFisica ?? 0;
 
   comprobar(
     cantidadRecurrentes <= cantidadObjetivo,
@@ -162,8 +164,11 @@ export function validarPoblacionMazmorra({
     errores,
   );
   comprobar(
-    cantidadRecurrentes + omitidosPorPresupuesto === cantidadObjetivo,
-    "La diferencia entre densidad objetivo y población recurrente real debe explicarse por el presupuesto canónico.",
+    cantidadRecurrentes +
+        omitidosPorPresupuesto +
+        omitidosPorCapacidadFisica ===
+      cantidadObjetivo,
+    "La diferencia entre densidad objetivo y población recurrente real debe explicarse por presupuesto o capacidad física.",
     errores,
   );
   comprobar(
@@ -199,6 +204,7 @@ export function validarPoblacionMazmorra({
       zonasActivadasPorCapacidad:
         poblacion.zonasActivadasPorCapacidad?.length ?? 0,
       enemigosOmitidosPorPresupuesto: omitidosPorPresupuesto,
+      enemigosOmitidosPorCapacidadFisica: omitidosPorCapacidadFisica,
     },
   };
 }

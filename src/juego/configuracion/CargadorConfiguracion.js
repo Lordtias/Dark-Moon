@@ -6,6 +6,7 @@ import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfi
 
 import { validarConfiguracionComercio } from "../comercio/ValidadorConfiguracionComercio.js";
 import { validarHabilidadesNPC } from "../habilidades/ValidadorHabilidadesNPC.js";
+import { validarConfiguracionEntidadesMazmorra } from "./ValidadorConfiguracionEntidadesMazmorra.js";
 
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
@@ -33,6 +34,24 @@ const CATALOGOS_ENEMIGOS = Object.freeze([
 // Mantener la misma capitalización evita errores
 // al publicar en servidores Linux o GitHub Pages.
 const RUTA_MAPAS = "./src/config/mapas/mapas.json";
+
+const CATALOGOS_ENTIDADES_MAZMORRA = Object.freeze([
+  {
+    id: "recipientes",
+    ruta: "./src/config/entidades/mazmorra/Recipientes.json",
+    descripcion: "el catálogo de recipientes de mazmorra",
+  },
+  {
+    id: "obstaculos",
+    ruta: "./src/config/entidades/mazmorra/Obstaculos.json",
+    descripcion: "el catálogo de obstáculos de mazmorra",
+  },
+  {
+    id: "decoraciones",
+    ruta: "./src/config/entidades/mazmorra/Decoraciones.json",
+    descripcion: "el catálogo de decoraciones destructibles de mazmorra",
+  },
+]);
 
 const RUTA_CIUDAD_INICIAL = "./src/config/mapas/CiudadInicial.json";
 
@@ -403,6 +422,24 @@ function normalizarIdConfiguracion(idOriginal, descripcionCatalogo) {
   }
 
   return idOriginal.trim().toLowerCase();
+}
+
+// Carga las familias de comportamiento de objetos físicos de mazmorra.
+// Las variantes concretas viven en JSON; el runtime recibe un único catálogo
+// por ID para evitar clases o fábricas específicas por escenario.
+export async function cargarConfiguracionEntidadesMazmorra() {
+  const cargados = await Promise.all(
+    CATALOGOS_ENTIDADES_MAZMORRA.map(async (catalogo) => ({
+      id: catalogo.id,
+      configuracion: await cargarJson(catalogo.ruta, catalogo.descripcion),
+    })),
+  );
+
+  const porFamilia = Object.fromEntries(
+    cargados.map((catalogo) => [catalogo.id, catalogo.configuracion]),
+  );
+
+  return validarConfiguracionEntidadesMazmorra(porFamilia);
 }
 
 // Carga y valida las plantillas utilizadas

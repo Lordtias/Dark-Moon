@@ -43,6 +43,7 @@ export function generarEnemigosRecurrentes({
   const zonasActivadasPorCapacidad = [];
   let indiceZonaSiguiente = 0;
   let cantidadNoColocadaPorPresupuesto = 0;
+  let cantidadNoColocadaPorCapacidadFisica = 0;
 
   for (let indice = 0; indice < cantidadObjetivo; indice++) {
     const candidato = seleccionarCandidatoEnemigoConPresupuesto({
@@ -87,10 +88,12 @@ export function generarEnemigosRecurrentes({
     }
 
     if (ubicacion === null) {
-      throw new Error(
-        `El mapa "${plantilla.nombre}" conserva presupuesto para un enemigo ` +
-          "pero no tiene una posición física válida respetando las distancias configuradas.",
-      );
+      // La ocupación es compartida por enemigos y contenido físico. Puede
+      // quedar presupuesto numérico disponible aunque las restricciones de
+      // distancia y las entidades ya colocadas agoten las posiciones reales.
+      // Eso es capacidad física consumida, no una inconsistencia del mapa.
+      cantidadNoColocadaPorCapacidadFisica = cantidadObjetivo - enemigos.length;
+      break;
     }
 
     const { zona, indicePosicion, indiceZona } = ubicacion;
@@ -151,6 +154,7 @@ export function generarEnemigosRecurrentes({
     variantes,
     zonasActivadasPorCapacidad,
     cantidadNoColocadaPorPresupuesto,
+    cantidadNoColocadaPorCapacidadFisica,
   };
 }
 
@@ -398,6 +402,8 @@ export function crearResumenPoblacionEnemigos({
     cantidadObjetivoRecurrentes: cantidadObjetivo,
     cantidadNoColocadaPorPresupuesto:
       resultadoRecurrentes.cantidadNoColocadaPorPresupuesto ?? 0,
+    cantidadNoColocadaPorCapacidadFisica:
+      resultadoRecurrentes.cantidadNoColocadaPorCapacidadFisica ?? 0,
     idHabitacionZonaEspecial: contextoPoblacion.zonaEspecial.idHabitacion,
     cantidadZonasNormales: contextoPoblacion.zonasNormales.length,
     cantidadZonasAmbientales: contextoPoblacion.zonasAmbientales.length,

@@ -9,7 +9,7 @@ import {
   calcularExperienciaAcumuladaParaNivel,
   calcularRecompensaExperiencia,
 } from "../../juego/progresion/SistemaProgresion.js";
-import { ResolutorDerrotasJugador } from "../../juego/combate/ResolutorDerrotasJugador.js";
+import { ResolutorDestruccionesJugador } from "../../juego/combate/ResolutorDestruccionesJugador.js";
 import { resolverPaqueteDanio } from "../../juego/combate/ComponentesDanio.js";
 import {
   configurarContextoGeneracionBotin,
@@ -32,6 +32,7 @@ export function crearInformeBalanceRegresion({
   configuracionObjetos,
   configuracionGeneracionObjetos,
   configuracionMapas,
+  configuracionEntidadesMazmorra,
   configuracionEjecucionHabilidades,
   objetivosBalance,
   progresion,
@@ -46,6 +47,7 @@ export function crearInformeBalanceRegresion({
     configuracionObjetos,
     configuracionGeneracionObjetos,
     configuracionMapas,
+    configuracionEntidadesMazmorra,
     configuracionEjecucionHabilidades,
     objetivosBalance,
     progresion,
@@ -62,6 +64,7 @@ export function crearInformeBalanceRegresion({
     configuracionObjetos,
     configuracionGeneracionObjetos,
     configuracionMapas,
+    configuracionEntidadesMazmorra,
     progresion,
     objetivos,
   });
@@ -129,8 +132,8 @@ export function crearInformeBalanceRegresion({
     origenes: {
       mapas: "ConfiguracionInicial, GeneradorContenidoMapa y FabricaEnemigos",
       experiencia: "SistemaProgresion",
-      recompensas: "ResolutorDerrotasJugador y SistemaBotin",
-      danioPeriodico: "ComponentesDanio y ResolutorDerrotasJugador",
+      recompensas: "ResolutorDestruccionesJugador y SistemaBotin",
+      danioPeriodico: "ComponentesDanio y ResolutorDestruccionesJugador",
       fallos: "SistemaHabilidadesJugador y ProgresoMagicoJugador",
       cobertura: "informes canónicos de progresión, combate y efectos",
     },
@@ -152,6 +155,7 @@ function analizarRutaGenerada({
   configuracionObjetos,
   configuracionGeneracionObjetos,
   configuracionMapas,
+  configuracionEntidadesMazmorra,
   progresion,
   objetivos,
 }) {
@@ -170,6 +174,7 @@ function analizarRutaGenerada({
         configuracionObjetos,
         configuracionGeneracionObjetos,
         configuracionMapas,
+        configuracionEntidadesMazmorra,
         semillaMapa:
           `balance-regresion:${tramo.idMapa}:${tramo.nivelMapa}:${indice}`,
         idMapaForzado: tramo.idMapa,
@@ -318,7 +323,7 @@ function probarRecompensaUnica({
   const objetivos = [enemigo];
   const interactuables = [];
   let retiros = 0;
-  const resolutor = new ResolutorDerrotasJugador({
+  const resolutor = new ResolutorDestruccionesJugador({
     jugador,
     objetivos,
     interactuables,

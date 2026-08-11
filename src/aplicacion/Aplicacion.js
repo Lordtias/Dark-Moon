@@ -9,6 +9,7 @@ import {
   cargarConfiguracionCiudad,
   cargarConfiguracionComercio,
   cargarConfiguracionHabilidadesNPC,
+  cargarConfiguracionEntidadesMazmorra,
   cargarPerfilesAtaquePorFamilia,
   cargarPerfilesHabilidadesVisuales,
   cargarPerfilesEstadosTemporalesVisuales,
@@ -19,6 +20,7 @@ import {
   obtenerConfiguracionEjecucionHabilidades,
 } from "../juego/maestrias/ContextoProgresoMagico.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
+import { validarReferenciasEntidadesMazmorra } from "../juego/configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import {
   crearJugadorDesdeGuardado,
   eliminarGuardadoJugador,
@@ -65,6 +67,7 @@ export class Aplicacion {
     this.configuracionCiudad = null;
     this.configuracionComercio = null;
     this.configuracionHabilidadesNPC = null;
+    this.configuracionEntidadesMazmorra = null;
     this.configuracionProgresoMagico = null;
     this.configuracionPresentacionCombate = null;
     this.configuracionPresentacionHabilidades = null;
@@ -280,6 +283,7 @@ export class Aplicacion {
       configuracionCiudad,
       configuracionComercio,
       configuracionHabilidadesNPC,
+      configuracionEntidadesMazmorra,
       configuracionProgresoMagico,
       perfilesAtaquePorFamilia,
       perfilesHabilidadesVisuales,
@@ -294,6 +298,7 @@ export class Aplicacion {
       cargarConfiguracionCiudad(),
       cargarConfiguracionComercio(),
       cargarConfiguracionHabilidadesNPC(),
+      cargarConfiguracionEntidadesMazmorra(),
       cargarYConfigurarProgresoMagico(),
       cargarPerfilesAtaquePorFamilia(),
       cargarPerfilesHabilidadesVisuales(),
@@ -338,6 +343,11 @@ export class Aplicacion {
     this.configuracionCiudad = configuracionCiudad;
     this.configuracionComercio = configuracionComercio;
     this.configuracionHabilidadesNPC = configuracionHabilidadesNPC;
+    this.configuracionEntidadesMazmorra = configuracionEntidadesMazmorra;
+    validarReferenciasEntidadesMazmorra({
+      configuracionMapas: this.configuracionMapas,
+      configuracionEntidadesMazmorra: this.configuracionEntidadesMazmorra,
+    });
     this.configuracionProgresoMagico = configuracionProgresoMagico;
   }
 
@@ -453,6 +463,7 @@ export class Aplicacion {
       configuracionCiudad: this.configuracionCiudad,
       configuracionComercio: this.configuracionComercio,
       configuracionHabilidadesNPC: this.configuracionHabilidadesNPC,
+      configuracionEntidadesMazmorra: this.configuracionEntidadesMazmorra,
     };
   }
 

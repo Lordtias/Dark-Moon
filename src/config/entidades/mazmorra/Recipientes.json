@@ -1,0 +1,41 @@
+{
+  "barril_madera": {
+    "nombre": "Barril",
+    "simbolo": "B",
+    "recursoVisual": "assets/imagenes/destructibles/barril_madera.png",
+    "vidaMaxima": 6,
+    "armadura": 0,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true,
+    "capacidadContenedor": 6,
+    "alcanceInteraccion": 1,
+    "prioridadInteraccion": 94
+  },
+  "caja_humeda": {
+    "nombre": "Caja húmeda",
+    "simbolo": "C",
+    "recursoVisual": "assets/imagenes/destructibles/caja_humeda.png",
+    "vidaMaxima": 10,
+    "armadura": 1,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true,
+    "capacidadContenedor": 6,
+    "alcanceInteraccion": 1,
+    "prioridadInteraccion": 94
+  },
+  "suministros_mantenimiento": {
+    "nombre": "Suministros de mantenimiento",
+    "simbolo": "S",
+    "recursoVisual": "assets/imagenes/destructibles/suministros_mantenimiento.png",
+    "vidaMaxima": 12,
+    "armadura": 1,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true,
+    "capacidadContenedor": 8,
+    "alcanceInteraccion": 1,
+    "prioridadInteraccion": 95
+  }
+}

@@ -110,6 +110,7 @@ export function crearConfiguracionMazmorra({
   configuracionObjetos,
   configuracionGeneracionObjetos,
   configuracionMapas,
+  configuracionEntidadesMazmorra,
 
   // Los valores son opcionales.
   //
@@ -142,6 +143,7 @@ export function crearConfiguracionMazmorra({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionEntidadesMazmorra,
     cantidadEnemigosRecurrentes,
     semillaMapa,
     idMapaForzado,
@@ -201,6 +203,7 @@ function completarConfiguracionMazmorra({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracionEntidadesMazmorra,
   cantidadEnemigosRecurrentes,
   semillaMapa,
   idMapaForzado,
@@ -249,6 +252,7 @@ function completarConfiguracionMazmorra({
     aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionEntidadesMazmorra,
     nivelMapa,
     cantidadEnemigosRecurrentes,
   });

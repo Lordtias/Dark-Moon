@@ -21,6 +21,7 @@ export class Juego {
     objetivos,
     interactuables = [],
     mapaSeleccionado,
+    planoMazmorra = null,
     configuracionObjetos,
   } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
@@ -50,6 +51,7 @@ export class Juego {
 
     this.map = map;
     this.mapaSeleccionado = mapaSeleccionado;
+    this.planoMazmorra = planoMazmorra;
     this.configuracionObjetos = configuracionObjetos;
     this.player = player;
     this.objetivos = objetivos;
@@ -62,8 +64,7 @@ export class Juego {
       mapa: this.map,
       obtenerEntidades: () => [
         this.player,
-        ...this.objetivos,
-        ...this.interactuables,
+        ...new Set([...this.objetivos, ...this.interactuables]),
       ],
       obtenerZonas: () =>
         this.coordinadorTiempo?.obtenerZonasTemporales?.() ?? [],
@@ -490,12 +491,12 @@ export class Juego {
     );
   }
 
-  incorporarDerrotasPendientes(resultado) {
+  incorporarDestruccionesPendientes(resultado) {
     if (!resultado || typeof resultado !== "object") {
       return resultado;
     }
 
-    const derrotas = this.sistemaCombateJugador.resolverDerrotasPendientes();
+    const derrotas = this.sistemaCombateJugador.resolverDestruccionesPendientes();
     if (!derrotas.mensaje && (derrotas.eventos?.length ?? 0) === 0) {
       return resultado;
     }
@@ -510,7 +511,7 @@ export class Juego {
 
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     const resultadoConDerrotasInmediatas =
-      this.incorporarDerrotasPendientes(resultado);
+      this.incorporarDestruccionesPendientes(resultado);
     const resultadoTemporal =
       this.coordinadorTiempo.finalizarResultadoAccionJugador({
         resultado: resultadoConDerrotasInmediatas,
@@ -518,7 +519,7 @@ export class Juego {
         costoBase,
       });
 
-    return this.incorporarDerrotasPendientes(resultadoTemporal);
+    return this.incorporarDestruccionesPendientes(resultadoTemporal);
   }
 
   finalizarAccionJugador({
@@ -527,7 +528,7 @@ export class Juego {
     costoBase,
     eventos = [],
   } = {}) {
-    const resultadoConDerrotasInmediatas = this.incorporarDerrotasPendientes({
+    const resultadoConDerrotasInmediatas = this.incorporarDestruccionesPendientes({
       mensaje,
       eventos,
     });
@@ -538,7 +539,7 @@ export class Juego {
       eventos: resultadoConDerrotasInmediatas.eventos ?? [],
     });
 
-    return this.incorporarDerrotasPendientes(resultadoTemporal);
+    return this.incorporarDestruccionesPendientes(resultadoTemporal);
   }
 
   esperarTurno() {

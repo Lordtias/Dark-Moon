@@ -355,6 +355,8 @@ function crearAccesoBalance(contexto) {
           configuracionGeneracionObjetos:
             aplicacion.configuracionGeneracionObjetos,
           configuracionMapas: aplicacion.configuracionMapas,
+          configuracionEntidadesMazmorra:
+            aplicacion.configuracionEntidadesMazmorra,
           configuracionProgresoMagico: obtenerConfiguracionProgresoMagico(),
           configuracionEjecucionHabilidades:
             obtenerConfiguracionEjecucionHabilidades(),

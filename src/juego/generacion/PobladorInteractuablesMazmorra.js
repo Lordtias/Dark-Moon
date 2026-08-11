@@ -124,18 +124,35 @@ export function generarInteractuablesPrevios({
     cofresModerados: detalleCofresModerados,
   };
 }
-export function generarBarrilesProcedurales({
+export function generarDestructiblesProcedurales(parametros = {}) {
+  const plantilla = parametros.plantilla;
+  if (!plantilla || typeof plantilla !== "object") {
+    throw new Error("La población de destructibles necesita una plantilla válida.");
+  }
+
+  return plantilla.poblacion?.perfilesHabitacion
+    ? generarDestructiblesPorPerfil(parametros)
+    : generarDestructiblesPorDensidadGlobal(parametros);
+}
+
+// Mantiene el comportamiento histórico de las mazmorras que todavía no
+// adoptaron perfiles: una densidad global sobre todas las zonas poblables.
+// La familia concreta ya es genérica, pero la generalización del contrato no
+// cambia por sí sola el balance de esos mapas.
+function generarDestructiblesPorDensidadGlobal({
   plantilla,
   terreno,
   posicionJugador,
+  nivelMapa,
   contextoPoblacion,
   posicionesBloqueadasPersistentes,
   objetivos,
   interactuables,
+  configuracionObjetos,
+  configuracionEntidadesMazmorra,
   aleatorio,
 }) {
-  const configuracion = plantilla.interactuables.barriles;
-  const costoPoblacion = calcularCostoDestructiblePoblacion();
+  const configuracion = plantilla.interactuables.destructibles;
   const cantidadCalculada = Math.round(
     contextoPoblacion.cantidadCasillasCandidatas *
       (configuracion.densidadPor100Casillas / 100),
@@ -145,7 +162,6 @@ export function generarBarrilesProcedurales({
     contextoPoblacion.cantidadCasillasCandidatas > 0
       ? Math.max(1, cantidadCalculada)
       : 0;
-
   const clavesCaminables = new Set(
     terreno.casillasTransitables.map((posicion) => crearClave(posicion)),
   );
@@ -162,82 +178,309 @@ export function generarBarrilesProcedurales({
     }
   }
 
-  const barriles = [];
+  const destructibles = [];
   const detalle = [];
-
   for (const posicion of aleatorio.mezclar(candidatas)) {
-    if (barriles.length >= cantidadObjetivo) break;
+    if (destructibles.length >= cantidadObjetivo) break;
 
-    const clave = crearClave(posicion);
-    const zona = zonaPorClave.get(clave);
-    if (!zona || !puedeConsumirPresupuesto(zona, costoPoblacion)) {
-      continue;
-    }
-
-    posicionesBloqueadasPersistentes.add(clave);
-    const mantieneConectividad = comprobarConectividad({
-      clavesCaminables,
-      posicionesBloqueadas: posicionesBloqueadasPersistentes,
-      posicionInicial: posicionJugador,
-    });
-
-    if (!mantieneConectividad) {
-      posicionesBloqueadasPersistentes.delete(clave);
-      continue;
-    }
-
+    const zona = zonaPorClave.get(crearClave(posicion));
+    if (!zona) continue;
     const permitido = seleccionarPonderado(configuracion.permitidos, aleatorio);
-    const resultado = incorporarEntidadMazmorra({
-      id: permitido.id,
-      x: posicion.x,
-      y: posicion.y,
+    const datos = resolverDatosDestructible({
+      permitido,
+      configuracion,
+      configuracionObjetos,
+    });
+    if (!puedeConsumirPresupuesto(zona, datos.costoPoblacion)) continue;
+
+    const resultado = intentarColocarDestructible({
+      permitido,
+      datos,
+      posicion,
+      zona,
+      plantilla,
+      nivelMapa,
+      posicionJugador,
+      clavesCaminables,
+      posicionesBloqueadasPersistentes,
       objetivos,
       interactuables,
+      configuracionObjetos,
+      configuracionEntidadesMazmorra,
+      aleatorio,
     });
-    if (
-      !consumirPresupuesto({
-        zona,
-        costo: costoPoblacion,
-        origen: "destructible",
-      })
-    ) {
-      throw new Error(
-        `La habitación "${zona.idHabitacion}" perdió disponibilidad de presupuesto durante la colocación de un destructible.`,
-      );
-    }
+    if (!resultado) continue;
 
-    barriles.push(resultado.entidad);
-    detalle.push({
-      numero: barriles.length,
-      tipo: permitido.id,
-      nombre: resultado.entidad.nombre,
-      x: posicion.x,
-      y: posicion.y,
-      idHabitacion: zona?.idHabitacion ?? null,
-      zonaEspecial: zona.esEspecial === true,
-      costoPoblacion: resumirCosto(costoPoblacion),
-    });
+    retirarPosicionDisponible(zona, posicion);
+    destructibles.push(resultado.entidad);
+    detalle.push(
+      crearDetalleDestructible({
+        entidad: resultado.entidad,
+        permitido,
+        posicion,
+        zona,
+        numero: destructibles.length,
+        costoPoblacion: datos.costoPoblacion,
+      }),
+    );
   }
 
-  const cantidadNoColocada = cantidadObjetivo - barriles.length;
+  return finalizarResultadoDestructibles({
+    plantilla,
+    configuracion,
+    destructibles,
+    detalle,
+    cantidadObjetivo,
+  });
+}
+
+// Cuando el mapa ya define perfiles, cada habitación puede variar familias,
+// pesos y multiplicador de contenido. Esta es la ruta que comienza a utilizar
+// Alcantarilla y queda disponible para cualquier mazmorra futura.
+function generarDestructiblesPorPerfil({
+  plantilla,
+  terreno,
+  posicionJugador,
+  nivelMapa,
+  contextoPoblacion,
+  posicionesBloqueadasPersistentes,
+  objetivos,
+  interactuables,
+  configuracionObjetos,
+  configuracionEntidadesMazmorra,
+  aleatorio,
+}) {
+  const configuracion = plantilla.interactuables.destructibles;
+  const clavesCaminables = new Set(
+    terreno.casillasTransitables.map((posicion) => crearClave(posicion)),
+  );
+  const zonas = [
+    contextoPoblacion.zonaEspecial,
+    ...contextoPoblacion.zonasNormales,
+  ];
+  const destructibles = [];
+  const detalle = [];
+  let cantidadObjetivo = 0;
+
+  for (const zona of aleatorio.mezclar(zonas)) {
+    const configuracionPerfil = obtenerConfiguracionPerfil({
+      plantilla,
+      perfil: zona.perfil,
+      esEspecial: zona.esEspecial,
+    });
+    const permitidos = resolverPermitidosZona({
+      configuracion,
+      configuracionPerfil,
+    });
+    if (permitidos.length === 0) continue;
+
+    const multiplicadorContenido =
+      configuracionPerfil?.multiplicadorContenido ?? 1;
+    const cantidadCalculada = Math.round(
+      zona.cantidadCasillasCandidatas *
+        (configuracion.densidadPor100Casillas / 100) *
+        multiplicadorContenido,
+    );
+    const objetivoZona =
+      configuracion.densidadPor100Casillas > 0 &&
+      zona.cantidadCasillasCandidatas > 0 &&
+      multiplicadorContenido > 0
+        ? Math.max(1, cantidadCalculada)
+        : 0;
+    cantidadObjetivo += objetivoZona;
+
+    let colocadosZona = 0;
+    for (const posicion of aleatorio.mezclar([...zona.posicionesDisponibles])) {
+      if (colocadosZona >= objetivoZona) break;
+
+      const permitido = seleccionarPonderado(permitidos, aleatorio);
+      const datos = resolverDatosDestructible({
+        permitido,
+        configuracion,
+        configuracionObjetos,
+      });
+      if (!puedeConsumirPresupuesto(zona, datos.costoPoblacion)) continue;
+
+      const resultado = intentarColocarDestructible({
+        permitido,
+        datos,
+        posicion,
+        zona,
+        plantilla,
+        nivelMapa,
+        posicionJugador,
+        clavesCaminables,
+        posicionesBloqueadasPersistentes,
+        objetivos,
+        interactuables,
+        configuracionObjetos,
+        configuracionEntidadesMazmorra,
+        aleatorio,
+      });
+      if (!resultado) continue;
+
+      retirarPosicionDisponible(zona, posicion);
+      destructibles.push(resultado.entidad);
+      colocadosZona += 1;
+      detalle.push(
+        crearDetalleDestructible({
+          entidad: resultado.entidad,
+          permitido,
+          posicion,
+          zona,
+          numero: destructibles.length,
+          costoPoblacion: datos.costoPoblacion,
+        }),
+      );
+    }
+  }
+
+  return finalizarResultadoDestructibles({
+    plantilla,
+    configuracion,
+    destructibles,
+    detalle,
+    cantidadObjetivo,
+  });
+}
+
+function resolverDatosDestructible({ permitido, configuracion, configuracionObjetos }) {
+  const tablaContenido = resolverTablaConfigurada({
+    configuracion,
+    idTabla: permitido.idTablaContenido,
+  });
+  const tablaBotin = resolverTablaConfigurada({
+    configuracion,
+    idTabla: permitido.idTablaBotin,
+  });
+  return {
+    tablaContenido,
+    tablaBotin,
+    costoPoblacion: calcularCostoDestructiblePoblacion({
+      tablaBotin: [...(tablaContenido ?? []), ...(tablaBotin ?? [])],
+      configuracionObjetos,
+    }),
+  };
+}
+
+function intentarColocarDestructible({
+  permitido,
+  datos,
+  posicion,
+  zona,
+  plantilla,
+  nivelMapa,
+  posicionJugador,
+  clavesCaminables,
+  posicionesBloqueadasPersistentes,
+  objetivos,
+  interactuables,
+  configuracionObjetos,
+  configuracionEntidadesMazmorra,
+  aleatorio,
+}) {
+  const clave = crearClave(posicion);
+  if (posicionesBloqueadasPersistentes.has(clave)) return null;
+  posicionesBloqueadasPersistentes.add(clave);
+
+  const mantieneConectividad = comprobarConectividad({
+    clavesCaminables,
+    posicionesBloqueadas: posicionesBloqueadasPersistentes,
+    posicionInicial: posicionJugador,
+  });
+  const tieneAcceso = tieneCasillaAdyacenteDisponible({
+    posicion,
+    clavesCaminables,
+    posicionesBloqueadas: posicionesBloqueadasPersistentes,
+  });
+
+  if (!mantieneConectividad || !tieneAcceso) {
+    posicionesBloqueadasPersistentes.delete(clave);
+    return null;
+  }
+
+  const resultado = incorporarEntidadMazmorra({
+    id: permitido.id,
+    x: posicion.x,
+    y: posicion.y,
+    nivel: nivelMapa,
+    tablaContenido: datos.tablaContenido,
+    tablaBotin: datos.tablaBotin,
+    configuracionObjetos,
+    configuracionEntidadesMazmorra,
+    aleatorio,
+    objetivos,
+    interactuables,
+  });
+
+  if (
+    !consumirPresupuesto({
+      zona,
+      costo: datos.costoPoblacion,
+      origen: `destructible:${permitido.id}`,
+    })
+  ) {
+    throw new Error(
+      `La habitación "${zona.idHabitacion}" perdió disponibilidad de ` +
+        `presupuesto durante la colocación de "${permitido.id}" en ` +
+        `"${plantilla.nombre}".`,
+    );
+  }
+
+  return resultado;
+}
+
+function crearDetalleDestructible({
+  entidad,
+  permitido,
+  posicion,
+  zona,
+  numero,
+  costoPoblacion,
+}) {
+  return {
+    numero,
+    tipo: permitido.id,
+    familia: entidad.familiaEntidad ?? null,
+    nombre: entidad.nombre,
+    x: posicion.x,
+    y: posicion.y,
+    idHabitacion: zona.idHabitacion,
+    perfil: zona.perfil,
+    zonaEspecial: zona.esEspecial === true,
+    cantidadContenido:
+      entidad.contenedorObjetos?.obtenerObjetos?.().length ?? 0,
+    costoPoblacion: resumirCosto(costoPoblacion),
+  };
+}
+
+function finalizarResultadoDestructibles({
+  plantilla,
+  configuracion,
+  destructibles,
+  detalle,
+  cantidadObjetivo,
+}) {
+  const cantidadNoColocada = Math.max(0, cantidadObjetivo - destructibles.length);
   if (cantidadNoColocada > 0) {
     console.warn(
-      `[Mapa] "${plantilla.nombre}" colocó ${barriles.length} de ` +
-        `${cantidadObjetivo} barriles tras aplicar presupuesto y conectividad.`,
+      `[Mapa] "${plantilla.nombre}" colocó ${destructibles.length} de ` +
+        `${cantidadObjetivo} destructibles tras aplicar presupuesto, restricciones y conectividad.`,
     );
   }
 
   return {
-    barriles,
+    destructibles,
     detalle,
     densidadPor100Casillas: configuracion.densidadPor100Casillas,
     cantidadObjetivo,
     cantidadNoColocada,
   };
 }
+
 export function crearResumenInteractuablesProcedurales({
   resultadoPrevio,
-  resultadoBarriles,
+  resultadoDestructibles,
 }) {
   return {
     portalEntrada: { ...resultadoPrevio.portalEntrada },
@@ -248,12 +491,68 @@ export function crearResumenInteractuablesProcedurales({
       ...entrada,
     })),
     cofreImportante: { ...resultadoPrevio.cofreImportante },
-    cantidadBarriles: resultadoBarriles.barriles.length,
-    cantidadBarrilesObjetivo: resultadoBarriles.cantidadObjetivo,
-    cantidadBarrilesNoColocados: resultadoBarriles.cantidadNoColocada,
-    densidadBarrilesPor100Casillas: resultadoBarriles.densidadPor100Casillas,
+    cantidadDestructibles: resultadoDestructibles.destructibles.length,
+    cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
+    cantidadDestructiblesNoColocados:
+      resultadoDestructibles.cantidadNoColocada,
+    densidadDestructiblesPor100Casillas:
+      resultadoDestructibles.densidadPor100Casillas,
   };
 }
+
+function retirarPosicionDisponible(zona, posicion) {
+  const indice = zona.posicionesDisponibles.findIndex(
+    (candidata) => candidata.x === posicion.x && candidata.y === posicion.y,
+  );
+  if (indice >= 0) zona.posicionesDisponibles.splice(indice, 1);
+}
+
+function obtenerConfiguracionPerfil({ plantilla, perfil, esEspecial }) {
+  const perfiles = plantilla.poblacion.perfilesHabitacion;
+  if (!perfiles || !perfil) return null;
+  if (esEspecial) {
+    return perfiles.especial?.id === perfil ? perfiles.especial : null;
+  }
+  return perfiles.normales?.find((candidato) => candidato.id === perfil) ?? null;
+}
+
+function resolverPermitidosZona({ configuracion, configuracionPerfil }) {
+  const basePorId = new Map(
+    configuracion.permitidos.map((permitido) => [permitido.id, permitido]),
+  );
+  if (!configuracionPerfil?.permitidos) {
+    return configuracion.permitidos.map((permitido) => ({ ...permitido }));
+  }
+
+  return configuracionPerfil.permitidos.map((permitidoPerfil) => ({
+    ...basePorId.get(permitidoPerfil.id),
+    ...permitidoPerfil,
+  }));
+}
+
+function resolverTablaConfigurada({ configuracion, idTabla }) {
+  if (!idTabla) return null;
+  const tabla = configuracion.tablasBotin?.[idTabla];
+  if (!Array.isArray(tabla)) {
+    throw new Error(`La tabla de botín "${idTabla}" no está configurada.`);
+  }
+  return tabla;
+}
+
+function tieneCasillaAdyacenteDisponible({
+  posicion,
+  clavesCaminables,
+  posicionesBloqueadas,
+}) {
+  return DIRECCIONES_ADYACENTES.some((direccion) => {
+    const clave = crearClave({
+      x: posicion.x + direccion.x,
+      y: posicion.y + direccion.y,
+    });
+    return clavesCaminables.has(clave) && !posicionesBloqueadas.has(clave);
+  });
+}
+
 function generarPortalEntrada({
   terreno,
   posicionJugador,

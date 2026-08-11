@@ -20,11 +20,13 @@ import {
 import { ContenedorObjetos } from "../../objetos/ContenedorObjetos.js";
 import { crearResultadoAccion } from "../../juego/acciones/ResultadoAccion.js";
 import { crearConfiguracionCiudad } from "../../juego/configuracion/ConfiguracionCiudad.js";
+import { validarConfiguracionEntidadesMazmorra } from "../../juego/configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import {
   configurarContextoGeneracionBotin,
   limpiarContextoGeneracionBotin,
 } from "../../juego/botin/ContextoGeneracionBotin.js";
 import { generarBotinEnSuelo } from "../../juego/botin/SistemaBotin.js";
+import { ResolutorDestruccionesJugador } from "../../juego/combate/ResolutorDestruccionesJugador.js";
 import { SistemaEspacial } from "../../juego/espacio/SistemaEspacial.js";
 import { crearGeneradorAleatorio } from "../../juego/generacion/GeneradorAleatorio.js";
 import { SistemaVisibilidadJugador } from "../../juego/visibilidad/SistemaVisibilidadJugador.js";
@@ -65,6 +67,9 @@ export function validarInfraestructuraEntidades() {
   validarPortalInactivo();
   validarPortalCiudadVigente();
   validarFabricaGenerica();
+  validarRecipienteContenidoUnico();
+  validarObstaculoLiberaPasoAlDestruirse();
+  validarDecoracionDropCanonico();
   validarCofreConBotinCanonico();
   validarEjecucionInmediataActivacion();
   validarContratoVisualPortalInactivo();
@@ -73,6 +78,7 @@ export function validarInfraestructuraEntidades() {
 }
 
 function validarAssetsVisualesEntidadesMazmorra() {
+  const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
   const rutas = [
     RECURSO_VISUAL_COFRE_CERRADO_PREDETERMINADO,
     RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO,
@@ -82,6 +88,9 @@ function validarAssetsVisualesEntidadesMazmorra() {
     RECURSOS_VISUALES_PUERTA_PREDETERMINADOS.horizontal.abierta,
     RECURSOS_VISUALES_PUERTA_PREDETERMINADOS.vertical.cerrada,
     RECURSOS_VISUALES_PUERTA_PREDETERMINADOS.vertical.abierta,
+    ...Object.values(configuracionEntidadesMazmorra.porId).map(
+      (definicion) => definicion.recursoVisual,
+    ),
   ];
 
   for (const ruta of rutas) {
@@ -303,16 +312,35 @@ function validarPortalCiudadVigente() {
 function validarFabricaGenerica() {
   const objetivos = [];
   const interactuables = [];
+  const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
+  const objeto = { id: "objeto_prueba", nombre: "Objeto de prueba", cantidad: 1 };
 
   const barril = incorporarEntidadMazmorra({
-    id: "barril",
+    id: "barril_madera",
     x: 1,
     y: 1,
+    objetosIniciales: [objeto],
+    configuracionEntidadesMazmorra,
     objetivos,
     interactuables,
   });
-  assert.equal(barril.destino, DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS);
+  assert.equal(barril.destino, DESTINOS_ENTIDAD_MAZMORRA.AMBOS);
   assert.equal(objetivos.includes(barril.entidad), true);
+  assert.equal(interactuables.includes(barril.entidad), true);
+  assert.equal(barril.entidad.id, "barril_madera");
+  assert.equal(barril.entidad.cantidadObjetos, 1);
+
+  const barricada = incorporarEntidadMazmorra({
+    id: "barricada_improvisada",
+    x: 1,
+    y: 2,
+    configuracionEntidadesMazmorra,
+    objetivos,
+    interactuables,
+  });
+  assert.equal(barricada.destino, DESTINOS_ENTIDAD_MAZMORRA.OBJETIVOS);
+  assert.equal(objetivos.includes(barricada.entidad), true);
+  assert.equal(interactuables.includes(barricada.entidad), false);
 
   const puerta = incorporarEntidadMazmorra({
     id: "puerta",
@@ -337,11 +365,219 @@ function validarFabricaGenerica() {
   assert.equal(interactuables.includes(cofre.entidad), true);
 
   assert.throws(
-    () => crearEntidadMazmorra({ id: "desconocido", x: 1, y: 1 }),
+    () =>
+      crearEntidadMazmorra({
+        id: "desconocido",
+        x: 1,
+        y: 1,
+        configuracionEntidadesMazmorra,
+      }),
     /no existe una entidad/i,
   );
 }
 
+function validarRecipienteContenidoUnico() {
+  const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
+  const objeto = {
+    id: "contenido_unico",
+    nombre: "Contenido único",
+    cantidad: 1,
+    apilable: true,
+    rareza: "comun",
+    nivelObjeto: 1,
+    afijos: [],
+  };
+  const objetivos = [];
+  const interactuables = [];
+  const resultado = incorporarEntidadMazmorra({
+    id: "caja_humeda",
+    x: 3,
+    y: 3,
+    objetosIniciales: [objeto],
+    configuracionEntidadesMazmorra,
+    objetivos,
+    interactuables,
+  });
+  const recipiente = resultado.entidad;
+
+  assert.equal(recipiente.obtenerInteracciones().length, 1);
+  const sistemaInteraccion = crearSistemaInteraccion({ interactuables });
+  assert.equal(
+    sistemaInteraccion.obtenerInteraccionPrioritaria()?.tipo,
+    TIPOS_INTERACCION.ABRIR_CONTENEDOR,
+  );
+  recipiente.recibirDanio(999);
+
+  const resolutor = new ResolutorDestruccionesJugador({
+    jugador,
+    objetivos,
+    interactuables,
+    configuracionObjetos: {},
+    eliminarActorTemporal: () => {},
+  });
+  const destruccion = resolutor.resolverObjetivo(recipiente);
+  assert.equal(destruccion.procesada, true);
+  assert.equal(interactuables.includes(recipiente), false);
+  assert.equal(recipiente.estaVacio, true);
+
+  const botines = interactuables.filter((entidad) => entidad instanceof BotinSuelo);
+  assert.equal(botines.length, 1);
+  assert.equal(botines[0].contenedorObjetos.obtenerObjetos()[0], objeto);
+  assert.equal(resolutor.resolverObjetivo(recipiente).procesada, false);
+  assert.equal(interactuables.filter((entidad) => entidad instanceof BotinSuelo).length, 1);
+
+  const objetoRetirado = {
+    id: "contenido_retirado",
+    nombre: "Contenido retirado",
+    cantidad: 1,
+    apilable: true,
+    rareza: "comun",
+    nivelObjeto: 1,
+    afijos: [],
+  };
+  const objetoRestante = {
+    id: "contenido_restante",
+    nombre: "Contenido restante",
+    cantidad: 1,
+    apilable: true,
+    rareza: "comun",
+    nivelObjeto: 1,
+    afijos: [],
+  };
+  const recipienteParcial = crearEntidadMazmorra({
+    id: "caja_humeda",
+    x: 5,
+    y: 4,
+    objetosIniciales: [objetoRetirado, objetoRestante],
+    configuracionEntidadesMazmorra,
+  }).entidad;
+  const retirado = recipienteParcial.contenedorObjetos.retirarObjeto(0);
+  assert.equal(retirado, objetoRetirado);
+  recipienteParcial.recibirDanio(999);
+  const interactuablesParcial = [recipienteParcial];
+  const resolutorParcial = new ResolutorDestruccionesJugador({
+    jugador,
+    objetivos: [recipienteParcial],
+    interactuables: interactuablesParcial,
+    configuracionObjetos: {},
+    eliminarActorTemporal: () => {},
+  });
+  resolutorParcial.resolverObjetivo(recipienteParcial);
+  const botinParcial = interactuablesParcial.find(
+    (entidad) => entidad instanceof BotinSuelo,
+  );
+  assert.ok(botinParcial);
+  const objetosLiberados = botinParcial.contenedorObjetos.obtenerObjetos();
+  assert.equal(objetosLiberados.length, 1);
+  assert.equal(objetosLiberados[0], objetoRestante);
+  assert.equal(objetosLiberados.includes(objetoRetirado), false);
+
+  const recipienteVacio = crearEntidadMazmorra({
+    id: "caja_humeda",
+    x: 4,
+    y: 4,
+    objetosIniciales: [{
+      id: "retirado",
+      nombre: "Retirado",
+      cantidad: 1,
+      apilable: true,
+      rareza: "comun",
+      nivelObjeto: 1,
+      afijos: [],
+    }],
+    configuracionEntidadesMazmorra,
+  }).entidad;
+  recipienteVacio.contenedorObjetos.retirarObjeto(0);
+  recipienteVacio.recibirDanio(999);
+  const interactuablesVacio = [recipienteVacio];
+  const resolutorVacio = new ResolutorDestruccionesJugador({
+    jugador,
+    objetivos: [recipienteVacio],
+    interactuables: interactuablesVacio,
+    configuracionObjetos: {},
+    eliminarActorTemporal: () => {},
+  });
+  resolutorVacio.resolverObjetivo(recipienteVacio);
+  assert.equal(interactuablesVacio.length, 0);
+}
+
+
+function validarObstaculoLiberaPasoAlDestruirse() {
+  const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
+  const barricada = crearEntidadMazmorra({
+    id: "barricada_improvisada",
+    x: 3,
+    y: 3,
+    configuracionEntidadesMazmorra,
+  }).entidad;
+  const sistemaEspacial = new SistemaEspacial({
+    mapa,
+    obtenerEntidades: () => [jugador, barricada],
+  });
+
+  assert.equal(sistemaEspacial.bloqueaMovimiento(3, 3), true);
+  barricada.recibirDanio(999);
+  assert.equal(barricada.estaDestruido, true);
+  assert.equal(sistemaEspacial.bloqueaMovimiento(3, 3), false);
+}
+
+function validarDecoracionDropCanonico() {
+  const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
+  const configuracionObjetos = cargarConfiguracionObjetos();
+  const configuracionGeneracionObjetos = cargarConfiguracionGeneracionObjetos();
+  const objetivos = [];
+  const interactuables = [];
+  const tablaBotin = [
+    {
+      idObjeto: "carne_putrefacta",
+      probabilidad: 100,
+      cantidadMinima: 1,
+      cantidadMaxima: 1,
+    },
+  ];
+  const restos = incorporarEntidadMazmorra({
+    id: "restos_abandonados",
+    x: 3,
+    y: 3,
+    tablaBotin,
+    configuracionEntidadesMazmorra,
+    objetivos,
+    interactuables,
+  }).entidad;
+
+  configurarContextoGeneracionBotin({
+    configuracionGeneracionObjetos,
+    semillaMapa: "decoracion-drop-canonico",
+    nivelMapa: 3,
+  });
+
+  try {
+    restos.recibirDanio(999);
+    const resolutor = new ResolutorDestruccionesJugador({
+      jugador,
+      objetivos,
+      interactuables,
+      configuracionObjetos,
+      semillaMapa: "decoracion-drop-canonico",
+      eliminarActorTemporal: () => {},
+    });
+    const resultado = resolutor.resolverObjetivo(restos);
+    assert.equal(resultado.procesada, true);
+    assert.equal(resultado.resultadosBotin.length, 1);
+    assert.equal(resultado.resultadosBotin[0].cantidadUnidades, 1);
+    assert.equal(
+      interactuables.filter((entidad) => entidad instanceof BotinSuelo).length,
+      1,
+    );
+    assert.equal(resolutor.resolverObjetivo(restos).procesada, false);
+    assert.equal(
+      interactuables.filter((entidad) => entidad instanceof BotinSuelo).length,
+      1,
+    );
+  } finally {
+    limpiarContextoGeneracionBotin();
+  }
+}
 
 function validarCofreConBotinCanonico() {
   const configuracionObjetos = cargarConfiguracionObjetos();
@@ -523,6 +759,15 @@ function crearJuegoMinimoEjecutor({ interaccion, alActivar }) {
   };
 }
 
+
+
+function cargarConfiguracionEntidadesMazmorra() {
+  return validarConfiguracionEntidadesMazmorra({
+    recipientes: leerJsonConfiguracion("entidades/mazmorra/Recipientes.json"),
+    obstaculos: leerJsonConfiguracion("entidades/mazmorra/Obstaculos.json"),
+    decoraciones: leerJsonConfiguracion("entidades/mazmorra/Decoraciones.json"),
+  });
+}
 
 function cargarConfiguracionObjetos() {
   return Object.assign(

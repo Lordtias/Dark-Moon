@@ -83,6 +83,67 @@ export function generarBotinEnSuelo({
   };
 }
 
+// Materializa en el suelo objetos que ya existen. No vuelve a tirar tablas,
+// rarezas ni afijos: conserva exactamente las instancias que tenía la fuente.
+// Es el camino canónico para liberar el contenido restante de un recipiente
+// destruido sin duplicar la recompensa.
+export function depositarObjetosEnSuelo({
+  fuente,
+  objetos,
+  interactuables,
+} = {}) {
+  if (!fuente || !Number.isInteger(fuente.x) || !Number.isInteger(fuente.y)) {
+    throw new Error(
+      "La fuente del contenido existente necesita coordenadas enteras.",
+    );
+  }
+  if (!Array.isArray(objetos)) {
+    throw new Error("Los objetos existentes deben estar dentro de una lista.");
+  }
+  if (!Array.isArray(interactuables)) {
+    throw new Error("Los interactuables deben estar dentro de una lista.");
+  }
+
+  const objetosValidos = objetos.filter(Boolean);
+  if (objetosValidos.length === 0) {
+    return {
+      objetosGenerados: [],
+      resultadosTiradas: [],
+      resumen: [],
+      resumenTexto: "",
+      cantidadTipos: 0,
+      cantidadPilas: 0,
+      cantidadUnidades: 0,
+      botin: null,
+      botinCreado: false,
+      botinActualizado: false,
+    };
+  }
+
+  const objetosConsolidados = consolidarPilasCompatibles([...objetosValidos]);
+  const resumen = crearResumenObjetos(objetosConsolidados);
+  const resultadoSuelo = crearOActualizarBotinSuelo({
+    x: fuente.x,
+    y: fuente.y,
+    objetosNuevos: objetosConsolidados,
+    interactuables,
+  });
+
+  return {
+    objetosGenerados: objetosConsolidados,
+    resultadosTiradas: [],
+    resumen,
+    resumenTexto: crearResumenTexto(resumen),
+    cantidadTipos: resumen.length,
+    cantidadPilas: objetosConsolidados.length,
+    cantidadUnidades: resumen.reduce(
+      (total, entrada) => total + entrada.cantidad,
+      0,
+    ),
+    ...resultadoSuelo,
+  };
+}
+
 // Resuelve el contenido de una fuente sin decidir dónde se almacena.
 //
 // Esta es la integración reutilizable por enemigos, destructibles y cofres.

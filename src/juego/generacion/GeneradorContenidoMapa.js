@@ -8,7 +8,7 @@ import {
 } from "./PobladorEnemigosMazmorra.js";
 import {
   crearResumenInteractuablesProcedurales,
-  generarBarrilesProcedurales,
+  generarDestructiblesProcedurales,
   generarInteractuablesPrevios,
 } from "./PobladorInteractuablesMazmorra.js";
 import { crearResumenPlanPoblacion } from "./PlanificadorPoblacionMazmorra.js";
@@ -25,7 +25,7 @@ import { crearResumenPlanPoblacion } from "./PlanificadorPoblacionMazmorra.js";
 // - La plantilla y variante del encuentro especial.
 // - La selección y posición del jefe.
 // - Las posiciones.
-// - Los interactuables procedurales y barriles.
+// - Los interactuables y destructibles procedurales.
 export function generarContenidoMapa({
   plantilla,
   terreno,
@@ -33,6 +33,7 @@ export function generarContenidoMapa({
   aleatorio,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionEntidadesMazmorra,
   nivelMapa = null,
   cantidadEnemigosRecurrentes = null,
 } = {}) {
@@ -43,6 +44,7 @@ export function generarContenidoMapa({
     aleatorio,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionEntidadesMazmorra,
     cantidadEnemigosRecurrentes,
   });
 
@@ -124,7 +126,21 @@ export function generarContenidoMapa({
       cantidadEnemigosRecurrentesResuelta + resultadoJefe.enemigos.length + 1,
   });
 
-  const resultadoRecurrentes = generarEnemigosRecurrentes({
+  const generarDestructibles = () => generarDestructiblesProcedurales({
+    plantilla,
+    terreno,
+    posicionJugador,
+    nivelMapa: nivelMapaResuelto,
+    contextoPoblacion,
+    posicionesBloqueadasPersistentes:
+      resultadoInteractuablesPrevios.posicionesBloqueadasPersistentes,
+    objetivos: objetivosProcedurales,
+    interactuables: interactuablesProcedurales,
+    configuracionObjetos,
+    configuracionEntidadesMazmorra,
+    aleatorio,
+  });
+  const generarRecurrentes = () => generarEnemigosRecurrentes({
     plantilla,
     nivelMapa: nivelMapaResuelto,
     posicionJugador,
@@ -135,6 +151,24 @@ export function generarContenidoMapa({
     configuracionEnemigos,
     configuracionObjetos,
   });
+
+  // Los mapas que ya definen perfiles reservan primero su contenido físico:
+  // el perfil debe poder materializarse y los enemigos recurrentes se adaptan
+  // después al mismo presupuesto y a las posiciones restantes. Los mapas que
+  // todavía no adoptaron perfiles conservan el orden histórico para no cambiar
+  // su balance por el solo hecho de generalizar el contrato de destructibles.
+  const priorizarContenidoPerfilado = Boolean(
+    plantilla.poblacion?.perfilesHabitacion,
+  );
+  let resultadoDestructibles;
+  let resultadoRecurrentes;
+  if (priorizarContenidoPerfilado) {
+    resultadoDestructibles = generarDestructibles();
+    resultadoRecurrentes = generarRecurrentes();
+  } else {
+    resultadoRecurrentes = generarRecurrentes();
+    resultadoDestructibles = generarDestructibles();
+  }
 
   const enemigos = [
     ...resultadoRecurrentes.enemigos,
@@ -167,21 +201,9 @@ export function generarContenidoMapa({
     resultadoRecurrentes,
   });
 
-  const resultadoBarriles = generarBarrilesProcedurales({
-    plantilla,
-    terreno,
-    posicionJugador,
-    contextoPoblacion,
-    posicionesBloqueadasPersistentes:
-      resultadoInteractuablesPrevios.posicionesBloqueadasPersistentes,
-    objetivos: objetivosProcedurales,
-    interactuables: interactuablesProcedurales,
-    aleatorio,
-  });
-
   const resumenInteractuables = crearResumenInteractuablesProcedurales({
     resultadoPrevio: resultadoInteractuablesPrevios,
-    resultadoBarriles,
+    resultadoDestructibles,
   });
   const planPoblacion = crearResumenPlanPoblacion(contextoPoblacion);
 
@@ -193,8 +215,7 @@ export function generarContenidoMapa({
   return {
     nivelMapa: nivelMapaResuelto,
     enemigos,
-    destructibles: resultadoBarriles.barriles,
-    barriles: resultadoBarriles.barriles,
+    destructibles: resultadoDestructibles.destructibles,
     interactuables: interactuablesProcedurales,
     objetivos: [...enemigos, ...objetivosProcedurales],
     resumen: {
@@ -205,16 +226,17 @@ export function generarContenidoMapa({
       cantidadJefes: resultadoJefe.enemigos.length,
       encuentroEspecial: resultadoEspecial.resumen,
       jefe: resultadoJefe.resumen,
-      cantidadDestructibles: resultadoBarriles.barriles.length,
-      cantidadDestructiblesObjetivo: resultadoBarriles.cantidadObjetivo,
+      cantidadDestructibles: resultadoDestructibles.destructibles.length,
+      cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
       cantidadDestructiblesNoColocados:
-        resultadoBarriles.cantidadNoColocada,
-      porcentajeDestructibles: resultadoBarriles.densidadPor100Casillas,
+        resultadoDestructibles.cantidadNoColocada,
+      porcentajeDestructibles:
+        resultadoDestructibles.densidadPor100Casillas,
       enemigosPorTipo,
       variantes,
       poblacionEnemigos,
       detalleEnemigos,
-      detalleDestructibles: resultadoBarriles.detalle,
+      detalleDestructibles: resultadoDestructibles.detalle,
       interactuablesProcedurales: resumenInteractuables,
       planPoblacion,
     },
@@ -250,6 +272,7 @@ function validarParametros({
   aleatorio,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionEntidadesMazmorra,
   cantidadEnemigosRecurrentes,
 }) {
   if (!plantilla || typeof plantilla !== "object") {
@@ -289,6 +312,15 @@ function validarParametros({
 
   if (!configuracionObjetos || typeof configuracionObjetos !== "object") {
     throw new Error("Se necesita la configuración de objetos.");
+  }
+
+  if (
+    !configuracionEntidadesMazmorra?.porId ||
+    typeof configuracionEntidadesMazmorra.porId !== "object"
+  ) {
+    throw new Error(
+      "Se necesita la configuración canónica de entidades de mazmorra.",
+    );
   }
 
   if (

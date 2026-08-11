@@ -1386,6 +1386,21 @@
       "entrada_mazmorras": {
         "nombre": "Dungeon Entrance",
         "interaccion": "Choose dungeon"
+      },
+      "barril_madera": {
+        "nombre": "Barrel"
+      },
+      "caja_humeda": {
+        "nombre": "Damp crate"
+      },
+      "suministros_mantenimiento": {
+        "nombre": "Maintenance supplies"
+      },
+      "barricada_improvisada": {
+        "nombre": "Improvised barricade"
+      },
+      "restos_abandonados": {
+        "nombre": "Abandoned remains"
       }
     },
     "mercaderes": {

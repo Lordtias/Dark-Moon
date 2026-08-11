@@ -1,0 +1,12 @@
+{
+  "restos_abandonados": {
+    "nombre": "Restos abandonados",
+    "simbolo": "R",
+    "recursoVisual": "assets/imagenes/destructibles/restos_abandonados.png",
+    "vidaMaxima": 5,
+    "armadura": 0,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "barricada_improvisada": {
+    "nombre": "Barricada improvisada",
+    "simbolo": "#",
+    "recursoVisual": "assets/imagenes/destructibles/barricada_improvisada.png",
+    "vidaMaxima": 24,
+    "armadura": 5,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  }
+}

@@ -86,6 +86,7 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
         ...juego.mapaSeleccionado?.apariencia,
       },
       visibilidad,
+      perfilesHabitacion: crearPerfilesHabitacionVisuales(juego),
     },
 
     zonasTemporales: copiarZonasTemporales(
@@ -138,6 +139,7 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
     // visible cuando comparte una casilla con botín.
     entidades: [
       ...juego.interactuables
+        .filter((interactuable) => !juego.objetivos.includes(interactuable))
         .filter(
           (interactuable) =>
             !(interactuable instanceof NPC) ||
@@ -171,6 +173,26 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
       crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR, juego),
     ],
   };
+}
+
+function crearPerfilesHabitacionVisuales(juego) {
+  const plano = juego.planoMazmorra;
+  const perfiles = plano?.planPoblacion?.habitaciones;
+  if (!Array.isArray(perfiles) || !Array.isArray(plano?.habitaciones)) {
+    return [];
+  }
+
+  const perfilPorHabitacion = new Map(
+    perfiles.map((entrada) => [entrada.idHabitacion, entrada.perfil]),
+  );
+
+  return plano.habitaciones
+    .map((habitacion) => ({
+      idHabitacion: habitacion.id,
+      perfil: perfilPorHabitacion.get(habitacion.id) ?? null,
+      casillas: copiarPosiciones(habitacion.casillas ?? []),
+    }))
+    .filter((entrada) => entrada.perfil !== null);
 }
 
 function obtenerVisibilidadEscena(juego) {

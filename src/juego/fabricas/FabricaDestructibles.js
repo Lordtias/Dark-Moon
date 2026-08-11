@@ -1,39 +1,60 @@
-import { Barril } from "../../entidad/destructible/Barril.js";
+import { Destructible } from "../../entidad/destructible/Destructible.js";
+import {
+  FAMILIAS_ENTIDAD_MAZMORRA,
+  obtenerEntidadMazmorraConfigurada,
+} from "../configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 
-// Centraliza la relación entre los IDs utilizados
-// en Mapas.json y las clases reales del juego.
-//
-// Cuando agreguemos cofres, lápidas, cajas u otros
-// destructibles, solamente habrá que registrarlos aquí.
-const CREADORES_DESTRUCTIBLES = {
-  barril({ x, y }) {
-    return new Barril({
-      x,
-      y,
-    });
-  },
-};
-
-// Crea un destructible a partir de su ID configurado.
-export function crearDestructible({ id, x, y } = {}) {
-  if (typeof id !== "string" || id.trim() === "") {
-    throw new Error("Se necesita un ID válido para crear un destructible.");
-  }
-
+// Materializa cualquier objeto físico destructible a partir de una variante
+// configurada. El ID determina datos y recurso visual, nunca una clase propia.
+export function crearDestructible({
+  id,
+  x,
+  y,
+  configuracionEntidadesMazmorra,
+  objetosIniciales = [],
+  tablaBotin = [],
+} = {}) {
   if (!Number.isInteger(x) || !Number.isInteger(y)) {
     throw new Error(
-      `La posición del destructible "${id}" debe utilizar enteros.`,
+      `La posición del destructible "${id ?? "sin_id"}" debe utilizar enteros.`,
     );
   }
 
-  const creador = CREADORES_DESTRUCTIBLES[id];
+  const definicion = obtenerEntidadMazmorraConfigurada(
+    configuracionEntidadesMazmorra,
+    id,
+  );
+  const esRecipiente =
+    definicion.familia === FAMILIAS_ENTIDAD_MAZMORRA.RECIPIENTE;
 
-  if (!creador) {
-    throw new Error(`No existe una fábrica para el destructible "${id}".`);
+  if (!esRecipiente && objetosIniciales.length > 0) {
+    throw new Error(
+      `La entidad "${definicion.id}" no es un recipiente y no puede recibir contenido inicial.`,
+    );
   }
 
-  return creador({
+  return new Destructible({
+    nombre: definicion.nombre,
     x,
     y,
+    simbolo: definicion.simbolo,
+    recursoVisual: definicion.recursoVisual,
+    vidaMaxima: definicion.vidaMaxima,
+    armadura: definicion.armadura,
+    bloqueaMovimiento: definicion.bloqueaMovimiento,
+    bloqueaVision: definicion.bloqueaVision,
+    bloqueaCruceDiagonal: definicion.bloqueaCruceDiagonal,
+    capacidadContenedor: esRecipiente
+      ? definicion.capacidadContenedor
+      : 0,
+    objetosIniciales: esRecipiente ? objetosIniciales : [],
+    tablaBotin: tablaBotin ?? [],
+    alcanceInteraccion: definicion.alcanceInteraccion ?? 1,
+    prioridadInteraccion: definicion.prioridadInteraccion ?? 90,
+    textoInteraccion: esRecipiente
+      ? `Revisar ${definicion.nombre.toLowerCase()}`
+      : null,
+    familiaEntidad: definicion.familia,
+    idVariante: definicion.id,
   });
 }

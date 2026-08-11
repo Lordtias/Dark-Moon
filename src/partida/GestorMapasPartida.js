@@ -24,6 +24,7 @@ export class GestorMapasPartida {
     configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionCiudad,
+    configuracionEntidadesMazmorra,
   } = {}) {
     validarEstadoPartida(estadoPartida);
 
@@ -40,6 +41,11 @@ export class GestorMapasPartida {
 
     validarConfiguracion(configuracionCiudad, "la ciudad inicial");
 
+    validarConfiguracion(
+      configuracionEntidadesMazmorra,
+      "entidades de mazmorra",
+    );
+
     this.estadoPartida = estadoPartida;
 
     this.configuracionEnemigos = configuracionEnemigos;
@@ -51,6 +57,8 @@ export class GestorMapasPartida {
     this.configuracionMapas = configuracionMapas;
 
     this.configuracionCiudad = configuracionCiudad;
+
+    this.configuracionEntidadesMazmorra = configuracionEntidadesMazmorra;
 
     // Conserva la última configuración generada.
     //
@@ -186,6 +194,8 @@ export class GestorMapasPartida {
       configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
 
       configuracionMapas: configuracionMapasGeneracion,
+
+      configuracionEntidadesMazmorra: this.configuracionEntidadesMazmorra,
 
       semillaMapa,
       idMapaForzado,

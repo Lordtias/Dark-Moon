@@ -1,4 +1,5 @@
 import { ModalCuracion } from "../curacion/ModalCuracion.js";
+import { traducirContenido } from "../idiomas/ContextoIdioma.js";
 import {
   calcularEstadoCuracion,
   curarJugador,
@@ -172,7 +173,12 @@ export class AdaptadorInteraccionesDom {
     this.interactuableActual = interactuable;
 
     this.modalContenedorObjetos.abrir({
-      titulo: interactuable.nombre,
+      titulo: traducirContenido(
+        "entidades",
+        interactuable.id,
+        "nombre",
+        interactuable.nombre,
+      ),
       contenedorObjetos: interaccion.contenedorObjetos,
       combatiente: this.juego.player,
       alRecoger: (indiceOrigen) => {

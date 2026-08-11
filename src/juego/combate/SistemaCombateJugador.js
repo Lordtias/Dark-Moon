@@ -17,7 +17,7 @@ import {
   crearMensajesResultadoAtaque,
 } from "../mensajes/MensajesCombate.js";
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
-import { ResolutorDerrotasJugador } from "./ResolutorDerrotasJugador.js";
+import { ResolutorDestruccionesJugador } from "./ResolutorDestruccionesJugador.js";
 import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { evaluarAtaqueCasilla } from "./SistemaAlcanceAtaque.js";
 import {
@@ -122,7 +122,7 @@ export class SistemaCombateJugador {
     this.obtenerModoInteraccionActivo = obtenerModoInteraccionActivo;
     this.registrarParticipanteCombate = registrarParticipanteCombate;
     this.finalizarAccionJugador = finalizarAccionJugador;
-    this.resolutorDerrotasJugador = new ResolutorDerrotasJugador({
+    this.resolutorDestruccionesJugador = new ResolutorDestruccionesJugador({
       jugador,
       objetivos,
       interactuables,
@@ -362,8 +362,8 @@ export class SistemaCombateJugador {
     });
   }
 
-  resolverDerrotasPendientes() {
-    return this.resolutorDerrotasJugador.resolverPendientes();
+  resolverDestruccionesPendientes() {
+    return this.resolutorDestruccionesJugador.resolverPendientes();
   }
 
   // Conserva el contrato histórico utilizado por Juego.atacarObjetivo():
@@ -430,19 +430,13 @@ export class SistemaCombateJugador {
     }
 
     if (!(objetivo instanceof Enemigo)) {
-      mensajes.push(
-        crearMensajeTraducible("mensajes.combate.destructibleDestruido", {
-          tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
-          parametros: { objetivo: crearParametroEntidadMensaje(objetivo) },
-        }),
-      );
       return {
         mensaje: mensajes.filter(Boolean),
         eventos,
       };
     }
 
-    const derrota = this.resolutorDerrotasJugador.resolverObjetivo(objetivo);
+    const derrota = this.resolutorDestruccionesJugador.resolverObjetivo(objetivo);
     mensajes.push(derrota.mensaje);
     eventos.push(...(derrota.eventos ?? []));
     return {

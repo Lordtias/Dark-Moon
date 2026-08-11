@@ -1,6 +1,6 @@
 import { calcularDatosEnemigo } from "../fabricas/FabricaEnemigos.js";
 import { crearGeneradorAleatorio } from "./GeneradorAleatorio.js";
-import { crearClave } from "./UtilidadesPoblacionMazmorra.js";
+import { crearClave, seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
 
 export const TIPOS_HABITACION_POBLACION = Object.freeze({
   ENTRADA: "entrada",
@@ -74,6 +74,13 @@ export function crearPlanPoblacionMazmorra({
       .slice(0, cantidadAmbientales),
   );
 
+  const configuracionPerfiles = plantilla.poblacion.perfilesHabitacion ?? null;
+  const aleatorioPerfiles = configuracionPerfiles
+    ? crearGeneradorAleatorio(
+        `${aleatorio.semilla}:${plantilla.bioma ?? plantilla.nombre}:perfiles_habitacion`,
+      )
+    : null;
+
   const zonas = zonasBase.map(({ idHabitacion, posicionesBase }) => {
     const esEspecial = idHabitacion === idHabitacionEspecial;
     const esAmbiental = idsAmbientales.has(idHabitacion);
@@ -82,6 +89,12 @@ export function crearPlanPoblacionMazmorra({
       : esAmbiental
         ? TIPOS_HABITACION_POBLACION.AMBIENTAL
         : TIPOS_HABITACION_POBLACION.POBLACION;
+    const perfil = resolverPerfilHabitacion({
+      esEspecial,
+      esAmbiental,
+      configuracionPerfiles,
+      aleatorioPerfiles,
+    });
     const presupuestoInicial = esAmbiental
       ? crearVectorPresupuestoCero()
       : calcularPresupuestoHabitacion({
@@ -97,7 +110,7 @@ export function crearPlanPoblacionMazmorra({
       tipoUso,
       esEspecial,
       esAmbiental,
-      perfil: null,
+      perfil,
       activaInicial:
         esEspecial ||
         (!esAmbiental &&
@@ -359,6 +372,34 @@ export function calcularValorEsperadoTablaBotin({
   }, 0);
 
   return redondear(total, 2);
+}
+
+function resolverPerfilHabitacion({
+  esEspecial,
+  esAmbiental,
+  configuracionPerfiles,
+  aleatorioPerfiles,
+}) {
+  if (!configuracionPerfiles) return null;
+
+  if (esAmbiental) {
+    return configuracionPerfiles.ambiental?.id ?? null;
+  }
+
+  if (esEspecial) {
+    return configuracionPerfiles.especial?.id ?? null;
+  }
+
+  if (!aleatorioPerfiles) {
+    throw new Error(
+      "La selección de perfiles de habitación necesita un generador aleatorio derivado.",
+    );
+  }
+
+  return seleccionarPonderado(
+    configuracionPerfiles.normales,
+    aleatorioPerfiles,
+  ).id;
 }
 
 function calcularPresupuestoHabitacion({

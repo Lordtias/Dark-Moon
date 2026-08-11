@@ -1386,6 +1386,21 @@
       "entrada_mazmorras": {
         "nombre": "Entrada a las mazmorras",
         "interaccion": "Elegir mazmorra"
+      },
+      "barril_madera": {
+        "nombre": "Barril"
+      },
+      "caja_humeda": {
+        "nombre": "Caja húmeda"
+      },
+      "suministros_mantenimiento": {
+        "nombre": "Suministros de mantenimiento"
+      },
+      "barricada_improvisada": {
+        "nombre": "Barricada improvisada"
+      },
+      "restos_abandonados": {
+        "nombre": "Restos abandonados"
       }
     },
     "mercaderes": {

@@ -1,3 +1,4 @@
+import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { Cofre } from "../../entidad/interactuable/Cofre.js";
 import { PortalMapa } from "../../entidad/interactuable/PortalMapa.js";
 import {
@@ -31,6 +32,7 @@ export function validarInteractuablesMazmorra({
     ? contenido.interactuables
     : [];
   const objetivos = Array.isArray(contenido.objetivos) ? contenido.objetivos : [];
+  const entidadesUnicas = [...new Set([...objetivos, ...interactuables])];
   const resumen = contenido.resumen?.interactuablesProcedurales ?? {};
   const portales = interactuables.filter((entidad) => entidad instanceof PortalMapa);
   const puertas = interactuables.filter((entidad) => entidad instanceof Puerta);
@@ -143,12 +145,42 @@ export function validarInteractuablesMazmorra({
       errores,
     );
   }
+  const perfilPorHabitacion = new Map(
+    (plano.planPoblacion?.habitaciones ?? []).map((habitacion) => [
+      habitacion.idHabitacion,
+      habitacion.perfil,
+    ]),
+  );
   for (const destructible of contenido.resumen?.detalleDestructibles ?? []) {
     comprobar(
       !idsHabitacionesAmbientales.has(destructible.idHabitacion),
       `El destructible en ${crearClave(destructible)} ocupa una habitación ambiental.`,
       errores,
     );
+    comprobar(
+      destructible.perfil === (perfilPorHabitacion.get(destructible.idHabitacion) ?? null),
+      `El destructible en ${crearClave(destructible)} no conserva el perfil canónico de su habitación.`,
+      errores,
+    );
+  }
+
+  const destructibles = entidadesUnicas.filter(
+    (entidad) => entidad instanceof Destructible && entidad.estaDestruido !== true,
+  );
+  for (const destructible of destructibles) {
+    if (destructible.familiaEntidad === "recipiente") {
+      comprobar(
+        objetivos.includes(destructible) && interactuables.includes(destructible),
+        `El recipiente ${crearClave(destructible)} debe compartir una sola instancia entre objetivos e interactuables.`,
+        errores,
+      );
+    } else {
+      comprobar(
+        objetivos.includes(destructible) && !interactuables.includes(destructible),
+        `El destructible ${crearClave(destructible)} no recipiente debe pertenecer únicamente a objetivos.`,
+        errores,
+      );
+    }
   }
 
   for (const cofre of cofres) {
@@ -161,7 +193,7 @@ export function validarInteractuablesMazmorra({
   }
 
   const ocupadas = new Set();
-  for (const entidad of [...objetivos, ...interactuables]) {
+  for (const entidad of entidadesUnicas) {
     if (!Number.isInteger(entidad?.x) || !Number.isInteger(entidad?.y)) continue;
     const clave = crearClave(entidad);
     comprobar(!ocupadas.has(clave), `Dos entidades procedurales comparten la casilla ${clave}.`, errores);
@@ -174,7 +206,7 @@ export function validarInteractuablesMazmorra({
   }
 
   const bloqueosPersistentes = new Set(
-    [...objetivos, ...interactuables]
+    entidadesUnicas
       .filter(
         (entidad) =>
           entidad?.bloqueaMovimiento === true &&
@@ -185,7 +217,7 @@ export function validarInteractuablesMazmorra({
   );
   comprobar(
     comprobarConectividad({ plano, bloqueosPersistentes, posicionJugador }),
-    "Los cofres/barriles procedurales rompen la conectividad permanente del mapa.",
+    "Los interactuables/destructibles procedurales rompen la conectividad permanente del mapa.",
     errores,
   );
 
@@ -197,7 +229,7 @@ export function validarInteractuablesMazmorra({
       puertas: puertas.length,
       cofres: cofres.length,
       cofresModerados: resumen.cantidadCofresModerados ?? 0,
-      barriles: resumen.cantidadBarriles ?? 0,
+      destructibles: resumen.cantidadDestructibles ?? destructibles.length,
       habitacionesAmbientales: idsHabitacionesAmbientales.size,
       idHabitacionEspecial,
     },
@@ -217,7 +249,7 @@ export function exigirInteractuablesMazmorraValidos(parametros = {}) {
 
 function tieneAccesoCardinal({ entidad, plano, objetivos, interactuables }) {
   const bloqueadas = new Set(
-    [...objetivos, ...interactuables]
+    [...new Set([...objetivos, ...interactuables])]
       .filter((otra) => otra !== entidad && otra?.bloqueaMovimiento === true)
       .map(crearClave),
   );

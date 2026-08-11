@@ -107,6 +107,11 @@ function validarPlantilla(idPlantilla, plantilla) {
   });
 
   validarInteractuables(idPlantilla, plantilla.interactuables);
+  validarPerfilesContraDestructibles({
+    idPlantilla,
+    perfiles: plantilla.poblacion.perfilesHabitacion ?? null,
+    destructibles: plantilla.interactuables.destructibles,
+  });
 }
 
 function validarRutaRecursoVisual({ ruta, idPlantilla }) {
@@ -328,6 +333,105 @@ function validarPoblacion(idPlantilla, poblacion, generacion) {
     poblacion.multiplicadorHabitacionEspecial,
     `el multiplicador de la habitación especial de "${idPlantilla}"`,
   );
+
+  if (poblacion.perfilesHabitacion !== undefined) {
+    validarPerfilesHabitacion(idPlantilla, poblacion.perfilesHabitacion);
+  }
+}
+
+
+function validarPerfilesHabitacion(idPlantilla, perfiles) {
+  validarObjeto(perfiles, `los perfiles de habitación de "${idPlantilla}"`);
+  validarObjeto(perfiles.ambiental, `el perfil ambiental de "${idPlantilla}"`);
+  validarTexto(perfiles.ambiental.id, `el ID del perfil ambiental de "${idPlantilla}"`);
+  validarObjeto(perfiles.especial, `el perfil especial de "${idPlantilla}"`);
+  validarTexto(perfiles.especial.id, `el ID del perfil especial de "${idPlantilla}"`);
+  validarNumeroNoNegativo(
+    perfiles.especial.multiplicadorContenido ?? 1,
+    `el multiplicador de contenido del perfil especial de "${idPlantilla}"`,
+  );
+  if (perfiles.especial.permitidos !== undefined) {
+    validarListaPonderada(
+      perfiles.especial.permitidos,
+      `los destructibles del perfil especial de "${idPlantilla}"`,
+    );
+  }
+
+  if (!Array.isArray(perfiles.normales) || perfiles.normales.length === 0) {
+    throw new Error(
+      `Los perfiles normales de "${idPlantilla}" deben contener al menos un perfil.`,
+    );
+  }
+
+  const ids = new Set([
+    perfiles.ambiental.id.trim(),
+    perfiles.especial.id.trim(),
+  ]);
+  for (const perfil of perfiles.normales) {
+    validarObjeto(perfil, `un perfil normal de "${idPlantilla}"`);
+    validarTexto(perfil.id, `el ID de un perfil normal de "${idPlantilla}"`);
+    validarNumeroMayorQueCero(
+      perfil.peso,
+      `el peso del perfil "${perfil.id}" de "${idPlantilla}"`,
+    );
+    validarNumeroNoNegativo(
+      perfil.multiplicadorContenido ?? 1,
+      `el multiplicador de contenido del perfil "${perfil.id}" de "${idPlantilla}"`,
+    );
+    if (perfil.permitidos !== undefined) {
+      validarListaPonderada(
+        perfil.permitidos,
+        `los destructibles del perfil "${perfil.id}" de "${idPlantilla}"`,
+      );
+    }
+    const id = perfil.id.trim();
+    if (ids.has(id)) {
+      throw new Error(
+        `El perfil de habitación "${id}" está repetido en "${idPlantilla}".`,
+      );
+    }
+    ids.add(id);
+  }
+}
+
+function validarTablasDestructibles({ idPlantilla, destructibles }) {
+  const tablas = destructibles.tablasBotin ?? {};
+  validarObjeto(tablas, `las tablas de destructibles de "${idPlantilla}"`);
+  for (const [idTabla, tabla] of Object.entries(tablas)) {
+    validarTexto(idTabla, `un ID de tabla de destructibles de "${idPlantilla}"`);
+    validarTablaBotinAdicional({
+      tabla,
+      descripcion: `la tabla "${idTabla}" de destructibles de "${idPlantilla}"`,
+    });
+  }
+
+  for (const permitido of destructibles.permitidos) {
+    for (const campo of ["idTablaContenido", "idTablaBotin"]) {
+      const idTabla = permitido[campo];
+      if (idTabla === undefined) continue;
+      validarTexto(idTabla, `${campo} de "${permitido.id}" en "${idPlantilla}"`);
+      if (!Object.prototype.hasOwnProperty.call(tablas, idTabla)) {
+        throw new Error(
+          `La entidad "${permitido.id}" de "${idPlantilla}" referencia la tabla inexistente "${idTabla}".`,
+        );
+      }
+    }
+  }
+}
+
+function validarPerfilesContraDestructibles({ idPlantilla, perfiles, destructibles }) {
+  if (!perfiles) return;
+  const idsPermitidos = new Set(destructibles.permitidos.map(({ id }) => id));
+  const perfilesConContenido = [perfiles.especial, ...perfiles.normales];
+  for (const perfil of perfilesConContenido) {
+    for (const permitido of perfil.permitidos ?? []) {
+      if (!idsPermitidos.has(permitido.id)) {
+        throw new Error(
+          `El perfil "${perfil.id}" de "${idPlantilla}" usa "${permitido.id}", que no está permitido por el mapa.`,
+        );
+      }
+    }
+  }
 }
 
 function validarEnemigos(idPlantilla, enemigos) {
@@ -481,19 +585,27 @@ function validarInteractuables(idPlantilla, interactuables) {
     `la probabilidad de puerta por pasillo de "${idPlantilla}"`,
   );
 
-  validarObjeto(interactuables.barriles, `los barriles de "${idPlantilla}"`);
+  validarObjeto(
+    interactuables.destructibles,
+    `los destructibles de "${idPlantilla}"`,
+  );
   if (
-    !Number.isFinite(interactuables.barriles.densidadPor100Casillas) ||
-    interactuables.barriles.densidadPor100Casillas < 0
+    !Number.isFinite(interactuables.destructibles.densidadPor100Casillas) ||
+    interactuables.destructibles.densidadPor100Casillas < 0
   ) {
     throw new Error(
-      `La densidad de barriles por 100 casillas de "${idPlantilla}" debe ser un número no negativo.`,
+      `La densidad de destructibles por 100 casillas de "${idPlantilla}" debe ser un número no negativo.`,
     );
   }
-  validarListaPonderada(
-    interactuables.barriles.permitidos,
-    `los barriles permitidos de "${idPlantilla}"`,
+  const idsDestructibles = validarListaPonderada(
+    interactuables.destructibles.permitidos,
+    `los destructibles permitidos de "${idPlantilla}"`,
   );
+  validarTablasDestructibles({
+    idPlantilla,
+    destructibles: interactuables.destructibles,
+    idsDestructibles,
+  });
 
   validarObjeto(interactuables.cofres, `los cofres de "${idPlantilla}"`);
   validarObjeto(
@@ -713,6 +825,13 @@ function validarEnteroMinimo(valor, minimo, descripcion) {
     throw new Error(
       `${descripcion} debe ser un entero igual o mayor que ${minimo}.`,
     );
+  }
+}
+
+
+function validarNumeroNoNegativo(valor, descripcion) {
+  if (!Number.isFinite(valor) || valor < 0) {
+    throw new Error(`${descripcion} debe ser igual o mayor que 0.`);
   }
 }
 

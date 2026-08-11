@@ -321,7 +321,7 @@ La arquitectura nueva no debe bloquear estos contenidos futuros, pero tampoco de
 
 ## E4.A — Expansión estructural y presupuesto de población
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -751,7 +751,7 @@ El Plan Maestro de Mazmorras Expandidas puede considerarse completado cuando:
 
 | Etapa | Nombre | Estado |
 |---|---|---|
-| E4.A | Expansión estructural y presupuesto de población | Pendiente |
+| E4.A | Expansión estructural y presupuesto de población | Cerrada |
 | E4.B | Alcantarilla expandida | Pendiente |
 | E4.C | Cementerio expandido | Pendiente |
 | E4.D | Casa del Guerrero expandida | Pendiente |

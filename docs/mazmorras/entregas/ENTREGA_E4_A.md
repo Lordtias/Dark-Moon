@@ -2,13 +2,15 @@
 
 ## Estado de esta entrega
 
-**Implementación lista para validación manual.**
+**E4.A — Cerrada.**
 
-E4.A todavía no se marca como Cerrada en el Plan Maestro porque quedan comprobaciones visuales y de flujo completo dentro del juego que deben ejecutarse en un navegador real: cámara/zoom, redimensionamiento, transición Ciudad ↔ Mazmorra y guardado/carga. Electron tampoco se ejecutó porque la copia de trabajo no contiene `node_modules` y la etapa no autoriza instalar dependencias.
+La implementación técnica fue validada mediante las comprobaciones automatizadas documentadas en esta entrega y la validación manual del juego fue reportada como satisfactoria por el responsable del proyecto el 11 de agosto de 2026. Con esa aprobación se cumple el criterio específico de cierre definido en el Plan Maestro.
+
+Electron no fue ejecutado porque E4.A no modifica su integración y la copia de trabajo no contiene `node_modules`; no se instalaron dependencias.
 
 ## Base de trabajo
 
-- Repositorio: `/mnt/data/darkmoon_e4a_work/Dark-Moon`
+- Repositorio de trabajo verificado al cierre: `/mnt/data/e4_done/Dark-Moon`
 - Rama: `main`
 - Commit base verificado: `f79e670e81ebb597a54fdddc84666177fc1f7e3c`
 - No se realizó commit ni push.
@@ -329,13 +331,13 @@ No se modificó el contrato de `PersistenciaJugador`.
 
 La persistencia continúa guardando el estado durable del personaje y excluye la simulación del mapa. `planPoblacion` se mantiene como metainformación del mapa actual dentro de `generacionActual` y no introduce una migración del guardado.
 
-La comprobación manual guardar → cargar → nueva mazmorra queda pendiente antes de cerrar la etapa.
+La regresión manual de guardado/carga incluida en la validación jugable de cierre fue reportada como satisfactoria por el responsable del proyecto.
 
 ## Compatibilidad web
 
 No se agregaron servidores, bundlers, CDNs ni dependencias. Las rutas estáticas principales respondieron correctamente mediante HTTP local.
 
-Queda pendiente la regresión manual de juego completo en navegador.
+La regresión manual del juego en navegador fue reportada como satisfactoria por el responsable del proyecto.
 
 ## Compatibilidad Electron
 
@@ -343,30 +345,25 @@ No se modificó Electron.
 
 La copia de trabajo no contiene `node_modules`. No se instalaron dependencias porque E4.A no lo autoriza. Por tanto, Electron no fue ejecutado en esta entrega.
 
-## Pruebas manuales pendientes para cierre
+## Validación manual de cierre
 
-1. Crear personaje y entrar en cada una de las cinco mazmorras varias veces.
-2. Confirmar visualmente que el mapa es claramente mayor que la pantalla.
-3. Recorrer habitaciones y verificar que existen pausas ambientales reales.
-4. Confirmar que las habitaciones ambientales no contienen enemigos, cofres ni barriles de valor.
-5. Probar movimiento en ocho direcciones alrededor de puertas, cofres, barriles y enemigos.
-6. Probar cámara con I/J/K/L, arrastre, recentrado y seguimiento del jugador.
-7. Probar zoom mínimo y máximo.
-8. Redimensionar la ventana y alternar pantalla completa.
-9. Comprobar FOV/descubrimiento mientras se recorre un mapa grande.
-10. Provocar detección y persecución de varios enemigos.
-11. Llegar a la salida y volver a Ciudad.
-12. Guardar/cargar y volver a entrar a una mazmorra.
-13. Repetir especialmente Sala de guerra para evaluar si 20–34 enemigos distribuidos en 13–17 habitaciones se siente razonable o requiere calibración.
-14. Revisar consola por errores.
+El responsable del proyecto ejecutó las pruebas jugables solicitadas sobre la entrega de E4.A y confirmó el 11 de agosto de 2026 que **las pruebas fueron satisfactorias**.
+
+La validación solicitada cubría el flujo afectado por la etapa, incluyendo las cinco mazmorras ampliadas, recorrido, habitaciones ambientales, movimiento, cámara y zoom, FOV/descubrimiento, IA/persecución, transición de salida, guardado/carga, redimensionamiento/pantalla completa y revisión general de errores.
+
+No se registraron incidencias bloqueantes ni solicitudes de recalibración posteriores a esa validación.
+
+**Estado:** Correcto — validación manual aprobada por el responsable del proyecto.
 
 ## Riesgos y pendientes
 
-- Los rangos estructurales ya son técnicamente válidos, pero su ritmo jugable necesita validación manual antes de considerarlos definitivos.
-- En algunas semillas de Alcantarilla el presupuesto compartido puede dejar cero barriles después de cofres y enemigos. Es válido para el contrato actual, pero conviene observar si visualmente deja demasiado poco contenido antes del cierre.
-- La amenaza usa actualmente la XP del enemigo como primer indicador canónico. Puede enriquecerse en el futuro mediante nuevos componentes sin reemplazar la ecuación.
+No quedan pendientes bloqueantes para E4.A.
+
+Observaciones no bloqueantes para evolución futura:
+
+- La amenaza usa actualmente la XP del enemigo como primer indicador canónico. Puede enriquecerse mediante nuevos componentes sin reemplazar la ecuación.
 - El valor esperado usa `valorBase`; una futura valoración de rareza/afijos debe agregarse como extensión del mismo componente, no como cálculo paralelo.
-- La prueba visual en navegador y la prueba Electron siguen pendientes.
+- Electron no fue ejecutado en E4.A porque la etapa no modifica su integración ni autoriza instalar las dependencias ausentes en esta copia.
 
 ## Documento maestro
 
@@ -378,9 +375,9 @@ Se actualizó `docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md` únicamente 
 - ecuación canónica/extensible de presupuesto;
 - máximos por habitación para impedir escalado indefinido.
 
-El Estado de E4.A permanece **Pendiente** hasta superar la validación manual de cierre. No se agregó ningún SHA al Plan Maestro.
+Con la validación manual satisfactoria, el Estado de E4.A se actualizó a **Cerrada**. No se agregó ningún SHA al Plan Maestro.
 
-## Conventional Commit propuesto cuando la etapa quede validada
+## Conventional Commit propuesto
 
 ```text
 feat(mapas): ampliar mazmorras y canonizar presupuesto por habitación
@@ -390,7 +387,101 @@ feat(mapas): ampliar mazmorras y canonizar presupuesto por habitación
 - integrar ocupación, amenaza y valor esperado de recompensa en un presupuesto compartido por habitación;
 - limitar el escalado ciego de enemigos, cofres y destructibles manteniendo las densidades como intención;
 - extender validadores, métricas de generación y documentación del plan maestro;
-- validar múltiples semillas, tamaños mínimo/medio/máximo, reproducibilidad, FOV, pathfinding e IA en mapas ampliados.
+- validar múltiples semillas, tamaños mínimo/medio/máximo, reproducibilidad, FOV, pathfinding, IA y regresión manual de juego.
 ```
 
-No realizar el commit hasta completar y aprobar la validación manual.
+No se realizó el commit.
+
+## ENLACE PARA LA SIGUIENTE ETAPA
+
+---------------- INICIO DEL ENLACE ----------------
+
+PLAN:
+Mazmorras Expandidas y Contenido Ambiental Jugable de Dark Moon.
+
+ETAPA CERRADA:
+E4.A — Expansión estructural y presupuesto de población
+
+ESTADO:
+Cerrada
+
+COMMIT BASE:
+f79e670e81ebb597a54fdddc84666177fc1f7e3c
+
+HEAD FINAL VERIFICADO:
+f79e670e81ebb597a54fdddc84666177fc1f7e3c
+
+GIT STATUS FINAL:
+Rama main con únicamente los cambios implementados y documentales de E4.A sin commit; no se detectaron archivos ajenos al alcance.
+
+DOCUMENTO DE ENTREGA:
+docs/mazmorras/entregas/ENTREGA_E4_A.md
+
+DOCUMENTOS MAESTROS ACTUALIZADOS:
+- docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md
+- docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md: Sin cambios
+- docs/phaser/PLAN_MAESTRO_PHASER_ELECTRON_DARK_MOON.md: no existe en la arquitectura documental vigente; sin restauración ni cambios
+
+OBJETIVO QUE SE COMPLETÓ:
+Ampliar transversalmente la escala de las cinco mazmorras y canonizar una infraestructura reutilizable de reserva ambiental y presupuesto de población por habitación, manteniendo el generador estructural como única fuente de geometría procedural.
+
+ARQUITECTURA HEREDADA:
+GeneradorTerreno sigue siendo la única fuente canónica de geometría; las habitaciones conservan IDs estables; PlanificadorPoblacionMazmorra aplica reservas ambientales y presupuesto extensible de ocupación, amenaza y valor/recompensa; las densidades expresan intención y el presupuesto limita la población efectiva; el botín real sigue perteneciendo exclusivamente a SistemaBotin; cámara, FOV, IA, movimiento, combate y persistencia permanecen canónicos y sin motores paralelos.
+
+ARCHIVOS CLAVE:
+- src/juego/generacion/PlanificadorPoblacionMazmorra.js: contrato canónico reutilizable de reserva ambiental y presupuesto por habitación
+- src/config/mapas/mapas.json: rangos estructurales, reservas ambientales y configuración de presupuesto de las mazmorras
+- src/juego/generacion/GeneradorContenidoMapa.js: integración del plan de población con los pobladores canónicos
+
+DEPENDENCIAS Y VERSIONES:
+Ninguna nueva.
+
+PRUEBAS CLAVE SUPERADAS:
+- 50 generaciones reales: 10 semillas por cada una de las cinco mazmorras, con validadores estructurales, de población e interactuables
+- tamaños mínimo, medio y máximo, reproducibilidad, FOV, acceso a salida, pathfinding e IA sobre mapas ampliados
+- validación manual jugable satisfactoria confirmada por el responsable del proyecto el 11 de agosto de 2026
+
+PROBLEMAS O RIESGOS PENDIENTES:
+- Ninguno bloqueante para E4.A
+- La amenaza y la valoración esperada pueden enriquecerse en el futuro extendiendo la ecuación canónica existente, sin crear cálculos paralelos
+
+DECISIONES APROBADAS:
+- el planificador y presupuesto de población son infraestructura canónica reutilizable también por futuras mazmorras
+- cada mapa configura entre 1 y 3 habitaciones ambientales; un rango fijo como 2/2 obliga exactamente a dos
+- el presupuesto canónico y extensible contempla ocupación, amenaza y valor/recompensa, incluyendo valor esperado de drops sin resolver el botín real
+- las densidades se conservan como intención pero no controlan por sí solas la cantidad final
+- cámara, FOV e IA no se modifican preventivamente y los tamaños se calibran mediante medición real
+
+DECISIONES QUE SIGUEN ABIERTAS:
+Ninguna correspondiente a E4.A. Las decisiones temáticas de cada mazmorra corresponden a sus etapas posteriores.
+
+SIGUIENTE ETAPA RECOMENDADA:
+E4.B — Alcantarilla expandida
+
+OBJETIVO DE LA SIGUIENTE ETAPA:
+Dar identidad jugable propia a la Alcantarilla utilizando perfiles de habitación, destructibles, registrables, interactuables y ambiente integrado al terreno.
+
+PRIMEROS ARCHIVOS A REVISAR:
+- docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md
+- src/config/mapas/mapas.json
+- src/juego/generacion/PlanificadorPoblacionMazmorra.js
+
+NO MODIFICAR SIN NUEVA APROBACIÓN:
+- GeneradorTerreno como única fuente canónica de geometría procedural
+- ecuación canónica y extensible de presupuesto de población mediante cálculos paralelos o excepciones por mapa
+- movimiento, combate, FOV, IA, botín real y persistencia canónicos
+
+CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
+La etapa puede marcarse Cerrada cuando la Alcantarilla posea perfiles reconocibles, contenido jugable coherente con su ambientación, destructibles/interactuables funcionales, presupuesto respetado, habitaciones ambientales reservadas y una regresión satisfactoria del flujo completo del mapa.
+
+CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
+feat(mapas): ampliar mazmorras y canonizar presupuesto por habitación
+
+- ampliar los rangos estructurales de las cinco mazmorras y su cantidad de habitaciones;
+- incorporar reservas ambientales configurables de 1 a 3 habitaciones y un planificador canónico reutilizable;
+- integrar ocupación, amenaza y valor esperado de recompensa en un presupuesto compartido por habitación;
+- limitar el escalado ciego de enemigos, cofres y destructibles manteniendo las densidades como intención;
+- extender validadores, métricas de generación y documentación del plan maestro;
+- validar múltiples semillas, tamaños mínimo/medio/máximo, reproducibilidad, FOV, pathfinding, IA y regresión manual de juego.
+
+----------------- FIN DEL ENLACE -----------------

@@ -1,5 +1,5 @@
 // Selecciona una plantilla utilizando los pesos
-// configurados en Mapas.json.
+// configurados en los archivos canónicos de mapas.
 //
 // Los pesos no necesitan sumar 100.
 export function seleccionarPlantillaMapa(
@@ -92,7 +92,7 @@ function crearResultadoPlantilla(idPlantilla, plantilla) {
 }
 
 // Evita modificar accidentalmente los valores
-// originales provenientes de Mapas.json.
+// originales provenientes de la configuración canónica de mapas.
 function clonarConfiguracion(valor) {
   if (Array.isArray(valor)) {
     return valor.map((elemento) => clonarConfiguracion(elemento));

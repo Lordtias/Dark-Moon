@@ -1,0 +1,262 @@
+{
+  "nombre": "Fortaleza abandonada",
+  "descripcion": "Una fortificación derruida ocupada por ladrones y lanceros que aprovechan sus corredores defensivos. Un Comandante puede organizar la resistencia.",
+  "bioma": "fortaleza_abandonada",
+  "visibilidad": {
+    "descubrimiento": true,
+    "campoVisible": true
+  },
+  "recursoVisual": "assets/imagenes/mapas/fortaleza_abandonada.png",
+  "nivelDesbloqueo": 6,
+  "pesoSeleccion": 1.5,
+  "apariencia": {
+    "colorSuelo": "#363942",
+    "colorPared": "#737985",
+    "colorGrilla": "#202229",
+    "phaser": {
+      "suelo": {
+        "recursos": [
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/suelo_fortaleza_01.png",
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/suelo_fortaleza_02.png"
+        ]
+      },
+      "pared": {
+        "estrategiaBase": "masa",
+        "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_01.png",
+        "recursos": [
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_01.png",
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_02.png",
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_03.png",
+          "assets/imagenes/mundo/fortaleza_abandonada/cenital/masa_pared_04.png"
+        ],
+        "borde": {
+          "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/borde_pared.png",
+          "recursoEsquinaInterior": "assets/imagenes/mundo/fortaleza_abandonada/cenital/esquina_interior_pared.png",
+          "color": "#858893",
+          "colorLuz": "#b2b5bd",
+          "colorSombra": "#343740",
+          "grosor": 5,
+          "grosorLuz": 1,
+          "opacidad": 0.95,
+          "opacidadLuz": 0.66,
+          "opacidadSombra": 0.34
+        },
+        "sombraContacto": {
+          "habilitada": true,
+          "recurso": "assets/imagenes/mundo/fortaleza_abandonada/cenital/sombra_contacto_pared.png",
+          "color": "#090b10",
+          "grosor": 4,
+          "margen": 2,
+          "opacidad": 0.18,
+          "opacidadSecundaria": 0.08,
+          "opacidadEsquina": 0.22
+        }
+      },
+      "decoracion": {
+        "densidad": 0.09,
+        "colorHumedad": "#40454b",
+        "colorReflejo": "#9ba4ab",
+        "colorMetal": "#55595f",
+        "colorOxido": "#835d42",
+        "colorEscombro": "#7f8086",
+        "colorMancha": "#171a1f"
+      },
+      "sombras": {
+        "color": "#05070a",
+        "opacidadMuros": 0.34,
+        "opacidadEntidades": 0.4
+      },
+      "grilla": {
+        "opacidadSuelo": 0.16,
+        "opacidadPared": 0.07
+      },
+      "iluminacion": {
+        "colorAmbiente": "#40444f",
+        "colorSombraAmbiente": "#090c12",
+        "colorJugador": "#e4c67d",
+        "intensidad": 0.08
+      }
+    }
+  },
+  "dimensiones": {
+    "ancho": {
+      "minimo": 58,
+      "maximo": 72
+    },
+    "alto": {
+      "minimo": 38,
+      "maximo": 48
+    }
+  },
+  "niveles": {
+    "minimo": 6,
+    "maximo": 8
+  },
+  "generacion": {
+    "tipo": "habitaciones",
+    "sectores": {
+      "cantidad": {
+        "minimo": 12,
+        "maximo": 16
+      },
+      "separacion": {
+        "minimo": 2,
+        "maximo": 4
+      }
+    },
+    "habitaciones": {
+      "ancho": {
+        "minimo": 5,
+        "maximo": 9
+      },
+      "alto": {
+        "minimo": 4,
+        "maximo": 7
+      }
+    },
+    "pasillos": {
+      "ancho": 1,
+      "conexionesExtra": {
+        "minimo": 2,
+        "maximo": 4
+      }
+    },
+    "intentosMaximos": 130
+  },
+  "habitaciones": {
+    "ambientales": {
+      "minimo": 2,
+      "maximo": 3
+    }
+  },
+  "poblacion": {
+    "presupuestoHabitacion": {
+      "ocupacion": {
+        "por100Casillas": 10,
+        "minimo": 1,
+        "maximo": 4
+      },
+      "amenaza": {
+        "por100Casillas": 260,
+        "minimo": 50,
+        "maximo": 140
+      },
+      "valorRecompensa": {
+        "por100Casillas": 550,
+        "minimo": 100,
+        "maximo": 260
+      }
+    },
+    "multiplicadorHabitacionEspecial": 3
+  },
+  "enemigos": {
+    "densidadPor100Casillas": 6,
+    "probabilidadZonaPoblada": 78,
+    "distanciaSeguraJugador": 5,
+    "distanciaMinimaEntreEnemigos": 2,
+    "permitidos": [
+      {
+        "id": "ladron",
+        "peso": 55
+      },
+      {
+        "id": "lancero",
+        "peso": 45
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 78,
+      "enfermo": 3,
+      "gigante": 8,
+      "elite": 11
+    }
+  },
+  "encuentroEspecial": {
+    "probabilidadAparicion": 15,
+    "permitidos": [
+      {
+        "id": "comandante",
+        "peso": 100,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "espada_acero",
+            "probabilidad": 4,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "coraza_acero",
+            "probabilidad": 3,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 70,
+      "enfermo": 0,
+      "gigante": 10,
+      "elite": 20
+    }
+  },
+  "interactuables": {
+    "portalEntrada": {
+      "habilitado": true
+    },
+    "puertas": {
+      "probabilidadPorPasillo": 50
+    },
+    "cofres": {
+      "moderados": {
+        "probabilidadPorHabitacion": 35,
+        "tablaBotin": [
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 45,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 50,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 10
+          }
+        ]
+      },
+      "importante": {
+        "tablaBotin": [
+          {
+            "idObjeto": "espada_acero",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1,
+            "rarezaForzada": "magico"
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
+    },
+    "destructibles": {
+      "densidadPor100Casillas": 9,
+      "permitidos": [
+        {
+          "id": "barril_madera",
+          "peso": 100
+        }
+      ]
+    }
+  }
+}

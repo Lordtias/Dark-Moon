@@ -145,10 +145,10 @@ export function validarInteractuablesMazmorra({
       errores,
     );
   }
-  const perfilPorHabitacion = new Map(
+  const planPorHabitacion = new Map(
     (plano.planPoblacion?.habitaciones ?? []).map((habitacion) => [
       habitacion.idHabitacion,
-      habitacion.perfil,
+      habitacion,
     ]),
   );
   for (const destructible of contenido.resumen?.detalleDestructibles ?? []) {
@@ -158,10 +158,24 @@ export function validarInteractuablesMazmorra({
       errores,
     );
     comprobar(
-      destructible.perfil === (perfilPorHabitacion.get(destructible.idHabitacion) ?? null),
+      destructible.perfil ===
+        (planPorHabitacion.get(destructible.idHabitacion)?.perfil ?? null),
       `El destructible en ${crearClave(destructible)} no conserva el perfil canónico de su habitación.`,
       errores,
     );
+    const planHabitacion = planPorHabitacion.get(destructible.idHabitacion);
+    if (planHabitacion?.composicion) {
+      comprobar(
+        destructible.composicion === planHabitacion.composicion,
+        `El destructible en ${crearClave(destructible)} no pertenece a la composición canónica de su habitación.`,
+        errores,
+      );
+      comprobar(
+        typeof destructible.obligatorioComposicion === "boolean",
+        `El destructible en ${crearClave(destructible)} no identifica si ocupa un slot obligatorio u opcional.`,
+        errores,
+      );
+    }
   }
 
   const destructibles = entidadesUnicas.filter(

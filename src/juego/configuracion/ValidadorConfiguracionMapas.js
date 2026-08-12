@@ -6,8 +6,8 @@ const RAREZAS_FORZADAS_VALIDAS = new Set(["comun", "magico", "raro"]);
 
 const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 
-// Valida completamente la estructura general
-// de Mapas.json.
+// Valida el contrato combinado de las configuraciones canónicas de mapas.
+// Cada mazmorra puede vivir en su propio JSON sin cambiar este contrato.
 //
 // Además de las reglas de terreno y acceso,
 // comprueba la separación entre:
@@ -26,7 +26,7 @@ export function validarConfiguracionMapas(configuracion) {
   const plantillas = Object.entries(configuracion.plantillas);
 
   if (plantillas.length === 0) {
-    throw new Error("Mapas.json debe contener al menos una plantilla.");
+    throw new Error("La configuración de mapas debe contener al menos una plantilla.");
   }
 
   for (const [idPlantilla, plantilla] of plantillas) {
@@ -86,11 +86,7 @@ function validarPlantilla(idPlantilla, plantilla) {
 
   validarGeneracion(idPlantilla, plantilla.generacion, plantilla.dimensiones);
 
-  validarPoblacion(
-    idPlantilla,
-    plantilla.poblacion,
-    plantilla.generacion,
-  );
+  validarPoblacion(idPlantilla, plantilla.poblacion);
 
   const idsRecurrentes = validarEnemigos(idPlantilla, plantilla.enemigos);
 
@@ -106,10 +102,15 @@ function validarPlantilla(idPlantilla, plantilla) {
     idsExcluidos: unirConjuntos(idsRecurrentes, idsEspeciales),
   });
 
-  validarInteractuables(idPlantilla, plantilla.interactuables);
-  validarPerfilesContraDestructibles({
+  validarInteractuables(
     idPlantilla,
-    perfiles: plantilla.poblacion.perfilesHabitacion ?? null,
+    plantilla.interactuables,
+    { usaComposiciones: Boolean(plantilla.habitaciones?.perfiles) },
+  );
+  validarHabitaciones({
+    idPlantilla,
+    habitaciones: plantilla.habitaciones,
+    generacion: plantilla.generacion,
     destructibles: plantilla.interactuables.destructibles,
   });
 }
@@ -280,24 +281,8 @@ function validarGeneracion(idPlantilla, generacion, dimensiones) {
   );
 }
 
-function validarPoblacion(idPlantilla, poblacion, generacion) {
+function validarPoblacion(idPlantilla, poblacion) {
   validarObjeto(poblacion, `la población de "${idPlantilla}"`);
-  validarRangoEntero({
-    rango: poblacion.habitacionesAmbientales,
-    descripcion: `las habitaciones ambientales de "${idPlantilla}"`,
-    minimoPermitido: 1,
-    maximoPermitido: 3,
-  });
-
-  const cantidadMinimaSectores = generacion.sectores.cantidad.minimo;
-  if (
-    poblacion.habitacionesAmbientales.maximo >
-    cantidadMinimaSectores - 2
-  ) {
-    throw new Error(
-      `La reserva ambiental máxima de "${idPlantilla}" debe dejar al menos una habitación de entrada y una habitación especial.`,
-    );
-  }
 
   validarObjeto(
     poblacion.presupuestoHabitacion,
@@ -334,56 +319,112 @@ function validarPoblacion(idPlantilla, poblacion, generacion) {
     `el multiplicador de la habitación especial de "${idPlantilla}"`,
   );
 
-  if (poblacion.perfilesHabitacion !== undefined) {
-    validarPerfilesHabitacion(idPlantilla, poblacion.perfilesHabitacion);
+  if (
+    poblacion.habitacionesAmbientales !== undefined ||
+    poblacion.perfilesHabitacion !== undefined
+  ) {
+    throw new Error(
+      `La configuración de habitaciones de "${idPlantilla}" debe declararse en la sección canónica "habitaciones".`,
+    );
   }
 }
 
+const ORIENTACIONES_COMPOSICION = new Set(["horizontal", "vertical"]);
+const SIMBOLO_VACIO_COMPOSICION = ".";
+const SIMBOLO_OPCIONAL_COMPOSICION = "?";
 
-function validarPerfilesHabitacion(idPlantilla, perfiles) {
-  validarObjeto(perfiles, `los perfiles de habitación de "${idPlantilla}"`);
-  validarObjeto(perfiles.ambiental, `el perfil ambiental de "${idPlantilla}"`);
-  validarTexto(perfiles.ambiental.id, `el ID del perfil ambiental de "${idPlantilla}"`);
-  validarObjeto(perfiles.especial, `el perfil especial de "${idPlantilla}"`);
-  validarTexto(perfiles.especial.id, `el ID del perfil especial de "${idPlantilla}"`);
-  validarNumeroNoNegativo(
-    perfiles.especial.multiplicadorContenido ?? 1,
-    `el multiplicador de contenido del perfil especial de "${idPlantilla}"`,
-  );
-  if (perfiles.especial.permitidos !== undefined) {
-    validarListaPonderada(
-      perfiles.especial.permitidos,
-      `los destructibles del perfil especial de "${idPlantilla}"`,
+function validarHabitaciones({
+  idPlantilla,
+  habitaciones,
+  generacion,
+  destructibles,
+}) {
+  validarObjeto(habitaciones, `las habitaciones de "${idPlantilla}"`);
+  validarRangoEntero({
+    rango: habitaciones.ambientales,
+    descripcion: `las habitaciones ambientales de "${idPlantilla}"`,
+    minimoPermitido: 1,
+    maximoPermitido: 3,
+  });
+
+  const cantidadMinimaSectores = generacion.sectores.cantidad.minimo;
+  if (habitaciones.ambientales.maximo > cantidadMinimaSectores - 2) {
+    throw new Error(
+      `La reserva ambiental máxima de "${idPlantilla}" debe dejar al menos una habitación de entrada y una habitación especial.`,
     );
   }
 
-  if (!Array.isArray(perfiles.normales) || perfiles.normales.length === 0) {
+  if (habitaciones.perfiles === undefined) {
+    if (
+      habitaciones.perfilAmbiental !== undefined ||
+      habitaciones.perfilEspecial !== undefined
+    ) {
+      throw new Error(
+        `"${idPlantilla}" no puede declarar perfiles especiales sin una estrategia de perfiles normales.`,
+      );
+    }
+    return;
+  }
+
+  validarObjeto(
+    habitaciones.perfiles,
+    `los perfiles dirigidos de "${idPlantilla}"`,
+  );
+  if (habitaciones.perfiles.estrategia !== "cupos") {
+    throw new Error(
+      `La estrategia de perfiles de "${idPlantilla}" debe ser "cupos".`,
+    );
+  }
+
+  validarPerfilFijo({
+    idPlantilla,
+    perfil: habitaciones.perfilAmbiental,
+    descripcion: "ambiental",
+    destructibles,
+    dimensionesHabitacion: generacion.habitaciones,
+    permitirVacio: true,
+  });
+  validarPerfilFijo({
+    idPlantilla,
+    perfil: habitaciones.perfilEspecial,
+    descripcion: "especial",
+    destructibles,
+    dimensionesHabitacion: generacion.habitaciones,
+    permitirVacio: false,
+  });
+
+  const normales = habitaciones.perfiles.normales;
+  if (!Array.isArray(normales) || normales.length === 0) {
     throw new Error(
       `Los perfiles normales de "${idPlantilla}" deben contener al menos un perfil.`,
     );
   }
 
   const ids = new Set([
-    perfiles.ambiental.id.trim(),
-    perfiles.especial.id.trim(),
+    habitaciones.perfilAmbiental.id.trim(),
+    habitaciones.perfilEspecial.id.trim(),
   ]);
-  for (const perfil of perfiles.normales) {
+  let sumaMinimos = 0;
+  let sumaMaximos = 0;
+
+  for (const perfil of normales) {
     validarObjeto(perfil, `un perfil normal de "${idPlantilla}"`);
     validarTexto(perfil.id, `el ID de un perfil normal de "${idPlantilla}"`);
+    validarRangoEntero({
+      rango: perfil.cupo,
+      descripcion: `el cupo del perfil "${perfil.id}" de "${idPlantilla}"`,
+      minimoPermitido: 0,
+    });
     validarNumeroMayorQueCero(
-      perfil.peso,
-      `el peso del perfil "${perfil.id}" de "${idPlantilla}"`,
+      perfil.pesoRestante,
+      `el peso restante del perfil "${perfil.id}" de "${idPlantilla}"`,
     );
-    validarNumeroNoNegativo(
-      perfil.multiplicadorContenido ?? 1,
-      `el multiplicador de contenido del perfil "${perfil.id}" de "${idPlantilla}"`,
-    );
-    if (perfil.permitidos !== undefined) {
-      validarListaPonderada(
-        perfil.permitidos,
-        `los destructibles del perfil "${perfil.id}" de "${idPlantilla}"`,
+    if (perfil.cupo.maximo < perfil.cupo.minimo) {
+      throw new Error(
+        `El máximo del perfil "${perfil.id}" de "${idPlantilla}" no puede ser menor que su mínimo.`,
       );
     }
+
     const id = perfil.id.trim();
     if (ids.has(id)) {
       throw new Error(
@@ -391,7 +432,286 @@ function validarPerfilesHabitacion(idPlantilla, perfiles) {
       );
     }
     ids.add(id);
+    sumaMinimos += perfil.cupo.minimo;
+    sumaMaximos += perfil.cupo.maximo;
+
+    validarComposicionesPerfil({
+      idPlantilla,
+      idPerfil: id,
+      composiciones: perfil.composiciones,
+      destructibles,
+      dimensionesHabitacion: generacion.habitaciones,
+      permitirVacio: false,
+    });
   }
+
+  const normalesMinimosPosibles =
+    generacion.sectores.cantidad.minimo - 2 - habitaciones.ambientales.maximo;
+  const normalesMaximosPosibles =
+    generacion.sectores.cantidad.maximo - 2 - habitaciones.ambientales.minimo;
+
+  if (sumaMinimos > normalesMinimosPosibles) {
+    throw new Error(
+      `Los mínimos de perfiles de "${idPlantilla}" requieren ${sumaMinimos} habitaciones normales, pero el mapa puede generar solo ${normalesMinimosPosibles}.`,
+    );
+  }
+  if (sumaMaximos < normalesMaximosPosibles) {
+    throw new Error(
+      `Los máximos de perfiles de "${idPlantilla}" cubren ${sumaMaximos} habitaciones normales, pero el mapa puede generar ${normalesMaximosPosibles}.`,
+    );
+  }
+}
+
+function validarPerfilFijo({
+  idPlantilla,
+  perfil,
+  descripcion,
+  destructibles,
+  dimensionesHabitacion,
+  permitirVacio,
+}) {
+  validarObjeto(perfil, `el perfil ${descripcion} de "${idPlantilla}"`);
+  validarTexto(perfil.id, `el ID del perfil ${descripcion} de "${idPlantilla}"`);
+  validarComposicionesPerfil({
+    idPlantilla,
+    idPerfil: perfil.id,
+    composiciones: perfil.composiciones,
+    destructibles,
+    dimensionesHabitacion,
+    permitirVacio,
+  });
+}
+
+function validarComposicionesPerfil({
+  idPlantilla,
+  idPerfil,
+  composiciones,
+  destructibles,
+  dimensionesHabitacion,
+  permitirVacio,
+}) {
+  if (!Array.isArray(composiciones) || composiciones.length < 2) {
+    throw new Error(
+      `El perfil "${idPerfil}" de "${idPlantilla}" debe definir al menos una composición horizontal y una vertical.`,
+    );
+  }
+
+  const idsComposiciones = new Set();
+  const orientaciones = new Set();
+  const dimensionesComposiciones = [];
+  const idsDestructibles = new Set(
+    (destructibles.permitidos ?? []).map(({ id }) => id),
+  );
+
+  for (const composicion of composiciones) {
+    validarObjeto(
+      composicion,
+      `una composición del perfil "${idPerfil}" de "${idPlantilla}"`,
+    );
+    validarTexto(
+      composicion.id,
+      `el ID de una composición del perfil "${idPerfil}" de "${idPlantilla}"`,
+    );
+    if (idsComposiciones.has(composicion.id)) {
+      throw new Error(
+        `La composición "${composicion.id}" está repetida en el perfil "${idPerfil}" de "${idPlantilla}".`,
+      );
+    }
+    idsComposiciones.add(composicion.id);
+
+    if (!ORIENTACIONES_COMPOSICION.has(composicion.orientacion)) {
+      throw new Error(
+        `La composición "${composicion.id}" de "${idPlantilla}" debe ser horizontal o vertical.`,
+      );
+    }
+    orientaciones.add(composicion.orientacion);
+    validarNumeroMayorQueCero(
+      composicion.peso ?? 1,
+      `el peso de la composición "${composicion.id}" de "${idPlantilla}"`,
+    );
+
+    const dimensiones = validarGrillaComposicion({
+      idPlantilla,
+      idPerfil,
+      composicion,
+      idsDestructibles,
+      permitirVacio,
+    });
+    dimensionesComposiciones.push({
+      id: composicion.id,
+      ...dimensiones,
+    });
+  }
+
+  for (const orientacion of ORIENTACIONES_COMPOSICION) {
+    if (!orientaciones.has(orientacion)) {
+      throw new Error(
+        `El perfil "${idPerfil}" de "${idPlantilla}" necesita una composición ${orientacion}.`,
+      );
+    }
+  }
+
+  const anchoMinimoHabitacion = dimensionesHabitacion.ancho.minimo;
+  const altoMinimoHabitacion = dimensionesHabitacion.alto.minimo;
+  const anchoMaximoHabitacion = dimensionesHabitacion.ancho.maximo;
+  const altoMaximoHabitacion = dimensionesHabitacion.alto.maximo;
+
+  const composicionesUtilizables = dimensionesComposiciones.filter(
+    ({ ancho, alto }) =>
+      ancho <= anchoMaximoHabitacion && alto <= altoMaximoHabitacion,
+  );
+  if (composicionesUtilizables.length !== dimensionesComposiciones.length) {
+    const inalcanzable = dimensionesComposiciones.find(
+      ({ ancho, alto }) =>
+        ancho > anchoMaximoHabitacion || alto > altoMaximoHabitacion,
+    );
+    throw new Error(
+      `La composición "${inalcanzable.id}" del perfil "${idPerfil}" de "${idPlantilla}" no cabe ni en la habitación máxima configurada.`,
+    );
+  }
+
+  if (
+    !composicionesUtilizables.some(
+      ({ ancho, alto }) =>
+        ancho <= anchoMinimoHabitacion && alto <= altoMinimoHabitacion,
+    )
+  ) {
+    throw new Error(
+      `El perfil "${idPerfil}" de "${idPlantilla}" necesita al menos una composición que quepa en la habitación mínima configurada.`,
+    );
+  }
+}
+
+function validarGrillaComposicion({
+  idPlantilla,
+  idPerfil,
+  composicion,
+  idsDestructibles,
+  permitirVacio,
+}) {
+  if (!Array.isArray(composicion.grilla) || composicion.grilla.length === 0) {
+    throw new Error(
+      `La composición "${composicion.id}" de "${idPlantilla}" necesita una grilla.`,
+    );
+  }
+  const ancho = composicion.grilla[0]?.length ?? 0;
+  if (ancho === 0) {
+    throw new Error(`La grilla "${composicion.id}" no puede estar vacía.`);
+  }
+  if (
+    composicion.grilla.some(
+      (fila) => typeof fila !== "string" || fila.length !== ancho,
+    )
+  ) {
+    throw new Error(
+      `Todas las filas de "${composicion.id}" deben tener el mismo ancho.`,
+    );
+  }
+
+  const leyenda = composicion.leyenda ?? {};
+  validarObjeto(leyenda, `la leyenda de "${composicion.id}"`);
+  let cantidadObligatoria = 0;
+  let usaOpcional = false;
+
+  for (const fila of composicion.grilla) {
+    for (const simbolo of fila) {
+      if (simbolo === SIMBOLO_VACIO_COMPOSICION) continue;
+      if (simbolo === SIMBOLO_OPCIONAL_COMPOSICION) {
+        usaOpcional = true;
+        continue;
+      }
+      const entrada = leyenda[simbolo];
+      if (!entrada) {
+        throw new Error(
+          `El símbolo "${simbolo}" de "${composicion.id}" no existe en su leyenda.`,
+        );
+      }
+      validarTexto(entrada.id, `la entidad del símbolo "${simbolo}" en "${composicion.id}"`);
+      if (!idsDestructibles.has(entrada.id)) {
+        throw new Error(
+          `La composición "${composicion.id}" usa "${entrada.id}", que no está permitido por "${idPlantilla}".`,
+        );
+      }
+      cantidadObligatoria += 1;
+    }
+  }
+
+  if (!permitirVacio && cantidadObligatoria === 0) {
+    throw new Error(
+      `La composición "${composicion.id}" del perfil "${idPerfil}" debe contener al menos una entidad obligatoria.`,
+    );
+  }
+
+  for (const simbolo of Object.keys(leyenda)) {
+    if (simbolo.length !== 1 || simbolo === "." || simbolo === "?") {
+      throw new Error(
+        `La leyenda de "${composicion.id}" usa el símbolo reservado o inválido "${simbolo}".`,
+      );
+    }
+  }
+
+  if (usaOpcional) {
+    validarObjeto(
+      composicion.opcional,
+      `la configuración opcional de "${composicion.id}"`,
+    );
+    validarPorcentaje(
+      composicion.opcional.probabilidad,
+      `la probabilidad de los slots ? de "${composicion.id}"`,
+    );
+    const idsOpcionales = validarListaPonderada(
+      composicion.opcional.permitidos,
+      `las entidades opcionales de "${composicion.id}"`,
+    );
+    for (const id of idsOpcionales) {
+      if (!idsDestructibles.has(id)) {
+        throw new Error(
+          `El slot opcional de "${composicion.id}" usa "${id}", que no está permitido por "${idPlantilla}".`,
+        );
+      }
+    }
+  } else if (composicion.opcional !== undefined) {
+    throw new Error(
+      `La composición "${composicion.id}" declara configuración opcional sin utilizar el símbolo ?.`,
+    );
+  }
+
+  if (composicion.contraPared !== undefined) {
+    if (!Array.isArray(composicion.contraPared)) {
+      throw new Error(`"contraPared" de "${composicion.id}" debe ser una lista.`);
+    }
+    const coordenadas = new Set();
+    for (const posicion of composicion.contraPared) {
+      validarObjeto(posicion, `una posición contra pared de "${composicion.id}"`);
+      if (
+        !Number.isInteger(posicion.x) ||
+        !Number.isInteger(posicion.y) ||
+        posicion.x < 0 ||
+        posicion.y < 0 ||
+        posicion.x >= ancho ||
+        posicion.y >= composicion.grilla.length
+      ) {
+        throw new Error(
+          `La posición contra pared de "${composicion.id}" está fuera de su grilla.`,
+        );
+      }
+      const simbolo = composicion.grilla[posicion.y][posicion.x];
+      if (simbolo === SIMBOLO_VACIO_COMPOSICION) {
+        throw new Error(
+          `La posición contra pared ${posicion.x},${posicion.y} de "${composicion.id}" no puede apuntar a una casilla vacía.`,
+        );
+      }
+      const clave = `${posicion.x},${posicion.y}`;
+      if (coordenadas.has(clave)) {
+        throw new Error(
+          `La posición contra pared ${clave} está repetida en "${composicion.id}".`,
+        );
+      }
+      coordenadas.add(clave);
+    }
+  }
+
+  return { ancho, alto: composicion.grilla.length };
 }
 
 function validarTablasDestructibles({ idPlantilla, destructibles }) {
@@ -413,21 +733,6 @@ function validarTablasDestructibles({ idPlantilla, destructibles }) {
       if (!Object.prototype.hasOwnProperty.call(tablas, idTabla)) {
         throw new Error(
           `La entidad "${permitido.id}" de "${idPlantilla}" referencia la tabla inexistente "${idTabla}".`,
-        );
-      }
-    }
-  }
-}
-
-function validarPerfilesContraDestructibles({ idPlantilla, perfiles, destructibles }) {
-  if (!perfiles) return;
-  const idsPermitidos = new Set(destructibles.permitidos.map(({ id }) => id));
-  const perfilesConContenido = [perfiles.especial, ...perfiles.normales];
-  for (const perfil of perfilesConContenido) {
-    for (const permitido of perfil.permitidos ?? []) {
-      if (!idsPermitidos.has(permitido.id)) {
-        throw new Error(
-          `El perfil "${perfil.id}" de "${idPlantilla}" usa "${permitido.id}", que no está permitido por el mapa.`,
         );
       }
     }
@@ -566,7 +871,7 @@ function validarIdsExcluidos({
   }
 }
 
-function validarInteractuables(idPlantilla, interactuables) {
+function validarInteractuables(idPlantilla, interactuables, { usaComposiciones = false } = {}) {
   validarObjeto(interactuables, `los interactuables de "${idPlantilla}"`);
 
   validarObjeto(
@@ -589,12 +894,18 @@ function validarInteractuables(idPlantilla, interactuables) {
     interactuables.destructibles,
     `los destructibles de "${idPlantilla}"`,
   );
-  if (
-    !Number.isFinite(interactuables.destructibles.densidadPor100Casillas) ||
-    interactuables.destructibles.densidadPor100Casillas < 0
-  ) {
+  if (!usaComposiciones) {
+    if (
+      !Number.isFinite(interactuables.destructibles.densidadPor100Casillas) ||
+      interactuables.destructibles.densidadPor100Casillas < 0
+    ) {
+      throw new Error(
+        `La densidad de destructibles por 100 casillas de "${idPlantilla}" debe ser un número no negativo mientras use la población histórica.`,
+      );
+    }
+  } else if (interactuables.destructibles.densidadPor100Casillas !== undefined) {
     throw new Error(
-      `La densidad de destructibles por 100 casillas de "${idPlantilla}" debe ser un número no negativo.`,
+      `"${idPlantilla}" usa composiciones dirigidas y no debe conservar densidadPor100Casillas de la población histórica.`,
     );
   }
   const idsDestructibles = validarListaPonderada(

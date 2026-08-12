@@ -190,26 +190,34 @@ Toda población debe preservar:
 
 ---
 
-## 4. PERFILES DE HABITACIÓN
+## 4. PERFILES Y COMPOSICIÓN DE HABITACIÓN
 
 El sistema debe permitir que una habitación tenga una identidad o perfil de contenido sin convertir cada perfil en un generador diferente.
 
-Un perfil puede determinar:
+La geometría de la habitación continúa perteneciendo exclusivamente al generador estructural. El perfil define **cómo se usa el interior ya generado**, no crea paredes, pasillos ni un motor de mazmorra paralelo.
 
-- familias de objetos posibles;
-- cantidad o rango de contenido;
-- presupuesto disponible;
-- decoración ambiental permitida;
-- probabilidad de interactuables;
-- probabilidad de destructibles;
-- restricciones de colocación;
-- contenido excluido.
+Para los mapas migrados al modelo dirigido, la experiencia mínima de una expedición se controla mediante **cupos de perfiles**:
 
-La geometría de la habitación continúa perteneciendo al generador estructural.
+- cada perfil normal puede declarar mínimo y máximo por instancia;
+- los mínimos garantizan funciones básicas del mapa;
+- las habitaciones restantes se distribuyen ponderadamente entre perfiles que todavía no alcanzaron su máximo;
+- la habitación especial y las ambientales mantienen perfiles explícitos;
+- no se fuerza un perfil por la necesidad de hacer aparecer una entidad concreta.
 
-El perfil define **cómo se usa esa habitación**, no crea un motor de mazmorra paralelo.
+Cada perfil puede definir una o más **composiciones humanas de grilla**. La composición no sustituye la generación procedural: toma una habitación existente y propone entidades en posiciones relativas.
 
-Los perfiles concretos se incorporarán mapa por mapa.
+Reglas canónicas de composición:
+
+- cada perfil migrado debe disponer, como mínimo, de una composición horizontal y una vertical;
+- una composición obligatoria se aplica completa o se descarta; no puede degradarse silenciosamente colocando solo parte de sus entidades;
+- `?` representa un slot opcional configurable y conserva variación procedural;
+- una composición puede marcar posiciones que deban quedar contra pared;
+- relaciones visuales como mesa + sillas se expresan directamente dibujando esas entidades juntas en la grilla; no se crea una relación semántica adicional mientras una composición prefabricada sea suficiente;
+- la aplicación debe preservar conectividad, accesos, posiciones reservadas y presupuesto;
+- el presupuesto canónico de ocupación, amenaza y valor/recompensa se consume antes de poblar enemigos;
+- cofres opcionales y enemigos utilizan solamente el espacio y presupuesto restantes.
+
+El resultado combina **generación procedural macro + diseño humano controlado micro**. Los perfiles concretos y sus composiciones se incorporan mapa por mapa.
 
 ---
 
@@ -366,7 +374,7 @@ La etapa puede marcarse **Cerrada** cuando las cinco mazmorras soporten satisfac
 
 ## E4.B — Alcantarilla expandida
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -407,6 +415,57 @@ Dar identidad jugable propia a la Alcantarilla utilizando perfiles de habitació
 ### Criterio de cierre
 
 La etapa puede marcarse **Cerrada** cuando la Alcantarilla posea perfiles reconocibles, contenido jugable coherente con su ambientación, destructibles/interactuables funcionales, presupuesto respetado, habitaciones ambientales reservadas y una regresión satisfactoria del flujo completo del mapa.
+
+---
+
+## E4.B.ReestructuraHabitaciones — Composición dirigida de habitaciones y modularización de mapas
+
+**Estado:** Cerrada
+
+### Objetivo
+
+Reestructurar el contrato de configuración y población interior para combinar generación procedural con composiciones humanas controladas, sin modificar la geometría canónica de las mazmorras.
+
+### Alcance
+
+- reemplazar el archivo monolítico `src/config/mapas/mapas.json` por cinco JSON canónicos específicos de mazmorra;
+- mantener en memoria el contrato único `configuracionMapas.plantillas`;
+- centralizar dentro de cada JSON una sección `habitaciones`;
+- migrar Alcantarilla como primer consumidor del modelo dirigido;
+- asignar perfiles normales mediante cupos mínimo/máximo y ponderación únicamente para habitaciones sobrantes;
+- conservar reserva ambiental y habitación especial;
+- incorporar composiciones de grilla completas por perfil;
+- exigir al menos una composición horizontal y una vertical por perfil migrado;
+- soportar slots opcionales `?`;
+- soportar posiciones contra pared;
+- aplicar las composiciones sobre habitaciones ya generadas, sin crear geometría;
+- consumir el presupuesto canónico antes de cofres opcionales y enemigos;
+- mantener temporalmente la población histórica para Cementerio, Casa del Guerrero, Fortaleza abandonada y Sala de guerra hasta que cada etapa los migre.
+
+### Decisiones de diseño
+
+- una composición prefabricada expresa relaciones espaciales directamente en su grilla; no se agregan contratos específicos como `mesa + silla` mientras el dibujo relativo sea suficiente;
+- una composición obligatoria debe poder colocarse completa y mantener conectividad; si no es válida se prueba otra composición compatible;
+- los slots opcionales no forman parte de la garantía mínima de identidad y pueden omitirse por tirada, presupuesto o capacidad física;
+- las posiciones contra pared son restricciones de colocación de la composición, no lógica de la entidad;
+- misma versión + mismo mapa + misma semilla debe reproducir cupos, perfiles y composiciones;
+- la ruta histórica de población no debe convertirse en un segundo motor permanente.
+
+### No incluye
+
+- contenido funerario de E4.C;
+- contenido doméstico/militar de E4.D–E4.F;
+- nuevos assets;
+- cambios de geometría;
+- rediseño de movimiento, combate, FOV, IA, botín, persistencia o Phaser.
+
+### Criterio de cierre
+
+La etapa puede marcarse **Cerrada** cuando los cinco mapas se carguen desde archivos JSON específicos conservando el contrato combinado, Alcantarilla distribuya perfiles por cupos reproducibles y aplique composiciones completas válidas —incluyendo orientación horizontal/vertical, slots opcionales y posiciones contra pared—, el presupuesto y la conectividad sigan siendo canónicos, y las otras cuatro mazmorras mantengan su comportamiento funcional heredado.
+
+### Deuda temporal controlada
+
+Cementerio, Casa del Guerrero, Fortaleza abandonada y Sala de guerra pueden conservar temporalmente la ruta histórica de población hasta sus etapas E4.C–E4.F. **Al cerrar E4.F debe realizarse una auditoría explícita para verificar que no quede código, configuración ni comentarios productivos de esa estrategia antigua.**
 
 ---
 
@@ -730,6 +789,7 @@ El Plan Maestro de Mazmorras Expandidas puede considerarse completado cuando:
 
 - E4.A esté Cerrada;
 - E4.B esté Cerrada;
+- E4.B.ReestructuraHabitaciones esté Cerrada;
 - E4.C esté Cerrada;
 - E4.D esté Cerrada;
 - E4.E esté Cerrada;
@@ -741,6 +801,7 @@ El Plan Maestro de Mazmorras Expandidas puede considerarse completado cuando:
 - existan habitaciones ambientales reservadas;
 - el presupuesto de contenido sea funcional;
 - no existan motores paralelos de generación o población;
+- al cerrar E4.F se haya auditado y eliminado la ruta histórica temporal de población de habitaciones;
 - la persistencia siga siendo única;
 - la versión web continúe operativa;
 - los riesgos pendientes estén documentados.
@@ -752,7 +813,8 @@ El Plan Maestro de Mazmorras Expandidas puede considerarse completado cuando:
 | Etapa | Nombre | Estado |
 |---|---|---|
 | E4.A | Expansión estructural y presupuesto de población | Cerrada |
-| E4.B | Alcantarilla expandida | Pendiente |
+| E4.B | Alcantarilla expandida | Cerrada |
+| E4.B.ReestructuraHabitaciones | Composición dirigida de habitaciones y modularización de mapas | Cerrada |
 | E4.C | Cementerio expandido | Pendiente |
 | E4.D | Casa del Guerrero expandida | Pendiente |
 | E4.E | Fortaleza abandonada expandida | Pendiente |

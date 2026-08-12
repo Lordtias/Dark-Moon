@@ -1,0 +1,262 @@
+{
+  "nombre": "Casa del Guerrero",
+  "descripcion": "Una antigua residencia militar convertida en campo de entrenamiento para guerreros no muertos. En ocasiones, un Caballero Óseo protege sus salones.",
+  "bioma": "casa_guerrero",
+  "visibilidad": {
+    "descubrimiento": true,
+    "campoVisible": true
+  },
+  "recursoVisual": "assets/imagenes/mapas/casa_guerrero.png",
+  "nivelDesbloqueo": 4,
+  "pesoSeleccion": 2,
+  "apariencia": {
+    "colorSuelo": "#3c332b",
+    "colorPared": "#796650",
+    "colorGrilla": "#241e19",
+    "phaser": {
+      "suelo": {
+        "recursos": [
+          "assets/imagenes/mundo/casa_guerrero/cenital/suelo_sala_01.png",
+          "assets/imagenes/mundo/casa_guerrero/cenital/suelo_sala_02.png"
+        ]
+      },
+      "pared": {
+        "estrategiaBase": "masa",
+        "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_01.png",
+        "recursos": [
+          "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_01.png",
+          "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_02.png",
+          "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_03.png",
+          "assets/imagenes/mundo/casa_guerrero/cenital/masa_pared_04.png"
+        ],
+        "borde": {
+          "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/borde_pared.png",
+          "recursoEsquinaInterior": "assets/imagenes/mundo/casa_guerrero/cenital/esquina_interior_pared.png",
+          "color": "#aa8d67",
+          "colorLuz": "#d0ba97",
+          "colorSombra": "#58462f",
+          "grosor": 5,
+          "grosorLuz": 1,
+          "opacidad": 0.94,
+          "opacidadLuz": 0.68,
+          "opacidadSombra": 0.3
+        },
+        "sombraContacto": {
+          "habilitada": true,
+          "recurso": "assets/imagenes/mundo/casa_guerrero/cenital/sombra_contacto_pared.png",
+          "color": "#110b07",
+          "grosor": 4,
+          "margen": 2,
+          "opacidad": 0.16,
+          "opacidadSecundaria": 0.07,
+          "opacidadEsquina": 0.2
+        }
+      },
+      "decoracion": {
+        "densidad": 0.05,
+        "colorHumedad": "#5a452f",
+        "colorReflejo": "#cab291",
+        "colorMetal": "#716658",
+        "colorOxido": "#985f39",
+        "colorEscombro": "#8e7f6c",
+        "colorMancha": "#2d2116"
+      },
+      "sombras": {
+        "color": "#090604",
+        "opacidadMuros": 0.28,
+        "opacidadEntidades": 0.36
+      },
+      "grilla": {
+        "opacidadSuelo": 0.12,
+        "opacidadPared": 0.06
+      },
+      "iluminacion": {
+        "colorAmbiente": "#604528",
+        "colorSombraAmbiente": "#120b06",
+        "colorJugador": "#f0d088",
+        "intensidad": 0.07
+      }
+    }
+  },
+  "dimensiones": {
+    "ancho": {
+      "minimo": 48,
+      "maximo": 60
+    },
+    "alto": {
+      "minimo": 30,
+      "maximo": 38
+    }
+  },
+  "niveles": {
+    "minimo": 4,
+    "maximo": 6
+  },
+  "generacion": {
+    "tipo": "habitaciones",
+    "sectores": {
+      "cantidad": {
+        "minimo": 9,
+        "maximo": 12
+      },
+      "separacion": {
+        "minimo": 1,
+        "maximo": 3
+      }
+    },
+    "habitaciones": {
+      "ancho": {
+        "minimo": 5,
+        "maximo": 8
+      },
+      "alto": {
+        "minimo": 4,
+        "maximo": 6
+      }
+    },
+    "pasillos": {
+      "ancho": 1,
+      "conexionesExtra": {
+        "minimo": 2,
+        "maximo": 3
+      }
+    },
+    "intentosMaximos": 110
+  },
+  "habitaciones": {
+    "ambientales": {
+      "minimo": 1,
+      "maximo": 2
+    }
+  },
+  "poblacion": {
+    "presupuestoHabitacion": {
+      "ocupacion": {
+        "por100Casillas": 10,
+        "minimo": 1,
+        "maximo": 4
+      },
+      "amenaza": {
+        "por100Casillas": 200,
+        "minimo": 40,
+        "maximo": 100
+      },
+      "valorRecompensa": {
+        "por100Casillas": 420,
+        "minimo": 80,
+        "maximo": 220
+      }
+    },
+    "multiplicadorHabitacionEspecial": 3
+  },
+  "enemigos": {
+    "densidadPor100Casillas": 7,
+    "probabilidadZonaPoblada": 75,
+    "distanciaSeguraJugador": 4,
+    "distanciaMinimaEntreEnemigos": 2,
+    "permitidos": [
+      {
+        "id": "esqueleto_guardia",
+        "peso": 60
+      },
+      {
+        "id": "esqueleto_arquero",
+        "peso": 40
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 84,
+      "enfermo": 4,
+      "gigante": 7,
+      "elite": 5
+    }
+  },
+  "encuentroEspecial": {
+    "probabilidadAparicion": 12,
+    "permitidos": [
+      {
+        "id": "caballero_oseo",
+        "peso": 100,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "coraza_hierro",
+            "probabilidad": 2,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "espada_acero",
+            "probabilidad": 1,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 78,
+      "enfermo": 2,
+      "gigante": 10,
+      "elite": 10
+    }
+  },
+  "interactuables": {
+    "portalEntrada": {
+      "habilitado": true
+    },
+    "puertas": {
+      "probabilidadPorPasillo": 45
+    },
+    "cofres": {
+      "moderados": {
+        "probabilidadPorHabitacion": 30,
+        "tablaBotin": [
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 45,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 50,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 10
+          }
+        ]
+      },
+      "importante": {
+        "tablaBotin": [
+          {
+            "idObjeto": "mandoble_hierro",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1,
+            "rarezaForzada": "magico"
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
+    },
+    "destructibles": {
+      "densidadPor100Casillas": 8,
+      "permitidos": [
+        {
+          "id": "barril_madera",
+          "peso": 100
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,323 @@
+{
+  "nombre": "Sala de guerra",
+  "descripcion": "El núcleo militar de la fortaleza, donde combatientes de expediciones anteriores convergen bajo las órdenes del Señor de la Guerra.",
+  "bioma": "sala_guerra",
+  "visibilidad": {
+    "descubrimiento": true,
+    "campoVisible": true
+  },
+  "recursoVisual": "assets/imagenes/mapas/sala_guerra.png",
+  "nivelDesbloqueo": 8,
+  "pesoSeleccion": 1,
+  "apariencia": {
+    "colorSuelo": "#403129",
+    "colorPared": "#8a674e",
+    "colorGrilla": "#261b17",
+    "phaser": {
+      "suelo": {
+        "recursos": [
+          "assets/imagenes/mundo/sala_guerra/cenital/suelo_guerra_01.png",
+          "assets/imagenes/mundo/sala_guerra/cenital/suelo_guerra_02.png"
+        ]
+      },
+      "pared": {
+        "estrategiaBase": "masa",
+        "recurso": "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_01.png",
+        "recursos": [
+          "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_01.png",
+          "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_02.png",
+          "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_03.png",
+          "assets/imagenes/mundo/sala_guerra/cenital/masa_pared_04.png"
+        ],
+        "borde": {
+          "recurso": "assets/imagenes/mundo/sala_guerra/cenital/borde_pared.png",
+          "recursoEsquinaInterior": "assets/imagenes/mundo/sala_guerra/cenital/esquina_interior_pared.png",
+          "color": "#a39278",
+          "colorLuz": "#d0c2ac",
+          "colorSombra": "#514539",
+          "grosor": 5,
+          "grosorLuz": 1,
+          "opacidad": 0.95,
+          "opacidadLuz": 0.68,
+          "opacidadSombra": 0.34
+        },
+        "sombraContacto": {
+          "habilitada": true,
+          "recurso": "assets/imagenes/mundo/sala_guerra/cenital/sombra_contacto_pared.png",
+          "color": "#110d09",
+          "grosor": 4,
+          "margen": 2,
+          "opacidad": 0.18,
+          "opacidadSecundaria": 0.08,
+          "opacidadEsquina": 0.22
+        }
+      },
+      "decoracion": {
+        "densidad": 0.06,
+        "colorHumedad": "#5a5044",
+        "colorReflejo": "#c6baa5",
+        "colorMetal": "#6f685b",
+        "colorOxido": "#8a5c39",
+        "colorEscombro": "#998d7a",
+        "colorMancha": "#282119"
+      },
+      "sombras": {
+        "color": "#070503",
+        "opacidadMuros": 0.32,
+        "opacidadEntidades": 0.38
+      },
+      "grilla": {
+        "opacidadSuelo": 0.14,
+        "opacidadPared": 0.06
+      },
+      "iluminacion": {
+        "colorAmbiente": "#5b4a32",
+        "colorSombraAmbiente": "#110c08",
+        "colorJugador": "#efcf81",
+        "intensidad": 0.08
+      }
+    }
+  },
+  "dimensiones": {
+    "ancho": {
+      "minimo": 64,
+      "maximo": 80
+    },
+    "alto": {
+      "minimo": 42,
+      "maximo": 52
+    }
+  },
+  "niveles": {
+    "minimo": 8,
+    "maximo": 10
+  },
+  "generacion": {
+    "tipo": "habitaciones",
+    "sectores": {
+      "cantidad": {
+        "minimo": 13,
+        "maximo": 17
+      },
+      "separacion": {
+        "minimo": 1,
+        "maximo": 3
+      }
+    },
+    "habitaciones": {
+      "ancho": {
+        "minimo": 6,
+        "maximo": 10
+      },
+      "alto": {
+        "minimo": 5,
+        "maximo": 8
+      }
+    },
+    "pasillos": {
+      "ancho": 1,
+      "conexionesExtra": {
+        "minimo": 3,
+        "maximo": 5
+      }
+    },
+    "intentosMaximos": 140
+  },
+  "habitaciones": {
+    "ambientales": {
+      "minimo": 2,
+      "maximo": 3
+    }
+  },
+  "poblacion": {
+    "presupuestoHabitacion": {
+      "ocupacion": {
+        "por100Casillas": 10,
+        "minimo": 1,
+        "maximo": 4
+      },
+      "amenaza": {
+        "por100Casillas": 320,
+        "minimo": 60,
+        "maximo": 180
+      },
+      "valorRecompensa": {
+        "por100Casillas": 800,
+        "minimo": 120,
+        "maximo": 320
+      }
+    },
+    "multiplicadorHabitacionEspecial": 3
+  },
+  "enemigos": {
+    "densidadPor100Casillas": 5.5,
+    "probabilidadZonaPoblada": 80,
+    "distanciaSeguraJugador": 5,
+    "distanciaMinimaEntreEnemigos": 2,
+    "permitidos": [
+      {
+        "id": "rata",
+        "peso": 5
+      },
+      {
+        "id": "cucaracha",
+        "peso": 5
+      },
+      {
+        "id": "esqueleto_guardia",
+        "peso": 20
+      },
+      {
+        "id": "esqueleto_arquero",
+        "peso": 15
+      },
+      {
+        "id": "ladron",
+        "peso": 30
+      },
+      {
+        "id": "lancero",
+        "peso": 25
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 70,
+      "enfermo": 2,
+      "gigante": 10,
+      "elite": 18
+    }
+  },
+  "encuentroEspecial": {
+    "probabilidadAparicion": 20,
+    "permitidos": [
+      {
+        "id": "hombre_rata_saqueador",
+        "peso": 20,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "daga_acero",
+            "probabilidad": 3,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      },
+      {
+        "id": "zombi",
+        "peso": 20,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "tunica_reforzada",
+            "probabilidad": 3,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      },
+      {
+        "id": "caballero_oseo",
+        "peso": 30,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "hacha_batalla",
+            "probabilidad": 4,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      },
+      {
+        "id": "comandante",
+        "peso": 30,
+        "tablaBotinAdicional": [
+          {
+            "idObjeto": "coraza_acero",
+            "probabilidad": 4,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 60,
+      "enfermo": 0,
+      "gigante": 10,
+      "elite": 30
+    }
+  },
+  "jefe": {
+    "probabilidadAparicion": 100,
+    "permitidos": [
+      {
+        "id": "senor_guerra",
+        "peso": 100
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 100,
+      "enfermo": 0,
+      "gigante": 0,
+      "elite": 0
+    }
+  },
+  "interactuables": {
+    "portalEntrada": {
+      "habilitado": true
+    },
+    "puertas": {
+      "probabilidadPorPasillo": 55
+    },
+    "cofres": {
+      "moderados": {
+        "probabilidadPorHabitacion": 40,
+        "tablaBotin": [
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 45,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 50,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 10
+          }
+        ]
+      },
+      "importante": {
+        "tablaBotin": [
+          {
+            "idObjeto": "mandoble_acero",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1,
+            "rarezaForzada": "magico"
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
+    },
+    "destructibles": {
+      "densidadPor100Casillas": 10,
+      "permitidos": [
+        {
+          "id": "barril_madera",
+          "peso": 100
+        }
+      ]
+    }
+  }
+}

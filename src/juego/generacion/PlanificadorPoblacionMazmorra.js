@@ -56,7 +56,7 @@ export function crearPlanPoblacionMazmorra({
   const aleatorioReservas = crearGeneradorAleatorio(
     `${aleatorio.semilla}:${plantilla.bioma ?? plantilla.nombre}:reservas_ambientales`,
   );
-  const configuracionReservas = plantilla.poblacion.habitacionesAmbientales;
+  const configuracionReservas = plantilla.habitaciones.ambientales;
   const cantidadAmbientales = aleatorioReservas.entero(
     configuracionReservas.minimo,
     configuracionReservas.maximo,
@@ -74,12 +74,26 @@ export function crearPlanPoblacionMazmorra({
       .slice(0, cantidadAmbientales),
   );
 
-  const configuracionPerfiles = plantilla.poblacion.perfilesHabitacion ?? null;
+  const configuracionPerfiles = plantilla.habitaciones?.perfiles ?? null;
   const aleatorioPerfiles = configuracionPerfiles
     ? crearGeneradorAleatorio(
         `${aleatorio.semilla}:${plantilla.bioma ?? plantilla.nombre}:perfiles_habitacion`,
       )
     : null;
+  const perfilesNormalesPorHabitacion = configuracionPerfiles
+    ? asignarPerfilesPorCupos({
+        idsHabitaciones: zonasBase
+          .map((zona) => zona.idHabitacion)
+          .filter(
+            (idHabitacion) =>
+              idHabitacion !== idHabitacionEspecial &&
+              !idsAmbientales.has(idHabitacion),
+          ),
+        configuracionPerfiles,
+        aleatorio: aleatorioPerfiles,
+        nombreMapa: plantilla.nombre,
+      })
+    : new Map();
 
   const zonas = zonasBase.map(({ idHabitacion, posicionesBase }) => {
     const esEspecial = idHabitacion === idHabitacionEspecial;
@@ -89,12 +103,11 @@ export function crearPlanPoblacionMazmorra({
       : esAmbiental
         ? TIPOS_HABITACION_POBLACION.AMBIENTAL
         : TIPOS_HABITACION_POBLACION.POBLACION;
-    const perfil = resolverPerfilHabitacion({
-      esEspecial,
-      esAmbiental,
-      configuracionPerfiles,
-      aleatorioPerfiles,
-    });
+    const perfil = esAmbiental
+      ? plantilla.habitaciones?.perfilAmbiental?.id ?? null
+      : esEspecial
+        ? plantilla.habitaciones?.perfilEspecial?.id ?? null
+        : perfilesNormalesPorHabitacion.get(idHabitacion) ?? null;
     const presupuestoInicial = esAmbiental
       ? crearVectorPresupuestoCero()
       : calcularPresupuestoHabitacion({
@@ -111,6 +124,9 @@ export function crearPlanPoblacionMazmorra({
       esEspecial,
       esAmbiental,
       perfil,
+      composicion: null,
+      orientacionComposicion: null,
+      origenComposicion: null,
       activaInicial:
         esEspecial ||
         (!esAmbiental &&
@@ -138,6 +154,9 @@ export function crearPlanPoblacionMazmorra({
 
   return {
     estrategia: "presupuesto_por_habitacion",
+    estrategiaHabitaciones: configuracionPerfiles
+      ? "cupos_y_composiciones"
+      : "poblacion_historica",
     idHabitacionEntrada,
     idHabitacionEspecial,
     cantidadHabitacionesAmbientales: idsAmbientales.size,
@@ -314,6 +333,7 @@ export function crearResumenPlanPoblacion(plan) {
 
   return {
     estrategia: plan.estrategia,
+    estrategiaHabitaciones: plan.estrategiaHabitaciones ?? "poblacion_historica",
     idHabitacionEntrada: plan.idHabitacionEntrada,
     idHabitacionEspecial: plan.idHabitacionEspecial,
     cantidadHabitacionesAmbientales: plan.cantidadHabitacionesAmbientales,
@@ -324,6 +344,11 @@ export function crearResumenPlanPoblacion(plan) {
       idHabitacion: zona.idHabitacion,
       tipoUso: zona.tipoUso,
       perfil: zona.perfil,
+      composicion: zona.composicion ?? null,
+      orientacionComposicion: zona.orientacionComposicion ?? null,
+      origenComposicion: zona.origenComposicion
+        ? { ...zona.origenComposicion }
+        : null,
       zonaEspecial: zona.esEspecial,
       ambiental: zona.esAmbiental,
       cantidadCasillasCandidatas: zona.cantidadCasillasCandidatas,
@@ -374,32 +399,68 @@ export function calcularValorEsperadoTablaBotin({
   return redondear(total, 2);
 }
 
-function resolverPerfilHabitacion({
-  esEspecial,
-  esAmbiental,
+function asignarPerfilesPorCupos({
+  idsHabitaciones,
   configuracionPerfiles,
-  aleatorioPerfiles,
+  aleatorio,
+  nombreMapa,
 }) {
-  if (!configuracionPerfiles) return null;
-
-  if (esAmbiental) {
-    return configuracionPerfiles.ambiental?.id ?? null;
+  if (!Array.isArray(idsHabitaciones)) {
+    throw new Error("La asignación de perfiles necesita habitaciones normales.");
   }
-
-  if (esEspecial) {
-    return configuracionPerfiles.especial?.id ?? null;
-  }
-
-  if (!aleatorioPerfiles) {
+  if (!aleatorio) {
     throw new Error(
-      "La selección de perfiles de habitación necesita un generador aleatorio derivado.",
+      "La asignación por cupos necesita un generador aleatorio derivado.",
     );
   }
 
-  return seleccionarPonderado(
-    configuracionPerfiles.normales,
-    aleatorioPerfiles,
-  ).id;
+  const perfiles = configuracionPerfiles.normales.map((perfil) => ({
+    ...perfil,
+    asignadas: 0,
+  }));
+  const idsMezclados = aleatorio.mezclar([...idsHabitaciones]);
+  const asignaciones = [];
+
+  for (const perfil of perfiles) {
+    for (let indice = 0; indice < perfil.cupo.minimo; indice++) {
+      asignaciones.push(perfil.id);
+      perfil.asignadas += 1;
+    }
+  }
+
+  if (asignaciones.length > idsMezclados.length) {
+    throw new Error(
+      `Los cupos mínimos de "${nombreMapa}" requieren más habitaciones normales de las disponibles.`,
+    );
+  }
+
+  while (asignaciones.length < idsMezclados.length) {
+    const candidatos = perfiles
+      .filter((perfil) => perfil.asignadas < perfil.cupo.maximo)
+      .map((perfil) => ({
+        id: perfil.id,
+        peso: perfil.pesoRestante,
+        perfil,
+      }));
+
+    if (candidatos.length === 0) {
+      throw new Error(
+        `Los cupos máximos de "${nombreMapa}" no cubren todas sus habitaciones normales.`,
+      );
+    }
+
+    const seleccionado = seleccionarPonderado(candidatos, aleatorio);
+    seleccionado.perfil.asignadas += 1;
+    asignaciones.push(seleccionado.id);
+  }
+
+  const perfilesMezclados = aleatorio.mezclar(asignaciones);
+  return new Map(
+    idsMezclados.map((idHabitacion, indice) => [
+      idHabitacion,
+      perfilesMezclados[indice],
+    ]),
+  );
 }
 
 function calcularPresupuestoHabitacion({
@@ -455,7 +516,7 @@ function redondearVector(vector) {
 }
 
 function validarEntradaPlan({ plantilla, terreno, posicionJugador, aleatorio }) {
-  if (!plantilla?.poblacion?.habitacionesAmbientales) {
+  if (!plantilla?.habitaciones?.ambientales) {
     throw new Error(
       "La plantilla necesita configuración canónica de población y habitaciones ambientales.",
     );

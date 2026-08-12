@@ -8,6 +8,7 @@ import {
 } from "./PobladorEnemigosMazmorra.js";
 import {
   crearResumenInteractuablesProcedurales,
+  generarCofresModeradosPosteriores,
   generarDestructiblesProcedurales,
   generarInteractuablesPrevios,
 } from "./PobladorInteractuablesMazmorra.js";
@@ -92,39 +93,7 @@ export function generarContenidoMapa({
           contextoPoblacion,
         });
 
-  // Los enemigos únicos se resuelven primero para garantizar que la zona
-  // especial preserve espacio para su objetivo principal. El orden lógico
-  // del resumen continúa mostrando recurrentes, jefe y especial.
-  const resultadoJefe = generarEnemigoUnicoEnZona({
-    plantilla,
-    configuracion: plantilla.jefe ?? null,
-    tipo: TIPOS_ENEMIGO_UNICO.JEFE,
-    obligatorio: plantilla.jefe !== undefined && plantilla.jefe !== null,
-    nivelMapa: nivelMapaResuelto,
-    posicionJugador,
-    zona: contextoPoblacion.zonaEspecial,
-    posicionesEnemigos,
-    aleatorio,
-    configuracionEnemigos,
-    configuracionObjetos,
-    numeroDetalleInicial: cantidadEnemigosRecurrentesResuelta + 1,
-  });
-
-  const resultadoEspecial = generarEnemigoUnicoEnZona({
-    plantilla,
-    configuracion: plantilla.encuentroEspecial ?? null,
-    tipo: TIPOS_ENEMIGO_UNICO.ESPECIAL,
-    obligatorio: false,
-    nivelMapa: nivelMapaResuelto,
-    posicionJugador,
-    zona: contextoPoblacion.zonaEspecial,
-    posicionesEnemigos,
-    aleatorio,
-    configuracionEnemigos,
-    configuracionObjetos,
-    numeroDetalleInicial:
-      cantidadEnemigosRecurrentesResuelta + resultadoJefe.enemigos.length + 1,
-  });
+  const usarComposicionesDirigidas = Boolean(plantilla.habitaciones?.perfiles);
 
   const generarDestructibles = () => generarDestructiblesProcedurales({
     plantilla,
@@ -134,6 +103,8 @@ export function generarContenidoMapa({
     contextoPoblacion,
     posicionesBloqueadasPersistentes:
       resultadoInteractuablesPrevios.posicionesBloqueadasPersistentes,
+    posicionesReservadasAcceso:
+      resultadoInteractuablesPrevios.posicionesReservadasAcceso,
     objetivos: objetivosProcedurales,
     interactuables: interactuablesProcedurales,
     configuracionObjetos,
@@ -151,21 +122,66 @@ export function generarContenidoMapa({
     configuracionEnemigos,
     configuracionObjetos,
   });
+  const generarJefe = () => generarEnemigoUnicoEnZona({
+    plantilla,
+    configuracion: plantilla.jefe ?? null,
+    tipo: TIPOS_ENEMIGO_UNICO.JEFE,
+    obligatorio: plantilla.jefe !== undefined && plantilla.jefe !== null,
+    nivelMapa: nivelMapaResuelto,
+    posicionJugador,
+    zona: contextoPoblacion.zonaEspecial,
+    posicionesEnemigos,
+    aleatorio,
+    configuracionEnemigos,
+    configuracionObjetos,
+    numeroDetalleInicial: cantidadEnemigosRecurrentesResuelta + 1,
+  });
+  const generarEspecial = (resultadoJefe) => generarEnemigoUnicoEnZona({
+    plantilla,
+    configuracion: plantilla.encuentroEspecial ?? null,
+    tipo: TIPOS_ENEMIGO_UNICO.ESPECIAL,
+    obligatorio: false,
+    nivelMapa: nivelMapaResuelto,
+    posicionJugador,
+    zona: contextoPoblacion.zonaEspecial,
+    posicionesEnemigos,
+    aleatorio,
+    configuracionEnemigos,
+    configuracionObjetos,
+    numeroDetalleInicial:
+      cantidadEnemigosRecurrentesResuelta + resultadoJefe.enemigos.length + 1,
+  });
 
-  // Los mapas que ya definen perfiles reservan primero su contenido físico:
-  // el perfil debe poder materializarse y los enemigos recurrentes se adaptan
-  // después al mismo presupuesto y a las posiciones restantes. Los mapas que
-  // todavía no adoptaron perfiles conservan el orden histórico para no cambiar
-  // su balance por el solo hecho de generalizar el contrato de destructibles.
-  const priorizarContenidoPerfilado = Boolean(
-    plantilla.poblacion?.perfilesHabitacion,
-  );
   let resultadoDestructibles;
   let resultadoRecurrentes;
-  if (priorizarContenidoPerfilado) {
+  let resultadoJefe;
+  let resultadoEspecial;
+
+  if (usarComposicionesDirigidas) {
+    // La identidad humana de la habitación tiene prioridad sobre contenido
+    // opcional y población hostil. Después de materializarla, cofres y enemigos
+    // consumen únicamente el presupuesto y las posiciones que siguen libres.
     resultadoDestructibles = generarDestructibles();
+    generarCofresModeradosPosteriores({
+      plantilla,
+      terreno,
+      posicionJugador,
+      nivelMapa: nivelMapaResuelto,
+      contextoPoblacion,
+      objetivos: objetivosProcedurales,
+      interactuables: interactuablesProcedurales,
+      configuracionObjetos,
+      aleatorio,
+      resultadoPrevio: resultadoInteractuablesPrevios,
+    });
+    resultadoJefe = generarJefe();
+    resultadoEspecial = generarEspecial(resultadoJefe);
     resultadoRecurrentes = generarRecurrentes();
   } else {
+    // Compatibilidad temporal para las mazmorras aún no migradas. Esta ruta
+    // debe auditarse y retirarse cuando el último mapa adopte composiciones.
+    resultadoJefe = generarJefe();
+    resultadoEspecial = generarEspecial(resultadoJefe);
     resultadoRecurrentes = generarRecurrentes();
     resultadoDestructibles = generarDestructibles();
   }

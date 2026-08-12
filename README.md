@@ -670,7 +670,7 @@ src/juego/combate/SistemaAlcanceAtaque.js
 src/juego/combate/ComponentesDanio.js
 src/juego/combate/EstadoCombatePartida.js
 src/juego/combate/SelectorObjetivoPrioritario.js
-src/juego/combate/ResolutorDerrotasJugador.js
+src/juego/combate/ResolutorDestruccionesJugador.js
 src/entidad/destructible/combatiente/ConfiguracionAtaque.js
 src/entidad/destructible/combatiente/EstadisticasDerivadas.js
 ```
@@ -736,7 +736,7 @@ Las varitas y bastones son armas normales configuradas en `Armas.json`. No exist
 Rutas principales:
 
 ```text
-src/juego/combate/ResolutorDerrotasJugador.js
+src/juego/combate/ResolutorDestruccionesJugador.js
 src/juego/progresion/SistemaProgresion.js
 src/juego/botin/SistemaBotin.js
 src/juego/botin/ContextoGeneracionBotin.js
@@ -748,7 +748,7 @@ Flujo:
 ```text
 objetivo recibe daño mortal
   ↓
-ResolutorDerrotasJugador procesa la derrota pendiente
+ResolutorDestruccionesJugador procesa la derrota pendiente
   ↓
 otorga experiencia y oro una única vez
   ↓
@@ -773,7 +773,11 @@ Configuraciones:
 
 ```text
 src/config/mapas/CiudadInicial.json
-src/config/mapas/mapas.json
+src/config/mapas/Alcantarilla.json
+src/config/mapas/Cementerio.json
+src/config/mapas/CasaGuerrero.json
+src/config/mapas/FortalezaAbandonada.json
+src/config/mapas/SalaGuerra.json
 ```
 
 Código principal:
@@ -1256,10 +1260,14 @@ Define plantillas, escalado, IA, equipo y botín.
 
 ```text
 src/config/mapas/CiudadInicial.json
-src/config/mapas/mapas.json
+src/config/mapas/Alcantarilla.json
+src/config/mapas/Cementerio.json
+src/config/mapas/CasaGuerrero.json
+src/config/mapas/FortalezaAbandonada.json
+src/config/mapas/SalaGuerra.json
 ```
 
-Define terreno, dimensiones, niveles, enemigos, variantes, encuentros, jefe, destructibles y recursos visuales.
+Cada mazmorra concentra en su propio JSON terreno, dimensiones, habitaciones, población, enemigos, encuentros, destructibles y recursos visuales. `CargadorConfiguracion` recompone el contrato único `configuracionMapas.plantillas` para el resto del juego.
 
 ### Objetos
 
@@ -1666,7 +1674,7 @@ No crear un motor exclusivo para una habilidad si puede expresarse mediante los 
 
 ### Agregar un mapa
 
-1. agregar plantilla en `mapas.json`;
+1. crear el JSON canónico del mapa dentro de `src/config/mapas/` y registrarlo en `CargadorConfiguracion`;
 2. agregar miniatura/recurso visual;
 3. definir desbloqueo y rango de niveles;
 4. definir dimensiones y generación;

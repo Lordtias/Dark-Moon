@@ -1,0 +1,1007 @@
+{
+  "nombre": "Alcantarilla",
+  "descripcion": "Túneles húmedos y estrechos infestados de alimañas. En ocasiones, un hombre rata saqueador se aventura entre los conductos en busca de objetos abandonados.",
+  "bioma": "alcantarilla",
+  "visibilidad": {
+    "descubrimiento": true,
+    "campoVisible": true
+  },
+  "recursoVisual": "assets/imagenes/mapas/alcantarilla.png",
+  "nivelDesbloqueo": 1,
+  "pesoSeleccion": 5,
+  "apariencia": {
+    "colorSuelo": "#26372f",
+    "colorPared": "#53695d",
+    "colorGrilla": "#17231d",
+    "phaser": {
+      "suelo": {
+        "recursos": [
+          "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_01.png",
+          "assets/imagenes/mundo/alcantarilla/terreno_piedra_humeda_02.png"
+        ]
+      },
+      "pared": {
+        "variantes": {
+          "aislado": "assets/imagenes/mundo/alcantarilla/muros/muro_aislado.png",
+          "extremo": "assets/imagenes/mundo/alcantarilla/muros/muro_extremo.png",
+          "recto": "assets/imagenes/mundo/alcantarilla/muros/muro_recto.png",
+          "esquina": "assets/imagenes/mundo/alcantarilla/muros/muro_esquina.png",
+          "unionT": "assets/imagenes/mundo/alcantarilla/muros/muro_union_t.png",
+          "cruce": "assets/imagenes/mundo/alcantarilla/muros/muro_cruce.png",
+          "interior": "assets/imagenes/mundo/alcantarilla/muros/muro_interior.png"
+        },
+        "estrategiaBase": "masa",
+        "recurso": "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
+        "recursos": [
+          "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_01.png",
+          "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_02.png",
+          "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_03.png",
+          "assets/imagenes/mundo/alcantarilla/cenital/masa_pared_humeda_04.png"
+        ],
+        "borde": {
+          "recurso": "assets/imagenes/mundo/alcantarilla/cenital/borde_pared_humeda.png",
+          "recursoEsquinaInterior": "assets/imagenes/mundo/alcantarilla/cenital/esquina_interior_pared_humeda.png",
+          "color": "#7f8f86",
+          "colorLuz": "#b7c1ba",
+          "colorSombra": "#24322d",
+          "grosor": 5,
+          "grosorLuz": 1,
+          "opacidad": 0.94,
+          "opacidadLuz": 0.68,
+          "opacidadSombra": 0.34
+        },
+        "sombraContacto": {
+          "habilitada": true,
+          "recurso": "assets/imagenes/mundo/alcantarilla/cenital/sombra_contacto_pared.png",
+          "color": "#06100c",
+          "grosor": 4,
+          "margen": 2,
+          "opacidad": 0.18,
+          "opacidadSecundaria": 0.08,
+          "opacidadEsquina": 0.22
+        }
+      },
+      "decoracion": {
+        "densidad": 0.16,
+        "colorHumedad": "#2f7568",
+        "colorReflejo": "#8ec9b9",
+        "colorMetal": "#45504b",
+        "colorOxido": "#9a6338",
+        "colorEscombro": "#858d7f",
+        "colorMancha": "#172a23",
+        "perfiles": {
+          "deposito": {
+            "densidad": 0.13,
+            "pesos": {
+              "charco": 10,
+              "rejilla": 10,
+              "escombros": 55,
+              "mancha": 25
+            }
+          },
+          "almacen": {
+            "densidad": 0.12,
+            "pesos": {
+              "charco": 10,
+              "rejilla": 15,
+              "escombros": 45,
+              "mancha": 30
+            }
+          },
+          "desague": {
+            "densidad": 0.24,
+            "pesos": {
+              "charco": 35,
+              "rejilla": 40,
+              "escombros": 5,
+              "mancha": 20
+            }
+          },
+          "camara_inundada": {
+            "densidad": 0.3,
+            "pesos": {
+              "charco": 65,
+              "rejilla": 10,
+              "escombros": 5,
+              "mancha": 20
+            }
+          },
+          "mantenimiento": {
+            "densidad": 0.16,
+            "pesos": {
+              "charco": 15,
+              "rejilla": 35,
+              "escombros": 25,
+              "mancha": 25
+            }
+          },
+          "desperdicios": {
+            "densidad": 0.24,
+            "pesos": {
+              "charco": 15,
+              "rejilla": 5,
+              "escombros": 45,
+              "mancha": 35
+            }
+          },
+          "guarida": {
+            "densidad": 0.2,
+            "pesos": {
+              "charco": 15,
+              "rejilla": 5,
+              "escombros": 35,
+              "mancha": 45
+            }
+          },
+          "ambiental": {
+            "densidad": 0.28,
+            "pesos": {
+              "charco": 35,
+              "rejilla": 20,
+              "escombros": 20,
+              "mancha": 25
+            }
+          }
+        }
+      },
+      "sombras": {
+        "color": "#06100c",
+        "opacidadMuros": 0.34,
+        "opacidadEntidades": 0.42
+      },
+      "grilla": {
+        "opacidadSuelo": 0.2,
+        "opacidadPared": 0.08
+      },
+      "iluminacion": {
+        "colorAmbiente": "#27483f",
+        "colorSombraAmbiente": "#071411",
+        "colorJugador": "#e6c56a",
+        "intensidad": 0.1
+      }
+    }
+  },
+  "dimensiones": {
+    "ancho": {
+      "minimo": 48,
+      "maximo": 60
+    },
+    "alto": {
+      "minimo": 30,
+      "maximo": 38
+    }
+  },
+  "niveles": {
+    "minimo": 1,
+    "maximo": 3
+  },
+  "generacion": {
+    "tipo": "habitaciones",
+    "sectores": {
+      "cantidad": {
+        "minimo": 8,
+        "maximo": 11
+      },
+      "separacion": {
+        "minimo": 3,
+        "maximo": 7
+      }
+    },
+    "habitaciones": {
+      "ancho": {
+        "minimo": 4,
+        "maximo": 6
+      },
+      "alto": {
+        "minimo": 3,
+        "maximo": 5
+      }
+    },
+    "pasillos": {
+      "ancho": 1,
+      "conexionesExtra": {
+        "minimo": 0,
+        "maximo": 1
+      }
+    },
+    "intentosMaximos": 100
+  },
+  "habitaciones": {
+    "ambientales": {
+      "minimo": 1,
+      "maximo": 2
+    },
+    "perfilAmbiental": {
+      "id": "ambiental",
+      "composiciones": [
+        {
+          "id": "ambiental_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "..."
+          ]
+        },
+        {
+          "id": "ambiental_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            ".",
+            ".",
+            "."
+          ]
+        }
+      ]
+    },
+    "perfilEspecial": {
+      "id": "guarida",
+      "composiciones": [
+        {
+          "id": "guarida_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "R?B"
+          ],
+          "leyenda": {
+            "R": {
+              "id": "restos_abandonados"
+            },
+            "B": {
+              "id": "barril_madera"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 40,
+            "permitidos": [
+              {
+                "id": "restos_abandonados",
+                "peso": 60
+              },
+              {
+                "id": "barril_madera",
+                "peso": 40
+              }
+            ]
+          }
+        },
+        {
+          "id": "guarida_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            "R",
+            "?",
+            "B"
+          ],
+          "leyenda": {
+            "R": {
+              "id": "restos_abandonados"
+            },
+            "B": {
+              "id": "barril_madera"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 40,
+            "permitidos": [
+              {
+                "id": "restos_abandonados",
+                "peso": 60
+              },
+              {
+                "id": "barril_madera",
+                "peso": 40
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "perfiles": {
+      "estrategia": "cupos",
+      "normales": [
+        {
+          "id": "deposito",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 20,
+          "composiciones": [
+            {
+              "id": "deposito_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "B?C"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "barril_madera"
+                },
+                "C": {
+                  "id": "caja_humeda"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 55
+                  },
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 25
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 20
+                  }
+                ]
+              }
+            },
+            {
+              "id": "deposito_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "B",
+                "?",
+                "C"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "barril_madera"
+                },
+                "C": {
+                  "id": "caja_humeda"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 55
+                  },
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 25
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 20
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "almacen",
+          "cupo": {
+            "minimo": 0,
+            "maximo": 1
+          },
+          "pesoRestante": 18,
+          "composiciones": [
+            {
+              "id": "almacen_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "C?S"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_humeda"
+                },
+                "S": {
+                  "id": "suministros_mantenimiento"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 45
+                  },
+                  {
+                    "id": "suministros_mantenimiento",
+                    "peso": 35
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 20
+                  }
+                ]
+              }
+            },
+            {
+              "id": "almacen_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "C",
+                "?",
+                "S"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_humeda"
+                },
+                "S": {
+                  "id": "suministros_mantenimiento"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 45
+                  },
+                  {
+                    "id": "suministros_mantenimiento",
+                    "peso": 35
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 20
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "desague",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 16,
+          "composiciones": [
+            {
+              "id": "desague_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "R??"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 70
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            },
+            {
+              "id": "desague_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "R",
+                "?",
+                "?"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 70
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "camara_inundada",
+          "cupo": {
+            "minimo": 0,
+            "maximo": 1
+          },
+          "pesoRestante": 14,
+          "composiciones": [
+            {
+              "id": "camara_inundada_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "R??"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 75
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 25
+                  }
+                ]
+              }
+            },
+            {
+              "id": "camara_inundada_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "R",
+                "?",
+                "?"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 75
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "mantenimiento",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 17,
+          "composiciones": [
+            {
+              "id": "mantenimiento_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "S?X"
+              ],
+              "leyenda": {
+                "S": {
+                  "id": "suministros_mantenimiento"
+                },
+                "X": {
+                  "id": "barricada_improvisada"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 40,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 55
+                  },
+                  {
+                    "id": "suministros_mantenimiento",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "mantenimiento_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "S",
+                "?",
+                "X"
+              ],
+              "leyenda": {
+                "S": {
+                  "id": "suministros_mantenimiento"
+                },
+                "X": {
+                  "id": "barricada_improvisada"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 40,
+                "permitidos": [
+                  {
+                    "id": "caja_humeda",
+                    "peso": 55
+                  },
+                  {
+                    "id": "suministros_mantenimiento",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "desperdicios",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 15,
+          "composiciones": [
+            {
+              "id": "desperdicios_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "R?B"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                },
+                "B": {
+                  "id": "barril_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 65
+                  },
+                  {
+                    "id": "caja_humeda",
+                    "peso": 35
+                  }
+                ]
+              }
+            },
+            {
+              "id": "desperdicios_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "R",
+                "?",
+                "B"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "restos_abandonados"
+                },
+                "B": {
+                  "id": "barril_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "restos_abandonados",
+                    "peso": 65
+                  },
+                  {
+                    "id": "caja_humeda",
+                    "peso": 35
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "poblacion": {
+    "presupuestoHabitacion": {
+      "ocupacion": {
+        "por100Casillas": 25,
+        "minimo": 3,
+        "maximo": 6
+      },
+      "amenaza": {
+        "por100Casillas": 60,
+        "minimo": 12,
+        "maximo": 30
+      },
+      "valorRecompensa": {
+        "por100Casillas": 250,
+        "minimo": 50,
+        "maximo": 140
+      }
+    },
+    "multiplicadorHabitacionEspecial": 3
+  },
+  "enemigos": {
+    "densidadPor100Casillas": 8,
+    "probabilidadZonaPoblada": 75,
+    "distanciaSeguraJugador": 4,
+    "distanciaMinimaEntreEnemigos": 2,
+    "permitidos": [
+      {
+        "id": "rata",
+        "peso": 70
+      },
+      {
+        "id": "cucaracha",
+        "peso": 30
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 85,
+      "enfermo": 10,
+      "gigante": 4,
+      "elite": 1
+    }
+  },
+  "encuentroEspecial": {
+    "probabilidadAparicion": 10,
+    "permitidos": [
+      {
+        "id": "hombre_rata_saqueador",
+        "peso": 100
+      }
+    ],
+    "probabilidadesVariantes": {
+      "normal": 75,
+      "enfermo": 10,
+      "gigante": 10,
+      "elite": 5
+    }
+  },
+  "interactuables": {
+    "portalEntrada": {
+      "habilitado": true
+    },
+    "puertas": {
+      "probabilidadPorPasillo": 35
+    },
+    "cofres": {
+      "moderados": {
+        "probabilidadPorHabitacion": 20,
+        "tablaBotin": [
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 45,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 50,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 10
+          }
+        ]
+      },
+      "importante": {
+        "tablaBotin": [
+          {
+            "idObjeto": "espada_larga",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1,
+            "rarezaForzada": "magico"
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
+    },
+    "destructibles": {
+      "permitidos": [
+        {
+          "id": "barril_madera",
+          "peso": 28,
+          "idTablaContenido": "basico"
+        },
+        {
+          "id": "caja_humeda",
+          "peso": 24,
+          "idTablaContenido": "basico"
+        },
+        {
+          "id": "suministros_mantenimiento",
+          "peso": 16,
+          "idTablaContenido": "mantenimiento"
+        },
+        {
+          "id": "barricada_improvisada",
+          "peso": 16
+        },
+        {
+          "id": "restos_abandonados",
+          "peso": 16,
+          "idTablaBotin": "restos"
+        }
+      ],
+      "tablasBotin": {
+        "basico": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 2,
+            "cantidadMaxima": 5
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 20,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 15,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "mantenimiento": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 8
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 35,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 25,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "restos": [
+          {
+            "idObjeto": "cola_rata",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "carne_putrefacta",
+            "probabilidad": 45,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
+    }
+  }
+}

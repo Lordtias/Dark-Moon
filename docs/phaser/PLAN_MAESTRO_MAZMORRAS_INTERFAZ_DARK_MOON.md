@@ -71,14 +71,14 @@ Ambos representan resultados producidos por la lógica canónica.
 
 # 3. Fuente de verdad de mapas
 
-`Mapas.json` debe continuar siendo el **canon de definición de cada mapa**.
+`src/config/mapas/` debe continuar siendo el **canon de definición de cada mapa**, con un JSON específico por mazmorra.
 
-No debe aparecer una configuración paralela que describa el mismo mapa en otro archivo sin una justificación técnica explícita.
+No debe aparecer una configuración paralela que describa el mismo mapa fuera de su archivo canónico sin una justificación técnica explícita. `CargadorConfiguracion` recompone esos archivos bajo el contrato único `configuracionMapas.plantillas`.
 
-`Mapas.json` debe poder alimentar, de forma directa o mediante contratos de lectura claros:
+Los archivos canónicos de mapas deben poder alimentar, de forma directa o mediante contratos de lectura claros:
 
 ```text
-Mapas.json
+JSON canónico del mapa
    │
    ├── configuración estructural
    │        ↓
@@ -162,7 +162,7 @@ La Etapa 2 tendrá dos bloques internos para separar responsabilidades, pero seg
 
 ## 6.1 Objetivo
 
-Crear una nueva capacidad de generación estructural capaz de producir mapas de escala roguelike a partir de parámetros definidos en `Mapas.json`, sin introducir lógica de enemigos, botín o combate dentro del generador.
+Crear una nueva capacidad de generación estructural capaz de producir mapas de escala roguelike a partir de parámetros definidos en el JSON canónico de cada mapa, sin introducir lógica de enemigos, botín o combate dentro del generador.
 
 El generador debe responder únicamente a la pregunta:
 
@@ -175,7 +175,7 @@ El generador debe responder únicamente a la pregunta:
 La lógica estructural debería quedar separada conceptualmente en componentes equivalentes a:
 
 ```text
-Mapas.json
+JSON canónico del mapa
    ↓
 GeneradorMazmorra
    ↓
@@ -192,7 +192,7 @@ Los nombres definitivos se confirmarán después de analizar el repositorio real
 
 ## 6.3 Capacidades configurables mínimas
 
-`Mapas.json` deberá poder expresar, manteniendo compatibilidad con el formato actual siempre que sea razonable:
+El JSON canónico de cada mapa deberá poder expresar, manteniendo compatibilidad con el formato actual siempre que sea razonable:
 
 ### Tamaño general
 
@@ -295,7 +295,7 @@ La posición del jugador debe continuar resolviéndose mediante la lógica canó
 
 La etapa no se considera terminada hasta demostrar que:
 
-- `Mapas.json` sigue siendo el canon;
+- los JSON específicos de `src/config/mapas/` siguen siendo el canon y se combinan bajo un único contrato en memoria;
 - la misma lógica puede producir mapas con pasillos cortos y largos variando configuración;
 - puede variar el tamaño de habitaciones;
 - existen puntos de conexión representables;
@@ -410,7 +410,7 @@ Debe quedar preparado para futuras transiciones sin crear ahora un sistema paral
 El componente conceptual `PobladorMazmorra` recibe:
 
 ```text
-Mapas.json
+JSON canónico del mapa
 +
 PlanoMazmorra
 +
@@ -433,7 +433,7 @@ No calcula combate, muerte, experiencia ni botín final.
 
 ## 7.B.2 Configuración de enemigos por mapa
 
-`Mapas.json` debe permitir declarar:
+El JSON canónico de cada mapa debe permitir declarar:
 
 - enemigos normales permitidos;
 - pesos/frecuencias/probabilidades relativas;
@@ -1251,7 +1251,7 @@ Todo ello preservando una única lógica real por sistema.
 El hito se considerará exitoso si se cumplen simultáneamente estas condiciones:
 
 1. Los mapas pueden ser sustancialmente más grandes que los actuales.
-2. `Mapas.json` sigue siendo el canon de cada mapa.
+2. Cada mapa conserva un único JSON canónico dentro de `src/config/mapas/`, combinado en memoria sin configuraciones paralelas.
 3. Una misma lógica de generación puede producir estilos estructurales diferentes mediante parámetros.
 4. Existen habitaciones/secciones, pasillos y puntos de conexión.
 5. El mapa puede contener muchos más enemigos sin cambiar la lógica canónica de combate o IA.

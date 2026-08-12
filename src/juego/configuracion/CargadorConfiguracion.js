@@ -30,10 +30,19 @@ const CATALOGOS_ENEMIGOS = Object.freeze([
   },
 ]);
 
-// El archivo existente utiliza minúscula.
-// Mantener la misma capitalización evita errores
-// al publicar en servidores Linux o GitHub Pages.
-const RUTA_MAPAS = "./src/config/mapas/mapas.json";
+// Cada mazmorra mantiene su configuración completa en un archivo propio.
+// El cargador recompone el contrato canónico { plantillas } para que el resto
+// del juego no dependa de la organización física de los JSON.
+const CATALOGOS_MAPAS = Object.freeze([
+  { id: "alcantarilla", ruta: "./src/config/mapas/Alcantarilla.json" },
+  { id: "cementerio", ruta: "./src/config/mapas/Cementerio.json" },
+  { id: "casa_guerrero", ruta: "./src/config/mapas/CasaGuerrero.json" },
+  {
+    id: "fortaleza_abandonada",
+    ruta: "./src/config/mapas/FortalezaAbandonada.json",
+  },
+  { id: "sala_guerra", ruta: "./src/config/mapas/SalaGuerra.json" },
+]);
 
 const CATALOGOS_ENTIDADES_MAZMORRA = Object.freeze([
   {
@@ -445,10 +454,21 @@ export async function cargarConfiguracionEntidadesMazmorra() {
 // Carga y valida las plantillas utilizadas
 // para generar mapas procedurales.
 export async function cargarConfiguracionMapas() {
-  const configuracion = await cargarJson(
-    RUTA_MAPAS,
-    "la configuración de mapas",
+  const cargados = await Promise.all(
+    CATALOGOS_MAPAS.map(async ({ id, ruta }) => ({
+      id,
+      plantilla: await cargarJson(
+        ruta,
+        `la configuración del mapa "${id}"`,
+      ),
+    })),
   );
+
+  const configuracion = {
+    plantillas: Object.fromEntries(
+      cargados.map(({ id, plantilla }) => [id, plantilla]),
+    ),
+  };
 
   return validarConfiguracionMapas(configuracion);
 }

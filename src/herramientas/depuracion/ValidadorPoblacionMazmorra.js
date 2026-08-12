@@ -238,7 +238,7 @@ function validarPlanHabitaciones({
   const idsAmbientales = Array.isArray(plan.idsHabitacionesAmbientales)
     ? plan.idsHabitacionesAmbientales
     : [];
-  const rango = plantilla.poblacion?.habitacionesAmbientales ?? {};
+  const rango = plantilla.habitaciones?.ambientales ?? {};
   comprobar(
     idsAmbientales.length >= (rango.minimo ?? 1) &&
       idsAmbientales.length <= (rango.maximo ?? 3),
@@ -273,6 +273,21 @@ function validarPlanHabitaciones({
   }
 
   const detalle = Array.isArray(plan.habitaciones) ? plan.habitaciones : [];
+  if (plantilla.habitaciones?.perfiles) {
+    comprobar(
+      plan.estrategiaHabitaciones === "cupos_y_composiciones",
+      "El plan de habitaciones debe identificar la estrategia dirigida por cupos y composiciones.",
+      errores,
+    );
+    validarCuposYComposiciones({
+      plantilla,
+      detalle,
+      idHabitacionEspecial,
+      idsAmbientales: new Set(idsAmbientales),
+      errores,
+    });
+  }
+
   for (const habitacion of detalle) {
     for (const dimension of ["ocupacion", "amenaza", "valorRecompensa"]) {
       const inicial = habitacion.presupuestoInicial?.[dimension];
@@ -298,6 +313,93 @@ function validarPlanHabitaciones({
         errores,
       );
     }
+  }
+}
+
+function validarCuposYComposiciones({
+  plantilla,
+  detalle,
+  idHabitacionEspecial,
+  idsAmbientales,
+  errores,
+}) {
+  const habitaciones = plantilla.habitaciones;
+  const normales = detalle.filter(
+    (habitacion) =>
+      !habitacion.zonaEspecial && !habitacion.ambiental,
+  );
+  const conteos = new Map();
+
+  for (const habitacion of normales) {
+    conteos.set(
+      habitacion.perfil,
+      (conteos.get(habitacion.perfil) ?? 0) + 1,
+    );
+    comprobar(
+      typeof habitacion.composicion === "string" && habitacion.composicion !== "",
+      `La habitación "${habitacion.idHabitacion}" no conserva su composición dirigida.`,
+      errores,
+    );
+    comprobar(
+      habitacion.orientacionComposicion === "horizontal" ||
+        habitacion.orientacionComposicion === "vertical",
+      `La habitación "${habitacion.idHabitacion}" no conserva la orientación de su composición.`,
+      errores,
+    );
+    comprobar(
+      Number.isInteger(habitacion.origenComposicion?.x) &&
+        Number.isInteger(habitacion.origenComposicion?.y),
+      `La habitación "${habitacion.idHabitacion}" no conserva el origen de su composición.`,
+      errores,
+    );
+  }
+
+  for (const perfil of habitaciones.perfiles.normales) {
+    const cantidad = conteos.get(perfil.id) ?? 0;
+    comprobar(
+      cantidad >= perfil.cupo.minimo && cantidad <= perfil.cupo.maximo,
+      `El perfil "${perfil.id}" aparece ${cantidad} veces y no respeta su cupo ${perfil.cupo.minimo}-${perfil.cupo.maximo}.`,
+      errores,
+    );
+  }
+
+  const especial = detalle.find(
+    (habitacion) => habitacion.idHabitacion === idHabitacionEspecial,
+  );
+  comprobar(
+    especial?.perfil === habitaciones.perfilEspecial.id,
+    "La habitación especial no conserva su perfil configurado.",
+    errores,
+  );
+  comprobar(
+    typeof especial?.composicion === "string" && especial.composicion !== "",
+    "La habitación especial no conserva una composición dirigida.",
+    errores,
+  );
+  comprobar(
+    Number.isInteger(especial?.origenComposicion?.x) &&
+      Number.isInteger(especial?.origenComposicion?.y),
+    "La habitación especial no conserva el origen de su composición.",
+    errores,
+  );
+
+  for (const habitacion of detalle.filter((entrada) => idsAmbientales.has(entrada.idHabitacion))) {
+    comprobar(
+      habitacion.perfil === habitaciones.perfilAmbiental.id,
+      `La habitación ambiental "${habitacion.idHabitacion}" no conserva el perfil ambiental.`,
+      errores,
+    );
+    comprobar(
+      typeof habitacion.composicion === "string" && habitacion.composicion !== "",
+      `La habitación ambiental "${habitacion.idHabitacion}" no conserva su composición ambiental.`,
+      errores,
+    );
+    comprobar(
+      Number.isInteger(habitacion.origenComposicion?.x) &&
+        Number.isInteger(habitacion.origenComposicion?.y),
+      `La habitación ambiental "${habitacion.idHabitacion}" no conserva el origen de su composición.`,
+      errores,
+    );
   }
 }
 

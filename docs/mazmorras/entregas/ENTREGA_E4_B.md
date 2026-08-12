@@ -2,11 +2,11 @@
 
 ## Estado de esta entrega
 
-**E4.B — Implementada, pendiente de validación manual.**
+**E4.B — Cerrada.**
 
-La implementación técnica está completa para pruebas. El Plan Maestro conserva E4.B en estado `Pendiente` hasta recibir la validación manual del responsable del proyecto.
+La implementación técnica y la validación jugable fueron aceptadas por el responsable del proyecto el 11 de agosto de 2026. El Plan Maestro marca E4.B como `Cerrada`. No se avanzó a E4.C.
 
-No se realizó commit ni push. No se instalaron ni actualizaron dependencias.
+El commit de cierre de E4.B fue confirmado posteriormente como `3c4ca4651455e6646a451c39ae90d73ac503ec76`. Esta actualización documental no realiza commits adicionales ni push. No se instalaron ni actualizaron dependencias.
 
 Electron no fue ejecutado porque E4.B no modifica su integración y la copia de trabajo no contiene `node_modules`; no se instalaron dependencias para forzar esa prueba.
 
@@ -14,7 +14,8 @@ Electron no fue ejecutado porque E4.B no modifica su integración y la copia de 
 
 - Repositorio de trabajo: `/mnt/data/e4b_impl/Dark-Moon`
 - Rama: `main`
-- Commit base / HEAD previo al commit: `38f74d26c814785581b48277175a6d2915ae6437`
+- Commit base: `38f74d26c814785581b48277175a6d2915ae6437`
+- Commit confirmado de E4.B: `3c4ca4651455e6646a451c39ae90d73ac503ec76`
 - E4.A se recibió cerrada.
 - `git -c core.autocrlf=true status` fue verificado antes de implementar y contenía un árbol limpio.
 
@@ -272,7 +273,7 @@ No se modificó el contrato de persistencia.
 
 Los perfiles y las entidades físicas forman parte de la expedición generada, igual que enemigos, cofres y barriles anteriores. No se creó un segundo estado persistente de mazmorra.
 
-La validación manual todavía debe comprobar el flujo de guardar/cargar y volver a entrar a una mazmorra.
+La validación jugable fue declarada satisfactoria por el responsable del proyecto. No se reportaron regresiones bloqueantes de guardado/carga ni del flujo general afectado.
 
 ## Compatibilidad web y Electron
 
@@ -440,46 +441,178 @@ Los cuatro PNG nuevos fueron comprobados como:
 
 **Estado:** Correcto técnicamente; calidad/lectura visual pendiente de validación dentro del juego.
 
-## Pruebas manuales pendientes
+## Validación manual de cierre
 
-Antes de cerrar E4.B debe validarse dentro del juego, como mínimo:
+El responsable del proyecto dio por cerradas las pruebas de E4.B el **11 de agosto de 2026** después de probar la implementación y el ajuste final de densidad de contenido físico.
 
-1. entrar varias veces a Alcantarilla y recorrer semillas distintas;
-2. comprobar que depósito, almacén, desagüe, cámara inundada, mantenimiento, desperdicios, guarida y habitaciones ambientales se sientan diferenciables sin necesidad de conocer su ID;
-3. comprobar que desagüe/cámara inundada no se sientan vacíos por error, sino ambientalmente distintos;
-4. abrir un barril, caja húmeda o suministros y recoger contenido;
-5. recoger solamente parte de un recipiente, cerrarlo, destruirlo y confirmar que aparece en suelo únicamente lo restante;
-6. saquear completamente un recipiente, destruirlo y confirmar que no entrega contenido por segunda vez;
-7. destruir una barricada y comprobar que la casilla queda transitable;
-8. destruir restos abandonados y comprobar su recompensa;
-9. comprobar lectura visual, selección/ataque, zoom y cámara con los nuevos sprites;
-10. comprobar que ningún objeto bloquee entrada, puertas, corredores críticos o salida;
-11. comprobar movimiento en ocho direcciones, FOV, percepción e IA;
-12. transición Ciudad ↔ Alcantarilla;
-13. guardar/cargar y volver a entrar;
-14. redimensionamiento y pantalla completa;
-15. revisar consola del navegador;
-16. recorrer al menos una de las otras cuatro mazmorras para confirmar que continúan con su contenido heredado.
+La validación manual se registra como **satisfactoria**. No se reportaron fallos bloqueantes que impidan cerrar la etapa.
 
-## Riesgos y puntos a observar en prueba manual
+No se atribuyen resultados individuales no informados por el responsable: la evidencia disponible para el cierre es su aceptación global de las pruebas.
 
-- Una Alcantarilla mínima puede generar una población hostil bastante ligera; la métrica es válida pero debe juzgarse jugando.
-- `desague` y `camara_inundada` priorizan ambiente y actualmente no colocan destructibles físicos; verificar si la diferencia visual es suficiente.
-- Los assets nuevos son funcionales pero su integración estética definitiva debe juzgarse en movimiento, con FOV, zoom y otros elementos superpuestos.
-- El orden físico primero / enemigos después se activa por presencia de perfiles y será heredable por futuras mazmorras cuando comiencen sus propias etapas.
+### Ajuste final de densidad validado
+
+Antes del cierre se incrementó de forma acotada la frecuencia de destructibles/interactuables de Alcantarilla sin introducir mínimos obligatorios ni forzar la aparición de perfiles concretos:
+
+- `densidadPor100Casillas` de destructibles en Alcantarilla: `7 → 10`;
+- `deposito`, `almacen`, `mantenimiento` y `desperdicios`: multiplicador físico `0.6 → 0.8`;
+- `guarida`: `0.5 → 0.75`;
+- `desague` y `camara_inundada`: se mantienen en `0`.
+
+El ajuste conserva la selección ponderada existente: más contenido físico puede aparecer, pero ningún tipo de destructible obliga a que exista un perfil determinado.
+
+Después del ajuste se volvieron a comprobar:
+
+- `ValidadorConfiguracionMapas`;
+- `ValidadorConfiguracionEntidadesMazmorra`;
+- referencias cruzadas entre mapas y catálogos de entidades;
+- `node --check` sobre los JavaScript modificados/agregados;
+- `git diff --check`.
+
+**Estado:** Correcto.
+
+## Riesgos y decisiones diferidas
+
+No quedan pendientes bloqueantes para E4.B.
+
+Queda deliberadamente **diferida** una revisión conceptual del modelo de habitaciones/perfiles. Durante las pruebas se detectó que no conviene hacer depender la aparición de un perfil de la necesidad de garantizar un tipo concreto de destructible. No se introdujeron mínimos por instancia ni reglas que fuercen perfiles.
+
+La revisión conceptual fue posteriormente promovida, con aprobación explícita, a la etapa intermedia **E4.B.ReestructuraHabitaciones** antes de iniciar E4.C. El cierre histórico de E4.B no se reescribe: la nueva etapa evoluciona el contrato a partir de esta base cerrada.
 
 ## Estado del Plan Maestro
 
-`docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md` **no fue modificado**.
+`docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md` fue actualizado únicamente en el estado de E4.B:
 
-E4.B debe permanecer `Pendiente` hasta la aprobación manual. Al cerrar se actualizará únicamente su campo Estado, sin SHA ni bitácora Git.
+- sección E4.B: `Pendiente → Cerrada`;
+- tabla resumen: `Pendiente → Cerrada`.
 
-## Conventional Commit
+No se agregó SHA ni bitácora de commits al Plan Maestro.
 
-Pendiente de cierre manual.
+## Conventional Commit propuesto
 
-El mensaje definitivo se propondrá después de la validación jugable y representará solamente lo implementado.
+```text
+feat(mapas): expandir alcantarilla con contenido ambiental funcional
+
+- incorporar perfiles de habitación y ambientación diferenciada para Alcantarilla;
+- canonizar familias configurables de recipientes, obstáculos y decoraciones destructibles para mazmorras actuales y futuras;
+- generalizar la población de barriles a destructibles configurables y resolver interacción, destrucción y recompensa sin clases por objeto visual;
+- garantizar un único contenido real en recipientes, accesible por interacción o destrucción sin duplicar recompensas;
+- integrar caja húmeda, suministros de mantenimiento, barricada improvisada y restos abandonados mediante datos y contratos comunes;
+- ajustar la densidad de contenido físico sin forzar perfiles ni tipos concretos;
+- validar configuración, entidades, generación, reproducibilidad, regresión de las otras mazmorras y pruebas jugables de cierre;
+- actualizar la entrega y marcar E4.B como Cerrada en el Plan Maestro.
+```
+
+No se realizó el commit.
 
 ## ENLACE PARA LA SIGUIENTE ETAPA
 
-Pendiente de cierre de E4.B. No se avanzó a E4.C.
+---------------- INICIO DEL ENLACE ----------------
+
+PLAN:
+Mazmorras Expandidas y Contenido Ambiental Jugable de Dark Moon.
+
+ETAPA CERRADA:
+E4.B — Alcantarilla expandida
+
+ESTADO:
+Cerrada
+
+COMMIT BASE:
+38f74d26c814785581b48277175a6d2915ae6437
+
+HEAD FINAL VERIFICADO:
+3c4ca4651455e6646a451c39ae90d73ac503ec76
+
+GIT STATUS FINAL:
+Limpio en el ZIP confirmado posterior al commit de E4.B (`git -c core.autocrlf=true status`).
+
+DOCUMENTO DE ENTREGA:
+docs/mazmorras/entregas/ENTREGA_E4_B.md
+
+DOCUMENTOS MAESTROS ACTUALIZADOS:
+- docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md — E4.B marcada Cerrada
+- docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md — Sin cambios
+- docs/phaser/PLAN_MAESTRO_PHASER_ELECTRON_DARK_MOON.md — Sin cambios; el documento histórico no forma parte de la base actual
+
+OBJETIVO QUE SE COMPLETÓ:
+Dar identidad jugable propia a la Alcantarilla mediante perfiles de habitación, destructibles, recipientes registrables/destructibles y ambiente integrado al terreno, dejando contratos reutilizables por mazmorras actuales y futuras.
+
+ARQUITECTURA HEREDADA:
+- GeneradorTerreno continúa como única fuente canónica de geometría procedural.
+- PlanificadorPoblacionMazmorra mantiene reserva ambiental, presupuesto y perfiles sin que Phaser decida lógica.
+- Las entidades físicas se modelan por familias genéricas y variantes configurables, no por clases específicas del nombre visual o de la mazmorra.
+- Un recipiente posee un único contenido real que puede obtenerse por interacción o destrucción sin duplicación.
+- La destrucción de enemigos y objetos físicos converge en ResolutorDestruccionesJugador conservando SistemaBotin como resolución canónica de recompensas.
+- `interactuables.destructibles` reemplaza el contrato específico de barriles y es reutilizable por futuras mazmorras.
+
+ARCHIVOS CLAVE:
+- src/juego/generacion/PlanificadorPoblacionMazmorra.js: asignación canónica de perfiles y consumo de presupuesto
+- src/juego/generacion/PobladorInteractuablesMazmorra.js: población física genérica según perfiles/configuración
+- src/config/entidades/mazmorra/Recipientes.json: variantes de recipientes sin clases específicas
+- src/config/entidades/mazmorra/Obstaculos.json: variantes de obstáculos configurables
+- src/config/entidades/mazmorra/Decoraciones.json: decoraciones destructibles configurables
+- src/juego/combate/ResolutorDestruccionesJugador.js: resolución canónica de destrucción y recompensas
+- src/config/mapas/mapas.json: archivo canónico utilizado durante E4.B; será modularizado por E4.B.ReestructuraHabitaciones
+
+DEPENDENCIAS Y VERSIONES:
+Ninguna nueva. Se conservan las dependencias fijadas del proyecto sin actualizaciones.
+
+PRUEBAS CLAVE SUPERADAS:
+- validación de configuración, catálogos y referencias cruzadas de entidades de mazmorra
+- regresión técnica previa de 50 mapas reales y reproducibilidad de perfiles/contenido
+- validación de contenido único de recipientes, destrucción de obstáculos y recompensas de decoraciones
+- validación manual jugable satisfactoria confirmada por el responsable del proyecto el 11 de agosto de 2026
+- validación posterior al ajuste de densidad de JSON, referencias, sintaxis y diff
+
+PROBLEMAS O RIESGOS PENDIENTES:
+- Ninguno bloqueante para E4.B.
+- Revisión conceptual del modelo de habitaciones/perfiles diferida para el final del hito; no forzar perfiles a partir de mínimos de destructibles sin nueva aprobación.
+
+DECISIONES APROBADAS:
+- las familias de comportamiento y variantes configurables son contratos reutilizables por mazmorras actuales y futuras
+- no crear clases por nombre visual de caja, barril, vasija, silla u objetos equivalentes salvo comportamiento realmente excepcional
+- recipientes mantienen una única recompensa real tanto si se abren como si se destruyen
+- mapas y perfiles declaran variantes/ponderaciones; la lógica de la entidad no conoce la mazmorra concreta
+- el aumento final de densidad no introduce mínimos obligatorios ni fuerza perfiles
+
+DECISIONES QUE SIGUEN ABIERTAS:
+- Ninguna dentro de E4.B; el replanteamiento de habitaciones fue aprobado como etapa independiente posterior.
+
+SIGUIENTE ETAPA RECOMENDADA:
+E4.B.ReestructuraHabitaciones — Composición dirigida de habitaciones y modularización de mapas
+
+OBJETIVO DE LA SIGUIENTE ETAPA:
+Combinar generación procedural macro con perfiles por cupos y composiciones humanas de grilla, y dividir la configuración monolítica de mapas en archivos canónicos por mazmorra sin cambiar el contrato combinado en memoria.
+
+PRIMEROS ARCHIVOS A REVISAR:
+- docs/mazmorras/PLAN_MAESTRO_MAZMORRAS_EXPANDIDAS.md
+- src/config/mapas/mapas.json
+- src/juego/configuracion/CargadorConfiguracion.js
+- src/juego/generacion/PlanificadorPoblacionMazmorra.js
+- src/juego/generacion/PobladorInteractuablesMazmorra.js
+- src/config/entidades/mazmorra/Recipientes.json
+
+NO MODIFICAR SIN NUEVA APROBACIÓN:
+- GeneradorTerreno como única fuente canónica de geometría procedural
+- presupuesto canónico de E4.A mediante cálculos paralelos o excepciones por mapa
+- familias/configuración de E4.B mediante clases específicas por objeto o mazmorra
+- movimiento, combate, FOV, IA, botín y persistencia canónicos salvo necesidad demostrada
+- no introducir reglas que fuercen perfiles en función de mínimos obligatorios de destructibles
+- no iniciar contenido funerario de E4.C antes de cerrar E4.B.ReestructuraHabitaciones
+
+CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
+Los cinco mapas deben cargarse desde JSON específicos conservando el contrato combinado; Alcantarilla debe usar cupos reproducibles y composiciones completas válidas con orientación horizontal/vertical, slots opcionales y posiciones contra pared; presupuesto y conectividad deben mantenerse canónicos y las otras cuatro mazmorras no deben sufrir regresiones.
+
+CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
+feat(mapas): expandir alcantarilla con contenido ambiental funcional
+
+- incorporar perfiles de habitación y ambientación diferenciada para Alcantarilla;
+- canonizar familias configurables de recipientes, obstáculos y decoraciones destructibles para mazmorras actuales y futuras;
+- generalizar la población de barriles a destructibles configurables y resolver interacción, destrucción y recompensa sin clases por objeto visual;
+- garantizar un único contenido real en recipientes, accesible por interacción o destrucción sin duplicar recompensas;
+- integrar caja húmeda, suministros de mantenimiento, barricada improvisada y restos abandonados mediante datos y contratos comunes;
+- ajustar la densidad de contenido físico sin forzar perfiles ni tipos concretos;
+- validar configuración, entidades, generación, reproducibilidad, regresión de las otras mazmorras y pruebas jugables de cierre;
+- actualizar la entrega y marcar E4.B como Cerrada en el Plan Maestro.
+
+----------------- FIN DEL ENLACE -----------------

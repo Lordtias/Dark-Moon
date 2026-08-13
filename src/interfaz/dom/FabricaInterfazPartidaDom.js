@@ -17,6 +17,8 @@ import { HudPartidaDom } from "./HudPartidaDom.js";
 // HTML persistentes y el backend Phaser con sus contratos de presentación.
 export function crearInterfazPartidaDom({
   configuracionRarezas,
+  configuracionPersonaje = null,
+  configuracionEnemigos = null,
   Phaser = null,
   preferenciasInterfaz = null,
   obtenerContextoDiagnostico = () => ({}),
@@ -135,6 +137,8 @@ export function crearInterfazPartidaDom({
     panelEquipamiento,
     hudPartida,
     combatLogText,
+    configuracionPersonaje,
+    configuracionEnemigos,
   });
 
   return {

@@ -2,6 +2,10 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { NPC } from "../../entidad/interactuable/NPC.js";
 import { obtenerPerfilEstadoTemporalVisual } from "./ContextoPerfilesEstadosTemporalesVisuales.js";
 import { obtenerPerfilZonaTemporalVisual } from "./ContextoPerfilesZonasTemporalesVisuales.js";
+import {
+  obtenerRecursosVisualesDireccionalesConfigurados,
+  obtenerRutasRecursosVisualesCombatiente,
+} from "../../juego/configuracion/RecursosVisualesCombatientes.js";
 
 import {
   ESTADOS_HOSTILIDAD_VISUAL,
@@ -42,23 +46,51 @@ export function obtenerIdVisualEntidad(entidad) {
 // - Entidades visibles.
 //
 // Los selectores comparten un único contrato visual neutral de esquinas.
-export function crearRecursosVisualesMapa(juego) {
+export function crearRecursosVisualesMapa(
+  juego,
+  { configuracionPersonaje = null, configuracionEnemigos = null } = {},
+) {
   validarJuego(juego);
 
   const entidades = [
-    juego.player,
-    ...(Array.isArray(juego.interactuables) ? juego.interactuables : []),
-    ...(Array.isArray(juego.objetivos) ? juego.objetivos : []),
+    { entidad: juego.player, tipo: TIPOS_ENTIDAD_VISUAL.JUGADOR },
+    ...(Array.isArray(juego.interactuables) ? juego.interactuables : []).map(
+      (entidad) => ({ entidad, tipo: TIPOS_ENTIDAD_VISUAL.INTERACTUABLE }),
+    ),
+    ...(Array.isArray(juego.objetivos) ? juego.objetivos : []).map((entidad) => ({
+      entidad,
+      tipo:
+        entidad instanceof Enemigo
+          ? TIPOS_ENTIDAD_VISUAL.ENEMIGO
+          : TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE,
+    })),
   ];
 
   return Object.freeze([
     ...new Set(
-      entidades.flatMap((entidad) => obtenerRecursosVisualesPrecarga(entidad)),
+      entidades.flatMap(({ entidad, tipo }) =>
+        obtenerRecursosVisualesPrecarga(
+          entidad,
+          obtenerConfiguracionRecursoVisualCombatiente({
+            entidad,
+            tipo,
+            configuracionPersonaje,
+            configuracionEnemigos,
+          }),
+        ),
+      ),
     ),
   ]);
 }
 
-export function crearEscenaJuego(juego, { habilidad = null } = {}) {
+export function crearEscenaJuego(
+  juego,
+  {
+    habilidad = null,
+    configuracionPersonaje = null,
+    configuracionEnemigos = null,
+  } = {},
+) {
   validarJuego(juego);
 
   const combateActivo = juego.modoCombateActivo === true;
@@ -150,6 +182,7 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
             interactuable,
             TIPOS_ENTIDAD_VISUAL.INTERACTUABLE,
             juego,
+            { configuracionPersonaje, configuracionEnemigos },
           ),
         ),
 
@@ -167,10 +200,16 @@ export function crearEscenaJuego(juego, { habilidad = null } = {}) {
               ? TIPOS_ENTIDAD_VISUAL.ENEMIGO
               : TIPOS_ENTIDAD_VISUAL.DESTRUCTIBLE,
             juego,
+            { configuracionPersonaje, configuracionEnemigos },
           ),
         ),
 
-      crearEntidadVisual(juego.player, TIPOS_ENTIDAD_VISUAL.JUGADOR, juego),
+      crearEntidadVisual(
+        juego.player,
+        TIPOS_ENTIDAD_VISUAL.JUGADOR,
+        juego,
+        { configuracionPersonaje, configuracionEnemigos },
+      ),
     ],
   };
 }
@@ -423,7 +462,12 @@ function copiarZonasTemporales(lista) {
 
 // Convierte una entidad del dominio
 // en un objeto plano para representación.
-function crearEntidadVisual(entidad, tipo, juego) {
+function crearEntidadVisual(
+  entidad,
+  tipo,
+  juego,
+  { configuracionPersonaje = null, configuracionEnemigos = null } = {},
+) {
   const vidaActual = Number.isFinite(entidad.vidaActual)
     ? entidad.vidaActual
     : null;
@@ -433,6 +477,19 @@ function crearEntidadVisual(entidad, tipo, juego) {
     : null;
 
   const estaViva = entidad.estaVivo !== false && entidad.estaDestruido !== true;
+  const configuracionRecursoVisual =
+    obtenerConfiguracionRecursoVisualCombatiente({
+      entidad,
+      tipo,
+      configuracionPersonaje,
+      configuracionEnemigos,
+    });
+  const recursosVisualesDireccionales = configuracionRecursoVisual
+    ? obtenerRecursosVisualesDireccionalesConfigurados(
+        configuracionRecursoVisual,
+        { descripcion: `el recurso visual de ${entidad.nombre}` },
+      )
+    : Object.freeze({});
 
   return {
     idVisual: obtenerIdVisualEntidad(entidad),
@@ -475,7 +532,11 @@ function crearEntidadVisual(entidad, tipo, juego) {
         : null,
 
     recursoVisual: entidad.recursoVisual ?? null,
-    recursosVisualesPrecarga: obtenerRecursosVisualesPrecarga(entidad),
+    recursosVisualesDireccionales,
+    recursosVisualesPrecarga: obtenerRecursosVisualesPrecarga(
+      entidad,
+      configuracionRecursoVisual,
+    ),
     activo: typeof entidad.activo === "boolean" ? entidad.activo : null,
     atenuarInactivo:
       typeof entidad.atenuarInactivo === "boolean"
@@ -485,7 +546,33 @@ function crearEntidadVisual(entidad, tipo, juego) {
   };
 }
 
-function obtenerRecursosVisualesPrecarga(entidad) {
+function obtenerConfiguracionRecursoVisualCombatiente({
+  entidad,
+  tipo,
+  configuracionPersonaje,
+  configuracionEnemigos,
+}) {
+  if (tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR) {
+    return (
+      configuracionPersonaje?.profesiones?.[entidad?.idProfesion]
+        ?.recursoVisual ?? null
+    );
+  }
+
+  if (tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO) {
+    return (
+      configuracionEnemigos?.plantillas?.[entidad?.idPlantilla]
+        ?.recursoVisual ?? null
+    );
+  }
+
+  return null;
+}
+
+function obtenerRecursosVisualesPrecarga(
+  entidad,
+  configuracionRecursoVisual = null,
+) {
   const candidatas = [
     entidad?.recursoVisual,
     entidad?.recursoVisualCerrada,
@@ -494,6 +581,11 @@ function obtenerRecursosVisualesPrecarga(entidad) {
     entidad?.recursoVisualAbierto,
     entidad?.recursoVisualActivo,
     entidad?.recursoVisualInactivo,
+    ...(configuracionRecursoVisual
+      ? obtenerRutasRecursosVisualesCombatiente(configuracionRecursoVisual, {
+          descripcion: `el recurso visual de ${entidad?.nombre ?? "combatiente"}`,
+        })
+      : []),
   ];
 
   return [

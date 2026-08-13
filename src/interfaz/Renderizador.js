@@ -31,6 +31,8 @@ export class Renderizador {
     panelInventario,
     panelEquipamiento,
     hudPartida,
+    configuracionPersonaje = null,
+    configuracionEnemigos = null,
   } = {}) {
     if (
       !renderizadorMapa ||
@@ -71,6 +73,8 @@ export class Renderizador {
     this.panelEquipamiento = panelEquipamiento;
     this.hudPartida = hudPartida;
     this.combatLogText = combatLogText;
+    this.configuracionPersonaje = configuracionPersonaje;
+    this.configuracionEnemigos = configuracionEnemigos;
 
     // Se utiliza para interpretar correctamente
     // mensajes antiguos de combate.
@@ -108,8 +112,13 @@ export class Renderizador {
 
     const escena = crearEscenaJuego(juego, {
       habilidad: null,
+      configuracionPersonaje: this.configuracionPersonaje,
+      configuracionEnemigos: this.configuracionEnemigos,
     });
-    const recursosEntidades = crearRecursosVisualesMapa(juego);
+    const recursosEntidades = crearRecursosVisualesMapa(juego, {
+      configuracionPersonaje: this.configuracionPersonaje,
+      configuracionEnemigos: this.configuracionEnemigos,
+    });
 
     return this.renderizadorMapa.prepararMapa({
       escena,
@@ -176,6 +185,8 @@ export class Renderizador {
     // antes de entregarla al backend gráfico.
     const escena = crearEscenaJuego(juego, {
       habilidad: this.estadoVisualHabilidad,
+      configuracionPersonaje: this.configuracionPersonaje,
+      configuracionEnemigos: this.configuracionEnemigos,
     });
 
     const inicioPlanificacionVisual = obtenerInstante();

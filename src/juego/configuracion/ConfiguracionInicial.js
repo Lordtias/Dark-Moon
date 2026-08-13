@@ -16,6 +16,7 @@ import { generarTerreno } from "../generacion/GeneradorTerreno.js";
 
 import { generarContenidoMapa } from "../generacion/GeneradorContenidoMapa.js";
 import { configurarContextoGeneracionBotin } from "../botin/ContextoGeneracionBotin.js";
+import { obtenerRecursoVisualPredeterminado } from "./RecursosVisualesCombatientes.js";
 
 
 // Crea al jugador una única vez al comenzar
@@ -76,7 +77,9 @@ export function crearJugadorInicial({
 
     // La profesión seleccionada determina
     // la imagen inicial del personaje.
-    recursoVisual: profesion.recursoVisual ?? null,
+    recursoVisual: obtenerRecursoVisualPredeterminado(profesion.recursoVisual, {
+      descripcion: `el recurso visual de la profesión "${idProfesion}"`,
+    }),
 
     atributos,
 

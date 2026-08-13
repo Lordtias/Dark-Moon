@@ -179,6 +179,8 @@ export class ControladorPartida {
 
     this.interfazPartida = this.crearInterfazPartida({
       configuracionRarezas: this.configuracionRarezas,
+      configuracionPersonaje,
+      configuracionEnemigos,
     });
 
     this.renderizador = this.interfazPartida.renderizador;

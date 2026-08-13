@@ -3,7 +3,11 @@
     "nombre": "Hombre rata saqueador",
     "genero": "masculino",
     "simbolo": "S",
-    "recursoVisual": "assets/imagenes/enemigos/hombre_rata_saqueador.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/hombre_rata_saqueador.png",
+      "arriba": "assets/imagenes/enemigos/hombre_rata_saqueador.png",
+      "abajo": "assets/imagenes/enemigos/hombre_rata_saqueador.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -105,8 +109,13 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria"],
-      "objetosIniciales": ["daga_hierro"]
+      "ranuras": [
+        "arma",
+        "secundaria"
+      ],
+      "objetosIniciales": [
+        "daga_hierro"
+      ]
     },
     "tablaBotin": [
       {
@@ -173,7 +182,11 @@
     "nombre": "Zombi",
     "genero": "masculino",
     "simbolo": "Z",
-    "recursoVisual": "assets/imagenes/enemigos/zombi.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/zombi.png",
+      "arriba": "assets/imagenes/enemigos/zombi.png",
+      "abajo": "assets/imagenes/enemigos/zombi.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -302,7 +315,11 @@
     "nombre": "Caballero Óseo",
     "genero": "masculino",
     "simbolo": "C",
-    "recursoVisual": "assets/imagenes/enemigos/caballero_oseo.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/caballero_oseo.png",
+      "arriba": "assets/imagenes/enemigos/caballero_oseo.png",
+      "abajo": "assets/imagenes/enemigos/caballero_oseo.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -404,7 +421,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "hacha_mano",
         "escudo_hierro",
@@ -450,7 +472,11 @@
     "nombre": "Comandante",
     "genero": "masculino",
     "simbolo": "M",
-    "recursoVisual": "assets/imagenes/enemigos/comandante.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/comandante.png",
+      "arriba": "assets/imagenes/enemigos/comandante.png",
+      "abajo": "assets/imagenes/enemigos/comandante.png"
+    },
     "nivelesPermitidos": {
       "minimo": 6,
       "maximo": 20
@@ -558,7 +584,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",
@@ -620,7 +651,11 @@
     "nombre": "Señor de la Guerra",
     "genero": "masculino",
     "simbolo": "W",
-    "recursoVisual": "assets/imagenes/enemigos/senor_guerra.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/senor_guerra.png",
+      "arriba": "assets/imagenes/enemigos/senor_guerra.png",
+      "abajo": "assets/imagenes/enemigos/senor_guerra.png"
+    },
     "nivelesPermitidos": {
       "minimo": 8,
       "maximo": 20
@@ -732,7 +767,12 @@
       "objetosIniciales": []
     },
     "equipamiento": {
-      "ranuras": ["arma", "secundaria", "cabeza", "torso"],
+      "ranuras": [
+        "arma",
+        "secundaria",
+        "cabeza",
+        "torso"
+      ],
       "objetosIniciales": [
         "espada_acero",
         "escudo_hierro",

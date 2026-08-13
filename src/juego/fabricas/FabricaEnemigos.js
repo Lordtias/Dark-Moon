@@ -5,6 +5,7 @@ import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 
 import { FACTORES_TEMPORALES_PREDETERMINADOS } from "../tiempo/SistemaTiempo.js";
+import { obtenerRecursoVisualPredeterminado } from "../configuracion/RecursosVisualesCombatientes.js";
 
 // Nombres reconocidos por Combatiente y SistemaTiempo.
 //
@@ -463,7 +464,9 @@ export function calcularDatosEnemigo({
 
     // Conservamos la ruta definida por
     // la plantilla del enemigo.
-    recursoVisual: plantilla.recursoVisual ?? null,
+    recursoVisual: obtenerRecursoVisualPredeterminado(plantilla.recursoVisual, {
+      descripcion: `el recurso visual del enemigo "${idPlantilla}"`,
+    }),
 
     atributos: clonarConfiguracion(base.atributos),
 

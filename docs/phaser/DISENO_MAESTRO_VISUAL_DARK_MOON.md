@@ -2002,3 +2002,19 @@ El Loading permanece visible **como mínimo 1 segundo**. Esa duración mínima p
 Phaser debe precargar de forma contextual los recursos persistentes que el mapa generado puede mostrar: terrenos, paredes, jugador, enemigos y variantes presentes, NPC, destructibles e interactuables y sus estados previsibles —por ejemplo puerta abierta/cerrada o cofre abierto/cerrado—. Una entidad todavía oculta por FOV puede aportar la ruta de su recurso a la precarga, pero nunca su posición ni información visual jugable. Precargar no equivale a descubrir.
 
 La primera composición del mundo debe realizarse mientras el Loading todavía cubre la pantalla. Un recurso correctamente configurado no debe aparecer primero como letra o forma de fallback por estar aún cargando. El fallback se reserva para recursos ausentes o que hayan fallado realmente; un fallo de imagen no debe dejar la carga bloqueada indefinidamente. Los efectos transitorios de ataques y habilidades permanecen fuera de esta precarga global mientras no exista evidencia de que necesiten formar parte del manifiesto de mapa.
+
+## V-035 — Recursos visuales direccionales de combatientes
+
+La orientación gráfica de un combatiente se resuelve únicamente a partir del desplazamiento real ya aprobado por la lógica canónica: posición de origen y posición de destino. La presentación no depende de la tecla, botón o dispositivo que originó el movimiento. Teclado numérico, WASD, IA enemiga y cualquier entrada futura comparten el mismo contrato siempre que produzcan el evento visual de movimiento existente.
+
+Las rutas de cada combatiente pertenecen a su configuración canónica. `src/config/ConfiguracionPersonaje.json` define los recursos de cada profesión y `src/config/entidades/Enemigos.json` / `EnemigosEspeciales.json` hacen lo mismo para las plantillas enemigas. No debe existir un catálogo paralelo de perfiles direccionales.
+
+`recursoVisual` de una profesión o plantilla de enemigo es un objeto con `predeterminado` y hasta ocho direcciones opcionales: `arriba`, `abajo`, `izquierda`, `derecha`, `arriba_izquierda`, `arriba_derecha`, `abajo_izquierda` y `abajo_derecha`. La entidad de dominio continúa recibiendo únicamente la ruta `predeterminado` como `recursoVisual`; las rutas direccionales no se incorporan a `Player`, `Enemigo`, IA, combate, tiempo ni persistencia.
+
+`AdaptadorEscenaJuego` es el puente entre las configuraciones canónicas y el contrato visual neutral. Para jugador utiliza `idProfesion`; para enemigos utiliza `idPlantilla`. Phaser recibe el recurso base y las direcciones disponibles ya resueltas, sin conocer profesiones, plantillas ni archivos JSON.
+
+Cuando existe una ruta para la dirección del movimiento, Phaser cambia a esa imagen. Cuando no existe, conserva la imagen que estaba mostrando. Por lo tanto la configuración actual declara explícitamente la misma imagen frontal para `arriba` y `abajo` en los combatientes que todavía no poseen vistas verticales; laterales y diagonales pueden incorporarse después sin cambiar la lógica.
+
+El Guerrero utiliza `guerrero_central.png` como recurso `predeterminado`, `arriba` y `abajo`, y dispone inicialmente de `guerrero_izquierda.png` y `guerrero_derecha.png`. Sus diagonales conservan la última orientación hasta que exista una ruta propia.
+
+La orientación mostrada es memoria exclusivamente visual de Phaser y debe sobrevivir a las recomposiciones normales de la escena. Los recursos direccionales declarados por la configuración canónica forman parte de la precarga contextual del mapa para evitar cambios tardíos de textura. El indicador circular amarillo bajo el jugador no forma parte de este contrato y no debe dibujarse; se conserva únicamente la sombra ambiental normal.

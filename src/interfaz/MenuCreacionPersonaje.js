@@ -5,6 +5,8 @@ import {
 
 import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 
+import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
+
 import {
   aplicarSeleccionEquipoAProfesion,
   calcularResumenSeleccionEquipo,
@@ -433,8 +435,15 @@ export class MenuCreacionPersonaje {
       "profesiones", this.idProfesionSeleccionada, "estiloJuego", profesion.estiloJuego ?? "",
     );
 
-    if (profesion.recursoVisual) {
-      this.imagenProfesion.src = profesion.recursoVisual;
+    const recursoVisual = obtenerRecursoVisualPredeterminado(
+      profesion.recursoVisual,
+      {
+        descripcion: `el recurso visual de la profesión "${this.idProfesionSeleccionada}"`,
+      },
+    );
+
+    if (recursoVisual) {
+      this.imagenProfesion.src = recursoVisual;
       this.imagenProfesion.alt = traducir("interfaz.creacion.vistaProfesion", { parametros: { nombre: nombreProfesion }, respaldo: `Vista de ${profesion.nombre}` });
       this.imagenProfesion.hidden = false;
 

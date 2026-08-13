@@ -40,6 +40,7 @@ export class CompositorEntidadesPhaser {
     this.creadorEstadosTemporales = creadorEstadosTemporales;
     this.obtenerPosicionCasilla = obtenerPosicionCasilla;
     this.nodosEntidades = new Map();
+    this.recursosVisualesMostrados = new Map();
   }
 
   obtenerNodoEntidad(idVisual) {
@@ -64,6 +65,36 @@ export class CompositorEntidadesPhaser {
       nodo.sombra.y = centro.y;
     }
 
+    return true;
+  }
+
+  actualizarOrientacionEntidad(idVisual, origen, destino) {
+    const nodo = this.obtenerNodoEntidad(idVisual);
+    const recursoVisualBase = nodo?.entidad?.recursoVisual ?? null;
+    if (!nodo?.contenedor || !recursoVisualBase) return false;
+
+    const direccion = obtenerDireccionVisualMovimiento(origen, destino);
+    if (!direccion) return false;
+
+    const recursoVisualActual =
+      this.recursosVisualesMostrados.get(idVisual) ?? recursoVisualBase;
+    const recursoVisualResuelto =
+      normalizarRecursoVisual(
+        nodo.entidad?.recursosVisualesDireccionales?.[direccion],
+      ) ?? recursoVisualActual;
+
+    if (recursoVisualResuelto === recursoVisualActual) return true;
+
+    const informacionRecurso =
+      this.gestorRecursos.obtenerInformacion(recursoVisualResuelto);
+    if (!informacionRecurso || !nodo.imagen?.setTexture) return false;
+
+    const metricas = calcularPresentacionEntidadPhaser(informacionRecurso);
+    nodo.imagen.setTexture(informacionRecurso.claveTextura);
+    nodo.imagen.setOrigin(metricas.anclaje.x, metricas.anclaje.y);
+    nodo.imagen.setDisplaySize(metricas.anchoDibujo, metricas.altoDibujo);
+    nodo.recursoVisualMostrado = recursoVisualResuelto;
+    this.recursosVisualesMostrados.set(idVisual, recursoVisualResuelto);
     return true;
   }
 
@@ -102,6 +133,7 @@ export class CompositorEntidadesPhaser {
     nodo.contenedor?.destroy?.(true);
     nodo.sombra?.destroy?.();
     this.nodosEntidades.delete(idVisual);
+    this.recursosVisualesMostrados.delete(idVisual);
     return true;
   }
 
@@ -192,7 +224,14 @@ export class CompositorEntidadesPhaser {
       const idVisual =
         typeof entidad.idVisual === "string" ? entidad.idVisual : null;
       const centro = obtenerCentroEntidad(posicion);
-      const metricas = this.obtenerMetricasVisualesEntidad(entidad);
+      const recursoVisualMostrado = this.obtenerRecursoVisualMostrado(
+        entidad,
+        idVisual,
+      );
+      const metricas = this.obtenerMetricasVisualesEntidad(
+        entidad,
+        recursoVisualMostrado,
+      );
       const opacidad =
         entidad.estaViva === false
           ? configuracionSombras.opacidadEntidades * 0.45
@@ -210,15 +249,7 @@ export class CompositorEntidadesPhaser {
         metricas.sombraAlto,
       );
 
-      if (entidad.tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR) {
-        sombra.lineStyle(2, 0xf1d579, 0.62);
-        sombra.strokeEllipse(
-          metricas.desplazamientoSombraX,
-          metricas.desplazamientoSombraY,
-          metricas.sombraAncho + 4,
-          metricas.sombraAlto + 3,
-        );
-      } else if (
+      if (
         entidad.tipo === TIPOS_ENTIDAD_VISUAL.ENEMIGO &&
         entidad.estadoHostilidad === ESTADOS_HOSTILIDAD_VISUAL.AGRESIVO
       ) {
@@ -272,9 +303,17 @@ export class CompositorEntidadesPhaser {
       typeof entidad.idVisual === "string" ? entidad.idVisual : null;
     const estilo = obtenerEstiloRespaldoEntidadPhaser(entidad.tipo);
     const centro = obtenerCentroEntidad(posicion);
-    const metricas = this.obtenerMetricasVisualesEntidad(entidad);
+    const recursoVisualMostrado = this.obtenerRecursoVisualMostrado(
+      entidad,
+      idVisual,
+    );
+    const metricas = this.obtenerMetricasVisualesEntidad(
+      entidad,
+      recursoVisualMostrado,
+    );
     const informacionRecurso = metricas.informacionRecurso;
     const contenedor = this.escena.add.container(centro.x, centro.y);
+    let imagen = null;
 
     if (
       entidad.tipo === TIPOS_ENTIDAD_VISUAL.INTERACTUABLE &&
@@ -287,7 +326,7 @@ export class CompositorEntidadesPhaser {
     }
 
     if (informacionRecurso) {
-      const imagen = this.escena.add.image(
+      imagen = this.escena.add.image(
         0,
         0,
         informacionRecurso.claveTextura,
@@ -338,6 +377,8 @@ export class CompositorEntidadesPhaser {
         indicadorAgresividad,
         indicadorVariante,
         estadosTemporales,
+        imagen,
+        recursoVisualMostrado,
       };
     }
 
@@ -350,8 +391,13 @@ export class CompositorEntidadesPhaser {
       indicadorAgresividad,
       indicadorVariante,
       estadosTemporales,
+      imagen,
+      recursoVisualMostrado,
     };
     this.nodosEntidades.set(idVisual, nodo);
+    if (recursoVisualMostrado) {
+      this.recursosVisualesMostrados.set(idVisual, recursoVisualMostrado);
+    }
     return nodo;
   }
 
@@ -370,9 +416,24 @@ export class CompositorEntidadesPhaser {
     return objetos;
   }
 
-  obtenerMetricasVisualesEntidad(entidad) {
+  obtenerRecursoVisualMostrado(entidad, idVisual = null) {
+    const recursoVisualBase = entidad?.recursoVisual ?? null;
+    if (!recursoVisualBase || !idVisual) return recursoVisualBase;
+
+    const recursoPersistido = this.recursosVisualesMostrados.get(idVisual);
+    const recursosPermitidos = new Set([
+      recursoVisualBase,
+      ...Object.values(entidad?.recursosVisualesDireccionales ?? {}),
+    ]);
+
+    return recursosPermitidos.has(recursoPersistido)
+      ? recursoPersistido
+      : recursoVisualBase;
+  }
+
+  obtenerMetricasVisualesEntidad(entidad, recursoVisual = null) {
     const informacionRecurso = this.gestorRecursos.obtenerInformacion(
-      entidad.recursoVisual,
+      recursoVisual ?? entidad.recursoVisual,
     );
 
     return calcularPresentacionEntidadPhaser(informacionRecurso);
@@ -565,6 +626,7 @@ export class CompositorEntidadesPhaser {
 
   destruir() {
     this.nodosEntidades.clear();
+    this.recursosVisualesMostrados.clear();
     this.escena = null;
     this.gestorRecursos = null;
     this.capaSombras = null;
@@ -595,6 +657,38 @@ function obtenerCentroEntidad(posicion) {
     x: posicion.x + TAMANO_CASILLA_REFERENCIA / 2,
     y: posicion.y + TAMANO_CASILLA_REFERENCIA / 2,
   });
+}
+
+function obtenerDireccionVisualMovimiento(origen, destino) {
+  if (!esPosicionVisual(origen) || !esPosicionVisual(destino)) return null;
+
+  const desplazamientoX = Math.sign(destino.x - origen.x);
+  const desplazamientoY = Math.sign(destino.y - origen.y);
+
+  if (desplazamientoX === 0 && desplazamientoY === 0) return null;
+  if (desplazamientoY < 0 && desplazamientoX < 0) return "arriba_izquierda";
+  if (desplazamientoY < 0 && desplazamientoX > 0) return "arriba_derecha";
+  if (desplazamientoY > 0 && desplazamientoX < 0) return "abajo_izquierda";
+  if (desplazamientoY > 0 && desplazamientoX > 0) return "abajo_derecha";
+  if (desplazamientoY < 0) return "arriba";
+  if (desplazamientoY > 0) return "abajo";
+  if (desplazamientoX < 0) return "izquierda";
+  return "derecha";
+}
+
+function esPosicionVisual(posicion) {
+  return (
+    posicion !== null &&
+    typeof posicion === "object" &&
+    Number.isFinite(posicion.x) &&
+    Number.isFinite(posicion.y)
+  );
+}
+
+function normalizarRecursoVisual(recursoVisual) {
+  if (typeof recursoVisual !== "string") return null;
+  const normalizado = recursoVisual.trim();
+  return normalizado === "" ? null : normalizado;
 }
 
 function compararEntidades(a, b) {

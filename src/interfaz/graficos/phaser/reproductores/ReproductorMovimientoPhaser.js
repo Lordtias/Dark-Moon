@@ -23,6 +23,11 @@ export function reproducirCambioHostilidad(reproductor, evento) {
 }
 export async function reproducirMovimiento(reproductor, evento, version) {
   if (evento.transicionVisibilidad === "salida") {
+    reproductor.compositor.actualizarOrientacionEntidad?.(
+      evento.idEntidad,
+      evento.origen,
+      evento.destino,
+    );
     await reproducirSalidaCampoVisible(reproductor, evento, version);
     return;
   }
@@ -39,6 +44,11 @@ export async function reproducirMovimiento(reproductor, evento, version) {
     return;
   }
 
+  reproductor.compositor.actualizarOrientacionEntidad?.(
+    evento.idEntidad,
+    evento.origen,
+    evento.destino,
+  );
   reproductor.compositor.posicionarNodoEntidad(evento.idEntidad, origen);
 
   const distancia = Math.hypot(
@@ -109,6 +119,12 @@ export async function reproducirEntradaCampoVisible(reproductor, evento, version
 
   const nodo = reproductor.compositor.establecerEntidadVisualTemporal?.(entidadFinal);
   if (!nodo?.contenedor) return;
+
+  reproductor.compositor.actualizarOrientacionEntidad?.(
+    evento.idEntidad,
+    evento.origen,
+    evento.destino,
+  );
 
   const alphaSombraFinal = Number.isFinite(nodo.sombra?.alpha)
     ? nodo.sombra.alpha

@@ -8,6 +8,7 @@ import {
 import { Player } from "../entidad/destructible/combatiente/Player.js";
 import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
+import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
 
 export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v1";
 export const VERSION_GUARDADO_JUGADOR = 1;
@@ -170,7 +171,11 @@ export function crearJugadorDesdeSnapshot({
     nombre: estado.nombre,
     idProfesion: estado.idProfesion,
     clasePersonaje: estado.clasePersonaje ?? profesion.nombre,
-    recursoVisual: estado.recursoVisual ?? profesion.recursoVisual ?? null,
+    recursoVisual:
+      estado.recursoVisual ??
+      obtenerRecursoVisualPredeterminado(profesion.recursoVisual, {
+        descripcion: `el recurso visual de la profesión "${estado.idProfesion}"`,
+      }),
     nivel: estado.nivel,
     atributos: copiarDatos(estado.atributos),
     estadisticasBase: profesion.estadisticasBase,

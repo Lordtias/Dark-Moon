@@ -138,6 +138,14 @@ export class CompositorMundoPhaser {
     return this.compositorEntidades.posicionarNodoEntidad(idVisual, centro);
   }
 
+  actualizarOrientacionEntidad(idVisual, origen, destino) {
+    return this.compositorEntidades.actualizarOrientacionEntidad(
+      idVisual,
+      origen,
+      destino,
+    );
+  }
+
   actualizarHostilidadEntidad(idVisual, estadoHostilidad) {
     return this.compositorEntidades.actualizarHostilidadEntidad(
       idVisual,

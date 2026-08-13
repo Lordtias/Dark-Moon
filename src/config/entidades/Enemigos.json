@@ -3,7 +3,11 @@
     "nombre": "Rata",
     "genero": "femenino",
     "simbolo": "r",
-    "recursoVisual": "assets/imagenes/enemigos/rata.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/rata.png",
+      "arriba": "assets/imagenes/enemigos/rata.png",
+      "abajo": "assets/imagenes/enemigos/rata.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -137,7 +141,11 @@
     "nombre": "Cucaracha",
     "genero": "femenino",
     "simbolo": "c",
-    "recursoVisual": "assets/imagenes/enemigos/cucaracha.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/cucaracha.png",
+      "arriba": "assets/imagenes/enemigos/cucaracha.png",
+      "abajo": "assets/imagenes/enemigos/cucaracha.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -263,7 +271,11 @@
     "nombre": "Esqueleto Arquero",
     "genero": "masculino",
     "simbolo": "A",
-    "recursoVisual": "assets/imagenes/enemigos/esqueleto_arquero.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/esqueleto_arquero.png",
+      "arriba": "assets/imagenes/enemigos/esqueleto_arquero.png",
+      "abajo": "assets/imagenes/enemigos/esqueleto_arquero.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -396,7 +408,11 @@
     "nombre": "Esqueleto Guardia",
     "genero": "masculino",
     "simbolo": "G",
-    "recursoVisual": "assets/imagenes/enemigos/esqueleto_guardia.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/esqueleto_guardia.png",
+      "arriba": "assets/imagenes/enemigos/esqueleto_guardia.png",
+      "abajo": "assets/imagenes/enemigos/esqueleto_guardia.png"
+    },
     "nivelesPermitidos": {
       "minimo": 1,
       "maximo": 20
@@ -523,7 +539,11 @@
     "nombre": "Ladrón",
     "genero": "masculino",
     "simbolo": "L",
-    "recursoVisual": "assets/imagenes/enemigos/ladron.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/ladron.png",
+      "arriba": "assets/imagenes/enemigos/ladron.png",
+      "abajo": "assets/imagenes/enemigos/ladron.png"
+    },
     "nivelesPermitidos": {
       "minimo": 6,
       "maximo": 20
@@ -679,7 +699,11 @@
     "nombre": "Lancero",
     "genero": "masculino",
     "simbolo": "P",
-    "recursoVisual": "assets/imagenes/enemigos/lancero.png",
+    "recursoVisual": {
+      "predeterminado": "assets/imagenes/enemigos/lancero.png",
+      "arriba": "assets/imagenes/enemigos/lancero.png",
+      "abajo": "assets/imagenes/enemigos/lancero.png"
+    },
     "nivelesPermitidos": {
       "minimo": 6,
       "maximo": 20

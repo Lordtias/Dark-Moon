@@ -42,7 +42,17 @@
       "nombre": "Guerrero",
       "descripcion": "Combatiente resistente que puede alternar entre arma y escudo o armas de dos manos.",
       "estiloJuego": "Protección, bloqueo y daño físico directo.",
-      "recursoVisual": "assets/imagenes/jugador/guerrero.png",
+      "recursoVisual": {
+        "predeterminado": "assets/imagenes/jugador/guerrero/guerrero_abajo.png",
+        "arriba": "assets/imagenes/jugador/guerrero/guerrero_arriba.png",
+        "abajo": "assets/imagenes/jugador/guerrero/guerrero_abajo.png",
+        "izquierda": "assets/imagenes/jugador/guerrero/guerrero_izquierda.png",
+        "derecha": "assets/imagenes/jugador/guerrero/guerrero_derecha.png",
+        "arriba_izquierda": "assets/imagenes/jugador/guerrero/guerrero_arriba_izquierda.png",
+        "arriba_derecha": "assets/imagenes/jugador/guerrero/guerrero_arriba_derecha.png",
+        "abajo_izquierda": "assets/imagenes/jugador/guerrero/guerrero_abajo_izquierda.png",
+        "abajo_derecha": "assets/imagenes/jugador/guerrero/guerrero_abajo_derecha.png"
+      },
       "pesosAtributos": {
         "fuerza": 5,
         "destreza": 2,
@@ -182,7 +192,17 @@
       "nombre": "Rogue",
       "descripcion": "Combatiente ágil que combina dagas rápidas con ataques precisos a distancia.",
       "estiloJuego": "Velocidad, evasión, críticos y cambio de arma.",
-      "recursoVisual": "assets/imagenes/jugador/rogue.png",
+      "recursoVisual": {
+        "predeterminado": "assets/imagenes/jugador/rogue/rogue_abajo.png",
+        "arriba": "assets/imagenes/jugador/rogue/rogue_arriba.png",
+        "abajo": "assets/imagenes/jugador/rogue/rogue_abajo.png",
+        "izquierda": "assets/imagenes/jugador/rogue/rogue_izquierda.png",
+        "derecha": "assets/imagenes/jugador/rogue/rogue_derecha.png",
+        "arriba_izquierda": "assets/imagenes/jugador/rogue/rogue_arriba_izquierda.png",
+        "arriba_derecha": "assets/imagenes/jugador/rogue/rogue_arriba_derecha.png",
+        "abajo_izquierda": "assets/imagenes/jugador/rogue/rogue_abajo_izquierda.png",
+        "abajo_derecha": "assets/imagenes/jugador/rogue/rogue_abajo_derecha.png"
+      },
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 5,
@@ -310,7 +330,17 @@
       "nombre": "Mago",
       "descripcion": "Aventurero orientado a Inteligencia que utiliza bastones o varitas mientras se desarrolla el sistema de magia.",
       "estiloJuego": "Alcance, Maná y futura especialización en hechizos.",
-      "recursoVisual": "assets/imagenes/jugador/mago.png",
+      "recursoVisual": {
+        "predeterminado": "assets/imagenes/jugador/mago/mago_abajo.png",
+        "arriba": "assets/imagenes/jugador/mago/mago_arriba.png",
+        "abajo": "assets/imagenes/jugador/mago/mago_abajo.png",
+        "izquierda": "assets/imagenes/jugador/mago/mago_izquierda.png",
+        "derecha": "assets/imagenes/jugador/mago/mago_derecha.png",
+        "arriba_izquierda": "assets/imagenes/jugador/mago/mago_arriba_izquierda.png",
+        "arriba_derecha": "assets/imagenes/jugador/mago/mago_arriba_derecha.png",
+        "abajo_izquierda": "assets/imagenes/jugador/mago/mago_abajo_izquierda.png",
+        "abajo_derecha": "assets/imagenes/jugador/mago/mago_abajo_derecha.png"
+      },
       "pesosAtributos": {
         "fuerza": 1,
         "destreza": 2,

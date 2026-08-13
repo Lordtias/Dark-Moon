@@ -159,114 +159,18 @@ export function generarDestructiblesProcedurales(parametros = {}) {
   if (!plantilla || typeof plantilla !== "object") {
     throw new Error("La población de destructibles necesita una plantilla válida.");
   }
-
-  return plantilla.habitaciones?.perfiles
-    ? generarDestructiblesPorComposiciones(parametros)
-    : generarDestructiblesPorDensidadGlobal(parametros);
-}
-
-// Mantiene el comportamiento histórico de las mazmorras que todavía no
-// adoptaron perfiles: una densidad global sobre todas las zonas poblables.
-// La familia concreta ya es genérica, pero la generalización del contrato no
-// cambia por sí sola el balance de esos mapas.
-function generarDestructiblesPorDensidadGlobal({
-  plantilla,
-  terreno,
-  posicionJugador,
-  nivelMapa,
-  contextoPoblacion,
-  posicionesBloqueadasPersistentes,
-  objetivos,
-  interactuables,
-  configuracionObjetos,
-  configuracionEntidadesMazmorra,
-  aleatorio,
-}) {
-  const configuracion = plantilla.interactuables.destructibles;
-  const cantidadCalculada = Math.round(
-    contextoPoblacion.cantidadCasillasCandidatas *
-      (configuracion.densidadPor100Casillas / 100),
-  );
-  const cantidadObjetivo =
-    configuracion.densidadPor100Casillas > 0 &&
-    contextoPoblacion.cantidadCasillasCandidatas > 0
-      ? Math.max(1, cantidadCalculada)
-      : 0;
-  const clavesCaminables = new Set(
-    terreno.casillasTransitables.map((posicion) => crearClave(posicion)),
-  );
-  const zonaPorClave = new Map();
-  const candidatas = [];
-
-  for (const zona of [
-    contextoPoblacion.zonaEspecial,
-    ...contextoPoblacion.zonasNormales,
-  ]) {
-    for (const posicion of zona.posicionesDisponibles) {
-      zonaPorClave.set(crearClave(posicion), zona);
-      candidatas.push(posicion);
-    }
-  }
-
-  const destructibles = [];
-  const detalle = [];
-  for (const posicion of aleatorio.mezclar(candidatas)) {
-    if (destructibles.length >= cantidadObjetivo) break;
-
-    const zona = zonaPorClave.get(crearClave(posicion));
-    if (!zona) continue;
-    const permitido = seleccionarPonderado(configuracion.permitidos, aleatorio);
-    const datos = resolverDatosDestructible({
-      permitido,
-      configuracion,
-      configuracionObjetos,
-    });
-    if (!puedeConsumirPresupuesto(zona, datos.costoPoblacion)) continue;
-
-    const resultado = intentarColocarDestructible({
-      permitido,
-      datos,
-      posicion,
-      zona,
-      plantilla,
-      nivelMapa,
-      posicionJugador,
-      clavesCaminables,
-      posicionesBloqueadasPersistentes,
-      objetivos,
-      interactuables,
-      configuracionObjetos,
-      configuracionEntidadesMazmorra,
-      aleatorio,
-    });
-    if (!resultado) continue;
-
-    retirarPosicionDisponible(zona, posicion);
-    destructibles.push(resultado.entidad);
-    detalle.push(
-      crearDetalleDestructible({
-        entidad: resultado.entidad,
-        permitido,
-        posicion,
-        zona,
-        numero: destructibles.length,
-        costoPoblacion: datos.costoPoblacion,
-      }),
+  if (!plantilla.habitaciones?.perfiles) {
+    throw new Error(
+      `La mazmorra "${plantilla.nombre ?? "sin nombre"}" debe utilizar el contrato canónico de cupos y composiciones.`,
     );
   }
 
-  return finalizarResultadoDestructibles({
-    plantilla,
-    configuracion,
-    destructibles,
-    detalle,
-    cantidadObjetivo,
-  });
+  return generarDestructiblesPorComposiciones(parametros);
 }
 
-// Los mapas migrados a composición dirigida materializan primero una plantilla
-// humana completa por habitación. La geometría sigue siendo procedural y el
-// presupuesto canónico continúa limitando ocupación, amenaza y recompensa.
+// Materializa una composición humana completa por habitación. La geometría
+// sigue siendo procedural y el presupuesto canónico limita ocupación, amenaza
+// y recompensa antes de que se incorporen cofres opcionales y enemigos.
 function generarDestructiblesPorComposiciones({
   plantilla,
   terreno,
@@ -290,7 +194,6 @@ function generarDestructiblesPorComposiciones({
   );
   const destructibles = [];
   const detalle = [];
-  let cantidadObjetivo = 0;
 
   for (const zona of contextoPoblacion.zonas) {
     const configuracionPerfil = obtenerPerfilDirigido({
@@ -388,7 +291,6 @@ function generarDestructiblesPorComposiciones({
       }
       retirarPosicionDisponible(zona, elemento.posicion);
       destructibles.push(resultado.entidad);
-      cantidadObjetivo += 1;
       detalle.push(
         crearDetalleDestructible({
           entidad: resultado.entidad,
@@ -443,7 +345,6 @@ function generarDestructiblesPorComposiciones({
 
       retirarPosicionDisponible(zona, slot.posicion);
       destructibles.push(resultado.entidad);
-      cantidadObjetivo += 1;
       detalle.push(
         crearDetalleDestructible({
           entidad: resultado.entidad,
@@ -462,9 +363,6 @@ function generarDestructiblesPorComposiciones({
   return {
     destructibles,
     detalle,
-    densidadPor100Casillas: null,
-    cantidadObjetivo,
-    cantidadNoColocada: 0,
   };
 }
 
@@ -638,30 +536,6 @@ function crearDetalleDestructible({
   };
 }
 
-function finalizarResultadoDestructibles({
-  plantilla,
-  configuracion,
-  destructibles,
-  detalle,
-  cantidadObjetivo,
-}) {
-  const cantidadNoColocada = Math.max(0, cantidadObjetivo - destructibles.length);
-  if (cantidadNoColocada > 0) {
-    console.warn(
-      `[Mapa] "${plantilla.nombre}" colocó ${destructibles.length} de ` +
-        `${cantidadObjetivo} destructibles tras aplicar presupuesto, restricciones y conectividad.`,
-    );
-  }
-
-  return {
-    destructibles,
-    detalle,
-    densidadPor100Casillas: configuracion.densidadPor100Casillas,
-    cantidadObjetivo,
-    cantidadNoColocada,
-  };
-}
-
 export function crearResumenInteractuablesProcedurales({
   resultadoPrevio,
   resultadoDestructibles,
@@ -676,11 +550,6 @@ export function crearResumenInteractuablesProcedurales({
     })),
     cofreImportante: { ...resultadoPrevio.cofreImportante },
     cantidadDestructibles: resultadoDestructibles.destructibles.length,
-    cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
-    cantidadDestructiblesNoColocados:
-      resultadoDestructibles.cantidadNoColocada,
-    densidadDestructiblesPor100Casillas:
-      resultadoDestructibles.densidadPor100Casillas,
   };
 }
 

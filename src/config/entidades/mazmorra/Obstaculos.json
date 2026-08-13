@@ -8,5 +8,25 @@
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
     "bloqueaCruceDiagonal": true
+  },
+  "lapida_piedra": {
+    "nombre": "Lápida de piedra",
+    "simbolo": "L",
+    "recursoVisual": "assets/imagenes/destructibles/lapida_piedra.png",
+    "vidaMaxima": 26,
+    "armadura": 7,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "reja_hierro": {
+    "nombre": "Reja de hierro",
+    "simbolo": "H",
+    "recursoVisual": "assets/imagenes/destructibles/reja_hierro.png",
+    "vidaMaxima": 32,
+    "armadura": 9,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
   }
 }

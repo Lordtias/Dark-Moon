@@ -93,8 +93,6 @@ export function generarContenidoMapa({
           contextoPoblacion,
         });
 
-  const usarComposicionesDirigidas = Boolean(plantilla.habitaciones?.perfiles);
-
   const generarDestructibles = () => generarDestructiblesProcedurales({
     plantilla,
     terreno,
@@ -152,39 +150,24 @@ export function generarContenidoMapa({
       cantidadEnemigosRecurrentesResuelta + resultadoJefe.enemigos.length + 1,
   });
 
-  let resultadoDestructibles;
-  let resultadoRecurrentes;
-  let resultadoJefe;
-  let resultadoEspecial;
-
-  if (usarComposicionesDirigidas) {
-    // La identidad humana de la habitación tiene prioridad sobre contenido
-    // opcional y población hostil. Después de materializarla, cofres y enemigos
-    // consumen únicamente el presupuesto y las posiciones que siguen libres.
-    resultadoDestructibles = generarDestructibles();
-    generarCofresModeradosPosteriores({
-      plantilla,
-      terreno,
-      posicionJugador,
-      nivelMapa: nivelMapaResuelto,
-      contextoPoblacion,
-      objetivos: objetivosProcedurales,
-      interactuables: interactuablesProcedurales,
-      configuracionObjetos,
-      aleatorio,
-      resultadoPrevio: resultadoInteractuablesPrevios,
-    });
-    resultadoJefe = generarJefe();
-    resultadoEspecial = generarEspecial(resultadoJefe);
-    resultadoRecurrentes = generarRecurrentes();
-  } else {
-    // Compatibilidad temporal para las mazmorras aún no migradas. Esta ruta
-    // debe auditarse y retirarse cuando el último mapa adopte composiciones.
-    resultadoJefe = generarJefe();
-    resultadoEspecial = generarEspecial(resultadoJefe);
-    resultadoRecurrentes = generarRecurrentes();
-    resultadoDestructibles = generarDestructibles();
-  }
+  // La identidad humana de la habitación tiene prioridad sobre contenido
+  // opcional y población hostil. Las cinco mazmorras utilizan este único flujo.
+  const resultadoDestructibles = generarDestructibles();
+  generarCofresModeradosPosteriores({
+    plantilla,
+    terreno,
+    posicionJugador,
+    nivelMapa: nivelMapaResuelto,
+    contextoPoblacion,
+    objetivos: objetivosProcedurales,
+    interactuables: interactuablesProcedurales,
+    configuracionObjetos,
+    aleatorio,
+    resultadoPrevio: resultadoInteractuablesPrevios,
+  });
+  const resultadoJefe = generarJefe();
+  const resultadoEspecial = generarEspecial(resultadoJefe);
+  const resultadoRecurrentes = generarRecurrentes();
 
   const enemigos = [
     ...resultadoRecurrentes.enemigos,
@@ -243,11 +226,6 @@ export function generarContenidoMapa({
       encuentroEspecial: resultadoEspecial.resumen,
       jefe: resultadoJefe.resumen,
       cantidadDestructibles: resultadoDestructibles.destructibles.length,
-      cantidadDestructiblesObjetivo: resultadoDestructibles.cantidadObjetivo,
-      cantidadDestructiblesNoColocados:
-        resultadoDestructibles.cantidadNoColocada,
-      porcentajeDestructibles:
-        resultadoDestructibles.densidadPor100Casillas,
       enemigosPorTipo,
       variantes,
       poblacionEnemigos,

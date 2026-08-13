@@ -59,7 +59,72 @@
         "colorMetal": "#716658",
         "colorOxido": "#985f39",
         "colorEscombro": "#8e7f6c",
-        "colorMancha": "#2d2116"
+        "colorMancha": "#2d2116",
+        "perfiles": {
+          "dormitorio": {
+            "densidad": 0.06,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 25,
+              "mancha": 75
+            }
+          },
+          "cocina_comedor": {
+            "densidad": 0.11,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 30,
+              "mancha": 70
+            }
+          },
+          "deposito": {
+            "densidad": 0.14,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 55,
+              "mancha": 45
+            }
+          },
+          "entrenamiento": {
+            "densidad": 0.12,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 35,
+              "mancha": 65
+            }
+          },
+          "arsenal": {
+            "densidad": 0.1,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 5,
+              "escombros": 45,
+              "mancha": 50
+            }
+          },
+          "despacho": {
+            "densidad": 0.07,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 20,
+              "mancha": 80
+            }
+          },
+          "ambiental": {
+            "densidad": 0.17,
+            "pesos": {
+              "charco": 0,
+              "rejilla": 0,
+              "escombros": 55,
+              "mancha": 45
+            }
+          }
+        }
       },
       "sombras": {
         "color": "#090604",
@@ -127,14 +192,525 @@
     "ambientales": {
       "minimo": 1,
       "maximo": 2
+    },
+    "perfilAmbiental": {
+      "id": "ambiental",
+      "composiciones": [
+        {
+          "id": "ambiental_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "..."
+          ]
+        },
+        {
+          "id": "ambiental_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            ".",
+            ".",
+            "."
+          ]
+        }
+      ]
+    },
+    "perfilEspecial": {
+      "id": "despacho",
+      "composiciones": [
+        {
+          "id": "despacho_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "M?T"
+          ],
+          "leyenda": {
+            "M": {
+              "id": "armario_madera"
+            },
+            "T": {
+              "id": "mesa_madera"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 45,
+            "permitidos": [
+              {
+                "id": "silla_madera",
+                "peso": 60
+              },
+              {
+                "id": "caja_madera",
+                "peso": 40
+              }
+            ]
+          }
+        },
+        {
+          "id": "despacho_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            "M",
+            "?",
+            "T"
+          ],
+          "leyenda": {
+            "M": {
+              "id": "armario_madera"
+            },
+            "T": {
+              "id": "mesa_madera"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 45,
+            "permitidos": [
+              {
+                "id": "silla_madera",
+                "peso": 60
+              },
+              {
+                "id": "caja_madera",
+                "peso": 40
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "perfiles": {
+      "estrategia": "cupos",
+      "normales": [
+        {
+          "id": "dormitorio",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 22,
+          "composiciones": [
+            {
+              "id": "dormitorio_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "K?M"
+              ],
+              "leyenda": {
+                "K": {
+                  "id": "cama_madera"
+                },
+                "M": {
+                  "id": "armario_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "x": 2,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "silla_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "dormitorio_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "K",
+                "?",
+                "M"
+              ],
+              "leyenda": {
+                "K": {
+                  "id": "cama_madera"
+                },
+                "M": {
+                  "id": "armario_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "x": 0,
+                  "y": 2
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "silla_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "cocina_comedor",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 19,
+          "composiciones": [
+            {
+              "id": "cocina_comedor_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "I?T"
+              ],
+              "leyenda": {
+                "I": {
+                  "id": "silla_madera"
+                },
+                "T": {
+                  "id": "mesa_madera"
+                }
+              },
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "silla_madera",
+                    "peso": 70
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cocina_comedor_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "I",
+                "?",
+                "T"
+              ],
+              "leyenda": {
+                "I": {
+                  "id": "silla_madera"
+                },
+                "T": {
+                  "id": "mesa_madera"
+                }
+              },
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "silla_madera",
+                    "peso": 70
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "deposito",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 20,
+          "composiciones": [
+            {
+              "id": "deposito_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "C?E"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_madera"
+                },
+                "E": {
+                  "id": "estanteria_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 2,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            },
+            {
+              "id": "deposito_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "C",
+                "?",
+                "E"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_madera"
+                },
+                "E": {
+                  "id": "estanteria_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 2
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "entrenamiento",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 18,
+          "composiciones": [
+            {
+              "id": "entrenamiento_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "D?B"
+              ],
+              "leyenda": {
+                "D": {
+                  "id": "soporte_entrenamiento"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "armero_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            },
+            {
+              "id": "entrenamiento_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "D",
+                "?",
+                "B"
+              ],
+              "leyenda": {
+                "D": {
+                  "id": "soporte_entrenamiento"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "armero_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "arsenal",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 21,
+          "composiciones": [
+            {
+              "id": "arsenal_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "R?C"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "armero_madera"
+                },
+                "C": {
+                  "id": "caja_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "armero_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "estanteria_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "arsenal_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "R",
+                "?",
+                "C"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "armero_madera"
+                },
+                "C": {
+                  "id": "caja_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 45,
+                "permitidos": [
+                  {
+                    "id": "armero_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "estanteria_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   },
   "poblacion": {
     "presupuestoHabitacion": {
       "ocupacion": {
-        "por100Casillas": 10,
-        "minimo": 1,
-        "maximo": 4
+        "por100Casillas": 25,
+        "minimo": 3,
+        "maximo": 6
       },
       "amenaza": {
         "por100Casillas": 200,
@@ -250,13 +826,94 @@
       }
     },
     "destructibles": {
-      "densidadPor100Casillas": 8,
       "permitidos": [
         {
+          "id": "caja_madera",
+          "peso": 20,
+          "idTablaContenido": "domestico"
+        },
+        {
+          "id": "armario_madera",
+          "peso": 13,
+          "idTablaContenido": "domestico"
+        },
+        {
+          "id": "armero_madera",
+          "peso": 13,
+          "idTablaContenido": "arsenal"
+        },
+        {
           "id": "barril_madera",
-          "peso": 100
+          "peso": 8,
+          "idTablaContenido": "domestico"
+        },
+        {
+          "id": "mesa_madera",
+          "peso": 10
+        },
+        {
+          "id": "silla_madera",
+          "peso": 10
+        },
+        {
+          "id": "cama_madera",
+          "peso": 8
+        },
+        {
+          "id": "estanteria_madera",
+          "peso": 8
+        },
+        {
+          "id": "banco_madera",
+          "peso": 5
+        },
+        {
+          "id": "soporte_entrenamiento",
+          "peso": 5
         }
-      ]
+      ],
+      "tablasBotin": {
+        "domestico": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 2,
+            "cantidadMaxima": 5
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 18,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 12,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "arsenal": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 4,
+            "cantidadMaxima": 8
+          },
+          {
+            "idObjeto": "daga_hierro",
+            "probabilidad": 22,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "escudo_madera",
+            "probabilidad": 12,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      }
     }
   }
 }

@@ -74,26 +74,27 @@ export function crearPlanPoblacionMazmorra({
       .slice(0, cantidadAmbientales),
   );
 
-  const configuracionPerfiles = plantilla.habitaciones?.perfiles ?? null;
-  const aleatorioPerfiles = configuracionPerfiles
-    ? crearGeneradorAleatorio(
-        `${aleatorio.semilla}:${plantilla.bioma ?? plantilla.nombre}:perfiles_habitacion`,
-      )
-    : null;
-  const perfilesNormalesPorHabitacion = configuracionPerfiles
-    ? asignarPerfilesPorCupos({
-        idsHabitaciones: zonasBase
-          .map((zona) => zona.idHabitacion)
-          .filter(
-            (idHabitacion) =>
-              idHabitacion !== idHabitacionEspecial &&
-              !idsAmbientales.has(idHabitacion),
-          ),
-        configuracionPerfiles,
-        aleatorio: aleatorioPerfiles,
-        nombreMapa: plantilla.nombre,
-      })
-    : new Map();
+  const configuracionPerfiles = plantilla.habitaciones?.perfiles;
+  if (!configuracionPerfiles) {
+    throw new Error(
+      `La mazmorra "${plantilla.nombre}" debe declarar perfiles canónicos por cupos.`,
+    );
+  }
+  const aleatorioPerfiles = crearGeneradorAleatorio(
+    `${aleatorio.semilla}:${plantilla.bioma ?? plantilla.nombre}:perfiles_habitacion`,
+  );
+  const perfilesNormalesPorHabitacion = asignarPerfilesPorCupos({
+    idsHabitaciones: zonasBase
+      .map((zona) => zona.idHabitacion)
+      .filter(
+        (idHabitacion) =>
+          idHabitacion !== idHabitacionEspecial &&
+          !idsAmbientales.has(idHabitacion),
+      ),
+    configuracionPerfiles,
+    aleatorio: aleatorioPerfiles,
+    nombreMapa: plantilla.nombre,
+  });
 
   const zonas = zonasBase.map(({ idHabitacion, posicionesBase }) => {
     const esEspecial = idHabitacion === idHabitacionEspecial;
@@ -154,9 +155,7 @@ export function crearPlanPoblacionMazmorra({
 
   return {
     estrategia: "presupuesto_por_habitacion",
-    estrategiaHabitaciones: configuracionPerfiles
-      ? "cupos_y_composiciones"
-      : "poblacion_historica",
+    estrategiaHabitaciones: "cupos_y_composiciones",
     idHabitacionEntrada,
     idHabitacionEspecial,
     cantidadHabitacionesAmbientales: idsAmbientales.size,
@@ -333,7 +332,7 @@ export function crearResumenPlanPoblacion(plan) {
 
   return {
     estrategia: plan.estrategia,
-    estrategiaHabitaciones: plan.estrategiaHabitaciones ?? "poblacion_historica",
+    estrategiaHabitaciones: plan.estrategiaHabitaciones,
     idHabitacionEntrada: plan.idHabitacionEntrada,
     idHabitacionEspecial: plan.idHabitacionEspecial,
     cantidadHabitacionesAmbientales: plan.cantidadHabitacionesAmbientales,

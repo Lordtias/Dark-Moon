@@ -59,7 +59,72 @@
         "colorMetal": "#5f636f",
         "colorOxido": "#7f6459",
         "colorEscombro": "#888795",
-        "colorMancha": "#211f2f"
+        "colorMancha": "#211f2f",
+        "perfiles": {
+          "cripta": {
+            "densidad": 0.14,
+            "pesos": {
+              "charco": 10,
+              "rejilla": 5,
+              "escombros": 45,
+              "mancha": 40
+            }
+          },
+          "camara_funeraria": {
+            "densidad": 0.13,
+            "pesos": {
+              "charco": 10,
+              "rejilla": 5,
+              "escombros": 35,
+              "mancha": 50
+            }
+          },
+          "osario": {
+            "densidad": 0.19,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 55,
+              "mancha": 40
+            }
+          },
+          "capilla": {
+            "densidad": 0.08,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 25,
+              "mancha": 70
+            }
+          },
+          "deposito_funerario": {
+            "densidad": 0.14,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 5,
+              "escombros": 55,
+              "mancha": 35
+            }
+          },
+          "tumba_importante": {
+            "densidad": 0.12,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 35,
+              "mancha": 60
+            }
+          },
+          "ambiental": {
+            "densidad": 0.2,
+            "pesos": {
+              "charco": 15,
+              "rejilla": 0,
+              "escombros": 45,
+              "mancha": 40
+            }
+          }
+        }
       },
       "sombras": {
         "color": "#07080b",
@@ -127,14 +192,457 @@
     "ambientales": {
       "minimo": 1,
       "maximo": 2
+    },
+    "perfilAmbiental": {
+      "id": "ambiental",
+      "composiciones": [
+        {
+          "id": "ambiental_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "..."
+          ]
+        },
+        {
+          "id": "ambiental_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            ".",
+            ".",
+            "."
+          ]
+        }
+      ]
+    },
+    "perfilEspecial": {
+      "id": "tumba_importante",
+      "composiciones": [
+        {
+          "id": "tumba_importante_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "L?G"
+          ],
+          "leyenda": {
+            "L": {
+              "id": "lapida_piedra"
+            },
+            "G": {
+              "id": "sarcofago_piedra"
+            }
+          },
+          "opcional": {
+            "probabilidad": 35,
+            "permitidos": [
+              {
+                "id": "urna_funeraria",
+                "peso": 60
+              },
+              {
+                "id": "restos_oseos",
+                "peso": 40
+              }
+            ]
+          }
+        },
+        {
+          "id": "tumba_importante_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            "L",
+            "?",
+            "G"
+          ],
+          "leyenda": {
+            "L": {
+              "id": "lapida_piedra"
+            },
+            "G": {
+              "id": "sarcofago_piedra"
+            }
+          },
+          "opcional": {
+            "probabilidad": 35,
+            "permitidos": [
+              {
+                "id": "urna_funeraria",
+                "peso": 60
+              },
+              {
+                "id": "restos_oseos",
+                "peso": 40
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "perfiles": {
+      "estrategia": "cupos",
+      "normales": [
+        {
+          "id": "cripta",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 22,
+          "composiciones": [
+            {
+              "id": "cripta_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "U?A"
+              ],
+              "leyenda": {
+                "U": {
+                  "id": "urna_funeraria"
+                },
+                "A": {
+                  "id": "ataud_deteriorado"
+                }
+              },
+              "opcional": {
+                "probabilidad": 40,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 60
+                  },
+                  {
+                    "id": "restos_oseos",
+                    "peso": 40
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cripta_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "U",
+                "?",
+                "A"
+              ],
+              "leyenda": {
+                "U": {
+                  "id": "urna_funeraria"
+                },
+                "A": {
+                  "id": "ataud_deteriorado"
+                }
+              },
+              "opcional": {
+                "probabilidad": 40,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 60
+                  },
+                  {
+                    "id": "restos_oseos",
+                    "peso": 40
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "camara_funeraria",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 20,
+          "composiciones": [
+            {
+              "id": "camara_funeraria_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "L?A"
+              ],
+              "leyenda": {
+                "L": {
+                  "id": "lapida_piedra"
+                },
+                "A": {
+                  "id": "ataud_deteriorado"
+                }
+              },
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 55
+                  },
+                  {
+                    "id": "pila_huesos",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "camara_funeraria_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "L",
+                "?",
+                "A"
+              ],
+              "leyenda": {
+                "L": {
+                  "id": "lapida_piedra"
+                },
+                "A": {
+                  "id": "ataud_deteriorado"
+                }
+              },
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 55
+                  },
+                  {
+                    "id": "pila_huesos",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "osario",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 19,
+          "composiciones": [
+            {
+              "id": "osario_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "P?O"
+              ],
+              "leyenda": {
+                "P": {
+                  "id": "pila_huesos"
+                },
+                "O": {
+                  "id": "restos_oseos"
+                }
+              },
+              "opcional": {
+                "probabilidad": 55,
+                "permitidos": [
+                  {
+                    "id": "pila_huesos",
+                    "peso": 60
+                  },
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 40
+                  }
+                ]
+              }
+            },
+            {
+              "id": "osario_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "P",
+                "?",
+                "O"
+              ],
+              "leyenda": {
+                "P": {
+                  "id": "pila_huesos"
+                },
+                "O": {
+                  "id": "restos_oseos"
+                }
+              },
+              "opcional": {
+                "probabilidad": 55,
+                "permitidos": [
+                  {
+                    "id": "pila_huesos",
+                    "peso": 60
+                  },
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 40
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "capilla",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 18,
+          "composiciones": [
+            {
+              "id": "capilla_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "B?L"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "banco_madera"
+                },
+                "L": {
+                  "id": "lapida_piedra"
+                }
+              },
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 65
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 35
+                  }
+                ]
+              }
+            },
+            {
+              "id": "capilla_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "B",
+                "?",
+                "L"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "banco_madera"
+                },
+                "L": {
+                  "id": "lapida_piedra"
+                }
+              },
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 65
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 35
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "deposito_funerario",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 21,
+          "composiciones": [
+            {
+              "id": "deposito_funerario_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "U?O"
+              ],
+              "leyenda": {
+                "U": {
+                  "id": "urna_funeraria"
+                },
+                "O": {
+                  "id": "restos_oseos"
+                }
+              },
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 55
+                  },
+                  {
+                    "id": "ataud_deteriorado",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "deposito_funerario_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "U",
+                "?",
+                "O"
+              ],
+              "leyenda": {
+                "U": {
+                  "id": "urna_funeraria"
+                },
+                "O": {
+                  "id": "restos_oseos"
+                }
+              },
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "urna_funeraria",
+                    "peso": 55
+                  },
+                  {
+                    "id": "ataud_deteriorado",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   },
   "poblacion": {
     "presupuestoHabitacion": {
       "ocupacion": {
-        "por100Casillas": 10,
-        "minimo": 1,
-        "maximo": 4
+        "por100Casillas": 25,
+        "minimo": 3,
+        "maximo": 6
       },
       "amenaza": {
         "por100Casillas": 180,
@@ -256,13 +764,111 @@
       }
     },
     "destructibles": {
-      "densidadPor100Casillas": 5,
       "permitidos": [
         {
-          "id": "barril_madera",
-          "peso": 100
+          "id": "urna_funeraria",
+          "peso": 18,
+          "idTablaContenido": "funerario_basico"
+        },
+        {
+          "id": "ataud_deteriorado",
+          "peso": 16,
+          "idTablaContenido": "funerario_basico"
+        },
+        {
+          "id": "sarcofago_piedra",
+          "peso": 8,
+          "idTablaContenido": "tumba_importante"
+        },
+        {
+          "id": "restos_oseos",
+          "peso": 18,
+          "idTablaContenido": "restos_oseos"
+        },
+        {
+          "id": "lapida_piedra",
+          "peso": 14
+        },
+        {
+          "id": "pila_huesos",
+          "peso": 14,
+          "idTablaBotin": "huesos"
+        },
+        {
+          "id": "banco_madera",
+          "peso": 7
         }
-      ]
+      ],
+      "tablasBotin": {
+        "funerario_basico": [
+          {
+            "idObjeto": "hueso_esqueleto",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 18,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 25,
+            "cantidadMinima": 2,
+            "cantidadMaxima": 5
+          }
+        ],
+        "restos_oseos": [
+          {
+            "idObjeto": "hueso_esqueleto",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 3
+          },
+          {
+            "idObjeto": "hueso_negro",
+            "probabilidad": 8,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "carne_putrefacta",
+            "probabilidad": 20,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "tumba_importante": [
+          {
+            "idObjeto": "hueso_negro",
+            "probabilidad": 55,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 65,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "daga_hierro",
+            "probabilidad": 18,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "huesos": [
+          {
+            "idObjeto": "hueso_esqueleto",
+            "probabilidad": 100,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 2
+          }
+        ]
+      }
     }
   }
 }

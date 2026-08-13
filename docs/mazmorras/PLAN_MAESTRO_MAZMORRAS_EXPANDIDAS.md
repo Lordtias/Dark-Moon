@@ -463,15 +463,15 @@ Reestructurar el contrato de configuración y población interior para combinar 
 
 La etapa puede marcarse **Cerrada** cuando los cinco mapas se carguen desde archivos JSON específicos conservando el contrato combinado, Alcantarilla distribuya perfiles por cupos reproducibles y aplique composiciones completas válidas —incluyendo orientación horizontal/vertical, slots opcionales y posiciones contra pared—, el presupuesto y la conectividad sigan siendo canónicos, y las otras cuatro mazmorras mantengan su comportamiento funcional heredado.
 
-### Deuda temporal controlada
+### Deuda temporal resuelta
 
-Cementerio, Casa del Guerrero, Fortaleza abandonada y Sala de guerra pueden conservar temporalmente la ruta histórica de población hasta sus etapas E4.C–E4.F. **Al cerrar E4.F debe realizarse una auditoría explícita para verificar que no quede código, configuración ni comentarios productivos de esa estrategia antigua.**
+La ruta histórica de población utilizada temporalmente por Cementerio, Casa del Guerrero, Fortaleza abandonada y Sala de guerra fue retirada al completar E4.C–E4.F. Los cinco mapas utilizan el modelo canónico de perfiles por cupos y composiciones dirigidas. La auditoría final de E4.F confirmó que no quedan código, configuración ni comentarios productivos de la estrategia antigua.
 
 ---
 
 ## E4.C — Cementerio expandido
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -517,7 +517,7 @@ La etapa puede marcarse **Cerrada** cuando el Cementerio posea identidad jugable
 
 ## E4.D — Casa del Guerrero expandida
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -564,7 +564,7 @@ La etapa puede marcarse **Cerrada** cuando la Casa del Guerrero se lea como un l
 
 ## E4.E — Fortaleza abandonada expandida
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -613,7 +613,7 @@ La etapa puede marcarse **Cerrada** cuando la Fortaleza abandonada posea sectore
 
 ## E4.F — Sala de guerra expandida
 
-**Estado:** Pendiente
+**Estado:** Cerrada
 
 ### Objetivo
 
@@ -815,10 +815,10 @@ El Plan Maestro de Mazmorras Expandidas puede considerarse completado cuando:
 | E4.A | Expansión estructural y presupuesto de población | Cerrada |
 | E4.B | Alcantarilla expandida | Cerrada |
 | E4.B.ReestructuraHabitaciones | Composición dirigida de habitaciones y modularización de mapas | Cerrada |
-| E4.C | Cementerio expandido | Pendiente |
-| E4.D | Casa del Guerrero expandida | Pendiente |
-| E4.E | Fortaleza abandonada expandida | Pendiente |
-| E4.F | Sala de guerra expandida | Pendiente |
+| E4.C | Cementerio expandido | Cerrada |
+| E4.D | Casa del Guerrero expandida | Cerrada |
+| E4.E | Fortaleza abandonada expandida | Cerrada |
+| E4.F | Sala de guerra expandida | Cerrada |
 
 Al cerrar una etapa solo debe actualizarse su **Estado** a `Cerrada` o, si corresponde, `Cerrada con pendientes`.
 

@@ -102,11 +102,7 @@ function validarPlantilla(idPlantilla, plantilla) {
     idsExcluidos: unirConjuntos(idsRecurrentes, idsEspeciales),
   });
 
-  validarInteractuables(
-    idPlantilla,
-    plantilla.interactuables,
-    { usaComposiciones: Boolean(plantilla.habitaciones?.perfiles) },
-  );
+  validarInteractuables(idPlantilla, plantilla.interactuables);
   validarHabitaciones({
     idPlantilla,
     habitaciones: plantilla.habitaciones,
@@ -355,15 +351,9 @@ function validarHabitaciones({
   }
 
   if (habitaciones.perfiles === undefined) {
-    if (
-      habitaciones.perfilAmbiental !== undefined ||
-      habitaciones.perfilEspecial !== undefined
-    ) {
-      throw new Error(
-        `"${idPlantilla}" no puede declarar perfiles especiales sin una estrategia de perfiles normales.`,
-      );
-    }
-    return;
+    throw new Error(
+      `"${idPlantilla}" debe declarar perfiles canónicos por cupos y composiciones.`,
+    );
   }
 
   validarObjeto(
@@ -871,7 +861,7 @@ function validarIdsExcluidos({
   }
 }
 
-function validarInteractuables(idPlantilla, interactuables, { usaComposiciones = false } = {}) {
+function validarInteractuables(idPlantilla, interactuables) {
   validarObjeto(interactuables, `los interactuables de "${idPlantilla}"`);
 
   validarObjeto(
@@ -894,18 +884,9 @@ function validarInteractuables(idPlantilla, interactuables, { usaComposiciones =
     interactuables.destructibles,
     `los destructibles de "${idPlantilla}"`,
   );
-  if (!usaComposiciones) {
-    if (
-      !Number.isFinite(interactuables.destructibles.densidadPor100Casillas) ||
-      interactuables.destructibles.densidadPor100Casillas < 0
-    ) {
-      throw new Error(
-        `La densidad de destructibles por 100 casillas de "${idPlantilla}" debe ser un número no negativo mientras use la población histórica.`,
-      );
-    }
-  } else if (interactuables.destructibles.densidadPor100Casillas !== undefined) {
+  if (interactuables.destructibles.densidadPor100Casillas !== undefined) {
     throw new Error(
-      `"${idPlantilla}" usa composiciones dirigidas y no debe conservar densidadPor100Casillas de la población histórica.`,
+      `"${idPlantilla}" usa el contrato canónico de composiciones y no debe declarar densidadPor100Casillas para destructibles.`,
     );
   }
   const idsDestructibles = validarListaPonderada(

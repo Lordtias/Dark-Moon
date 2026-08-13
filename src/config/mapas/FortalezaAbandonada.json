@@ -59,7 +59,81 @@
         "colorMetal": "#55595f",
         "colorOxido": "#835d42",
         "colorEscombro": "#7f8086",
-        "colorMancha": "#171a1f"
+        "colorMancha": "#171a1f",
+        "perfiles": {
+          "barracas": {
+            "densidad": 0.1,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 35,
+              "mancha": 60
+            }
+          },
+          "arsenal": {
+            "densidad": 0.11,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 5,
+              "escombros": 45,
+              "mancha": 45
+            }
+          },
+          "prision": {
+            "densidad": 0.17,
+            "pesos": {
+              "charco": 30,
+              "rejilla": 10,
+              "escombros": 25,
+              "mancha": 35
+            }
+          },
+          "almacen": {
+            "densidad": 0.13,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 60,
+              "mancha": 35
+            }
+          },
+          "comedor": {
+            "densidad": 0.11,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 0,
+              "escombros": 35,
+              "mancha": 60
+            }
+          },
+          "mantenimiento": {
+            "densidad": 0.16,
+            "pesos": {
+              "charco": 15,
+              "rejilla": 10,
+              "escombros": 50,
+              "mancha": 25
+            }
+          },
+          "puesto_guardia": {
+            "densidad": 0.12,
+            "pesos": {
+              "charco": 5,
+              "rejilla": 5,
+              "escombros": 45,
+              "mancha": 45
+            }
+          },
+          "ambiental": {
+            "densidad": 0.2,
+            "pesos": {
+              "charco": 20,
+              "rejilla": 5,
+              "escombros": 50,
+              "mancha": 25
+            }
+          }
+        }
       },
       "sombras": {
         "color": "#05070a",
@@ -127,14 +201,615 @@
     "ambientales": {
       "minimo": 2,
       "maximo": 3
+    },
+    "perfilAmbiental": {
+      "id": "ambiental",
+      "composiciones": [
+        {
+          "id": "ambiental_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "..."
+          ]
+        },
+        {
+          "id": "ambiental_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            ".",
+            ".",
+            "."
+          ]
+        }
+      ]
+    },
+    "perfilEspecial": {
+      "id": "puesto_guardia",
+      "composiciones": [
+        {
+          "id": "puesto_guardia_horizontal_01",
+          "orientacion": "horizontal",
+          "peso": 1,
+          "grilla": [
+            "X?N"
+          ],
+          "leyenda": {
+            "X": {
+              "id": "barricada_improvisada"
+            },
+            "N": {
+              "id": "arcon_militar"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 40,
+            "permitidos": [
+              {
+                "id": "armero_madera",
+                "peso": 55
+              },
+              {
+                "id": "caja_madera",
+                "peso": 45
+              }
+            ]
+          }
+        },
+        {
+          "id": "puesto_guardia_vertical_01",
+          "orientacion": "vertical",
+          "peso": 1,
+          "grilla": [
+            "X",
+            "?",
+            "N"
+          ],
+          "leyenda": {
+            "X": {
+              "id": "barricada_improvisada"
+            },
+            "N": {
+              "id": "arcon_militar"
+            }
+          },
+          "contraPared": [
+            {
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "opcional": {
+            "probabilidad": 40,
+            "permitidos": [
+              {
+                "id": "armero_madera",
+                "peso": 55
+              },
+              {
+                "id": "caja_madera",
+                "peso": 45
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "perfiles": {
+      "estrategia": "cupos",
+      "normales": [
+        {
+          "id": "barracas",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 18,
+          "composiciones": [
+            {
+              "id": "barracas_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "K?B"
+              ],
+              "leyenda": {
+                "K": {
+                  "id": "cama_madera"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            },
+            {
+              "id": "barracas_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "K",
+                "?",
+                "B"
+              ],
+              "leyenda": {
+                "K": {
+                  "id": "cama_madera"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 55
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 45
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "arsenal",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 20,
+          "composiciones": [
+            {
+              "id": "arsenal_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "R?N"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "armero_madera"
+                },
+                "N": {
+                  "id": "arcon_militar"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "x": 2,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "estanteria_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            },
+            {
+              "id": "arsenal_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "R",
+                "?",
+                "N"
+              ],
+              "leyenda": {
+                "R": {
+                  "id": "armero_madera"
+                },
+                "N": {
+                  "id": "arcon_militar"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "x": 0,
+                  "y": 2
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 60
+                  },
+                  {
+                    "id": "estanteria_madera",
+                    "peso": 40
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "prision",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 15,
+          "composiciones": [
+            {
+              "id": "prision_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "H?B"
+              ],
+              "leyenda": {
+                "H": {
+                  "id": "reja_hierro"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "reja_hierro",
+                    "peso": 75
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 25
+                  }
+                ]
+              }
+            },
+            {
+              "id": "prision_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "H",
+                "?",
+                "B"
+              ],
+              "leyenda": {
+                "H": {
+                  "id": "reja_hierro"
+                },
+                "B": {
+                  "id": "banco_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 25,
+                "permitidos": [
+                  {
+                    "id": "reja_hierro",
+                    "peso": 75
+                  },
+                  {
+                    "id": "banco_madera",
+                    "peso": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "almacen",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 18,
+          "composiciones": [
+            {
+              "id": "almacen_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "C?E"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_madera"
+                },
+                "E": {
+                  "id": "estanteria_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 2,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 50
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 30
+                  },
+                  {
+                    "id": "arcon_militar",
+                    "peso": 20
+                  }
+                ]
+              }
+            },
+            {
+              "id": "almacen_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "C",
+                "?",
+                "E"
+              ],
+              "leyenda": {
+                "C": {
+                  "id": "caja_madera"
+                },
+                "E": {
+                  "id": "estanteria_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 2
+                }
+              ],
+              "opcional": {
+                "probabilidad": 50,
+                "permitidos": [
+                  {
+                    "id": "caja_madera",
+                    "peso": 50
+                  },
+                  {
+                    "id": "barril_madera",
+                    "peso": 30
+                  },
+                  {
+                    "id": "arcon_militar",
+                    "peso": 20
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "comedor",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 14,
+          "composiciones": [
+            {
+              "id": "comedor_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "B?T"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "banco_madera"
+                },
+                "T": {
+                  "id": "mesa_madera"
+                }
+              },
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "banco_madera",
+                    "peso": 70
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            },
+            {
+              "id": "comedor_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "B",
+                "?",
+                "T"
+              ],
+              "leyenda": {
+                "B": {
+                  "id": "banco_madera"
+                },
+                "T": {
+                  "id": "mesa_madera"
+                }
+              },
+              "opcional": {
+                "probabilidad": 30,
+                "permitidos": [
+                  {
+                    "id": "banco_madera",
+                    "peso": 70
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 30
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "mantenimiento",
+          "cupo": {
+            "minimo": 1,
+            "maximo": 2
+          },
+          "pesoRestante": 15,
+          "composiciones": [
+            {
+              "id": "mantenimiento_horizontal_01",
+              "orientacion": "horizontal",
+              "peso": 1,
+              "grilla": [
+                "X?C"
+              ],
+              "leyenda": {
+                "X": {
+                  "id": "barricada_improvisada"
+                },
+                "C": {
+                  "id": "caja_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "barricada_improvisada",
+                    "peso": 50
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 50
+                  }
+                ]
+              }
+            },
+            {
+              "id": "mantenimiento_vertical_01",
+              "orientacion": "vertical",
+              "peso": 1,
+              "grilla": [
+                "X",
+                "?",
+                "C"
+              ],
+              "leyenda": {
+                "X": {
+                  "id": "barricada_improvisada"
+                },
+                "C": {
+                  "id": "caja_madera"
+                }
+              },
+              "contraPared": [
+                {
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "opcional": {
+                "probabilidad": 35,
+                "permitidos": [
+                  {
+                    "id": "barricada_improvisada",
+                    "peso": 50
+                  },
+                  {
+                    "id": "caja_madera",
+                    "peso": 50
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   },
   "poblacion": {
     "presupuestoHabitacion": {
       "ocupacion": {
-        "por100Casillas": 10,
-        "minimo": 1,
-        "maximo": 4
+        "por100Casillas": 25,
+        "minimo": 3,
+        "maximo": 7
       },
       "amenaza": {
         "por100Casillas": 260,
@@ -250,13 +925,100 @@
       }
     },
     "destructibles": {
-      "densidadPor100Casillas": 9,
       "permitidos": [
         {
+          "id": "caja_madera",
+          "peso": 15,
+          "idTablaContenido": "militar_basico"
+        },
+        {
+          "id": "armero_madera",
+          "peso": 14,
+          "idTablaContenido": "arsenal"
+        },
+        {
+          "id": "arcon_militar",
+          "peso": 10,
+          "idTablaContenido": "arsenal"
+        },
+        {
           "id": "barril_madera",
-          "peso": 100
+          "peso": 7,
+          "idTablaContenido": "militar_basico"
+        },
+        {
+          "id": "barricada_improvisada",
+          "peso": 10
+        },
+        {
+          "id": "reja_hierro",
+          "peso": 8
+        },
+        {
+          "id": "mesa_madera",
+          "peso": 7
+        },
+        {
+          "id": "banco_madera",
+          "peso": 8
+        },
+        {
+          "id": "cama_madera",
+          "peso": 7
+        },
+        {
+          "id": "estanteria_madera",
+          "peso": 7
         }
-      ]
+      ],
+      "tablasBotin": {
+        "militar_basico": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 3,
+            "cantidadMaxima": 7
+          },
+          {
+            "idObjeto": "pocion_curacion",
+            "probabilidad": 20,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "pocion_mana",
+            "probabilidad": 15,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ],
+        "arsenal": [
+          {
+            "idObjeto": "flecha_madera",
+            "probabilidad": 100,
+            "cantidadMinima": 5,
+            "cantidadMaxima": 10
+          },
+          {
+            "idObjeto": "daga_hierro",
+            "probabilidad": 28,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "espada_larga",
+            "probabilidad": 12,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          },
+          {
+            "idObjeto": "escudo_madera",
+            "probabilidad": 16,
+            "cantidadMinima": 1,
+            "cantidadMaxima": 1
+          }
+        ]
+      }
     }
   }
 }

@@ -8,5 +8,85 @@
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
     "bloqueaCruceDiagonal": true
+  },
+  "pila_huesos": {
+    "nombre": "Pila de huesos",
+    "simbolo": "P",
+    "recursoVisual": "assets/imagenes/destructibles/pila_huesos.png",
+    "vidaMaxima": 5,
+    "armadura": 0,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "mesa_madera": {
+    "nombre": "Mesa de madera",
+    "simbolo": "T",
+    "recursoVisual": "assets/imagenes/destructibles/mesa_madera.png",
+    "vidaMaxima": 16,
+    "armadura": 1,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "silla_madera": {
+    "nombre": "Silla de madera",
+    "simbolo": "I",
+    "recursoVisual": "assets/imagenes/destructibles/silla_madera.png",
+    "vidaMaxima": 7,
+    "armadura": 0,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "cama_madera": {
+    "nombre": "Cama de madera",
+    "simbolo": "K",
+    "recursoVisual": "assets/imagenes/destructibles/cama_madera.png",
+    "vidaMaxima": 17,
+    "armadura": 1,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "estanteria_madera": {
+    "nombre": "Estantería de madera",
+    "simbolo": "E",
+    "recursoVisual": "assets/imagenes/destructibles/estanteria_madera.png",
+    "vidaMaxima": 15,
+    "armadura": 1,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "banco_madera": {
+    "nombre": "Banco de madera",
+    "simbolo": "B",
+    "recursoVisual": "assets/imagenes/destructibles/banco_madera.png",
+    "vidaMaxima": 10,
+    "armadura": 0,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "soporte_entrenamiento": {
+    "nombre": "Soporte de entrenamiento",
+    "simbolo": "D",
+    "recursoVisual": "assets/imagenes/destructibles/soporte_entrenamiento.png",
+    "vidaMaxima": 22,
+    "armadura": 2,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
+  },
+  "mesa_estrategica": {
+    "nombre": "Mesa estratégica",
+    "simbolo": "Q",
+    "recursoVisual": "assets/imagenes/destructibles/mesa_estrategica.png",
+    "vidaMaxima": 24,
+    "armadura": 2,
+    "bloqueaMovimiento": true,
+    "bloqueaVision": false,
+    "bloqueaCruceDiagonal": true
   }
 }

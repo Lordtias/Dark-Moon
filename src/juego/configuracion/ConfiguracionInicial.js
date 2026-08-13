@@ -314,8 +314,6 @@ function completarConfiguracionMazmorra({
 
     cantidadDestructibles: contenido.resumen.cantidadDestructibles,
 
-    porcentajeDestructibles: contenido.resumen.porcentajeDestructibles,
-
     detalleEnemigos: contenido.resumen.detalleEnemigos,
 
     detalleDestructibles: contenido.resumen.detalleDestructibles,

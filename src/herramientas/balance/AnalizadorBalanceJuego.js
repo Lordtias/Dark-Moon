@@ -20,8 +20,8 @@ import {
 } from "../../juego/magia/SistemaCatalizadores.js";
 import {
   ORIGENES_PUNTO_HABILIDAD,
-  ProgresoMagicoJugador,
-} from "../../juego/maestrias/ProgresoMagicoJugador.js";
+  ProgresoHabilidadesJugador,
+} from "../../juego/maestrias/ProgresoHabilidadesJugador.js";
 import { crearTablaProgresion } from "../../juego/progresion/SistemaProgresion.js";
 import { TIEMPO_REFERENCIA } from "../../juego/tiempo/SistemaTiempo.js";
 
@@ -36,7 +36,7 @@ const RESISTENCIAS_EFECTOS_VISIBLES = Object.freeze([
 // Orquesta cálculos de balance sin sustituir los motores del juego.
 //
 // - Progresión general: SistemaProgresion + FabricaEnemigos.
-// - Progresión mágica: ProgresoMagicoJugador.
+// - Progresión mágica: ProgresoHabilidadesJugador.
 // - Vida y Maná: EstadisticasDerivadas + CalculadorAtributosMagicos.
 // - Catalizadores y doble varita: SistemaCatalizadores y ConfiguracionAtaque.
 //
@@ -49,7 +49,7 @@ export function crearAnalizadorBalanceJuego({
   configuracionGeneracionObjetos = null,
   configuracionMapas,
   configuracionEntidadesMazmorra,
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
   objetivosBalance,
 } = {}) {
@@ -60,7 +60,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionEntidadesMazmorra,
-    configuracionProgresoMagico,
+    configuracionProgresoHabilidades,
     configuracionEjecucionHabilidades,
     objetivosBalance,
   });
@@ -73,7 +73,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionEntidadesMazmorra,
-    configuracionProgresoMagico,
+    configuracionProgresoHabilidades,
     configuracionEjecucionHabilidades,
     objetivosBalance,
   });
@@ -227,8 +227,8 @@ function crearInformeLineaBase({
     determinista: true,
     origenes: {
       progresionGeneral: "SistemaProgresion y FabricaEnemigos",
-      progresionMagica: "ProgresoMagicoJugador y ruta de enemigos estimados",
-      puntosHabilidad: "ProgresoMagicoJugador",
+      progresionMagica: "ProgresoHabilidadesJugador y ruta de enemigos estimados",
+      puntosHabilidad: "ProgresoHabilidadesJugador",
       recursos: "EstadisticasDerivadas y CalculadorAtributosMagicos",
       catalizadores: "SistemaCatalizadores y ConfiguracionAtaque",
       efectos: "SistemaEfectosTemporales, FabricaEnemigos y catálogo de afijos",
@@ -244,7 +244,7 @@ function crearInformeLineaBase({
       armasCombateAnalizadas: combate.armas.resumen.cantidad,
       profesionesAnalizadas: mana.resumen.cantidadProfesiones,
       puntosUniversalesIniciales:
-        dependencias.configuracionProgresoMagico.reglas
+        dependencias.configuracionProgresoHabilidades.reglas
           .puntosUniversalesIniciales,
       rutaCumpleObjetivo: progresion.resumen.cumpleObjetivo,
       expedicionesEstimadasNivel10: redondear(
@@ -299,7 +299,7 @@ function crearInformeLineaBase({
 function crearInformeProgresion({
   configuracionMapas,
   configuracionEnemigos,
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   objetivosBalance,
 }) {
   const mapas = analizarBalanceProgresion({
@@ -315,9 +315,9 @@ function crearInformeProgresion({
       fila.experienciaAcumulada + fila.experienciaParaSiguiente,
     puntosAtributoAcumulados: Math.max(0, fila.nivel - 1),
     puntosUniversalesAcumulados:
-      configuracionProgresoMagico.reglas.puntosUniversalesIniciales +
+      configuracionProgresoHabilidades.reglas.puntosUniversalesIniciales +
       Math.max(0, fila.nivel - 1) *
-        configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+        configuracionProgresoHabilidades.reglas.puntosUniversalesPorNivelGeneral,
   }));
 
   return {
@@ -332,14 +332,19 @@ function crearInformeProgresion({
 }
 
 function crearInformeMaestrias({
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
 }) {
-  const umbrales = crearUmbralesMaestria(configuracionProgresoMagico);
+  const umbrales = crearUmbralesMaestria(configuracionProgresoHabilidades);
   const filas = [];
 
   for (const habilidad of Object.values(
     configuracionEjecucionHabilidades.habilidades,
+  ).filter((habilidad) =>
+    esHabilidadMagicaActiva({
+      habilidad,
+      configuracionProgresoHabilidades,
+    }),
   )) {
     const categoria = obtenerCategoriaHabilidad(
       habilidad.requisitoNivelMaestria,
@@ -350,7 +355,7 @@ function crearInformeMaestrias({
     )) {
       const gradoNumero = Number(gradoTexto);
       const experienciaPorUso = obtenerExperienciaRealPorUso({
-        configuracionProgresoMagico,
+        configuracionProgresoHabilidades,
         idMaestria: habilidad.maestria,
         manaConsumido: grado.costoMana,
       });
@@ -368,7 +373,7 @@ function crearInformeMaestrias({
         experienciaPorUso,
         usosDesdeCeroANivel3: puedeSubirHasta3
           ? simularUsosMaestria({
-              configuracionProgresoMagico,
+              configuracionProgresoHabilidades,
               idMaestria: habilidad.maestria,
               manaConsumido: grado.costoMana,
               nivelObjetivo: 3,
@@ -376,7 +381,7 @@ function crearInformeMaestrias({
           : null,
         manaDesdeCeroANivel3: puedeSubirHasta3
           ? simularUsosMaestria({
-              configuracionProgresoMagico,
+              configuracionProgresoHabilidades,
               idMaestria: habilidad.maestria,
               manaConsumido: grado.costoMana,
               nivelObjetivo: 3,
@@ -384,7 +389,7 @@ function crearInformeMaestrias({
           : null,
         usosDesdeNivel3ANivel6: puedeSubirDesde3Hasta6
           ? simularUsosMaestria({
-              configuracionProgresoMagico,
+              configuracionProgresoHabilidades,
               idMaestria: habilidad.maestria,
               manaConsumido: grado.costoMana,
               nivelInicial: 3,
@@ -393,7 +398,7 @@ function crearInformeMaestrias({
           : null,
         manaDesdeNivel3ANivel6: puedeSubirDesde3Hasta6
           ? simularUsosMaestria({
-              configuracionProgresoMagico,
+              configuracionProgresoHabilidades,
               idMaestria: habilidad.maestria,
               manaConsumido: grado.costoMana,
               nivelInicial: 3,
@@ -404,12 +409,12 @@ function crearInformeMaestrias({
     }
   }
 
-  const rutasDesbloqueo = Object.keys(
-    configuracionProgresoMagico.maestrias,
+  const rutasDesbloqueo = obtenerIdsMaestriasMagicas(
+    configuracionProgresoHabilidades,
   ).flatMap((idMaestria) =>
     crearRutasDesbloqueoMaestria({
       idMaestria,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
       configuracionEjecucionHabilidades,
     }),
   );
@@ -418,9 +423,9 @@ function crearInformeMaestrias({
     tipoResultado: "simulacion_determinista_motor_real",
     determinista: true,
     reglas: {
-      ...configuracionProgresoMagico.reglas,
+      ...configuracionProgresoHabilidades.reglas,
       experienciaPorNivel: [
-        ...configuracionProgresoMagico.reglas.experienciaPorNivel,
+        ...configuracionProgresoHabilidades.reglas.experienciaPorNivel,
       ],
     },
     umbrales,
@@ -430,7 +435,7 @@ function crearInformeMaestrias({
 }
 
 function crearInformeProgresionMagica({
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
   objetivosBalance,
   progresion,
@@ -447,7 +452,9 @@ function crearInformeProgresionMagica({
   }
 
   const filas = [];
-  for (const idMaestria of Object.keys(configuracionProgresoMagico.maestrias)) {
+  for (const idMaestria of obtenerIdsMaestriasMagicas(
+    configuracionProgresoHabilidades,
+  )) {
     for (const usosPorEnemigo of configuracion.usosHabilidadPorEnemigo) {
       for (const estrategia of configuracion.estrategiasPuntos) {
         filas.push(
@@ -455,7 +462,7 @@ function crearInformeProgresionMagica({
             idMaestria,
             usosPorEnemigo,
             estrategia,
-            configuracionProgresoMagico,
+            configuracionProgresoHabilidades,
             configuracionEjecucionHabilidades,
             rutaRecomendada: progresion.rutaRecomendada,
           }),
@@ -488,7 +495,7 @@ function crearInformeProgresionMagica({
     tipoResultado: "simulacion_determinista_motor_real",
     determinista: true,
     descripcion:
-      "Simula una especialización elemental usando ProgresoMagicoJugador. La cantidad de usos se obtiene al multiplicar los enemigos estimados de la ruta por 1, 2 o 3 lanzamientos efectivos.",
+      "Simula una especialización elemental usando ProgresoHabilidadesJugador. La cantidad de usos se obtiene al multiplicar los enemigos estimados de la ruta por 1, 2 o 3 lanzamientos efectivos.",
     configuracion: {
       usosHabilidadPorEnemigo: [...configuracion.usosHabilidadPorEnemigo],
       estrategiasPuntos: [...configuracion.estrategiasPuntos],
@@ -507,7 +514,7 @@ function simularRutaProgresionMagica({
   idMaestria,
   usosPorEnemigo,
   estrategia,
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
   rutaRecomendada,
 }) {
@@ -520,14 +527,19 @@ function simularRutaProgresionMagica({
     throw new Error(`La estrategia de puntos "${estrategia}" no existe.`);
   }
 
-  const progreso = new ProgresoMagicoJugador({
-    configuracion: configuracionProgresoMagico,
+  const progreso = new ProgresoHabilidadesJugador({
+    configuracion: configuracionProgresoHabilidades,
     idProfesion: "mago",
   });
   const habilidades = Object.values(
     configuracionEjecucionHabilidades.habilidades,
   )
-    .filter((habilidad) => habilidad.maestria === idMaestria)
+    .filter(
+      (habilidad) =>
+        habilidad.maestria === idMaestria &&
+        habilidad.tipo === "activa" &&
+        Boolean(habilidad.ejecucion),
+    )
     .sort(
       (a, b) =>
         a.requisitoNivelMaestria - b.requisitoNivelMaestria ||
@@ -628,7 +640,7 @@ function simularRutaProgresionMagica({
     }
 
     progreso.agregarPuntosUniversales(
-      configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+      configuracionProgresoHabilidades.reglas.puntosUniversalesPorNivelGeneral,
     );
     gastarPuntosEspecializacion({
       progreso,
@@ -763,7 +775,7 @@ function resumirUsoMagico({ filas, usosPorEnemigo }) {
 }
 
 function crearInformePuntosHabilidad({
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
 }) {
   const habilidadesModelo = Object.values(
@@ -784,7 +796,7 @@ function crearInformePuntosHabilidad({
   const costoBasicaIntermedia = costos.basica + costos.intermedia;
   const costoArbolCompleto = costoBasicaIntermedia + costos.avanzada;
   const iniciales =
-    configuracionProgresoMagico.reglas.puntosUniversalesIniciales;
+    configuracionProgresoHabilidades.reglas.puntosUniversalesIniciales;
 
   const hitos = [
     {
@@ -830,7 +842,7 @@ function crearInformePuntosHabilidad({
     puntosUniversalesAcumulados:
       iniciales +
       Math.max(0, nivelGeneral - 1) *
-        configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+        configuracionProgresoHabilidades.reglas.puntosUniversalesPorNivelGeneral,
   }));
 
   return {
@@ -843,7 +855,7 @@ function crearInformePuntosHabilidad({
       costoArbolCompleto,
       puntosUniversalesIniciales: iniciales,
       puntosUniversalesPorNivel:
-        configuracionProgresoMagico.reglas.puntosUniversalesPorNivelGeneral,
+        configuracionProgresoHabilidades.reglas.puntosUniversalesPorNivelGeneral,
       puntoEspecificoPorNivelMaestria: 1,
     },
     hitos,
@@ -854,9 +866,9 @@ function crearInformePuntosHabilidad({
 }
 
 
-function crearUmbralesMaestria(configuracionProgresoMagico) {
+function crearUmbralesMaestria(configuracionProgresoHabilidades) {
   let acumulada = 0;
-  return configuracionProgresoMagico.reglas.experienciaPorNivel.map(
+  return configuracionProgresoHabilidades.reglas.experienciaPorNivel.map(
     (experiencia, indice) => {
       acumulada += experiencia;
       return {
@@ -870,12 +882,12 @@ function crearUmbralesMaestria(configuracionProgresoMagico) {
 }
 
 function obtenerExperienciaRealPorUso({
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   idMaestria,
   manaConsumido,
 }) {
-  const progreso = new ProgresoMagicoJugador({
-    configuracion: configuracionProgresoMagico,
+  const progreso = new ProgresoHabilidadesJugador({
+    configuracion: configuracionProgresoHabilidades,
     idProfesion: "mago",
   });
   return progreso.registrarEjecucionEfectiva({
@@ -887,17 +899,17 @@ function obtenerExperienciaRealPorUso({
 }
 
 function simularUsosMaestria({
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   idMaestria,
   manaConsumido,
   nivelInicial = 0,
   nivelObjetivo,
 }) {
-  const progreso = new ProgresoMagicoJugador({
-    configuracion: configuracionProgresoMagico,
+  const progreso = new ProgresoHabilidadesJugador({
+    configuracion: configuracionProgresoHabilidades,
     idProfesion: "mago",
   });
-  const experienciaInicial = configuracionProgresoMagico.reglas
+  const experienciaInicial = configuracionProgresoHabilidades.reglas
     .experienciaPorNivel.slice(0, nivelInicial)
     .reduce((total, valor) => total + valor, 0);
 
@@ -929,12 +941,17 @@ function simularUsosMaestria({
 
 function crearRutasDesbloqueoMaestria({
   idMaestria,
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
   configuracionEjecucionHabilidades,
 }) {
   const habilidades = Object.values(
     configuracionEjecucionHabilidades.habilidades,
-  ).filter((habilidad) => habilidad.maestria === idMaestria);
+  ).filter(
+    (habilidad) =>
+      habilidad.maestria === idMaestria &&
+      habilidad.tipo === "activa" &&
+      Boolean(habilidad.ejecucion),
+  );
   const basica = habilidades.find(
     (habilidad) => habilidad.requisitoNivelMaestria === 0,
   );
@@ -950,7 +967,7 @@ function crearRutasDesbloqueoMaestria({
       gradoBasica: 1,
       intermedia,
       gradoIntermedia: 1,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
     }),
     crearRutaDesbloqueo({
       idMaestria,
@@ -959,7 +976,7 @@ function crearRutasDesbloqueoMaestria({
       gradoBasica: basica.gradoMaximo,
       intermedia,
       gradoIntermedia: intermedia.gradoMaximo,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
     }),
   ];
 }
@@ -971,13 +988,13 @@ function crearRutaDesbloqueo({
   gradoBasica,
   intermedia,
   gradoIntermedia,
-  configuracionProgresoMagico,
+  configuracionProgresoHabilidades,
 }) {
   const manaBasica = basica.ejecucion.grados[gradoBasica].costoMana;
   const manaIntermedia =
     intermedia.ejecucion.grados[gradoIntermedia].costoMana;
-  const progreso = new ProgresoMagicoJugador({
-    configuracion: configuracionProgresoMagico,
+  const progreso = new ProgresoHabilidadesJugador({
+    configuracion: configuracionProgresoHabilidades,
     idProfesion: "mago",
   });
   let usosBasica = 0;
@@ -1943,6 +1960,25 @@ function crearFilaPocionMana({
   };
 }
 
+function obtenerIdsMaestriasMagicas(configuracionProgresoHabilidades) {
+  return Object.values(configuracionProgresoHabilidades.maestrias)
+    .filter((maestria) => maestria.categoria === "magicas")
+    .map((maestria) => maestria.id);
+}
+
+function esHabilidadMagicaActiva({
+  habilidad,
+  configuracionProgresoHabilidades,
+}) {
+  const maestria =
+    configuracionProgresoHabilidades.maestrias[habilidad?.maestria];
+  return (
+    habilidad?.tipo === "activa" &&
+    Boolean(habilidad.ejecucion) &&
+    maestria?.categoria === "magicas"
+  );
+}
+
 function obtenerCategoriaHabilidad(requisitoNivelMaestria) {
   if (requisitoNivelMaestria === 0) return "basica";
   if (requisitoNivelMaestria === 3) return "intermedia";
@@ -1972,8 +2008,8 @@ function validarEntrada(entrada) {
   if (!entrada.configuracionMapas.plantillas) {
     throw new Error("La configuración de mapas no contiene plantillas.");
   }
-  if (!entrada.configuracionProgresoMagico.reglas) {
-    throw new Error("La configuración de progreso mágico no está validada.");
+  if (!entrada.configuracionProgresoHabilidades.reglas) {
+    throw new Error("La configuración de progreso de habilidades no está validada.");
   }
   if (!entrada.configuracionEjecucionHabilidades.habilidades) {
     throw new Error("La configuración de habilidades no está validada.");

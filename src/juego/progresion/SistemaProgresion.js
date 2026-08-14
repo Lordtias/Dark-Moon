@@ -8,7 +8,7 @@ export const NIVEL_MAXIMO_PLANIFICADO = 10;
 // Configuración central de la curva de progresión general.
 //
 // La progresión concede exactamente un punto de atributo por nivel.
-// Los puntos universales se administran dentro de ProgresoMagicoJugador.
+// Los puntos universales se administran dentro de ProgresoHabilidadesJugador.
 export const CONFIGURACION_PROGRESION = Object.freeze({
   experienciaBase: 20,
   exponenteCrecimiento: 1.35,

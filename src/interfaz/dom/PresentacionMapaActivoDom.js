@@ -5,8 +5,8 @@ import { AdaptadorInteraccionesDom } from "../interacciones/AdaptadorInteraccion
 import { IntegracionHabilidadesDom } from "../habilidades/IntegracionHabilidadesDom.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
-  obtenerConfiguracionProgresoMagico,
-} from "../../juego/maestrias/ContextoProgresoMagico.js";
+  obtenerConfiguracionProgresoHabilidades,
+} from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 
 // Construye y administra los adaptadores DOM asociados a un único mapa.
 //
@@ -101,8 +101,7 @@ export class PresentacionMapaActivoDom {
       juego,
       renderizador: interfazPartida.renderizador,
       configuracionEjecucion: obtenerConfiguracionEjecucionHabilidades(),
-      configuracionProgreso: obtenerConfiguracionProgresoMagico(),
-      configuracionObjetos,
+      configuracionProgreso: obtenerConfiguracionProgresoHabilidades(),
       gestorPaneles: interfazPartida.gestorPaneles,
       esJuegoActivo,
       alEjecutarComando,

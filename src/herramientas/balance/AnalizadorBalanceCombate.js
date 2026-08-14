@@ -664,7 +664,7 @@ function crearInformeHabilidadesCombate({
 
   for (const habilidad of Object.values(
     configuracionEjecucionHabilidades.habilidades,
-  )) {
+  ).filter(esHabilidadActivaEjecutable)) {
     const categoria = categoriaHabilidad(habilidad.requisitoNivelMaestria);
     for (const [gradoTexto, grado] of Object.entries(
       habilidad.ejecucion.grados,
@@ -752,7 +752,9 @@ function crearInformeHabilidadesCombate({
     potenciaMaximos,
     resumen: {
       ...resumirEstados(filasPrincipales),
-      habilidades: Object.keys(configuracionEjecucionHabilidades.habilidades).length,
+      habilidades: Object.values(
+        configuracionEjecucionHabilidades.habilidades,
+      ).filter(esHabilidadActivaEjecutable).length,
       grados: filasPrincipales.length,
       simulaciones: filasCompletas.length,
     },
@@ -1284,7 +1286,7 @@ function crearHabilidadArquetipo({
   if (!escenario.usaHabilidad) return null;
   const candidatas = Object.values(
     configuracionEjecucionHabilidades.habilidades,
-  ).filter(
+  ).filter(esHabilidadActivaEjecutable).filter(
     (habilidad) =>
       !escenario.categoriaHabilidad ||
       categoriaHabilidad(habilidad.requisitoNivelMaestria) ===
@@ -3344,6 +3346,10 @@ function nivelRepresentativoHabilidad(categoria, grado) {
   if (categoria === "intermedia") return [3, 6, 10][grado - 1] ?? 10;
   if (categoria === "avanzada") return [6, 8, 10][grado - 1] ?? 10;
   return 10;
+}
+
+function esHabilidadActivaEjecutable(habilidad) {
+  return habilidad?.tipo === "activa" && Boolean(habilidad.ejecucion);
 }
 
 function categoriaHabilidad(requisito) {

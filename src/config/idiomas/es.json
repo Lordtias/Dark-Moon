@@ -194,13 +194,8 @@
       "titulo": "Habilidades y maestrías",
       "cerrar": "Cerrar habilidades",
       "categoriasAria": "Categorías de maestrías",
-      "categoriaMagicas": "Mágicas",
-      "categoriaBasicas": "Básicas",
-      "categoriaArmas": "Armas",
-      "categoriaArmaduras": "Armaduras",
       "universales": "Universales",
       "especificos": "Específicos",
-      "maestriaMagica": "Maestría mágica",
       "puntosEspecificos": "Puntos específicos",
       "nivel": "Nivel {nivel} / {maximo}",
       "grado": "Grado {grado} / {maximo}",
@@ -232,7 +227,6 @@
       "experienciaProgreso": "{actual} / {necesaria} XP",
       "experienciaTotal": "Experiencia total acumulada: {valor}",
       "lanzamiento": "Lanzamiento",
-      "pendienteContenido": "No disponible actualmente",
       "danioBase": "Daño base",
       "manaEtiqueta": "Maná",
       "tiempo": "Tiempo",
@@ -274,17 +268,6 @@
       "confirmar": "Confirmar",
       "cancelar": "Cancelar",
       "cancelarAccion": "Cancelar acción",
-      "basicasEtiqueta": "Básicas",
-      "generalesTitulo": "Habilidades generales",
-      "generalesVacias": "Todavía no hay habilidades básicas disponibles.",
-      "generalesDetalle": "Esta sección está reservada para acciones generales como Descansar, Investigar y otras dinámicas que todavía no están disponibles.",
-      "seccionVacia": "Sección vacía",
-      "extensionFutura": "No disponible",
-      "enConstruccion": "No disponible",
-      "maestriasArmasTitulo": "Maestrías de armas",
-      "maestriasArmasDetalle": "Las familias ya quedan visibles como recordatorio, pero todavía no ganan experiencia ni conceden puntos.",
-      "maestriasArmadurasTitulo": "Maestrías de armaduras",
-      "maestriasArmadurasDetalle": "La progresión por uso y mitigación de armaduras no está disponible actualmente.",
       "resumenGrado": "{habilidad}: grado {actual} → {nuevo}.",
       "elegirPuntoConsumir": "Elegí qué punto consumir",
       "puntoEspecificoDisponible": "Específico de {maestria} ({cantidad} disponibles)",
@@ -295,7 +278,12 @@
       "motivoSinEspecificos": "No quedan puntos específicos de esa maestría.",
       "motivoPuntoOtraMaestria": "El punto específico pertenece a otra maestría.",
       "motivoOperacion": "No se pudo completar la operación ({motivo}).",
-      "errorOperacion": "No se pudo completar la operación."
+      "errorOperacion": "No se pudo completar la operación.",
+      "tipoEtiqueta": "Tipo",
+      "tipoPasiva": "Pasiva",
+      "sinMaestriasTitulo": "Sin maestrías configuradas",
+      "sinMaestriasDetalle": "No hay maestrías configuradas en esta categoría.",
+      "categoriaVacia": "No hay habilidades configuradas en esta maestría."
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -1423,6 +1411,20 @@
       },
       "veneno": {
         "nombre": "veneno"
+      }
+    },
+    "categoriasHabilidades": {
+      "magicas": {
+        "nombre": "Mágicas"
+      },
+      "basicas": {
+        "nombre": "Básicas"
+      },
+      "armas": {
+        "nombre": "Armas"
+      },
+      "armaduras": {
+        "nombre": "Armaduras"
       }
     }
   },

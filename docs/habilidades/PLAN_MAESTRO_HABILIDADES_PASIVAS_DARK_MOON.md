@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas  
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.  
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.  
-**Estado:** Plan maestro rector. HP0 corresponde al análisis y contrato arquitectónico documentado en este archivo. Las etapas de implementación requieren análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
+**Estado:** Plan maestro rector. HP0 quedó documentada y HP1 quedó cerrada tras implementar y validar la generalización de progresión/configuración. La siguiente etapa es HP2 — Auditoría exhaustiva, contrato, resolutor y afijos globales. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
 
 ---
 
@@ -161,6 +161,21 @@ Al redactar HP0, el repositorio real dispone de estas bases aprovechables:
 - la persistencia de progreso actual espera las maestrías y habilidades conocidas por la configuración; para este hito se parte explícitamente de **cero partidas guardadas previas**, por lo que HP1 puede adoptar directamente el esquema nuevo sin migraciones, parches ni compatibilidad retroactiva.
 
 El hito debe aprovechar estas piezas. No debe reemplazarlas por motores paralelos cuando sea posible generalizarlas.
+
+### 3.1. Estado actual tras HP1
+
+HP1 reemplazó la progresión exclusivamente mágica por el contrato general vigente:
+
+- `ProgresoHabilidadesJugador` es la única fuente de puntos, niveles de maestría, experiencia y grados de habilidad;
+- `ContextoProgresoHabilidades` carga y valida los catálogos generales;
+- `ValidadorConfiguracionProgresoHabilidades` acepta categorías, maestrías y cantidades de habilidades configurables sin conocer una lista fija de elementos;
+- `src/config/habilidades/Maestrias.json` y `src/config/habilidades/Habilidades.json` son las ubicaciones canónicas generales;
+- cada habilidad declara `tipo: activa | pasiva`;
+- las pasivas pueden progresar, pero no poseen ejecución directa, no pueden asignarse a la barra y no requieren perfil visual de ejecución;
+- el panel obtiene categorías y maestrías desde configuración y admite categorías vacías sin placeholders de negocio codificados;
+- la persistencia utiliza `progresoHabilidades` y versiones nuevas, sin migración ni aliases del esquema anterior;
+- no sobreviven wrappers, configuraciones ni clases productivas de `ProgresoMagicoJugador`;
+- las doce habilidades actuales continúan declaradas como activas; las maestrías físicas y el catálogo amplio de pasivas permanecen deliberadamente pendientes para HP3.
 
 ---
 
@@ -1242,6 +1257,8 @@ Criterio de cierre:
 
 ### HP1 — Generalización de progresión y configuración
 
+**Estado:** Cerrada. Implementación, validación estructural/contractual y pruebas manuales básicas completadas.
+
 Objetivo:
 
 - reemplazar la progresión exclusivamente mágica por progresión general de habilidades;
@@ -1691,14 +1708,14 @@ No se requiere una dependencia nueva para este hito salvo que una etapa futura d
 
 ## 25. ARCHIVOS Y ÁREAS CLAVE INICIALES
 
-Las rutas exactas a modificar deben reconfirmarse al iniciar cada etapa, pero HP1 debe comenzar revisando como mínimo:
+HP1 cerró la migración de progresión y deja como herencia canónica para las etapas siguientes:
 
 ```text
-src/juego/maestrias/ContextoProgresoMagico.js
-src/juego/maestrias/ProgresoMagicoJugador.js
-src/juego/maestrias/ValidadorConfiguracionProgresoMagico.js
-src/config/magia/Maestrias.json
-src/config/magia/Habilidades.json
+src/juego/maestrias/ContextoProgresoHabilidades.js
+src/juego/maestrias/ProgresoHabilidadesJugador.js
+src/juego/maestrias/ValidadorConfiguracionProgresoHabilidades.js
+src/config/habilidades/Maestrias.json
+src/config/habilidades/Habilidades.json
 src/interfaz/habilidades/PanelHabilidadesMaestrias.js
 src/interfaz/habilidades/IntegracionHabilidadesDom.js
 src/partida/PersistenciaJugador.js
@@ -1730,7 +1747,7 @@ No debe asumirse que esta lista reemplaza el análisis de imports, instancias y 
 Quedan aprobadas como dirección del hito:
 
 1. existe un único sistema general de progresión de habilidades;
-2. `ProgresoMagicoJugador` debe generalizarse y ser reemplazado, no duplicado;
+2. HP1 reemplazó `ProgresoMagicoJugador` por `ProgresoHabilidadesJugador`, sin duplicarlo ni conservar wrappers;
 3. Maestrías/Habilidades generales salen del directorio conceptual exclusivo de magia;
 4. pasivas consumen los mismos puntos universales/específicos que las activas;
 5. pasivas, auras, maldiciones y afijos globales comparten un sistema canónico de modificadores;

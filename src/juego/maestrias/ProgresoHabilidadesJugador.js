@@ -3,16 +3,13 @@ export const ORIGENES_PUNTO_HABILIDAD = Object.freeze({
   ESPECIFICO: "especifico",
 });
 
-const VERSION_ESTADO_PROGRESO = 1;
-const ALIAS_HABILIDADES_PERSISTIDAS = Object.freeze({
-  rafaga_glacial: "prision_glacial",
-});
-// Fuente única de verdad de la progresión mágica del personaje.
+const VERSION_ESTADO_PROGRESO = 2;
+// Fuente única de verdad de la progresión de habilidades del personaje.
 //
 // Conserva únicamente datos de progresión. No calcula daño, no consume Maná,
 // no altera la agenda temporal y no conoce la interfaz. Una ejecución efectiva
 // puede notificarse usando el Maná realmente consumido.
-export class ProgresoMagicoJugador {
+export class ProgresoHabilidadesJugador {
   constructor({ configuracion, idProfesion, estadoInicial = null } = {}) {
     validarConfiguracion(configuracion);
     this.configuracion = configuracion;
@@ -23,9 +20,10 @@ export class ProgresoMagicoJugador {
       configuracion,
       idProfesion: this.idProfesion,
     });
-    this.gradosHabilidades = crearEstadoInicialHabilidades(
-      configuracion.habilidades,
-    );
+    this.gradosHabilidades = crearEstadoInicialHabilidades({
+      habilidades: configuracion.habilidades,
+      maestriasDisponibles: this.maestrias,
+    });
 
     if (estadoInicial !== null) {
       this.restaurarEstado(estadoInicial);
@@ -43,10 +41,14 @@ export class ProgresoMagicoJugador {
     for (const [idHabilidad, definicion] of Object.entries(
       this.configuracion.habilidades,
     )) {
+      if (!Object.hasOwn(this.gradosHabilidades, idHabilidad)) {
+        continue;
+      }
       habilidades[idHabilidad] = {
         id: idHabilidad,
         nombre: definicion.nombre,
         maestria: definicion.maestria,
+        tipo: definicion.tipo,
         requisitoNivelMaestria: definicion.requisitoNivelMaestria,
         grado: this.gradosHabilidades[idHabilidad],
         gradoMaximo: definicion.gradoMaximo,
@@ -304,11 +306,11 @@ export class ProgresoMagicoJugador {
   }
 
   normalizarEstadoPersistido(estado) {
-    validarObjetoPlano(estado, "el estado de progreso mágico");
+    validarObjetoPlano(estado, "el estado de progreso de habilidades");
 
     if (estado.version !== VERSION_ESTADO_PROGRESO) {
       throw new Error(
-        `La versión ${estado.version} del progreso mágico no es compatible.`,
+        `La versión ${estado.version} del progreso de habilidades no es compatible.`,
       );
     }
     validarEnteroNoNegativo(
@@ -371,10 +373,10 @@ export class ProgresoMagicoJugador {
     for (const [idHabilidad, definicion] of Object.entries(
       this.configuracion.habilidades,
     )) {
-      const idAnterior = ALIAS_HABILIDADES_PERSISTIDAS[idHabilidad];
-      const grado =
-        estado.gradosHabilidades[idHabilidad] ??
-        (idAnterior ? estado.gradosHabilidades[idAnterior] : undefined);
+      if (!Object.hasOwn(this.gradosHabilidades, idHabilidad)) {
+        continue;
+      }
+      const grado = estado.gradosHabilidades[idHabilidad];
       validarEnteroNoNegativo(grado, `El grado guardado de ${idHabilidad}`);
 
       if (grado > definicion.gradoMaximo) {
@@ -451,9 +453,12 @@ function crearEstadoInicialMaestrias({ configuracion, idProfesion }) {
   return resultado;
 }
 
-function crearEstadoInicialHabilidades(habilidades) {
+function crearEstadoInicialHabilidades({ habilidades, maestriasDisponibles }) {
   const resultado = {};
-  for (const idHabilidad of Object.keys(habilidades)) {
+  for (const [idHabilidad, definicion] of Object.entries(habilidades)) {
+    if (!Object.hasOwn(maestriasDisponibles, definicion.maestria)) {
+      continue;
+    }
     resultado[idHabilidad] = 0;
   }
   return resultado;
@@ -489,7 +494,7 @@ function validarConfiguracion(configuracion) {
     !configuracion.habilidades
   ) {
     throw new Error(
-      "ProgresoMagicoJugador necesita una configuración validada.",
+      "ProgresoHabilidadesJugador necesita una configuración validada.",
     );
   }
 }

@@ -109,9 +109,9 @@ export class EstadoPartida {
       tipoUbicacionActual: this._tipoUbicacionActual,
       idMapaActual: this._idMapaActual,
       expedicionesRealizadas: this._expedicionesRealizadas,
-      progresoMagico:
-        typeof this.jugador.obtenerResumenProgresoMagico === "function"
-          ? this.jugador.obtenerResumenProgresoMagico()
+      progresoHabilidades:
+        typeof this.jugador.obtenerResumenProgresoHabilidades === "function"
+          ? this.jugador.obtenerResumenProgresoHabilidades()
           : null,
     };
   }

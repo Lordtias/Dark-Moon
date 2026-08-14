@@ -1,9 +1,10 @@
 {
-  "version": 7,
+  "version": 8,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
       "maestria": "fuego",
+      "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
       "icono": "assets/imagenes/habilidades/ascua.png",
@@ -68,6 +69,7 @@
     "explosion_ignea": {
       "nombre": "Explosión ígnea",
       "maestria": "fuego",
+      "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/explosion_ignea.png",
@@ -135,6 +137,7 @@
     "incinerar": {
       "nombre": "Incinerar",
       "maestria": "fuego",
+      "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/incinerar.png",
@@ -238,6 +241,7 @@
     "esquirla_hielo": {
       "nombre": "Esquirla de hielo",
       "maestria": "frio",
+      "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
       "icono": "assets/imagenes/habilidades/esquirla_hielo.png",
@@ -342,6 +346,7 @@
     "nova_escarcha": {
       "nombre": "Nova de escarcha",
       "maestria": "frio",
+      "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/nova_escarcha.png",
@@ -439,6 +444,7 @@
     "rafaga_glacial": {
       "nombre": "Ráfaga glacial",
       "maestria": "frio",
+      "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/rafaga_glacial.png",
@@ -512,6 +518,7 @@
     "chispa": {
       "nombre": "Chispa",
       "maestria": "rayo",
+      "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
       "icono": "assets/imagenes/habilidades/chispa.png",
@@ -616,6 +623,7 @@
     "cadena_rayos": {
       "nombre": "Cadena de rayos",
       "maestria": "rayo",
+      "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/cadena_rayos.png",
@@ -719,6 +727,7 @@
     "descarga_fulminante": {
       "nombre": "Descarga fulminante",
       "maestria": "rayo",
+      "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/descarga_fulminante.png",
@@ -813,6 +822,7 @@
     "aguijon_toxico": {
       "nombre": "Aguijón tóxico",
       "maestria": "veneno",
+      "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 4,
       "icono": "assets/imagenes/habilidades/aguijon_toxico.png",
@@ -917,6 +927,7 @@
     "nube_toxica": {
       "nombre": "Nube tóxica",
       "maestria": "veneno",
+      "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/nube_toxica.png",
@@ -951,7 +962,11 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -986,7 +1001,11 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1021,7 +1040,11 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1038,6 +1061,7 @@
     "plaga_corrosiva": {
       "nombre": "Plaga corrosiva",
       "maestria": "veneno",
+      "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/plaga_corrosiva.png",

@@ -12,9 +12,9 @@ import {
   restaurarRecursosTrasRecalculo,
 } from "../../../juego/magia/CalculadorAtributosMagicos.js";
 import {
-  crearProgresoMagicoParaPersonaje,
-  obtenerConfiguracionProgresoMagico,
-} from "../../../juego/maestrias/ContextoProgresoMagico.js";
+  crearProgresoHabilidadesParaPersonaje,
+  obtenerConfiguracionProgresoHabilidades,
+} from "../../../juego/maestrias/ContextoProgresoHabilidades.js";
 import { PercepcionJugador } from "../../../juego/visibilidad/PercepcionJugador.js";
 
 const ATRIBUTOS_VALIDOS = [
@@ -29,7 +29,7 @@ const ATRIBUTOS_VALIDOS = [
 // Player conserva responsabilidades propias del personaje:
 //
 // - Progresión general y atributos.
-// - Progresión mágica delegada a ProgresoMagicoJugador.
+// - Progresión de habilidades delegada a ProgresoHabilidadesJugador.
 // - Inventario, equipamiento, recursos y oro.
 //
 // El nivel de una maestría no se mezcla con atributos ni estadísticas
@@ -65,7 +65,7 @@ export class Player extends Combatiente {
       "anillo_izquierdo",
     ],
     equipamientoInicial = [],
-    estadoProgresoMagico = null,
+    estadoProgresoHabilidades = null,
   } = {}) {
     super({
       nombre,
@@ -121,9 +121,9 @@ export class Player extends Combatiente {
     this.puntosAtributoDisponibles = puntosAtributoDisponibles;
     this.ultimoResultadoProgresion = null;
 
-    this.progresoMagico = crearProgresoMagicoParaPersonaje({
+    this.progresoHabilidades = crearProgresoHabilidadesParaPersonaje({
       idProfesion: this.idProfesion,
-      estadoInicial: estadoProgresoMagico,
+      estadoInicial: estadoProgresoHabilidades,
     });
 
     // Percepción es independiente del nivel y de los seis atributos
@@ -153,7 +153,7 @@ export class Player extends Combatiente {
   }
 
   get puntosHabilidadUniversales() {
-    return this.progresoMagico.obtenerPuntosUniversales();
+    return this.progresoHabilidades.obtenerPuntosUniversales();
   }
 
   get percepcion() {
@@ -246,7 +246,7 @@ export class Player extends Combatiente {
     let nivelesGanados = 0;
     let puntosAtributoGanados = 0;
     let puntosUniversalesGanados = 0;
-    const configuracionMagica = obtenerConfiguracionProgresoMagico();
+    const configuracionProgreso = obtenerConfiguracionProgresoHabilidades();
 
     while (this._experiencia >= calcularExperienciaNecesaria(this.nivel)) {
       const experienciaRequerida = calcularExperienciaNecesaria(this.nivel);
@@ -260,8 +260,8 @@ export class Player extends Combatiente {
       puntosAtributoGanados += puntosAtributoNivel;
 
       const puntosUniversalesNivel =
-        configuracionMagica.reglas.puntosUniversalesPorNivelGeneral;
-      this.progresoMagico.agregarPuntosUniversales(puntosUniversalesNivel);
+        configuracionProgreso.reglas.puntosUniversalesPorNivelGeneral;
+      this.progresoHabilidades.agregarPuntosUniversales(puntosUniversalesNivel);
       puntosUniversalesGanados += puntosUniversalesNivel;
     }
 
@@ -312,36 +312,36 @@ export class Player extends Combatiente {
     };
   }
 
-  obtenerResumenProgresoMagico() {
-    return this.progresoMagico.obtenerResumen();
+  obtenerResumenProgresoHabilidades() {
+    return this.progresoHabilidades.obtenerResumen();
   }
 
   registrarExperienciaMaestria(evento) {
-    return this.progresoMagico.registrarEjecucionEfectiva(evento);
+    return this.progresoHabilidades.registrarEjecucionEfectiva(evento);
   }
 
   agregarExperienciaMaestria(datos) {
-    return this.progresoMagico.agregarExperienciaMaestria(datos);
+    return this.progresoHabilidades.agregarExperienciaMaestria(datos);
   }
 
   mejorarHabilidad(datos) {
-    return this.progresoMagico.mejorarHabilidad(datos);
+    return this.progresoHabilidades.mejorarHabilidad(datos);
   }
 
   obtenerGradoHabilidad(idHabilidad) {
-    return this.progresoMagico.obtenerGradoHabilidad(idHabilidad);
+    return this.progresoHabilidades.obtenerGradoHabilidad(idHabilidad);
   }
 
   obtenerPuntosUniversales() {
-    return this.progresoMagico.obtenerPuntosUniversales();
+    return this.progresoHabilidades.obtenerPuntosUniversales();
   }
 
-  exportarProgresoMagico() {
-    return this.progresoMagico.exportarEstado();
+  exportarProgresoHabilidades() {
+    return this.progresoHabilidades.exportarEstado();
   }
 
-  restaurarProgresoMagico(estado) {
-    return this.progresoMagico.restaurarEstado(estado);
+  restaurarProgresoHabilidades(estado) {
+    return this.progresoHabilidades.restaurarEstado(estado);
   }
 
   // La persistencia durable utiliza esta operación para restaurar un nivel

@@ -20,7 +20,7 @@ import {
   MOTIVOS_HABILIDADES,
   SistemaHabilidadesJugador,
 } from "../../juego/habilidades/SistemaHabilidadesJugador.js";
-import { ORIGENES_PUNTO_HABILIDAD } from "../../juego/maestrias/ProgresoMagicoJugador.js";
+import { ORIGENES_PUNTO_HABILIDAD } from "../../juego/maestrias/ProgresoHabilidadesJugador.js";
 
 const PROFESION_PRUEBA = "guerrero";
 const HABILIDAD_BASICA_REFERENCIA = "ascua";
@@ -105,7 +105,9 @@ export function crearInformeBalanceRegresion({
     profesionesCubiertas: mana.resumen.cantidadProfesiones,
     habilidadesCubiertas:
       configuracionEjecucionHabilidades.habilidades
-        ? Object.keys(configuracionEjecucionHabilidades.habilidades).length
+        ? Object.values(configuracionEjecucionHabilidades.habilidades).filter(
+            esHabilidadActivaEjecutable,
+          ).length
         : 0,
     gradosCubiertos: combate.habilidades.resumen.cantidad,
     casosRecompensa: recompensas.filas.length,
@@ -134,7 +136,7 @@ export function crearInformeBalanceRegresion({
       experiencia: "SistemaProgresion",
       recompensas: "ResolutorDestruccionesJugador y SistemaBotin",
       danioPeriodico: "ComponentesDanio y ResolutorDestruccionesJugador",
-      fallos: "SistemaHabilidadesJugador y ProgresoMagicoJugador",
+      fallos: "SistemaHabilidadesJugador y ProgresoHabilidadesJugador",
       cobertura: "informes canónicos de progresión, combate y efectos",
     },
     resumen,
@@ -458,7 +460,7 @@ function analizarCasosFallidos({
     obtenido: intermediaBloqueada.motivo,
   }));
 
-  jugador.progresoMagico.agregarPuntosUniversales(10);
+  jugador.progresoHabilidades.agregarPuntosUniversales(10);
   let ultimaMejora = aprendizaje;
   for (let intento = 1; intento < 4; intento += 1) {
     ultimaMejora = jugador.mejorarHabilidad({
@@ -535,7 +537,7 @@ function analizarCobertura({
 }) {
   const habilidades = Object.values(
     configuracionEjecucionHabilidades.habilidades,
-  );
+  ).filter(esHabilidadActivaEjecutable);
   const grados = habilidades.reduce(
     (total, habilidad) =>
       total + Object.keys(habilidad.ejecucion?.grados ?? {}).length,
@@ -830,6 +832,10 @@ function resumirEstados(filas) {
     incorrectos: contarEstado(filas, "incorrecto"),
     informativos: contarEstado(filas, "informativo"),
   };
+}
+
+function esHabilidadActivaEjecutable(habilidad) {
+  return habilidad?.tipo === "activa" && Boolean(habilidad.ejecucion);
 }
 
 function contarEstado(filas, estado) {

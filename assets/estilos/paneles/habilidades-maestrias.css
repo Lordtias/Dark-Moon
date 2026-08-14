@@ -253,7 +253,7 @@
 /* =========================================================
    MAESTRÍAS MÁGICAS
 ========================================================= */
-.maestrias-magicas__selector {
+.maestrias__selector {
   display: grid;
   grid-template-columns: repeat(4, minmax(120px, 1fr));
   gap: 8px;
@@ -689,7 +689,7 @@
   .lista-habilidades-maestria {
     grid-template-columns: 1fr;
   }
-  .maestrias-magicas__selector {
+  .maestrias__selector {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }

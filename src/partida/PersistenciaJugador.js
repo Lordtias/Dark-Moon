@@ -10,8 +10,8 @@ import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
 import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
 
-export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v1";
-export const VERSION_GUARDADO_JUGADOR = 1;
+export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v2";
+export const VERSION_GUARDADO_JUGADOR = 2;
 
 // Serializa el estado durable del personaje, no la simulación del mapa.
 //
@@ -57,7 +57,7 @@ export function crearSnapshotJugador(jugador) {
         acumuladorRegeneracionMana: jugador.acumuladorRegeneracionMana,
       },
       oro: jugador.oro,
-      progresoMagico: jugador.exportarProgresoMagico(),
+      progresoHabilidades: jugador.exportarProgresoHabilidades(),
       inventario: {
         capacidad: jugador.inventario.capacidad,
         espacios: jugador.inventario
@@ -187,7 +187,7 @@ export function crearJugadorDesdeSnapshot({
     capacidadInventario: estado.inventario.capacidad,
     objetosInventarioIniciales: [],
     equipamientoInicial: [],
-    estadoProgresoMagico: estado.progresoMagico,
+    estadoProgresoHabilidades: estado.progresoHabilidades,
   });
 
   restaurarInventario({
@@ -418,7 +418,7 @@ function validarEstadoJugadorGuardado(estado) {
     "los factores temporales guardados",
   );
   validarObjetoPlano(estado.recursos, "los recursos guardados");
-  validarObjetoPlano(estado.progresoMagico, "el progreso mágico guardado");
+  validarObjetoPlano(estado.progresoHabilidades, "el progreso de habilidades guardado");
   validarObjetoPlano(estado.inventario, "el inventario guardado");
   validarObjetoPlano(estado.equipamiento, "el equipamiento guardado");
 
@@ -458,7 +458,7 @@ function validarJugador(jugador) {
   if (
     jugador === null ||
     typeof jugador !== "object" ||
-    typeof jugador.exportarProgresoMagico !== "function" ||
+    typeof jugador.exportarProgresoHabilidades !== "function" ||
     !jugador.inventario ||
     !jugador.equipamiento
   ) {

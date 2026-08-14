@@ -1,18 +1,14 @@
-const IDS_MAESTRIAS_CONGELADAS = Object.freeze([
-  "fuego",
-  "frio",
-  "rayo",
-  "veneno",
-]);
+export const TIPOS_HABILIDAD = Object.freeze({
+  ACTIVA: "activa",
+  PASIVA: "pasiva",
+});
 
-const IDS_PROFESIONES_ACTUALES = Object.freeze(["guerrero", "rogue", "mago"]);
-
-// Valida y normaliza los dos catálogos que definen la progresión mágica.
+// Valida y normaliza los catálogos generales de progresión de habilidades.
 //
-// La lógica de dominio no consulta nombres visibles ni conoce profesiones
-// concretas. Es el JSON quien determina qué profesión puede aprender cada
-// maestría y qué requisito posee cada habilidad.
-export function validarConfiguracionProgresoMagico({
+// El contrato no conoce maestrías, categorías ni profesiones concretas. Los
+// JSON determinan qué familias existen, quién puede aprenderlas y cuántas
+// habilidades contiene cada maestría.
+export function validarConfiguracionProgresoHabilidades({
   configuracionMaestrias,
   configuracionHabilidades,
 } = {}) {
@@ -26,15 +22,15 @@ export function validarConfiguracionProgresoMagico({
   validarVersion(configuracionHabilidades.version, "habilidades");
 
   const reglas = normalizarReglas(configuracionMaestrias.reglas);
-  const maestrias = normalizarMaestrias(configuracionMaestrias.maestrias);
+  const categorias = normalizarCategorias(configuracionMaestrias.categorias);
+  const maestrias = normalizarMaestrias({
+    maestrias: configuracionMaestrias.maestrias,
+    categorias,
+  });
   const habilidades = normalizarHabilidades({
     habilidades: configuracionHabilidades.habilidades,
     maestrias,
-  });
-
-  validarDistribucionHabilidades({
-    maestrias,
-    habilidades,
+    nivelMaximoMaestria: reglas.nivelMaximoMaestria,
   });
 
   return congelarProfundamente({
@@ -43,13 +39,14 @@ export function validarConfiguracionProgresoMagico({
       configuracionHabilidades.version,
     ),
     reglas,
+    categorias,
     maestrias,
     habilidades,
   });
 }
 
 function normalizarReglas(reglas) {
-  validarObjetoPlano(reglas, "las reglas de progresión mágica");
+  validarObjetoPlano(reglas, "las reglas de progresión de habilidades");
 
   validarEnteroNoNegativo(
     reglas.puntosUniversalesIniciales,
@@ -97,25 +94,53 @@ function normalizarReglas(reglas) {
   };
 }
 
-function normalizarMaestrias(maestrias) {
-  validarObjetoPlano(maestrias, "el catálogo de maestrías");
-
-  const idsRecibidos = Object.keys(maestrias).map(normalizarId).sort();
-  const idsEsperados = [...IDS_MAESTRIAS_CONGELADAS].sort();
-
-  if (JSON.stringify(idsRecibidos) !== JSON.stringify(idsEsperados)) {
-    throw new Error(
-      "La configuración necesita exactamente las maestrías Fuego, Frío, Rayo y Veneno.",
-    );
+function normalizarCategorias(categorias) {
+  validarObjetoPlano(categorias, "el catálogo de categorías");
+  const entradas = Object.entries(categorias);
+  if (entradas.length === 0) {
+    throw new Error("Debe existir al menos una categoría de maestrías.");
   }
 
   const resultado = {};
+  for (const [idOriginal, definicion] of entradas) {
+    const idCategoria = normalizarId(idOriginal);
+    if (resultado[idCategoria]) {
+      throw new Error(`La categoría "${idCategoria}" está repetida.`);
+    }
+    validarObjetoPlano(definicion, `la categoría "${idCategoria}"`);
+    validarTexto(definicion.nombre, `nombre de ${idCategoria}`);
+    validarEnteroNoNegativo(definicion.orden, `El orden de ${idCategoria}`);
 
-  for (const idMaestria of IDS_MAESTRIAS_CONGELADAS) {
-    const definicion = maestrias[idMaestria];
+    resultado[idCategoria] = {
+      id: idCategoria,
+      nombre: definicion.nombre.trim(),
+      orden: definicion.orden,
+    };
+  }
+  return resultado;
+}
+
+function normalizarMaestrias({ maestrias, categorias }) {
+  validarObjetoPlano(maestrias, "el catálogo de maestrías");
+  const resultado = {};
+
+  for (const [idOriginal, definicion] of Object.entries(maestrias)) {
+    const idMaestria = normalizarId(idOriginal);
+    if (resultado[idMaestria]) {
+      throw new Error(`La maestría "${idMaestria}" está repetida.`);
+    }
+
     validarObjetoPlano(definicion, `la maestría "${idMaestria}"`);
     validarTexto(definicion.nombre, `nombre de ${idMaestria}`);
     validarTexto(definicion.categoria, `categoría de ${idMaestria}`);
+    validarEnteroNoNegativo(definicion.orden, `El orden de ${idMaestria}`);
+
+    const idCategoria = normalizarId(definicion.categoria);
+    if (!categorias[idCategoria]) {
+      throw new Error(
+        `La maestría "${idMaestria}" referencia la categoría desconocida "${idCategoria}".`,
+      );
+    }
 
     if (!Array.isArray(definicion.profesionesPermitidas)) {
       throw new Error(
@@ -124,17 +149,8 @@ function normalizarMaestrias(maestrias) {
     }
 
     const profesionesPermitidas = definicion.profesionesPermitidas.map(
-      (idProfesion) => {
-        const normalizada = normalizarId(idProfesion);
-        if (!IDS_PROFESIONES_ACTUALES.includes(normalizada)) {
-          throw new Error(
-            `La profesión "${normalizada}" de ${idMaestria} no existe.`,
-          );
-        }
-        return normalizada;
-      },
+      (idProfesion) => normalizarId(idProfesion),
     );
-
     if (
       profesionesPermitidas.length === 0 ||
       new Set(profesionesPermitidas).size !== profesionesPermitidas.length
@@ -147,7 +163,8 @@ function normalizarMaestrias(maestrias) {
     resultado[idMaestria] = {
       id: idMaestria,
       nombre: definicion.nombre.trim(),
-      categoria: normalizarId(definicion.categoria),
+      categoria: idCategoria,
+      orden: definicion.orden,
       profesionesPermitidas,
     };
   }
@@ -155,13 +172,20 @@ function normalizarMaestrias(maestrias) {
   return resultado;
 }
 
-function normalizarHabilidades({ habilidades, maestrias }) {
+function normalizarHabilidades({
+  habilidades,
+  maestrias,
+  nivelMaximoMaestria,
+}) {
   validarObjetoPlano(habilidades, "el catálogo de habilidades");
-
   const resultado = {};
 
   for (const [idOriginal, definicion] of Object.entries(habilidades)) {
     const idHabilidad = normalizarId(idOriginal);
+    if (resultado[idHabilidad]) {
+      throw new Error(`La habilidad "${idHabilidad}" está repetida.`);
+    }
+
     validarObjetoPlano(definicion, `la habilidad "${idHabilidad}"`);
     validarTexto(definicion.nombre, `nombre de ${idHabilidad}`);
 
@@ -172,61 +196,49 @@ function normalizarHabilidades({ habilidades, maestrias }) {
       );
     }
 
+    const tipo = normalizarId(definicion.tipo);
+    if (!Object.values(TIPOS_HABILIDAD).includes(tipo)) {
+      throw new Error(
+        `La habilidad "${idHabilidad}" usa el tipo desconocido "${tipo}".`,
+      );
+    }
+
     validarEnteroNoNegativo(
       definicion.requisitoNivelMaestria,
       `El requisito de "${idHabilidad}"`,
     );
+    if (definicion.requisitoNivelMaestria > nivelMaximoMaestria) {
+      throw new Error(
+        `El requisito de "${idHabilidad}" supera el nivel máximo de maestría.`,
+      );
+    }
     validarEnteroPositivo(
       definicion.gradoMaximo,
       `El grado máximo de "${idHabilidad}"`,
     );
 
-    if (resultado[idHabilidad]) {
-      throw new Error(`La habilidad "${idHabilidad}" está repetida.`);
+    if (tipo === TIPOS_HABILIDAD.ACTIVA) {
+      validarObjetoPlano(
+        definicion.ejecucion,
+        `la ejecución de la habilidad activa "${idHabilidad}"`,
+      );
+    } else if (definicion.ejecucion !== undefined && definicion.ejecucion !== null) {
+      throw new Error(
+        `La habilidad pasiva "${idHabilidad}" no puede declarar ejecución directa.`,
+      );
     }
 
     resultado[idHabilidad] = {
       id: idHabilidad,
       nombre: definicion.nombre.trim(),
       maestria: idMaestria,
+      tipo,
       requisitoNivelMaestria: definicion.requisitoNivelMaestria,
       gradoMaximo: definicion.gradoMaximo,
     };
   }
 
   return resultado;
-}
-
-function validarDistribucionHabilidades({ maestrias, habilidades }) {
-  const distribucionEsperada = [
-    { requisito: 0, gradoMaximo: 4 },
-    { requisito: 3, gradoMaximo: 3 },
-    { requisito: 6, gradoMaximo: 3 },
-  ];
-
-  for (const idMaestria of Object.keys(maestrias)) {
-    const habilidadesMaestria = Object.values(habilidades)
-      .filter((habilidad) => habilidad.maestria === idMaestria)
-      .sort((a, b) => a.requisitoNivelMaestria - b.requisitoNivelMaestria);
-
-    if (habilidadesMaestria.length !== 3) {
-      throw new Error(
-        `La maestría "${idMaestria}" debe tener tres habilidades.`,
-      );
-    }
-
-    habilidadesMaestria.forEach((habilidad, indice) => {
-      const esperado = distribucionEsperada[indice];
-      if (
-        habilidad.requisitoNivelMaestria !== esperado.requisito ||
-        habilidad.gradoMaximo !== esperado.gradoMaximo
-      ) {
-        throw new Error(
-          `La distribución de grados de "${idMaestria}" debe ser 4/3/3 con requisitos 0/3/6.`,
-        );
-      }
-    });
-  }
 }
 
 function validarVersion(version, descripcion) {

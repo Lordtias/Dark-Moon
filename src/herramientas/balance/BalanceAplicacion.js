@@ -9,9 +9,9 @@ import {
 } from "../../juego/configuracion/CargadorConfiguracion.js";
 import { crearAnalizadorBalanceJuego } from "./AnalizadorBalanceJuego.js";
 import {
-  cargarYConfigurarProgresoMagico,
+  cargarYConfigurarProgresoHabilidades,
   obtenerConfiguracionEjecucionHabilidades,
-} from "../../juego/maestrias/ContextoProgresoMagico.js";
+} from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 import { validarCatalogoCatalizadores } from "../../juego/magia/SistemaCatalizadores.js";
 
 const RUTA_OBJETIVOS = "./src/herramientas/balance/ObjetivosBalance.json";
@@ -81,7 +81,7 @@ async function cargarBalance() {
       configuracionGeneracionObjetos,
       configuracionMapas,
       configuracionEntidadesMazmorra,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
       objetivosBalance,
     ] = await Promise.all([
       cargarConfiguracionPersonaje(),
@@ -90,7 +90,7 @@ async function cargarBalance() {
       cargarConfiguracionGeneracionObjetos(),
       cargarConfiguracionMapas(),
       cargarConfiguracionEntidadesMazmorra(),
-      cargarYConfigurarProgresoMagico(),
+      cargarYConfigurarProgresoHabilidades(),
       cargarJson(RUTA_OBJETIVOS),
     ]);
     const configuracionObjetos = validarCatalogoCatalizadores(
@@ -103,7 +103,7 @@ async function cargarBalance() {
       configuracionGeneracionObjetos,
       configuracionMapas,
       configuracionEntidadesMazmorra,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
       configuracionEjecucionHabilidades:
         obtenerConfiguracionEjecucionHabilidades(),
       objetivosBalance,

@@ -6,11 +6,11 @@ import {
 } from "../../utilidades/AlmacenamientoJson.js";
 import { normalizarRanurasBarra } from "./ContratoBarraHabilidades.js";
 
-export const CLAVE_BARRA_HABILIDADES = "dark-moon:barra-habilidades:v1";
-export const VERSION_BARRA_HABILIDADES = 1;
+export const CLAVE_BARRA_HABILIDADES = "dark-moon:barra-habilidades:v2";
+export const VERSION_BARRA_HABILIDADES = 2;
 
 // La barra guarda únicamente accesos rápidos. Los grados, requisitos y puntos
-// continúan perteneciendo exclusivamente a ProgresoMagicoJugador.
+// continúan perteneciendo exclusivamente a ProgresoHabilidadesJugador.
 export function guardarConfiguracionBarraHabilidades({
   ranuras,
   almacenamiento = globalThis.localStorage,

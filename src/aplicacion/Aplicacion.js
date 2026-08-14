@@ -16,9 +16,9 @@ import {
   cargarPerfilesZonasTemporalesVisuales,
 } from "../juego/configuracion/CargadorConfiguracion.js";
 import {
-  cargarYConfigurarProgresoMagico,
+  cargarYConfigurarProgresoHabilidades,
   obtenerConfiguracionEjecucionHabilidades,
-} from "../juego/maestrias/ContextoProgresoMagico.js";
+} from "../juego/maestrias/ContextoProgresoHabilidades.js";
 import { validarCatalogoCatalizadores } from "../juego/magia/SistemaCatalizadores.js";
 import { validarReferenciasEntidadesMazmorra } from "../juego/configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import {
@@ -68,7 +68,7 @@ export class Aplicacion {
     this.configuracionComercio = null;
     this.configuracionHabilidadesNPC = null;
     this.configuracionEntidadesMazmorra = null;
-    this.configuracionProgresoMagico = null;
+    this.configuracionProgresoHabilidades = null;
     this.configuracionPresentacionCombate = null;
     this.configuracionPresentacionHabilidades = null;
     this.configuracionPresentacionEstadosTemporales = null;
@@ -274,7 +274,7 @@ export class Aplicacion {
   }
 
   // La configuración de maestrías se carga junto con el resto. Así, Player
-  // siempre se construye después de validar los cuatro catálogos mágicos.
+  // siempre se construye después de validar la progresión general y los catálogos jugables.
   async cargarConfiguraciones() {
     const [
       configuracionPersonaje,
@@ -286,7 +286,7 @@ export class Aplicacion {
       configuracionComercio,
       configuracionHabilidadesNPC,
       configuracionEntidadesMazmorra,
-      configuracionProgresoMagico,
+      configuracionProgresoHabilidades,
       perfilesAtaquePorFamilia,
       perfilesHabilidadesVisuales,
       perfilesEstadosTemporalesVisuales,
@@ -301,7 +301,7 @@ export class Aplicacion {
       cargarConfiguracionComercio(),
       cargarConfiguracionHabilidadesNPC(),
       cargarConfiguracionEntidadesMazmorra(),
-      cargarYConfigurarProgresoMagico(),
+      cargarYConfigurarProgresoHabilidades(),
       cargarPerfilesAtaquePorFamilia(),
       cargarPerfilesHabilidadesVisuales(),
       cargarPerfilesEstadosTemporalesVisuales(),
@@ -350,7 +350,7 @@ export class Aplicacion {
       configuracionMapas: this.configuracionMapas,
       configuracionEntidadesMazmorra: this.configuracionEntidadesMazmorra,
     });
-    this.configuracionProgresoMagico = configuracionProgresoMagico;
+    this.configuracionProgresoHabilidades = configuracionProgresoHabilidades;
   }
 
   confirmarInicioNuevaPartida() {

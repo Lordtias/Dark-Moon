@@ -128,20 +128,23 @@ function validarPerfiles({ perfiles, secuencias }) {
 
 function validarConexionCatalogo({ perfiles, habilidades }) {
   const idsPerfiles = new Set(Object.keys(perfiles));
-  const idsHabilidades = new Set(Object.keys(habilidades));
+  const habilidadesEjecutables = Object.entries(habilidades).filter(
+    ([, habilidad]) => habilidad?.ejecucion,
+  );
+  const idsEjecutables = new Set(habilidadesEjecutables.map(([id]) => id));
 
-  for (const idHabilidad of idsHabilidades) {
+  for (const [idHabilidad] of habilidadesEjecutables) {
     if (!idsPerfiles.has(idHabilidad)) {
       throw new Error(
-        `La habilidad canónica "${idHabilidad}" no tiene perfil visual.`,
+        `La habilidad ejecutable "${idHabilidad}" no tiene perfil visual.`,
       );
     }
   }
 
   for (const idPerfil of idsPerfiles) {
-    if (!idsHabilidades.has(idPerfil)) {
+    if (!idsEjecutables.has(idPerfil)) {
       throw new Error(
-        `El perfil visual "${idPerfil}" no corresponde a una habilidad canónica.`,
+        `El perfil visual "${idPerfil}" no corresponde a una habilidad ejecutable.`,
       );
     }
   }

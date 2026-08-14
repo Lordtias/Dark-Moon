@@ -194,13 +194,8 @@
       "titulo": "Skills and masteries",
       "cerrar": "Close skills",
       "categoriasAria": "Mastery categories",
-      "categoriaMagicas": "Magic",
-      "categoriaBasicas": "Basic",
-      "categoriaArmas": "Weapons",
-      "categoriaArmaduras": "Armor",
       "universales": "Universal",
       "especificos": "Specific",
-      "maestriaMagica": "Magic mastery",
       "puntosEspecificos": "Specific points",
       "nivel": "Level {nivel} / {maximo}",
       "grado": "Rank {grado} / {maximo}",
@@ -232,7 +227,6 @@
       "experienciaProgreso": "{actual} / {necesaria} XP",
       "experienciaTotal": "Total accumulated experience: {valor}",
       "lanzamiento": "Cast",
-      "pendienteContenido": "Not currently available",
       "danioBase": "Base damage",
       "manaEtiqueta": "Mana",
       "tiempo": "Time",
@@ -274,17 +268,6 @@
       "confirmar": "Confirm",
       "cancelar": "Cancel",
       "cancelarAccion": "Cancel action",
-      "basicasEtiqueta": "Basic",
-      "generalesTitulo": "General skills",
-      "generalesVacias": "There are no basic skills available yet.",
-      "generalesDetalle": "This section is reserved for general actions such as Rest, Research, and other mechanics that are not currently available.",
-      "seccionVacia": "Empty section",
-      "extensionFutura": "Not available",
-      "enConstruccion": "Not available",
-      "maestriasArmasTitulo": "Weapon masteries",
-      "maestriasArmasDetalle": "The weapon families are shown as a reminder, but they do not gain experience or grant points yet.",
-      "maestriasArmadurasTitulo": "Armor masteries",
-      "maestriasArmadurasDetalle": "Progression through armor use and mitigation is not currently available.",
       "resumenGrado": "{habilidad}: grade {actual} → {nuevo}.",
       "elegirPuntoConsumir": "Choose which point to spend",
       "puntoEspecificoDisponible": "{maestria}-specific ({cantidad} available)",
@@ -295,7 +278,12 @@
       "motivoSinEspecificos": "No specific points remain for that mastery.",
       "motivoPuntoOtraMaestria": "The specific point belongs to another mastery.",
       "motivoOperacion": "The operation could not be completed ({motivo}).",
-      "errorOperacion": "The operation could not be completed."
+      "errorOperacion": "The operation could not be completed.",
+      "tipoEtiqueta": "Type",
+      "tipoPasiva": "Passive",
+      "sinMaestriasTitulo": "No masteries configured",
+      "sinMaestriasDetalle": "There are no masteries configured in this category.",
+      "categoriaVacia": "There are no skills configured in this mastery."
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -1423,6 +1411,20 @@
       },
       "veneno": {
         "nombre": "poison"
+      }
+    },
+    "categoriasHabilidades": {
+      "magicas": {
+        "nombre": "Magic"
+      },
+      "basicas": {
+        "nombre": "Basic"
+      },
+      "armas": {
+        "nombre": "Weapons"
+      },
+      "armaduras": {
+        "nombre": "Armor"
       }
     }
   },

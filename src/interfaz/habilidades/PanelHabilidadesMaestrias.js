@@ -1,20 +1,12 @@
 import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 
-const CATEGORIAS = Object.freeze([
-  { id: "magicas", clave: "interfaz.habilidades.categoriaMagicas", respaldo: "Mágicas" },
-  { id: "basicas", clave: "interfaz.habilidades.categoriaBasicas", respaldo: traducir("interfaz.habilidades.basicasEtiqueta", { respaldo: "Básicas" }) },
-  { id: "armas", clave: "interfaz.habilidades.categoriaArmas", respaldo: "Armas" },
-  { id: "armaduras", clave: "interfaz.habilidades.categoriaArmaduras", respaldo: "Armaduras" },
-]);
-const ORDEN_MAESTRIAS = Object.freeze(["fuego", "frio", "rayo", "veneno"]);
 export class PanelHabilidadesMaestrias {
   constructor({
     sistemaHabilidades,
     jugador,
     configuracionProgreso,
     configuracionEjecucion,
-    familiasArmas = [],
     alGuardarCambios = null,
     alSolicitarCierre = null,
   } = {}) {
@@ -27,12 +19,15 @@ export class PanelHabilidadesMaestrias {
     this.jugador = jugador;
     this.configuracionProgreso = configuracionProgreso;
     this.configuracionEjecucion = configuracionEjecucion;
-    this.familiasArmas = [...new Set(familiasArmas)].sort();
     this.alGuardarCambios = alGuardarCambios;
     this.alSolicitarCierre =
       typeof alSolicitarCierre === "function" ? alSolicitarCierre : null;
-    this.categoriaActiva = "magicas";
-    this.maestriaActiva = "fuego";
+    const categorias = obtenerCategoriasOrdenadas(this.configuracionProgreso);
+    if (categorias.length === 0) {
+      throw new Error("La configuración no contiene categorías de habilidades.");
+    }
+    this.categoriaActiva = categorias[0].id;
+    this.maestriaActiva = null;
     this.idHabilidadSeleccionada = null;
     this.manejadores = [];
     asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
@@ -74,30 +69,11 @@ export class PanelHabilidadesMaestrias {
   }
   renderizar() {
     const resumen = obtenerResumenProgreso(this.jugador);
+    this.asegurarSeleccionValida(resumen);
     this.renderizarCabecera(resumen);
     this.renderizarNavegacion();
     this.contenido.replaceChildren();
-    if (this.categoriaActiva === "magicas") {
-      this.renderizarMagicas(resumen);
-    } else if (this.categoriaActiva === "basicas") {
-      this.renderizarBasicas();
-    } else if (this.categoriaActiva === "armas") {
-      this.renderizarConstruccion(
-        traducir("interfaz.habilidades.maestriasArmasTitulo", { respaldo: "Maestrías de armas" }),
-        this.familiasArmas,
-        traducir("interfaz.habilidades.maestriasArmasDetalle", {
-          respaldo: "Las familias ya quedan visibles como recordatorio, pero todavía no ganan experiencia ni conceden puntos.",
-        }),
-      );
-    } else {
-      this.renderizarConstruccion(
-        traducir("interfaz.habilidades.maestriasArmadurasTitulo", { respaldo: "Maestrías de armaduras" }),
-        ["liviana", "media", "pesada"],
-        traducir("interfaz.habilidades.maestriasArmadurasDetalle", {
-          respaldo: "La progresión por uso y mitigación de armaduras no está disponible actualmente.",
-        }),
-      );
-    }
+    this.renderizarCategoria(resumen);
   }
   mostrarMensaje(texto, tipo = "informacion") {
     this.mensaje.textContent = texto;
@@ -172,13 +148,28 @@ export class PanelHabilidadesMaestrias {
       ),
     );
   }
+  asegurarSeleccionValida(resumen) {
+    const categorias = obtenerCategoriasOrdenadas(this.configuracionProgreso);
+    if (!categorias.some((categoria) => categoria.id === this.categoriaActiva)) {
+      this.categoriaActiva = categorias[0]?.id ?? null;
+    }
+    const maestrias = obtenerMaestriasCategoria({
+      configuracion: this.configuracionProgreso,
+      resumen,
+      idCategoria: this.categoriaActiva,
+    });
+    if (!maestrias.some((maestria) => maestria.id === this.maestriaActiva)) {
+      this.maestriaActiva = maestrias[0]?.id ?? null;
+      this.idHabilidadSeleccionada = null;
+    }
+  }
   renderizarNavegacion() {
     this.navegacion.replaceChildren();
-    for (const categoria of CATEGORIAS) {
+    for (const categoria of obtenerCategoriasOrdenadas(this.configuracionProgreso)) {
       const boton = crearElemento(
         "button",
         "panel-habilidades__categoria",
-        traducir(categoria.clave, { respaldo: categoria.respaldo }),
+        nombreCategoria(categoria),
       );
       boton.type = "button";
       boton.classList.toggle(
@@ -187,20 +178,29 @@ export class PanelHabilidadesMaestrias {
       );
       boton.addEventListener("click", () => {
         this.categoriaActiva = categoria.id;
+        this.maestriaActiva = null;
         this.idHabilidadSeleccionada = null;
         this.renderizar();
       });
       this.navegacion.append(boton);
     }
   }
-  renderizarMagicas(resumen) {
-    const selector = crearElemento("div", "maestrias-magicas__selector");
-    for (const idMaestria of ORDEN_MAESTRIAS) {
-      const definicion = this.configuracionProgreso.maestrias[idMaestria];
+  renderizarCategoria(resumen) {
+    const categoria = this.configuracionProgreso.categorias[this.categoriaActiva];
+    const maestrias = obtenerMaestriasCategoria({
+      configuracion: this.configuracionProgreso,
+      resumen,
+      idCategoria: this.categoriaActiva,
+    });
+    if (!categoria || maestrias.length === 0 || !this.maestriaActiva) {
+      this.renderizarCategoriaVacia(categoria);
+      return;
+    }
+
+    const selector = crearElemento("div", "maestrias__selector");
+    for (const definicionMaestria of maestrias) {
+      const idMaestria = definicionMaestria.id;
       const estado = resumen.maestrias[idMaestria];
-      if (!definicion || !estado) {
-        continue;
-      }
       const boton = crearElemento(
         "button",
         `maestria-selector maestria-selector--${idMaestria}`,
@@ -211,7 +211,7 @@ export class PanelHabilidadesMaestrias {
         idMaestria === this.maestriaActiva,
       );
       boton.append(
-        crearElemento("strong", "maestria-selector__nombre", nombreMaestria(idMaestria, definicion)),
+        crearElemento("strong", "maestria-selector__nombre", nombreMaestria(idMaestria, definicionMaestria)),
         crearElemento(
           "span",
           "maestria-selector__nivel",
@@ -228,6 +228,7 @@ export class PanelHabilidadesMaestrias {
       });
       selector.append(boton);
     }
+
     const idMaestria = this.maestriaActiva;
     const definicion = this.configuracionProgreso.maestrias[idMaestria];
     const estado = resumen.maestrias[idMaestria];
@@ -239,7 +240,7 @@ export class PanelHabilidadesMaestrias {
     const cabecera = crearElemento("header", "maestria-detalle__cabecera");
     const identidad = crearElemento("div");
     identidad.append(
-      crearElemento("p", "maestria-detalle__categoria", traducir("interfaz.habilidades.maestriaMagica", { respaldo: "Maestría mágica" })),
+      crearElemento("p", "maestria-detalle__categoria", nombreCategoria(categoria)),
       crearElemento("h3", "maestria-detalle__nombre", nombreMaestria(idMaestria, definicion)),
     );
     const puntos = crearContador(
@@ -265,8 +266,42 @@ export class PanelHabilidadesMaestrias {
         this.crearTarjetaHabilidad({ habilidad, estado, resumen }),
       );
     });
+    if (habilidades.length === 0) {
+      tarjetas.append(
+        crearElemento(
+          "p",
+          "seccion-en-construccion__detalle",
+          traducir("interfaz.habilidades.categoriaVacia", {
+            respaldo: "No hay habilidades configuradas en esta maestría.",
+          }),
+        ),
+      );
+    }
     seccion.append(cabecera, progreso, tarjetas);
     this.contenido.append(selector, seccion);
+  }
+  renderizarCategoriaVacia(categoria) {
+    const seccion = crearElemento("section", "seccion-en-construccion");
+    seccion.append(
+      crearElemento(
+        "p",
+        "seccion-en-construccion__etiqueta",
+        categoria ? nombreCategoria(categoria) : traducir("interfaz.habilidades.categoriasAria", { respaldo: "Categoría" }),
+      ),
+      crearElemento(
+        "h3",
+        "",
+        traducir("interfaz.habilidades.sinMaestriasTitulo", { respaldo: "Sin maestrías configuradas" }),
+      ),
+      crearElemento(
+        "p",
+        "",
+        traducir("interfaz.habilidades.sinMaestriasDetalle", {
+          respaldo: "No hay maestrías configuradas en esta categoría.",
+        }),
+      ),
+    );
+    this.contenido.append(seccion);
   }
   crearTarjetaHabilidad({ habilidad, estado, resumen }) {
     const ejecucion = this.configuracionEjecucion.habilidades[habilidad.id];
@@ -344,7 +379,7 @@ export class PanelHabilidadesMaestrias {
             respaldo: `Requisito de maestría cumplido: nivel ${habilidad.requisitoNivelMaestria}.`,
           }),
     );
-    const detalle = crearDetalleEjecucion({ ejecucion, grado });
+    const detalle = crearDetalleEjecucion({ ejecucion, grado, tipo: habilidad.tipo });
     const acciones = crearElemento("div", "tarjeta-habilidad__acciones");
     const botonMejora = crearElemento(
       "button",
@@ -360,7 +395,7 @@ export class PanelHabilidadesMaestrias {
       this.abrirConfirmacionMejora({ habilidad, estado, resumen });
     });
     acciones.append(botonMejora);
-    if (aprendida && ejecucion?.ejecucion) {
+    if (aprendida && habilidad.tipo === "activa" && ejecucion?.ejecucion) {
       const botonBarra = crearElemento(
         "button",
         "tarjeta-habilidad__accion",
@@ -382,12 +417,12 @@ export class PanelHabilidadesMaestrias {
       });
       acciones.append(botonBarra);
     }
-    if (!ejecucion?.ejecucion) {
+    if (habilidad.tipo === "pasiva") {
       acciones.append(
         crearElemento(
           "span",
           "tarjeta-habilidad__pendiente",
-          traducir("interfaz.habilidades.ejecucionConstruccion", { respaldo: "Ejecución en construcción" }),
+          traducir("interfaz.habilidades.tipoPasiva", { respaldo: "Pasiva" }),
         ),
       );
     }
@@ -678,48 +713,6 @@ export class PanelHabilidadesMaestrias {
     this.capaAccion.hidden = true;
     this.capaAccion.replaceChildren();
   }
-  renderizarBasicas() {
-    const seccion = crearElemento("section", "seccion-en-construccion");
-    seccion.append(
-      crearElemento("p", "seccion-en-construccion__etiqueta", traducir("interfaz.habilidades.basicasEtiqueta", { respaldo: "Básicas" })),
-      crearElemento("h3", "", traducir("interfaz.habilidades.generalesTitulo", { respaldo: "Habilidades generales" })),
-      crearElemento("p", "", traducir("interfaz.habilidades.generalesVacias", { respaldo: "Todavía no hay habilidades básicas disponibles." })),
-      crearElemento(
-        "p",
-        "seccion-en-construccion__detalle",
-        traducir("interfaz.habilidades.generalesDetalle", { respaldo: "Esta sección está reservada para acciones generales como Descansar, Investigar y otras dinámicas que todavía no están disponibles." }),
-      ),
-      crearElemento(
-        "strong",
-        "seccion-en-construccion__estado",
-        traducir("interfaz.habilidades.seccionVacia", { respaldo: "Sección vacía" }),
-      ),
-    );
-    this.contenido.append(seccion);
-  }
-  renderizarConstruccion(titulo, familias, descripcion) {
-    const seccion = crearElemento("section", "seccion-en-construccion");
-    seccion.append(
-      crearElemento(
-        "p",
-        "seccion-en-construccion__etiqueta",
-        traducir("interfaz.habilidades.extensionFutura", { respaldo: "No disponible" }),
-      ),
-      crearElemento("h3", "", titulo),
-      crearElemento("p", "", descripcion),
-    );
-    const lista = crearElemento("div", "familias-en-construccion");
-    familias.forEach((familia) => {
-      const tarjeta = crearElemento("article", "familia-en-construccion");
-      tarjeta.append(
-        crearElemento("strong", "", formatearNombre(familia)),
-        crearElemento("span", "", traducir("interfaz.habilidades.enConstruccion", { respaldo: "No disponible" })),
-      );
-      lista.append(tarjeta);
-    });
-    seccion.append(lista);
-    this.contenido.append(seccion);
-  }
   guardarCambios(tipo) {
     if (typeof this.alGuardarCambios === "function") {
       this.alGuardarCambios({ tipo });
@@ -730,6 +723,31 @@ export class PanelHabilidadesMaestrias {
     this.manejadores.push({ elemento, tipo, manejador, opciones });
   }
 }
+function obtenerCategoriasOrdenadas(configuracion) {
+  return Object.values(configuracion?.categorias ?? {}).sort(
+    (a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre),
+  );
+}
+
+function obtenerMaestriasCategoria({ configuracion, resumen, idCategoria }) {
+  return Object.values(configuracion?.maestrias ?? {})
+    .filter(
+      (maestria) =>
+        maestria.categoria === idCategoria && Boolean(resumen?.maestrias?.[maestria.id]),
+    )
+    .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
+}
+
+function nombreCategoria(categoria) {
+  if (!categoria) return "";
+  return traducirContenido(
+    "categoriasHabilidades",
+    categoria.id,
+    "nombre",
+    categoria.nombre ?? categoria.id,
+  );
+}
+
 function nombreMaestria(idMaestria, definicion) {
   return traducirContenido(
     "maestrias",
@@ -804,14 +822,17 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
   );
   return bloque;
 }
-function crearDetalleEjecucion({ ejecucion, grado }) {
+function crearDetalleEjecucion({ ejecucion, grado, tipo }) {
   const lista = crearElemento("dl", "detalle-ejecucion-habilidad");
-  if (!ejecucion?.ejecucion) {
+  if (tipo === "pasiva") {
     agregarDato(
       lista,
-      traducir("interfaz.habilidades.lanzamiento", { respaldo: "Lanzamiento" }),
-      traducir("interfaz.habilidades.pendienteContenido", { respaldo: "No disponible actualmente" }),
+      traducir("interfaz.habilidades.tipoEtiqueta", { respaldo: "Tipo" }),
+      traducir("interfaz.habilidades.tipoPasiva", { respaldo: "Pasiva" }),
     );
+    return lista;
+  }
+  if (!ejecucion?.ejecucion) {
     return lista;
   }
   const gradoVisible = grado > 0 ? grado : 1;
@@ -962,11 +983,9 @@ function crearTooltipTexto({
         respaldo: `Línea de visión: ${ejecucion.ejecucion.requiereLineaVision ? "sí" : "no"}`,
       }),
     );
-  } else {
+  } else if (habilidad.tipo === "pasiva") {
     lineas.push(
-      traducir("interfaz.habilidades.ejecucionConstruccion", {
-        respaldo: "Ejecución jugable: en construcción",
-      }),
+      traducir("interfaz.habilidades.tipoPasiva", { respaldo: "Pasiva" }),
     );
   }
   if (asignada) {
@@ -1015,24 +1034,16 @@ function agregarInsignia(contenedor, texto, estado) {
   contenedor.append(insignia);
 }
 function mejorarHabilidadJugador(jugador, datos) {
-  if (typeof jugador.mejorarHabilidad === "function") {
-    return jugador.mejorarHabilidad(datos);
+  if (typeof jugador.mejorarHabilidad !== "function") {
+    throw new Error("El jugador no expone la mejora canónica de habilidades.");
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  if (typeof progreso?.mejorarHabilidad === "function") {
-    return progreso.mejorarHabilidad(datos);
-  }
-  throw new Error("El jugador no expone la mejora de habilidades.");
+  return jugador.mejorarHabilidad(datos);
 }
 function obtenerResumenProgreso(jugador) {
-  if (typeof jugador.obtenerResumenProgresoMagico === "function") {
-    return jugador.obtenerResumenProgresoMagico();
+  if (typeof jugador.obtenerResumenProgresoHabilidades !== "function") {
+    throw new Error("El jugador no expone su resumen de progreso de habilidades.");
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  if (typeof progreso?.obtenerResumen === "function") {
-    return progreso.obtenerResumen();
-  }
-  throw new Error("El jugador no expone su resumen de progreso mágico.");
+  return jugador.obtenerResumenProgresoHabilidades();
 }
 function traducirMotivo(motivo) {
   const claves = {

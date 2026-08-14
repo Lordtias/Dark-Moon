@@ -1,8 +1,8 @@
 import { cargarJson } from "../../utilidades/CargadorJson.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
-  obtenerConfiguracionProgresoMagico,
-} from "../../juego/maestrias/ContextoProgresoMagico.js";
+  obtenerConfiguracionProgresoHabilidades,
+} from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 import {
   crearSnapshotJugador,
   guardarJugadorDurable,
@@ -357,7 +357,7 @@ function crearAccesoBalance(contexto) {
           configuracionMapas: aplicacion.configuracionMapas,
           configuracionEntidadesMazmorra:
             aplicacion.configuracionEntidadesMazmorra,
-          configuracionProgresoMagico: obtenerConfiguracionProgresoMagico(),
+          configuracionProgresoHabilidades: obtenerConfiguracionProgresoHabilidades(),
           configuracionEjecucionHabilidades:
             obtenerConfiguracionEjecucionHabilidades(),
           objetivosBalance,
@@ -530,7 +530,7 @@ function validarContratosProgreso(contexto) {
   );
   comprobar(
     comprobaciones,
-    "Existen doce habilidades en el progreso mágico",
+    "Existen doce habilidades mágicas activas en el catálogo actual",
     habilidades.length === 12,
     habilidades.length,
   );
@@ -1303,20 +1303,16 @@ function actualizarInterfazYPersistenciaBarra(integracion) {
 }
 
 function obtenerResumenProgreso(jugador) {
-  const metodos = ["obtenerResumenProgresoMagico", "obtenerResumenMagico"];
-  for (const nombre of metodos) {
-    if (typeof jugador?.[nombre] === "function") return jugador[nombre]();
+  if (typeof jugador?.obtenerResumenProgresoHabilidades !== "function") {
+    return null;
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  return typeof progreso?.obtenerResumen === "function"
-    ? progreso.obtenerResumen()
-    : null;
+  return jugador.obtenerResumenProgresoHabilidades();
 }
 
 function obtenerProgreso(jugador) {
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
+  const progreso = jugador?.progresoHabilidades;
   if (!progreso || typeof progreso.obtenerResumen !== "function") {
-    throw new Error("El jugador no expone ProgresoMagicoJugador.");
+    throw new Error("El jugador no expone ProgresoHabilidadesJugador.");
   }
   return progreso;
 }
@@ -1372,7 +1368,7 @@ function prepararHabilidadParaPrueba(
     typeof progreso.restaurarEstado !== "function"
   ) {
     throw new Error(
-      "El progreso mágico no permite preparar una prueba aislada.",
+      "El progreso de habilidades no permite preparar una prueba aislada.",
     );
   }
 

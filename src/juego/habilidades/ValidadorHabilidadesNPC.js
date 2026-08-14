@@ -4,7 +4,7 @@ const PATRONES_SOPORTADOS = new Set(["libre"]);
 const RECURSOS_RECUPERABLES = new Set(["vida", "mana"]);
 
 // Valida habilidades canónicas que pertenecen a NPC y no forman parte del
-// progreso mágico del jugador. Estas habilidades describen el hecho jugable
+// progreso de habilidades del jugador. Estas habilidades describen el hecho jugable
 // que ocurrió, pero no incorporan costes, maestrías ni grados aprendibles.
 export function validarHabilidadesNPC(configuracion) {
   validarObjeto(configuracion, "la configuración de habilidades NPC");

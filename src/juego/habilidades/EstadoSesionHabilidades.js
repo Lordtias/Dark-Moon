@@ -6,7 +6,7 @@ import {
 const estadosPorJugador = new WeakMap();
 
 // Mantiene únicamente estado transitorio de sesión. Los grados y puntos no se
-// duplican: continúan perteneciendo a ProgresoMagicoJugador.
+// duplican: continúan perteneciendo a ProgresoHabilidadesJugador.
 export function obtenerEstadoSesionHabilidades(jugador) {
   if (!jugador || typeof jugador !== "object") {
     throw new Error(

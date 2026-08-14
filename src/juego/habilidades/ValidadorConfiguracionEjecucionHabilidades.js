@@ -1,3 +1,4 @@
+import { TIPOS_HABILIDAD } from "../maestrias/ValidadorConfiguracionProgresoHabilidades.js";
 import {
   TIPOS_DANIO_VALIDOS,
   normalizarTipoDanio,
@@ -40,21 +41,38 @@ export function validarConfiguracionEjecucionHabilidades(
 
     const gradoMaximo = definicionOriginal.gradoMaximo;
     validarEnteroPositivo(gradoMaximo, `el grado máximo de "${id}"`);
+    const tipo = normalizarId(definicionOriginal.tipo);
+    if (!Object.values(TIPOS_HABILIDAD).includes(tipo)) {
+      throw new Error(
+        `La habilidad "${id}" usa el tipo desconocido "${tipo}".`,
+      );
+    }
     const icono = normalizarIcono(definicionOriginal.icono, id);
     const descripcion = normalizarTextoOpcional(definicionOriginal.descripcion);
-    const ejecucion = definicionOriginal.ejecucion
-      ? normalizarEjecucion({
-          idHabilidad: id,
-          gradoMaximo,
-          ejecucion: definicionOriginal.ejecucion,
-          catalogoEfectos,
-        })
-      : null;
+    let ejecucion = null;
+    if (tipo === TIPOS_HABILIDAD.ACTIVA) {
+      if (!definicionOriginal.ejecucion) {
+        throw new Error(
+          `La habilidad activa "${id}" debe declarar ejecución jugable.`,
+        );
+      }
+      ejecucion = normalizarEjecucion({
+        idHabilidad: id,
+        gradoMaximo,
+        ejecucion: definicionOriginal.ejecucion,
+        catalogoEfectos,
+      });
+    } else if (definicionOriginal.ejecucion !== undefined && definicionOriginal.ejecucion !== null) {
+      throw new Error(
+        `La habilidad pasiva "${id}" no puede declarar ejecución directa.`,
+      );
+    }
 
     habilidades[id] = {
       id,
       nombre: normalizarTexto(definicionOriginal.nombre, `nombre de "${id}"`),
       maestria: normalizarId(definicionOriginal.maestria),
+      tipo,
       requisitoNivelMaestria: definicionOriginal.requisitoNivelMaestria,
       gradoMaximo,
       icono,

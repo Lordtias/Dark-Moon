@@ -1,4 +1,4 @@
-const CLAVE_OBSERVADOR = Symbol.for("darkMoon.magia.observadorProgresoMagico");
+const CLAVE_OBSERVADOR = Symbol.for("darkMoon.habilidades.observadorProgreso");
 const METODOS_MUTACION = [
   "agregarPuntosUniversales",
   "registrarEjecucionEfectiva",
@@ -7,8 +7,8 @@ const METODOS_MUTACION = [
   "restaurarEstado",
 ];
 // Decora la instancia existente sin copiar datos. Las notificaciones sirven
-// solo para repintar; ProgresoMagicoJugador continúa siendo la fuente única.
-export function suscribirCambiosProgresoMagico(jugador, oyente) {
+// solo para repintar; ProgresoHabilidadesJugador continúa siendo la fuente única.
+export function suscribirCambiosProgresoHabilidades(jugador, oyente) {
   if (typeof oyente !== "function") {
     throw new Error("El observador de progreso necesita una función.");
   }
@@ -60,9 +60,9 @@ function programarNotificacion(observador, detalle) {
   });
 }
 function obtenerProgreso(jugador) {
-  const progreso = jugador?.progresoMagico ?? jugador?.progresoMagicoJugador;
+  const progreso = jugador?.progresoHabilidades;
   if (!progreso || typeof progreso.obtenerResumen !== "function") {
-    throw new Error("El jugador no expone ProgresoMagicoJugador.");
+    throw new Error("El jugador no expone ProgresoHabilidadesJugador.");
   }
   return progreso;
 }

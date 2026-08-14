@@ -400,8 +400,8 @@ Cada dato importante debe tener un único propietario.
 | Vida, Maná, nivel, experiencia, oro y atributos | Instancia de `Player` |
 | Inventario | `Player.inventario` |
 | Equipamiento | `Player.equipamiento` |
-| Progreso de maestrías, puntos y grados | `Player.progresoMagico` |
-| Definición, descripción y ejecución de habilidades | `src/config/magia/Habilidades.json` |
+| Progreso de maestrías, puntos y grados | `Player.progresoHabilidades` |
+| Definición, descripción y ejecución de habilidades | `src/config/habilidades/Habilidades.json` |
 | Barra de accesos rápidos | `SistemaHabilidadesJugador`, persistida por `PersistenciaBarraHabilidades` |
 | Mapa activo | Instancia actual de `Juego` |
 | Enemigos y destructibles activos | `Juego.objetivos` |
@@ -1002,19 +1002,23 @@ El sistema calcula el costo según los puntos de Vida y Maná que falten. El mod
 Configuraciones:
 
 ```text
-src/config/magia/Maestrias.json
-src/config/magia/Habilidades.json
+src/config/habilidades/Maestrias.json
+src/config/habilidades/Habilidades.json
 src/config/magia/Efectos.json
 ```
 
 ### Maestrías
+
+El catálogo general define las categorías `Mágicas`, `Básicas`, `Armas` y `Armaduras`. Actualmente solo `Mágicas` tiene maestrías productivas; HP1 no inventa contenido físico pendiente.
+
+Maestrías mágicas actuales:
 
 - Fuego.
 - Frío.
 - Rayo.
 - Veneno.
 
-Las cuatro están habilitadas actualmente para Guerrero, Rogue y Mago.
+Las cuatro están habilitadas actualmente para Guerrero, Rogue y Mago. Categorías, maestrías, orden y profesiones permitidas provienen de `Maestrias.json`; el validador no conoce una lista fija.
 
 Reglas vigentes configuradas:
 
@@ -1024,7 +1028,7 @@ Reglas vigentes configuradas:
 - experiencia de maestría vinculada al Maná consumido;
 - cada habilidad tiene grados y un requisito de nivel de maestría.
 
-`ProgresoMagicoJugador.js` es la única fuente de verdad para:
+`ProgresoHabilidadesJugador.js` es la única fuente de verdad para:
 
 - nivel y experiencia de maestría;
 - puntos universales;
@@ -1032,6 +1036,8 @@ Reglas vigentes configuradas:
 - grados aprendidos.
 
 ### Habilidades
+
+Cada habilidad declara `tipo: "activa"` o `tipo: "pasiva"`. Una pasiva comparte la progresión y los puntos, pero no posee ejecución directa, no puede asignarse a la barra y no requiere perfil visual de ejecución. Las doce habilidades productivas actuales son activas.
 
 | Maestría | Básica, requisito 0 | Intermedia, requisito 3 | Avanzada, requisito 6 |
 |---|---|---|---|
@@ -1049,13 +1055,13 @@ src/juego/habilidades/EstadoSesionHabilidades.js
 src/juego/habilidades/GeometriaHabilidades.js
 src/juego/habilidades/MotorDanioHabilidad.js
 src/juego/habilidades/MotorEfectosHabilidad.js
-src/juego/habilidades/ObservadorProgresoMagico.js
+src/juego/habilidades/ObservadorProgresoHabilidades.js
 ```
 
 ### División de responsabilidades
 
-- `ContextoProgresoMagico`: carga y valida catálogos.
-- `ProgresoMagicoJugador`: progreso durable.
+- `ContextoProgresoHabilidades`: carga y valida catálogos.
+- `ProgresoHabilidadesJugador`: progreso durable.
 - `SistemaHabilidadesJugador`: selección, validación y ejecución.
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
@@ -1161,13 +1167,13 @@ El acceso técnico compartido a almacenamiento JSON vive en `src/utilidades/Alma
 Clave de `localStorage`:
 
 ```text
-dark-moon:estado-jugador:v1
+dark-moon:estado-jugador:v2
 ```
 
 Versión:
 
 ```text
-1
+2
 ```
 
 Se guarda:
@@ -1180,7 +1186,7 @@ Se guarda:
 - Vida y Maná actuales;
 - acumuladores de regeneración;
 - oro;
-- progreso mágico;
+- progreso general de habilidades (`progresoHabilidades`);
 - inventario;
 - equipamiento;
 - datos necesarios para reconstruir objetos y afijos.
@@ -1205,7 +1211,7 @@ src/juego/habilidades/PersistenciaBarraHabilidades.js
 Clave:
 
 ```text
-dark-moon:barra-habilidades:v1
+dark-moon:barra-habilidades:v2
 ```
 
 La barra guarda exactamente diez IDs o valores `null`. No guarda grados, puntos ni requisitos.
@@ -1280,8 +1286,8 @@ Define plantillas y reglas de generación.
 ### Magia
 
 ```text
-src/config/magia/Maestrias.json
-src/config/magia/Habilidades.json
+src/config/habilidades/Maestrias.json
+src/config/habilidades/Habilidades.json
 src/config/magia/Efectos.json
 ```
 

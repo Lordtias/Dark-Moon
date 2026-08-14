@@ -161,8 +161,8 @@ export class SistemaHabilidadesJugador {
     if (!habilidad) {
       throw new Error(`La habilidad "${idHabilidad}" no existe.`);
     }
-    if (!habilidad.ejecucion) {
-      throw new Error(`La habilidad "${idHabilidad}" todavía no es jugable.`);
+    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) {
+      throw new Error(`La habilidad "${idHabilidad}" no es una habilidad activa jugable.`);
     }
     if (this.obtenerGrado(idHabilidad) <= 0) {
       throw new Error(`La habilidad "${idHabilidad}" todavía no fue aprendida.`);
@@ -189,10 +189,10 @@ export class SistemaHabilidadesJugador {
         "La habilidad asignada no existe.",
       );
     }
-    if (!habilidad.ejecucion) {
+    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_CONFIGURADA,
-        "La habilidad todavía no posee ejecución jugable.",
+        "La habilidad no es una habilidad activa jugable.",
       );
     }
     const grado = this.obtenerGrado(habilidad.id);
@@ -628,31 +628,18 @@ export class SistemaHabilidadesJugador {
   }
 
   obtenerGrado(idHabilidad) {
-    if (typeof this.jugador.obtenerGradoHabilidad === "function") {
-      return this.jugador.obtenerGradoHabilidad(idHabilidad);
+    if (typeof this.jugador.obtenerGradoHabilidad !== "function") {
+      throw new Error("El jugador no expone la consulta canónica de grados.");
     }
-    if (
-      typeof this.jugador.progresoMagico?.obtenerGradoHabilidad === "function"
-    ) {
-      return this.jugador.progresoMagico.obtenerGradoHabilidad(idHabilidad);
-    }
-    if (
-      typeof this.jugador.progresoMagicoJugador?.obtenerGradoHabilidad ===
-      "function"
-    ) {
-      return this.jugador.progresoMagicoJugador.obtenerGradoHabilidad(
-        idHabilidad,
-      );
-    }
-    return 0;
+    return this.jugador.obtenerGradoHabilidad(idHabilidad);
   }
 
   prepararPlanEjecucion() {
     const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
-    if (!habilidad?.ejecucion) {
+    if (habilidad?.tipo !== "activa" || !habilidad?.ejecucion) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_CONFIGURADA,
-        "La habilidad no posee ejecución configurada.",
+        "La habilidad no es una habilidad activa configurada.",
       );
     }
     const grado = this.obtenerGrado(habilidad.id);
@@ -870,11 +857,7 @@ function validarContratoZonaTemporal({
   ) {
     throw new Error("La zona temporal necesita daño, efectos o ambos.");
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  if (
-    typeof jugador.registrarExperienciaMaestria !== "function" &&
-    typeof progreso?.registrarEjecucionEfectiva !== "function"
-  ) {
+  if (typeof jugador.registrarExperienciaMaestria !== "function") {
     throw new Error(
       "El jugador no expone el registro de experiencia de maestría.",
     );
@@ -917,11 +900,7 @@ function validarContratosEjecucion({
   ) {
     throw new Error("Juego no expone la finalización temporal de acciones.");
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  if (
-    typeof jugador.registrarExperienciaMaestria !== "function" &&
-    typeof progreso?.registrarEjecucionEfectiva !== "function"
-  ) {
+  if (typeof jugador.registrarExperienciaMaestria !== "function") {
     throw new Error(
       "El jugador no expone el registro de experiencia de maestría.",
     );
@@ -1081,16 +1060,12 @@ function finalizarTiempo(juego, { resultado, costoTemporalBase }) {
 }
 
 function registrarExperienciaMaestria(jugador, evento) {
-  if (typeof jugador.registrarExperienciaMaestria === "function") {
-    return jugador.registrarExperienciaMaestria(evento);
+  if (typeof jugador.registrarExperienciaMaestria !== "function") {
+    throw new Error(
+      "El jugador no expone el registro de experiencia de maestría.",
+    );
   }
-  const progreso = jugador.progresoMagico ?? jugador.progresoMagicoJugador;
-  if (typeof progreso?.registrarEjecucionEfectiva === "function") {
-    return progreso.registrarEjecucionEfectiva(evento);
-  }
-  throw new Error(
-    "El jugador no expone el registro de experiencia de maestría.",
-  );
+  return jugador.registrarExperienciaMaestria(evento);
 }
 
 function registrarHostilidad(juego, objetivo) {

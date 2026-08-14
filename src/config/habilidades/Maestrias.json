@@ -1,0 +1,81 @@
+{
+  "version": 2,
+  "reglas": {
+    "puntosUniversalesIniciales": 1,
+    "puntosUniversalesPorNivelGeneral": 1,
+    "factorExperienciaPorMana": 1,
+    "nivelMaximoMaestria": 10,
+    "experienciaPorNivel": [
+      20,
+      30,
+      45,
+      65,
+      90,
+      120,
+      155,
+      195,
+      240,
+      290
+    ]
+  },
+  "maestrias": {
+    "fuego": {
+      "nombre": "Fuego",
+      "categoria": "magicas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 10
+    },
+    "frio": {
+      "nombre": "Frío",
+      "categoria": "magicas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 20
+    },
+    "rayo": {
+      "nombre": "Rayo",
+      "categoria": "magicas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 30
+    },
+    "veneno": {
+      "nombre": "Veneno",
+      "categoria": "magicas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 40
+    }
+  },
+  "categorias": {
+    "magicas": {
+      "nombre": "Mágicas",
+      "orden": 10
+    },
+    "basicas": {
+      "nombre": "Básicas",
+      "orden": 20
+    },
+    "armas": {
+      "nombre": "Armas",
+      "orden": 30
+    },
+    "armaduras": {
+      "nombre": "Armaduras",
+      "orden": 40
+    }
+  }
+}

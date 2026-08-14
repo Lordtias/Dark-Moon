@@ -1,7 +1,7 @@
 import { BarraHabilidades } from "./BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "./PanelHabilidadesMaestrias.js";
 import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
-import { suscribirCambiosProgresoMagico } from "../../juego/habilidades/ObservadorProgresoMagico.js";
+import { suscribirCambiosProgresoHabilidades } from "../../juego/habilidades/ObservadorProgresoHabilidades.js";
 import {
   guardarConfiguracionBarraHabilidades,
   leerConfiguracionBarraHabilidades,
@@ -17,7 +17,6 @@ export class IntegracionHabilidadesDom {
     renderizador,
     configuracionEjecucion,
     configuracionProgreso,
-    configuracionObjetos,
     gestorPaneles,
     esJuegoActivo,
     alEjecutarComando,
@@ -63,8 +62,6 @@ export class IntegracionHabilidadesDom {
     this.renderizador = renderizador;
     this.configuracionEjecucion = configuracionEjecucion;
     this.configuracionProgreso = configuracionProgreso;
-    this.configuracionObjetos =
-      configuracionObjetos ?? juego.configuracionObjetos;
     if (
       !gestorPaneles ||
       typeof gestorPaneles.registrarPanelDinamico !== "function" ||
@@ -104,7 +101,6 @@ export class IntegracionHabilidadesDom {
       jugador: this.jugador,
       configuracionProgreso,
       configuracionEjecucion,
-      familiasArmas: obtenerFamiliasArmas(this.configuracionObjetos),
       alGuardarCambios: ({ tipo }) => this.guardarCambios(tipo),
       alSolicitarCierre: () => this.gestorPaneles.cerrar("habilidades"),
     });
@@ -124,7 +120,7 @@ export class IntegracionHabilidadesDom {
       }
     });
 
-    this.desuscribirProgreso = suscribirCambiosProgresoMagico(
+    this.desuscribirProgreso = suscribirCambiosProgresoHabilidades(
       this.jugador,
       () => {
         this.panel.renderizar();
@@ -269,24 +265,4 @@ export class IntegracionHabilidadesDom {
 
     return true;
   }
-}
-
-function obtenerFamiliasArmas(configuracionObjetos) {
-  if (!configuracionObjetos || typeof configuracionObjetos !== "object") {
-    return ["daga", "espada", "mandoble", "lanza", "arco", "varita", "baston"];
-  }
-
-  const familias = new Set();
-  for (const objeto of Object.values(configuracionObjetos)) {
-    if (
-      (objeto?.tipo === "arma" || objeto?.tipoObjeto === "arma") &&
-      typeof objeto.familiaObjeto === "string"
-    ) {
-      familias.add(objeto.familiaObjeto);
-    }
-  }
-
-  return familias.size > 0
-    ? [...familias]
-    : ["daga", "espada", "mandoble", "lanza", "arco", "varita", "baston"];
 }

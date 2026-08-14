@@ -1,9 +1,5 @@
 export const CANTIDAD_RANURAS_BARRA = 10;
 
-const ALIAS_HABILIDADES_COMPATIBLES = Object.freeze({
-  prision_glacial: "rafaga_glacial",
-});
-
 // Describe la forma funcional de la barra. La persistencia puede guardar o
 // recuperar estas ranuras, pero no define cuántas existen ni qué es válido.
 export function crearRanurasBarraVacias() {
@@ -20,8 +16,7 @@ export function normalizarRanurasBarra(ranuras) {
     if (typeof valor !== "string" || valor.trim() === "") {
       throw new Error(`La ranura ${indice + 1} debe contener un ID o null.`);
     }
-    const id = valor.trim().toLowerCase();
-    return ALIAS_HABILIDADES_COMPATIBLES[id] ?? id;
+    return valor.trim().toLowerCase();
   });
 }
 
@@ -51,9 +46,9 @@ export function validarBarraContraJugador({
         `La ranura ${indice + 1} referencia la habilidad inexistente "${idHabilidad}".`,
       );
     }
-    if (!habilidad.ejecucion) {
+    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) {
       throw new Error(
-        `La habilidad "${idHabilidad}" todavía no posee ejecución jugable.`,
+        `La habilidad "${idHabilidad}" no es una habilidad activa ejecutable.`,
       );
     }
     if (obtenerGrado(idHabilidad) <= 0) {

@@ -125,6 +125,8 @@ export class Aplicacion {
         this.presentacion.crearInterfazPartida({
           ...configuracion,
           preferenciasInterfaz: this.preferenciasInterfaz,
+          configuracionZoomInterfaz:
+            this.configuracionPreferenciasInterfaz.preferencias.zoomInicial,
           obtenerContextoDiagnostico: () => this.obtenerContextoDiagnostico(),
         }),
       crearPresentacionMapaActivo: (configuracion) =>

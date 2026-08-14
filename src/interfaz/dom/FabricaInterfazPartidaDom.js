@@ -21,6 +21,7 @@ export function crearInterfazPartidaDom({
   configuracionEnemigos = null,
   Phaser = null,
   preferenciasInterfaz = null,
+  configuracionZoomInterfaz = null,
   obtenerContextoDiagnostico = () => ({}),
 } = {}) {
   configurarContextoPresentacionObjetos({ configuracionRarezas });
@@ -30,6 +31,7 @@ export function crearInterfazPartidaDom({
     Phaser,
     contenedor: panelMapa,
     preferenciasInterfaz,
+    configuracionZoomInterfaz,
   });
 
   const panelPersonaje = new PanelPersonaje({

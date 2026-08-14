@@ -16,6 +16,7 @@ export function crearEscenaArranquePhaser({
   Phaser,
   alPreparar,
   zoomInicial,
+  configuracionZoomInterfaz,
 } = {}) {
   if (!Phaser?.Scene) {
     throw new Error("No se puede crear la escena sin Phaser.Scene.");
@@ -64,6 +65,7 @@ export function crearEscenaArranquePhaser({
         compositor: this.compositor,
         conversorCoordenadas: this.conversorCoordenadas,
         zoomInicial,
+        configuracionZoomInterfaz,
         alCambiar: (estado, motivo) => this.mostrarFeedbackCamara(estado, motivo),
       });
 

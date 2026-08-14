@@ -23,6 +23,7 @@ export class ControladorCamaraPhaser {
     compositor,
     conversorCoordenadas,
     zoomInicial,
+    configuracionZoomInterfaz,
     alCambiar = null,
   } = {}) {
     if (
@@ -54,8 +55,11 @@ export class ControladorCamaraPhaser {
     this.documento = this.canvas.ownerDocument;
     this.ventana = this.documento.defaultView ?? globalThis;
     this.teclasDireccionActivas = new Set();
+    this.configuracionZoomInterfaz = validarConfiguracionZoomInterfaz(
+      configuracionZoomInterfaz,
+    );
 
-    this.zoomInicial = validarZoom(zoomInicial);
+    this.zoomInicial = validarZoom(zoomInicial, this.configuracionZoomInterfaz);
     this.camara.setZoom(this.zoomInicial);
     this.camara.setBackgroundColor("#101814");
 
@@ -365,7 +369,7 @@ export class ControladorCamaraPhaser {
   }
 
   establecerZoom(zoom, { notificar = true } = {}) {
-    const zoomNuevo = validarZoom(zoom);
+    const zoomNuevo = validarZoom(zoom, this.configuracionZoomInterfaz);
     if (Math.abs(zoomNuevo - this.camara.zoom) < 1e-9) {
       return this.camara.zoom;
     }
@@ -399,10 +403,10 @@ export class ControladorCamaraPhaser {
     const zoomNuevo = limitar(
       redondearZoom(
         this.camara.zoom +
-          direccion * CONFIGURACION_CAMARA_PHASER.pasoZoom,
+          direccion * this.configuracionZoomInterfaz.paso,
       ),
-      CONFIGURACION_CAMARA_PHASER.zoomMinimo,
-      CONFIGURACION_CAMARA_PHASER.zoomMaximo,
+      this.configuracionZoomInterfaz.minimo,
+      this.configuracionZoomInterfaz.maximo,
     );
 
     if (zoomNuevo === this.camara.zoom) return;
@@ -609,18 +613,37 @@ function obtenerDireccionZoomTeclado(evento) {
   return 0;
 }
 
-function validarZoom(zoom) {
+function validarZoom(zoom, configuracionZoomInterfaz) {
   const numero = Number(zoom);
-  if (
-    !Number.isFinite(numero) ||
-    numero < CONFIGURACION_CAMARA_PHASER.zoomMinimo ||
-    numero > CONFIGURACION_CAMARA_PHASER.zoomMaximo
-  ) {
+  const { minimo, maximo } = configuracionZoomInterfaz;
+  if (!Number.isFinite(numero) || numero < minimo || numero > maximo) {
     throw new Error(
-      `El zoom inicial debe estar entre ${CONFIGURACION_CAMARA_PHASER.zoomMinimo} y ${CONFIGURACION_CAMARA_PHASER.zoomMaximo}.`,
+      `El zoom inicial debe estar entre ${minimo} y ${maximo}.`,
     );
   }
   return redondearZoom(numero);
+}
+
+function validarConfiguracionZoomInterfaz(configuracion) {
+  if (
+    !configuracion ||
+    typeof configuracion !== "object" ||
+    ![
+      configuracion.valorInicial,
+      configuracion.minimo,
+      configuracion.maximo,
+      configuracion.paso,
+    ].every(Number.isFinite) ||
+    configuracion.minimo <= 0 ||
+    configuracion.maximo < configuracion.minimo ||
+    configuracion.paso <= 0
+  ) {
+    throw new Error(
+      "ControladorCamaraPhaser necesita la configuración canónica de zoom.",
+    );
+  }
+
+  return configuracion;
 }
 
 function esElementoEditable(elemento) {
@@ -633,5 +656,5 @@ function esElementoEditable(elemento) {
 }
 
 function redondearZoom(valor) {
-  return Math.round(valor * 10) / 10;
+  return Math.round(valor * 1000000) / 1000000;
 }

@@ -19,6 +19,7 @@ export class RenderizadorPhaser {
     Phaser,
     contenedor,
     preferenciasInterfaz,
+    configuracionZoomInterfaz,
   } = {}) {
     validarElementos({ Phaser, contenedor });
     validarPreferenciasInterfaz(preferenciasInterfaz);
@@ -50,12 +51,14 @@ export class RenderizadorPhaser {
       efectosReducidos: preferenciasInterfaz.efectosReducidos,
     });
     this.zoomInicial = preferenciasInterfaz.zoomInicial;
+    this.configuracionZoomInterfaz = configuracionZoomInterfaz;
 
     this.prepararContenedor();
 
     const Escena = crearEscenaArranquePhaser({
       Phaser,
       zoomInicial: this.zoomInicial,
+      configuracionZoomInterfaz: this.configuracionZoomInterfaz,
       alPreparar: (escenaPhaser) => {
         this.escenaPhaser = escenaPhaser;
         this.escenaPhaser.configurarAnimaciones(this.configuracionAnimaciones);

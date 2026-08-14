@@ -389,9 +389,11 @@ El zoom aprobado utiliza:
 - `+` para acercar;
 - `-` para alejar;
 - pasos de 10 %;
-- mínimo de 80 %;
-- máximo de 160 %;
+- mínimo de 90 %;
+- máximo de 180 %;
 - valor inicial de 120 %.
+
+Los límites y el paso se definen únicamente en `src/config/presentacion/PreferenciasInterfaz.json` (`minimo: 0.9`, `maximo: 1.8`, `paso: 0.1`). Phaser consume esa configuración canónica y no mantiene valores paralelos para la misma regla.
 
 En seguimiento o selección táctica, el personaje se conserva como centro. En cámara libre, la rueda conserva el punto situado bajo el puntero y el teclado conserva el centro visible. El zoom debe mantener la lectura de casillas, selección, entidades y paneles.
 
@@ -1660,7 +1662,7 @@ La referencia P2 aplica las siguientes decisiones concretas:
 - enemigos agresivos con indicador y apoyo visual rojo;
 - portales e interactuables integrados sin aura permanente;
 - muros seleccionados por vecinos cardinales y familia configurable;
-- cámara con zoom entre 80 % y 160 %;
+- cámara con zoom entre 90 % y 180 %;
 - seguimiento permanente desde la carga y después de esperas, modales o redimensionamiento;
 - zoom centrado en el personaje durante seguimiento y alrededor del puntero en cámara libre;
 - desplazamiento con botón derecho o central;
@@ -1676,7 +1678,7 @@ La referencia P3 agrega:
 
 - desplazamiento continuo con `IJKL` sin consumir turnos;
 - velocidad de cámara configurable y estable por tiempo real;
-- zoom por rueda y `+`/`-` dentro de 80 % a 160 %;
+- zoom por rueda y `+`/`-` dentro de 90 % a 180 %;
 - `H` y doble clic izquierdo para recentrar y reactivar seguimiento;
 - bloqueo de desplazamiento manual durante selección táctica;
 - límites recalculados al cambiar zoom o tamaño;
@@ -1987,11 +1989,11 @@ La revisión manual de P7.3B separa además el bloque del personaje en **resiste
 
 La configuración de la beta mantiene el lenguaje visual del menú principal y evita convertir opciones técnicas en controles de juego. El panel presenta cuatro bloques legibles: velocidad de animaciones, efectos visuales reducidos, zoom inicial del mapa y pantalla completa.
 
-La velocidad utiliza un selector de tres niveles (`normal`, `rapida`, `muy-rapida` internamente), mientras que la interfaz muestra **Normal**, **Rápida** y **Muy rápida**. Efectos reducidos se presenta como un interruptor simple. El zoom inicial se expresa como porcentaje con botones `− / +` entre 80 % y 160 %, evitando exponer números decimales al usuario. La cámara puede seguir modificándose temporalmente durante la partida mediante rueda o teclado, pero cada mapa comienza desde el zoom inicial elegido.
+La velocidad utiliza un selector de tres niveles (`normal`, `rapida`, `muy-rapida` internamente), mientras que la interfaz muestra **Normal**, **Rápida** y **Muy rápida**. Efectos reducidos se presenta como un interruptor simple. El zoom inicial se expresa como porcentaje con botones `− / +` entre 90 % y 180 %, evitando exponer números decimales al usuario. La cámara puede seguir modificándose temporalmente durante la partida mediante rueda o teclado, pero cada mapa comienza desde el zoom inicial elegido.
 
 Pantalla completa debe afectar a la aplicación web completa, no solo al canvas, para conservar paneles HTML, modales y HUD. El botón refleja el estado real mediante `fullscreenchange` y no promete restauración automática tras una recarga.
 
-`PreferenciasInterfaz.json` es el origen canónico de defaults y límites configurables. Los overrides persistidos pertenecen a presentación y no al personaje. En P7.3 el idioma se agregará a este mismo contrato, pero únicamente modificará textos visibles: la estructura, código e IDs internos permanecerán en español.
+`PreferenciasInterfaz.json` es el origen canónico de defaults y límites configurables. Para el zoom, define `minimo: 0.9`, `maximo: 1.8` y `paso: 0.1`; esos valores no se duplican en la configuración de Phaser. Los overrides persistidos pertenecen a presentación y no al personaje. En P7.3 el idioma se agregará a este mismo contrato, pero únicamente modificará textos visibles: la estructura, código e IDs internos permanecerán en español.
 
 ## V-034 — Preparación visual y pantalla de carga de mapas
 

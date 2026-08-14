@@ -73,7 +73,7 @@ export class CompositorEntidadesPhaser {
     const recursoVisualBase = nodo?.entidad?.recursoVisual ?? null;
     if (!nodo?.contenedor || !recursoVisualBase) return false;
 
-    const direccion = obtenerDireccionVisualMovimiento(origen, destino);
+    const direccion = obtenerDireccionVisualEntrePosiciones(origen, destino);
     if (!direccion) return false;
 
     const recursoVisualActual =
@@ -659,7 +659,7 @@ function obtenerCentroEntidad(posicion) {
   });
 }
 
-function obtenerDireccionVisualMovimiento(origen, destino) {
+function obtenerDireccionVisualEntrePosiciones(origen, destino) {
   if (!esPosicionVisual(origen) || !esPosicionVisual(destino)) return null;
 
   const desplazamientoX = Math.sign(destino.x - origen.x);

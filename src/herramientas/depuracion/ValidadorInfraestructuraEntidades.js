@@ -652,7 +652,7 @@ function validarEjecucionInmediataActivacion() {
     texto: "Abrir puerta",
     alcance: 1,
     prioridad: 1,
-    entidad: { nombre: "Puerta" },
+    entidad: { nombre: "Puerta", x: 1, y: 3 },
   };
 
   const juego = crearJuegoMinimoEjecutor({
@@ -676,6 +676,8 @@ function validarEjecucionInmediataActivacion() {
   assert.equal(activaciones, 1);
   assert.equal(resultado.turnoConsumido, true);
   assert.equal(resultado.interaccion, undefined);
+  assert.equal(resultado.redibujar, true);
+  assert.equal(resultado.entidad, interaccion.entidad);
 }
 
 function validarContratoVisualPortalInactivo() {

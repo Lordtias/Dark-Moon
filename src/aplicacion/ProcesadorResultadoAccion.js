@@ -49,6 +49,8 @@ export function aplicarResultadoAccion({
   if (resultadoNormalizado.turnoConsumido || resultadoNormalizado.redibujar) {
     renderizador.dibujarJuego(juego, {
       eventos: resultadoNormalizado.eventos,
+      orientacionesSolicitadas:
+        resultadoNormalizado.orientacionesSolicitadas ?? [],
     });
   }
 

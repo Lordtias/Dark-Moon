@@ -43,6 +43,7 @@ export function obtenerIdVisualEntidad(entidad) {
 // - Rango y selector de combate.
 // - Selector de interacción.
 // - Selector de habilidad.
+// - Solicitudes neutrales de orientación visual.
 // - Entidades visibles.
 //
 // Los selectores comparten un único contrato visual neutral de esquinas.
@@ -89,6 +90,7 @@ export function crearEscenaJuego(
     habilidad = null,
     configuracionPersonaje = null,
     configuracionEnemigos = null,
+    orientacionesSolicitadas = [],
   } = {},
 ) {
   validarJuego(juego);
@@ -106,6 +108,13 @@ export function crearEscenaJuego(
   // sin mezclar las reglas de combate, interacción y habilidades.
   const selectorMapaActivo =
     combateActivo || interaccionActiva || habilidadActiva;
+  const selectorVisual = combateActivo
+    ? crearSelectorCombateVisual(juego, casillasVisibles)
+    : interaccionActiva
+      ? crearSelectorInteraccionVisual(juego, casillasVisibles)
+      : habilidadActiva
+        ? crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles)
+        : null;
 
   return {
     mapa: {
@@ -157,14 +166,19 @@ export function crearEscenaJuego(
       recorrido: habilidadActiva
         ? copiarObjetivosHabilidad(habilidad.recorrido)
         : [],
-      selector: combateActivo
-        ? crearSelectorCombateVisual(juego, casillasVisibles)
-        : interaccionActiva
-          ? crearSelectorInteraccionVisual(juego, casillasVisibles)
-          : habilidadActiva
-            ? crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles)
-            : null,
+      selector: selectorVisual,
     },
+
+    // La orientación visual es un contrato neutral: describe qué entidad debe
+    // mirar desde una posición hacia otra, sin indicar qué sistema jugable
+    // originó la intención. Por ahora la selección táctica orienta al jugador.
+    orientacionesVisuales: [
+      ...crearOrientacionesVisualesJugador({
+        jugador: juego.player,
+        selector: selectorVisual,
+      }),
+      ...crearOrientacionesVisualesSolicitadas(orientacionesSolicitadas),
+    ],
 
     // Los interactuables se dibujan primero.
     // El jugador queda al final para conservarse
@@ -371,6 +385,66 @@ function crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles) {
       selector.puedeEjecutar === true &&
       !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y),
   };
+}
+
+function crearOrientacionesVisualesJugador({ jugador, selector } = {}) {
+  if (
+    !jugador ||
+    !Number.isFinite(jugador.x) ||
+    !Number.isFinite(jugador.y) ||
+    !Number.isFinite(selector?.x) ||
+    !Number.isFinite(selector?.y)
+  ) {
+    return [];
+  }
+
+  const origen = { x: jugador.x, y: jugador.y };
+  const objetivo = { x: selector.x, y: selector.y };
+
+  if (origen.x === objetivo.x && origen.y === objetivo.y) {
+    return [];
+  }
+
+  return [
+    {
+      idVisual: obtenerIdVisualEntidad(jugador),
+      origen,
+      objetivo,
+    },
+  ];
+}
+
+function crearOrientacionesVisualesSolicitadas(solicitudes = []) {
+  if (!Array.isArray(solicitudes)) {
+    return [];
+  }
+
+  return solicitudes.flatMap((solicitud) => {
+    if (
+      !solicitud?.entidad ||
+      !Number.isFinite(solicitud?.origen?.x) ||
+      !Number.isFinite(solicitud?.origen?.y) ||
+      !Number.isFinite(solicitud?.objetivo?.x) ||
+      !Number.isFinite(solicitud?.objetivo?.y)
+    ) {
+      return [];
+    }
+
+    if (
+      solicitud.origen.x === solicitud.objetivo.x &&
+      solicitud.origen.y === solicitud.objetivo.y
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        idVisual: obtenerIdVisualEntidad(solicitud.entidad),
+        origen: { x: solicitud.origen.x, y: solicitud.origen.y },
+        objetivo: { x: solicitud.objetivo.x, y: solicitud.objetivo.y },
+      },
+    ];
+  });
 }
 
 function copiarDescriptorHabilidadVisual(habilidad) {

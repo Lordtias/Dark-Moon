@@ -178,7 +178,10 @@ export class Renderizador {
 
   // Actualiza toda la representación
   // visible de la partida.
-  dibujarJuego(juego, { eventos = [] } = {}) {
+  dibujarJuego(
+    juego,
+    { eventos = [], orientacionesSolicitadas = [] } = {},
+  ) {
     this.nombreJugador = juego.player.nombre;
 
     // Convertimos Juego en una escena plana
@@ -187,6 +190,7 @@ export class Renderizador {
       habilidad: this.estadoVisualHabilidad,
       configuracionPersonaje: this.configuracionPersonaje,
       configuracionEnemigos: this.configuracionEnemigos,
+      orientacionesSolicitadas,
     });
 
     const inicioPlanificacionVisual = obtenerInstante();

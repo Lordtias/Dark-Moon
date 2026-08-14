@@ -117,6 +117,7 @@ export class CompositorMundoPhaser {
     this.dibujarSombrasEntidades();
     this.dibujarSeleccion();
     this.dibujarEntidades();
+    this.aplicarOrientacionesVisuales();
     this.dibujarIluminacion();
 
     return {
@@ -399,6 +400,20 @@ export class CompositorMundoPhaser {
 
   dibujarEntidades() {
     return this.compositorEntidades.dibujarEntidades(this.escenaDarkMoon);
+  }
+
+  aplicarOrientacionesVisuales() {
+    const orientaciones = Array.isArray(this.escenaDarkMoon?.orientacionesVisuales)
+      ? this.escenaDarkMoon.orientacionesVisuales
+      : [];
+
+    for (const orientacion of orientaciones) {
+      this.actualizarOrientacionEntidad(
+        orientacion?.idVisual,
+        orientacion?.origen,
+        orientacion?.objetivo,
+      );
+    }
   }
 
   establecerEntidadVisualTemporal(entidad) {

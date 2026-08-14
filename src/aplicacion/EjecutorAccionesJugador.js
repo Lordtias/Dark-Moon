@@ -248,7 +248,18 @@ export class EjecutorAccionesJugador {
       return resultado;
     }
 
-    return this.juego.activarInteractuable(resultado.interaccion);
+    const resultadoActivacion = this.juego.activarInteractuable(
+      resultado.interaccion,
+    );
+
+    return {
+      ...resultadoActivacion,
+      entidad:
+        resultadoActivacion?.entidad ??
+        resultado?.entidad ??
+        resultado?.interaccion?.entidad ??
+        null,
+    };
   }
 
   obtenerSistemaHabilidadesActivo() {

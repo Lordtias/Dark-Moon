@@ -521,7 +521,13 @@ export class ControladorPartida {
       return resultadoHabilidad.resultado;
     }
 
-    const resultadoProcesado = this.procesarResultadoAccion(resultado);
+    const resultadoParaProcesar = this.incorporarOrientacionInteraccion({
+      comando,
+      resultado,
+    });
+    const resultadoProcesado = this.procesarResultadoAccion(
+      resultadoParaProcesar,
+    );
     this.presentarInteraccionResultado(resultadoProcesado);
     return resultadoProcesado;
   }
@@ -583,6 +589,43 @@ export class ControladorPartida {
 
   reiniciarMedicionFluidez() {
     return this.coordinadorEntradaJugable.reiniciarMedicion();
+  }
+
+  incorporarOrientacionInteraccion({ comando, resultado } = {}) {
+    if (
+      comando?.tipo !== TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR ||
+      !resultado?.entidad ||
+      !this.juego?.player
+    ) {
+      return resultado;
+    }
+
+    const actor = this.juego.player;
+    const objetivo = resultado.entidad;
+    if (
+      !Number.isFinite(actor.x) ||
+      !Number.isFinite(actor.y) ||
+      !Number.isFinite(objetivo.x) ||
+      !Number.isFinite(objetivo.y) ||
+      (actor.x === objetivo.x && actor.y === objetivo.y)
+    ) {
+      return resultado;
+    }
+
+    return {
+      ...resultado,
+      redibujar: true,
+      orientacionesSolicitadas: [
+        ...(Array.isArray(resultado.orientacionesSolicitadas)
+          ? resultado.orientacionesSolicitadas
+          : []),
+        Object.freeze({
+          entidad: actor,
+          origen: Object.freeze({ x: actor.x, y: actor.y }),
+          objetivo: Object.freeze({ x: objetivo.x, y: objetivo.y }),
+        }),
+      ],
+    };
   }
 
   procesarResultadoAccion(resultado) {

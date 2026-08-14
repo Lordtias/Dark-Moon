@@ -19,6 +19,7 @@ import {
 import { TIPOS_ACCION_TEMPORAL } from "../tiempo/SistemaTiempo.js";
 import { ResolutorDestruccionesJugador } from "./ResolutorDestruccionesJugador.js";
 import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
+import { seleccionarPosicionEnDireccion } from "../espacio/SelectorDireccionalCuadricula.js";
 import { evaluarAtaqueCasilla } from "./SistemaAlcanceAtaque.js";
 import {
   seleccionarObjetivoPrioritario,
@@ -304,9 +305,57 @@ export class SistemaCombateJugador {
     });
   }
 
+  obtenerPosicionesNavegablesSelector() {
+    const alcance = this.jugador.alcanceAtaque;
+    const posiciones = [];
+
+    for (
+      let y = this.jugador.y - alcance;
+      y <= this.jugador.y + alcance;
+      y += 1
+    ) {
+      for (
+        let x = this.jugador.x - alcance;
+        x <= this.jugador.x + alcance;
+        x += 1
+      ) {
+        if (
+          this.esTerrenoSeleccionable(x, y) &&
+          this.estaCasillaDentroAlcance(x, y)
+        ) {
+          posiciones.push({ x, y, orden: posiciones.length });
+        }
+      }
+    }
+
+    return posiciones;
+  }
+
   moverSelector(movimientoX, movimientoY) {
     if (!this.modoActivo) return crearResultadoAccion({ exito: false });
 
+    const posiciones = this.obtenerPosicionesNavegablesSelector();
+    const posicionActual =
+      posiciones.find(
+        (posicion) =>
+          posicion.x === this.selector.x && posicion.y === this.selector.y,
+      ) ?? this.selector;
+    const siguiente = seleccionarPosicionEnDireccion({
+      posiciones,
+      posicionActual,
+      movimientoX,
+      movimientoY,
+    });
+
+    if (
+      siguiente &&
+      (siguiente.x !== this.selector.x || siguiente.y !== this.selector.y)
+    ) {
+      return this.seleccionarCasilla(siguiente.x, siguiente.y);
+    }
+
+    // Si no existe otra posición seleccionable en esa dirección, se conserva
+    // el feedback histórico de la casilla contigua (pared o fuera de alcance).
     return this.seleccionarCasilla(
       this.selector.x + movimientoX,
       this.selector.y + movimientoY,

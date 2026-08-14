@@ -1636,6 +1636,10 @@ Las traducciones entre pantalla, mundo y casilla pertenecen a un conversor únic
 
 Durante combate, interacción o selección de habilidad, el clic izquierdo sobre el mapa Phaser señala una casilla y mueve el selector canónico. La acción continúa confirmándose mediante `F` o `R`; seleccionar no consume turno ni ejecuta automáticamente ataques, habilidades o interacciones.
 
+Durante combate físico, las flechas, WASD y el teclado numérico navegan entre las casillas que el selector canónico admite dentro del alcance. La navegación es direccional y no exige que exista una cadena continua de casillas seleccionables entre la posición actual y la siguiente: si la casilla intermedia es la del propio jugador o no pertenece al selector, se elige la siguiente posición válida mejor alineada en la dirección solicitada. Se prioriza alineación, luego distancia y finalmente un orden determinista. El clic conserva la selección directa de una coordenada admitida por el mismo contrato.
+
+El selector de interacciones reutiliza la misma geometría direccional cuando existen varias entidades disponibles. El selector de habilidades no adopta ese salto discreto: salvo habilidades de objetivo propio, continúa siendo un cursor libre que avanza una casilla por pulsación y puede situarse temporalmente sobre posiciones inválidas para permitir la previsualización y el feedback canónico de alcance, área y validez.
+
 Al confirmar un ataque, la selección táctica debe retirarse antes del primer movimiento, impacto, texto o efecto de combate. El selector representa la fase de apuntado y no debe permanecer superpuesto durante la resolución visual de una acción ya confirmada.
 
 El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.

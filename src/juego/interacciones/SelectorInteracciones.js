@@ -1,3 +1,5 @@
+import { seleccionarPosicionEnDireccion } from "../espacio/SelectorDireccionalCuadricula.js";
+
 // Convierte una lista de interacciones ordenadas
 // en una lista de entidades seleccionables.
 //
@@ -48,18 +50,9 @@ export function crearOpcionesInteraccion(interacciones) {
 // Busca la mejor opción disponible
 // en la dirección indicada.
 //
-// La selección prioriza:
-//
-// 1. Mayor alineación con la dirección.
-// 2. Menor distancia.
-// 3. Orden original de prioridad.
-//
-// Por ejemplo, al presionar derecha:
-//
-// - Una entidad exactamente a la derecha tiene
-//   mejor alineación que una ubicada en diagonal.
-// - Si dos entidades están igual de alineadas,
-//   se elige la más cercana.
+// La geometría de navegación es compartida con otros selectores discretos.
+// Este módulo conserva únicamente la validación propia de las opciones de
+// interacción y delega la elección espacial a la primitiva canónica.
 export function seleccionarOpcionEnDireccion({
   opciones,
   opcionActual,
@@ -68,78 +61,14 @@ export function seleccionarOpcionEnDireccion({
 } = {}) {
   validarOpciones(opciones);
 
-  validarMovimiento({
+  const siguiente = seleccionarPosicionEnDireccion({
+    posiciones: opciones,
+    posicionActual: opcionActual,
     movimientoX,
     movimientoY,
   });
 
-  if (!opcionActual) {
-    return opciones[0] ?? null;
-  }
-
-  const candidatas = opciones
-    .filter((opcion) => opcion !== opcionActual)
-    .map((opcion) =>
-      crearCandidata({
-        opcion,
-        opcionActual,
-        movimientoX,
-        movimientoY,
-      }),
-    )
-    .filter((candidata) => candidata !== null);
-
-  if (candidatas.length === 0) {
-    return opcionActual;
-  }
-
-  candidatas.sort(
-    (primera, segunda) =>
-      segunda.alineacion - primera.alineacion ||
-      primera.distancia - segunda.distancia ||
-      primera.opcion.orden - segunda.opcion.orden,
-  );
-
-  return candidatas[0].opcion;
-}
-
-function crearCandidata({ opcion, opcionActual, movimientoX, movimientoY }) {
-  const diferenciaX = opcion.x - opcionActual.x;
-
-  const diferenciaY = opcion.y - opcionActual.y;
-
-  if (diferenciaX === 0 && diferenciaY === 0) {
-    return null;
-  }
-
-  // El producto escalar debe ser positivo.
-  //
-  // Eso garantiza que la opción se encuentre
-  // delante de la dirección solicitada.
-  const productoEscalar = diferenciaX * movimientoX + diferenciaY * movimientoY;
-
-  if (productoEscalar <= 0) {
-    return null;
-  }
-
-  const magnitudDiferencia = Math.hypot(diferenciaX, diferenciaY);
-
-  const magnitudMovimiento = Math.hypot(movimientoX, movimientoY);
-
-  const alineacion =
-    productoEscalar / (magnitudDiferencia * magnitudMovimiento);
-
-  const distancia = Math.max(
-    Math.abs(diferenciaX),
-
-    Math.abs(diferenciaY),
-  );
-
-  return {
-    opcion,
-    alineacion,
-    distancia,
-  };
+  return siguiente;
 }
 
 function validarOpciones(opciones) {
@@ -159,20 +88,6 @@ function validarOpciones(opciones) {
     ) {
       throw new Error("Existe una opción de interacción inválida.");
     }
-  }
-}
-
-function validarMovimiento({ movimientoX, movimientoY }) {
-  const componentesValidos =
-    Number.isInteger(movimientoX) &&
-    Number.isInteger(movimientoY) &&
-    movimientoX >= -1 &&
-    movimientoX <= 1 &&
-    movimientoY >= -1 &&
-    movimientoY <= 1;
-
-  if (!componentesValidos || (movimientoX === 0 && movimientoY === 0)) {
-    throw new Error("El movimiento del selector de interacción no es válido.");
   }
 }
 

@@ -1,4 +1,5 @@
 import { Combatiente } from "./Combatiente.js";
+import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 
 const TIPOS_AGRESIVIDAD_VALIDOS = ["activa", "reactiva"];
 
@@ -19,6 +20,7 @@ export class Enemigo extends Combatiente {
     estadisticasBase,
     ataqueNatural,
     factoresTemporales = {},
+    modificadoresIniciales = [],
     simbolo = "E",
     // Ruta opcional del sprite del enemigo.
     recursoVisual = null,
@@ -39,6 +41,8 @@ export class Enemigo extends Combatiente {
       estadisticasBase,
       ataqueNatural,
       factoresTemporales,
+      modificadoresIniciales,
+      tipoContextoModificadores: "enemigo",
       simbolo,
       capacidadContenedor,
       objetosIniciales,
@@ -149,12 +153,24 @@ export class Enemigo extends Combatiente {
     }
   }
 
-  // El enemigo abandona la persecución cuando
-  // supera percepción más el margen configurado.
-  get rangoPersecucion() {
-    return (
-      this.configuracionIA.percepcion + this.configuracionIA.margenPersecucion
+  get percepcionBase() {
+    return this.configuracionIA.percepcion;
+  }
+
+  get percepcion() {
+    return Math.max(
+      0,
+      this.obtenerValorModificado(
+        OBJETIVOS_MODIFICADOR.PERCEPCION,
+        this.percepcionBase,
+      ),
     );
+  }
+
+  // El enemigo abandona la persecución cuando supera la Percepción final
+  // resuelta por el centralizador más el margen propio de su IA.
+  get rangoPersecucion() {
+    return this.percepcion + this.configuracionIA.margenPersecucion;
   }
 
   activarAgresividad() {

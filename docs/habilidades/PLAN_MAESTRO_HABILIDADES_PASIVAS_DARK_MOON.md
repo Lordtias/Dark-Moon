@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas  
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.  
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.  
-**Estado:** Plan maestro rector. HP0 quedó documentada y HP1 quedó cerrada tras implementar y validar la generalización de progresión/configuración. La siguiente etapa es HP2 — Auditoría exhaustiva, contrato, resolutor y afijos globales. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
+**Estado:** Plan maestro rector. HP0 quedó documentada, HP1 quedó cerrada y HP2 quedó implementada con validación técnica; permanece pendiente únicamente la validación manual del usuario antes de certificar su cierre. La siguiente etapa será HP3 únicamente después del cierre explícito de HP2. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
 
 ---
 
@@ -153,7 +153,7 @@ Al redactar HP0, el repositorio real dispone de estas bases aprovechables:
 - `mejorarHabilidad()` ya valida requisitos y consumo de puntos;
 - la progresión actual está restringida conceptualmente y por validación a las maestrías mágicas existentes;
 - `PanelHabilidadesMaestrias` ya muestra familias Mágicas, Básicas, Armas y Armaduras, aunque Armas y Armaduras todavía no poseen progresión funcional;
-- `PercepcionJugador` ya posee el precedente de base + modificadores + valor actual;
+- antes de HP2, `PercepcionJugador` poseía un mini-resolutor propio; HP2 lo elimina y traslada Percepción al centralizador común;
 - `SistemaEfectosTemporales` ya conserva duración, acumulación, renovación y eliminación de efectos;
 - los efectos temporales actuales pueden modificar factores temporales, pero todavía no forman un sistema general de modificadores de estadísticas/habilidades;
 - `SistemaAfijos` ya genera prefijos/sufijos mediante propiedades, operaciones, grados, pesos y compatibilidades sin depender del nombre visible;
@@ -176,6 +176,152 @@ HP1 reemplazó la progresión exclusivamente mágica por el contrato general vig
 - la persistencia utiliza `progresoHabilidades` y versiones nuevas, sin migración ni aliases del esquema anterior;
 - no sobreviven wrappers, configuraciones ni clases productivas de `ProgresoMagicoJugador`;
 - las doce habilidades actuales continúan declaradas como activas; las maestrías físicas y el catálogo amplio de pasivas permanecen deliberadamente pendientes para HP3.
+
+
+### 3.2. Estado actual tras la auditoría e implementación de HP2
+
+HP2 confirmó que el motor de modificadores debe pertenecer al concepto general de `Combatiente` y no al jugador, a una pasiva concreta ni a una familia de contenido.
+
+La regla arquitectónica cerrada es:
+
+> **Todo valor declarado como objetivo modificable del combatiente debe obtener su valor final mediante `SistemaModificadoresCombatiente` antes de ser consumido por combate, movimiento, tiempo, percepción, habilidades o interfaz. Ningún consumidor puede volver a aplicar pasivas, afijos del portador, efectos temporales, terreno, zonas, auras o maldiciones por su cuenta.**
+
+Regla complementaria:
+
+> **Las propiedades locales de los objetos se resuelven dentro del objeto y pueden formar parte del valor base utilizado por el combatiente. Un modificador dirigido al portador nunca se fusiona con esas propiedades locales.**
+
+HP2 deja como implementación canónica:
+
+```text
+src/juego/modificadores/ContratosModificadoresCombatiente.js
+src/juego/modificadores/SistemaModificadoresCombatiente.js
+```
+
+El mismo sistema es propiedad de `Combatiente`, por lo que sirve tanto para `Player` como para `Enemigo`.
+
+Fuentes canónicas ya contempladas por el contrato:
+
+- afijos `portador` del equipo actual;
+- efectos temporales vigentes;
+- terreno consultado en la casilla actual;
+- zonas temporales que contengan al actor;
+- modificadores iniciales declarativos del combatiente, utilizados actualmente por variantes enemigas cuando afectan objetivos registrados;
+- proveedores futuros como pasivas, auras, maldiciones y otras fuentes declarativas equivalentes.
+
+El origen no decide la matemática. Cada fuente entrega descriptores al mismo resolutor.
+
+Ejemplo de terreno futuro:
+
+```text
+Terreno lodoso
+objetivo: factorMovimiento
+operacion: multiplicar
+valor: 1.50
+origen: terreno
+```
+
+Mientras el actor permanezca sobre esa casilla, el terreno participa de la resolución. Al salir, la fuente deja de existir porque se consulta desde el estado espacial real; no se copia un estado persistente `ralentizadoPorBarro` al combatiente.
+
+Una zona puede, según su diseño:
+
+- aportar un modificador directo mientras el actor está dentro;
+- aplicar un efecto temporal, como ocurre conceptualmente con una nube tóxica que envenena;
+- hacer ambas cosas si un contenido futuro lo requiere.
+
+Si cualquiera de esas consecuencias modifica un objetivo registrado, la composición numérica final pertenece al centralizador.
+
+#### 3.2.1. Percepción
+
+`PercepcionJugador` se elimina como mini-resolutor paralelo.
+
+La Percepción del jugador conserva base 10 y la de los enemigos conserva su base de configuración, pero ambas siguen ahora el mismo flujo:
+
+```text
+base de Percepción
+  ↓
+SistemaModificadoresCombatiente
+  ↓
+Percepción final
+  ↓
+visibilidad / IA / persecución
+```
+
+#### 3.2.2. Factores temporales
+
+Los efectos temporales ya no recalculan ni escriben factores finales sobre el combatiente. Exponen sus multiplicadores como fuentes y el centralizador realiza la composición.
+
+Esto conserva el comportamiento multiplicativo real existente:
+
+```text
+1 × 1.40 × 1.60 = 2.24
+```
+
+No se posterga esta centralización a HP4.
+
+#### 3.2.3. Variantes enemigas
+
+La auditoría detectó que Enfermo, Gigante y Élite ya eran fuentes reales de modificaciones antes de HP2.
+
+Se clasifican así:
+
+- multiplicador de Vida máxima: fuente canónica de `vidaMaxima`;
+- multiplicadores temporales: fuentes canónicas de los factores correspondientes;
+- multiplicador de atributos primarios: permanece por ahora en la construcción base del enemigo, porque los seis atributos requieren una decisión posterior explícita;
+- multiplicador de experiencia otorgada: permanece fuera del motor de modificadores del combatiente porque pertenece al dominio de recompensas.
+
+Las variantes temporales históricamente multiplicaban y redondeaban inmediatamente antes de que actuaran efectos temporales posteriores. Para no cambiar balance, esa semántica se convirtió en una operación explícita del centralizador y no en una excepción externa.
+
+#### 3.2.4. Persistencia
+
+HP2 adopta esquema de jugador `v3`, sin migración de estados anteriores.
+
+Los objetos persisten sus fuentes canónicas:
+
+- plantilla/ID;
+- cantidad;
+- rareza;
+- nivel de objeto;
+- prefijos;
+- sufijos;
+- contenido cuando corresponde.
+
+No se persisten propiedades locales derivadas como una segunda fuente de verdad. Al cargar:
+
+```text
+plantilla + afijos local_objeto
+  ↓
+FabricaObjetos
+  ↓
+propiedades locales reconstruidas
+```
+
+Los efectos `portador` tampoco se guardan como estadísticas calculadas; reaparecen naturalmente al consultar el equipo reconstruido.
+
+#### 3.2.5. Afijos y presentación
+
+Cada efecto de afijo declara obligatoriamente:
+
+```text
+ambito: local_objeto
+```
+
+o:
+
+```text
+ambito: portador
+```
+
+Un afijo `portador` continúa siendo parte visible del objeto que constituye su fuente.
+
+Ejemplo de varita:
+
+```text
+Potencia propia de la varita: 12
+Afijo Enfocado: +4 Potencia de habilidad
+```
+
+Internamente no se transforma la propiedad local de la varita en 16. Equipada, la potencia intrínseca 12 forma el valor base y el +4 del afijo participa como fuente `portador`; el valor final 16 lo obtiene el centralizador. El tooltip puede mostrar el afijo y su valor, pero la interfaz no recalcula la estadística final.
+
 
 ---
 
@@ -258,56 +404,135 @@ No deben fijarse en código cantidades exactas de maestrías, habilidades por ma
 
 ### 5.1. Registro único de objetivos modificables
 
-Debe existir una fuente única de verdad para las claves que pueden ser modificadas.
-
-Dirección conceptual:
+La fuente única de verdad quedó implementada en:
 
 ```text
 src/juego/modificadores/ContratosModificadoresCombatiente.js
 ```
 
-El nombre final podrá ajustarse al analizar la implementación, pero debe existir un único registro canónico equivalente.
+HP2 auditó estadísticas de jugador y enemigos, ataques y armas, armaduras, escudos, quiver, recursos, regeneraciones, resistencias, crítico, bloqueo, precisión/evasión, alcance, percepción, economía temporal, efectos, terreno/zonas, equipamiento, afijos, variantes enemigas y persistencia.
 
-Ejemplos de objetivos posibles:
+El resultado no es una lista de "todos los números del juego". Cada variable auditada queda explícitamente en una de cuatro categorías para distinguir una ausencia deliberada de un olvido.
+
+#### Implementados y conectados en HP2
 
 ```text
-alcanceAtaque
-evasion
-precision
-armadura
 vidaMaxima
 manaMaximo
+regeneracionVida
+regeneracionMana
+precision
+evasion
+armadura
 probabilidadCritico
 multiplicadorCritico
-danoManoSecundaria
+probabilidadBloqueo
+mitigacionBloqueo
+potenciaEfectos
 potenciaHabilidad
 resistenciaFuego
 resistenciaFrio
-danoHabilidad
-atributoHabilidad
-...
+resistenciaRayo
+resistenciaVeneno
+resistenciaCongelamiento
+resistenciaAturdimiento
+resistenciaEnvenenamiento
+resistenciaQuemadura
+alcanceAtaque
+percepcion
+factorTiempo
+factorMovimiento
+factorAtaque
+factorAccion
+factorConsumo
+multiplicadorDanioFuente
 ```
 
-La lista exacta debe crecer conforme se integren puntos reales de cálculo. No se crearán claves anticipadas que no tengan un consumidor canónico real.
+Cada uno dispone de un consumidor canónico real y su valor final pasa por `SistemaModificadoresCombatiente`.
 
-HP2 debe realizar una **auditoría fuerte del universo de variables potencialmente modificables** antes de cerrar el catálogo inicial. No debe limitarse a los ejemplos ya discutidos. Debe recorrer cálculos y contratos reales de jugador, enemigos, armas, armaduras, escudos, quiver, recursos, resistencias, crítico, bloqueo, precisión, evasión, alcance, economía temporal, habilidades, efectos, equipamiento y cualquier otro subsistema que pueda exponer una variable útil al contrato común.
+`multiplicadorDanioFuente` cubre, entre otros casos, el factor de cada mano en un ataque dual. La penalización base de la mano secundaria permanece en el contrato de ataque, pero una futura pasiva puede modificar ese factor mediante contexto sin introducir un `if` específico dentro del combate.
 
-La auditoría debe distinguir al menos:
+#### Previstos para HP4
 
-- valores propios del combatiente;
-- valores propios de arma/ataque;
-- valores propios de armadura/mitigación;
-- variables de escudos y bloqueo;
-- variables de quiver/flechas cuando existan en el cálculo real;
-- recursos y regeneraciones;
-- resistencias e inmunidades modificables;
-- probabilidad/multiplicadores de crítico;
-- costes temporales o de recursos cuando corresponda;
-- propiedades globales aportadas por equipo/afijos;
-- atributos internos de habilidades;
-- variables que también deban resolverse para enemigos afectados por efectos temporales.
+HP4 debe auditar y cerrar los objetivos/atributos internos de habilidades. El inventario real detectado incluye, entre otros:
 
-El objetivo de HP2 no es registrar todo por anticipación, sino identificar exhaustivamente **qué puntos reales merece la pena convertir en objetivos canónicos** y cuáles deben permanecer locales a su dominio.
+```text
+costoManaHabilidad
+costoTemporalHabilidad
+alcanceHabilidad
+radioHabilidad
+danoHabilidad
+cantidadObjetivos
+cantidadSaltos
+alcanceSalto
+factorDanioPorSalto
+probabilidadEfecto
+duracionEfecto
+intensidadEfecto
+intervaloEfecto
+parametrosZonaTemporal
+```
+
+Los nombres canónicos finales y la decisión de si cada campo merece ser modificable se aprueban en HP4. No se crean claves de producción en HP2 sin consumidor formalizado.
+
+#### Pendientes de decisión explícita en una etapa posterior
+
+La auditoría identificó candidatos que no deben incorporarse automáticamente:
+
+```text
+fuerza
+destreza
+constitucion
+inteligencia
+sabiduria
+carisma
+resistenciaMental
+potenciaAura
+multiplicadorDanioMagico
+danoFisicoGlobal
+danoElementalGlobal
+danoHechizosGlobal
+probabilidades globales especiales de estados
+precisionHechizos
+potenciaHechizos
+velocidadLanzamiento
+velocidadMovimiento aportada por equipo
+roboVida
+roboMana
+cantidadObjetosEncontrados
+rarezaObjetosEncontrados
+```
+
+También queda pendiente para HP3 definir la semántica de `categoriaArmadura` cuando exista equipamiento mixto antes de utilizar condiciones de pasivas de armadura.
+
+Los afijos reservados contienen además operaciones históricas no activas denominadas `aumentarVelocidad` y `multiplicarMas`. Se registran como hallazgo de auditoría, pero no se reinterpretan ni activan en HP2. La etapa que vaya a utilizarlas debe decidir si corresponden a una operación canónica existente, si necesitan una nueva operación o si el contenido debe reformularse.
+
+#### Deliberadamente fuera del sistema
+
+No son objetivos de `SistemaModificadoresCombatiente`:
+
+```text
+vidaActual
+manaActual
+cantidad de flechas/munición
+tipo de munición
+capacidad del quiver o contenedor
+cantidad de manos del arma
+patrón de ataque
+tipo estructural de ataque
+nivel
+experiencia
+IDs
+cantidades de inventario
+inmunidades como lista estructural
+constantes internas de fórmulas
+multiplicadores de recompensas/experiencia otorgada por variantes enemigas
+```
+
+Quiver no necesita un motor particular. Sus datos de contenido permanecen en su dominio; si un quiver obtiene un afijo `portador` sobre Evasión, Resistencia u otro objetivo registrado, ese aporte entra al mismo centralizador que cualquier otra pieza equipada.
+
+Los escudos conservan sus propiedades locales de Armadura, probabilidad de Bloqueo y mitigación de Bloqueo. Esas propiedades forman parte del valor base del combatiente; cualquier modificación global/contextual posterior sobre esos objetivos pasa por el centralizador.
+
 
 ### 5.2. Constantes en código y strings validados en configuración
 
@@ -316,8 +541,8 @@ El código productivo debe preferir constantes canónicas equivalentes a:
 ```text
 OBJETIVOS_MODIFICADOR.EVASION
 OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE
-OBJETIVOS_MODIFICADOR.DANO_HABILIDAD
-OBJETIVOS_MODIFICADOR.ATRIBUTO_HABILIDAD
+OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO
+OBJETIVOS_MODIFICADOR.MULTIPLICADOR_DANIO_FUENTE
 ```
 
 Los JSON necesitan representar esas claves como texto, pero todo texto debe validarse contra el mismo catálogo.
@@ -379,32 +604,65 @@ No es responsable de:
 
 ## 6. OPERACIONES Y ORDEN MATEMÁTICO
 
-### 6.1. Operaciones mínimas aprobadas
+### 6.1. Operaciones canónicas vigentes tras HP2
 
-El contrato debe distinguir explícitamente:
+La auditoría real obligó a ampliar el contrato inicial. El centralizador soporta:
 
 ```text
 sumar
 porcentaje_base
 porcentaje_total
+multiplicar_redondear
+multiplicar
 ```
 
-No debe existir una operación ambigua llamada únicamente `porcentaje`.
+No existe una operación ambigua denominada solamente `porcentaje`.
 
-### 6.2. Orden canónico
+La regla de diseño aprobada es:
+
+> **Si una fuente real modifica un objetivo registrado mediante una semántica matemática que el contrato todavía no representa, debe ampliarse el contrato canónico. No se permite dejar ese cálculo por fuera de `SistemaModificadoresCombatiente` únicamente para evitar agregar una operación.**
+
+Tampoco se crean operaciones preventivas que ningún flujo real utilice.
+
+### 6.2. Significado de las operaciones
+
+`sumar`
+: suma o resta un valor plano.
+
+`porcentaje_base`
+: suma porcentajes que se calculan exclusivamente sobre el valor base original.
+
+`porcentaje_total`
+: suma porcentajes que se aplican sobre el subtotal obtenido después de planos y porcentajes sobre base.
+
+`multiplicar`
+: compone factores multiplicativos sin redondeo intermedio. Esta operación representa, entre otros casos, los modificadores actuales de factores temporales.
+
+`multiplicar_redondear`
+: multiplica en una etapa previa y redondea el resultado de esa etapa antes de los multiplicadores normales posteriores. HP2 la incorpora porque las variantes enemigas ya tenían exactamente esa semántica sobre factores temporales y eliminar ese redondeo habría cambiado resultados combinados.
+
+### 6.3. Orden canónico
 
 Para un valor base `B`:
 
 ```text
-P = suma de modificadores planos
-PB = suma de porcentajes sobre base
-PT = suma de porcentajes sobre total
+P  = suma de modificadores sumar
+PB = suma de porcentaje_base expresada como fracción
+PT = suma de porcentaje_total expresada como fracción
+MR = producto de multiplicar_redondear
+M  = producto de multiplicar
 
 subtotal = B + P + (B × PB)
-resultadoModificado = subtotal × (1 + PT)
+despuesPorcentajeTotal = subtotal × (1 + PT)
+
+despuesMultiplicacionRedondeada =
+  si existen MR: round(despuesPorcentajeTotal × MR)
+  si no: despuesPorcentajeTotal
+
+resultadoModificado = despuesMultiplicacionRedondeada × M
 ```
 
-Ejemplo:
+Ejemplo sin multiplicadores:
 
 ```text
 Base                         100
@@ -415,82 +673,143 @@ Subtotal                     130
 Resultado modificado        162,5
 ```
 
-### 6.3. Límites y redondeos
+Ejemplo real de dos ralentizaciones temporales:
 
-Los límites propios de una regla continúan perteneciendo al dominio que calcula el valor.
+```text
+factor base        1
+ralentización A    × 1,40
+ralentización B    × 1,60
+resultado          2,24
+```
 
-Ejemplo: si una resistencia posee máximo canónico de 75%, el resolutor puede producir 80, pero la regla de resistencia aplica después su límite canónico.
+Ambos multiplicadores son fuentes del centralizador; `SistemaEfectosTemporales` conserva su ciclo de vida pero ya no calcula ni escribe el factor final.
+
+Ejemplo de variante enemiga + efecto posterior:
+
+```text
+factorMovimiento base del enemigo: 85
+Gigante: multiplicar_redondear × 1,25
+etapa redondeada: round(106,25) = 106
+Efecto temporal posterior: multiplicar × 1,08
+resultado: 114,48
+```
+
+Esto reproduce el orden histórico sin mantener una excepción fuera del motor.
+
+### 6.4. Límites y redondeos propios del dominio
+
+`multiplicar_redondear` forma parte de la semántica de composición de una fuente y por eso pertenece al centralizador.
+
+En cambio los límites y redondeos propios del resultado final continúan perteneciendo al dominio propietario.
+
+Ejemplos:
+
+- resistencia máxima;
+- probabilidad máxima de bloqueo;
+- crítico máximo;
+- alcance mínimo entero;
+- Vida/Maná máximos enteros.
 
 Conceptualmente:
 
 ```text
 valor base
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
   ↓
 resultado modificado
   ↓
-regla propietaria aplica mínimo/máximo/redondeo
+regla propietaria aplica su límite/redondeo final
   ↓
-resultado canónico final
+resultado canónico consumido
 ```
 
-El desglose para interfaz debe poder incluir ajustes finales como límites o redondeos sin recalcular el valor en el DOM.
+### 6.5. Penalizaciones y valores negativos
 
-### 6.4. Porcentajes negativos
+`sumar`, `porcentaje_base` y `porcentaje_total` admiten valores positivos y negativos.
 
-Las mismas operaciones admiten bonificaciones y penalizaciones.
+Los multiplicadores deben ser no negativos. Los mínimos funcionales finales pertenecen al objetivo/regla correspondiente.
 
-Una maldición puede aportar un porcentaje negativo sin requerir un tipo matemático diferente.
+### 6.6. Operaciones pendientes detectadas en contenido reservado
 
-Los mínimos permitidos deben ser responsabilidad del objetivo/regla canónica correspondiente.
+Los catálogos de afijos contienen actualmente, solo en contenido no activo, los nombres:
+
+```text
+aumentarVelocidad
+multiplicarMas
+```
+
+HP2 no les asigna una interpretación automática. Permanecen documentados como deuda de diseño. Cuando una etapa quiera activar esos afijos deberá decidir explícitamente si:
+
+1. se expresan con una operación canónica ya existente;
+2. requieren una operación nueva con semántica precisa;
+3. deben reformularse.
+
+No podrán introducir un cálculo paralelo.
 
 ---
 
 ## 7. CONTEXTO Y CONDICIONES
 
-### 7.1. Contexto canónico
+### 7.1. Contexto canónico disponible en HP2
 
-Al resolver un modificador, la ecuación puede proporcionar contexto relevante.
-
-Ejemplos:
+El contrato inicial implementado admite exclusivamente estas claves:
 
 ```text
+tipoCombatiente
 familiaArma
 mano
 tipoAtaque
+esAtaqueDual
+categoriaArmadura
+```
+
+Una clave de contexto desconocida produce error explícito.
+
+Los valores de contexto deben ser escalares declarativos: texto, número finito, booleano o `null`. Las condiciones pueden usar uno de esos valores o una lista no vacía de valores escalares. No se aceptan funciones, objetos ejecutables ni expresiones JavaScript arbitrarias.
+
+`tipoCombatiente` se inyecta desde `Combatiente`. Los contextos de ataque aportan familia, mano, tipo de ataque y condición dual cuando corresponde.
+
+`categoriaArmadura` está registrada para el diseño de HP3, pero HP2 no inventa todavía una regla de "categoría del conjunto" cuando hay piezas mezcladas. Esa semántica debe aprobarse antes de que una pasiva dependa de ella.
+
+### 7.2. Ampliaciones previstas
+
+HP4 deberá decidir e incorporar únicamente las claves necesarias para modificadores internos de habilidades. Candidatas detectadas:
+
+```text
 idHabilidad
 maestria
 elemento
 tipoHabilidad
-categoriaArmadura
-conjuntoArmadura
-tipoCombatiente
-idCombatiente cuando sea estrictamente necesario como identidad técnica y no como excepción de contenido
-...
+atributoHabilidad
 ```
 
-El contexto debe utilizar claves canónicas y datos ya existentes en el dominio.
+No se consideran disponibles antes de quedar registradas en el mismo contrato canónico.
 
-No debe construirse a partir de nombres mostrados.
-
-### 7.2. Condiciones declarativas
+### 7.3. Condiciones declarativas
 
 Los modificadores pueden declarar condiciones simples que el evaluador común compara contra el contexto.
 
-Ejemplos:
+Ejemplos ya expresables:
 
 ```text
 familiaArma = arco
 mano = secundaria
+esAtaqueDual = true
+tipoCombatiente = enemigo
+```
+
+Ejemplos que requieren la ampliación de HP4:
+
+```text
 idHabilidad = explosion_ignea
 maestria = frio
 tipoHabilidad = area
 ```
 
-No debe existir código específico por pasiva.
+No debe existir código específico por pasiva, aura, maldición, afijo, terreno o variante.
 
-### 7.3. Pasiva aprendida pero inactiva
+### 7.4. Pasiva aprendida pero inactiva
 
 Una pasiva puede estar aprendida y no aplicar en el contexto actual.
 
@@ -504,104 +823,49 @@ Estado actual: inactiva
 Motivo: requiere arco
 ```
 
-La interfaz debe poder diferenciar aprendizaje de aplicabilidad actual.
+La interfaz debe poder diferenciar aprendizaje de aplicabilidad actual utilizando el desglose del mismo resolutor, sin recalcular la condición por separado.
 
 ---
 
-## 8. MODIFICADORES DE HABILIDADES ACTIVAS
+## 8. MODIFICADORES DE HABILIDADES ACTIVAS — RESERVADOS PARA HP4
+
+HP2 no registra todavía objetivos internos de habilidades activas. La auditoría confirmó que existen suficientes parámetros diferentes como para requerir la etapa de diseño fuerte prevista en HP4.
 
 ### 8.1. Daño de habilidades
 
-El objetivo canónico `DANO_HABILIDAD` se utiliza para alterar el daño producido por una habilidad sin crear una clave diferente por habilidad.
+`danoHabilidad` continúa como objetivo conceptual previsto, no como clave productiva de HP2.
 
-El contexto permite limitar el modificador a:
+HP4 debe decidir su representación exacta y el contexto necesario para permitir modificaciones:
 
-- una habilidad concreta;
-- una maestría;
-- un elemento;
-- un tipo de habilidad;
-- futuras propiedades canónicas.
+- sobre una habilidad concreta;
+- por maestría;
+- por elemento;
+- por tipo de habilidad;
+- por otras propiedades canónicas que la auditoría de HP4 apruebe.
 
-Ejemplo conceptual:
+Ejemplo futuro conceptual:
 
 ```text
 objetivo: danoHabilidad
 operacion: porcentaje_base
-valor: 0.15
+valor: 15
 condicion:
   elemento: fuego
 ```
 
-La misma definición aplica a cualquier habilidad futura de fuego que comparta ese contexto.
-
 ### 8.2. Atributos internos de habilidad
 
-Los parámetros no relacionados directamente con daño deben utilizar el objetivo general:
+Alcance de habilidad, radio, cantidad de objetivos, coste de Maná, duración, probabilidad de efectos y parámetros equivalentes necesitan un contrato adicional basado en los consumidores reales.
 
-```text
-ATRIBUTO_HABILIDAD
-```
+HP4 debe decidir si conviene un objetivo general acompañado por una clave de atributo, objetivos específicos, o una combinación que preserve claridad y validación fuerte. No se fija esa decisión en HP2.
 
-El modificador declara además qué atributo interno modifica.
+El requisito ya cerrado es que, una vez incorporados como objetivos modificables, **su valor final también debe atravesar el mismo `SistemaModificadoresCombatiente`**. No se creará un resolutor especial de habilidades.
 
-Debe existir un registro canónico de atributos de habilidad equivalente a:
-
-```text
-ATRIBUTOS_HABILIDAD.ALCANCE
-ATRIBUTOS_HABILIDAD.RADIO
-ATRIBUTOS_HABILIDAD.CANTIDAD_OBJETIVOS
-ATRIBUTOS_HABILIDAD.CANTIDAD_OBJETIVOS_CADENA
-ATRIBUTOS_HABILIDAD.COSTO_MANA
-ATRIBUTOS_HABILIDAD.PROBABILIDAD_EFECTO
-ATRIBUTOS_HABILIDAD.DURACION_EFECTO
-...
-```
-
-La lista debe ampliarse únicamente cuando exista un atributo real que deba ser modificable.
-
-### 8.3. Ejemplos
-
-Pasiva específica:
-
-```text
-Nova de escarcha gana +1 de radio
-
-objetivo: atributoHabilidad
-atributo: radio
-operacion: sumar
-condicion:
-  idHabilidad: nova_escarcha
-```
-
-Pasiva de familia:
-
-```text
-Las habilidades de frío ganan +1 de alcance
-
-objetivo: atributoHabilidad
-atributo: alcance
-operacion: sumar
-condicion:
-  maestria: frio
-```
-
-Afijo legendario futuro:
-
-```text
-Las habilidades en cadena ganan +2 objetivos
-
-objetivo: atributoHabilidad
-atributo: cantidadObjetivosCadena
-operacion: sumar
-condicion:
-  tipoHabilidad: cadena
-```
-
-### 8.4. Regla de integración
+### 8.3. Regla de integración futura
 
 Cada atributo de habilidad se integra una sola vez en su punto canónico de consumo.
 
-Después de esa integración, nuevas pasivas, auras, maldiciones o afijos que modifiquen ese atributo no deben requerir cambios en el código de la habilidad.
+Después de esa integración, nuevas pasivas, auras, maldiciones, terreno o afijos que modifiquen ese atributo no deben requerir cambios en la habilidad concreta ni un cálculo paralelo.
 
 ---
 
@@ -622,7 +886,7 @@ definición de habilidad
   ↓
 modificadores correspondientes al grado
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
   ↓
 valor actual
 ```
@@ -709,12 +973,12 @@ SistemaEfectosTemporales mantiene ciclo de vida sobre el objetivo
   ↓
 modificadores vigentes del combatiente afectado
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
 ```
 
-El mismo flujo debe funcionar si el objetivo es el jugador o un enemigo. No se creará un `SistemaModificadoresEnemigo` paralelo. Si una maldición del jugador reduce la Precisión, Evasión, Armadura, Alcance, velocidad/tiempo u otro objetivo soportado de un enemigo, la ecuación canónica de ese enemigo debe consultar el mismo contrato general.
+El mismo flujo debe funcionar si el objetivo es el jugador o un enemigo. No se creará un `SistemaModificadoresCombatienteEnemigo` paralelo. Si una maldición del jugador reduce la Precisión, Evasión, Armadura, Alcance, velocidad/tiempo u otro objetivo soportado de un enemigo, la ecuación canónica de ese enemigo debe consultar el mismo contrato general.
 
-El sistema temporal no debe calcular Evasión, Alcance, Daño o atributos de habilidad.
+El sistema temporal no calcula el valor final de factores temporales ni de otras estadísticas. Conserva el ciclo de vida del efecto y expone sus descriptores vigentes; `SistemaModificadoresCombatiente` compone el valor numérico final. Daño periódico y demás consecuencias que no son modificadores de un objetivo continúan en sus dominios correspondientes.
 
 ### 10.3. Signo y semántica
 
@@ -758,7 +1022,7 @@ local_objeto
 portador
 ```
 
-El nombre final del campo se confirmará en implementación.
+El campo implementado y validado es `ambito`.
 
 No debe inferirse el ámbito únicamente por el nombre de la propiedad.
 
@@ -782,9 +1046,9 @@ plantilla de objeto
   ↓
 SistemaAfijos
   ↓
-afijos locales
+afijos local_objeto
   ↓
-propiedades finales del objeto
+propiedades locales resueltas del objeto
 ```
 
 ### 11.4. Afijo global del portador
@@ -811,7 +1075,7 @@ afijo global
   ↓
 modificador del portador
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
 ```
 
 ### 11.5. Legendarios futuros
@@ -828,6 +1092,98 @@ Ejemplos conceptuales:
 ```
 
 El objeto sigue utilizando el contrato de afijos; el efecto global reutiliza el sistema común de modificadores.
+
+
+### 11.6. Inventario de afijos auditado en HP2
+
+HP2 clasificó todos los efectos actualmente declarados en `Prefijos.json` y `Sufijos.json`. El `ambito` queda explícito incluso para contenido todavía no activo, pero **clasificar el ámbito no activa ni completa el motor pendiente de ese afijo**.
+
+#### Activos — `local_objeto`
+
+```text
+afilado            danioFisicoLocalMinimo
+brutal             danioFisicoLocalPorcentaje
+reforzado          armadura
+ardiente           danioFuegoLocalMinimo / danioFuegoLocalMaximo
+glacial            danioFrioLocalMinimo / danioFrioLocalMaximo
+electrificado      danioRayoLocalMinimo / danioRayoLocalMaximo
+venenoso           danioVenenoLocalMinimo / danioVenenoLocalMaximo
+de_precision       precision
+del_verdugo        probabilidadCritico
+de_devastacion     multiplicadorCritico
+del_guardian       probabilidadBloqueo
+de_absorcion       mitigacionBloqueo
+```
+
+Continúan componiéndose dentro del objeto.
+
+#### Activos — `portador`
+
+```text
+vigoroso            vidaMaxima
+enfocado            potenciaHabilidad
+de_evasion          evasion
+de_regeneracion     regeneracionVida
+de_ascuas           resistenciaFuego
+de_escarcha         resistenciaFrio
+de_tormenta         resistenciaRayo
+del_antidoto        resistenciaVeneno
+del_deshielo        resistenciaCongelamiento
+de_firmeza          resistenciaAturdimiento
+de_purificacion     resistenciaEnvenenamiento
+de_ceniza           resistenciaQuemadura
+```
+
+Estos efectos dejan de contaminar las propiedades locales del objeto y participan como fuentes del combatiente mientras la pieza esté equipada.
+
+#### No activos — ámbito local ya identificado
+
+```text
+ligero          velocidadAtaqueLocalPorcentaje     operacion: aumentarVelocidad
+fortificado     armaduraLocalPorcentaje             operacion: sumar
+abrasador       probabilidadQuemar                  operacion: sumar
+congelante      probabilidadCongelar                operacion: sumar
+aturdidor       probabilidadAturdir                 operacion: sumar
+ponzonoso       probabilidadEnvenenar               operacion: sumar
+del_vampiro     roboVidaPorcentaje                  operacion: sumar
+del_devorador   roboManaPorcentaje                  operacion: sumar
+```
+
+El ámbito local expresa que, si se activan en el futuro, la propiedad pertenece a la fuente/objeto o a su impacto. Su semántica funcional todavía debe aprobarse donde corresponda.
+
+#### No activos — ámbito `portador` ya identificado
+
+```text
+arcano              manaMaximo
+sanguinario         danioFisicoGlobalMinimo / danioFisicoGlobalMaximo
+del_conquistador    danioFisicoAumentadoPorcentaje
+despiadado          danioFisicoMasPorcentaje            operacion: multiplicarMas
+igneo                danioFuegoAumentadoPorcentaje
+invernal             danioFrioAumentadoPorcentaje
+tempestuoso          danioRayoAumentadoPorcentaje
+toxico               danioVenenoAumentadoPorcentaje
+de_claridad          regeneracionMana
+de_fatalidad         probabilidadCriticoGlobal
+de_carniceria        multiplicadorCriticoAdicional
+de_renovacion        regeneracionVidaPorcentaje
+de_meditacion        regeneracionManaPorcentaje
+del_oso              fuerza
+del_lince            destreza
+del_roble            constitucion
+del_sabio            inteligencia
+del_buho             sabiduria
+del_soberano         carisma
+de_celeridad         velocidadMovimientoPorcentaje      operacion: aumentarVelocidad
+de_fortuna           rarezaObjetosEncontradosPorcentaje
+de_abundancia        cantidadObjetosEncontradosPorcentaje
+del_taumaturgo       danioHechizosAumentadoPorcentaje
+de_canalizacion      velocidadLanzamientoPorcentaje     operacion: aumentarVelocidad
+de_concentracion     precisionHechizos
+del_archimago        potenciaHechizos / manaMaximo
+```
+
+Que un efecto sea `portador` **no implica que su objetivo ya esté registrado**. Los campos anteriores permanecen en sus estados actuales (`pendiente_motor`, `pendiente_diseno`, `pendiente_balance`, `reservado_raro`, etc.) hasta la etapa que analice y apruebe su semántica.
+
 
 ---
 
@@ -1121,7 +1477,7 @@ modificadores candidatos
   ↓
 condiciones + contexto
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
   ↓
 ecuación canónica
   ↓
@@ -1139,7 +1495,7 @@ efecto activo y duración
   ↓
 modificadores candidatos
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
   ↓
 ecuación canónica
 ```
@@ -1157,7 +1513,7 @@ objeto equipado
   ↓
 modificador del portador
   ↓
-SistemaModificadores
+SistemaModificadoresCombatiente
 ```
 
 ### 17.4. Afijo local
@@ -1179,7 +1535,7 @@ Habilidad obtiene atributo base
   ↓
 ATRIBUTO_HABILIDAD / DANO_HABILIDAD
   ↓
-SistemaModificadores + contexto de habilidad
+SistemaModificadoresCombatiente + contexto de habilidad
   ↓
 atributo efectivo
   ↓
@@ -1282,52 +1638,67 @@ No incluye todavía modificaciones efectivas de combate.
 
 ### HP2 — Auditoría exhaustiva, contrato, resolutor y afijos globales
 
-HP2 es una etapa de **análisis arquitectónico fuerte**. No debe comenzar implementando una lista cerrada tomada del Plan Maestro.
+**Estado:** Implementada. Validación técnica completada; pendiente validación manual del usuario antes de certificar cierre.
 
-Primero debe recorrer el código real y elaborar un inventario de variables, ecuaciones, propiedades y puntos de consumo potencialmente modificables. Debe analizar especialmente, sin limitarse a:
+HP2 realizó la auditoría arquitectónica fuerte sobre el repositorio real cerrado en HP1 (`f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`). No se limitó a la lista inicial del Plan Maestro.
 
-- estadísticas de jugador;
-- estadísticas y cálculos equivalentes de enemigos;
-- armas y fuentes de ataque;
-- armaduras y mitigación;
+Dominios auditados:
+
+- estadísticas de jugador y enemigos;
+- armas, ataques naturales y fuentes de ataque;
+- combate dual y mano secundaria;
+- armaduras;
 - escudos y bloqueo;
-- quiver/flechas;
+- quiver/munición;
 - crítico;
 - precisión/evasión;
 - alcance;
 - Vida/Maná y regeneraciones;
-- resistencias;
-- costes temporales y de acciones cuando corresponda;
+- resistencias de daño y de efectos;
+- potencia de efectos y Potencia de Habilidad;
+- percepción;
+- factores temporales;
+- efectos temporales;
+- terreno y zonas;
 - equipamiento;
-- afijos actuales;
-- cualquier otra variable descubierta cuyo carácter global/condicional justifique integrarla al contrato.
+- afijos activos y reservados;
+- variantes enemigas;
+- persistencia;
+- herramientas y compatibilidades históricas tocadas por el flujo.
 
-Debe clasificar qué valores:
+Resultado implementado:
 
-1. deben registrarse como objetivos modificables del combatiente;
-2. deben permanecer como propiedades locales del objeto;
-3. necesitan contexto adicional;
-4. no deben exponerse al motor porque pertenecen exclusivamente a una ecuación interna no modificable.
+- registro único de objetivos en `ContratosModificadoresCombatiente.js`;
+- un solo `SistemaModificadoresCombatiente` para Player y Enemigo;
+- operaciones `sumar`, `porcentaje_base`, `porcentaje_total`, `multiplicar_redondear` y `multiplicar`;
+- error explícito ante objetivo, operación, ámbito o clave de contexto desconocidos;
+- condiciones declarativas sin código ejecutable;
+- desglose del valor resuelto y de fuentes aplicadas/omitidas;
+- detección de IDs de modificador duplicados;
+- afijos con `ambito: local_objeto | portador`;
+- afijos locales compuestos únicamente dentro del objeto;
+- afijos del portador obtenidos desde el equipo canónico actual, sin estados duplicados al equipar/desequipar;
+- efectos temporales convertidos en fuentes del centralizador para sus factores;
+- terreno y zonas preparados como fuentes consultadas desde la posición real;
+- Percepción trasladada al centralizador y eliminación de `PercepcionJugador`;
+- variantes enemigas conectadas al centralizador cuando afectan objetivos registrados;
+- persistencia `v3` basada en fuentes, sin `propiedadesFinales` guardadas y sin migración;
+- eliminación de wrappers/fallbacks históricos directamente afectados.
 
-Después del análisis, HP2 debe:
+Regla de cierre de HP2:
 
-- crear el registro único de objetivos modificables;
-- crear operaciones `sumar`, `porcentaje_base`, `porcentaje_total`;
-- crear contexto y condiciones declarativas;
-- crear resolutor único con desglose;
-- validar claves desconocidas;
-- garantizar que el mismo resolutor funcione para jugador y enemigos;
-- distinguir afijos `local_objeto` y `portador`;
-- conservar afijos locales en `SistemaAfijos`;
-- conectar al resolutor los afijos globales del portador que ya existan o resulten apropiados;
-- dejar preparado el contrato para afijos legendarios globales futuros;
-- integrar casos representativos reales suficientes para demostrar que no se creó un motor paralelo.
+> Todo objetivo registrado debe atravesar el centralizador para obtener su valor final. Si una nueva fuente real necesita una composición matemática todavía no representada, se amplía el contrato común; no se crea un cálculo paralelo.
 
-Resultado esperado:
+HP2 no agrega contenido de pasivas físicas, auras/maldiciones nuevas ni atributos internos modificables de habilidades. Esos diseños continúan respectivamente en HP3 y HP4.
+
+Resultado esperado alcanzado técnicamente:
 
 ```text
-motor canónico general validado contra el universo real de variables del juego, usable por cualquier combatiente y ya conectado con equipamiento/afijos globales
+motor canónico general basado en el universo real de variables del juego, usable por cualquier combatiente y conectado con equipo, efectos temporales, terreno/zonas y variantes enemigas
 ```
+
+La etapa no se marca `Cerrada` hasta completar la pasada manual indicada en `docs/habilidades/entregas/ENTREGA_HP2.md`.
+
 
 ### HP3 — Diseño de contenido pasivo y progresión física
 
@@ -1725,14 +2096,18 @@ src/partida/EstadoPartida.js
 Las etapas siguientes deben revisar según alcance:
 
 ```text
+src/juego/modificadores/ContratosModificadoresCombatiente.js
+src/juego/modificadores/SistemaModificadoresCombatiente.js
 src/entidad/destructible/combatiente/EstadisticasDerivadas.js
 src/entidad/destructible/combatiente/ConfiguracionAtaque.js
-src/juego/visibilidad/PercepcionJugador.js
 src/juego/efectos/ContratosEfectosTemporales.js
 src/juego/efectos/SistemaEfectosTemporales.js
 src/juego/objetos/SistemaAfijos.js
+src/juego/espacio/SistemaEspacial.js
+src/juego/zonas/SistemaZonasTemporales.js
 src/entidad/destructible/combatiente/Combatiente.js
 src/entidad/destructible/combatiente/Player.js
+src/entidad/destructible/combatiente/Enemigo.js
 src/config/objetos/afijos/Prefijos.json
 src/config/objetos/afijos/Sufijos.json
 src/interfaz/PanelPersonaje.js
@@ -1750,34 +2125,42 @@ Quedan aprobadas como dirección del hito:
 2. HP1 reemplazó `ProgresoMagicoJugador` por `ProgresoHabilidadesJugador`, sin duplicarlo ni conservar wrappers;
 3. Maestrías/Habilidades generales salen del directorio conceptual exclusivo de magia;
 4. pasivas consumen los mismos puntos universales/específicos que las activas;
-5. pasivas, auras, maldiciones y afijos globales comparten un sistema canónico de modificadores;
-6. auras/maldiciones mantienen su ciclo de vida mediante el sistema temporal existente;
-7. no existe un sistema independiente por estadística;
+5. pasivas, auras, maldiciones, afijos del portador, efectos temporales, terreno/zonas y fuentes equivalentes comparten un sistema canónico de modificadores cuando afectan un objetivo registrado;
+6. auras/maldiciones y otros efectos temporales mantienen su ciclo de vida mediante el sistema temporal existente, pero la composición de sus modificadores numéricos pertenece al centralizador;
+7. no existe un sistema independiente por estadística ni por tipo de combatiente;
 8. las ecuaciones solicitan modificaciones mediante claves registradas canónicamente;
-9. las configuraciones validan esas claves y fallan ante desconocidas;
-10. se distinguen `sumar`, `porcentaje_base` y `porcentaje_total`;
-11. los límites finales continúan perteneciendo a la regla propietaria;
-12. `DANO_HABILIDAD` modifica daño de habilidades;
-13. `ATRIBUTO_HABILIDAD` modifica parámetros internos como alcance, radio o cantidad de objetivos;
-14. los atributos de habilidad también utilizan un registro canónico;
-15. las condiciones se basan en contexto canónico y no en nombres visibles;
-16. los afijos locales continúan perteneciendo al objeto;
-17. los afijos globales del portador reutilizan el resolutor común;
-18. esta infraestructura debe permitir futuros afijos legendarios globales;
-19. XP de armas se basa en daño realmente aplicado;
-20. XP de armaduras se basa en daño mitigado por Armadura y se distribuye por contribución de categoría;
-21. el set completo ligero se compone de cabeza, torso, manos, piernas y pies; el escudo queda fuera;
-22. Maestría dual reduce la penalización de daño de la mano secundaria, no el recargo temporal;
-23. el panel Personaje muestra pasivas y efectos activos;
-24. una pasiva aprendida puede mostrarse inactiva si no cumple su condición;
-25. los tooltips utilizan el mismo resultado/desglose canónico y no recalculan estadísticas;
-26. HP1 parte sin partidas guardadas previas y no implementa migraciones/parches históricos;
-27. HP2 debe auditar exhaustivamente objetivos potenciales, incluyendo escudos, quiver y variables no enumeradas inicialmente;
-28. el resolutor canónico pertenece al concepto de combatiente y debe funcionar también para enemigos afectados por auras/maldiciones;
-29. la integración de afijos globales se absorbe en HP2 y deja de ser una etapa independiente;
-30. HP3 debe diseñar una colección amplia de pasivas y definir con mayor precisión la XP física antes de implementar;
-31. HP4 debe auditar exhaustivamente atributos modificables de habilidades y diseñar una colección amplia de auras/maldiciones;
-32. HP5 debe evaluar si la pantalla de Personaje requiere rediseño antes de implementar la presentación final.
+9. todo objetivo registrado obtiene su valor final mediante `SistemaModificadoresCombatiente` antes de ser consumido;
+10. si aparece una semántica matemática real no soportada, se amplía el contrato común en vez de resolverla en paralelo;
+11. HP2 implementa `sumar`, `porcentaje_base`, `porcentaje_total`, `multiplicar_redondear` y `multiplicar`;
+12. las configuraciones y descriptores fallan explícitamente ante objetivos, operaciones, ámbitos o claves de contexto desconocidos;
+13. condiciones/contexto son declarativos y no pueden contener código ejecutable;
+14. los límites y redondeos finales propios de una regla continúan perteneciendo a su dominio; los redondeos que formen parte de la propia composición de modificadores se expresan como operación canónica;
+15. los afijos `local_objeto` continúan perteneciendo al objeto;
+16. los afijos `portador` reutilizan el resolutor común mientras el objeto esté equipado;
+17. el objeto conserva visible la información de sus afijos `portador`, aunque esos valores no se fusionen con sus propiedades locales;
+18. equipar/desequipar no mantiene copias manuales de modificadores: las fuentes se obtienen desde el equipo canónico actual;
+19. terreno y zonas pueden ser fuentes canónicas; su vigencia se obtiene de la posición/estado espacial real y no se persiste como estadística del actor;
+20. una zona puede aplicar un estado, aportar modificadores directos o ambas cosas según contenido; solo la composición de objetivos registrados pertenece al centralizador;
+21. `PercepcionJugador` se elimina y Player/Enemigo resuelven Percepción mediante el mismo motor;
+22. los efectos de factores temporales se multiplican dentro del centralizador y dejan de escribir factores finales sobre el combatiente;
+23. variantes enemigas son fuentes canónicas cuando modifican objetivos registrados; atributos primarios y experiencia otorgada permanecen fuera hasta su decisión correspondiente;
+24. la penalización base de la mano secundaria permanece en el ataque y `multiplicadorDanioFuente` permite modificar su resultado por contexto sin reglas especiales de pasiva;
+25. quiver conserva munición/capacidad en su dominio, pero sus afijos `portador` pueden modificar cualquier objetivo registrado sin motor especial;
+26. escudos conservan Armadura/Bloqueo/Mitigación locales y cualquier modificación global posterior de esos objetivos atraviesa el centralizador;
+27. HP2 adopta persistencia de jugador `v3`, sin migración;
+28. se persisten fuentes de objetos y no `propiedadesFinales`; las propiedades locales se reconstruyen desde plantilla + afijos al cargar;
+29. wrappers/fallbacks históricos directamente intervenidos se eliminan en vez de conservar compatibilidad vieja;
+30. el registro auditado mantiene cuatro estados documentales: implementado, previsto para etapa posterior, pendiente de decisión explícita y deliberadamente fuera del motor;
+31. los seis atributos primarios no ingresan automáticamente al motor; requieren aprobación en la etapa que realmente los necesite;
+32. `resistenciaMental`, `potenciaAura`, familias de daño global, robo, hallazgo, precisión/potencia de hechizos y velocidades reservadas permanecen pendientes de decisión;
+33. `aumentarVelocidad` y `multiplicarMas` existen únicamente en afijos no activos y no reciben semántica automática en HP2;
+34. los atributos internos de habilidades se auditan y formalizan en HP4; cuando sean objetivos modificables también deberán atravesar `SistemaModificadoresCombatiente`;
+35. HP3 debe diseñar una colección amplia de pasivas y definir con mayor precisión la XP física antes de implementar;
+36. XP de armas se basará en daño realmente aplicado y XP de armaduras en daño mitigado por Armadura, consumiendo resultados canónicos;
+37. el set completo ligero se compone de cabeza, torso, manos, piernas y pies; el escudo queda fuera;
+38. la semántica de `categoriaArmadura` ante conjuntos mixtos debe aprobarse en HP3 antes de usarse como condición;
+39. el panel Personaje debe poder mostrar pasivas/efectos y aplicabilidad sin recalcular estadísticas; HP5 decidirá si requiere rediseño;
+40. tooltips y paneles deben consumir resultado/desglose canónico, no reproducir las fórmulas del motor.
 
 ---
 
@@ -1789,7 +2172,7 @@ No bloquean la arquitectura y se resolverán en la etapa de implementación/cont
 - magnitud exacta de Evasión otorgada por Armadura ligera;
 - factores iniciales `factorExperienciaArma` y `factorExperienciaArmadura`;
 - requisitos de nivel, grados y escalado de futuras pasivas físicas;
-- catálogo inicial amplio de objetivos modificables, a cerrar en HP2 tras auditoría real;
+- magnitudes/balance de futuros modificadores sobre los objetivos ya registrados;
 - catálogo inicial amplio de atributos de habilidad modificables, a cerrar en HP4 tras auditoría real;
 - catálogo y magnitudes concretas de pasivas, auras y maldiciones diseñadas en HP3/HP4.
 

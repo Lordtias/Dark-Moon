@@ -3,6 +3,7 @@ import { Objeto } from "./Objeto.js";
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
 import { RAREZAS_OBJETO } from "../juego/objetos/RarezasObjeto.js";
+import { componerPropiedadesObjeto } from "../juego/objetos/SistemaAfijos.js";
 
 import { aplicarMetadatosComercialesObjeto } from "../juego/comercio/MetadatosComercialesObjeto.js";
 
@@ -29,14 +30,6 @@ export function crearObjeto({
 
   sufijos = [],
 
-  // El generador de afijos compone las propiedades
-  // finales y las entrega aquí.
-  //
-  // Cuando no se proporciona este valor,
-  // se utilizan las propiedades originales
-  // de la plantilla.
-  propiedadesFinales = null,
-
   rutaCreacion = [],
 } = {}) {
   if (
@@ -49,16 +42,6 @@ export function crearObjeto({
 
   if (typeof idObjeto !== "string" || idObjeto.trim() === "") {
     throw new Error("Se necesita el identificador del objeto.");
-  }
-
-  if (
-    propiedadesFinales !== null &&
-    (typeof propiedadesFinales !== "object" ||
-      Array.isArray(propiedadesFinales))
-  ) {
-    throw new Error(
-      "Las propiedades finales del objeto " + "deben formar un objeto válido.",
-    );
   }
 
   const idNormalizado = idObjeto.trim().toLowerCase();
@@ -88,6 +71,11 @@ export function crearObjeto({
   });
 
   const propiedadesBase = plantilla.propiedades ?? {};
+  const propiedades = componerPropiedadesObjeto({
+    propiedadesBase,
+    prefijos,
+    sufijos,
+  });
 
   const objeto = new Objeto({
     id: idNormalizado,
@@ -123,10 +111,10 @@ export function crearObjeto({
 
     // Objeto realiza copias profundas
     // independientes de las propiedades
-    // base y finales.
+    // base y locales resueltas desde sus fuentes canónicas.
     propiedadesBase,
 
-    propiedades: propiedadesFinales ?? propiedadesBase,
+    propiedades,
 
     rareza,
     nivelObjeto,
@@ -202,8 +190,7 @@ function crearContenedorInterno({
 //     "rareza": "magico",
 //     "nivelObjeto": 2,
 //     "prefijos": [...],
-//     "sufijos": [...],
-//     "propiedadesFinales": {...}
+//     "sufijos": [...]
 // }
 export function crearObjetosDesdeDefiniciones({
   configuracionObjetos,
@@ -248,7 +235,6 @@ export function crearObjetosDesdeDefiniciones({
 
         sufijos: definicion.sufijos ?? [],
 
-        propiedadesFinales: definicion.propiedadesFinales ?? null,
 
         rutaCreacion,
       });

@@ -3044,21 +3044,25 @@ function equiparEscenarioPotencia({ jugador, configuracionObjetos, escenario }) 
   const potenciaPorObjeto = usaDoble
     ? escenario.potenciaHabilidad / 2
     : escenario.potenciaHabilidad;
-  const propiedadesFinales = {
-    ...plantilla.propiedades,
-    potenciaHabilidad: potenciaPorObjeto,
+  const configuracionEscenario = {
+    ...configuracionObjetos,
+    [idBase]: {
+      ...plantilla,
+      propiedades: {
+        ...plantilla.propiedades,
+        potenciaHabilidad: potenciaPorObjeto,
+      },
+    },
   };
   const principal = crearObjeto({
-    configuracionObjetos,
+    configuracionObjetos: configuracionEscenario,
     idObjeto: idBase,
-    propiedadesFinales,
   });
   jugador.equipamiento.equiparEnRanura("arma", principal);
   if (usaDoble) {
     const secundaria = crearObjeto({
-      configuracionObjetos,
+      configuracionObjetos: configuracionEscenario,
       idObjeto: idBase,
-      propiedadesFinales,
     });
     jugador.equipamiento.equiparEnRanura("secundaria", secundaria);
   }

@@ -1,3 +1,5 @@
+import { OBJETIVOS_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
+
 const FAMILIAS_CATALIZADOR = new Set(["baston", "varita"]);
 const ELEMENTOS_VARITA = new Set(["fuego", "frio", "rayo", "veneno"]);
 const RANURAS_VARITA = new Set(["arma", "secundaria"]);
@@ -73,52 +75,13 @@ export function calcularPotenciaHabilidadObjetos(objetos = []) {
 
 export function obtenerObjetosEquipadosParaHabilidades(combatiente) {
   const equipamiento = combatiente?.equipamiento;
-  if (!equipamiento || typeof equipamiento !== "object") return [];
-
-  const metodosListado = [
-    "obtenerObjetosEquipados",
-    "obtenerEquipados",
-    "listarObjetosEquipados",
-  ];
-  for (const nombre of metodosListado) {
-    if (typeof equipamiento[nombre] !== "function") continue;
-    const listado = equipamiento[nombre]();
-    if (Array.isArray(listado)) return normalizarObjetosEquipados(listado);
+  if (!equipamiento) return [];
+  if (typeof equipamiento.obtenerObjetosEquipados !== "function") {
+    throw new Error(
+      "El equipamiento debe exponer obtenerObjetosEquipados como API canónica.",
+    );
   }
-
-  const candidatos = equipamiento.ranuras ?? equipamiento.slots ?? equipamiento;
-  return normalizarObjetosEquipados(Object.values(candidatos));
-}
-
-function normalizarObjetosEquipados(candidatos) {
-  const resultado = [];
-  const vistos = new Set();
-  const pendientes = [...candidatos];
-  while (pendientes.length > 0) {
-    const actual = pendientes.shift();
-    if (!actual) continue;
-    if (Array.isArray(actual)) {
-      pendientes.push(...actual);
-      continue;
-    }
-    if (typeof actual !== "object" || vistos.has(actual)) continue;
-    vistos.add(actual);
-    if (pareceObjetoEquipable(actual)) resultado.push(actual);
-  }
-  return resultado;
-}
-
-function pareceObjetoEquipable(objeto) {
-  return Boolean(
-    objeto &&
-    typeof objeto === "object" &&
-    (typeof objeto.id === "string" ||
-      typeof objeto.nombre === "string" ||
-      typeof objeto.tipo === "string" ||
-      typeof objeto.tipoObjeto === "string" ||
-      typeof objeto.familiaObjeto === "string" ||
-      objeto.propiedades),
-  );
+  return equipamiento.obtenerObjetosEquipados();
 }
 
 export function crearContextoPotenciaHabilidad({
@@ -128,7 +91,13 @@ export function crearContextoPotenciaHabilidad({
   const objetosEquipados = Array.isArray(objetos)
     ? objetos
     : obtenerObjetosEquipadosParaHabilidades(combatiente);
-  const potenciaHabilidad = calcularPotenciaHabilidadObjetos(objetosEquipados);
+  const potenciaBase = calcularPotenciaHabilidadObjetos(objetosEquipados);
+  const potenciaHabilidad = combatiente?.sistemaModificadoresCombatiente
+    ? combatiente.obtenerValorModificado(
+        OBJETIVOS_MODIFICADOR.POTENCIA_HABILIDAD,
+        potenciaBase,
+      )
+    : potenciaBase;
 
   return Object.freeze({
     potenciaHabilidad,

@@ -5,7 +5,6 @@ import { RAREZAS_OBJETO } from "./RarezasObjeto.js";
 import { seleccionarRarezaObjeto } from "./GeneradorRarezaObjeto.js";
 
 import {
-  componerPropiedadesObjeto,
   generarAfijosObjeto,
   puedeGenerarRarezaParaPlantilla,
 } from "./SistemaAfijos.js";
@@ -104,11 +103,7 @@ export function crearObjetoGenerado({
     catalogoSufijos: sufijos,
     aleatorio,
   });
-  const propiedadesFinales = componerPropiedadesObjeto({
-    propiedadesBase: plantilla.propiedades ?? {},
-    prefijos: afijos.prefijos,
-    sufijos: afijos.sufijos,
-  });
+
 
   return crearObjeto({
     configuracionObjetos,
@@ -118,7 +113,6 @@ export function crearObjetoGenerado({
     nivelObjeto,
     prefijos: afijos.prefijos,
     sufijos: afijos.sufijos,
-    propiedadesFinales,
   });
 }
 // Excluye una rareza cuando no puede alcanzar

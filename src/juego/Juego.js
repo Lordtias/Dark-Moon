@@ -23,6 +23,7 @@ export class Juego {
     mapaSeleccionado,
     planoMazmorra = null,
     configuracionObjetos,
+    obtenerModificadoresTerreno = () => [],
   } = {}) {
     if (!Array.isArray(map) || map.length === 0) {
       throw new Error("Juego necesita un mapa válido.");
@@ -68,6 +69,7 @@ export class Juego {
       ],
       obtenerZonas: () =>
         this.coordinadorTiempo?.obtenerZonasTemporales?.() ?? [],
+      obtenerModificadoresTerreno,
     });
 
     // El estado pertenece al Juego y, por tanto, al mapa activo. No se guarda

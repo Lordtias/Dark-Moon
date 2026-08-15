@@ -943,6 +943,27 @@ Responsabilidades:
 
 No se deben incorporar bonificaciones de afijos directamente en la interfaz. La UI muestra las propiedades calculadas por el objeto y el combatiente.
 
+### Modificadores canónicos del combatiente
+
+```text
+src/juego/modificadores/ContratosModificadoresCombatiente.js
+src/juego/modificadores/SistemaModificadoresCombatiente.js
+```
+
+Todo objetivo registrado obtiene su valor final mediante `SistemaModificadoresCombatiente`. El mismo motor se utiliza para jugador y enemigos y reúne fuentes de equipo/afijos `portador`, efectos temporales, terreno/zonas y proveedores declarativos equivalentes.
+
+Operaciones vigentes:
+
+```text
+sumar
+porcentaje_base
+porcentaje_total
+multiplicar_redondear
+multiplicar
+```
+
+Los afijos `local_objeto` continúan modificando únicamente las propiedades de su objeto. Los afijos `portador` permanecen visibles como parte del objeto, pero su aporte se aplica al combatiente solamente mientras la pieza está equipada. La interfaz consume resultados y desgloses canónicos; no reproduce las fórmulas.
+
 ### Presentación de objetos
 
 ```text
@@ -1167,13 +1188,13 @@ El acceso técnico compartido a almacenamiento JSON vive en `src/utilidades/Alma
 Clave de `localStorage`:
 
 ```text
-dark-moon:estado-jugador:v2
+dark-moon:estado-jugador:v3
 ```
 
 Versión:
 
 ```text
-2
+3
 ```
 
 Se guarda:
@@ -1189,7 +1210,9 @@ Se guarda:
 - progreso general de habilidades (`progresoHabilidades`);
 - inventario;
 - equipamiento;
-- datos necesarios para reconstruir objetos y afijos.
+- fuentes necesarias para reconstruir objetos y afijos: plantilla/ID, rareza, nivel de objeto, prefijos, sufijos y contenido cuando corresponda.
+
+Las propiedades locales derivadas de un objeto no se persisten como segunda fuente de verdad. Se reconstruyen al cargar desde plantilla + afijos `local_objeto`. Los aportes `portador` vuelven a obtenerse desde el equipamiento real.
 
 No se guarda:
 

@@ -289,7 +289,6 @@ function serializarObjetoGenerado(objeto) {
     nivelObjeto: objeto.nivelObjeto,
     prefijos: copiarProfundo(objeto.prefijos ?? []),
     sufijos: copiarProfundo(objeto.sufijos ?? []),
-    propiedadesFinales: copiarProfundo(objeto.propiedades),
   };
 }
 

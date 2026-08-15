@@ -15,7 +15,9 @@ import {
   crearProgresoHabilidadesParaPersonaje,
   obtenerConfiguracionProgresoHabilidades,
 } from "../../../juego/maestrias/ContextoProgresoHabilidades.js";
-import { PercepcionJugador } from "../../../juego/visibilidad/PercepcionJugador.js";
+import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
+
+const PERCEPCION_BASE_JUGADOR = 10;
 
 const ATRIBUTOS_VALIDOS = [
   "fuerza",
@@ -76,6 +78,7 @@ export class Player extends Combatiente {
       estadisticasBase,
       ataqueNatural,
       factoresTemporales,
+      tipoContextoModificadores: "jugador",
       simbolo: "@",
       capacidadContenedor: capacidadInventario,
       objetosIniciales: objetosInventarioIniciales,
@@ -126,11 +129,6 @@ export class Player extends Combatiente {
       estadoInicial: estadoProgresoHabilidades,
     });
 
-    // Percepción es independiente del nivel y de los seis atributos
-    // principales. Sus modificadores futuros se administran por una vía
-    // genérica para pasivas, auras, objetos o profesiones.
-    this.sistemaPercepcion = new PercepcionJugador();
-
     if (experiencia > 0) {
       this.ganarExperiencia(experiencia);
     }
@@ -156,24 +154,18 @@ export class Player extends Combatiente {
     return this.progresoHabilidades.obtenerPuntosUniversales();
   }
 
-  get percepcion() {
-    return this.sistemaPercepcion.actual;
-  }
-
   get percepcionBase() {
-    return this.sistemaPercepcion.base;
+    return PERCEPCION_BASE_JUGADOR;
   }
 
-  registrarModificadorPercepcion(configuracion) {
-    return this.sistemaPercepcion.registrarModificador(configuracion);
-  }
-
-  retirarModificadorPercepcion(id) {
-    return this.sistemaPercepcion.retirarModificador(id);
-  }
-
-  obtenerResumenPercepcion() {
-    return this.sistemaPercepcion.obtenerResumen();
+  get percepcion() {
+    return Math.max(
+      0,
+      this.obtenerValorModificado(
+        OBJETIVOS_MODIFICADOR.PERCEPCION,
+        this.percepcionBase,
+      ),
+    );
   }
 
   agregarOro(cantidad) {

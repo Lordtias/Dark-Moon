@@ -2,9 +2,11 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 
 import { crearObjetosDesdeDefiniciones } from "../../objetos/FabricaObjetos.js";
 
-import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
-
 import { FACTORES_TEMPORALES_PREDETERMINADOS } from "../tiempo/SistemaTiempo.js";
+import {
+  OBJETIVOS_MODIFICADOR,
+  OPERACIONES_MODIFICADOR,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 import { obtenerRecursoVisualPredeterminado } from "../configuracion/RecursosVisualesCombatientes.js";
 
 // Nombres reconocidos por Combatiente y SistemaTiempo.
@@ -12,11 +14,11 @@ import { obtenerRecursoVisualPredeterminado } from "../configuracion/RecursosVis
 // Esta lista también permite detectar errores de escritura
 // dentro de las configuraciones JSON.
 const NOMBRES_FACTORES_TEMPORALES = [
-  "factorTiempo",
-  "factorMovimiento",
-  "factorAtaque",
-  "factorAccion",
-  "factorConsumo",
+  OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,
+  OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO,
+  OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE,
+  OBJETIVOS_MODIFICADOR.FACTOR_ACCION,
+  OBJETIVOS_MODIFICADOR.FACTOR_CONSUMO,
 ];
 
 // Crea una copia profunda de valores provenientes
@@ -215,9 +217,8 @@ function aplicarMultiplicadorEntero(valor, multiplicador, minimo) {
 // Completa los factores omitidos con los valores
 // predeterminados del sistema temporal.
 //
-// Esto permite que las plantillas antiguas sigan
-// funcionando aunque todavía no declaren todos
-// los factores.
+// Los factores omitidos adoptan el valor neutro del contrato temporal;
+// la configuración solamente necesita declarar diferencias reales.
 function crearFactoresTemporales(configuracion = {}) {
   if (!esObjetoConfiguracion(configuracion)) {
     throw new Error(
@@ -275,42 +276,45 @@ function validarFactoresTemporales(factores, nombreEnemigo = "El enemigo") {
 //
 // Élite:
 // factorTiempo × 0.90
-function aplicarMultiplicadoresTemporales(factores, multiplicadores = {}) {
+function crearModificadoresTemporalesVariante({
+  idVariante,
+  multiplicadores = {},
+} = {}) {
   if (!esObjetoConfiguracion(multiplicadores)) {
     throw new Error(
-      "Los multiplicadores temporales " + "de la variante no son válidos.",
+      "Los multiplicadores temporales de la variante no son válidos.",
     );
   }
 
-  for (const [nombreFactor, multiplicador] of Object.entries(multiplicadores)) {
+  return Object.entries(multiplicadores).map(([nombreFactor, multiplicador]) => {
     if (!NOMBRES_FACTORES_TEMPORALES.includes(nombreFactor)) {
       throw new Error(
-        `La variante intenta modificar el factor ` +
-          `"${nombreFactor}", pero ese factor no existe.`,
+        `La variante intenta modificar el factor "${nombreFactor}", pero ese factor no existe.`,
       );
     }
-
     if (!Number.isFinite(multiplicador) || multiplicador <= 0) {
       throw new Error(
-        `El multiplicador temporal de ` +
-          `"${nombreFactor}" debe ser mayor que 0.`,
+        `El multiplicador temporal de "${nombreFactor}" debe ser mayor que 0.`,
       );
     }
-
-    factores[nombreFactor] = aplicarMultiplicadorEntero(
-      factores[nombreFactor],
-      multiplicador,
-      1,
-    );
-  }
+    return {
+      id: `variante_enemigo:${idVariante}:${nombreFactor}`,
+      objetivo: nombreFactor,
+      operacion: OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR,
+      valor: multiplicador,
+      origen: "variante_enemigo",
+      fuente: { tipo: "variante_enemigo", idVariante },
+      condiciones: {},
+    };
+  });
 }
 
 // Aplica Enfermo, Gigante o Élite.
 //
-// El multiplicador de Vida se incorpora a la
-// estadística base para que EstadisticasDerivadas
-// continúe siendo la fuente real de Vida máxima.
-function aplicarVariante(datos, variante) {
+// Los multiplicadores de variante que afectan objetivos registrados se
+// conservan como fuentes canónicas. Los atributos y la experiencia siguen
+// perteneciendo a sus dominios hasta que una etapa posterior decida otra cosa.
+function aplicarVariante(datos, variante, idVariante) {
   const multiplicadorAtributos = obtenerMultiplicador(
     variante,
     "multiplicadorAtributos",
@@ -331,23 +335,20 @@ function aplicarVariante(datos, variante) {
     );
   }
 
-  // La Vida máxima se calcula como:
-  //
-  // vida base
-  // + Vida por nivel
-  // + aporte de Constitución.
-  //
-  // Ajustamos la base para multiplicar el resultado
-  // completo sin escribir directamente vidaMaxima.
-  const aporteConstitucion =
-    CONFIGURACION_COMBATE.atributos.vidaPorConstitucion *
-    datos.atributos.constitucion;
-
-  datos.estadisticasBase.vida =
-    datos.estadisticasBase.vida * multiplicadorVida +
-    aporteConstitucion * (multiplicadorVida - 1);
-
-  datos.estadisticasBase.vidaPorNivel *= multiplicadorVida;
+  // La variante conserva los atributos como parte de la construcción base
+  // del enemigo. Vida máxima, en cambio, es un objetivo canónico y su
+  // multiplicador debe participar del centralizador sin absorber bonos planos.
+  if (multiplicadorVida !== 1) {
+    datos.modificadoresIniciales.push({
+      id: `variante_enemigo:${idVariante}:vidaMaxima`,
+      objetivo: OBJETIVOS_MODIFICADOR.VIDA_MAXIMA,
+      operacion: OPERACIONES_MODIFICADOR.PORCENTAJE_BASE,
+      valor: (multiplicadorVida - 1) * 100,
+      origen: "variante_enemigo",
+      fuente: { tipo: "variante_enemigo", idVariante },
+      condiciones: {},
+    });
+  }
 
   datos.experienciaOtorgada = aplicarMultiplicadorEntero(
     datos.experienciaOtorgada,
@@ -355,10 +356,11 @@ function aplicarVariante(datos, variante) {
     0,
   );
 
-  aplicarMultiplicadoresTemporales(
-    datos.factoresTemporales,
-
-    variante.multiplicadoresTemporales ?? {},
+  datos.modificadoresIniciales.push(
+    ...crearModificadoresTemporalesVariante({
+      idVariante,
+      multiplicadores: variante.multiplicadoresTemporales ?? {},
+    }),
   );
 }
 
@@ -476,6 +478,8 @@ export function calcularDatosEnemigo({
 
     factoresTemporales: crearFactoresTemporales(base.factoresTemporales ?? {}),
 
+    modificadoresIniciales: [],
+
     experienciaOtorgada: base.experienciaOtorgada,
 
     capacidadContenedor: contenedor.capacidad ?? 0,
@@ -547,7 +551,7 @@ export function calcularDatosEnemigo({
       throw new Error(`No existe la variante ` + `"${idVariante}".`);
     }
 
-    aplicarVariante(datos, variante);
+    aplicarVariante(datos, variante, idVariante);
 
     const genero = plantilla.genero ?? "masculino";
 

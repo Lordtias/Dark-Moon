@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Implementada; validación técnica completada.** La validación interactiva completa dentro del juego queda pendiente de ejecución manual porque el navegador headless disponible en el entorno bloquea por política organizacional cualquier sitio local. No se avanzó a HP2.
+**Cerrada.** La validación técnica y las pruebas manuales básicas fueron completadas. El usuario confirmó el cierre en el commit `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`. La entrega canónica fue reubicada posteriormente a `docs/habilidades/entregas/ENTREGA_HP1.md`; la copia histórica bajo `docs/phaser/entregas` se elimina en HP2 para conservar una sola fuente documental.
 
 ## Repositorio
 
@@ -13,7 +13,7 @@
 - `origin/main`: `029e3d675f7bb9d3037fc81fb650ba9520a10d86`
 - No se realizó commit ni push.
 
-### Git status final verificado
+### Git status previo al commit final
 
 ```text
 ## main...origin/main
@@ -48,7 +48,7 @@
  M src/juego/progresion/SistemaProgresion.js
  M src/partida/EstadoPartida.js
  M src/partida/PersistenciaJugador.js
-?? docs/phaser/entregas/ENTREGA_HP1.md
+?? docs/habilidades/entregas/ENTREGA_HP1.md
 ?? src/config/habilidades/
 ?? src/juego/habilidades/ObservadorProgresoHabilidades.js
 ?? src/juego/maestrias/ContextoProgresoHabilidades.js
@@ -121,7 +121,7 @@ pasiva → progresión; sin ejecución, sin barra y sin perfil visual de ejecuci
 - `src/juego/maestrias/ProgresoHabilidadesJugador.js`
 - `src/juego/maestrias/ValidadorConfiguracionProgresoHabilidades.js`
 - `src/juego/habilidades/ObservadorProgresoHabilidades.js`
-- `docs/phaser/entregas/ENTREGA_HP1.md`
+- `docs/habilidades/entregas/ENTREGA_HP1.md`
 
 ## Archivos eliminados
 
@@ -297,13 +297,13 @@ COMMIT BASE:
 029e3d675f7bb9d3037fc81fb650ba9520a10d86
 
 HEAD FINAL VERIFICADO:
-029e3d675f7bb9d3037fc81fb650ba9520a10d86
+f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481
 
 GIT STATUS FINAL:
-Cambios de HP1 presentes en el árbol de trabajo y sin commit. Ver listado exacto de `git status` en esta entrega.
+`main` limpio y alineado con `origin/main` al iniciar HP2 sobre `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`.
 
 DOCUMENTO DE ENTREGA:
-docs/phaser/entregas/ENTREGA_HP1.md
+docs/habilidades/entregas/ENTREGA_HP1.md
 
 DOCUMENTOS MAESTROS ACTUALIZADOS:
 - docs/habilidades/PLAN_MAESTRO_HABILIDADES_PASIVAS_DARK_MOON.md

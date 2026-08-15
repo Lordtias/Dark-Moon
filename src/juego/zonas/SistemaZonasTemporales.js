@@ -295,7 +295,36 @@ export class SistemaZonasTemporales {
       tiempoRestante: Math.max(0, zona.venceEn - ahora),
       duracion: zona.configuracion.duracion,
       proximaActivacion: zona.proximaActivacion,
+      modificadores: zona.contenido.modificadores.map(copiarSimple),
     }));
+  }
+
+  obtenerModificadoresParaActor(actor) {
+    this.validarActivo();
+    if (!actor || !Number.isInteger(actor.x) || !Number.isInteger(actor.y)) {
+      return [];
+    }
+
+    const resultado = [];
+    for (const zona of this.obtenerZonasInternasOrdenadas()) {
+      if (!zona.clavesCasillas.has(crearClaveCasilla(actor))) continue;
+      if (!this.esObjetivoValido({ zona, actor })) continue;
+
+      zona.contenido.modificadores.forEach((modificador, indice) => {
+        resultado.push({
+          ...copiarSimple(modificador),
+          id: `zona:${zona.id}:${indice}:${modificador.objetivo}`,
+          origen: "zona",
+          fuente: {
+            tipo: "zona",
+            zonaId: zona.id,
+            idHabilidad: zona.idHabilidad,
+            nombre: zona.nombre,
+          },
+        });
+      });
+    }
+    return resultado;
   }
 
   destruir() {
@@ -446,8 +475,15 @@ function normalizarDefinicionCreacion({
   const efectos = Array.isArray(definicion.contenido.efectos)
     ? definicion.contenido.efectos.map(copiarSimple)
     : null;
-  if (!danio || !efectos || (danio.length === 0 && efectos.length === 0)) {
-    throw new Error("La zona temporal necesita daño, efectos o ambos.");
+  const modificadores = Array.isArray(definicion.contenido.modificadores)
+    ? definicion.contenido.modificadores.map(copiarSimple)
+    : [];
+  if (
+    !danio ||
+    !efectos ||
+    (danio.length === 0 && efectos.length === 0 && modificadores.length === 0)
+  ) {
+    throw new Error("La zona temporal necesita daño, efectos o modificadores.");
   }
 
   const configuracion = normalizarConfiguracionZonaTemporal(
@@ -484,6 +520,9 @@ function normalizarDefinicionCreacion({
     contenido: Object.freeze({
       danio: Object.freeze(danio.map((item) => Object.freeze(item))),
       efectos: Object.freeze(efectos.map((item) => Object.freeze(item))),
+      modificadores: Object.freeze(
+        modificadores.map((item) => Object.freeze(item)),
+      ),
     }),
     contextoPotencia: copiarSimple(definicion.contextoPotencia),
     creadaEn: ahora,
@@ -561,6 +600,7 @@ function resumirZona(zona) {
     venceEn: zona.venceEn,
     duracion: zona.configuracion.duracion,
     proximaActivacion: zona.proximaActivacion,
+    modificadores: zona.contenido.modificadores.map(copiarSimple),
   };
 }
 

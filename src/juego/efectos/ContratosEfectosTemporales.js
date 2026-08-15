@@ -1,5 +1,6 @@
 import { normalizarTipoDanio } from "../combate/ComponentesDanio.js";
 import { CONFIGURACION_EFECTOS_TEMPORALES } from "../../config/ConfiguracionEfectosTemporales.js";
+import { OBJETIVOS_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
 
 // Tipos canónicos soportados por el sistema temporal común.
 export const TIPOS_EFECTO_TEMPORAL = Object.freeze({
@@ -43,11 +44,11 @@ export const POLITICAS_POTENCIA_EFECTO_VALIDAS = Object.freeze(
 );
 
 export const FACTORES_TEMPORALES_MODIFICABLES = Object.freeze([
-  "factorTiempo",
-  "factorMovimiento",
-  "factorAtaque",
-  "factorAccion",
-  "factorConsumo",
+  OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,
+  OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO,
+  OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE,
+  OBJETIVOS_MODIFICADOR.FACTOR_ACCION,
+  OBJETIVOS_MODIFICADOR.FACTOR_CONSUMO,
 ]);
 
 function validarObjeto(valor, descripcion) {

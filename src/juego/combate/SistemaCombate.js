@@ -3,7 +3,7 @@ import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
 import {
   verificarRequisitosAtaque,
-  consumirMunicionAtaque,
+  consumirRecursosAtaque,
 } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
@@ -58,11 +58,8 @@ function obtenerEstadisticasCombatiente(objetivo) {
   return objetivo.estadisticasDerivadas;
 }
 
-// Permite proporcionar la precisión de una mano
-// específica durante un ataque dual.
-//
-// Los consumidores anteriores pueden seguir
-// llamando la función con solamente dos argumentos.
+// Permite proporcionar la precisión ya resuelta de una fuente concreta,
+// por ejemplo una mano específica durante un ataque dual.
 export function obtenerDesgloseProbabilidadImpacto(
   atacante,
   objetivo,
@@ -134,25 +131,14 @@ export function calcularProbabilidadImpacto(
 
 function obtenerComponentesDanioFuente(fuente) {
   if (
-    Array.isArray(fuente.componentesDanio) &&
-    fuente.componentesDanio.length > 0
+    !Array.isArray(fuente.componentesDanio) ||
+    fuente.componentesDanio.length === 0
   ) {
-    return fuente.componentesDanio;
+    throw new Error(
+      `La fuente de daño "${fuente?.nombre ?? "desconocida"}" debe exponer componentes tipados.`,
+    );
   }
-
-  // Adaptador de compatibilidad para estadísticas físicas
-  // creadas antes del contrato de componentes tipados.
-  return [
-    {
-      tipo: TIPOS_DANIO.FISICO,
-      minimoLocal: fuente.minimoLocal,
-      maximoLocal: fuente.maximoLocal,
-      multiplicadorAtributo: fuente.multiplicadorAtributo,
-      aplicaDanioPlanoGlobal: true,
-      aplicaMultiplicadorGlobal: true,
-      aplicaCritico: true,
-    },
-  ];
+  return fuente.componentesDanio;
 }
 
 // Calcula todos los componentes brutos de una fuente.
@@ -167,9 +153,8 @@ function calcularComponentesDanioBruto({
 }) {
   const descriptores = obtenerComponentesDanioFuente(fuente);
 
-  // Primero se realizan las tiradas locales. De esta forma,
-  // un ataque físico antiguo conserva el mismo orden de azar:
-  // daño local, crítico y luego bloqueo.
+  // Primero se realizan las tiradas locales y luego la tirada compartida de
+  // crítico de la fuente; bloqueo y mitigaciones pertenecen a etapas posteriores.
   const componentesBase = descriptores.map((descriptor) => {
     const tipo = normalizarTipoDanio(descriptor.tipo);
     const minimoLocal = descriptor.minimoLocal ?? descriptor.minimo ?? 0;
@@ -598,7 +583,7 @@ export function resolverAtaqueSinObjetivo({ atacante } = {}) {
     };
   }
 
-  const resultadoMunicion = consumirMunicionAtaque(atacante);
+  const resultadoMunicion = consumirRecursosAtaque(atacante);
   const mensajeBase = requisitos.configuracion.esAtaqueDual
     ? "Atacaste una casilla vacía con ambas armas."
     : "Atacaste una casilla vacía.";
@@ -665,7 +650,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
 
   // La munición se consume una sola vez
   // por acción de ataque.
-  const resultadoMunicion = consumirMunicionAtaque(atacante);
+  const resultadoMunicion = consumirRecursosAtaque(atacante);
   const estadisticasAtacante = atacante.estadisticasDerivadas;
   const configuracionDanio = estadisticasAtacante.danioFisico;
   const fuentes = configuracionDanio.componentes;

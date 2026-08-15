@@ -1,7 +1,11 @@
 import { seleccionarEntradaPonderada } from "./GeneradorRarezaObjeto.js";
+import {
+  AMBITOS_AFIJO,
+  OPERACIONES_MODIFICADOR,
+  validarAmbitoAfijo,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 
 const ESTADO_ACTIVO = "activo";
-const OPERACION_SUMAR = "sumar";
 
 // Comprueba si una rareza puede cumplir sus límites de afijos para una
 // plantilla, nivel y catálogo concretos.
@@ -192,12 +196,12 @@ export function componerPropiedadesObjeto({
     throw new Error("Los afijos generados deben estar dentro de listas.");
   }
 
-  const propiedadesFinales = copiarDatos(propiedadesBase);
+  const propiedadesLocales = copiarDatos(propiedadesBase);
   for (const afijo of [...prefijos, ...sufijos]) {
-    aplicarAfijoAPropiedades({ propiedadesFinales, afijo });
+    aplicarAfijoAPropiedades({ propiedadesLocales, afijo });
   }
 
-  return propiedadesFinales;
+  return propiedadesLocales;
 }
 
 function calcularCapacidadAfijos({
@@ -380,7 +384,7 @@ function generarValorRango({ rango, aleatorio, idAfijo, propiedad }) {
   return resultado / factor;
 }
 
-function aplicarAfijoAPropiedades({ propiedadesFinales, afijo }) {
+function aplicarAfijoAPropiedades({ propiedadesLocales, afijo }) {
   validarObjetoPlano(afijo, "El afijo generado");
   validarObjetoPlano(afijo.valores, `Los valores del afijo "${afijo.id}"`);
 
@@ -389,6 +393,11 @@ function aplicarAfijoAPropiedades({ propiedadesFinales, afijo }) {
   }
 
   for (const efecto of afijo.efectos) {
+    validarAmbitoAfijo(efecto.ambito);
+    if (efecto.ambito !== AMBITOS_AFIJO.LOCAL_OBJETO) {
+      continue;
+    }
+
     const valor = afijo.valores[efecto.propiedad];
     if (!Number.isFinite(valor)) {
       throw new Error(
@@ -396,18 +405,18 @@ function aplicarAfijoAPropiedades({ propiedadesFinales, afijo }) {
           `"${efecto.propiedad}".`,
       );
     }
-    if (efecto.operacion !== OPERACION_SUMAR) {
+    if (efecto.operacion !== OPERACIONES_MODIFICADOR.SUMAR) {
       throw new Error(
         `La operación "${efecto.operacion}" del afijo ` +
           `"${afijo.id}" todavía no está implementada.`,
       );
     }
 
-    const actual = propiedadesFinales[efecto.propiedad] ?? 0;
+    const actual = propiedadesLocales[efecto.propiedad] ?? 0;
     if (!Number.isFinite(actual)) {
       throw new Error(`La propiedad "${efecto.propiedad}" no es numérica.`);
     }
-    propiedadesFinales[efecto.propiedad] = actual + valor;
+    propiedadesLocales[efecto.propiedad] = actual + valor;
   }
 }
 

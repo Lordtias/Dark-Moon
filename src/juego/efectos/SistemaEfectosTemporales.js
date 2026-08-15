@@ -16,6 +16,7 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
 import { crearMensajeDetalleDanioPeriodico } from "../mensajes/MensajesCalculoCombate.js";
+import { OPERACIONES_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
   FACTORES_TEMPORALES_MODIFICABLES,
   MODOS_RESISTENCIA_EFECTO,
@@ -63,7 +64,6 @@ function obtenerEstadoObjetivo(objetivo, crear = true) {
   if (!estado && crear) {
     estado = {
       efectos: new Map(),
-      factoresBase: null,
     };
     ESTADOS_POR_OBJETIVO.set(objetivo, estado);
   }
@@ -307,6 +307,48 @@ function limitarMultiplicador(valor) {
 
 function obtenerNombreObjetivo(objetivo) {
   return objetivo?.nombre ?? "El objetivo";
+}
+
+// Expone las fuentes numéricas vigentes sin componerlas. La composición final
+// pertenece exclusivamente a SistemaModificadoresCombatiente.
+export function obtenerModificadoresTemporalesObjetivo(objetivo) {
+  const estado = obtenerEstadoObjetivo(objetivo, false);
+  if (!estado) return [];
+
+  const resultado = [];
+  for (const efecto of estado.efectos.values()) {
+    if (
+      efecto.suspendido ||
+      efecto.tipo !== TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR
+    ) {
+      continue;
+    }
+
+    const escala = obtenerEscalaAcumulacion(efecto);
+    for (const [objetivoModificador, multiplicadorConfigurado] of Object.entries(
+      efecto.valor ?? {},
+    )) {
+      const multiplicadorEscalado = limitarMultiplicador(
+        1 + (multiplicadorConfigurado - 1) * escala,
+      );
+      resultado.push({
+        id: `efecto_temporal:${efecto.id}:${objetivoModificador}`,
+        objetivo: objetivoModificador,
+        operacion: OPERACIONES_MODIFICADOR.MULTIPLICAR,
+        valor: multiplicadorEscalado,
+        origen: "efecto_temporal",
+        fuente: Object.freeze({
+          tipo: "efecto_temporal",
+          id: efecto.id,
+          idDefinicion: efecto.idDefinicion,
+          efectoId: efecto.efectoId,
+          nombre: efecto.nombreEfecto,
+        }),
+        condiciones: {},
+      });
+    }
+  }
+  return resultado;
 }
 
 function crearResumenEfecto(efecto) {
@@ -612,7 +654,6 @@ export class SistemaEfectosTemporales {
 
     estado.efectos.set(clave, efecto);
     this.programarEfecto(efecto);
-    this.recalcularFactoresObjetivo(efecto.objetivo);
 
     const evento = this.crearEventoDominio("efecto_aplicado", efecto, {
       resistencia,
@@ -785,7 +826,6 @@ export class SistemaEfectosTemporales {
       this.programarTick(efecto);
     }
 
-    this.recalcularFactoresObjetivo(efecto.objetivo);
 
     return {
       exito: true,
@@ -1114,7 +1154,6 @@ export class SistemaEfectosTemporales {
     this.agenda.cancelar(this.obtenerIdEventoTick(efecto));
     this.agenda.cancelar(this.obtenerIdEventoVencimiento(efecto));
     estado.efectos.delete(efecto.clave);
-    this.recalcularFactoresObjetivo(efecto.objetivo);
 
     if (estado.efectos.size === 0) {
       this.objetivosAdministrados.delete(efecto.objetivo);
@@ -1181,56 +1220,6 @@ export class SistemaEfectosTemporales {
     });
   }
 
-  recalcularFactoresObjetivo(objetivo) {
-    const estado = obtenerEstadoObjetivo(objetivo, false);
-    if (!estado) {
-      return;
-    }
-
-    const modificadores = [...estado.efectos.values()].filter(
-      (efecto) =>
-        !efecto.suspendido &&
-        efecto.tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR,
-    );
-
-    if (modificadores.length === 0) {
-      if (estado.factoresBase) {
-        for (const nombreFactor of FACTORES_TEMPORALES_MODIFICABLES) {
-          objetivo[nombreFactor] = estado.factoresBase[nombreFactor];
-        }
-        estado.factoresBase = null;
-      }
-      return;
-    }
-
-    if (!estado.factoresBase) {
-      estado.factoresBase = Object.fromEntries(
-        FACTORES_TEMPORALES_MODIFICABLES.map((nombreFactor) => [
-          nombreFactor,
-          objetivo[nombreFactor],
-        ]),
-      );
-    }
-
-    for (const nombreFactor of FACTORES_TEMPORALES_MODIFICABLES) {
-      const valorBase = estado.factoresBase[nombreFactor];
-      let multiplicadorTotal = 1;
-
-      for (const efecto of modificadores) {
-        const multiplicadorConfigurado = efecto.valor[nombreFactor];
-        if (multiplicadorConfigurado === undefined) {
-          continue;
-        }
-
-        const escala = obtenerEscalaAcumulacion(efecto);
-        const multiplicadorEscalado =
-          1 + (multiplicadorConfigurado - 1) * escala;
-        multiplicadorTotal *= limitarMultiplicador(multiplicadorEscalado);
-      }
-
-      objetivo[nombreFactor] = valorBase * multiplicadorTotal;
-    }
-  }
 
   suspenderObjetivo(objetivo) {
     const estado = obtenerEstadoObjetivo(objetivo, false);
@@ -1258,10 +1247,8 @@ export class SistemaEfectosTemporales {
       cantidad++;
     }
 
-    // Mientras el objetivo está fuera de un mapa activo no debe conservar
-    // factores efectivos alterados. La reanudación los recalcula desde la
-    // base exacta cuando se crea el sistema del mapa siguiente.
-    this.recalcularFactoresObjetivo(objetivo);
+    // Mientras el objetivo está fuera de un mapa activo sus modificadores
+    // temporales quedan suspendidos y el centralizador deja de considerarlos.
     this.objetivosAdministrados.delete(objetivo);
     return cantidad;
   }
@@ -1305,7 +1292,6 @@ export class SistemaEfectosTemporales {
 
     if (cantidad > 0) {
       this.objetivosAdministrados.add(objetivo);
-      this.recalcularFactoresObjetivo(objetivo);
     }
 
     return cantidad;

@@ -22,7 +22,8 @@
     "efectos": [
       {
         "propiedad": "precision",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -87,7 +88,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadCritico",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -150,7 +152,8 @@
     "efectos": [
       {
         "propiedad": "multiplicadorCritico",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -217,7 +220,8 @@
     "efectos": [
       {
         "propiedad": "evasion",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -281,7 +285,8 @@
     "efectos": [
       {
         "propiedad": "regeneracionVida",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -348,7 +353,8 @@
     "efectos": [
       {
         "propiedad": "regeneracionMana",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -417,7 +423,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaFuego",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -483,7 +490,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaFrio",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -549,7 +557,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaRayo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -615,7 +624,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaVeneno",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -680,7 +690,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadBloqueo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -745,7 +756,8 @@
     "efectos": [
       {
         "propiedad": "mitigacionBloqueo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -809,7 +821,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadCriticoGlobal",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -840,7 +853,8 @@
     "efectos": [
       {
         "propiedad": "multiplicadorCriticoAdicional",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -871,7 +885,8 @@
     "efectos": [
       {
         "propiedad": "regeneracionVidaPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -902,7 +917,8 @@
     "efectos": [
       {
         "propiedad": "regeneracionManaPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -936,7 +952,8 @@
     "efectos": [
       {
         "propiedad": "fuerza",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -970,7 +987,8 @@
     "efectos": [
       {
         "propiedad": "destreza",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1004,7 +1022,8 @@
     "efectos": [
       {
         "propiedad": "constitucion",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1038,7 +1057,8 @@
     "efectos": [
       {
         "propiedad": "inteligencia",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1072,7 +1092,8 @@
     "efectos": [
       {
         "propiedad": "sabiduria",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1106,7 +1127,8 @@
     "efectos": [
       {
         "propiedad": "carisma",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1140,7 +1162,8 @@
     "efectos": [
       {
         "propiedad": "velocidadMovimientoPorcentaje",
-        "operacion": "aumentarVelocidad"
+        "operacion": "aumentarVelocidad",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1172,7 +1195,8 @@
     "efectos": [
       {
         "propiedad": "roboVidaPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -1204,7 +1228,8 @@
     "efectos": [
       {
         "propiedad": "roboManaPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -1237,7 +1262,8 @@
     "efectos": [
       {
         "propiedad": "rarezaObjetosEncontradosPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1270,7 +1296,8 @@
     "efectos": [
       {
         "propiedad": "cantidadObjetosEncontradosPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1304,7 +1331,8 @@
     "efectos": [
       {
         "propiedad": "danioHechizosAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1339,7 +1367,8 @@
     "efectos": [
       {
         "propiedad": "velocidadLanzamientoPorcentaje",
-        "operacion": "aumentarVelocidad"
+        "operacion": "aumentarVelocidad",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1374,7 +1403,8 @@
     "efectos": [
       {
         "propiedad": "precisionHechizos",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1409,11 +1439,13 @@
     "efectos": [
       {
         "propiedad": "potenciaHechizos",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       },
       {
         "propiedad": "manaMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -1449,7 +1481,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaCongelamiento",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -1520,7 +1553,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaAturdimiento",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -1591,7 +1625,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaEnvenenamiento",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -1662,7 +1697,8 @@
     "efectos": [
       {
         "propiedad": "resistenciaQuemadura",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [

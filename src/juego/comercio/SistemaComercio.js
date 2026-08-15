@@ -460,7 +460,8 @@ function transferirCantidadApilable({
 // - Rareza.
 // - Nivel.
 // - Afijos.
-// - Propiedades finales.
+//
+// Las propiedades locales se reconstruyen desde plantilla + afijos.
 //
 // Los objetos contenedores no llegan aquí porque
 // actualmente no son apilables.
@@ -488,8 +489,6 @@ function crearCopiaPila({ objetoOrigen, cantidad, configuracionObjetos }) {
     prefijos: objetoOrigen.prefijos ?? [],
 
     sufijos: objetoOrigen.sufijos ?? [],
-
-    propiedadesFinales: objetoOrigen.propiedades,
   });
 }
 

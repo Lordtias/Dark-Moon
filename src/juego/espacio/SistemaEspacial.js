@@ -9,14 +9,20 @@ export class SistemaEspacial {
     mapa,
     obtenerEntidades = () => [],
     obtenerZonas = () => [],
+    obtenerModificadoresTerreno = () => [],
   } = {}) {
     validarMapa(mapa);
     validarFuncion(obtenerEntidades, "consultar las entidades del mapa");
     validarFuncion(obtenerZonas, "consultar las zonas espaciales activas");
+    validarFuncion(
+      obtenerModificadoresTerreno,
+      "consultar los modificadores del terreno",
+    );
 
     this.mapa = mapa;
     this.obtenerEntidades = obtenerEntidades;
     this.obtenerZonas = obtenerZonas;
+    this.obtenerModificadoresTerreno = obtenerModificadoresTerreno;
   }
 
   estaDentroMapa(x, y) {
@@ -25,6 +31,32 @@ export class SistemaEspacial {
 
   consultarTerreno(x, y) {
     return consultarTerrenoMapa(this.mapa, x, y);
+  }
+
+  consultarModificadoresTerreno(x, y, { actor = null } = {}) {
+    const terreno = this.consultarTerreno(x, y);
+    if (!terreno.dentroMapa) return [];
+    const modificadores = this.obtenerModificadoresTerreno({
+      x,
+      y,
+      actor,
+      terreno,
+    });
+    if (!Array.isArray(modificadores)) {
+      throw new Error(
+        "La consulta de modificadores del terreno debe devolver una lista.",
+      );
+    }
+    return modificadores.map((modificador, indice) => ({
+      ...modificador,
+      id:
+        modificador?.id ??
+        `terreno:${x}:${y}:${indice}:${modificador?.objetivo ?? "desconocido"}`,
+      origen: modificador?.origen ?? "terreno",
+      fuente:
+        modificador?.fuente ??
+        { tipo: "terreno", x, y, simbolo: terreno.simbolo },
+    }));
   }
 
   consultarPosicion(x, y, { ignorarEntidades = [] } = {}) {

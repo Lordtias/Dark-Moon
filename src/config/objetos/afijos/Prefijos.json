@@ -18,7 +18,8 @@
     "efectos": [
       {
         "propiedad": "danioFisicoLocalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -80,7 +81,8 @@
     "efectos": [
       {
         "propiedad": "danioFisicoLocalPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -138,7 +140,8 @@
     "efectos": [
       {
         "propiedad": "armadura",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -196,7 +199,8 @@
     "efectos": [
       {
         "propiedad": "vidaMaxima",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -256,7 +260,8 @@
     "efectos": [
       {
         "propiedad": "manaMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [
@@ -316,7 +321,8 @@
     "efectos": [
       {
         "propiedad": "velocidadAtaqueLocalPorcentaje",
-        "operacion": "aumentarVelocidad"
+        "operacion": "aumentarVelocidad",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -344,11 +350,13 @@
     "efectos": [
       {
         "propiedad": "danioFisicoGlobalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       },
       {
         "propiedad": "danioFisicoGlobalMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -373,7 +381,8 @@
     "efectos": [
       {
         "propiedad": "danioFisicoAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -398,7 +407,8 @@
     "efectos": [
       {
         "propiedad": "danioFisicoMasPorcentaje",
-        "operacion": "multiplicarMas"
+        "operacion": "multiplicarMas",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -423,7 +433,8 @@
     "efectos": [
       {
         "propiedad": "armaduraLocalPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -448,11 +459,13 @@
     "efectos": [
       {
         "propiedad": "danioFuegoLocalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       },
       {
         "propiedad": "danioFuegoLocalMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -526,11 +539,13 @@
     "efectos": [
       {
         "propiedad": "danioFrioLocalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       },
       {
         "propiedad": "danioFrioLocalMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -604,11 +619,13 @@
     "efectos": [
       {
         "propiedad": "danioRayoLocalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       },
       {
         "propiedad": "danioRayoLocalMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -682,11 +699,13 @@
     "efectos": [
       {
         "propiedad": "danioVenenoLocalMinimo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       },
       {
         "propiedad": "danioVenenoLocalMaximo",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [
@@ -760,7 +779,8 @@
     "efectos": [
       {
         "propiedad": "danioFuegoAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -785,7 +805,8 @@
     "efectos": [
       {
         "propiedad": "danioFrioAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -810,7 +831,8 @@
     "efectos": [
       {
         "propiedad": "danioRayoAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -835,7 +857,8 @@
     "efectos": [
       {
         "propiedad": "danioVenenoAumentadoPorcentaje",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [],
@@ -860,7 +883,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadQuemar",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -885,7 +909,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadCongelar",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -910,7 +935,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadAturdir",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -935,7 +961,8 @@
     "efectos": [
       {
         "propiedad": "probabilidadEnvenenar",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "local_objeto"
       }
     ],
     "grados": [],
@@ -962,7 +989,8 @@
     "efectos": [
       {
         "propiedad": "potenciaHabilidad",
-        "operacion": "sumar"
+        "operacion": "sumar",
+        "ambito": "portador"
       }
     ],
     "grados": [

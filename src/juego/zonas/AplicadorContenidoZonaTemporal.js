@@ -2,6 +2,7 @@ import {
   resolverDanioHabilidad,
   resolverImpactoHabilidad,
 } from "../habilidades/MotorDanioHabilidad.js";
+import { normalizarDescriptorModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
   aplicarEfectosHabilidad,
   prepararEfectosHabilidad,
@@ -38,6 +39,26 @@ export function aplicarContenidoZonaTemporal({
   const contenido = zona.contenido;
   validarContenido(contenido);
   const idEjecucion = crearIdActivacion({ zona, objetivo, motivo, instante });
+
+  const tieneContenidoActivable =
+    contenido.danio.length > 0 || contenido.efectos.length > 0;
+
+  if (!tieneContenidoActivable) {
+    return {
+      idEjecucion,
+      zonaId: zona.id,
+      idHabilidad: zona.idHabilidad,
+      motivo,
+      instante,
+      objetivo,
+      impacto: false,
+      critico: false,
+      objetivoDerrotado: false,
+      danio: null,
+      resolucionImpacto: null,
+      efectos: [],
+    };
+  }
 
   if (zona.hostil) {
     registrarHostilidad(objetivo, `zona_temporal:${motivo}`);
@@ -147,7 +168,25 @@ function validarContenido(contenido) {
   if (!Array.isArray(contenido.danio) || !Array.isArray(contenido.efectos)) {
     throw new Error("El contenido de la zona debe declarar daño y efectos.");
   }
-  if (contenido.danio.length === 0 && contenido.efectos.length === 0) {
-    throw new Error("La zona temporal necesita daño, efectos o ambos.");
+  const modificadores = contenido.modificadores ?? [];
+  if (!Array.isArray(modificadores)) {
+    throw new Error("Los modificadores de zona deben estar dentro de una lista.");
+  }
+  modificadores.forEach((descriptor, indice) =>
+    normalizarDescriptorModificador(
+      {
+        ...descriptor,
+        id: descriptor?.id ?? `zona_config:${indice}`,
+        origen: descriptor?.origen ?? "zona",
+      },
+      { origenPredeterminado: "zona" },
+    ),
+  );
+  if (
+    contenido.danio.length === 0 &&
+    contenido.efectos.length === 0 &&
+    modificadores.length === 0
+  ) {
+    throw new Error("La zona temporal necesita daño, efectos o modificadores.");
   }
 }

@@ -1,3 +1,10 @@
+import {
+  AMBITOS_AFIJO,
+  validarAmbitoAfijo,
+  validarObjetivoModificador,
+  validarOperacionModificador,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
+
 // Valida la configuración común de rarezas, prefijos y sufijos.
 // Potencia de Habilidad, filtros por familia y daño elemental local
 // forman parte del mismo contrato general de generación.
@@ -402,6 +409,10 @@ function validarEfectosAfijo(idAfijo, afijo) {
     validarObjetoConfiguracion(efecto, `Un efecto del afijo "${idAfijo}"`);
     validarTexto(efecto.propiedad, `propiedad de un efecto de "${idAfijo}"`);
     validarTexto(efecto.operacion, `operación de un efecto de "${idAfijo}"`);
+    validarAmbitoAfijo(efecto.ambito);
+    if (efecto.objetivo !== undefined) {
+      validarTexto(efecto.objetivo, `objetivo de un efecto de "${idAfijo}"`);
+    }
 
     if (propiedades.has(efecto.propiedad)) {
       throw new Error(
@@ -418,13 +429,15 @@ function validarEfectosAfijo(idAfijo, afijo) {
         `El afijo "${idAfijo}" está activo, pero utiliza la propiedad no soportada "${efecto.propiedad}".`,
       );
     }
-    if (
-      afijo.estado === "activo" &&
-      !OPERACIONES_ACTIVAS.has(efecto.operacion)
-    ) {
-      throw new Error(
-        `El afijo "${idAfijo}" está activo, pero utiliza la operación no soportada "${efecto.operacion}".`,
-      );
+    if (afijo.estado === "activo") {
+      if (efecto.ambito === AMBITOS_AFIJO.PORTADOR) {
+        validarObjetivoModificador(efecto.objetivo ?? efecto.propiedad);
+        validarOperacionModificador(efecto.operacion);
+      } else if (!OPERACIONES_ACTIVAS.has(efecto.operacion)) {
+        throw new Error(
+          `El afijo local "${idAfijo}" utiliza la operación no soportada "${efecto.operacion}".`,
+        );
+      }
     }
   }
 }

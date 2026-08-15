@@ -339,12 +339,6 @@ export function verificarRequisitosAtaque(combatiente) {
   };
 }
 
-// Consume todos los recursos de una acción ya validada. Se mantiene el nombre
-// histórico para no duplicar ni alterar la tubería común de SistemaCombate.
-export function consumirMunicionAtaque(combatiente) {
-  return consumirRecursosAtaque(combatiente);
-}
-
 export function consumirRecursosAtaque(combatiente) {
   const requisitos = verificarRequisitosAtaque(combatiente);
   const resultadoBase = {

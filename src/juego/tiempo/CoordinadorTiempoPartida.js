@@ -16,6 +16,8 @@ import {
 import { SistemaZonasTemporales } from "../zonas/SistemaZonasTemporales.js";
 import { OBJETIVOS_ZONA_TEMPORAL } from "../zonas/ContratosZonasTemporales.js";
 import { SistemaTiempo, TIEMPO_REFERENCIA } from "./SistemaTiempo.js";
+const ID_PROVEEDOR_MODIFICADORES_ENTORNO = "entorno_mapa";
+
 function crearAcumuladoTemporal() {
   return {
     recuperacionJugador: {
@@ -121,6 +123,7 @@ export class CoordinadorTiempoPartida {
     this.siguientePulsoTemporal = TIEMPO_REFERENCIA;
     this.destruido = false;
 
+    this.registrarProveedorEntorno(this.jugador);
     this.sistemaTiempo.registrarActor(this.jugador);
     this.sistemaEfectosTemporales.reanudarObjetivo(this.jugador);
     this.sincronizarEnemigosConAgenda();
@@ -128,6 +131,37 @@ export class CoordinadorTiempoPartida {
   }
   get tiempoActual() {
     return this.sistemaTiempo.tiempoActual;
+  }
+
+  registrarProveedorEntorno(actor) {
+    const sistema = actor?.sistemaModificadoresCombatiente;
+    if (!sistema) return false;
+    sistema.registrarProveedor({
+      id: ID_PROVEEDOR_MODIFICADORES_ENTORNO,
+      obtenerModificadores: () => this.obtenerModificadoresEntorno(actor),
+    });
+    return true;
+  }
+
+  retirarProveedorEntorno(actor) {
+    return Boolean(
+      actor?.sistemaModificadoresCombatiente?.retirarProveedor(
+        ID_PROVEEDOR_MODIFICADORES_ENTORNO,
+      ),
+    );
+  }
+
+  obtenerModificadoresEntorno(actor) {
+    if (!actor || !Number.isInteger(actor.x) || !Number.isInteger(actor.y)) {
+      return [];
+    }
+    const terreno = this.sistemaEspacial.consultarModificadoresTerreno(
+      actor.x,
+      actor.y,
+      { actor },
+    );
+    const zonas = this.sistemaZonasTemporales.obtenerModificadoresParaActor(actor);
+    return [...terreno, ...zonas];
   }
 
   registrarParticipanteCombate(enemigo, motivo) {
@@ -177,6 +211,7 @@ export class CoordinadorTiempoPartida {
       this.eliminarFuentesSegunEventos(resultadoRetiro.eventos);
     }
 
+    this.retirarProveedorEntorno(actor);
     return this.sistemaTiempo.eliminarActor(actor);
   }
 
@@ -458,6 +493,7 @@ export class CoordinadorTiempoPartida {
         });
         continue;
       }
+      this.registrarProveedorEntorno(objetivo);
       if (!this.sistemaTiempo.tieneActor(objetivo)) {
         this.sistemaTiempo.registrarActor(objetivo);
       }
@@ -842,6 +878,10 @@ export class CoordinadorTiempoPartida {
     // Al destruir el mapa no queda ningún consumidor del evento. Se descarta
     // para liberar también las referencias contenidas en la cola.
     this.estadoCombate.extraerEventosPendientes();
+    this.retirarProveedorEntorno(this.jugador);
+    for (const objetivo of this.objetivos) {
+      this.retirarProveedorEntorno(objetivo);
+    }
     this.sistemaZonasTemporales.destruir();
     this.sistemaEfectosTemporales.destruir({
       preservarObjetivos:

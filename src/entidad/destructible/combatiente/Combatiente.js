@@ -26,6 +26,11 @@ import {
   normalizarInmunidadesEfectos,
   normalizarResistenciasEfectos,
 } from "../../../juego/efectos/ResistenciasEfectos.js";
+import {
+  OBJETIVOS_MODIFICADOR,
+  normalizarDescriptorModificador,
+} from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
+import { SistemaModificadoresCombatiente } from "../../../juego/modificadores/SistemaModificadoresCombatiente.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
 const ATRIBUTOS_REQUERIDOS = [
@@ -37,11 +42,11 @@ const ATRIBUTOS_REQUERIDOS = [
   "carisma",
 ];
 const NOMBRES_FACTORES_TEMPORALES = [
-  "factorTiempo",
-  "factorMovimiento",
-  "factorAtaque",
-  "factorAccion",
-  "factorConsumo",
+  OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,
+  OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO,
+  OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE,
+  OBJETIVOS_MODIFICADOR.FACTOR_ACCION,
+  OBJETIVOS_MODIFICADOR.FACTOR_CONSUMO,
 ];
 
 function validarAtributos(nombre, atributos) {
@@ -257,6 +262,24 @@ function normalizarFactoresTemporales(nombre, configuracion = {}) {
   return factores;
 }
 
+function normalizarModificadoresIniciales(nombre, modificadores) {
+  if (!Array.isArray(modificadores)) {
+    throw new Error(`${nombre} debe recibir modificadores iniciales en una lista.`);
+  }
+  return Object.freeze(
+    modificadores.map((descriptor, indice) =>
+      normalizarDescriptorModificador(
+        {
+          ...descriptor,
+          id: descriptor?.id ?? `configuracion_combatiente:${indice}`,
+          origen: descriptor?.origen ?? "configuracion_combatiente",
+        },
+        { origenPredeterminado: "configuracion_combatiente" },
+      ),
+    ),
+  );
+}
+
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -268,6 +291,8 @@ export class Combatiente extends Destructible {
     estadisticasBase,
     ataqueNatural = null,
     factoresTemporales = {},
+    modificadoresIniciales = [],
+    tipoContextoModificadores = "combatiente",
     capacidadContenedor = 0,
     objetosIniciales = [],
     tablaBotin = [],
@@ -290,6 +315,16 @@ export class Combatiente extends Destructible {
       nombre,
       factoresTemporales,
     );
+    const modificadoresInicialesNormalizados = normalizarModificadoresIniciales(
+      nombre,
+      modificadoresIniciales,
+    );
+    if (
+      typeof tipoContextoModificadores !== "string" ||
+      tipoContextoModificadores.trim() === ""
+    ) {
+      throw new Error(`${nombre} necesita un tipo de contexto de modificadores.`);
+    }
     if (
       !Object.prototype.hasOwnProperty.call(
         atributosNormalizados,
@@ -338,15 +373,77 @@ export class Combatiente extends Destructible {
     this.aplicaBonoConstitucionResistenciasEfectos = false;
     this.ataqueNatural = ataqueNormalizado;
     this.equipamiento = equipamiento;
-    this.factorTiempo = factoresTemporalesNormalizados.factorTiempo;
-    this.factorMovimiento = factoresTemporalesNormalizados.factorMovimiento;
-    this.factorAtaque = factoresTemporalesNormalizados.factorAtaque;
-    this.factorAccion = factoresTemporalesNormalizados.factorAccion;
-    this.factorConsumo = factoresTemporalesNormalizados.factorConsumo;
-    this.manaMaximo = recursosIniciales.manaMaximo;
-    this.manaActual = recursosIniciales.manaMaximo;
+    this._factoresTemporalesBase = { ...factoresTemporalesNormalizados };
+    this.tipoContextoModificadores = tipoContextoModificadores.trim().toLowerCase();
+    this.sistemaModificadoresCombatiente = new SistemaModificadoresCombatiente({
+      combatiente: this,
+    });
+    if (modificadoresInicialesNormalizados.length > 0) {
+      this.sistemaModificadoresCombatiente.registrarProveedor({
+        id: "configuracion_combatiente",
+        obtenerModificadores: () => modificadoresInicialesNormalizados,
+      });
+    }
+
+    // El cálculo previo a super solamente permite construir el Destructible.
+    // Una vez disponible el centralizador, los máximos iniciales se resuelven
+    // por el mismo camino canónico que utilizará el resto de la partida.
+    const estadisticasIniciales = calcularEstadisticasDerivadas(this);
+    this.vidaMaxima = estadisticasIniciales.vidaMaxima;
+    this.vidaActual = estadisticasIniciales.vidaMaxima;
+    this.manaMaximo = estadisticasIniciales.manaMaximo;
+    this.manaActual = estadisticasIniciales.manaMaximo;
     this.acumuladorRegeneracionVida = 0;
     this.acumuladorRegeneracionMana = 0;
+  }
+
+  resolverModificador(objetivo, valorBase, contexto = {}) {
+    return this.sistemaModificadoresCombatiente.resolver(
+      objetivo,
+      valorBase,
+      {
+        ...contexto,
+        tipoCombatiente: this.tipoContextoModificadores,
+      },
+    );
+  }
+
+  obtenerValorModificado(objetivo, valorBase, contexto = {}) {
+    return this.resolverModificador(objetivo, valorBase, contexto).resultado;
+  }
+
+  obtenerFactoresTemporalesBase() {
+    return { ...this._factoresTemporalesBase };
+  }
+
+  obtenerFactorTemporal(nombreFactor) {
+    const valorBase = this._factoresTemporalesBase?.[nombreFactor];
+    if (!Number.isFinite(valorBase) || valorBase <= 0) {
+      throw new Error(
+        `El factor temporal base "${nombreFactor}" de ${this.nombre} no es válido.`,
+      );
+    }
+    return this.obtenerValorModificado(nombreFactor, valorBase);
+  }
+
+  get factorTiempo() {
+    return this.obtenerFactorTemporal(OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO);
+  }
+
+  get factorMovimiento() {
+    return this.obtenerFactorTemporal(OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO);
+  }
+
+  get factorAtaque() {
+    return this.obtenerFactorTemporal(OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE);
+  }
+
+  get factorAccion() {
+    return this.obtenerFactorTemporal(OBJETIVOS_MODIFICADOR.FACTOR_ACCION);
+  }
+
+  get factorConsumo() {
+    return this.obtenerFactorTemporal(OBJETIVOS_MODIFICADOR.FACTOR_CONSUMO);
   }
 
   get estadisticasDerivadas() {
@@ -391,7 +488,23 @@ export class Combatiente extends Destructible {
     if (!Number.isInteger(alcance) || alcance < 1) {
       throw new Error(`El alcance de ${this.nombre} no es válido.`);
     }
-    return alcance;
+    const configuracion = this.configuracionAtaqueActual;
+    const arma = configuracion.armaControladora;
+    const contexto = {
+      familiaArma: arma?.familiaObjeto ?? null,
+      tipoAtaque: configuracion.propiedadesControladoras.tipoAtaque,
+      esAtaqueDual: configuracion.esAtaqueDual,
+    };
+    return Math.max(
+      1,
+      Math.round(
+        this.obtenerValorModificado(
+          OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE,
+          alcance,
+          contexto,
+        ),
+      ),
+    );
   }
 
   get tipoAtaqueActual() {

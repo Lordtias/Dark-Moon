@@ -38,7 +38,8 @@ function actualizarAgresividad({
   const mensajes = [];
   const eventos = [];
   const distancia = calcularDistanciaCuadricula(enemigo, jugador);
-  const { tipoAgresividad, percepcion } = enemigo.configuracionIA;
+  const { tipoAgresividad } = enemigo.configuracionIA;
+  const percepcion = enemigo.percepcion;
   let puedeDetectar = false;
 
   // La distancia es la comprobación barata. Solo calculamos LOS cuando el

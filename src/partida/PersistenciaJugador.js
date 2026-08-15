@@ -10,8 +10,8 @@ import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
 import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
 
-export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v2";
-export const VERSION_GUARDADO_JUGADOR = 2;
+export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v3";
+export const VERSION_GUARDADO_JUGADOR = 3;
 
 // Serializa el estado durable del personaje, no la simulación del mapa.
 //
@@ -43,13 +43,9 @@ export function crearSnapshotJugador(jugador) {
       experienciaTotal: jugador.experienciaTotal,
       puntosAtributoDisponibles: jugador.puntosAtributoDisponibles,
       atributos: copiarDatos(jugador.atributos),
-      factoresTemporales: {
-        factorTiempo: jugador.factorTiempo,
-        factorMovimiento: jugador.factorMovimiento,
-        factorAtaque: jugador.factorAtaque,
-        factorAccion: jugador.factorAccion,
-        factorConsumo: jugador.factorConsumo,
-      },
+      // Se persisten solamente los factores base. Efectos, terreno y otras
+      // fuentes modificadoras se reconstruyen desde sus fuentes canónicas.
+      factoresTemporales: jugador.obtenerFactoresTemporalesBase(),
       recursos: {
         vidaActual: jugador.vidaActual,
         manaActual: jugador.manaActual,
@@ -303,7 +299,6 @@ function serializarObjeto(objeto) {
     nivelObjeto: objeto.nivelObjeto,
     prefijos: copiarDatos(objeto.prefijos ?? []),
     sufijos: copiarDatos(objeto.sufijos ?? []),
-    propiedadesFinales: copiarDatos(objeto.propiedades ?? {}),
     contenedor: objeto.contenedorObjetos
       ? {
           capacidad: objeto.contenedorObjetos.capacidad,
@@ -331,14 +326,12 @@ function crearObjetoDesdeDefinicionPersistida({
     nivelObjeto: definicion.nivelObjeto,
     prefijos: definicion.prefijos,
     sufijos: definicion.sufijos,
-    propiedadesFinales: definicion.propiedadesFinales,
   });
 
   if (definicion.contenedor === null) {
     if (objeto.contenedorObjetos !== null) {
       throw new Error(
-        `El catálogo actual convirtió "${definicion.id}" en un contenedor. ` +
-          "El guardado necesita una migración explícita.",
+        `El objeto guardado "${definicion.id}" ya no coincide con su plantilla de contenedor.`,
       );
     }
     return objeto;
@@ -351,8 +344,7 @@ function crearObjetoDesdeDefinicionPersistida({
 
   if (objeto.contenedorObjetos === null) {
     throw new Error(
-      `El catálogo actual ya no define contenedor para "${definicion.id}". ` +
-        "El guardado necesita una migración explícita.",
+      `El objeto guardado "${definicion.id}" ya no coincide con su plantilla de contenedor.`,
     );
   }
 

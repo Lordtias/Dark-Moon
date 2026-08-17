@@ -1162,7 +1162,7 @@
     "efectos": [
       {
         "propiedad": "velocidadMovimientoPorcentaje",
-        "operacion": "aumentarVelocidad",
+        "operacion": "porcentaje_inverso",
         "ambito": "portador"
       }
     ],
@@ -1367,7 +1367,7 @@
     "efectos": [
       {
         "propiedad": "velocidadLanzamientoPorcentaje",
-        "operacion": "aumentarVelocidad",
+        "operacion": "porcentaje_inverso",
         "ambito": "portador"
       }
     ],

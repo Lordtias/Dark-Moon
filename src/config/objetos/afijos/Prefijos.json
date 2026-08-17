@@ -321,7 +321,7 @@
     "efectos": [
       {
         "propiedad": "velocidadAtaqueLocalPorcentaje",
-        "operacion": "aumentarVelocidad",
+        "operacion": "porcentaje_inverso",
         "ambito": "local_objeto"
       }
     ],
@@ -407,7 +407,7 @@
     "efectos": [
       {
         "propiedad": "danioFisicoMasPorcentaje",
-        "operacion": "multiplicarMas",
+        "operacion": "porcentaje_multiplicativo",
         "ambito": "portador"
       }
     ],

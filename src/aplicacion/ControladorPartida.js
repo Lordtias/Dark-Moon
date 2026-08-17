@@ -20,6 +20,7 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
 import { CoordinadorEntradaJugable } from "./CoordinadorEntradaJugable.js";
+import { notificarCambioEstadoJugador } from "../juego/estado/ObservadorCambiosEstadoJugador.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -629,12 +630,30 @@ export class ControladorPartida {
   }
 
   procesarResultadoAccion(resultado) {
-    return aplicarResultadoAccion({
+    const procesado = aplicarResultadoAccion({
       resultado,
       juego: this.juego,
       renderizador: this.renderizador,
       alJugadorDerrotado: (detalle) => this.procesarJugadorDerrotado(detalle),
     });
+
+    if (procesado) {
+      const estadoJugadorYaActualizado =
+        procesado.turnoConsumido === true || procesado.redibujar === true;
+
+      // Toda acción jugable converge aquí. La capa visual recibe únicamente
+      // una invalidación genérica y vuelve a consultar el estado canónico.
+      notificarCambioEstadoJugador(this.juego?.player, {
+        origen: "resultado_accion",
+        tipo: "procesarResultadoAccion",
+        estadoJugador: !estadoJugadorYaActualizado,
+        habilidades: true,
+        guardarJugador: false,
+        motivo: "resultado_accion",
+      });
+    }
+
+    return procesado;
   }
 
   procesarJugadorDerrotado(detalle) {

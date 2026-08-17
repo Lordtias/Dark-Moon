@@ -957,8 +957,15 @@ function crearDefinicion({ uso, objetivo, potencia = null }) {
       }],
     };
   }
-  if (uso.tipo === "modificador_factor") {
-    return { ...comun, valor: copiarProfundo(uso.valor), tipoDanio: null, componentesDanio: null };
+  if (uso.tipo === "modificador_combatiente") {
+    return {
+      ...comun,
+      valor: 1,
+      modificadores: copiarProfundo(uso.modificadores ?? []),
+      emision: copiarProfundo(uso.emision ?? null),
+      tipoDanio: null,
+      componentesDanio: null,
+    };
   }
   return { ...comun, valor: potencia ?? uso.valorBase ?? 1, tipoDanio: null, componentesDanio: null };
 }

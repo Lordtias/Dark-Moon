@@ -1,9 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "efectos": {
     "ralentizacion": {
       "nombre": "Ralentización",
-      "tipo": "modificador_factor",
+      "tipo": "modificador_combatiente",
       "grupoAcumulacion": "ralentizacion",
       "etiquetas": [
         "perjudicial",
@@ -23,11 +23,12 @@
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "escaladoPotencia": "ninguna"
     },
     "electrizacion": {
       "nombre": "Electrización",
-      "tipo": "modificador_factor",
+      "tipo": "modificador_combatiente",
       "grupoAcumulacion": "electrizacion",
       "etiquetas": [
         "perjudicial",
@@ -47,7 +48,8 @@
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "escaladoPotencia": "ninguna"
     },
     "congelamiento": {
       "nombre": "Congelamiento",
@@ -75,7 +77,8 @@
       },
       "eliminaEfectosAlAplicarse": [
         "quemadura"
-      ]
+      ],
+      "escaladoPotencia": "ninguna"
     },
     "aturdimiento": {
       "nombre": "Aturdimiento",
@@ -100,7 +103,8 @@
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "escaladoPotencia": "ninguna"
     },
     "envenenamiento": {
       "nombre": "Envenenamiento",
@@ -132,7 +136,8 @@
           "maximoPredeterminado": 3,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "escaladoPotencia": "valor"
     },
     "quemadura": {
       "nombre": "Quemadura",
@@ -161,7 +166,8 @@
       },
       "eliminaEfectosAlAplicarse": [
         "congelamiento"
-      ]
+      ],
+      "escaladoPotencia": "valor"
     },
     "paralisis": {
       "nombre": "Parálisis",
@@ -186,7 +192,8 @@
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1
         }
-      }
+      },
+      "escaladoPotencia": "ninguna"
     },
     "silencio": {
       "nombre": "Silencio",
@@ -195,9 +202,42 @@
       "etiquetas": [
         "perjudicial",
         "control",
-        "silencio"
+        "silencio",
+        "maldicion"
       ],
       "beneficioso": false,
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "ignorar_mientras_activo": {
+          "politicaAcumulacion": "rechazar_duplicado",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        },
+        "maldicion": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      },
+      "escaladoPotencia": "ninguna"
+    },
+    "manto_igneo": {
+      "nombre": "Manto Ígneo",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "manto_igneo",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
       "resistencia": {
         "id": null,
         "modo": "ninguna"
@@ -205,8 +245,658 @@
       "inmunidadId": null,
       "eliminarAlAdquirirInmunidad": false,
       "perfilesAplicacion": {
-        "ignorar_mientras_activo": {
-          "politicaAcumulacion": "rechazar_duplicado",
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "velo_glacial": {
+      "nombre": "Velo Glacial",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "velo_glacial",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "egida_tormenta": {
+      "nombre": "Égida de Tormenta",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "egida_tormenta",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "velo_antitoxico": {
+      "nombre": "Velo Antitóxico",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "velo_antitoxico",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_celeridad": {
+      "nombre": "Aura de Celeridad",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_celeridad",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_disciplina": {
+      "nombre": "Aura de Disciplina",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_disciplina",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_furia": {
+      "nombre": "Aura de Furia",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_furia",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_impetu": {
+      "nombre": "Aura de Ímpetu",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_impetu",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_vigilancia": {
+      "nombre": "Aura de Vigilancia",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_vigilancia",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_precision": {
+      "nombre": "Aura de Precisión",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_precision",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_recuperacion": {
+      "nombre": "Aura de Recuperación",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_recuperacion",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_enfoque": {
+      "nombre": "Aura de Enfoque",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_enfoque",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_agilidad": {
+      "nombre": "Aura de Agilidad",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_agilidad",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_resguardo_elemental": {
+      "nombre": "Aura de Resguardo Elemental",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_resguardo_elemental",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_guardia": {
+      "nombre": "Aura de Guardia",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_guardia",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "aura_voluntad": {
+      "nombre": "Aura de Voluntad",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "aura_voluntad",
+      "etiquetas": [
+        "beneficioso",
+        "aura"
+      ],
+      "beneficioso": true,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": null,
+        "modo": "ninguna"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "vulnerabilidad_ignea": {
+      "nombre": "Vulnerabilidad Ígnea",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "vulnerabilidad_ignea",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "exposicion": {
+      "nombre": "Exposición",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "exposicion",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "debilidad": {
+      "nombre": "Debilidad",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "debilidad",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "vulnerabilidad_glacial": {
+      "nombre": "Vulnerabilidad Glacial",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "vulnerabilidad_glacial",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "lentitud": {
+      "nombre": "Lentitud",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "lentitud",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "ceguera": {
+      "nombre": "Ceguera",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "ceguera",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "vulnerabilidad_electrica": {
+      "nombre": "Vulnerabilidad Eléctrica",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "vulnerabilidad_electrica",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "torpeza": {
+      "nombre": "Torpeza",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "torpeza",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "vulnerabilidad_toxica": {
+      "nombre": "Vulnerabilidad Tóxica",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "vulnerabilidad_toxica",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "marchitamiento": {
+      "nombre": "Marchitamiento",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "marchitamiento",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
+          "politicaPotencia": "conservar_mayor",
+          "maximoPredeterminado": 1,
+          "incrementoPredeterminado": 1
+        }
+      }
+    },
+    "supresion": {
+      "nombre": "Supresión",
+      "tipo": "modificador_combatiente",
+      "grupoAcumulacion": "supresion",
+      "etiquetas": [
+        "perjudicial",
+        "maldicion"
+      ],
+      "beneficioso": false,
+      "escaladoPotencia": "ninguna",
+      "resistencia": {
+        "id": "mental",
+        "modo": "reducir_probabilidad_aplicacion"
+      },
+      "inmunidadId": null,
+      "eliminarAlAdquirirInmunidad": false,
+      "perfilesAplicacion": {
+        "renovar": {
+          "politicaAcumulacion": "renovar_duracion",
           "politicaPotencia": "conservar_mayor",
           "maximoPredeterminado": 1,
           "incrementoPredeterminado": 1

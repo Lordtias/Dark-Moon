@@ -25,6 +25,23 @@ import { ORIGENES_PUNTO_HABILIDAD } from "../../juego/maestrias/ProgresoHabilida
 const PROFESION_PRUEBA = "guerrero";
 const HABILIDAD_BASICA_REFERENCIA = "ascua";
 const HABILIDAD_INTERMEDIA_REFERENCIA = "explosion_ignea";
+// Este conjunto fija la regresión histórica de las doce habilidades activas
+// originales. El catálogo puede crecer sin convertir su cantidad total en una
+// condición rígida de la herramienta de balance.
+const HABILIDADES_MAGICAS_REGRESION = Object.freeze([
+  "ascua",
+  "esquirla_hielo",
+  "chispa",
+  "aguijon_toxico",
+  "explosion_ignea",
+  "nova_escarcha",
+  "cadena_rayos",
+  "nube_toxica",
+  "incinerar",
+  "rafaga_glacial",
+  "descarga_fulminante",
+  "plaga_corrosiva",
+]);
 
 export function crearInformeBalanceRegresion({
   configuracionPersonaje,
@@ -535,9 +552,9 @@ function analizarCobertura({
   recompensas,
   fallos,
 }) {
-  const habilidades = Object.values(
-    configuracionEjecucionHabilidades.habilidades,
-  ).filter(esHabilidadActivaEjecutable);
+  const habilidades = HABILIDADES_MAGICAS_REGRESION
+    .map((id) => configuracionEjecucionHabilidades.habilidades?.[id])
+    .filter(esHabilidadActivaEjecutable);
   const grados = habilidades.reduce(
     (total, habilidad) =>
       total + Object.keys(habilidad.ejecucion?.grados ?? {}).length,
@@ -582,11 +599,11 @@ function analizarCobertura({
       true,
     ),
     crearCobertura(
-      "Habilidades mágicas",
-      12,
+      "Habilidades mágicas originales",
+      HABILIDADES_MAGICAS_REGRESION.length,
       habilidades.length,
-      "Las doce habilidades deben tener ejecución activa.",
-      habilidades.length === 12,
+      "Las doce habilidades originales deben conservar su ejecución activa aunque el catálogo crezca.",
+      habilidades.length === HABILIDADES_MAGICAS_REGRESION.length,
     ),
     crearCobertura(
       "Grados de habilidades",

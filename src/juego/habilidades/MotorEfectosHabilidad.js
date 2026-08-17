@@ -54,10 +54,9 @@ export function prepararEfectosHabilidad({
       objetivo,
       idEjecucion,
     });
-    const magnitudEscalable =
-      efecto.tipo === "danio_periodico"
-        ? MAGNITUDES_ESCALADO_EFECTO.VALOR
-        : MAGNITUDES_ESCALADO_EFECTO.NINGUNA;
+    const magnitudEscalable = normalizarMagnitudEscaladoPotencia(
+      efecto.escaladoPotencia,
+    );
     const definicion = crearInstantaneaEfectoMagico({
       definicion: definicionBase,
       multiplicadorEfectos: multiplicadorMagico,
@@ -187,10 +186,20 @@ function crearDefinicionCanonica({ efecto, objetivo, idEjecucion }) {
       ],
     };
   }
-  if (efecto.tipo === "modificador_factor") {
+  if (efecto.tipo === "modificador_combatiente") {
     return {
       ...comun,
-      valor: { ...efecto.valor },
+      valor: 1,
+      modificadores: (efecto.modificadores ?? []).map((descriptor) => ({
+        ...descriptor,
+        condiciones: { ...(descriptor.condiciones ?? {}) },
+      })),
+      emision: efecto.emision
+        ? {
+            ...efecto.emision,
+            condicionesEmisor: { ...(efecto.emision.condicionesEmisor ?? {}) },
+          }
+        : null,
       tipoDanio: null,
       componentesDanio: null,
     };
@@ -226,6 +235,8 @@ function resumirDefinicion(definicion) {
     fuente: { ...definicion.fuente },
     tipo: definicion.tipo,
     valor: copiarSimple(definicion.valor),
+    modificadores: copiarSimple(definicion.modificadores),
+    emision: copiarSimple(definicion.emision),
     tipoDanio: definicion.tipoDanio,
     componentesDanio: definicion.componentesDanio
       ? definicion.componentesDanio.map((componente) => ({ ...componente }))
@@ -275,6 +286,8 @@ function resumirResultado(resultado) {
           grupoAcumulacion: efecto.grupoAcumulacion,
           tipo: efecto.tipo,
           valor: copiarSimple(efecto.valor),
+          modificadores: copiarSimple(efecto.modificadores),
+          emision: copiarSimple(efecto.emision),
           duracion: efecto.duracion,
           intervalo: efecto.intervalo,
           politicaAcumulacion: efecto.politicaAcumulacion,
@@ -287,6 +300,14 @@ function resumirResultado(resultado) {
         }
       : null,
   };
+}
+
+function normalizarMagnitudEscaladoPotencia(valor) {
+  const normalizado = valor ?? MAGNITUDES_ESCALADO_EFECTO.NINGUNA;
+  if (!Object.values(MAGNITUDES_ESCALADO_EFECTO).includes(normalizado)) {
+    throw new Error(`El escalado de Potencia de Efectos "${normalizado}" no existe.`);
+  }
+  return normalizado;
 }
 
 function copiarSimple(valor) {

@@ -64,27 +64,54 @@ export class SistemaModificadoresCombatiente {
     const porcentajesTotal = aplicados.filter(
       (m) => m.operacion === OPERACIONES_MODIFICADOR.PORCENTAJE_TOTAL,
     );
+    const porcentajesMultiplicativos = aplicados.filter(
+      (m) => m.operacion === OPERACIONES_MODIFICADOR.PORCENTAJE_MULTIPLICATIVO,
+    );
+    const porcentajesInversos = aplicados.filter(
+      (m) => m.operacion === OPERACIONES_MODIFICADOR.PORCENTAJE_INVERSO,
+    );
     const multiplicadoresRedondeados = aplicados.filter(
       (m) => m.operacion === OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR,
     );
     const multiplicadores = aplicados.filter(
       (m) => m.operacion === OPERACIONES_MODIFICADOR.MULTIPLICAR,
     );
+    const limitesMaximos = aplicados.filter(
+      (m) => m.operacion === OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO,
+    );
 
     const sumaPlana = sumarValores(planos);
     const porcentajeBase = sumarValores(porcentajesBase) / 100;
     const porcentajeTotal = sumarValores(porcentajesTotal) / 100;
+    const multiplicadorPorcentual = porcentajesMultiplicativos.reduce(
+      (total, modificador) => total * (1 + modificador.valor / 100),
+      1,
+    );
+    const divisorPorcentual = porcentajesInversos.reduce(
+      (total, modificador) => total * (1 + modificador.valor / 100),
+      1,
+    );
     const multiplicadorRedondeado = multiplicarValores(
       multiplicadoresRedondeados,
     );
     const multiplicador = multiplicarValores(multiplicadores);
+    const limiteMaximo = limitesMaximos.length > 0
+      ? Math.min(...limitesMaximos.map((modificador) => modificador.valor))
+      : null;
     const subtotal = valorBase + sumaPlana + valorBase * porcentajeBase;
     const despuesPorcentajeTotal = subtotal * (1 + porcentajeTotal);
+    const despuesPorcentajeMultiplicativo =
+      despuesPorcentajeTotal * multiplicadorPorcentual;
+    const despuesPorcentajeInverso =
+      despuesPorcentajeMultiplicativo / divisorPorcentual;
     const despuesMultiplicacionRedondeada =
       multiplicadoresRedondeados.length > 0
-        ? Math.round(despuesPorcentajeTotal * multiplicadorRedondeado)
-        : despuesPorcentajeTotal;
-    const resultado = despuesMultiplicacionRedondeada * multiplicador;
+        ? Math.round(despuesPorcentajeInverso * multiplicadorRedondeado)
+        : despuesPorcentajeInverso;
+    const despuesMultiplicacion = despuesMultiplicacionRedondeada * multiplicador;
+    const resultado = limiteMaximo === null
+      ? despuesMultiplicacion
+      : Math.min(despuesMultiplicacion, limiteMaximo);
 
     if (!Number.isFinite(resultado)) {
       throw new Error(`La resolución de "${objetivo}" produjo un valor inválido.`);
@@ -99,11 +126,17 @@ export class SistemaModificadoresCombatiente {
         sumaPlana,
         porcentajeBase: porcentajeBase * 100,
         porcentajeTotal: porcentajeTotal * 100,
+        multiplicadorPorcentual,
+        divisorPorcentual,
         multiplicadorRedondeado,
         multiplicador,
+        limiteMaximo,
         subtotal,
         despuesPorcentajeTotal,
+        despuesPorcentajeMultiplicativo,
+        despuesPorcentajeInverso,
         despuesMultiplicacionRedondeada,
+        despuesMultiplicacion,
         aplicados: Object.freeze(aplicados.map(congelarDescriptorCopia)),
         omitidos: Object.freeze(omitidos.map((item) => Object.freeze({ ...item }))),
       }),

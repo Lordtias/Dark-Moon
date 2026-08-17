@@ -701,9 +701,16 @@ export function calcularEstadisticasDerivadas(combatiente) {
     multiplicadorCritico,
     probabilidadBloqueo,
     mitigacionBloqueo,
-    resistenciaMental:
-      base.resistenciaMental +
-      coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria,
+    resistenciaMental: limitar(
+      resolverValor(
+        combatiente,
+        OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL,
+        base.resistenciaMental +
+          coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria,
+      ),
+      0,
+      75,
+    ),
     potenciaAura:
       base.potenciaAura +
       coeficientes.potenciaAuraPorCarisma * atributos.carisma,

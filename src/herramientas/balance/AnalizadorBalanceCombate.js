@@ -1000,14 +1000,14 @@ function calcularResumenEfectos({ efectos, objetivo, resistenciaEfecto }) {
       valorControlEsperado +=
         (definicion.duracion / TIEMPO_REFERENCIA) *
         (probabilidadFinal / 100);
-    } else if (definicion.tipo === "modificador_factor") {
-      const factor = Math.max(
-        1,
-        ...Object.values(definicion.valor ?? {}).filter(Number.isFinite),
+    } else if (definicion.tipo === "modificador_combatiente") {
+      const magnitud = (definicion.modificadores ?? []).reduce(
+        (total, descriptor) => total + Math.abs(descriptor.valor ?? 0),
+        0,
       );
       valorControlEsperado +=
         (definicion.duracion / TIEMPO_REFERENCIA) *
-        Math.max(0, factor - 1) *
+        magnitud *
         (probabilidadFinal / 100);
     }
     detalle.push({

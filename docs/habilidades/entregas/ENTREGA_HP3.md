@@ -4,9 +4,9 @@
 
 **Estado:** Cerrada.
 
-La implementación, la validación técnica y la pasada manual de HP3 fueron completadas. El usuario confirmó que las pruebas finales fueron superadas después de los ajustes de refresco inmediato y presentación de pasivas. HP3 queda cerrada y preparada para el commit final.
+La implementación, la validación técnica y la pasada manual de HP3 fueron completadas. El usuario confirmó que las pruebas finales fueron superadas después de los ajustes de refresco inmediato y presentación de pasivas. HP3 quedó cerrada y posteriormente fue confirmada por el usuario en el commit final `f5e810d51172cd12b4063b40e0cdd0a90cdef646`.
 
-No se realizó commit ni push.
+Esta actualización documental posterior no implica que el asistente haya realizado el commit o el push.
 
 ---
 
@@ -16,8 +16,9 @@ No se realizó commit ni push.
 - Rama: `main`
 - Commit base / cierre confirmado de HP2: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`
 - HEAD durante la implementación: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`
-- `origin/main`: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`
-- Estado inicial: limpio.
+- HEAD final confirmado posteriormente por el usuario: `f5e810d51172cd12b4063b40e0cdd0a90cdef646`
+- Rama final confirmada: `main`
+- Estado inicial de la implementación: limpio.
 - Commit/push realizados por el asistente: **No**.
 
 La etapa parte directamente del ZIP `Dark-Moon-HP2(1).zip` confirmado por el usuario.
@@ -1012,7 +1013,7 @@ COMMIT BASE:
 f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65
 
 HEAD FINAL VERIFICADO:
-f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65 (sin commit realizado por el asistente)
+f5e810d51172cd12b4063b40e0cdd0a90cdef646 (sin commit realizado por el asistente)
 
 GIT STATUS FINAL:
 Árbol de trabajo con exclusivamente los cambios implementados de HP3 y su documentación de cierre; sin commit ni push realizado por el asistente. La pasada manual fue aprobada por el usuario.

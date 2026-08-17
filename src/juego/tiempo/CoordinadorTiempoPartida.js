@@ -2,7 +2,12 @@ import { obtenerInstante, redondearMilisegundos } from "../../utilidades/TiempoE
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import { asociarEjecucionTemporalAEventos } from "../acciones/EventosAccion.js";
-import { SistemaEfectosTemporales } from "../efectos/SistemaEfectosTemporales.js";
+import {
+  SistemaEfectosTemporales,
+  obtenerEmisionesModificadoresTemporales,
+} from "../efectos/SistemaEfectosTemporales.js";
+import { cumpleCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { procesarAccionEnemigo } from "../ia/SistemaAccionesEnemigos.js";
 import {
   crearMensajeTraducible,
@@ -161,7 +166,48 @@ export class CoordinadorTiempoPartida {
       { actor },
     );
     const zonas = this.sistemaZonasTemporales.obtenerModificadoresParaActor(actor);
-    return [...terreno, ...zonas];
+    const auras = this.obtenerModificadoresAurasParaActor(actor);
+    return [...terreno, ...zonas, ...auras];
+  }
+
+  // Las auras son emisiones móviles: se consultan desde la posición actual
+  // del emisor en cada resolución y nunca se copian como estado al receptor.
+  obtenerModificadoresAurasParaActor(actor) {
+    const resultado = [];
+    const emisores = [this.jugador, ...this.objetivos].filter(Boolean);
+    for (const emisor of emisores) {
+      for (const emision of obtenerEmisionesModificadoresTemporales(emisor)) {
+        if (!this.esRelacionValidaAura({ emisor, actor, afecta: emision.afecta })) {
+          continue;
+        }
+        const contextoEmisor = emisor.obtenerContextoModificadores?.() ?? {};
+        if (!cumpleCondicionesModificador(emision.condicionesEmisor, contextoEmisor)) {
+          continue;
+        }
+        if (calcularDistanciaCuadricula(emisor, actor) > emision.radio) continue;
+        resultado.push(...emision.modificadores.map((descriptor, indice) => ({
+          ...descriptor,
+          id: `aura:${emision.id}:${indice}:${descriptor.objetivo}`,
+          origen: "aura_temporal",
+          fuente: Object.freeze({
+            tipo: "aura_temporal",
+            efectoId: emision.efectoId,
+            nombre: emision.nombreEfecto,
+            emisorId: emisor.id ?? emisor.idEntidad ?? null,
+            emisorNombre: emisor.nombre ?? null,
+          }),
+        })));
+      }
+    }
+    return resultado;
+  }
+
+  esRelacionValidaAura({ emisor, actor, afecta }) {
+    if (afecta === "todos") return true;
+    const emisorJugador = emisor === this.jugador;
+    const actorJugador = actor === this.jugador;
+    const aliados = emisorJugador === actorJugador;
+    return afecta === "aliados" ? aliados : !aliados;
   }
 
   registrarParticipanteCombate(enemigo, motivo) {

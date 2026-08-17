@@ -1,4 +1,5 @@
 import { TIPOS_HABILIDAD } from "../maestrias/ValidadorConfiguracionProgresoHabilidades.js";
+import { normalizarCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
   TIPOS_DANIO_VALIDOS,
   normalizarTipoDanio,
@@ -118,6 +119,9 @@ function normalizarEjecucion({
       `La habilidad "${idHabilidad}" debe declarar hostil como booleano.`,
     );
   }
+  const requisitosLanzador = normalizarCondicionesModificador(
+    ejecucion.requisitosLanzador ?? {},
+  );
 
   validarObjeto(ejecucion.grados, `los grados de "${idHabilidad}"`);
   const grados = {};
@@ -127,7 +131,7 @@ function normalizarEjecucion({
       definicionGrado,
       `la ejecución de "${idHabilidad}" en grado ${grado}`,
     );
-    validarEnteroPositivo(
+    validarEnteroNoNegativo(
       definicionGrado.costoMana,
       `el coste de Maná de "${idHabilidad}" grado ${grado}`,
     );
@@ -184,6 +188,7 @@ function normalizarEjecucion({
     patronAtaque,
     requiereLineaVision: ejecucion.requiereLineaVision,
     hostil: ejecucion.hostil,
+    requisitosLanzador,
     grados,
   };
 }
@@ -372,15 +377,15 @@ function validarObjeto(valor, etiqueta) {
   }
 }
 
-function validarEnteroPositivo(valor, etiqueta) {
-  if (!Number.isInteger(valor) || valor <= 0) {
-    throw new Error(`${etiqueta} debe ser un entero mayor que 0.`);
+function validarEnteroNoNegativo(valor, etiqueta) {
+  if (!Number.isInteger(valor) || valor < 0) {
+    throw new Error(`${etiqueta} debe ser un entero igual o mayor que 0.`);
   }
 }
 
-function validarEnteroNoNegativo(valor, etiqueta) {
-  if (!Number.isInteger(valor) || valor < 0) {
-    throw new Error(`${etiqueta} debe ser un entero mayor o igual que 0.`);
+function validarEnteroPositivo(valor, etiqueta) {
+  if (!Number.isInteger(valor) || valor <= 0) {
+    throw new Error(`${etiqueta} debe ser un entero mayor que 0.`);
   }
 }
 

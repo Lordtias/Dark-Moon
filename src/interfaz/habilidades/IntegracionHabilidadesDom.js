@@ -1,7 +1,7 @@
 import { BarraHabilidades } from "./BarraHabilidades.js";
 import { PanelHabilidadesMaestrias } from "./PanelHabilidadesMaestrias.js";
 import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
-import { suscribirCambiosProgresoHabilidades } from "../../juego/habilidades/ObservadorProgresoHabilidades.js";
+import { suscribirCambiosEstadoJugador } from "../../juego/estado/ObservadorCambiosEstadoJugador.js";
 import {
   guardarConfiguracionBarraHabilidades,
   leerConfiguracionBarraHabilidades,
@@ -121,17 +121,12 @@ export class IntegracionHabilidadesDom {
       }
     });
 
-    this.desuscribirProgreso = suscribirCambiosProgresoHabilidades(
+    this.desuscribirCambiosEstadoJugador = suscribirCambiosEstadoJugador(
       this.jugador,
       (detalle) => {
-        this.panel.renderizar();
-        if (
-          detalle?.tipo === "mejorarHabilidad" ||
-          detalle?.tipo === "restaurarEstado"
-        ) {
-          this.renderizador.actualizarEstadoJugador(this.jugador);
+        if (detalle?.guardarJugador === true) {
+          this.guardarJugador();
         }
-        this.guardarJugador();
       },
     );
   }
@@ -221,6 +216,19 @@ export class IntegracionHabilidadesDom {
     });
   }
 
+  // Relee la presentación HTML de habilidades cuando cambió una
+  // dependencia externa. La barra y el panel vuelven a consultar el estado
+  // canónico; no reciben números derivados por evento.
+  actualizarEstadoDerivado() {
+    if (this.destruida || !this.esJuegoActivo()) {
+      return false;
+    }
+
+    this.barra.renderizar();
+    this.panel.renderizar();
+    return true;
+  }
+
   registrarResultado(resultado) {
     if (!resultado) {
       return resultado;
@@ -262,7 +270,7 @@ export class IntegracionHabilidadesDom {
       console.warn("No se pudo conservar la barra al cambiar de mapa:", error);
     }
 
-    this.desuscribirProgreso?.();
+    this.desuscribirCambiosEstadoJugador?.();
     this.desuscribirSistema?.();
     this.gestorPaneles?.desregistrarPanelDinamico?.("habilidades", this.panel);
     this.barra?.destruir();

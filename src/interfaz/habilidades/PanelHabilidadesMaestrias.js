@@ -401,6 +401,7 @@ export class PanelHabilidadesMaestrias {
       habilidad: habilidadPresentacion,
       grado,
       tipo: habilidad.tipo,
+      catalogoEfectos: this.configuracionEjecucion.efectos ?? {},
     });
     const acciones = crearElemento("div", "tarjeta-habilidad__acciones");
     const botonMejora = crearElemento(
@@ -835,7 +836,7 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
   );
   return bloque;
 }
-function crearDetalleEjecucion({ ejecucion, habilidad, grado, tipo }) {
+function crearDetalleEjecucion({ ejecucion, habilidad, grado, tipo, catalogoEfectos = {} }) {
   const lista = crearElemento("dl", "detalle-ejecucion-habilidad");
   if (tipo === "pasiva") {
     const gradoVisible = grado > 0 ? grado : 1;
@@ -898,7 +899,64 @@ function crearDetalleEjecucion({ ejecucion, habilidad, grado, tipo }) {
       ? traducir("interfaz.habilidades.si", { respaldo: "Sí" })
       : traducir("interfaz.habilidades.no", { respaldo: "No" }),
   );
+  agregarDetallesEfectosActivos(lista, definicionGrado, catalogoEfectos);
   return lista;
+}
+
+function agregarDetallesEfectosActivos(lista, definicionGrado, catalogoEfectos) {
+  const efectos = Array.isArray(definicionGrado?.efectos)
+    ? definicionGrado.efectos
+    : [];
+  for (const efecto of efectos) {
+    const definicionEfecto = catalogoEfectos?.[efecto.efectoId] ?? null;
+    const modificadores = Array.isArray(efecto.modificadores)
+      ? efecto.modificadores
+      : [];
+    for (const modificador of modificadores) {
+      const detalle = formatearDetalleModificadorPasiva(modificador);
+      agregarDato(lista, detalle.etiqueta, detalle.valor);
+    }
+
+    if (definicionEfecto?.tipo === "bloqueo_habilidades") {
+      agregarDato(
+        lista,
+        traducir("interfaz.habilidades.efecto", { respaldo: "Efecto" }),
+        traducir("interfaz.habilidades.bloqueaHabilidadesActivas", {
+          respaldo: "Bloquea habilidades activas",
+        }),
+      );
+    }
+
+    const esMaldicion = definicionEfecto?.etiquetas?.includes("maldicion") === true;
+    if (Number.isFinite(efecto.probabilidadBase) &&
+        (esMaldicion || efecto.probabilidadBase !== 100)) {
+      agregarDato(
+        lista,
+        traducir("interfaz.habilidades.probabilidad", { respaldo: "Probabilidad" }),
+        `${formatearNumero(efecto.probabilidadBase)}%`,
+      );
+    }
+    if (Number.isFinite(efecto.duracion)) {
+      agregarDato(
+        lista,
+        traducir("interfaz.habilidades.duracion", { respaldo: "Duración" }),
+        formatearDuracionTurnos(efecto.duracion),
+      );
+    }
+    if (Number.isFinite(efecto.emision?.radio)) {
+      agregarDato(
+        lista,
+        traducir("interfaz.habilidades.radioAura", { respaldo: "Radio de aura" }),
+        formatearNumero(efecto.emision.radio),
+      );
+    }
+  }
+}
+
+function formatearDuracionTurnos(valor) {
+  const turnos = valor / 100;
+  const cantidad = formatearNumero(turnos);
+  return turnos === 1 ? `${cantidad} turno` : `${cantidad} turnos`;
 }
 function crearEstadosVisuales({
   contenedor,
@@ -1053,6 +1111,18 @@ function formatearDetalleModificadorPasiva(modificador) {
     };
   }
 
+  if (objetivo === "atributoHabilidad") {
+    return formatearAtributoInternoHabilidad({ operacion, numero, condiciones });
+  }
+  if (objetivo === "danoHabilidad") {
+    return {
+      etiqueta: "Daño de habilidad",
+      valor: operacion.startsWith("porcentaje_")
+        ? `${formatearNumeroConSigno(numero)}%`
+        : formatearValorModificador({ operacion, valor: numero }),
+    };
+  }
+
   if (operacion === "multiplicar" && objetivo === "factorAtaque") {
     return {
       etiqueta: traducir("interfaz.habilidades.mejoraVelocidadAtaque", { respaldo: "Velocidad de ataque" }),
@@ -1131,6 +1201,41 @@ function formatearDetalleModificadorPasiva(modificador) {
   };
 }
 
+function formatearAtributoInternoHabilidad({ operacion, numero, condiciones }) {
+  const atributo = condiciones?.atributoHabilidad ?? "atributo";
+  const efectoId = condiciones?.efectoIdHabilidad ?? null;
+  const nombres = {
+    costoMana: "Maná",
+    costoTemporal: "Velocidad de lanzamiento",
+    alcance: "Alcance",
+    radioImpacto: "Radio",
+    longitudLinea: "Longitud",
+    anchoLinea: "Ancho",
+    cantidadObjetivos: "Objetivos máximos",
+    alcanceSalto: "Alcance de salto",
+    factorDanioPorSalto: "Daño por salto",
+    probabilidadEfecto: efectoId ? `Probabilidad de ${formatearNombre(efectoId)}` : "Probabilidad de efecto",
+    duracionEfecto: efectoId ? `Duración de ${formatearNombre(efectoId)}` : "Duración de efecto",
+    intervaloEfecto: "Intervalo de efecto",
+    maximoAcumulacionesEfecto: "Acumulaciones máximas",
+    incrementoAcumulacionEfecto: "Incremento de acumulación",
+    magnitudModificadorEfecto: "Magnitud de efecto",
+    duracionZona: "Duración de zona",
+    intervaloZona: "Intervalo de zona",
+    radioAura: "Radio de aura",
+  };
+  let valor;
+  if (atributo === "costoTemporal" && operacion === "porcentaje_inverso") {
+    valor = `${formatearNumeroConSigno(numero)}%`;
+  } else if (["duracionEfecto", "duracionZona", "intervaloEfecto", "intervaloZona"].includes(atributo) && operacion === "sumar") {
+    const turnos = numero / 100;
+    valor = `${formatearNumeroConSigno(turnos)} ${Math.abs(turnos) === 1 ? "turno" : "turnos"}`;
+  } else {
+    valor = formatearValorModificador({ operacion, valor: numero });
+  }
+  return { etiqueta: nombres[atributo] ?? formatearNombre(atributo), valor };
+}
+
 function formatearPorcentajeBeneficioFactor(factor) {
   const porcentaje = (1 - factor) * 100;
   return `${formatearNumeroConSigno(porcentaje)}%`;
@@ -1142,6 +1247,15 @@ function formatearValorModificador({ operacion, valor }) {
     return traducir("interfaz.habilidades.valorInvalido", { respaldo: "valor inválido" });
   }
 
+  if (operacion === "porcentaje_multiplicativo") {
+    return `${formatearNumeroConSigno(numero)}% más`;
+  }
+  if (operacion === "porcentaje_inverso") {
+    return `${formatearNumeroConSigno(numero)}% velocidad`;
+  }
+  if (operacion === "limitar_maximo") {
+    return `máximo ${formatearNumero(numero)}`;
+  }
   if (operacion === "multiplicar") {
     return `×${formatearNumero(numero)}`;
   }
@@ -1190,6 +1304,9 @@ function nombreObjetivoModificador(objetivo) {
     resistenciaAturdimiento: ["interfaz.habilidades.objetivoResistenciaAturdimiento", "Resistencia a Aturdimiento"],
     resistenciaEnvenenamiento: ["interfaz.habilidades.objetivoResistenciaEnvenenamiento", "Resistencia a Envenenamiento"],
     resistenciaQuemadura: ["interfaz.habilidades.objetivoResistenciaQuemadura", "Resistencia a Quemadura"],
+    resistenciaMental: ["interfaz.habilidades.objetivoResistenciaMental", "Resistencia Mental"],
+    danoHabilidad: ["interfaz.habilidades.objetivoDanioHabilidad", "Daño de habilidad"],
+    atributoHabilidad: ["interfaz.habilidades.objetivoAtributoHabilidad", "Atributo de habilidad"],
     alcanceAtaque: ["interfaz.habilidades.objetivoAlcanceAtaque", "Alcance de ataque"],
     percepcion: ["interfaz.habilidades.objetivoPercepcion", "Percepción"],
     factorTiempo: ["interfaz.habilidades.objetivoFactorTiempo", "Factor de tiempo"],

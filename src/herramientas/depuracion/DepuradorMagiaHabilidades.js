@@ -144,8 +144,6 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
       contexto.obtenerSistema().restaurarTiradasAleatorias(),
     obtenerEstadoTiradasDeterministas: () =>
       contexto.obtenerSistema().obtenerEstadoTiradasDeterministas(),
-    procesarEfectosPendientes: () =>
-      contexto.obtenerSistema().procesarEfectosPendientes(),
     validarContratos: () => validarContratosHabilidades(contexto),
   });
 
@@ -528,11 +526,15 @@ function validarContratosProgreso(contexto) {
     ELEMENTOS.every((id) => idsMaestrias.includes(id)),
     idsMaestrias,
   );
+  const habilidadesOriginalesActivas = HABILIDADES_JUGABLES.filter((id) => {
+    const habilidad = configuracion?.habilidades?.[id];
+    return habilidad?.tipo === "activa" && Boolean(habilidad?.ejecucion);
+  });
   comprobar(
     comprobaciones,
-    "Existen doce habilidades mágicas activas en el catálogo actual",
-    habilidades.length === 12,
-    habilidades.length,
+    "Las doce habilidades mágicas originales permanecen activas",
+    habilidadesOriginalesActivas.length === HABILIDADES_JUGABLES.length,
+    habilidadesOriginalesActivas,
   );
   for (const id of HABILIDADES_BASICAS) {
     const definicion = configuracion?.habilidades?.[id];
@@ -712,13 +714,6 @@ function validarContratosHabilidades(contexto) {
       Array.isArray(sistema.obtenerEstadoTiradasDeterministas()?.efecto),
     sistema.obtenerEstadoTiradasDeterministas(),
   );
-  comprobar(
-    comprobaciones,
-    "No existe procesador alternativo de efectos pendientes",
-    Array.isArray(sistema.procesarEfectosPendientes()) &&
-      sistema.procesarEfectosPendientes().length === 0,
-    sistema.procesarEfectosPendientes(),
-  );
   return cerrarComprobaciones(comprobaciones);
 }
 
@@ -729,9 +724,23 @@ function validarContratosEfectos(contexto) {
 
   comprobar(
     comprobaciones,
-    "El catálogo canónico contiene los cuatro efectos resistibles",
+    "El catálogo canónico conserva las cuatro resistencias de efecto individuales",
     IDS_RESISTENCIA_EFECTO.every((id) => Boolean(catalogo[id])),
     Object.keys(catalogo),
+  );
+
+  const maldiciones = Object.entries(catalogo).filter(([, efecto]) =>
+    efecto?.etiquetas?.includes("maldicion"),
+  );
+  comprobar(
+    comprobaciones,
+    "Todas las maldiciones configuradas usan Resistencia Mental",
+    maldiciones.length > 0 &&
+      maldiciones.every(([, efecto]) =>
+        efecto?.resistencia?.id === "mental" &&
+        efecto?.resistencia?.modo === "reducir_probabilidad_aplicacion"
+      ),
+    maldiciones.map(([id, efecto]) => ({ id, resistencia: efecto.resistencia })),
   );
 
   for (const id of IDS_RESISTENCIA_EFECTO) {

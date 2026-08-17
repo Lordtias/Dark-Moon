@@ -2034,3 +2034,17 @@ Las rutas de cada combatiente pertenecen a su configuración canónica. `src/con
 Cuando existe una ruta para la dirección calculada, Phaser cambia a esa imagen. Cuando no existe, conserva la imagen que estaba mostrando. Esto permite que una configuración parcial siga siendo válida y que jugadores o enemigos incorporen nuevas vistas sin cambiar lógica. Las profesiones Guerrero, Rogue y Mago disponen actualmente de las ocho direcciones configuradas; las plantillas enemigas pueden mantener perfiles parciales hasta que existan sus recursos específicos.
 
 La orientación mostrada es memoria exclusivamente visual de Phaser y debe sobrevivir a las recomposiciones normales de la escena. Los recursos direccionales declarados por la configuración canónica forman parte de la precarga contextual del mapa para evitar cambios tardíos de textura. No se guarda una dirección en las entidades ni en persistencia. El indicador circular amarillo bajo el jugador no forma parte de este contrato y no debe dibujarse; se conserva únicamente la sombra ambiental normal.
+
+### V-036 — Invalidación centralizada de presentación derivada
+
+Toda presentación derivada del estado del jugador debe actualizarse mediante una invalidación centralizada cuando cambie una fuente canónica. Los sistemas de dominio no actualizan componentes visuales concretos y los componentes visuales no reciben valores derivados por evento: al refrescarse vuelven a consultar el estado y los cálculos canónicos.
+
+El archivo canónico para esta estrategia es `src/juego/estado/ObservadorCambiosEstadoJugador.js`. La presentación DOM consume sus señales a través de `src/interfaz/dom/CoordinadorActualizacionPresentacionDom.js`.
+
+Reglas de aplicación:
+
+- cambios de progresión, equipo, efectos, atributos o acciones que alteren valores visibles deben invalidar ese canal único;
+- la invalidación puede agruparse y diferirse a microtarea;
+- Panel Personaje, HUD, Barra y Paneles derivados releen su fuente canónica al refrescar;
+- una invalidación puramente estadística no obliga a redibujar Phaser;
+- el repintado del mundo se solicita únicamente cuando cambie información visual del mapa.

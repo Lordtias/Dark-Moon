@@ -1,3 +1,5 @@
+import { validarAtributoHabilidad } from "../habilidades/ContratosAtributosHabilidad.js";
+
 export const OBJETIVOS_MODIFICADOR = Object.freeze({
   VIDA_MAXIMA: "vidaMaxima",
   MANA_MAXIMO: "manaMaximo",
@@ -28,6 +30,12 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   FACTOR_ACCION: "factorAccion",
   FACTOR_CONSUMO: "factorConsumo",
   MULTIPLICADOR_DANIO_FUENTE: "multiplicadorDanioFuente",
+  // Resistencia porcentual (0-75) usada para reducir la probabilidad de Maldiciones.
+  RESISTENCIA_MENTAL: "resistenciaMental",
+  // Daño base interno de una habilidad antes de atributos mágicos, crítico y defensas.
+  DANO_HABILIDAD: "danoHabilidad",
+  // Contenedor canónico para modificar un atributo interno validado de una habilidad.
+  ATRIBUTO_HABILIDAD: "atributoHabilidad",
 });
 
 export const OBJETIVOS_MODIFICADOR_VALIDOS = Object.freeze(
@@ -35,11 +43,22 @@ export const OBJETIVOS_MODIFICADOR_VALIDOS = Object.freeze(
 );
 
 export const OPERACIONES_MODIFICADOR = Object.freeze({
+  // Suma/resta una magnitud plana al valor base.
   SUMAR: "sumar",
+  // Porcentaje calculado exclusivamente sobre el valor base original.
   PORCENTAJE_BASE: "porcentaje_base",
+  // Porcentaje aplicado al subtotal posterior a planos y porcentaje sobre base.
   PORCENTAJE_TOTAL: "porcentaje_total",
+  // Porcentajes de tipo «más/menos» que se multiplican entre sí.
+  PORCENTAJE_MULTIPLICATIVO: "porcentaje_multiplicativo",
+  // Variación de velocidad expresada como divisor del tiempo/coste resuelto.
+  PORCENTAJE_INVERSO: "porcentaje_inverso",
+  // Multiplica y redondea inmediatamente antes de continuar la composición.
   MULTIPLICAR_REDONDEAR: "multiplicar_redondear",
+  // Multiplica sin introducir redondeo intermedio.
   MULTIPLICAR: "multiplicar",
+  // Impone un techo al resultado compuesto; Ceguera usa esta operación sobre Percepción.
+  LIMITAR_MAXIMO: "limitar_maximo",
 });
 
 export const OPERACIONES_MODIFICADOR_VALIDAS = Object.freeze(
@@ -56,14 +75,42 @@ export const AMBITOS_AFIJO_VALIDOS = Object.freeze(
 );
 
 export const CLAVES_CONTEXTO_MODIFICADOR = Object.freeze({
+  // Clase funcional del actor que recibe/resuelve el modificador: jugador, enemigo, etc.
   TIPO_COMBATIENTE: "tipoCombatiente",
+  // Familia del arma que controla la fuente principal del ataque (daga, arco, etc.).
   FAMILIA_ARMA: "familiaArma",
+  // Mano/fuente que se está resolviendo dentro de un ataque: principal o secundaria.
   MANO: "mano",
+  // Tipo canónico del ataque físico: cuerpo a cuerpo o distancia.
   TIPO_ATAQUE: "tipoAtaque",
+  // Indica si la resolución actual pertenece a un ataque con dos fuentes de arma.
   ES_ATAQUE_DUAL: "esAtaqueDual",
+  // Categoría conjunta de las cinco piezas corporales: ligera, media, pesada o mixta.
   CATEGORIA_ARMADURA: "categoriaArmadura",
+  // Familia del objeto equipado en la mano/ranura secundaria (escudo, daga, etc.).
   FAMILIA_SECUNDARIA: "familiaSecundaria",
+  // Verdadero cuando las cinco ranuras corporales están ocupadas por una categoría coherente.
   CONJUNTO_ARMADURA_COMPLETO: "conjuntoArmaduraCompleto",
+  // ID canónico de la habilidad cuya configuración efectiva se está resolviendo.
+  ID_HABILIDAD: "idHabilidad",
+  // Maestría de la habilidad (fuego, frio, rayo, veneno, etc.).
+  MAESTRIA_HABILIDAD: "maestriaHabilidad",
+  // Tipo de objetivo estructural de la habilidad: propio, enemigo o casilla.
+  TIPO_OBJETIVO_HABILIDAD: "tipoObjetivoHabilidad",
+  // Forma de impacto estructural: individual, radio, cadena o linea.
+  FORMA_IMPACTO_HABILIDAD: "formaImpactoHabilidad",
+  // Clave canónica del atributo interno de habilidad que se está resolviendo.
+  ATRIBUTO_HABILIDAD: "atributoHabilidad",
+  // Tipo elemental/físico del componente de daño que se está resolviendo.
+  TIPO_DANIO_HABILIDAD: "tipoDanioHabilidad",
+  // Fase del daño/efecto: impacto_directo, efecto_periodico o zona.
+  FASE_HABILIDAD: "faseHabilidad",
+  // Efecto temporal concreto asociado a la resolución, cuando corresponde.
+  EFECTO_ID_HABILIDAD: "efectoIdHabilidad",
+  // Tipo canónico del efecto temporal asociado a la habilidad.
+  TIPO_EFECTO_HABILIDAD: "tipoEfectoHabilidad",
+  // Objetivo numérico modificado por un efecto temporal de la habilidad.
+  OBJETIVO_MODIFICADOR_EFECTO: "objetivoModificadorEfecto",
 });
 
 export const CLAVES_CONTEXTO_MODIFICADOR_VALIDAS = Object.freeze(
@@ -104,6 +151,9 @@ export function normalizarContextoModificador(contexto = {}) {
       throw new Error(`La clave de contexto "${clave}" no existe.`);
     }
     validarValorContexto(valor, `El valor de contexto "${clave}"`);
+    if (clave === CLAVES_CONTEXTO_MODIFICADOR.ATRIBUTO_HABILIDAD && valor !== null) {
+      validarAtributoHabilidad(valor);
+    }
     resultado[clave] = valor;
   }
   return Object.freeze(resultado);
@@ -120,15 +170,21 @@ export function normalizarCondicionesModificador(condiciones = {}) {
       if (valor.length === 0) {
         throw new Error(`La condición "${clave}" no puede usar una lista vacía.`);
       }
-      valor.forEach((elemento, indice) =>
+      valor.forEach((elemento, indice) => {
         validarValorContexto(
           elemento,
           `El valor ${indice + 1} de la condición "${clave}"`,
-        ),
-      );
+        );
+        if (clave === CLAVES_CONTEXTO_MODIFICADOR.ATRIBUTO_HABILIDAD) {
+          validarAtributoHabilidad(elemento);
+        }
+      });
       resultado[clave] = Object.freeze([...valor]);
     } else {
       validarValorContexto(valor, `El valor de la condición "${clave}"`);
+      if (clave === CLAVES_CONTEXTO_MODIFICADOR.ATRIBUTO_HABILIDAD && valor !== null) {
+        validarAtributoHabilidad(valor);
+      }
       resultado[clave] = valor;
     }
   }
@@ -151,6 +207,13 @@ export function normalizarDescriptorModificador(descriptor, {
   ) {
     throw new Error("Un multiplicador no puede ser negativo.");
   }
+  if (
+    (operacion === OPERACIONES_MODIFICADOR.PORCENTAJE_MULTIPLICATIVO ||
+      operacion === OPERACIONES_MODIFICADOR.PORCENTAJE_INVERSO) &&
+    descriptor.valor <= -100
+  ) {
+    throw new Error("Un porcentaje multiplicativo/inverso debe ser mayor que -100.");
+  }
 
   const id = normalizarTexto(
     descriptor.id ?? `${origenPredeterminado}:${objetivo}:${operacion}`,
@@ -164,6 +227,14 @@ export function normalizarDescriptorModificador(descriptor, {
   const condiciones = normalizarCondicionesModificador(
     descriptor.condiciones ?? {},
   );
+  if (
+    objetivo === OBJETIVOS_MODIFICADOR.ATRIBUTO_HABILIDAD &&
+    condiciones[CLAVES_CONTEXTO_MODIFICADOR.ATRIBUTO_HABILIDAD] === undefined
+  ) {
+    throw new Error(
+      'Un modificador de "atributoHabilidad" debe declarar qué atributo canónico modifica.',
+    );
+  }
 
   return Object.freeze({
     id,

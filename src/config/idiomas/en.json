@@ -337,7 +337,11 @@
       "mejoraVelocidadAccion": "Action speed",
       "mejoraDanioSecundaria": "Off-hand damage",
       "mejoraDanio": "Damage",
-      "mejoraDanioCritico": "Critical damage"
+      "mejoraDanioCritico": "Critical damage",
+      "probabilidad": "Chance",
+      "duracion": "Duration",
+      "radioAura": "Aura radius",
+      "bloqueaHabilidadesActivas": "Blocks active skills"
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -1314,6 +1318,114 @@
       "silencio": {
         "nombre": "Silence",
         "textoEstado": "SILENCED"
+      },
+      "manto_igneo": {
+        "nombre": "Fiery Mantle",
+        "textoEstado": "FIERY MANTLE"
+      },
+      "velo_glacial": {
+        "nombre": "Glacial Veil",
+        "textoEstado": "GLACIAL VEIL"
+      },
+      "egida_tormenta": {
+        "nombre": "Storm Aegis",
+        "textoEstado": "STORM AEGIS"
+      },
+      "velo_antitoxico": {
+        "nombre": "Antitoxic Veil",
+        "textoEstado": "ANTITOXIC VEIL"
+      },
+      "aura_celeridad": {
+        "nombre": "Aura of Celerity",
+        "textoEstado": "CELERITY"
+      },
+      "aura_disciplina": {
+        "nombre": "Aura of Discipline",
+        "textoEstado": "DISCIPLINE"
+      },
+      "aura_furia": {
+        "nombre": "Aura of Fury",
+        "textoEstado": "FURY"
+      },
+      "aura_impetu": {
+        "nombre": "Aura of Momentum",
+        "textoEstado": "MOMENTUM"
+      },
+      "aura_vigilancia": {
+        "nombre": "Aura of Vigilance",
+        "textoEstado": "VIGILANCE"
+      },
+      "aura_precision": {
+        "nombre": "Aura of Precision",
+        "textoEstado": "PRECISION"
+      },
+      "aura_recuperacion": {
+        "nombre": "Aura of Recovery",
+        "textoEstado": "RECOVERY"
+      },
+      "aura_enfoque": {
+        "nombre": "Aura of Focus",
+        "textoEstado": "FOCUS"
+      },
+      "aura_agilidad": {
+        "nombre": "Aura of Agility",
+        "textoEstado": "AGILITY"
+      },
+      "aura_resguardo_elemental": {
+        "nombre": "Aura of Elemental Ward",
+        "textoEstado": "ELEMENTAL WARD"
+      },
+      "aura_guardia": {
+        "nombre": "Aura of Guarding",
+        "textoEstado": "GUARDING"
+      },
+      "aura_voluntad": {
+        "nombre": "Aura of Will",
+        "textoEstado": "WILL"
+      },
+      "vulnerabilidad_ignea": {
+        "nombre": "Fiery Vulnerability",
+        "textoEstado": "FIRE VULNERABLE"
+      },
+      "exposicion": {
+        "nombre": "Exposure",
+        "textoEstado": "EXPOSED"
+      },
+      "debilidad": {
+        "nombre": "Weakness",
+        "textoEstado": "WEAKENED"
+      },
+      "vulnerabilidad_glacial": {
+        "nombre": "Glacial Vulnerability",
+        "textoEstado": "COLD VULNERABLE"
+      },
+      "lentitud": {
+        "nombre": "Slowness",
+        "textoEstado": "SLOWED"
+      },
+      "ceguera": {
+        "nombre": "Blindness",
+        "textoEstado": "BLINDED"
+      },
+      "vulnerabilidad_electrica": {
+        "nombre": "Electric Vulnerability",
+        "textoEstado": "LIGHTNING VULNERABLE"
+      },
+      "torpeza": {
+        "nombre": "Clumsiness",
+        "textoEstado": "CLUMSY"
+      },
+      "vulnerabilidad_toxica": {
+        "nombre": "Toxic Vulnerability",
+        "textoEstado": "POISON VULNERABLE"
+      },
+      "marchitamiento": {
+        "nombre": "Withering",
+        "textoEstado": "WITHERED"
+      },
+      "supresion": {
+        "nombre": "Suppression",
+        "textoEstado": "SUPPRESSED"
       }
     },
     "habilidades": {
@@ -1564,6 +1676,182 @@
       "muro_escudo": {
         "nombre": "Wall",
         "descripcion": "Increases maximum Life while a shield is equipped."
+      },
+      "afinidad_ignea": {
+        "nombre": "Fiery Affinity",
+        "descripcion": "Increases damage dealt by Fire skills."
+      },
+      "ascua_eficiente": {
+        "nombre": "Efficient Ember",
+        "descripcion": "Reduces Ember Mana cost by 1."
+      },
+      "detonacion_expansiva": {
+        "nombre": "Expansive Detonation",
+        "descripcion": "Increases Fiery Explosion impact radius by 1 tile."
+      },
+      "combustion_persistente": {
+        "nombre": "Persistent Combustion",
+        "descripcion": "Extends Incinerate Burn duration by 1 turn."
+      },
+      "afinidad_glacial": {
+        "nombre": "Glacial Affinity",
+        "descripcion": "Increases damage dealt by Cold skills."
+      },
+      "esquirla_persistente": {
+        "nombre": "Persistent Shard",
+        "descripcion": "Extends Ice Shard Slow duration by 1 turn."
+      },
+      "nova_expansiva": {
+        "nombre": "Expansive Nova",
+        "descripcion": "Increases Frost Nova impact radius by 1 tile."
+      },
+      "congelacion_profunda": {
+        "nombre": "Deep Freeze",
+        "descripcion": "Adds 15 percentage points to Glacial Gust Freeze chance."
+      },
+      "afinidad_tormentosa": {
+        "nombre": "Storm Affinity",
+        "descripcion": "Increases damage dealt by Lightning skills."
+      },
+      "chispa_fulminante": {
+        "nombre": "Fulminating Spark",
+        "descripcion": "Increases Spark casting speed by 10%."
+      },
+      "conduccion_multiple": {
+        "nombre": "Multiple Conduction",
+        "descripcion": "Increases Chain Lightning maximum targets by 1."
+      },
+      "descarga_extendida": {
+        "nombre": "Extended Discharge",
+        "descripcion": "Increases Fulminating Discharge line length by 1 tile."
+      },
+      "afinidad_toxica": {
+        "nombre": "Toxic Affinity",
+        "descripcion": "Increases Poison skill damage, including direct, periodic, and zone-derived damage."
+      },
+      "toxina_persistente": {
+        "nombre": "Persistent Toxin",
+        "descripcion": "Extends Toxic Sting Poison duration by 1 turn."
+      },
+      "nube_persistente": {
+        "nombre": "Persistent Cloud",
+        "descripcion": "Extends Toxic Cloud zone duration by 2 turns."
+      },
+      "plaga_voraz": {
+        "nombre": "Voracious Plague",
+        "descripcion": "Increases Corrosive Plague maximum Poison stacks by 1."
+      },
+      "manto_igneo": {
+        "nombre": "Fiery Mantle",
+        "descripcion": "Emits a 10-turn aura that increases Fire Resistance for nearby allies."
+      },
+      "velo_glacial": {
+        "nombre": "Glacial Veil",
+        "descripcion": "Emits a 10-turn aura that increases Cold Resistance for nearby allies."
+      },
+      "egida_tormenta": {
+        "nombre": "Storm Aegis",
+        "descripcion": "Emits a 10-turn aura that increases Lightning Resistance for nearby allies."
+      },
+      "velo_antitoxico": {
+        "nombre": "Antitoxic Veil",
+        "descripcion": "Emits a 10-turn aura that increases Poison Resistance for nearby allies."
+      },
+      "vulnerabilidad_ignea": {
+        "nombre": "Fiery Vulnerability",
+        "descripcion": "Curses an enemy, reducing Fire Resistance."
+      },
+      "exposicion": {
+        "nombre": "Exposure",
+        "descripcion": "Curses an enemy, reducing Armor."
+      },
+      "debilidad": {
+        "nombre": "Weakness",
+        "descripcion": "Curses an enemy, reducing weapon and skill damage."
+      },
+      "vulnerabilidad_glacial": {
+        "nombre": "Glacial Vulnerability",
+        "descripcion": "Curses an enemy, reducing Cold Resistance."
+      },
+      "lentitud": {
+        "nombre": "Slowness",
+        "descripcion": "Curses an enemy, slowing movement and attacks."
+      },
+      "ceguera": {
+        "nombre": "Blindness",
+        "descripcion": "Curses an enemy, limiting Perception to 1 tile."
+      },
+      "vulnerabilidad_electrica": {
+        "nombre": "Electric Vulnerability",
+        "descripcion": "Curses an enemy, reducing Lightning Resistance."
+      },
+      "torpeza": {
+        "nombre": "Clumsiness",
+        "descripcion": "Curses an enemy, reducing Accuracy."
+      },
+      "maldicion_silencio": {
+        "nombre": "Silence",
+        "descripcion": "Curses an enemy with Silence, blocking active skills while still allowing weapon attacks."
+      },
+      "vulnerabilidad_toxica": {
+        "nombre": "Toxic Vulnerability",
+        "descripcion": "Curses an enemy, reducing Poison Resistance."
+      },
+      "marchitamiento": {
+        "nombre": "Withering",
+        "descripcion": "Curses an enemy, reducing Health and Mana regeneration."
+      },
+      "supresion": {
+        "nombre": "Suppression",
+        "descripcion": "Curses an enemy, reducing Skill Power and Effect Power."
+      },
+      "aura_celeridad": {
+        "nombre": "Aura of Celerity",
+        "descripcion": "Emits a 10-turn dagger aura that increases movement and attack speed for nearby allies."
+      },
+      "aura_disciplina": {
+        "nombre": "Aura of Discipline",
+        "descripcion": "Emits a 10-turn sword aura that increases Accuracy and Evasion for nearby allies."
+      },
+      "aura_furia": {
+        "nombre": "Aura of Fury",
+        "descripcion": "Emits a 10-turn axe aura that increases damage and critical chance for nearby allies."
+      },
+      "aura_impetu": {
+        "nombre": "Aura of Momentum",
+        "descripcion": "Emits a 10-turn greatsword aura that increases damage and Armor for nearby allies."
+      },
+      "aura_vigilancia": {
+        "nombre": "Aura of Vigilance",
+        "descripcion": "Emits a 10-turn spear aura that increases Perception for nearby allies."
+      },
+      "aura_precision": {
+        "nombre": "Aura of Precision",
+        "descripcion": "Emits a 10-turn bow aura that increases Accuracy for nearby allies."
+      },
+      "aura_recuperacion": {
+        "nombre": "Aura of Recovery",
+        "descripcion": "Emits a 10-turn staff aura that increases Health and Mana regeneration for nearby allies."
+      },
+      "aura_enfoque": {
+        "nombre": "Aura of Focus",
+        "descripcion": "Emits a 10-turn wand aura that increases Skill Power and Effect Power for nearby allies."
+      },
+      "aura_agilidad": {
+        "nombre": "Aura of Agility",
+        "descripcion": "Emits a 10-turn light-armor aura that increases Evasion and movement speed for nearby allies."
+      },
+      "aura_resguardo_elemental": {
+        "nombre": "Aura of Elemental Ward",
+        "descripcion": "Emits a 10-turn medium-armor aura that increases elemental resistances for nearby allies."
+      },
+      "aura_guardia": {
+        "nombre": "Aura of Guarding",
+        "descripcion": "Emits a 10-turn heavy-armor aura that increases Armor for nearby allies."
+      },
+      "aura_voluntad": {
+        "nombre": "Aura of Will",
+        "descripcion": "Emits a 10-turn shield aura that increases status resistances and Mental Resistance for nearby allies."
       }
     },
     "maestrias": {

@@ -1,10 +1,13 @@
 import { normalizarTipoDanio } from "../combate/ComponentesDanio.js";
 import {
-  FACTORES_TEMPORALES_MODIFICABLES,
   POLITICAS_ACUMULACION_VALIDAS,
   TIPOS_EFECTO_TEMPORAL,
   TIPOS_EFECTO_TEMPORAL_VALIDOS,
 } from "./ContratosEfectosTemporales.js";
+import {
+  normalizarCondicionesModificador,
+  normalizarDescriptorModificador,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 
 export const MODOS_RESISTENCIA_EFECTO = Object.freeze({
   NINGUNA: "ninguna",
@@ -23,6 +26,16 @@ const MODOS_RESISTENCIA_VALIDOS = Object.freeze(
 );
 const POLITICAS_POTENCIA_VALIDAS = Object.freeze(
   Object.values(POLITICAS_POTENCIA_EFECTO),
+);
+
+export const ESCALADOS_POTENCIA_EFECTO = Object.freeze({
+  NINGUNA: "ninguna",
+  VALOR: "valor",
+  DURACION: "duracion",
+  VALOR_Y_DURACION: "valor_y_duracion",
+});
+const ESCALADOS_POTENCIA_EFECTO_VALIDOS = Object.freeze(
+  Object.values(ESCALADOS_POTENCIA_EFECTO),
 );
 
 export function normalizarCatalogoEfectos(configuracion) {
@@ -127,6 +140,7 @@ export function resolverReferenciaEfecto({
     eliminaEfectosAlAplicarse: [...efecto.eliminaEfectosAlAplicarse],
     etiquetas: [...efecto.etiquetas, ...normalizarEtiquetas(referencia.etiquetas)],
     beneficioso: efecto.beneficioso,
+    escaladoPotencia: efecto.escaladoPotencia,
     ...magnitud,
   };
 }
@@ -213,6 +227,7 @@ function normalizarDefinicionCatalogo({ id, definicion }) {
     grupoAcumulacion: normalizarId(definicion.grupoAcumulacion ?? id),
     etiquetas: normalizarEtiquetas(definicion.etiquetas),
     beneficioso: definicion.beneficioso === true,
+    escaladoPotencia: normalizarEscaladoPotencia(definicion.escaladoPotencia),
     resistencia,
     inmunidadId,
     eliminarAlAdquirirInmunidad:
@@ -259,30 +274,51 @@ function normalizarMagnitudReferencia({ referencia, tipo, etiqueta }) {
     };
   }
 
-  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR) {
-    validarObjeto(referencia.valor, `el valor de ${etiqueta}`);
-    const valor = {};
-    for (const [factor, multiplicador] of Object.entries(referencia.valor)) {
-      if (!FACTORES_TEMPORALES_MODIFICABLES.includes(factor)) {
-        throw new Error(
-          `${etiqueta} intenta modificar el factor desconocido "${factor}".`,
-        );
-      }
-      validarNumeroPositivo(
-        multiplicador,
-        `el multiplicador ${factor} de ${etiqueta}`,
-      );
-      valor[factor] = multiplicador;
+  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_COMBATIENTE) {
+    if (!Array.isArray(referencia.modificadores) || referencia.modificadores.length === 0) {
+      throw new Error(`${etiqueta} necesita al menos un modificador de combatiente.`);
     }
-    if (Object.keys(valor).length === 0) {
-      throw new Error(`${etiqueta} debe modificar al menos un factor.`);
-    }
-    return { valor, intervalo: null };
+    const modificadores = referencia.modificadores.map((descriptor, indice) =>
+      normalizarDescriptorModificador({
+        ...descriptor,
+        id: descriptor.id ?? `referencia_efecto:${indice}`,
+        origen: descriptor.origen ?? "efecto_habilidad",
+      }),
+    );
+    const emision = normalizarEmisionReferencia(referencia.emision, etiqueta);
+    return { modificadores, emision, intervalo: null };
   }
 
   const valorBase = referencia.valorBase ?? 1;
   validarNumeroPositivo(valorBase, `el valor de ${etiqueta}`);
   return { valorBase, intervalo: null };
+}
+
+function normalizarEscaladoPotencia(valor) {
+  const escalado = normalizarId(valor ?? ESCALADOS_POTENCIA_EFECTO.NINGUNA);
+  if (!ESCALADOS_POTENCIA_EFECTO_VALIDOS.includes(escalado)) {
+    throw new Error(`El escalado de Potencia de Efectos "${escalado}" no existe.`);
+  }
+  return escalado;
+}
+
+function normalizarEmisionReferencia(emision, etiqueta) {
+  if (emision === null || emision === undefined) return null;
+  validarObjeto(emision, `la emisión de ${etiqueta}`);
+  if (!Number.isInteger(emision.radio) || emision.radio < 0) {
+    throw new Error(`El radio de emisión de ${etiqueta} debe ser entero y no negativo.`);
+  }
+  const afecta = normalizarId(emision.afecta);
+  if (!["aliados", "enemigos", "todos"].includes(afecta)) {
+    throw new Error(`La emisión de ${etiqueta} usa afecta="${afecta}" no soportado.`);
+  }
+  return {
+    radio: emision.radio,
+    afecta,
+    condicionesEmisor: normalizarCondicionesModificador(
+      emision.condicionesEmisor ?? {},
+    ),
+  };
 }
 
 function normalizarEtiquetas(etiquetas = []) {

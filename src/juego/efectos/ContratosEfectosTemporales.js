@@ -1,11 +1,14 @@
 import { normalizarTipoDanio } from "../combate/ComponentesDanio.js";
 import { CONFIGURACION_EFECTOS_TEMPORALES } from "../../config/ConfiguracionEfectosTemporales.js";
-import { OBJETIVOS_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
+import {
+  normalizarCondicionesModificador,
+  normalizarDescriptorModificador,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 
 // Tipos canónicos soportados por el sistema temporal común.
 export const TIPOS_EFECTO_TEMPORAL = Object.freeze({
   DANIO_PERIODICO: "danio_periodico",
-  MODIFICADOR_FACTOR: "modificador_factor",
+  MODIFICADOR_COMBATIENTE: "modificador_combatiente",
   BLOQUEO_TOTAL: "bloqueo_total",
   BLOQUEO_HABILIDADES: "bloqueo_habilidades",
 });
@@ -43,13 +46,7 @@ export const POLITICAS_POTENCIA_EFECTO_VALIDAS = Object.freeze(
   Object.values(POLITICAS_POTENCIA_EFECTO),
 );
 
-export const FACTORES_TEMPORALES_MODIFICABLES = Object.freeze([
-  OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,
-  OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO,
-  OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE,
-  OBJETIVOS_MODIFICADOR.FACTOR_ACCION,
-  OBJETIVOS_MODIFICADOR.FACTOR_CONSUMO,
-]);
+
 
 function validarObjeto(valor, descripcion) {
   if (valor === null || typeof valor !== "object" || Array.isArray(valor)) {
@@ -144,30 +141,42 @@ function normalizarComponentesDanio(componentesDanio) {
     }),
   );
 }
-function normalizarValorModificador(valor) {
-  validarObjeto(valor, "El valor del modificador temporal");
-
-  const modificadores = {};
-
-  for (const [nombreFactor, multiplicador] of Object.entries(valor)) {
-    if (!FACTORES_TEMPORALES_MODIFICABLES.includes(nombreFactor)) {
-      throw new Error(
-        `El factor temporal "${nombreFactor}" no puede modificarse.`,
+function normalizarModificadoresCombatiente(modificadores) {
+  if (!Array.isArray(modificadores) || modificadores.length === 0) {
+    throw new Error("El modificador temporal necesita al menos un descriptor.");
+  }
+  return Object.freeze(
+    modificadores.map((descriptor, indice) => {
+      const normalizado = normalizarDescriptorModificador(
+        {
+          ...descriptor,
+          id: descriptor.id ?? `efecto_temporal:definicion:${indice}`,
+          origen: descriptor.origen ?? "efecto_temporal",
+        },
+        { origenPredeterminado: "efecto_temporal" },
       );
-    }
+      return normalizado;
+    }),
+  );
+}
 
-    validarNumeroPositivo(
-      multiplicador,
-      `El multiplicador de "${nombreFactor}"`,
-    );
-    modificadores[nombreFactor] = multiplicador;
+function normalizarEmision(emision) {
+  if (emision === null || emision === undefined) return null;
+  validarObjeto(emision, "La emisión temporal");
+  if (!Number.isInteger(emision.radio) || emision.radio < 0) {
+    throw new Error("El radio de una emisión debe ser un entero igual o mayor que 0.");
   }
-
-  if (Object.keys(modificadores).length === 0) {
-    throw new Error("El modificador temporal necesita al menos un factor.");
+  const afecta = normalizarTexto(emision.afecta, "A quién afecta la emisión").toLowerCase();
+  if (!["aliados", "enemigos", "todos"].includes(afecta)) {
+    throw new Error(`La emisión usa el alcance relacional desconocido "${afecta}".`);
   }
-
-  return Object.freeze(modificadores);
+  return Object.freeze({
+    radio: emision.radio,
+    afecta,
+    condicionesEmisor: normalizarCondicionesModificador(
+      emision.condicionesEmisor ?? {},
+    ),
+  });
 }
 
 function normalizarValorSegunTipo({
@@ -175,6 +184,8 @@ function normalizarValorSegunTipo({
   valor,
   tipoDanio,
   componentesDanio,
+  modificadores,
+  emision,
 }) {
   switch (tipo) {
     case TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO: {
@@ -195,11 +206,13 @@ function normalizarValorSegunTipo({
         componentesDanio: null,
       };
     }
-    case TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR:
+    case TIPOS_EFECTO_TEMPORAL.MODIFICADOR_COMBATIENTE:
       return {
-        valor: normalizarValorModificador(valor),
+        valor: 1,
         tipoDanio: null,
         componentesDanio: null,
+        modificadores: normalizarModificadoresCombatiente(modificadores),
+        emision: normalizarEmision(emision),
       };
 
     case TIPOS_EFECTO_TEMPORAL.BLOQUEO_TOTAL:
@@ -292,6 +305,8 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     valor: definicion.valor,
     tipoDanio: definicion.tipoDanio,
     componentesDanio: definicion.componentesDanio,
+    modificadores: definicion.modificadores,
+    emision: definicion.emision,
   });
   const idDefinicion =
     definicion.idDefinicion === null || definicion.idDefinicion === undefined
@@ -356,6 +371,8 @@ export function normalizarDefinicionEfectoTemporal(definicion = {}) {
     valor: valores.valor,
     tipoDanio: valores.tipoDanio,
     componentesDanio: valores.componentesDanio,
+    modificadores: valores.modificadores ?? null,
+    emision: valores.emision ?? null,
     duracion: definicion.duracion,
     intervalo,
     politicaAcumulacion,

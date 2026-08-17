@@ -47,6 +47,8 @@ import {
   validarBarraContraJugador,
   validarIndiceRanuraBarra,
 } from "./ContratoBarraHabilidades.js";
+import { crearConfiguracionHabilidadEfectiva } from "./ConfiguracionHabilidadEfectiva.js";
+import { cumpleCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
 
 const MOTIVOS = Object.freeze({
   OK: "OK",
@@ -96,7 +98,14 @@ export class SistemaHabilidadesJugador {
         ? this.configuracion.habilidades[idHabilidad]
         : null;
       const grado = habilidad ? this.obtenerGrado(idHabilidad) : 0;
-      const gradoConfig = habilidad?.ejecucion?.grados?.[grado] ?? null;
+      const gradoConfigBase = habilidad?.ejecucion?.grados?.[grado] ?? null;
+      const gradoConfig = gradoConfigBase
+        ? crearConfiguracionHabilidadEfectiva({
+            lanzador: this.jugador,
+            habilidad,
+            gradoConfig: gradoConfigBase,
+          })
+        : null;
       const manaActual = leerManaActual(this.jugador);
       return {
         indice,
@@ -522,7 +531,7 @@ export class SistemaHabilidadesJugador {
             lanzador: this.jugador,
             objetivo,
             idEjecucion,
-            resolverImpacto: true,
+            resolverImpacto: plan.habilidad.ejecucion.hostil,
             resolverCritico: false,
           });
     const efectos =
@@ -551,15 +560,15 @@ export class SistemaHabilidadesJugador {
     };
   }
 
-  // Compatibilidad de lectura: ya no existe un procesador alternativo.
-  procesarEfectosPendientes() {
-    return [];
-  }
 
   obtenerSeleccionDetallada() {
     if (!this.seleccion) return null;
     const habilidad = this.configuracion.habilidades[this.seleccion.idHabilidad];
-    const gradoConfig = habilidad.ejecucion.grados[this.seleccion.grado];
+    const gradoConfig = crearConfiguracionHabilidadEfectiva({
+      lanzador: this.jugador,
+      habilidad,
+      gradoConfig: habilidad.ejecucion.grados[this.seleccion.grado],
+    });
     const vistaPrevia = crearVistaPreviaHabilidad({
       mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,
@@ -649,7 +658,11 @@ export class SistemaHabilidadesJugador {
         "La habilidad ya no está aprendida.",
       );
     }
-    const gradoConfig = habilidad.ejecucion.grados[grado];
+    const gradoConfig = crearConfiguracionHabilidadEfectiva({
+      lanzador: this.jugador,
+      habilidad,
+      gradoConfig: habilidad.ejecucion.grados[grado],
+    });
     const vistaPrevia = crearVistaPreviaHabilidad({
       mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,
@@ -687,6 +700,19 @@ export class SistemaHabilidadesJugador {
       return crearRechazo(
         MOTIVOS.OBJETIVO_INVALIDO,
         vistaPrevia.mensaje ?? "No hay objetivos válidos para la habilidad.",
+      );
+    }
+    const requisitosLanzador = habilidad.ejecucion.requisitosLanzador ?? {};
+    if (
+      Object.keys(requisitosLanzador).length > 0 &&
+      !cumpleCondicionesModificador(
+        requisitosLanzador,
+        this.jugador.obtenerContextoModificadores(),
+      )
+    ) {
+      return crearRechazo(
+        MOTIVOS.OBJETIVO_INVALIDO,
+        "No cumplís los requisitos de equipamiento para usar esta habilidad.",
       );
     }
     if (leerManaActual(this.jugador) < gradoConfig.costoMana) {
@@ -777,7 +803,11 @@ export class SistemaHabilidadesJugador {
       return { x: this.jugador.x, y: this.jugador.y };
     }
 
-    const gradoConfig = habilidad.ejecucion.grados[grado];
+    const gradoConfig = crearConfiguracionHabilidadEfectiva({
+      lanzador: this.jugador,
+      habilidad,
+      gradoConfig: habilidad.ejecucion.grados[grado],
+    });
     const casillasSeleccionables = obtenerCasillasSeleccionablesHabilidad({
       mapa: this.juego.map,
       sistemaEspacial: this.juego.sistemaEspacial,

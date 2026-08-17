@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -268,9 +268,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 150,
-                "valor": {
-                  "factorMovimiento": 1.4
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.4
+                  }
+                ]
               }
             ]
           },
@@ -290,9 +294,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 200,
-                "valor": {
-                  "factorMovimiento": 1.45
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.45
+                  }
+                ]
               }
             ]
           },
@@ -312,9 +320,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 250,
-                "valor": {
-                  "factorMovimiento": 1.5
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.5
+                  }
+                ]
               }
             ]
           },
@@ -334,9 +346,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 300,
-                "valor": {
-                  "factorMovimiento": 1.55
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.55
+                  }
+                ]
               }
             ]
           }
@@ -378,9 +394,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 200,
-                "valor": {
-                  "factorMovimiento": 1.6
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.6
+                  }
+                ]
               }
             ]
           },
@@ -405,9 +425,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 250,
-                "valor": {
-                  "factorMovimiento": 1.65
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.65
+                  }
+                ]
               }
             ]
           },
@@ -432,9 +456,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 300,
-                "valor": {
-                  "factorMovimiento": 1.7
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.7
+                  }
+                ]
               }
             ]
           }
@@ -545,9 +573,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 100,
-                "valor": {
-                  "factorTiempo": 1.08
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.08
+                  }
+                ]
               }
             ]
           },
@@ -567,9 +599,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 150,
-                "valor": {
-                  "factorTiempo": 1.12
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.12
+                  }
+                ]
               }
             ]
           },
@@ -589,9 +625,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 200,
-                "valor": {
-                  "factorTiempo": 1.16
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.16
+                  }
+                ]
               }
             ]
           },
@@ -611,9 +651,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 250,
-                "valor": {
-                  "factorTiempo": 1.2
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.2
+                  }
+                ]
               }
             ]
           }
@@ -657,9 +701,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 150,
-                "valor": {
-                  "factorTiempo": 1.1
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.1
+                  }
+                ]
               }
             ]
           },
@@ -686,9 +734,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 200,
-                "valor": {
-                  "factorTiempo": 1.14
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.14
+                  }
+                ]
               }
             ]
           },
@@ -715,9 +767,13 @@
                 "perfilAplicacion": "refrescar_mayor_potencia",
                 "probabilidadBase": 100,
                 "duracion": 250,
-                "valor": {
-                  "factorTiempo": 1.18
-                }
+                "modificadores": [
+                  {
+                    "objetivo": "factorTiempo",
+                    "operacion": "multiplicar",
+                    "valor": 1.18
+                  }
+                ]
               }
             ]
           }
@@ -3024,6 +3080,3226 @@
             }
           }
         ]
+      }
+    },
+    "afinidad_ignea": {
+      "nombre": "Afinidad ígnea",
+      "maestria": "fuego",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 2,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el daño de todas las habilidades de Fuego.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "danoHabilidad",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "maestriaHabilidad": "fuego"
+            }
+          }
+        ]
+      }
+    },
+    "ascua_eficiente": {
+      "nombre": "Ascua eficiente",
+      "maestria": "fuego",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Reduce en 1 el coste de Maná de Ascua.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": -1,
+            "condiciones": {
+              "idHabilidad": "ascua",
+              "atributoHabilidad": "costoMana"
+            }
+          }
+        ]
+      }
+    },
+    "detonacion_expansiva": {
+      "nombre": "Detonación expansiva",
+      "maestria": "fuego",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 7,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en 1 el radio de Explosión ígnea.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "idHabilidad": "explosion_ignea",
+              "atributoHabilidad": "radioImpacto"
+            }
+          }
+        ]
+      }
+    },
+    "combustion_persistente": {
+      "nombre": "Combustión persistente",
+      "maestria": "fuego",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta un turno la Quemadura causada por Incinerar.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 100,
+            "condiciones": {
+              "idHabilidad": "incinerar",
+              "atributoHabilidad": "duracionEfecto",
+              "efectoIdHabilidad": "quemadura"
+            }
+          }
+        ]
+      }
+    },
+    "afinidad_glacial": {
+      "nombre": "Afinidad glacial",
+      "maestria": "frio",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 2,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el daño de todas las habilidades de Frío.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "danoHabilidad",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "maestriaHabilidad": "frio"
+            }
+          }
+        ]
+      }
+    },
+    "esquirla_persistente": {
+      "nombre": "Esquirla persistente",
+      "maestria": "frio",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta un turno la Ralentización de Esquirla de hielo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 100,
+            "condiciones": {
+              "idHabilidad": "esquirla_hielo",
+              "atributoHabilidad": "duracionEfecto",
+              "efectoIdHabilidad": "ralentizacion"
+            }
+          }
+        ]
+      }
+    },
+    "nova_expansiva": {
+      "nombre": "Nova expansiva",
+      "maestria": "frio",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 7,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en 1 el radio de Nova de escarcha.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "idHabilidad": "nova_escarcha",
+              "atributoHabilidad": "radioImpacto"
+            }
+          }
+        ]
+      }
+    },
+    "congelacion_profunda": {
+      "nombre": "Congelación profunda",
+      "maestria": "frio",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta 15 puntos la probabilidad de Congelamiento de Ráfaga glacial.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 15,
+            "condiciones": {
+              "idHabilidad": "rafaga_glacial",
+              "atributoHabilidad": "probabilidadEfecto",
+              "efectoIdHabilidad": "congelamiento"
+            }
+          }
+        ]
+      }
+    },
+    "afinidad_tormentosa": {
+      "nombre": "Afinidad tormentosa",
+      "maestria": "rayo",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 2,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el daño de todas las habilidades de Rayo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "danoHabilidad",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "maestriaHabilidad": "rayo"
+            }
+          }
+        ]
+      }
+    },
+    "chispa_fulminante": {
+      "nombre": "Chispa fulminante",
+      "maestria": "rayo",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta 10% la velocidad de lanzamiento de Chispa.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "porcentaje_inverso",
+            "valor": 10,
+            "condiciones": {
+              "idHabilidad": "chispa",
+              "atributoHabilidad": "costoTemporal"
+            }
+          }
+        ]
+      }
+    },
+    "conduccion_multiple": {
+      "nombre": "Conducción múltiple",
+      "maestria": "rayo",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 7,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Cadena de rayos puede alcanzar un objetivo adicional.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "idHabilidad": "cadena_rayos",
+              "atributoHabilidad": "cantidadObjetivos"
+            }
+          }
+        ]
+      }
+    },
+    "descarga_extendida": {
+      "nombre": "Descarga extendida",
+      "maestria": "rayo",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en 1 la longitud de Descarga fulminante.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "idHabilidad": "descarga_fulminante",
+              "atributoHabilidad": "longitudLinea"
+            }
+          }
+        ]
+      }
+    },
+    "afinidad_toxica": {
+      "nombre": "Afinidad tóxica",
+      "maestria": "veneno",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 2,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el daño de habilidades de Veneno, incluido daño periódico y de zona.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "danoHabilidad",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "maestriaHabilidad": "veneno"
+            }
+          }
+        ]
+      }
+    },
+    "toxina_persistente": {
+      "nombre": "Toxina persistente",
+      "maestria": "veneno",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta un turno el Envenenamiento de Aguijón tóxico.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 100,
+            "condiciones": {
+              "idHabilidad": "aguijon_toxico",
+              "atributoHabilidad": "duracionEfecto",
+              "efectoIdHabilidad": "envenenamiento"
+            }
+          }
+        ]
+      }
+    },
+    "nube_persistente": {
+      "nombre": "Nube persistente",
+      "maestria": "veneno",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 7,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta dos turnos la duración de Nube tóxica.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 200,
+            "condiciones": {
+              "idHabilidad": "nube_toxica",
+              "atributoHabilidad": "duracionZona"
+            }
+          }
+        ]
+      }
+    },
+    "plaga_voraz": {
+      "nombre": "Plaga voraz",
+      "maestria": "veneno",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en 1 el máximo de acumulaciones de Plaga corrosiva.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "atributoHabilidad",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "idHabilidad": "plaga_corrosiva",
+              "atributoHabilidad": "maximoAcumulacionesEfecto",
+              "efectoIdHabilidad": "envenenamiento"
+            }
+          }
+        ]
+      }
+    },
+    "manto_igneo": {
+      "nombre": "Manto Ígneo",
+      "maestria": "fuego",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta temporalmente la resistencia a Fuego de aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 3,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "manto_igneo",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "manto_igneo",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "manto_igneo",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 20
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "velo_glacial": {
+      "nombre": "Velo Glacial",
+      "maestria": "frio",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta temporalmente la resistencia a Frio de aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 3,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 20
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "egida_tormenta": {
+      "nombre": "Égida de Tormenta",
+      "maestria": "rayo",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta temporalmente la resistencia a Rayo de aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 3,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "egida_tormenta",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "egida_tormenta",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "egida_tormenta",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 20
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "velo_antitoxico": {
+      "nombre": "Velo Antitóxico",
+      "maestria": "veneno",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta temporalmente la resistencia a Veneno de aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 3,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_antitoxico",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_antitoxico",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "velo_antitoxico",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 20
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "vulnerabilidad_ignea": {
+      "nombre": "Vulnerabilidad Ígnea",
+      "maestria": "fuego",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Vulnerabilidad Ígnea a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_ignea",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": -10
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_ignea",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": -15
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_ignea",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": -20
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "exposicion": {
+      "nombre": "Exposición",
+      "maestria": "fuego",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Exposición a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "exposicion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": -8
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "exposicion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": -12
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "exposicion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": -18
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "debilidad": {
+      "nombre": "Debilidad",
+      "maestria": "fuego",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Debilidad a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "debilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": -5
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": -5
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "debilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": -8
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": -8
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 7,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "debilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": -12
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": -12
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "vulnerabilidad_glacial": {
+      "nombre": "Vulnerabilidad Glacial",
+      "maestria": "frio",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Vulnerabilidad Glacial a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": -10
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": -15
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_glacial",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": -20
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "lentitud": {
+      "nombre": "Lentitud",
+      "maestria": "frio",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Lentitud a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "lentitud",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.1
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "multiplicar",
+                    "valor": 1.05
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "lentitud",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.15
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "multiplicar",
+                    "valor": 1.08
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "lentitud",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "multiplicar",
+                    "valor": 1.2
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "multiplicar",
+                    "valor": 1.1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "ceguera": {
+      "nombre": "Ceguera",
+      "maestria": "frio",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Ceguera a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "ceguera",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 50,
+                "duracion": 300,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "limitar_maximo",
+                    "valor": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "ceguera",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 65,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "limitar_maximo",
+                    "valor": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 7,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "ceguera",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "limitar_maximo",
+                    "valor": 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "vulnerabilidad_electrica": {
+      "nombre": "Vulnerabilidad Eléctrica",
+      "maestria": "rayo",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Vulnerabilidad Eléctrica a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_electrica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": -10
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_electrica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": -15
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_electrica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": -20
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "torpeza": {
+      "nombre": "Torpeza",
+      "maestria": "rayo",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Torpeza a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "torpeza",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": -4
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "torpeza",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": -6
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "torpeza",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": -8
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "maldicion_silencio": {
+      "nombre": "Silencio",
+      "maestria": "rayo",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Silencio a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "silencio",
+                "perfilAplicacion": "maldicion",
+                "probabilidadBase": 40,
+                "duracion": 200
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 7,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "silencio",
+                "perfilAplicacion": "maldicion",
+                "probabilidadBase": 55,
+                "duracion": 300
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 8,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "silencio",
+                "perfilAplicacion": "maldicion",
+                "probabilidadBase": 70,
+                "duracion": 400
+              }
+            ]
+          }
+        }
+      }
+    },
+    "vulnerabilidad_toxica": {
+      "nombre": "Vulnerabilidad Tóxica",
+      "maestria": "veneno",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Vulnerabilidad Tóxica a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_toxica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": -10
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_toxica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": -15
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "vulnerabilidad_toxica",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": -20
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "marchitamiento": {
+      "nombre": "Marchitamiento",
+      "maestria": "veneno",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Marchitamiento a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 4,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "marchitamiento",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": -0.5
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": -0.5
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "marchitamiento",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": -0.75
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": -0.75
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "marchitamiento",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": -1
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": -1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "supresion": {
+      "nombre": "Supresión",
+      "maestria": "veneno",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aplica la maldición Supresión a un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "grados": {
+          "1": {
+            "costoMana": 5,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "supresion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 70,
+                "duracion": 500,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": -5
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": -3
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 6,
+            "costoTemporalBase": 100,
+            "alcance": 4,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "supresion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 80,
+                "duracion": 700,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": -10
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": -6
+                  }
+                ]
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 7,
+            "costoTemporalBase": 100,
+            "alcance": 5,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "supresion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 90,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": -15
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": -10
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "aura_celeridad": {
+      "nombre": "Aura de Celeridad",
+      "maestria": "dagas",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Celeridad durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_celeridad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 4
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "daga"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_celeridad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 7
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "daga"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_celeridad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "factorAtaque",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "daga"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "daga"
+        }
+      }
+    },
+    "aura_disciplina": {
+      "nombre": "Aura de Disciplina",
+      "maestria": "espadas",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Disciplina durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_disciplina",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 2
+                  },
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 1
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "espada"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_disciplina",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 2
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "espada"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_disciplina",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 6
+                  },
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "espada"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "espada"
+        }
+      }
+    },
+    "aura_furia": {
+      "nombre": "Aura de Furia",
+      "maestria": "hachas",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Furia durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_furia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 5
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 5
+                  },
+                  {
+                    "objetivo": "probabilidadCritico",
+                    "operacion": "sumar",
+                    "valor": 1
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "hacha"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_furia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "probabilidadCritico",
+                    "operacion": "sumar",
+                    "valor": 2
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "hacha"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_furia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 15
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 15
+                  },
+                  {
+                    "objetivo": "probabilidadCritico",
+                    "operacion": "sumar",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "hacha"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "hacha"
+        }
+      }
+    },
+    "aura_impetu": {
+      "nombre": "Aura de Ímpetu",
+      "maestria": "mandobles",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Ímpetu durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_impetu",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 6
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 6
+                  },
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 5
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "mandoble"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_impetu",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 12
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 12
+                  },
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "mandoble"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_impetu",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "multiplicadorDanioFuente",
+                    "operacion": "porcentaje_total",
+                    "valor": 18
+                  },
+                  {
+                    "objetivo": "danoHabilidad",
+                    "operacion": "porcentaje_total",
+                    "valor": 18
+                  },
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "mandoble"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "mandoble"
+        }
+      }
+    },
+    "aura_vigilancia": {
+      "nombre": "Aura de Vigilancia",
+      "maestria": "lanzas",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Vigilancia durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_vigilancia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "sumar",
+                    "valor": 1
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "lanza"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_vigilancia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "sumar",
+                    "valor": 2
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "lanza"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_vigilancia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "percepcion",
+                    "operacion": "sumar",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "lanza"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "lanza"
+        }
+      }
+    },
+    "aura_precision": {
+      "nombre": "Aura de Precisión",
+      "maestria": "arcos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Precisión durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_precision",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "arco"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_precision",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 5
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "arco"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_precision",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "precision",
+                    "operacion": "sumar",
+                    "valor": 8
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "arco"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "arco"
+        }
+      }
+    },
+    "aura_recuperacion": {
+      "nombre": "Aura de Recuperación",
+      "maestria": "bastones",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Recuperación durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_recuperacion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": 0.25
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": 0.25
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "baston"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_recuperacion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": 0.5
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": 0.5
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "baston"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_recuperacion",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "regeneracionVida",
+                    "operacion": "sumar",
+                    "valor": 1
+                  },
+                  {
+                    "objetivo": "regeneracionMana",
+                    "operacion": "sumar",
+                    "valor": 1
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "baston"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "baston"
+        }
+      }
+    },
+    "aura_enfoque": {
+      "nombre": "Aura de Enfoque",
+      "maestria": "varitas",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Enfoque durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_enfoque",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": 5
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "varita"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_enfoque",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": 6
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "varita"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_enfoque",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "potenciaHabilidad",
+                    "operacion": "sumar",
+                    "valor": 15
+                  },
+                  {
+                    "objetivo": "potenciaEfectos",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaArma": "varita"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaArma": "varita"
+        }
+      }
+    },
+    "aura_agilidad": {
+      "nombre": "Aura de Agilidad",
+      "maestria": "armadura_ligera",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Agilidad durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_agilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 2
+                  },
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 3
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "ligera",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_agilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 5
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "ligera",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_agilidad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "evasion",
+                    "operacion": "sumar",
+                    "valor": 6
+                  },
+                  {
+                    "objetivo": "factorMovimiento",
+                    "operacion": "porcentaje_inverso",
+                    "valor": 8
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "ligera",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "categoriaArmadura": "ligera",
+          "conjuntoArmaduraCompleto": true
+        }
+      }
+    },
+    "aura_resguardo_elemental": {
+      "nombre": "Aura de Resguardo Elemental",
+      "maestria": "armadura_media",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Resguardo Elemental durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_resguardo_elemental",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 4
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "media",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_resguardo_elemental",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 7
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "media",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_resguardo_elemental",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaFuego",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaFrio",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaRayo",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaVeneno",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "media",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "categoriaArmadura": "media",
+          "conjuntoArmaduraCompleto": true
+        }
+      }
+    },
+    "aura_guardia": {
+      "nombre": "Aura de Guardia",
+      "maestria": "armadura_pesada",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Guardia durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_guardia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 5
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "pesada",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_guardia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "pesada",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_guardia",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "armadura",
+                    "operacion": "porcentaje_base",
+                    "valor": 15
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "categoriaArmadura": "pesada",
+                    "conjuntoArmaduraCompleto": true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "categoriaArmadura": "pesada",
+          "conjuntoArmaduraCompleto": true
+        }
+      }
+    },
+    "aura_voluntad": {
+      "nombre": "Aura de Voluntad",
+      "maestria": "escudos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 4,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Emite Aura de Voluntad durante 10 turnos sobre aliados cercanos.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_voluntad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaCongelamiento",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaAturdimiento",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaEnvenenamiento",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaQuemadura",
+                    "operacion": "sumar",
+                    "valor": 4
+                  },
+                  {
+                    "objetivo": "resistenciaMental",
+                    "operacion": "sumar",
+                    "valor": 4
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaSecundaria": "escudo"
+                  }
+                }
+              }
+            ]
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_voluntad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaCongelamiento",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaAturdimiento",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaEnvenenamiento",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaQuemadura",
+                    "operacion": "sumar",
+                    "valor": 7
+                  },
+                  {
+                    "objetivo": "resistenciaMental",
+                    "operacion": "sumar",
+                    "valor": 7
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaSecundaria": "escudo"
+                  }
+                }
+              }
+            ]
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [
+              {
+                "efectoId": "aura_voluntad",
+                "perfilAplicacion": "renovar",
+                "probabilidadBase": 100,
+                "duracion": 1000,
+                "modificadores": [
+                  {
+                    "objetivo": "resistenciaCongelamiento",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaAturdimiento",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaEnvenenamiento",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaQuemadura",
+                    "operacion": "sumar",
+                    "valor": 10
+                  },
+                  {
+                    "objetivo": "resistenciaMental",
+                    "operacion": "sumar",
+                    "valor": 10
+                  }
+                ],
+                "emision": {
+                  "radio": 2,
+                  "afecta": "aliados",
+                  "condicionesEmisor": {
+                    "familiaSecundaria": "escudo"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "requisitosLanzador": {
+          "familiaSecundaria": "escudo"
+        }
       }
     }
   }

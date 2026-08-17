@@ -337,7 +337,11 @@
       "mejoraVelocidadAccion": "Velocidad de acciones",
       "mejoraDanioSecundaria": "Daño de mano secundaria",
       "mejoraDanio": "Daño",
-      "mejoraDanioCritico": "Daño crítico"
+      "mejoraDanioCritico": "Daño crítico",
+      "probabilidad": "Probabilidad",
+      "duracion": "Duración",
+      "radioAura": "Radio de aura",
+      "bloqueaHabilidadesActivas": "Bloquea habilidades activas"
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -1314,6 +1318,114 @@
       "silencio": {
         "nombre": "Silencio",
         "textoEstado": "SILENCIADO"
+      },
+      "manto_igneo": {
+        "nombre": "Manto Ígneo",
+        "textoEstado": "MANTO ÍGNEO"
+      },
+      "velo_glacial": {
+        "nombre": "Velo Glacial",
+        "textoEstado": "VELO GLACIAL"
+      },
+      "egida_tormenta": {
+        "nombre": "Égida de Tormenta",
+        "textoEstado": "ÉGIDA DE TORMENTA"
+      },
+      "velo_antitoxico": {
+        "nombre": "Velo Antitóxico",
+        "textoEstado": "VELO ANTITÓXICO"
+      },
+      "aura_celeridad": {
+        "nombre": "Aura de Celeridad",
+        "textoEstado": "AURA DE CELERIDAD"
+      },
+      "aura_disciplina": {
+        "nombre": "Aura de Disciplina",
+        "textoEstado": "AURA DE DISCIPLINA"
+      },
+      "aura_furia": {
+        "nombre": "Aura de Furia",
+        "textoEstado": "AURA DE FURIA"
+      },
+      "aura_impetu": {
+        "nombre": "Aura de Ímpetu",
+        "textoEstado": "AURA DE ÍMPETU"
+      },
+      "aura_vigilancia": {
+        "nombre": "Aura de Vigilancia",
+        "textoEstado": "AURA DE VIGILANCIA"
+      },
+      "aura_precision": {
+        "nombre": "Aura de Precisión",
+        "textoEstado": "AURA DE PRECISIÓN"
+      },
+      "aura_recuperacion": {
+        "nombre": "Aura de Recuperación",
+        "textoEstado": "AURA DE RECUPERACIÓN"
+      },
+      "aura_enfoque": {
+        "nombre": "Aura de Enfoque",
+        "textoEstado": "AURA DE ENFOQUE"
+      },
+      "aura_agilidad": {
+        "nombre": "Aura de Agilidad",
+        "textoEstado": "AURA DE AGILIDAD"
+      },
+      "aura_resguardo_elemental": {
+        "nombre": "Aura de Resguardo Elemental",
+        "textoEstado": "AURA DE RESGUARDO ELEMENTAL"
+      },
+      "aura_guardia": {
+        "nombre": "Aura de Guardia",
+        "textoEstado": "AURA DE GUARDIA"
+      },
+      "aura_voluntad": {
+        "nombre": "Aura de Voluntad",
+        "textoEstado": "AURA DE VOLUNTAD"
+      },
+      "vulnerabilidad_ignea": {
+        "nombre": "Vulnerabilidad Ígnea",
+        "textoEstado": "VULNERABILIDAD ÍGNEA"
+      },
+      "exposicion": {
+        "nombre": "Exposición",
+        "textoEstado": "EXPOSICIÓN"
+      },
+      "debilidad": {
+        "nombre": "Debilidad",
+        "textoEstado": "DEBILIDAD"
+      },
+      "vulnerabilidad_glacial": {
+        "nombre": "Vulnerabilidad Glacial",
+        "textoEstado": "VULNERABILIDAD GLACIAL"
+      },
+      "lentitud": {
+        "nombre": "Lentitud",
+        "textoEstado": "LENTITUD"
+      },
+      "ceguera": {
+        "nombre": "Ceguera",
+        "textoEstado": "CEGUERA"
+      },
+      "vulnerabilidad_electrica": {
+        "nombre": "Vulnerabilidad Eléctrica",
+        "textoEstado": "VULNERABILIDAD ELÉCTRICA"
+      },
+      "torpeza": {
+        "nombre": "Torpeza",
+        "textoEstado": "TORPEZA"
+      },
+      "vulnerabilidad_toxica": {
+        "nombre": "Vulnerabilidad Tóxica",
+        "textoEstado": "VULNERABILIDAD TÓXICA"
+      },
+      "marchitamiento": {
+        "nombre": "Marchitamiento",
+        "textoEstado": "MARCHITAMIENTO"
+      },
+      "supresion": {
+        "nombre": "Supresión",
+        "textoEstado": "SUPRESIÓN"
       }
     },
     "habilidades": {
@@ -1564,6 +1676,182 @@
       "muro_escudo": {
         "nombre": "Muro",
         "descripcion": "Aumenta la Vida máxima mientras se equipa un escudo."
+      },
+      "afinidad_ignea": {
+        "nombre": "Afinidad ígnea",
+        "descripcion": "Aumenta el daño de todas las habilidades de Fuego."
+      },
+      "ascua_eficiente": {
+        "nombre": "Ascua eficiente",
+        "descripcion": "Reduce en 1 el coste de Maná de Ascua."
+      },
+      "detonacion_expansiva": {
+        "nombre": "Detonación expansiva",
+        "descripcion": "Aumenta en 1 el radio de Explosión ígnea."
+      },
+      "combustion_persistente": {
+        "nombre": "Combustión persistente",
+        "descripcion": "Aumenta un turno la Quemadura causada por Incinerar."
+      },
+      "afinidad_glacial": {
+        "nombre": "Afinidad glacial",
+        "descripcion": "Aumenta el daño de todas las habilidades de Frío."
+      },
+      "esquirla_persistente": {
+        "nombre": "Esquirla persistente",
+        "descripcion": "Aumenta un turno la Ralentización de Esquirla de hielo."
+      },
+      "nova_expansiva": {
+        "nombre": "Nova expansiva",
+        "descripcion": "Aumenta en 1 el radio de Nova de escarcha."
+      },
+      "congelacion_profunda": {
+        "nombre": "Congelación profunda",
+        "descripcion": "Aumenta 15 puntos la probabilidad de Congelamiento de Ráfaga glacial."
+      },
+      "afinidad_tormentosa": {
+        "nombre": "Afinidad tormentosa",
+        "descripcion": "Aumenta el daño de todas las habilidades de Rayo."
+      },
+      "chispa_fulminante": {
+        "nombre": "Chispa fulminante",
+        "descripcion": "Aumenta 10% la velocidad de lanzamiento de Chispa."
+      },
+      "conduccion_multiple": {
+        "nombre": "Conducción múltiple",
+        "descripcion": "Cadena de rayos puede alcanzar un objetivo adicional."
+      },
+      "descarga_extendida": {
+        "nombre": "Descarga extendida",
+        "descripcion": "Aumenta en 1 la longitud de Descarga fulminante."
+      },
+      "afinidad_toxica": {
+        "nombre": "Afinidad tóxica",
+        "descripcion": "Aumenta el daño de habilidades de Veneno, incluido daño periódico y de zona."
+      },
+      "toxina_persistente": {
+        "nombre": "Toxina persistente",
+        "descripcion": "Aumenta un turno el Envenenamiento de Aguijón tóxico."
+      },
+      "nube_persistente": {
+        "nombre": "Nube persistente",
+        "descripcion": "Aumenta dos turnos la duración de Nube tóxica."
+      },
+      "plaga_voraz": {
+        "nombre": "Plaga voraz",
+        "descripcion": "Aumenta en 1 el máximo de acumulaciones de Plaga corrosiva."
+      },
+      "manto_igneo": {
+        "nombre": "Manto Ígneo",
+        "descripcion": "Aumenta temporalmente la resistencia a Fuego de aliados cercanos."
+      },
+      "velo_glacial": {
+        "nombre": "Velo Glacial",
+        "descripcion": "Aumenta temporalmente la resistencia a Frio de aliados cercanos."
+      },
+      "egida_tormenta": {
+        "nombre": "Égida de Tormenta",
+        "descripcion": "Aumenta temporalmente la resistencia a Rayo de aliados cercanos."
+      },
+      "velo_antitoxico": {
+        "nombre": "Velo Antitóxico",
+        "descripcion": "Aumenta temporalmente la resistencia a Veneno de aliados cercanos."
+      },
+      "vulnerabilidad_ignea": {
+        "nombre": "Vulnerabilidad Ígnea",
+        "descripcion": "Aplica la maldición Vulnerabilidad Ígnea a un enemigo."
+      },
+      "exposicion": {
+        "nombre": "Exposición",
+        "descripcion": "Aplica la maldición Exposición a un enemigo."
+      },
+      "debilidad": {
+        "nombre": "Debilidad",
+        "descripcion": "Aplica la maldición Debilidad a un enemigo."
+      },
+      "vulnerabilidad_glacial": {
+        "nombre": "Vulnerabilidad Glacial",
+        "descripcion": "Aplica la maldición Vulnerabilidad Glacial a un enemigo."
+      },
+      "lentitud": {
+        "nombre": "Lentitud",
+        "descripcion": "Aplica la maldición Lentitud a un enemigo."
+      },
+      "ceguera": {
+        "nombre": "Ceguera",
+        "descripcion": "Aplica la maldición Ceguera a un enemigo."
+      },
+      "vulnerabilidad_electrica": {
+        "nombre": "Vulnerabilidad Eléctrica",
+        "descripcion": "Aplica la maldición Vulnerabilidad Eléctrica a un enemigo."
+      },
+      "torpeza": {
+        "nombre": "Torpeza",
+        "descripcion": "Aplica la maldición Torpeza a un enemigo."
+      },
+      "maldicion_silencio": {
+        "nombre": "Silencio",
+        "descripcion": "Aplica la maldición Silencio a un enemigo."
+      },
+      "vulnerabilidad_toxica": {
+        "nombre": "Vulnerabilidad Tóxica",
+        "descripcion": "Aplica la maldición Vulnerabilidad Tóxica a un enemigo."
+      },
+      "marchitamiento": {
+        "nombre": "Marchitamiento",
+        "descripcion": "Aplica la maldición Marchitamiento a un enemigo."
+      },
+      "supresion": {
+        "nombre": "Supresión",
+        "descripcion": "Aplica la maldición Supresión a un enemigo."
+      },
+      "aura_celeridad": {
+        "nombre": "Aura de Celeridad",
+        "descripcion": "Emite Aura de Celeridad durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_disciplina": {
+        "nombre": "Aura de Disciplina",
+        "descripcion": "Emite Aura de Disciplina durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_furia": {
+        "nombre": "Aura de Furia",
+        "descripcion": "Emite Aura de Furia durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_impetu": {
+        "nombre": "Aura de Ímpetu",
+        "descripcion": "Emite Aura de Ímpetu durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_vigilancia": {
+        "nombre": "Aura de Vigilancia",
+        "descripcion": "Emite Aura de Vigilancia durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_precision": {
+        "nombre": "Aura de Precisión",
+        "descripcion": "Emite Aura de Precisión durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_recuperacion": {
+        "nombre": "Aura de Recuperación",
+        "descripcion": "Emite Aura de Recuperación durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_enfoque": {
+        "nombre": "Aura de Enfoque",
+        "descripcion": "Emite Aura de Enfoque durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_agilidad": {
+        "nombre": "Aura de Agilidad",
+        "descripcion": "Emite Aura de Agilidad durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_resguardo_elemental": {
+        "nombre": "Aura de Resguardo Elemental",
+        "descripcion": "Emite Aura de Resguardo Elemental durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_guardia": {
+        "nombre": "Aura de Guardia",
+        "descripcion": "Emite Aura de Guardia durante 10 turnos sobre aliados cercanos."
+      },
+      "aura_voluntad": {
+        "nombre": "Aura de Voluntad",
+        "descripcion": "Emite Aura de Voluntad durante 10 turnos sobre aliados cercanos."
       }
     },
     "maestrias": {

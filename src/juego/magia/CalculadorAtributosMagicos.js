@@ -1,4 +1,5 @@
 import { CONFIGURACION_MAGIA } from "../../config/ConfiguracionMagia.js";
+import { OPERACIONES_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
 
 export const MAGNITUDES_ESCALADO_EFECTO = Object.freeze({
   NINGUNA: "ninguna",
@@ -189,6 +190,13 @@ function escalarValorEfecto(definicion, multiplicador) {
     );
     return instantanea;
   }
+  if (Array.isArray(definicion.modificadores)) {
+    instantanea.modificadores = definicion.modificadores.map((descriptor) => ({
+      ...descriptor,
+      valor: escalarMagnitudDescriptorModificador(descriptor, multiplicador),
+    }));
+    return instantanea;
+  }
   if (!Number.isFinite(definicion.valor)) {
     throw new Error(
       "El escalado de valor solo admite un valor numérico o componentes de daño.",
@@ -197,6 +205,21 @@ function escalarValorEfecto(definicion, multiplicador) {
 
   instantanea.valor = definicion.valor * multiplicador;
   return instantanea;
+}
+
+// Escala la magnitud de un modificador temporal respetando el elemento neutro
+// de cada operación. Los topes máximos permanecen estructurales: una Potencia
+// de Efectos mayor no debe convertir, por ejemplo, Percepción máxima 1 en 1,5.
+function escalarMagnitudDescriptorModificador(descriptor, multiplicador) {
+  switch (descriptor.operacion) {
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR:
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR:
+      return 1 + (descriptor.valor - 1) * multiplicador;
+    case OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO:
+      return descriptor.valor;
+    default:
+      return descriptor.valor * multiplicador;
+  }
 }
 // Crea la instantánea que se entrega al motor temporal.
 //

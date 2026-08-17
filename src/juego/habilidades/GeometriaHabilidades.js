@@ -59,7 +59,7 @@ export function crearVistaPreviaHabilidad({
     centro.x,
     centro.y,
   );
-  const resolucionImpacto = resolverFormaImpacto({
+  let resolucionImpacto = resolverFormaImpacto({
     mapa,
     sistemaEspacial,
     jugador,
@@ -68,6 +68,16 @@ export function crearVistaPreviaHabilidad({
     objetivoPrimario,
     formaImpacto: gradoConfig.formaImpacto,
   });
+  // Las habilidades de objetivo propio usan al lanzador como objetivo real.
+  // No se lo mezcla con la lista de enemigos para conservar responsabilidades.
+  if (habilidad.ejecucion.tipoObjetivo === "propio") {
+    const propio = crearObjetivoAfectado(jugador, 0, 1);
+    resolucionImpacto = {
+      casillasAfectadas: [{ x: jugador.x, y: jugador.y }],
+      objetivosAfectados: [propio],
+      recorrido: [copiarPasoRecorrido(propio)],
+    };
+  }
   const creaZonaTemporal = Boolean(gradoConfig.zonaTemporal);
   const objetivoValido = creaZonaTemporal
     ? resolucionImpacto.casillasAfectadas.length > 0

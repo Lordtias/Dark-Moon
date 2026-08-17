@@ -18,7 +18,6 @@ import {
 import { crearMensajeDetalleDanioPeriodico } from "../mensajes/MensajesCalculoCombate.js";
 import { OPERACIONES_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
-  FACTORES_TEMPORALES_MODIFICABLES,
   MODOS_RESISTENCIA_EFECTO,
   POLITICAS_ACUMULACION_EFECTO,
   POLITICAS_POTENCIA_EFECTO,
@@ -116,7 +115,10 @@ function obtenerEstadisticasObjetivo(objetivo) {
 function obtenerResistenciaEfecto(objetivo, resistenciaId) {
   if (!resistenciaId) return 0;
   const estadisticas = obtenerEstadisticasObjetivo(objetivo);
-  const valor = estadisticas.resistenciasEfectos?.[resistenciaId] ?? 0;
+  // Las Maldiciones comparten una única Resistencia Mental canónica.
+  const valor = resistenciaId === "mental"
+    ? estadisticas.resistenciaMental ?? 0
+    : estadisticas.resistenciasEfectos?.[resistenciaId] ?? 0;
   return limitar(Number.isFinite(valor) ? valor : 0, 0, 75);
 }
 
@@ -268,7 +270,7 @@ function obtenerTiradaAplicacion(definicion, proveedor) {
   return Math.floor(Math.random() * 100) + 1;
 }
 
-function obtenerMagnitudPotencia({ tipo, valor, componentesDanio }) {
+function obtenerMagnitudPotencia({ tipo, valor, componentesDanio, modificadores }) {
   if (tipo === TIPOS_EFECTO_TEMPORAL.DANIO_PERIODICO) {
     if (Array.isArray(componentesDanio)) {
       return componentesDanio.reduce(
@@ -278,11 +280,10 @@ function obtenerMagnitudPotencia({ tipo, valor, componentesDanio }) {
     }
     return Number.isFinite(valor) ? valor : 0;
   }
-  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR) {
-    return Object.values(valor ?? {}).reduce(
-      (total, multiplicador) => total + Math.abs(multiplicador - 1),
-      0,
-    );
+  if (tipo === TIPOS_EFECTO_TEMPORAL.MODIFICADOR_COMBATIENTE) {
+    return Array.isArray(modificadores)
+      ? modificadores.reduce((total, descriptor) => total + Math.abs(descriptor.valor ?? 0), 0)
+      : 0;
   }
   return Number.isFinite(valor) ? valor : 0;
 }
@@ -297,20 +298,13 @@ function debeReemplazarPotencia(efecto, definicion) {
   return obtenerMagnitudPotencia(definicion) > obtenerMagnitudPotencia(efecto);
 }
 
-function limitarMultiplicador(valor) {
-  const limites = CONFIGURACION_EFECTOS_TEMPORALES.limites;
-  return Math.max(
-    limites.multiplicadorFactorMinimo,
-    Math.min(limites.multiplicadorFactorMaximo, valor),
-  );
-}
-
 function obtenerNombreObjetivo(objetivo) {
   return objetivo?.nombre ?? "El objetivo";
 }
 
 // Expone las fuentes numéricas vigentes sin componerlas. La composición final
-// pertenece exclusivamente a SistemaModificadoresCombatiente.
+// pertenece exclusivamente a SistemaModificadoresCombatiente. Las emisiones
+// (auras) se excluyen aquí porque su objetivo depende de la posición actual.
 export function obtenerModificadoresTemporalesObjetivo(objetivo) {
   const estado = obtenerEstadoObjetivo(objetivo, false);
   if (!estado) return [];
@@ -319,36 +313,69 @@ export function obtenerModificadoresTemporalesObjetivo(objetivo) {
   for (const efecto of estado.efectos.values()) {
     if (
       efecto.suspendido ||
-      efecto.tipo !== TIPOS_EFECTO_TEMPORAL.MODIFICADOR_FACTOR
+      efecto.tipo !== TIPOS_EFECTO_TEMPORAL.MODIFICADOR_COMBATIENTE ||
+      efecto.emision
     ) {
       continue;
     }
-
-    const escala = obtenerEscalaAcumulacion(efecto);
-    for (const [objetivoModificador, multiplicadorConfigurado] of Object.entries(
-      efecto.valor ?? {},
-    )) {
-      const multiplicadorEscalado = limitarMultiplicador(
-        1 + (multiplicadorConfigurado - 1) * escala,
-      );
-      resultado.push({
-        id: `efecto_temporal:${efecto.id}:${objetivoModificador}`,
-        objetivo: objetivoModificador,
-        operacion: OPERACIONES_MODIFICADOR.MULTIPLICAR,
-        valor: multiplicadorEscalado,
-        origen: "efecto_temporal",
-        fuente: Object.freeze({
-          tipo: "efecto_temporal",
-          id: efecto.id,
-          idDefinicion: efecto.idDefinicion,
-          efectoId: efecto.efectoId,
-          nombre: efecto.nombreEfecto,
-        }),
-        condiciones: {},
-      });
-    }
+    resultado.push(...crearDescriptoresInstanciaEfecto(efecto));
   }
   return resultado;
+}
+
+// Devuelve emisiones móviles vigentes sin decidir quién es aliado/enemigo ni
+// calcular distancias. Esa relación espacial pertenece al coordinador del mapa.
+export function obtenerEmisionesModificadoresTemporales(emisor) {
+  const estado = obtenerEstadoObjetivo(emisor, false);
+  if (!estado) return [];
+  const emisiones = [];
+  for (const efecto of estado.efectos.values()) {
+    if (
+      efecto.suspendido ||
+      efecto.tipo !== TIPOS_EFECTO_TEMPORAL.MODIFICADOR_COMBATIENTE ||
+      !efecto.emision
+    ) continue;
+    emisiones.push(Object.freeze({
+      id: efecto.id,
+      efectoId: efecto.efectoId,
+      nombreEfecto: efecto.nombreEfecto,
+      emisor,
+      radio: efecto.emision.radio,
+      afecta: efecto.emision.afecta,
+      condicionesEmisor: efecto.emision.condicionesEmisor ?? {},
+      modificadores: Object.freeze(crearDescriptoresInstanciaEfecto(efecto)),
+    }));
+  }
+  return emisiones;
+}
+
+function crearDescriptoresInstanciaEfecto(efecto) {
+  const escala = obtenerEscalaAcumulacion(efecto);
+  return (efecto.modificadores ?? []).map((descriptor, indice) => ({
+    ...descriptor,
+    id: `efecto_temporal:${efecto.id}:${indice}:${descriptor.objetivo}`,
+    valor: escalarValorDescriptor(descriptor, escala),
+    origen: "efecto_temporal",
+    fuente: Object.freeze({
+      tipo: "efecto_temporal",
+      id: efecto.id,
+      idDefinicion: efecto.idDefinicion,
+      efectoId: efecto.efectoId,
+      nombre: efecto.nombreEfecto,
+    }),
+  }));
+}
+
+function escalarValorDescriptor(descriptor, escala) {
+  switch (descriptor.operacion) {
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR:
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR:
+      return 1 + (descriptor.valor - 1) * escala;
+    case OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO:
+      return descriptor.valor;
+    default:
+      return descriptor.valor * escala;
+  }
 }
 
 function crearResumenEfecto(efecto) {
@@ -363,6 +390,8 @@ function crearResumenEfecto(efecto) {
     objetivo: efecto.objetivo,
     tipo: efecto.tipo,
     valor: copiarValor(efecto.valor),
+    modificadores: copiarValor(efecto.modificadores),
+    emision: copiarValor(efecto.emision),
     duracion: efecto.duracion,
     intervalo: efecto.intervalo,
     politicaAcumulacion: efecto.politicaAcumulacion,
@@ -616,6 +645,8 @@ export class SistemaEfectosTemporales {
       objetivo: definicion.objetivo,
       tipo: definicion.tipo,
       valor: copiarValor(definicion.valor),
+      modificadores: copiarValor(definicion.modificadores),
+      emision: copiarValor(definicion.emision),
       tipoDanio: definicion.tipoDanio,
       componentesDanio: definicion.componentesDanio
         ? definicion.componentesDanio.map((componente) => ({ ...componente }))
@@ -786,6 +817,8 @@ export class SistemaEfectosTemporales {
       efecto.idDefinicion = definicion.idDefinicion;
       efecto.fuente = { ...definicion.fuente };
       efecto.valor = copiarValor(definicion.valor);
+      efecto.modificadores = copiarValor(definicion.modificadores);
+      efecto.emision = copiarValor(definicion.emision);
       efecto.tipoDanio = definicion.tipoDanio;
       efecto.componentesDanio = definicion.componentesDanio
         ? definicion.componentesDanio.map((componente) => ({ ...componente }))

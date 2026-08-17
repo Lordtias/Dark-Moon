@@ -417,6 +417,762 @@
       "efectoCasilla": null,
       "efectoObjetivo": "restauracion_lunar",
       "efectoObjetivoPrimario": null
+    },
+    "manto_igneo": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#ff6b2c",
+      "colorSecundario": "#ffd36a",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "velo_glacial": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#6fd7ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "egida_tormenta": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#b95cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "velo_antitoxico": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#75df37",
+      "colorSecundario": "#dfff78",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "vulnerabilidad_ignea": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#ff6b2c",
+      "colorSecundario": "#ffd36a",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "exposicion": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#ff6b2c",
+      "colorSecundario": "#ffd36a",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "debilidad": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#ff6b2c",
+      "colorSecundario": "#ffd36a",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "vulnerabilidad_glacial": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#6fd7ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "lentitud": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#6fd7ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "ceguera": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#6fd7ff",
+      "colorSecundario": "#effcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "vulnerabilidad_electrica": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#b95cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "torpeza": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#b95cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "maldicion_silencio": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#b95cff",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "vulnerabilidad_toxica": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#75df37",
+      "colorSecundario": "#dfff78",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "marchitamiento": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#75df37",
+      "colorSecundario": "#dfff78",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "supresion": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "sello_maldicion",
+      "movimiento": "trayectoria_arcana",
+      "textura": "energia_oscura",
+      "estela": "particulas_sutiles",
+      "impacto": "marca_maldicion",
+      "colorPrincipal": "#75df37",
+      "colorSecundario": "#dfff78",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "marca_maldicion",
+      "efectoObjetivoPrimario": "marca_maldicion"
+    },
+    "aura_celeridad": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#d8e0e8",
+      "colorSecundario": "#ffffff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_disciplina": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#bfc7d5",
+      "colorSecundario": "#f4f1db",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_furia": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#c8744a",
+      "colorSecundario": "#f0c28b",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_impetu": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#aa8f7a",
+      "colorSecundario": "#e2d0bb",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_vigilancia": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#b7aa87",
+      "colorSecundario": "#e7dfc1",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_precision": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#80a66b",
+      "colorSecundario": "#d8e9be",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_recuperacion": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#7d8ca8",
+      "colorSecundario": "#dce5f2",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_enfoque": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#9b74c7",
+      "colorSecundario": "#eadcff",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_agilidad": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#a9b8a0",
+      "colorSecundario": "#e2eadb",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_resguardo_elemental": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#939f9a",
+      "colorSecundario": "#dfe6e2",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_guardia": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#737b84",
+      "colorSecundario": "#d5d9de",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "aura_voluntad": {
+      "nivelVisual": "intermedia",
+      "secuencia": "area_conjurada",
+      "forma": "halo_runa",
+      "movimiento": "expansion_suave",
+      "textura": "energia_difusa",
+      "estela": "particulas_sutiles",
+      "impacto": "pulso_aura",
+      "colorPrincipal": "#8e8870",
+      "colorSecundario": "#e5ddbd",
+      "tamanoVisualPx": 22,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
     }
   }
 }

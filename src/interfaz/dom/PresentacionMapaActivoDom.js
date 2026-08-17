@@ -3,6 +3,8 @@ import { ControladorEquipamientoDom } from "../objetos/ControladorEquipamientoDo
 import { ControladorComercioDom } from "../comercio/ControladorComercioDom.js";
 import { AdaptadorInteraccionesDom } from "../interacciones/AdaptadorInteraccionesDom.js";
 import { IntegracionHabilidadesDom } from "../habilidades/IntegracionHabilidadesDom.js";
+import { CoordinadorActualizacionPresentacionDom } from "./CoordinadorActualizacionPresentacionDom.js";
+import { suscribirCambiosEstadoJugador } from "../../juego/estado/ObservadorCambiosEstadoJugador.js";
 import {
   obtenerConfiguracionEjecucionHabilidades,
   obtenerConfiguracionProgresoHabilidades,
@@ -97,6 +99,28 @@ export class PresentacionMapaActivoDom {
       alEjecutarAccionJugable,
     });
 
+    // Un único coordinador agrupa invalidaciones genéricas del estado derivado
+    // y ordena a las vistas HTML releer el estado canónico. No repinta Phaser.
+    this.coordinadorActualizacionPresentacion =
+      new CoordinadorActualizacionPresentacionDom({
+        esPresentacionActiva: () => !this.destruida && esJuegoActivo(),
+        actualizarEstadoJugador: () =>
+          interfazPartida.renderizador.actualizarEstadoJugador(juego.player),
+        actualizarHabilidades: () =>
+          this.integracionHabilidades?.actualizarEstadoDerivado() ?? false,
+      });
+
+    this.desuscribirCambiosEstadoJugador = suscribirCambiosEstadoJugador(
+      juego.player,
+      (detalle) => {
+        this.coordinadorActualizacionPresentacion.invalidar({
+          estadoJugador: detalle?.estadoJugador === true,
+          habilidades: detalle?.habilidades === true,
+          motivo: detalle?.motivos?.[0] ?? "estado_jugador_invalidado",
+        });
+      },
+    );
+
     this.integracionHabilidades = new IntegracionHabilidadesDom({
       juego,
       renderizador: interfazPartida.renderizador,
@@ -166,6 +190,10 @@ export class PresentacionMapaActivoDom {
     return this.integracionHabilidades ?? null;
   }
 
+  invalidarPresentacionDerivada(opciones = {}) {
+    return this.coordinadorActualizacionPresentacion?.invalidar(opciones) ?? false;
+  }
+
   destruir() {
     if (this.destruida) {
       return false;
@@ -178,6 +206,8 @@ export class PresentacionMapaActivoDom {
 
     // Se retiran después observadores y listeners de habilidades, igual que en
     // el flujo anterior, antes de destruir la instancia de Juego asociada.
+    this.desuscribirCambiosEstadoJugador?.();
+    this.coordinadorActualizacionPresentacion?.destruir();
     this.integracionHabilidades?.destruir();
     this.controladorComercio?.desactivar();
     this.controladorTeclado?.desactivar();

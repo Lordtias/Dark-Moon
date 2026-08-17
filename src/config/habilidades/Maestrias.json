@@ -1,9 +1,8 @@
 {
-  "version": 2,
+  "version": 3,
   "reglas": {
     "puntosUniversalesIniciales": 1,
     "puntosUniversalesPorNivelGeneral": 1,
-    "factorExperienciaPorMana": 1,
     "nivelMaximoMaestria": 10,
     "experienciaPorNivel": [
       20,
@@ -27,7 +26,13 @@
         "rogue",
         "mago"
       ],
-      "orden": 10
+      "orden": 10,
+      "fuentesExperiencia": [
+        {
+          "tipo": "mana_consumido",
+          "factor": 1
+        }
+      ]
     },
     "frio": {
       "nombre": "Frío",
@@ -37,7 +42,13 @@
         "rogue",
         "mago"
       ],
-      "orden": 20
+      "orden": 20,
+      "fuentesExperiencia": [
+        {
+          "tipo": "mana_consumido",
+          "factor": 1
+        }
+      ]
     },
     "rayo": {
       "nombre": "Rayo",
@@ -47,7 +58,13 @@
         "rogue",
         "mago"
       ],
-      "orden": 30
+      "orden": 30,
+      "fuentesExperiencia": [
+        {
+          "tipo": "mana_consumido",
+          "factor": 1
+        }
+      ]
     },
     "veneno": {
       "nombre": "Veneno",
@@ -57,7 +74,222 @@
         "rogue",
         "mago"
       ],
-      "orden": 40
+      "orden": 40,
+      "fuentesExperiencia": [
+        {
+          "tipo": "mana_consumido",
+          "factor": 1
+        }
+      ]
+    },
+    "dagas": {
+      "nombre": "Dagas",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 10,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "daga",
+          "factor": 0.75
+        }
+      ]
+    },
+    "espadas": {
+      "nombre": "Espadas",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 20,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "espada",
+          "factor": 0.75
+        }
+      ]
+    },
+    "hachas": {
+      "nombre": "Hachas",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 30,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "hacha",
+          "factor": 0.75
+        }
+      ]
+    },
+    "mandobles": {
+      "nombre": "Mandobles",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 40,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "mandoble",
+          "factor": 0.75
+        }
+      ]
+    },
+    "lanzas": {
+      "nombre": "Lanzas",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 50,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "lanza",
+          "factor": 0.75
+        }
+      ]
+    },
+    "arcos": {
+      "nombre": "Arcos",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 60,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "arco",
+          "factor": 0.75
+        }
+      ]
+    },
+    "bastones": {
+      "nombre": "Bastones",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 70,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "baston",
+          "factor": 0.75
+        }
+      ]
+    },
+    "varitas": {
+      "nombre": "Varitas",
+      "categoria": "armas",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 80,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_aplicado_arma",
+          "familiaArma": "varita",
+          "factor": 0.75
+        }
+      ]
+    },
+    "armadura_ligera": {
+      "nombre": "Armadura ligera",
+      "categoria": "armaduras",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 10,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_mitigado_armadura",
+          "categoriaArmadura": "ligera",
+          "factor": 8
+        }
+      ]
+    },
+    "armadura_media": {
+      "nombre": "Armadura media",
+      "categoria": "armaduras",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 20,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_mitigado_armadura",
+          "categoriaArmadura": "media",
+          "factor": 8
+        }
+      ]
+    },
+    "armadura_pesada": {
+      "nombre": "Armadura pesada",
+      "categoria": "armaduras",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 30,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_mitigado_armadura",
+          "categoriaArmadura": "pesada",
+          "factor": 8
+        }
+      ]
+    },
+    "escudos": {
+      "nombre": "Escudos",
+      "categoria": "armaduras",
+      "profesionesPermitidas": [
+        "guerrero",
+        "rogue",
+        "mago"
+      ],
+      "orden": 40,
+      "fuentesExperiencia": [
+        {
+          "tipo": "danio_mitigado_armadura",
+          "categoriaArmadura": "escudo",
+          "factor": 8
+        },
+        {
+          "tipo": "danio_mitigado_bloqueo",
+          "familiaSecundaria": "escudo",
+          "factor": 4
+        }
+      ]
     }
   },
   "categorias": {

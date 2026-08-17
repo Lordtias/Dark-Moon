@@ -32,7 +32,8 @@ export class IntegracionHabilidadesDom {
       !renderizador ||
       typeof renderizador.dibujarJuego !== "function" ||
       typeof renderizador.mostrarMensaje !== "function" ||
-      typeof renderizador.actualizarEstadoVisualHabilidad !== "function"
+      typeof renderizador.actualizarEstadoVisualHabilidad !== "function" ||
+      typeof renderizador.actualizarEstadoJugador !== "function"
     ) {
       throw new Error(
         "La integración DOM de habilidades necesita el renderizador activo de la partida.",
@@ -122,8 +123,14 @@ export class IntegracionHabilidadesDom {
 
     this.desuscribirProgreso = suscribirCambiosProgresoHabilidades(
       this.jugador,
-      () => {
+      (detalle) => {
         this.panel.renderizar();
+        if (
+          detalle?.tipo === "mejorarHabilidad" ||
+          detalle?.tipo === "restaurarEstado"
+        ) {
+          this.renderizador.actualizarEstadoJugador(this.jugador);
+        }
         this.guardarJugador();
       },
     );

@@ -69,6 +69,79 @@ function obtenerObjetosEquipados(combatiente) {
   return combatiente.equipamiento?.obtenerObjetosEquipados() ?? [];
 }
 
+function crearDesgloseAportesArmadura({ baseArmadura = 0, objetos = [], multiplicadorLocal = 1 } = {}) {
+  const aportes = {
+    ligera: 0,
+    media: 0,
+    pesada: 0,
+    escudo: 0,
+    otras: Math.max(0, Number.isFinite(baseArmadura) ? baseArmadura : 0),
+  };
+
+  for (const objeto of objetos) {
+    const aporte = objeto?.propiedades?.armadura ?? 0;
+    if (!Number.isFinite(aporte) || aporte <= 0) continue;
+
+    if (objeto?.familiaObjeto === "escudo") {
+      aportes.escudo += aporte;
+      continue;
+    }
+
+    if (["ligera", "media", "pesada"].includes(objeto?.categoriaArmadura)) {
+      aportes[objeto.categoriaArmadura] += aporte;
+      continue;
+    }
+
+    aportes.otras += aporte;
+  }
+
+  for (const clave of Object.keys(aportes)) {
+    aportes[clave] *= multiplicadorLocal;
+  }
+
+  const totalClasificable = Object.values(aportes).reduce((total, valor) => total + valor, 0);
+  return Object.freeze({
+    ...aportes,
+    totalClasificable,
+  });
+}
+
+function ajustarDesgloseArmaduraFinal(desgloseBase, armaduraFinal) {
+  const categorias = ["ligera", "media", "pesada", "escudo", "otras"];
+  const totalBase = desgloseBase?.totalClasificable ?? 0;
+  const final = Math.max(0, Number.isFinite(armaduraFinal) ? armaduraFinal : 0);
+  if (totalBase <= 0) {
+    return Object.freeze({
+      ligera: 0,
+      media: 0,
+      pesada: 0,
+      escudo: 0,
+      otras: final,
+      totalClasificable: final,
+    });
+  }
+
+  const resultado = {};
+  if (final <= totalBase) {
+    const factor = final / totalBase;
+    for (const categoria of categorias) {
+      resultado[categoria] = (desgloseBase[categoria] ?? 0) * factor;
+    }
+  } else {
+    for (const categoria of categorias) {
+      resultado[categoria] = desgloseBase[categoria] ?? 0;
+    }
+    // Bonificaciones globales (pasivas, auras, maldiciones inversas, etc.) no
+    // se atribuyen artificialmente a una familia de equipo para entregar XP.
+    resultado.otras += final - totalBase;
+  }
+
+  return Object.freeze({
+    ...resultado,
+    totalClasificable: final,
+  });
+}
+
 export function calcularRecursosMaximos({
   nivel,
   atributos,
@@ -520,7 +593,13 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const armaduraPlana = base.armadura + sumarPropiedad(objetos, "armadura");
   const armaduraPorcentual =
     sumarPropiedad(objetos, "armaduraAumentadaPorcentaje") / 100;
-  const armaduraBase = armaduraPlana * (1 + armaduraPorcentual);
+  const multiplicadorArmaduraLocal = 1 + armaduraPorcentual;
+  const armaduraBase = armaduraPlana * multiplicadorArmaduraLocal;
+  const desgloseArmaduraBase = crearDesgloseAportesArmadura({
+    baseArmadura: base.armadura,
+    objetos,
+    multiplicadorLocal: multiplicadorArmaduraLocal,
+  });
   const armadura = Math.max(
     0,
     Math.round(
@@ -530,6 +609,10 @@ export function calcularEstadisticasDerivadas(combatiente) {
         armaduraBase,
       ),
     ),
+  );
+  const desgloseArmadura = ajustarDesgloseArmaduraFinal(
+    desgloseArmaduraBase,
+    armadura,
   );
 
   const precisionBase =
@@ -613,6 +696,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     precision,
     evasion,
     armadura,
+    desgloseArmadura,
     probabilidadCritico,
     multiplicadorCritico,
     probabilidadBloqueo,

@@ -280,6 +280,37 @@ function normalizarModificadoresIniciales(nombre, modificadores) {
   );
 }
 
+const RANURAS_ARMADURA_CORPORAL = Object.freeze([
+  "cabeza",
+  "torso",
+  "manos",
+  "piernas",
+  "pies",
+]);
+
+function obtenerContextoArmaduraCorporal(equipamiento) {
+  const piezas = RANURAS_ARMADURA_CORPORAL.map((ranura) => {
+    if (!equipamiento?.tieneRanura(ranura)) return null;
+    return equipamiento.obtenerObjetoEnRanura(ranura);
+  });
+  const categorias = piezas
+    .filter(Boolean)
+    .map((objeto) => objeto?.categoriaArmadura ?? null)
+    .filter(Boolean);
+  const conjuntoArmaduraCompleto =
+    piezas.length === RANURAS_ARMADURA_CORPORAL.length &&
+    piezas.every((objeto) => Boolean(objeto?.categoriaArmadura));
+
+  if (categorias.length === 0) {
+    return { categoriaArmadura: null, conjuntoArmaduraCompleto: false };
+  }
+  const unicas = new Set(categorias);
+  return {
+    categoriaArmadura: unicas.size === 1 ? categorias[0] : "mixta",
+    conjuntoArmaduraCompleto,
+  };
+}
+
 export class Combatiente extends Destructible {
   constructor({
     nombre,
@@ -397,14 +428,32 @@ export class Combatiente extends Destructible {
     this.acumuladorRegeneracionMana = 0;
   }
 
+  obtenerContextoModificadores(contexto = {}) {
+    const configuracionAtaque = obtenerConfiguracionAtaque(this);
+    const secundaria = this.equipamiento?.tieneRanura("secundaria")
+      ? this.equipamiento.obtenerObjetoEnRanura("secundaria")
+      : null;
+    const contextoArmadura = obtenerContextoArmaduraCorporal(this.equipamiento);
+
+    return {
+      tipoCombatiente: this.tipoContextoModificadores,
+      familiaArma: configuracionAtaque.armaControladora?.familiaObjeto ?? null,
+      familiaSecundaria:
+        secundaria?.familiaObjeto ?? secundaria?.tipo ?? null,
+      tipoAtaque: configuracionAtaque.propiedadesControladoras?.tipoAtaque ?? null,
+      esAtaqueDual: configuracionAtaque.esAtaqueDual === true,
+      categoriaArmadura: contextoArmadura.categoriaArmadura,
+      conjuntoArmaduraCompleto: contextoArmadura.conjuntoArmaduraCompleto,
+      ...contexto,
+      tipoCombatiente: this.tipoContextoModificadores,
+    };
+  }
+
   resolverModificador(objetivo, valorBase, contexto = {}) {
     return this.sistemaModificadoresCombatiente.resolver(
       objetivo,
       valorBase,
-      {
-        ...contexto,
-        tipoCombatiente: this.tipoContextoModificadores,
-      },
+      this.obtenerContextoModificadores(contexto),
     );
   }
 

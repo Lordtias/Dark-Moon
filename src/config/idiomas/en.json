@@ -283,7 +283,61 @@
       "tipoPasiva": "Passive",
       "sinMaestriasTitulo": "No masteries configured",
       "sinMaestriasDetalle": "There are no masteries configured in this category.",
-      "categoriaVacia": "There are no skills configured in this mastery."
+      "categoriaVacia": "There are no skills configured in this mastery.",
+      "efecto": "Effect",
+      "efectoActual": "Current effect",
+      "efectoVistaPrevia": "Effect (rank {grado})",
+      "requiere": "Requires",
+      "sinModificadoresPasiva": "No modifiers configured",
+      "valorInvalido": "invalid value",
+      "sobreBase": "on base",
+      "sobreTotal": "on total",
+      "redondeoIntermedio": "intermediate rounding",
+      "sinValor": "None",
+      "objetivoVidaMaxima": "Maximum Life",
+      "objetivoManaMaximo": "Maximum Mana",
+      "objetivoRegeneracionVida": "Life Regeneration",
+      "objetivoRegeneracionMana": "Mana Regeneration",
+      "objetivoPrecision": "Accuracy",
+      "objetivoEvasion": "Evasion",
+      "objetivoArmadura": "Armor",
+      "objetivoProbabilidadCritico": "Critical chance",
+      "objetivoMultiplicadorCritico": "Critical multiplier",
+      "objetivoProbabilidadBloqueo": "Block chance",
+      "objetivoMitigacionBloqueo": "Block mitigation",
+      "objetivoPotenciaEfectos": "Effect Power",
+      "objetivoPotenciaHabilidad": "Skill Power",
+      "objetivoResistenciaFuego": "Fire Resistance",
+      "objetivoResistenciaFrio": "Cold Resistance",
+      "objetivoResistenciaRayo": "Lightning Resistance",
+      "objetivoResistenciaVeneno": "Poison Resistance",
+      "objetivoResistenciaCongelamiento": "Freeze Resistance",
+      "objetivoResistenciaAturdimiento": "Stun Resistance",
+      "objetivoResistenciaEnvenenamiento": "Poisoning Resistance",
+      "objetivoResistenciaQuemadura": "Burn Resistance",
+      "objetivoAlcanceAtaque": "Attack range",
+      "objetivoPercepcion": "Perception",
+      "objetivoFactorTiempo": "Time factor",
+      "objetivoFactorMovimiento": "Movement factor",
+      "objetivoFactorAtaque": "Attack factor",
+      "objetivoFactorAccion": "Action factor",
+      "objetivoFactorConsumo": "Consumption factor",
+      "objetivoMultiplicadorDanioFuente": "Source damage",
+      "condicionTipoCombatiente": "Combatant",
+      "condicionFamiliaArma": "Weapon",
+      "condicionMano": "Hand",
+      "condicionTipoAtaque": "Attack",
+      "condicionAtaqueDual": "Dual attack",
+      "condicionCategoriaArmadura": "Armor",
+      "condicionFamiliaSecundaria": "Off-hand",
+      "condicionConjuntoCompleto": "Full set",
+      "tipoActiva": "Active",
+      "mejoraVelocidadAtaque": "Attack speed",
+      "mejoraVelocidadMovimiento": "Movement speed",
+      "mejoraVelocidadAccion": "Action speed",
+      "mejoraDanioSecundaria": "Off-hand damage",
+      "mejoraDanio": "Damage",
+      "mejoraDanioCritico": "Critical damage"
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -1318,6 +1372,198 @@
       "restauracion_mana_lunar": {
         "nombre": "Moonlight Mana Restoration",
         "descripcion": "Lythra channels lunar energy to fully restore the target’s missing Mana."
+      },
+      "ritmo_daga": {
+        "nombre": "Dagger Rhythm",
+        "descripcion": "Reduces the time required to attack with daggers."
+      },
+      "punto_vital": {
+        "nombre": "Vital Point",
+        "descripcion": "Increases critical hit chance with daggers."
+      },
+      "maestria_dual": {
+        "nombre": "Dual Mastery",
+        "descripcion": "Reduces the damage penalty of a dagger used in the off hand during dual wielding."
+      },
+      "danza_cuchillas": {
+        "nombre": "Blade Dance",
+        "descripcion": "Increases damage from dagger sources while dual wielding."
+      },
+      "tecnica_hoja": {
+        "nombre": "Blade Technique",
+        "descripcion": "Increases Accuracy with swords."
+      },
+      "corte_maestro": {
+        "nombre": "Master Cut",
+        "descripcion": "Increases damage dealt by sword sources."
+      },
+      "guardia_duelista": {
+        "nombre": "Duelist Guard",
+        "descripcion": "Increases Evasion while the controlling weapon is a sword."
+      },
+      "esgrima_fluida": {
+        "nombre": "Fluid Fencing",
+        "descripcion": "Reduces the time required to attack with a sword."
+      },
+      "golpe_brutal_hacha": {
+        "nombre": "Brutal Strike",
+        "descripcion": "Increases damage dealt by axe sources."
+      },
+      "cabeza_equilibrada": {
+        "nombre": "Balanced Head",
+        "descripcion": "Compensates for the naturally lower accuracy of axes."
+      },
+      "impacto_decisivo": {
+        "nombre": "Decisive Impact",
+        "descripcion": "Increases the critical multiplier with axes."
+      },
+      "ejecutor_hacha": {
+        "nombre": "Executioner",
+        "descripcion": "Greatly increases critical hit chance with axes."
+      },
+      "inercia_mandoble": {
+        "nombre": "Momentum",
+        "descripcion": "Increases damage dealt by greatswords."
+      },
+      "dominio_pesado": {
+        "nombre": "Heavy Mastery",
+        "descripcion": "Reduces attack time with greatswords."
+      },
+      "guardia_dos_manos": {
+        "nombre": "Two-Handed Guard",
+        "descripcion": "Increases Armor while using a greatsword."
+      },
+      "quebrantador": {
+        "nombre": "Breaker",
+        "descripcion": "Increases the critical multiplier with greatswords."
+      },
+      "punta_firme": {
+        "nombre": "Steady Point",
+        "descripcion": "Increases Accuracy with spears."
+      },
+      "empuje_profundo": {
+        "nombre": "Deep Thrust",
+        "descripcion": "Increases damage dealt by spear sources."
+      },
+      "guardia_distancia": {
+        "nombre": "Distance Guard",
+        "descripcion": "Increases Evasion while using a spear."
+      },
+      "dominio_alcance_lanza": {
+        "nombre": "Reach Mastery",
+        "descripcion": "Increases spear attack range by one tile."
+      },
+      "tiro_estable": {
+        "nombre": "Steady Shot",
+        "descripcion": "Increases Accuracy with bows."
+      },
+      "tension_controlada": {
+        "nombre": "Controlled Draw",
+        "descripcion": "Increases damage dealt by bow sources."
+      },
+      "tiro_letal": {
+        "nombre": "Lethal Shot",
+        "descripcion": "Increases critical hit chance with bows."
+      },
+      "ojo_halcon": {
+        "nombre": "Hawkeye",
+        "descripcion": "Increases bow attack range by one tile."
+      },
+      "canalizacion_estable": {
+        "nombre": "Stable Channeling",
+        "descripcion": "Increases Ability Power while using a staff."
+      },
+      "golpe_disciplinado": {
+        "nombre": "Disciplined Strike",
+        "descripcion": "Increases the damage of the staff basic attack."
+      },
+      "guardia_baston": {
+        "nombre": "Staff Guard",
+        "descripcion": "Increases Armor while using a staff."
+      },
+      "foco_profundo": {
+        "nombre": "Deep Focus",
+        "descripcion": "Increases Mana regeneration while using a staff."
+      },
+      "canalizacion_fina": {
+        "nombre": "Fine Channeling",
+        "descripcion": "Increases Ability Power while using a wand."
+      },
+      "precision_arcana": {
+        "nombre": "Arcane Precision",
+        "descripcion": "Increases Accuracy of wand basic attacks."
+      },
+      "doble_canalizacion": {
+        "nombre": "Dual Channeling",
+        "descripcion": "Reduces the off-hand wand damage penalty while dual wielding wands."
+      },
+      "canal_extendido": {
+        "nombre": "Extended Channel",
+        "descripcion": "Increases wand basic-attack range by one tile."
+      },
+      "dominio_armadura_ligera": {
+        "nombre": "Light Armor",
+        "descripcion": "Increases Evasion while wearing a complete light-armor body set."
+      },
+      "paso_ligero": {
+        "nombre": "Light Step",
+        "descripcion": "Reduces movement time with a complete light-armor body set."
+      },
+      "flujo_libre": {
+        "nombre": "Free Flow",
+        "descripcion": "Increases Mana regeneration with a complete light-armor body set."
+      },
+      "sin_lastre": {
+        "nombre": "Unburdened",
+        "descripcion": "Reduces general action time with a complete light-armor body set."
+      },
+      "defensa_flexible": {
+        "nombre": "Flexible Defense",
+        "descripcion": "Increases Armor with a complete medium-armor body set."
+      },
+      "movilidad_entrenada": {
+        "nombre": "Trained Mobility",
+        "descripcion": "Increases Evasion with a complete medium-armor body set."
+      },
+      "preparacion_elemental": {
+        "nombre": "Elemental Preparation",
+        "descripcion": "Increases all four elemental resistances with a complete medium-armor body set."
+      },
+      "equilibrio_armadura": {
+        "nombre": "Balance",
+        "descripcion": "Reduces movement time with a complete medium-armor body set."
+      },
+      "placas_ajustadas": {
+        "nombre": "Fitted Plates",
+        "descripcion": "Increases Armor with a complete heavy-armor body set."
+      },
+      "aguante_pesado": {
+        "nombre": "Endurance",
+        "descripcion": "Increases maximum Life with a complete heavy-armor body set."
+      },
+      "firmeza_pesada": {
+        "nombre": "Steadfastness",
+        "descripcion": "Increases Stun resistance with a complete heavy-armor body set."
+      },
+      "fortaleza_pesada": {
+        "nombre": "Fortress",
+        "descripcion": "Increases all four effect resistances with a complete heavy-armor body set."
+      },
+      "guardia_firme": {
+        "nombre": "Firm Guard",
+        "descripcion": "Increases Block chance while a shield is equipped."
+      },
+      "bloqueo_experto": {
+        "nombre": "Expert Block",
+        "descripcion": "Increases damage mitigation from a shield Block."
+      },
+      "bastion_escudo": {
+        "nombre": "Bastion",
+        "descripcion": "Increases Armor while a shield is equipped."
+      },
+      "muro_escudo": {
+        "nombre": "Wall",
+        "descripcion": "Increases maximum Life while a shield is equipped."
       }
     },
     "maestrias": {
@@ -1332,6 +1578,42 @@
       },
       "veneno": {
         "nombre": "Poison"
+      },
+      "dagas": {
+        "nombre": "Daggers"
+      },
+      "espadas": {
+        "nombre": "Swords"
+      },
+      "hachas": {
+        "nombre": "Axes"
+      },
+      "mandobles": {
+        "nombre": "Greatswords"
+      },
+      "lanzas": {
+        "nombre": "Spears"
+      },
+      "arcos": {
+        "nombre": "Bows"
+      },
+      "bastones": {
+        "nombre": "Staves"
+      },
+      "varitas": {
+        "nombre": "Wands"
+      },
+      "armadura_ligera": {
+        "nombre": "Light Armor"
+      },
+      "armadura_media": {
+        "nombre": "Medium Armor"
+      },
+      "armadura_pesada": {
+        "nombre": "Heavy Armor"
+      },
+      "escudos": {
+        "nombre": "Shields"
       }
     },
     "mapas": {

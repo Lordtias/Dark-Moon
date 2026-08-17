@@ -16,6 +16,35 @@ import {
 
 export { calcularReduccionArmadura } from "./ComponentesDanio.js";
 
+let secuenciaResolucionesAtaque = 0;
+
+function crearIdResolucionAtaque() {
+  secuenciaResolucionesAtaque += 1;
+  return `ataque:${secuenciaResolucionesAtaque}`;
+}
+
+function crearDistribucionMitigacionArmadura(danioMitigadoArmadura, desgloseArmadura) {
+  const categorias = ["ligera", "media", "pesada", "escudo", "otras"];
+  const vacio = Object.fromEntries(categorias.map((categoria) => [categoria, 0]));
+  if (!Number.isFinite(danioMitigadoArmadura) || danioMitigadoArmadura <= 0) {
+    return Object.freeze(vacio);
+  }
+
+  const total = desgloseArmadura?.totalClasificable ?? 0;
+  if (!Number.isFinite(total) || total <= 0) {
+    return Object.freeze({ ...vacio, otras: danioMitigadoArmadura });
+  }
+
+  const distribucion = {};
+  for (const categoria of categorias) {
+    const aporte = desgloseArmadura?.[categoria] ?? 0;
+    distribucion[categoria] = Number.isFinite(aporte) && aporte > 0
+      ? danioMitigadoArmadura * (aporte / total)
+      : 0;
+  }
+  return Object.freeze(distribucion);
+}
+
 function tirarRango(minimo, maximo) {
   if (!Number.isFinite(minimo) || !Number.isFinite(maximo)) {
     throw new Error("El rango de daño debe contener números finitos.");
@@ -310,6 +339,7 @@ function resolverFuenteAtaque({
     return {
       nombreFuente: fuente.nombre,
       idFuente: fuente.objeto?.id ?? null,
+      familiaArma: fuente.objeto?.familiaObjeto ?? null,
       mano: fuente.mano,
       multiplicadorGolpe: fuente.multiplicadorGolpe,
       impacto: false,
@@ -325,6 +355,8 @@ function resolverFuenteAtaque({
       tiradaImpacto: tiradaImpacto.tirada,
       armadura: 0,
       reduccionArmadura: 0,
+      danioMitigadoArmadura: 0,
+      distribucionMitigacionArmadura: crearDistribucionMitigacionArmadura(0, null),
       danioMitigadoBloqueo: 0,
       danioDespuesBloqueo: 0,
       probabilidadBloqueo: 0,
@@ -374,10 +406,19 @@ function resolverFuenteAtaque({
     (componente) => componente.tipo === TIPOS_DANIO.FISICO,
   );
   const primerFisico = componentesFisicos[0] ?? null;
+  const danioMitigadoArmadura = sumarComponentes(
+    componentesFisicos,
+    "danioMitigadoArmadura",
+  );
+  const distribucionMitigacionArmadura = crearDistribucionMitigacionArmadura(
+    danioMitigadoArmadura,
+    estadisticasObjetivo?.desgloseArmadura,
+  );
 
   return {
     nombreFuente: fuente.nombre,
     idFuente: fuente.objeto?.id ?? null,
+    familiaArma: fuente.objeto?.familiaObjeto ?? null,
     mano: fuente.mano,
     multiplicadorGolpe: fuente.multiplicadorGolpe,
     impacto: true,
@@ -392,6 +433,8 @@ function resolverFuenteAtaque({
     probabilidadCritico: resultadoBruto.probabilidadCritico,
     tiradaCritico: resultadoBruto.tiradaCritico,
     multiplicadorCritico: resultadoBruto.multiplicadorCritico,
+    danioMitigadoArmadura,
+    distribucionMitigacionArmadura,
     danioMitigadoBloqueo: sumarComponentes(
       componentesFisicos,
       "danioMitigadoBloqueo",
@@ -651,6 +694,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
   // La munición se consume una sola vez
   // por acción de ataque.
   const resultadoMunicion = consumirRecursosAtaque(atacante);
+  const idResolucion = crearIdResolucionAtaque();
   const estadisticasAtacante = atacante.estadisticasDerivadas;
   const configuracionDanio = estadisticasAtacante.danioFisico;
   const fuentes = configuracionDanio.componentes;
@@ -723,6 +767,7 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
   const primerGolpe = resultadosGolpes[0] ?? null;
 
   return {
+    idResolucion,
     impacto,
     bloqueado,
     critico,
@@ -732,6 +777,10 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
     desgloseDanio: combinarDesgloses(resultadosGolpes),
     componentesDanio: resultadosGolpes.flatMap(
       (resultado) => resultado.componentesDanio ?? [],
+    ),
+    danioMitigadoArmadura: sumarCampo(
+      resultadosGolpes,
+      "danioMitigadoArmadura",
     ),
     danioMitigadoBloqueo: sumarCampo(
       resultadosGolpes,

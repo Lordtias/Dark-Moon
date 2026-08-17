@@ -1329,14 +1329,10 @@ function invocarProgreso(jugador, nombreMetodo, datos) {
 }
 
 function invocarRegistroExperiencia(jugador, evento) {
-  if (typeof jugador.registrarExperienciaMaestria === "function") {
-    return jugador.registrarExperienciaMaestria(evento);
+  if (typeof jugador?.registrarExperienciaMaestria !== "function") {
+    throw new Error("El jugador no expone el registro canónico de XP de maestría.");
   }
-  const progreso = obtenerProgreso(jugador);
-  if (typeof progreso.registrarEjecucionEfectiva === "function") {
-    return progreso.registrarEjecucionEfectiva(evento);
-  }
-  throw new Error("El jugador no expone el registro de XP de maestría.");
+  return jugador.registrarExperienciaMaestria(evento);
 }
 
 function obtenerGrado(jugador, idHabilidad) {

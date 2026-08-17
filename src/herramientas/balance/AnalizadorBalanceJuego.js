@@ -23,6 +23,7 @@ import {
   ProgresoHabilidadesJugador,
 } from "../../juego/maestrias/ProgresoHabilidadesJugador.js";
 import { crearTablaProgresion } from "../../juego/progresion/SistemaProgresion.js";
+import { SistemaExperienciaMaestrias } from "../../juego/maestrias/SistemaExperienciaMaestrias.js";
 import { TIEMPO_REFERENCIA } from "../../juego/tiempo/SistemaTiempo.js";
 
 const NIVELES_RECURSOS_DESTACADOS = Object.freeze([1, 3, 6, 10]);
@@ -592,11 +593,12 @@ function simularRutaProgresionMagica({
 
       usosTotales += 1;
       manaTotal += costoMana;
-      progreso.registrarEjecucionEfectiva({
-        idEjecucion: `balance:${idMaestria}:${usosPorEnemigo}:${estrategia}:${usosTotales}`,
+      registrarManaMaestriaBalance({
+        configuracion: configuracionProgresoHabilidades,
+        progreso,
+        idEvento: `balance:${idMaestria}:${usosPorEnemigo}:${estrategia}:${usosTotales}`,
         idMaestria,
         manaConsumido: costoMana,
-        ejecucionEfectiva: true,
       });
       gastarPuntosEspecializacion({
         progreso,
@@ -866,6 +868,25 @@ function crearInformePuntosHabilidad({
 }
 
 
+function registrarManaMaestriaBalance({
+  configuracion,
+  progreso,
+  idEvento,
+  idMaestria,
+  manaConsumido,
+}) {
+  const sistemaExperiencia = new SistemaExperienciaMaestrias({
+    configuracion,
+    progresoHabilidades: progreso,
+  });
+  return sistemaExperiencia.registrarEvento({
+    idEvento,
+    tipo: "mana_consumido",
+    cantidad: manaConsumido,
+    idMaestria,
+  });
+}
+
 function crearUmbralesMaestria(configuracionProgresoHabilidades) {
   let acumulada = 0;
   return configuracionProgresoHabilidades.reglas.experienciaPorNivel.map(
@@ -890,11 +911,12 @@ function obtenerExperienciaRealPorUso({
     configuracion: configuracionProgresoHabilidades,
     idProfesion: "mago",
   });
-  return progreso.registrarEjecucionEfectiva({
-    idEjecucion: `balance:${idMaestria}:${manaConsumido}`,
+  return registrarManaMaestriaBalance({
+    configuracion: configuracionProgresoHabilidades,
+    progreso,
+    idEvento: `balance:${idMaestria}:${manaConsumido}`,
     idMaestria,
     manaConsumido,
-    ejecucionEfectiva: true,
   }).experienciaGanada;
 }
 
@@ -925,11 +947,12 @@ function simularUsosMaestria({
   while (progreso.obtenerResumen().maestrias[idMaestria].nivel < nivelObjetivo) {
     usos += 1;
     manaTotal += manaConsumido;
-    progreso.registrarEjecucionEfectiva({
-      idEjecucion: `balance:${idMaestria}:${nivelInicial}:${nivelObjetivo}:${usos}`,
+    registrarManaMaestriaBalance({
+      configuracion: configuracionProgresoHabilidades,
+      progreso,
+      idEvento: `balance:${idMaestria}:${nivelInicial}:${nivelObjetivo}:${usos}`,
       idMaestria,
       manaConsumido,
-      ejecucionEfectiva: true,
     });
     if (usos > 10000) {
       throw new Error("La simulación de maestría superó 10.000 usos.");
@@ -1004,21 +1027,23 @@ function crearRutaDesbloqueo({
   while (progreso.obtenerResumen().maestrias[idMaestria].nivel < 3) {
     usosBasica += 1;
     manaTotal += manaBasica;
-    progreso.registrarEjecucionEfectiva({
-      idEjecucion: `ruta:${idMaestria}:${nombre}:b:${usosBasica}`,
+    registrarManaMaestriaBalance({
+      configuracion: configuracionProgresoHabilidades,
+      progreso,
+      idEvento: `ruta:${idMaestria}:${nombre}:b:${usosBasica}`,
       idMaestria,
       manaConsumido: manaBasica,
-      ejecucionEfectiva: true,
     });
   }
   while (progreso.obtenerResumen().maestrias[idMaestria].nivel < 6) {
     usosIntermedia += 1;
     manaTotal += manaIntermedia;
-    progreso.registrarEjecucionEfectiva({
-      idEjecucion: `ruta:${idMaestria}:${nombre}:i:${usosIntermedia}`,
+    registrarManaMaestriaBalance({
+      configuracion: configuracionProgresoHabilidades,
+      progreso,
+      idEvento: `ruta:${idMaestria}:${nombre}:i:${usosIntermedia}`,
       idMaestria,
       manaConsumido: manaIntermedia,
-      ejecucionEfectiva: true,
     });
   }
 

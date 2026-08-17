@@ -62,6 +62,8 @@ export const CLAVES_CONTEXTO_MODIFICADOR = Object.freeze({
   TIPO_ATAQUE: "tipoAtaque",
   ES_ATAQUE_DUAL: "esAtaqueDual",
   CATEGORIA_ARMADURA: "categoriaArmadura",
+  FAMILIA_SECUNDARIA: "familiaSecundaria",
+  CONJUNTO_ARMADURA_COMPLETO: "conjuntoArmaduraCompleto",
 });
 
 export const CLAVES_CONTEXTO_MODIFICADOR_VALIDAS = Object.freeze(

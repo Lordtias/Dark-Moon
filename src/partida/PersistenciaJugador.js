@@ -10,8 +10,8 @@ import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
 import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
 
-export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v3";
-export const VERSION_GUARDADO_JUGADOR = 3;
+export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v4";
+export const VERSION_GUARDADO_JUGADOR = 4;
 
 // Serializa el estado durable del personaje, no la simulación del mapa.
 //

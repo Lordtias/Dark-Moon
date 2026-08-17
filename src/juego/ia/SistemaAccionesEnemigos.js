@@ -308,6 +308,12 @@ export function procesarAccionEnemigo({
     const costoAtaque = enemigo.costoAtaqueActual;
     const configuracionAtaque = enemigo.configuracionAtaqueActual;
     const resultadoAtaque = enemigo.atacar(jugador);
+    if (!resultadoAtaque.ataqueNoDisponible && resultadoAtaque.idResolucion) {
+      jugador.sistemaExperienciaMaestrias?.registrarAtaqueRecibido({
+        resultadoAtaque,
+        combatiente: jugador,
+      });
+    }
     mensajes.push(...crearMensajesResultadoAtaque({
       atacante: enemigo,
       objetivo: jugador,

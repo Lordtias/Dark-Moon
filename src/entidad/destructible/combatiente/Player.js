@@ -16,6 +16,8 @@ import {
   obtenerConfiguracionProgresoHabilidades,
 } from "../../../juego/maestrias/ContextoProgresoHabilidades.js";
 import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
+import { ProveedorModificadoresPasivasAprendidas } from "../../../juego/modificadores/ProveedorModificadoresPasivasAprendidas.js";
+import { SistemaExperienciaMaestrias } from "../../../juego/maestrias/SistemaExperienciaMaestrias.js";
 
 const PERCEPCION_BASE_JUGADOR = 10;
 
@@ -128,6 +130,25 @@ export class Player extends Combatiente {
       idProfesion: this.idProfesion,
       estadoInicial: estadoProgresoHabilidades,
     });
+    const configuracionHabilidades = obtenerConfiguracionProgresoHabilidades();
+    this.proveedorModificadoresPasivas =
+      new ProveedorModificadoresPasivasAprendidas({
+        progresoHabilidades: this.progresoHabilidades,
+        configuracion: configuracionHabilidades,
+      });
+    this.sistemaModificadoresCombatiente.registrarProveedor({
+      id: "pasivas_aprendidas",
+      obtenerModificadores: (consulta) =>
+        this.proveedorModificadoresPasivas.obtenerModificadores(consulta),
+    });
+    this.sistemaExperienciaMaestrias = new SistemaExperienciaMaestrias({
+      configuracion: configuracionHabilidades,
+      progresoHabilidades: this.progresoHabilidades,
+    });
+    // Un estado restaurado puede contener pasivas que alteren máximos desde el
+    // primer instante. El valor durable de Vida/Maná se aplica luego por la
+    // persistencia, pero los máximos ya deben provenir del contrato actual.
+    this.estadisticasDerivadas;
 
     if (experiencia > 0) {
       this.ganarExperiencia(experiencia);
@@ -309,7 +330,7 @@ export class Player extends Combatiente {
   }
 
   registrarExperienciaMaestria(evento) {
-    return this.progresoHabilidades.registrarEjecucionEfectiva(evento);
+    return this.sistemaExperienciaMaestrias.registrarEvento(evento);
   }
 
   agregarExperienciaMaestria(datos) {
@@ -317,7 +338,17 @@ export class Player extends Combatiente {
   }
 
   mejorarHabilidad(datos) {
-    return this.progresoHabilidades.mejorarHabilidad(datos);
+    const estadoRecursosAnterior = capturarEstadoRecursos(this);
+    const resultado = this.progresoHabilidades.mejorarHabilidad(datos);
+    if (resultado.exito) {
+      // Una pasiva puede modificar máximos u otras estadísticas desde el mismo
+      // instante en que cambia de grado. No se persiste ningún resultado: se
+      // recalcula desde las fuentes aprendidas y se conserva el estado de
+      // recursos según el contrato existente.
+      this.estadisticasDerivadas;
+      restaurarRecursosTrasRecalculo(this, estadoRecursosAnterior);
+    }
+    return resultado;
   }
 
   obtenerGradoHabilidad(idHabilidad) {

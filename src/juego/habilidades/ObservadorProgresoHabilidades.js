@@ -1,7 +1,6 @@
 const CLAVE_OBSERVADOR = Symbol.for("darkMoon.habilidades.observadorProgreso");
 const METODOS_MUTACION = [
   "agregarPuntosUniversales",
-  "registrarEjecucionEfectiva",
   "agregarExperienciaMaestria",
   "mejorarHabilidad",
   "restaurarEstado",

@@ -300,6 +300,9 @@ export function resolverComponenteDanio({
     danioAntesRedondeo = bruto * (1 - reduccionResistencia);
   }
 
+  const danioMitigadoArmadura = esFisico
+    ? Math.max(0, danioDespuesBloqueo - danioAntesRedondeo)
+    : 0;
   const danioFinal = Math.max(0, Math.floor(danioAntesRedondeo));
   return {
     tipo: tipoNormalizado,
@@ -312,6 +315,7 @@ export function resolverComponenteDanio({
     armadura: armaduraAplicada,
     factorArmadura: CONFIGURACION_COMBATE.armadura.factorDanio,
     reduccionArmadura,
+    danioMitigadoArmadura,
     resistencia: resistenciaAplicada,
     reduccionResistencia,
     danioAntesRedondeo,

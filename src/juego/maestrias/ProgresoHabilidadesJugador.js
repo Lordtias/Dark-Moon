@@ -3,18 +3,17 @@ export const ORIGENES_PUNTO_HABILIDAD = Object.freeze({
   ESPECIFICO: "especifico",
 });
 
-const VERSION_ESTADO_PROGRESO = 2;
+const VERSION_ESTADO_PROGRESO = 3;
 // Fuente única de verdad de la progresión de habilidades del personaje.
 //
-// Conserva únicamente datos de progresión. No calcula daño, no consume Maná,
-// no altera la agenda temporal y no conoce la interfaz. Una ejecución efectiva
-// puede notificarse usando el Maná realmente consumido.
+// Conserva únicamente datos de progresión. No calcula daño, XP por acciones,
+// recursos ni condiciones de combate. SistemaExperienciaMaestrias transforma
+// hechos canónicos ya resueltos en experiencia y llama agregarExperienciaMaestria.
 export class ProgresoHabilidadesJugador {
   constructor({ configuracion, idProfesion, estadoInicial = null } = {}) {
     validarConfiguracion(configuracion);
     this.configuracion = configuracion;
     this.idProfesion = normalizarId(idProfesion, "La profesión");
-    this.idsEjecucionesRecompensadas = new Set();
     this.puntosUniversales = configuracion.reglas.puntosUniversalesIniciales;
     this.maestrias = crearEstadoInicialMaestrias({
       configuracion,
@@ -91,70 +90,7 @@ export class ProgresoHabilidadesJugador {
       puntosUniversales: this.puntosUniversales,
     };
   }
-  // Registra una recompensa una sola vez por ejecución efectiva.
-  //
-  // La experiencia no consulta daño, crítico, resistencia, objetivos ni
-  // ticks. Se deriva exclusivamente del Maná que fue realmente gastado.
-  registrarEjecucionEfectiva({
-    idEjecucion,
-    idMaestria,
-    manaConsumido,
-    ejecucionEfectiva,
-  } = {}) {
-    const idNormalizado = normalizarId(idEjecucion, "El ID de ejecución");
-    const idMaestriaNormalizado = this.validarMaestria(idMaestria);
-    if (ejecucionEfectiva !== true) {
-      return resultadoSinExperiencia({
-        motivo: "EJECUCION_NO_EFECTIVA",
-        idEjecucion: idNormalizado,
-        idMaestria: idMaestriaNormalizado,
-      });
-    }
-
-    if (!Number.isFinite(manaConsumido) || manaConsumido <= 0) {
-      return resultadoSinExperiencia({
-        motivo: "MANA_NO_CONSUMIDO",
-        idEjecucion: idNormalizado,
-        idMaestria: idMaestriaNormalizado,
-      });
-    }
-    if (this.idsEjecucionesRecompensadas.has(idNormalizado)) {
-      return resultadoSinExperiencia({
-        motivo: "EJECUCION_YA_RECOMPENSADA",
-        idEjecucion: idNormalizado,
-        idMaestria: idMaestriaNormalizado,
-      });
-    }
-
-    const experienciaGanada = Math.max(
-      1,
-      Math.round(
-        manaConsumido * this.configuracion.reglas.factorExperienciaPorMana,
-      ),
-    );
-
-    validarEnteroPositivo(
-      experienciaGanada,
-      "La experiencia calculada por Maná",
-    );
-    // La operación es sincrónica: primero se aplica la experiencia y solo
-    // después se registra el ID. Si una validación falla, no queda estado
-    // parcial dentro del conjunto de deduplicación.
-    const resultado = this.agregarExperienciaMaestria({
-      idMaestria: idMaestriaNormalizado,
-      cantidad: experienciaGanada,
-    });
-    this.idsEjecucionesRecompensadas.add(idNormalizado);
-    return {
-      ...resultado,
-      exito: true,
-      motivo: null,
-      idEjecucion: idNormalizado,
-      manaConsumido,
-    };
-  }
-
-  // Operación explícita utilizada por depuración y por la fórmula anterior.
+  // Operación canónica: recibe XP ya calculada por SistemaExperienciaMaestrias.
   agregarExperienciaMaestria({ idMaestria, cantidad } = {}) {
     const idNormalizado = this.validarMaestria(idMaestria);
     validarEnteroPositivo(cantidad, "La experiencia de maestría");
@@ -298,7 +234,6 @@ export class ProgresoHabilidadesJugador {
     this.puntosUniversales = normalizado.puntosUniversales;
     this.maestrias = normalizado.maestrias;
     this.gradosHabilidades = normalizado.gradosHabilidades;
-    this.idsEjecucionesRecompensadas.clear();
     return {
       exito: true,
       estado: this.exportarEstado(),
@@ -463,18 +398,6 @@ function crearEstadoInicialHabilidades({ habilidades, maestriasDisponibles }) {
   }
   return resultado;
 }
-function resultadoSinExperiencia({ motivo, idEjecucion, idMaestria }) {
-  return {
-    exito: false,
-    motivo,
-    idEjecucion,
-    idMaestria,
-    experienciaGanada: 0,
-    nivelesGanados: 0,
-    puntosEspecificosGanados: 0,
-  };
-}
-
 function resultadoMejoraFallida({ motivo, idHabilidad, gradoActual }) {
   return {
     exito: false,

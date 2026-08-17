@@ -228,6 +228,19 @@ export class Renderizador {
     this.panelEquipamiento.actualizar(juego.player.equipamiento);
   }
 
+  // Actualiza únicamente la presentación HTML dependiente del estado actual
+  // del jugador. Se usa cuando una mutación canónica cambia estadísticas sin
+  // producir una nueva escena del mapa, por ejemplo al aprender una pasiva.
+  actualizarEstadoJugador(jugador) {
+    if (!jugador) {
+      throw new Error("Renderizador necesita un jugador para actualizar su estado visual.");
+    }
+
+    this.panelPersonaje.actualizar(jugador);
+    this.hudPartida.actualizar(jugador);
+    return true;
+  }
+
   // Agrega mensajes al historial
   // sin borrar eventos anteriores.
   mostrarMensaje(mensaje) {

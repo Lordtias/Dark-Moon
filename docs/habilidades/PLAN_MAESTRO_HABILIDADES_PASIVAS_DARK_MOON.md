@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas  
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.  
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.  
-**Estado:** Plan maestro rector. HP0 quedó documentada, HP1 quedó cerrada y HP2 quedó implementada con validación técnica; permanece pendiente únicamente la validación manual del usuario antes de certificar su cierre. La siguiente etapa será HP3 únicamente después del cierre explícito de HP2. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2 y HP3 están cerradas. HP3 fue implementada sobre el cierre HP2 `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`, con validación técnica y pruebas manuales superadas y aprobadas por el usuario. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
 
 ---
 
@@ -751,26 +751,28 @@ No podrán introducir un cálculo paralelo.
 
 ## 7. CONTEXTO Y CONDICIONES
 
-### 7.1. Contexto canónico disponible en HP2
+### 7.1. Contexto canónico disponible tras HP3
 
-El contrato inicial implementado admite exclusivamente estas claves:
+El contrato canónico admite estas claves para modificadores de combatiente:
 
 ```text
 tipoCombatiente
 familiaArma
+familiaSecundaria
 mano
 tipoAtaque
 esAtaqueDual
 categoriaArmadura
+conjuntoArmaduraCompleto
 ```
 
 Una clave de contexto desconocida produce error explícito.
 
 Los valores de contexto deben ser escalares declarativos: texto, número finito, booleano o `null`. Las condiciones pueden usar uno de esos valores o una lista no vacía de valores escalares. No se aceptan funciones, objetos ejecutables ni expresiones JavaScript arbitrarias.
 
-`tipoCombatiente` se inyecta desde `Combatiente`. Los contextos de ataque aportan familia, mano, tipo de ataque y condición dual cuando corresponde.
+`tipoCombatiente` se inyecta desde `Combatiente`. Los contextos de ataque aportan familia, mano, tipo de ataque y condición dual cuando corresponde. `familiaSecundaria` permite distinguir, entre otros casos, la presencia real de escudo o una segunda arma.
 
-`categoriaArmadura` está registrada para el diseño de HP3, pero HP2 no inventa todavía una regla de "categoría del conjunto" cuando hay piezas mezcladas. Esa semántica debe aprobarse antes de que una pasiva dependa de ella.
+HP3 cierra la semántica del equipo corporal: `categoriaArmadura` puede ser `ligera`, `media`, `pesada`, `mixta` o `null`; `conjuntoArmaduraCompleto=true` exige que las cinco ranuras corporales —cabeza, torso, manos, piernas y pies— estén ocupadas. El escudo no participa de esa clasificación. Una mezcla de categorías produce `mixta`, y quitar una sola pieza vuelve el conjunto incompleto aunque las restantes pertenezcan a la misma categoría.
 
 ### 7.2. Ampliaciones previstas
 
@@ -1236,77 +1238,105 @@ No debe cambiar globalmente la penalización base del juego.
 
 ## 13. EXPERIENCIA DE MAESTRÍAS FÍSICAS
 
-### 13.1. Principio
+### 13.1. Principio y motor único
 
-La progresión física debe utilizar resultados reales ya resueltos por el juego.
+La progresión de todas las maestrías utiliza un único `SistemaExperienciaMaestrias`. Este sistema traduce hechos canónicos ya resueltos a XP y delega el almacenamiento de nivel, XP y puntos en `ProgresoHabilidadesJugador`.
 
-No debe recompensarse por animaciones, intentos sin efecto o daño teórico que no llegó a aplicarse.
+No recalcula daño, Armadura, Bloqueo, Maná ni efectos. Las fuentes iniciales configurables son:
 
-Los factores iniciales serán configurables y no representan una decisión final de balance.
+```text
+mana_consumido
+danio_aplicado_arma
+danio_mitigado_armadura
+danio_mitigado_bloqueo
+```
+
+Factores iniciales aprobados:
+
+```text
+mana_consumido              × 1
+danio_aplicado_arma         × 0,75
+danio_mitigado_armadura     × 8
+danio_mitigado_bloqueo      × 4
+```
+
+Los factores viven en la configuración de cada maestría, no como constantes escondidas dentro del motor.
 
 ### 13.2. Maestrías de arma
 
-La experiencia se basa en el daño realmente aplicado por la fuente de arma correspondiente.
-
-Hipótesis de partida para HP3, no balance final:
+La experiencia se basa exclusivamente en la Vida realmente retirada por cada fuente de arma que llegó a impactar.
 
 ```text
 si dañoRealAplicado <= 0:
   XP = 0
 
 si dañoRealAplicado > 0:
-  XP = max(1, round(dañoRealAplicado × factorExperienciaArma))
+  XP = max(1, round(dañoRealAplicado × factor))
 ```
 
-HP3 debe analizar si esta forma necesita ajustes antes de fijarla como ecuación inicial productiva. `factorExperienciaArma` debe ser configurable.
+Consecuencias canónicas:
 
-Si un ataque utiliza varias fuentes, cada fuente debe atribuir experiencia a la familia de arma que realmente produjo ese daño.
+- un fallo o una fuente que produce 0 de daño otorgan 0 XP;
+- el overkill no cuenta: si el objetivo tenía 3 de Vida, como máximo esa fuente acredita 3 de daño real;
+- en dual cada mano conserva su familia y solo recompensa si realmente llegó a ejecutarse;
+- si la primera fuente mata al objetivo, la segunda no obtiene XP;
+- un ataque natural sin familia de arma no se atribuye artificialmente a ninguna maestría física.
 
-En combate dual, el daño de cada mano debe conservar trazabilidad suficiente para no asignar toda la experiencia a una única arma.
-
-Debe existir deduplicación por resolución/fuente para impedir otorgar dos veces experiencia por el mismo daño.
+La deduplicación usa el ID de resolución, componente/fuente y maestría. Es estado técnico de sesión y no se persiste.
 
 ### 13.3. Maestrías de armadura
 
-La experiencia se basa en el daño realmente mitigado por Armadura, utilizando el resultado canónico de combate.
+La experiencia defensiva consume únicamente `danioMitigadoArmadura` expuesto por la resolución física canónica. Ese valor representa la reducción producida por la fórmula de Armadura antes del redondeo final y excluye Bloqueo.
 
-No se debe considerar como “daño mitigado por armadura” daño evitado por:
+No se contabiliza como mitigación de Armadura daño evitado por:
 
 - Evasión;
-- bloqueo completo;
+- Bloqueo;
 - resistencias elementales;
 - inmunidades;
-- mecanismos distintos de Armadura.
+- redondeo final;
+- cualquier otro mecanismo que no sea la fórmula de Armadura.
 
-La implementación debe consumir el dato canónico que corresponda. Si el resultado actual de combate no expone ese desglose, debe exponerlo desde el cálculo existente y no recomputarlo en progresión.
-
-Hipótesis de partida para HP3:
-
-```text
-si dañoMitigadoPorArmadura <= 0:
-  XP_total = 0
-
-si dañoMitigadoPorArmadura > 0:
-  XP_total = max(1, round(dañoMitigadoPorArmadura × factorExperienciaArmadura))
-```
-
-HP3 debe analizar si esta forma necesita ajustes antes de fijarla como ecuación inicial productiva. `factorExperienciaArmadura` debe ser configurable.
-
-Cuando existen piezas de distintas categorías, la XP total se distribuye proporcionalmente según la Armadura aportada por cada categoría equipada:
+`EstadisticasDerivadas` expone el aporte de Armadura por procedencia:
 
 ```text
-contribucionCategoria = suma de Armadura aportada por piezas de esa categoría
-contribucionTotal = suma de Armadura de piezas con categoría de armadura
-participacion = contribucionCategoria / contribucionTotal
+ligera
+media
+pesada
+escudo
+otras
 ```
 
-La distribución entera debe conservar el total de XP obtenido. Se recomienda asignación proporcional con restos mayores o una estrategia equivalente determinista.
+La Armadura base y bonificaciones globales no atribuibles a una familia quedan en `otras` y no regalan XP de equipamiento. Si la Armadura final resulta inferior a la suma local, los aportes se reducen proporcionalmente para conservar el resultado canónico.
 
-Si no existe contribución categorizada válida, no se genera XP específica de armadura.
+Cuando varias categorías clasificables participaron en el mismo golpe, primero se calcula un **único pool entero de XP de Armadura** y después se distribuye entre categorías por su contribución real mediante restos mayores. Por tanto, la mezcla de categorías no puede crear ni destruir XP por efecto de redondeos independientes.
 
-### 13.4. Balance posterior
+Conceptualmente:
 
-Este hito define la infraestructura y una fórmula inicial coherente.
+```text
+XP_exacta_categoria = mitigacion_categoria × factor_categoria
+XP_total = max(1, round(suma(XP_exacta_categoria)))
+XP_total se reparte proporcionalmente conservando exactamente ese entero
+```
+
+Una categoría puede recibir 0 en un golpe extremadamente pequeño si el único punto entero del pool corresponde por restos a otra categoría; lo que se garantiza es que el total del golpe se conserve.
+
+### 13.4. Escudos
+
+Escudos utiliza dos fuentes reales, ambas ya resueltas por combate:
+
+1. la parte de `danioMitigadoArmadura` atribuible a la Armadura local del escudo;
+2. `danioMitigadoBloqueo` cuando se produjo un bloqueo real.
+
+El primer aporte comparte el pool de Armadura del golpe. El segundo se recompensa de forma independiente con su factor configurado. Un bloqueo fallido no produce XP de Bloqueo. El escudo tampoco atribuye su Armadura a Ligera/Media/Pesada.
+
+### 13.5. Progresión mágica dentro del mismo sistema
+
+Fuego, Frío, Rayo y Veneno conservan la regla funcional anterior —XP proporcional al Maná realmente consumido—, pero dejan de depender de una fórmula especial dentro de `ProgresoHabilidadesJugador`. Cada ejecución efectiva emite `mana_consumido` con la maestría correspondiente y `SistemaExperienciaMaestrias` aplica el factor configurado.
+
+### 13.6. Balance posterior
+
+Los factores iniciales no se consideran balance definitivo. Pueden ajustarse con pruebas de juego modificando configuración, sin crear otro motor ni cambiar las fuentes canónicas de XP.
 
 El balance fino de:
 
@@ -1316,7 +1346,7 @@ El balance fino de:
 - grados;
 - magnitudes de pasivas;
 
-queda explícitamente habilitado para una etapa posterior de balance sin necesidad de cambiar la arquitectura.
+queda habilitado para una etapa posterior de balance sin necesidad de cambiar la arquitectura.
 
 ---
 
@@ -1638,7 +1668,7 @@ No incluye todavía modificaciones efectivas de combate.
 
 ### HP2 — Auditoría exhaustiva, contrato, resolutor y afijos globales
 
-**Estado:** Implementada. Validación técnica completada; pendiente validación manual del usuario antes de certificar cierre.
+**Estado:** Cerrada. Implementación, validación técnica y pruebas manuales aprobadas por el usuario. Commit final informado por el usuario: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`.
 
 HP2 realizó la auditoría arquitectónica fuerte sobre el repositorio real cerrado en HP1 (`f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`). No se limitó a la lista inicial del Plan Maestro.
 
@@ -1697,52 +1727,174 @@ Resultado esperado alcanzado técnicamente:
 motor canónico general basado en el universo real de variables del juego, usable por cualquier combatiente y conectado con equipo, efectos temporales, terreno/zonas y variantes enemigas
 ```
 
-La etapa no se marca `Cerrada` hasta completar la pasada manual indicada en `docs/habilidades/entregas/ENTREGA_HP2.md`.
+Las pruebas manuales de HP2 fueron superadas y aprobadas por el usuario antes de iniciar HP3.
 
 
 ### HP3 — Diseño de contenido pasivo y progresión física
 
-HP3 es una etapa de **diseño fuerte de contenido y progresión**, no solo la implementación de tres ejemplos.
+**Estado:** Cerrada sobre `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65` como commit base, con implementación, validación técnica y pruebas manuales superadas y aprobadas por el usuario; pendiente únicamente del commit final de HP3.
 
-Antes de programar debe proponer un **catálogo amplio** y coherente de contenido, no una muestra mínima:
+HP3 cierra el primer catálogo amplio de progresión no mágica utilizando la arquitectura canónica de HP1–HP2. No crea un motor paralelo de pasivas ni una segunda progresión física.
 
-- pasivas de maestrías de armas;
-- pasivas de maestrías de armadura;
-- pasivas básicas u otras familias si la arquitectura real las justifica;
-- un conjunto amplio de auras;
-- un conjunto amplio de maldiciones;
-- relaciones, requisitos, grados y condiciones;
-- distribución razonable de puntos universales/específicos;
-- identidad funcional de cada maestría evitando pasivas redundantes;
-- cobertura deliberada de distintos objetivos del motor de modificadores, sin crear contenido únicamente para “probar que funciona”.
+#### 16 maestrías totales
 
-HP3 define el **diseño funcional del contenido**: qué hace cada pasiva/aura/maldición, para quién, bajo qué condición y con qué progresión inicial. Las auras o maldiciones que necesiten modificar parámetros internos de habilidades pueden quedar técnicamente pendientes de HP4, pero su intención funcional debe quedar diseñada en HP3.
+Se conservan las cuatro mágicas: Fuego, Frío, Rayo y Veneno. Se agregan doce maestrías físicas, disponibles para Guerrero, Rogue y Mago porque el equipamiento actual no impone restricciones de clase artificiales:
 
-La propuesta debe permitir revisar variedad, identidad, cobertura y posibles solapamientos antes de implementar contenido.
+- Armas: Dagas, Espadas, Hachas, Mandobles, Lanzas, Arcos, Bastones y Varitas.
+- Armaduras: Armadura ligera, Armadura media, Armadura pesada y Escudos.
 
-En la misma etapa debe analizar y definir con mayor precisión la XP física:
+La categoría `Básicas` permanece deliberadamente vacía. No se inventa una maestría general hasta que exista una identidad jugable y una fuente natural de XP comparable a usar un arma, mitigar daño o gastar Maná.
 
-- fórmula de XP de armas basada en daño realmente aplicado;
-- atribución por fuente/mano/familia;
-- fórmula de XP de armaduras basada en daño mitigado por Armadura;
-- distribución entre categorías por contribución real;
-- factores iniciales configurables;
-- ritmo aproximado esperado aunque el balance fino quede para un hito posterior;
-- protección contra duplicaciones o explotación obvia.
+#### 48 pasivas físicas
 
-Luego debe:
+Cada maestría física posee cuatro pasivas con estructura `3/3/3/1` y requisitos de nivel `0/3/6/9`. Una maestría a nivel 10 entrega diez puntos específicos, exactamente los necesarios para completar sus diez grados si el jugador desea especializarla por completo. Los puntos universales siguen siendo compartidos.
 
-- conectar pasivas aprendidas al resolutor;
-- integrar los puntos modificables reales requeridos por el catálogo aprobado;
-- implementar una primera colección significativa de pasivas, no únicamente los tres ejemplos de HP0;
-- utilizar Ojo de halcón, Maestría dual y Armadura ligera como casos de referencia, no como límite del diseño;
-- implementar XP física según la propuesta aprobada.
+Catálogo aprobado:
 
-Resultado esperado:
+- **Dagas:** Ritmo de daga; Punto vital; Maestría dual; Danza de cuchillas.
+- **Espadas:** Técnica de hoja; Corte maestro; Guardia de duelista; Esgrima fluida.
+- **Hachas:** Golpe brutal; Cabeza equilibrada; Impacto decisivo; Ejecutor.
+- **Mandobles:** Inercia; Dominio pesado; Guardia a dos manos; Quebrantador.
+- **Lanzas:** Punta firme; Empuje profundo; Guardia de distancia; Dominio de alcance.
+- **Arcos:** Tiro estable; Tensión controlada; Tiro letal; Ojo de halcón.
+- **Bastones:** Canalización estable; Golpe disciplinado; Guardia de bastón; Foco profundo.
+- **Varitas:** Canalización fina; Precisión arcana; Doble canalización; Canal extendido.
+- **Armadura ligera:** Armadura ligera; Paso ligero; Flujo libre; Sin lastre.
+- **Armadura media:** Defensa flexible; Movilidad entrenada; Preparación elemental; Equilibrio.
+- **Armadura pesada:** Placas ajustadas; Aguante; Firmeza; Fortaleza.
+- **Escudos:** Guardia firme; Bloqueo experto; Bastión; Muro.
+
+Los valores concretos viven en `src/config/habilidades/Habilidades.json`, por grado, como descriptores declarativos del contrato HP2. Ninguna pasiva puede crear una rama `if (idPasiva)` dentro de combate, tiempo, estadísticas o interfaz.
+
+#### Proveedor de pasivas
+
+`ProveedorModificadoresPasivasAprendidas` tiene una responsabilidad deliberadamente pequeña:
 
 ```text
-primer sistema amplio de pasivas funcionales y progresión física con identidad suficiente para poder jugar, probar y balancear posteriormente
+Habilidades.json
++ ProgresoHabilidadesJugador
+        ↓
+qué pasivas están aprendidas y en qué grado
+        ↓
+descriptores de ese grado
+        ↓
+SistemaModificadoresCombatiente
 ```
+
+El proveedor **no** evalúa si las condiciones se cumplen, no consulta el arma para decidir por sí mismo si una pasiva está activa y no calcula estadísticas. `SistemaModificadoresCombatiente` sigue siendo el único intérprete de condiciones, operaciones y composición final.
+
+Ejemplo: Ojo de halcón aprendido entrega siempre su descriptor; el centralizador aplica `+1 alcanceAtaque` solamente cuando el contexto real informa `familiaArma=arco`.
+
+#### Contexto de equipo y conjuntos
+
+HP3 formaliza además:
+
+- `familiaSecundaria`;
+- `conjuntoArmaduraCompleto`;
+- `categoriaArmadura = ligera | media | pesada | mixta | null`.
+
+El conjunto corporal utiliza exactamente cinco ranuras: cabeza, torso, manos, piernas y pies. El escudo no participa.
+
+- cinco piezas de la misma categoría → categoría correspondiente + conjunto completo;
+- piezas de categorías diferentes → `mixta`;
+- una ranura corporal vacía → conjunto incompleto;
+- sin armadura corporal → categoría `null`.
+
+Las pasivas de Ligera/Media/Pesada exigen simultáneamente la categoría correcta y `conjuntoArmaduraCompleto=true`. Aprender una pasiva no implica que esté activa.
+
+#### Un único SistemaExperienciaMaestrias
+
+La XP deja de tener una fórmula mágica embebida dentro de `ProgresoHabilidadesJugador`. Existe un único traductor de hechos canónicos ya resueltos:
+
+```text
+resultado real de habilidad/combate
+        ↓
+SistemaExperienciaMaestrias
+        ↓
+fuentesExperiencia configuradas por maestría
+        ↓
+ProgresoHabilidadesJugador.agregarExperienciaMaestria
+```
+
+Fuentes iniciales:
+
+- `mana_consumido`: factor 1 para Fuego/Frío/Rayo/Veneno;
+- `danio_aplicado_arma`: factor 0,75 para la familia concreta;
+- `danio_mitigado_armadura`: factor 8 para Ligera/Media/Pesada y aporte de Escudo;
+- `danio_mitigado_bloqueo`: factor 4 para Escudos.
+
+Los factores son configuración, no constantes dispersas.
+
+Reglas de XP física:
+
+- fallo o daño real 0 → 0 XP de arma;
+- el overkill no cuenta: se usa la Vida realmente retirada por cada fuente;
+- en dual se recompensa cada golpe/familia que realmente llegó a ejecutarse;
+- un ataque natural no produce XP de una maestría de arma;
+- la mitigación de Armadura se obtiene dentro de la resolución física, antes del redondeo final y excluyendo Bloqueo;
+- Evasión, resistencia elemental, inmunidad y redondeo final no se confunden con mitigación de Armadura;
+- Bloqueo usa su mitigación real ya resuelta;
+- toda fuente positiva produce al menos 1 XP después de aplicar su factor; en mitigación de Armadura ese mínimo pertenece al pool total del golpe, no a cada categoría por separado, y la distribución entera conserva exactamente ese total.
+
+Cada resolución de ataque recibe un ID técnico de sesión. Las recompensas se deduplican por resolución, componente, fuente y maestría; esos IDs no se persisten.
+
+#### Distribución de mitigación entre armaduras
+
+`EstadisticasDerivadas` expone un desglose canónico de la Armadura por procedencia: `ligera`, `media`, `pesada`, `escudo` y `otras`. El combate distribuye el daño realmente mitigado por Armadura según esa contribución.
+
+La Armadura base del combatiente y bonificaciones globales no atribuibles a una familia quedan en `otras`, por lo que no regalan XP a una maestría física. Si un modificador global reduce la Armadura final, la contribución clasificable se ajusta proporcionalmente.
+
+Esto evita dos errores:
+
+- que un escudo otorgue XP de Armadura pesada solo porque el resto del equipo es pesado;
+- que una bonificación global de Armadura se atribuya artificialmente a las piezas equipadas.
+
+#### Persistencia HP3
+
+No hay migración. El estado interno de `ProgresoHabilidadesJugador` pasa a `v3` y el guardado durable del jugador a `v4`. Se persisten niveles, XP, puntos y grados; no se persisten pasivas activas/inactivas, estadísticas derivadas, contexto del equipo, desgloses ni IDs de deduplicación.
+
+#### Auras aprobadas para HP4
+
+HP3 deja diseñado el catálogo funcional, sin runtime todavía:
+
+1. Aura de Guardia: +15% Armadura base.
+2. Aura de Celeridad: movimiento ×0,90 y ataque ×0,95.
+3. Aura de Precisión: +8 Precisión.
+4. Aura de Enfoque: +15 Potencia de Habilidad y +10 Potencia de Efectos.
+5. Aura de Recuperación: +1 regeneración de Vida y +1 de Maná.
+6. Aura de Resguardo Elemental: +10 a las cuatro resistencias elementales.
+7. Aura de Voluntad: +10 a las cuatro resistencias de efectos.
+8. Aura de Vigilancia: +2 Percepción.
+
+#### Maldiciones aprobadas para HP4
+
+1. Torpeza: -8 Precisión.
+2. Exposición: -15% Armadura base.
+3. Lentitud: movimiento ×1,20 y ataque ×1,10.
+4. Supresión: -15 Potencia de Habilidad y -10 Potencia de Efectos.
+5. Marchitamiento: -1 regeneración de Vida y de Maná.
+6. Vulnerabilidad elemental: -10 a las cuatro resistencias elementales.
+7. Ceguera: -3 Percepción y -1 Alcance.
+8. Debilidad: -10% daño de fuente.
+
+HP4 debe decidir emisión, radio, duración, renovación, convivencia, objetivos y cualquier atributo interno de habilidades necesario. No debe crear otro resolutor: cuando una aura o maldición modifique un objetivo registrado, su descriptor termina en `SistemaModificadoresCombatiente`.
+
+Resultado esperado de HP3:
+
+```text
+16 maestrías, 48 pasivas físicas funcionales y un único sistema configurable de XP de maestrías, con auras/maldiciones diseñadas para la etapa siguiente
+```
+
+### Ajustes de usabilidad detectados durante la validación manual de HP3
+
+La validación manual de HP3 detectó dos ajustes necesarios antes de cerrar la etapa:
+
+- aprender o mejorar una pasiva debe refrescar inmediatamente los valores HTML dependientes del jugador (Panel Personaje y HUD) sin exigir movimiento, ataque ni otro turno; el valor canónico ya cambia en el momento de aprenderla y la presentación debe representarlo de inmediato;
+- las tarjetas de pasivas deben mostrar el beneficio concreto del grado usando directamente `modificadoresPorGrado` de `Habilidades.json`, con una presentación orientada al jugador (`Precisión +2`, `Armadura +8%`, `Velocidad de ataque +3%`). Las condiciones siguen existiendo y se evalúan canónicamente, pero no se repiten como una fila `Requiere` dentro del bloque de beneficio. No se deben exponer como dato principal nombres técnicos de operación como `multiplicar`, `porcentaje_base` ni el texto genérico `Efecto actual`. La interfaz solo traduce/formatea el descriptor y no recalcula estadísticas. Para una pasiva todavía no aprendida se muestra el grado 1 como vista previa. El tipo `Activa`/`Pasiva` se presenta como píldora de clasificación dentro de la tarjeta y no como una fila del detalle funcional.
+
+La iconografía definitiva de pasivas se reserva expresamente para HP5, utilizando `icono` en el mismo catálogo canónico.
+
+La revalidación manual posterior a estos ajustes fue superada y aprobada por el usuario, por lo que HP3 queda cerrada funcionalmente.
 
 ### HP4 — Diseño exhaustivo de modificadores de habilidades, auras y maldiciones
 
@@ -1801,6 +1953,13 @@ No se asume de antemano que basten cambios mínimos. Debe decidirse, mediante pr
 - realizar un rediseño más profundo del panel manteniendo HTML/CSS y el diseño maestro visual.
 
 Debe contemplar la cantidad final de pasivas, efectos y desgloses producidos por HP2–HP4.
+
+Mejoras de interfaz ya reservadas y aprobadas para analizar en HP5:
+
+- mostrar **Potencia de Habilidad** en el panel Personaje, consumiendo el valor canónico dentro de la sección actualmente denominada `Magia`;
+- analizar si esa sección debe seguir llamándose `Magia` o renombrarse a `Habilidades` u otra denominación más general;
+- en cada caja de afijo, agregar junto a `Prefijo/Sufijo` una segunda píldora que comunique al jugador si el efecto es propio del objeto o se aplica al portador. La palabra visible definitiva se diseña en HP5; la UI consume `ambito` y no lo recalcula.
+- diseñar y asignar la **iconografía definitiva de las pasivas**, reutilizando el atributo canónico `icono` de `Habilidades.json`; HP3 no crea iconos provisionales ni otro contrato visual paralelo. HP5 debe definir una dirección visual coherente para las pasivas y validar su lectura dentro del panel real.
 
 Luego debe:
 
@@ -2155,12 +2314,21 @@ Quedan aprobadas como dirección del hito:
 32. `resistenciaMental`, `potenciaAura`, familias de daño global, robo, hallazgo, precisión/potencia de hechizos y velocidades reservadas permanecen pendientes de decisión;
 33. `aumentarVelocidad` y `multiplicarMas` existen únicamente en afijos no activos y no reciben semántica automática en HP2;
 34. los atributos internos de habilidades se auditan y formalizan en HP4; cuando sean objetivos modificables también deberán atravesar `SistemaModificadoresCombatiente`;
-35. HP3 debe diseñar una colección amplia de pasivas y definir con mayor precisión la XP física antes de implementar;
-36. XP de armas se basará en daño realmente aplicado y XP de armaduras en daño mitigado por Armadura, consumiendo resultados canónicos;
-37. el set completo ligero se compone de cabeza, torso, manos, piernas y pies; el escudo queda fuera;
-38. la semántica de `categoriaArmadura` ante conjuntos mixtos debe aprobarse en HP3 antes de usarse como condición;
-39. el panel Personaje debe poder mostrar pasivas/efectos y aplicabilidad sin recalcular estadísticas; HP5 decidirá si requiere rediseño;
-40. tooltips y paneles deben consumir resultado/desglose canónico, no reproducir las fórmulas del motor.
+35. HP3 incorpora doce maestrías físicas: ocho de armas y cuatro defensivas, disponibles para las tres profesiones;
+36. cada maestría física utiliza cuatro pasivas `3/3/3/1` con requisitos `0/3/6/9`;
+37. `ProveedorModificadoresPasivasAprendidas` descubre pasivas/grados y entrega descriptores, pero solo `SistemaModificadoresCombatiente` interpreta condiciones y calcula resultados;
+38. la XP de armas usa daño realmente aplicado por cada fuente y familia; la XP defensiva consume mitigación de Armadura y Bloqueo ya resuelta;
+39. existe un único `SistemaExperienciaMaestrias` y cada maestría declara sus fuentes/factores en configuración;
+40. el set corporal completo se compone de cabeza, torso, manos, piernas y pies; el escudo queda fuera;
+41. un conjunto mixto usa `categoriaArmadura=mixta`; una ranura corporal vacía implica `conjuntoArmaduraCompleto=false`;
+42. la mitigación de Armadura se distribuye entre ligera/media/pesada/escudo/otras según contribución canónica y las fuentes no clasificables no regalan XP física;
+43. `Básicas` permanece vacía hasta diseñar una fuente de progresión natural;
+44. HP3 adopta progreso de habilidades `v3` y persistencia de jugador `v4`, sin migración;
+45. HP3 deja diseñadas ocho auras y ocho maldiciones cuyo runtime se completa en HP4;
+46. el panel Personaje debe poder mostrar pasivas/efectos y aplicabilidad sin recalcular estadísticas; HP5 decidirá si requiere rediseño;
+47. HP5 debe mostrar Potencia de Habilidad, revisar la denominación Magia/Habilidades y comunicar visualmente el ámbito de cada afijo;
+48. tooltips y paneles deben consumir resultado/desglose canónico, no reproducir las fórmulas del motor;
+49. la XP positiva conserva el mínimo de 1 punto definido por el diseño; cuando un mismo golpe distribuye mitigación de Armadura entre varias categorías, se calcula un único pool entero y se reparte por restos mayores para que el redondeo no cree ni destruya XP.
 
 ---
 
@@ -2168,13 +2336,11 @@ Quedan aprobadas como dirección del hito:
 
 No bloquean la arquitectura y se resolverán en la etapa de implementación/contenido correspondiente:
 
-- magnitud exacta de Maestría dual;
-- magnitud exacta de Evasión otorgada por Armadura ligera;
-- factores iniciales `factorExperienciaArma` y `factorExperienciaArmadura`;
-- requisitos de nivel, grados y escalado de futuras pasivas físicas;
+- balance fino posterior de los valores iniciales de las 48 pasivas físicas;
+- balance fino posterior de los factores de XP `0,75 / 8 / 4`, manteniéndolos configurables;
 - magnitudes/balance de futuros modificadores sobre los objetivos ya registrados;
 - catálogo inicial amplio de atributos de habilidad modificables, a cerrar en HP4 tras auditoría real;
-- catálogo y magnitudes concretas de pasivas, auras y maldiciones diseñadas en HP3/HP4.
+- refinamiento técnico y balance de las ocho auras y ocho maldiciones diseñadas en HP3 durante HP4.
 
 Estos valores deben quedar configurables siempre que la arquitectura real lo permita.
 

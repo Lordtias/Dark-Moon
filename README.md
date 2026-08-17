@@ -1030,35 +1030,38 @@ src/config/magia/Efectos.json
 
 ### Maestrías
 
-El catálogo general define las categorías `Mágicas`, `Básicas`, `Armas` y `Armaduras`. Actualmente solo `Mágicas` tiene maestrías productivas; HP1 no inventa contenido físico pendiente.
+El catálogo general define las categorías `Mágicas`, `Básicas`, `Armas` y `Armaduras`. `Básicas` permanece deliberadamente vacía hasta que exista una identidad y una fuente natural de progresión.
 
-Maestrías mágicas actuales:
+Maestrías mágicas:
 
-- Fuego.
-- Frío.
-- Rayo.
-- Veneno.
+- Fuego, Frío, Rayo y Veneno.
 
-Las cuatro están habilitadas actualmente para Guerrero, Rogue y Mago. Categorías, maestrías, orden y profesiones permitidas provienen de `Maestrias.json`; el validador no conoce una lista fija.
+Maestrías de armas:
+
+- Dagas, Espadas, Hachas, Mandobles, Lanzas, Arcos, Bastones y Varitas.
+
+Maestrías defensivas:
+
+- Armadura ligera, Armadura media, Armadura pesada y Escudos.
+
+Las dieciséis maestrías están disponibles actualmente para Guerrero, Rogue y Mago. Categorías, orden, profesiones permitidas y fuentes de XP provienen de `Maestrias.json`; el validador no conoce una lista fija.
 
 Reglas vigentes configuradas:
 
 - 1 punto universal inicial;
 - 1 punto universal por nivel general;
 - nivel máximo de maestría: 10;
-- experiencia de maestría vinculada al Maná consumido;
-- cada habilidad tiene grados y un requisito de nivel de maestría.
+- 1 punto específico por cada nivel de maestría;
+- la curva común de experiencia se conserva en `Maestrias.json`;
+- cada maestría declara sus fuentes y factores de experiencia.
 
-`ProgresoHabilidadesJugador.js` es la única fuente de verdad para:
+`ProgresoHabilidadesJugador.js` es la única fuente de verdad para niveles, XP, puntos y grados. `SistemaExperienciaMaestrias.js` traduce hechos ya resueltos del juego a XP sin recalcular combate: Maná realmente consumido para magia, daño real aplicado para armas, mitigación real de Armadura para categorías defensivas y mitigación de Bloqueo para Escudos.
 
-- nivel y experiencia de maestría;
-- puntos universales;
-- puntos propios de maestría;
-- grados aprendidos.
+### Habilidades y pasivas
 
-### Habilidades
+Cada entrada declara `tipo: "activa"` o `tipo: "pasiva"`. Una pasiva comparte la progresión y los puntos, pero no posee ejecución directa, no puede asignarse a la barra y no requiere perfil visual de ejecución. Las doce habilidades mágicas actuales siguen siendo activas y las doce maestrías físicas aportan 48 pasivas configuradas con estructura de grados `3/3/3/1` y requisitos de maestría `0/3/6/9`.
 
-Cada habilidad declara `tipo: "activa"` o `tipo: "pasiva"`. Una pasiva comparte la progresión y los puntos, pero no posee ejecución directa, no puede asignarse a la barra y no requiere perfil visual de ejecución. Las doce habilidades productivas actuales son activas.
+`ProveedorModificadoresPasivasAprendidas.js` solamente traduce qué pasivas están aprendidas y en qué grado a descriptores declarativos. No evalúa condiciones ni calcula estadísticas: toda condición y composición continúa resolviéndose exclusivamente en `SistemaModificadoresCombatiente`.
 
 | Maestría | Básica, requisito 0 | Intermedia, requisito 3 | Avanzada, requisito 6 |
 |---|---|---|---|
@@ -1188,13 +1191,13 @@ El acceso técnico compartido a almacenamiento JSON vive en `src/utilidades/Alma
 Clave de `localStorage`:
 
 ```text
-dark-moon:estado-jugador:v3
+dark-moon:estado-jugador:v4
 ```
 
 Versión:
 
 ```text
-3
+4
 ```
 
 Se guarda:

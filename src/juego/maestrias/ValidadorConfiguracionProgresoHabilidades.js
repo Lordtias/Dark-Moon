@@ -1,3 +1,6 @@
+import { normalizarDescriptorModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
+import { normalizarFuenteExperienciaMaestria } from "./ContratosExperienciaMaestrias.js";
+
 export const TIPOS_HABILIDAD = Object.freeze({
   ACTIVA: "activa",
   PASIVA: "pasiva",
@@ -6,8 +9,8 @@ export const TIPOS_HABILIDAD = Object.freeze({
 // Valida y normaliza los catálogos generales de progresión de habilidades.
 //
 // El contrato no conoce maestrías, categorías ni profesiones concretas. Los
-// JSON determinan qué familias existen, quién puede aprenderlas y cuántas
-// habilidades contiene cada maestría.
+// JSON determinan qué familias existen, cómo ganan XP y qué habilidades o
+// pasivas contiene cada maestría.
 export function validarConfiguracionProgresoHabilidades({
   configuracionMaestrias,
   configuracionHabilidades,
@@ -56,14 +59,6 @@ function normalizarReglas(reglas) {
     reglas.puntosUniversalesPorNivelGeneral,
     "Los puntos universales por nivel general",
   );
-
-  if (
-    !Number.isFinite(reglas.factorExperienciaPorMana) ||
-    reglas.factorExperienciaPorMana <= 0
-  ) {
-    throw new Error("El factor de experiencia por Maná debe ser mayor que 0.");
-  }
-
   validarEnteroPositivo(
     reglas.nivelMaximoMaestria,
     "El nivel máximo de maestría",
@@ -85,10 +80,21 @@ function normalizarReglas(reglas) {
     },
   );
 
+  const clavesPermitidas = new Set([
+    "puntosUniversalesIniciales",
+    "puntosUniversalesPorNivelGeneral",
+    "nivelMaximoMaestria",
+    "experienciaPorNivel",
+  ]);
+  for (const clave of Object.keys(reglas)) {
+    if (!clavesPermitidas.has(clave)) {
+      throw new Error(`La regla de progresión desconocida "${clave}" no existe.`);
+    }
+  }
+
   return {
     puntosUniversalesIniciales: reglas.puntosUniversalesIniciales,
     puntosUniversalesPorNivelGeneral: reglas.puntosUniversalesPorNivelGeneral,
-    factorExperienciaPorMana: reglas.factorExperienciaPorMana,
     nivelMaximoMaestria: reglas.nivelMaximoMaestria,
     experienciaPorNivel,
   };
@@ -160,12 +166,28 @@ function normalizarMaestrias({ maestrias, categorias }) {
       );
     }
 
+    if (
+      !Array.isArray(definicion.fuentesExperiencia) ||
+      definicion.fuentesExperiencia.length === 0
+    ) {
+      throw new Error(
+        `La maestría "${idMaestria}" debe declarar al menos una fuente de experiencia.`,
+      );
+    }
+    const fuentesExperiencia = definicion.fuentesExperiencia.map(
+      (fuente, indice) =>
+        normalizarFuenteExperienciaMaestria(fuente, {
+          etiqueta: `la fuente ${indice + 1} de la maestría "${idMaestria}"`,
+        }),
+    );
+
     resultado[idMaestria] = {
       id: idMaestria,
       nombre: definicion.nombre.trim(),
       categoria: idCategoria,
       orden: definicion.orden,
       profesionesPermitidas,
+      fuentesExperiencia,
     };
   }
 
@@ -217,15 +239,28 @@ function normalizarHabilidades({
       `El grado máximo de "${idHabilidad}"`,
     );
 
+    let modificadoresPorGrado = null;
     if (tipo === TIPOS_HABILIDAD.ACTIVA) {
       validarObjetoPlano(
         definicion.ejecucion,
         `la ejecución de la habilidad activa "${idHabilidad}"`,
       );
-    } else if (definicion.ejecucion !== undefined && definicion.ejecucion !== null) {
-      throw new Error(
-        `La habilidad pasiva "${idHabilidad}" no puede declarar ejecución directa.`,
-      );
+      if (definicion.modificadoresPorGrado !== undefined) {
+        throw new Error(
+          `La habilidad activa "${idHabilidad}" no puede declarar modificadores pasivos.`,
+        );
+      }
+    } else {
+      if (definicion.ejecucion !== undefined && definicion.ejecucion !== null) {
+        throw new Error(
+          `La habilidad pasiva "${idHabilidad}" no puede declarar ejecución directa.`,
+        );
+      }
+      modificadoresPorGrado = normalizarModificadoresPasiva({
+        idHabilidad,
+        gradoMaximo: definicion.gradoMaximo,
+        modificadoresPorGrado: definicion.modificadoresPorGrado,
+      });
     }
 
     resultado[idHabilidad] = {
@@ -235,9 +270,56 @@ function normalizarHabilidades({
       tipo,
       requisitoNivelMaestria: definicion.requisitoNivelMaestria,
       gradoMaximo: definicion.gradoMaximo,
+      modificadoresPorGrado,
     };
   }
 
+  return resultado;
+}
+
+function normalizarModificadoresPasiva({
+  idHabilidad,
+  gradoMaximo,
+  modificadoresPorGrado,
+}) {
+  validarObjetoPlano(
+    modificadoresPorGrado,
+    `los modificadores de la pasiva "${idHabilidad}"`,
+  );
+  if (Object.keys(modificadoresPorGrado).length !== gradoMaximo) {
+    throw new Error(
+      `La pasiva "${idHabilidad}" debe definir exactamente ${gradoMaximo} grados de modificadores.`,
+    );
+  }
+
+  const resultado = {};
+  for (let grado = 1; grado <= gradoMaximo; grado += 1) {
+    const lista = modificadoresPorGrado[String(grado)];
+    if (!Array.isArray(lista) || lista.length === 0) {
+      throw new Error(
+        `La pasiva "${idHabilidad}" grado ${grado} necesita modificadores.`,
+      );
+    }
+    resultado[grado] = lista.map((descriptor, indice) =>
+      normalizarDescriptorModificador(
+        {
+          ...descriptor,
+          id:
+            descriptor?.id ??
+            `pasiva:${idHabilidad}:grado:${grado}:${indice + 1}`,
+          origen: descriptor?.origen ?? "pasiva",
+          fuente:
+            descriptor?.fuente ??
+            Object.freeze({
+              tipo: "pasiva",
+              idHabilidad,
+              grado,
+            }),
+        },
+        { origenPredeterminado: "pasiva" },
+      ),
+    );
+  }
   return resultado;
 }
 

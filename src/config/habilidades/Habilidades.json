@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -1145,6 +1145,1885 @@
             ]
           }
         }
+      }
+    },
+    "ritmo_daga": {
+      "nombre": "Ritmo de daga",
+      "maestria": "dagas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Reduce el tiempo necesario para atacar con dagas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.97,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.94,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.91,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ]
+      }
+    },
+    "punto_vital": {
+      "nombre": "Punto vital",
+      "maestria": "dagas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la probabilidad de crítico con dagas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "daga"
+            }
+          }
+        ]
+      }
+    },
+    "maestria_dual": {
+      "nombre": "Maestría dual",
+      "maestria": "dagas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Reduce la penalización de daño de una daga usada en la mano secundaria durante combate dual.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.08,
+            "condiciones": {
+              "familiaArma": "daga",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.16,
+            "condiciones": {
+              "familiaArma": "daga",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.24,
+            "condiciones": {
+              "familiaArma": "daga",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ]
+      }
+    },
+    "danza_cuchillas": {
+      "nombre": "Danza de cuchillas",
+      "maestria": "dagas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el daño de las fuentes de daga cuando se combate con dos armas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "familiaArma": "daga",
+              "esAtaqueDual": true
+            }
+          }
+        ]
+      }
+    },
+    "tecnica_hoja": {
+      "nombre": "Técnica de hoja",
+      "maestria": "espadas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Precisión con espadas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ]
+      }
+    },
+    "corte_maestro": {
+      "nombre": "Corte maestro",
+      "maestria": "espadas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño causado por fuentes de espada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ]
+      }
+    },
+    "guardia_duelista": {
+      "nombre": "Guardia de duelista",
+      "maestria": "espadas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Evasión mientras el arma controladora es una espada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ]
+      }
+    },
+    "esgrima_fluida": {
+      "nombre": "Esgrima fluida",
+      "maestria": "espadas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Reduce el tiempo necesario para atacar con espada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.94,
+            "condiciones": {
+              "familiaArma": "espada"
+            }
+          }
+        ]
+      }
+    },
+    "golpe_brutal_hacha": {
+      "nombre": "Golpe brutal",
+      "maestria": "hachas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño causado por fuentes de hacha.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 5,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 10,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 15,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ]
+      }
+    },
+    "cabeza_equilibrada": {
+      "nombre": "Cabeza equilibrada",
+      "maestria": "hachas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Compensa la menor precisión natural de las hachas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 9,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ]
+      }
+    },
+    "impacto_decisivo": {
+      "nombre": "Impacto decisivo",
+      "maestria": "hachas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el multiplicador de los golpes críticos con hachas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorCritico",
+            "operacion": "sumar",
+            "valor": 0.15,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorCritico",
+            "operacion": "sumar",
+            "valor": 0.3,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorCritico",
+            "operacion": "sumar",
+            "valor": 0.45,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ]
+      }
+    },
+    "ejecutor_hacha": {
+      "nombre": "Ejecutor",
+      "maestria": "hachas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta considerablemente la probabilidad de crítico con hachas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "hacha"
+            }
+          }
+        ]
+      }
+    },
+    "inercia_mandoble": {
+      "nombre": "Inercia",
+      "maestria": "mandobles",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño causado por mandobles.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 18,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ]
+      }
+    },
+    "dominio_pesado": {
+      "nombre": "Dominio pesado",
+      "maestria": "mandobles",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Reduce el tiempo de ataque con mandobles.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.97,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.94,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "factorAtaque",
+            "operacion": "multiplicar",
+            "valor": 0.91,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ]
+      }
+    },
+    "guardia_dos_manos": {
+      "nombre": "Guardia a dos manos",
+      "maestria": "mandobles",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Armadura mientras se utiliza un mandoble.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 5,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 10,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 15,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ]
+      }
+    },
+    "quebrantador": {
+      "nombre": "Quebrantador",
+      "maestria": "mandobles",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta el multiplicador crítico con mandobles.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorCritico",
+            "operacion": "sumar",
+            "valor": 0.5,
+            "condiciones": {
+              "familiaArma": "mandoble"
+            }
+          }
+        ]
+      }
+    },
+    "punta_firme": {
+      "nombre": "Punta firme",
+      "maestria": "lanzas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Precisión con lanzas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ]
+      }
+    },
+    "empuje_profundo": {
+      "nombre": "Empuje profundo",
+      "maestria": "lanzas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño causado por fuentes de lanza.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ]
+      }
+    },
+    "guardia_distancia": {
+      "nombre": "Guardia de distancia",
+      "maestria": "lanzas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Evasión mientras se utiliza una lanza.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ]
+      }
+    },
+    "dominio_alcance_lanza": {
+      "nombre": "Dominio de alcance",
+      "maestria": "lanzas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en una casilla el alcance de ataque con lanzas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "alcanceAtaque",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "familiaArma": "lanza"
+            }
+          }
+        ]
+      }
+    },
+    "tiro_estable": {
+      "nombre": "Tiro estable",
+      "maestria": "arcos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Precisión con arcos.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ]
+      }
+    },
+    "tension_controlada": {
+      "nombre": "Tensión controlada",
+      "maestria": "arcos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño causado por fuentes de arco.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ]
+      }
+    },
+    "tiro_letal": {
+      "nombre": "Tiro letal",
+      "maestria": "arcos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la probabilidad de crítico con arcos.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "probabilidadCritico",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ]
+      }
+    },
+    "ojo_halcon": {
+      "nombre": "Ojo de halcón",
+      "maestria": "arcos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en una casilla el alcance de ataque con arcos.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "alcanceAtaque",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "familiaArma": "arco"
+            }
+          }
+        ]
+      }
+    },
+    "canalizacion_estable": {
+      "nombre": "Canalización estable",
+      "maestria": "bastones",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza un bastón.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ]
+      }
+    },
+    "golpe_disciplinado": {
+      "nombre": "Golpe disciplinado",
+      "maestria": "bastones",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta el daño del ataque básico del bastón.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "porcentaje_total",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ]
+      }
+    },
+    "guardia_baston": {
+      "nombre": "Guardia de bastón",
+      "maestria": "bastones",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Armadura mientras se utiliza un bastón.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ]
+      }
+    },
+    "foco_profundo": {
+      "nombre": "Foco profundo",
+      "maestria": "bastones",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta la regeneración de Maná mientras se utiliza un bastón.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "regeneracionMana",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "familiaArma": "baston"
+            }
+          }
+        ]
+      }
+    },
+    "canalizacion_fina": {
+      "nombre": "Canalización fina",
+      "maestria": "varitas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza una varita.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 8,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "potenciaHabilidad",
+            "operacion": "sumar",
+            "valor": 12,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ]
+      }
+    },
+    "precision_arcana": {
+      "nombre": "Precisión arcana",
+      "maestria": "varitas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Precisión del ataque básico de las varitas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "precision",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ]
+      }
+    },
+    "doble_canalizacion": {
+      "nombre": "Doble canalización",
+      "maestria": "varitas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Reduce la penalización de la varita secundaria al combatir con dos varitas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.08,
+            "condiciones": {
+              "familiaArma": "varita",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.16,
+            "condiciones": {
+              "familiaArma": "varita",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "multiplicadorDanioFuente",
+            "operacion": "sumar",
+            "valor": 0.24,
+            "condiciones": {
+              "familiaArma": "varita",
+              "mano": "secundaria",
+              "esAtaqueDual": true
+            }
+          }
+        ]
+      }
+    },
+    "canal_extendido": {
+      "nombre": "Canal extendido",
+      "maestria": "varitas",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta en una casilla el alcance del ataque básico de las varitas.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "alcanceAtaque",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "familiaArma": "varita"
+            }
+          }
+        ]
+      }
+    },
+    "dominio_armadura_ligera": {
+      "nombre": "Armadura ligera",
+      "maestria": "armadura_ligera",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Evasión al vestir un conjunto corporal completo de armadura ligera.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "paso_ligero": {
+      "nombre": "Paso ligero",
+      "maestria": "armadura_ligera",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura ligera.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorMovimiento",
+            "operacion": "multiplicar",
+            "valor": 0.98,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "factorMovimiento",
+            "operacion": "multiplicar",
+            "valor": 0.96,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "factorMovimiento",
+            "operacion": "multiplicar",
+            "valor": 0.94,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "flujo_libre": {
+      "nombre": "Flujo libre",
+      "maestria": "armadura_ligera",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la regeneración de Maná con un conjunto corporal completo de armadura ligera.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "regeneracionMana",
+            "operacion": "sumar",
+            "valor": 0.25,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "regeneracionMana",
+            "operacion": "sumar",
+            "valor": 0.5,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "regeneracionMana",
+            "operacion": "sumar",
+            "valor": 0.75,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "sin_lastre": {
+      "nombre": "Sin lastre",
+      "maestria": "armadura_ligera",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Reduce el tiempo de las acciones generales con un conjunto corporal completo de armadura ligera.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorAccion",
+            "operacion": "multiplicar",
+            "valor": 0.95,
+            "condiciones": {
+              "categoriaArmadura": "ligera",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "defensa_flexible": {
+      "nombre": "Defensa flexible",
+      "maestria": "armadura_media",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura media.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 10,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 15,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "movilidad_entrenada": {
+      "nombre": "Movilidad entrenada",
+      "maestria": "armadura_media",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Evasión con un conjunto corporal completo de armadura media.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 1,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "evasion",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "preparacion_elemental": {
+      "nombre": "Preparación elemental",
+      "maestria": "armadura_media",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta las cuatro resistencias elementales con un conjunto corporal completo de armadura media.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "resistenciaFuego",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaFrio",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaRayo",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaVeneno",
+            "operacion": "sumar",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "resistenciaFuego",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaFrio",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaRayo",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaVeneno",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "resistenciaFuego",
+            "operacion": "sumar",
+            "valor": 9,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaFrio",
+            "operacion": "sumar",
+            "valor": 9,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaRayo",
+            "operacion": "sumar",
+            "valor": 9,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaVeneno",
+            "operacion": "sumar",
+            "valor": 9,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "equilibrio_armadura": {
+      "nombre": "Equilibrio",
+      "maestria": "armadura_media",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura media.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "factorMovimiento",
+            "operacion": "multiplicar",
+            "valor": 0.97,
+            "condiciones": {
+              "categoriaArmadura": "media",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "placas_ajustadas": {
+      "nombre": "Placas ajustadas",
+      "maestria": "armadura_pesada",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura pesada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 8,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 16,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 24,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "aguante_pesado": {
+      "nombre": "Aguante",
+      "maestria": "armadura_pesada",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Vida máxima con un conjunto corporal completo de armadura pesada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "vidaMaxima",
+            "operacion": "porcentaje_total",
+            "valor": 3,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "vidaMaxima",
+            "operacion": "porcentaje_total",
+            "valor": 6,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "vidaMaxima",
+            "operacion": "porcentaje_total",
+            "valor": 9,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "firmeza_pesada": {
+      "nombre": "Firmeza",
+      "maestria": "armadura_pesada",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la resistencia al Aturdimiento con un conjunto corporal completo de armadura pesada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "resistenciaAturdimiento",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "resistenciaAturdimiento",
+            "operacion": "sumar",
+            "valor": 10,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "resistenciaAturdimiento",
+            "operacion": "sumar",
+            "valor": 15,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "fortaleza_pesada": {
+      "nombre": "Fortaleza",
+      "maestria": "armadura_pesada",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta las cuatro resistencias a efectos con un conjunto corporal completo de armadura pesada.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "resistenciaCongelamiento",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaAturdimiento",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaEnvenenamiento",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          },
+          {
+            "objetivo": "resistenciaQuemadura",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "categoriaArmadura": "pesada",
+              "conjuntoArmaduraCompleto": true
+            }
+          }
+        ]
+      }
+    },
+    "guardia_firme": {
+      "nombre": "Guardia firme",
+      "maestria": "escudos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 0,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la probabilidad de Bloqueo mientras se equipa un escudo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "probabilidadBloqueo",
+            "operacion": "sumar",
+            "valor": 2,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "probabilidadBloqueo",
+            "operacion": "sumar",
+            "valor": 4,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "probabilidadBloqueo",
+            "operacion": "sumar",
+            "valor": 6,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ]
+      }
+    },
+    "bloqueo_experto": {
+      "nombre": "Bloqueo experto",
+      "maestria": "escudos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 3,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la mitigación producida por un Bloqueo con escudo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "mitigacionBloqueo",
+            "operacion": "sumar",
+            "valor": 5,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "mitigacionBloqueo",
+            "operacion": "sumar",
+            "valor": 10,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "mitigacionBloqueo",
+            "operacion": "sumar",
+            "valor": 15,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ]
+      }
+    },
+    "bastion_escudo": {
+      "nombre": "Bastión",
+      "maestria": "escudos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 6,
+      "gradoMaximo": 3,
+      "icono": null,
+      "descripcion": "Aumenta la Armadura mientras se equipa un escudo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 5,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "2": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 10,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ],
+        "3": [
+          {
+            "objetivo": "armadura",
+            "operacion": "porcentaje_base",
+            "valor": 15,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ]
+      }
+    },
+    "muro_escudo": {
+      "nombre": "Muro",
+      "maestria": "escudos",
+      "tipo": "pasiva",
+      "requisitoNivelMaestria": 9,
+      "gradoMaximo": 1,
+      "icono": null,
+      "descripcion": "Aumenta la Vida máxima mientras se equipa un escudo.",
+      "modificadoresPorGrado": {
+        "1": [
+          {
+            "objetivo": "vidaMaxima",
+            "operacion": "porcentaje_total",
+            "valor": 5,
+            "condiciones": {
+              "familiaSecundaria": "escudo"
+            }
+          }
+        ]
       }
     }
   }

@@ -437,6 +437,10 @@ export class SistemaCombateJugador {
       };
     }
 
+    this.jugador.sistemaExperienciaMaestrias?.registrarAtaqueRealizado({
+      resultadoAtaque,
+    });
+
     const enemigoProvocado =
       objetivo instanceof Enemigo && objetivo.estaAgresivo !== true;
 

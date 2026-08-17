@@ -446,10 +446,10 @@ export class SistemaHabilidadesJugador {
         costoTemporalBase: plan.costoTemporal,
       });
       const experienciaMaestria = registrarExperienciaMaestria(this.jugador, {
-        idEjecucion,
+        idEvento: idEjecucion,
+        tipo: "mana_consumido",
+        cantidad: manaConsumido,
         idMaestria: plan.habilidad.maestria,
-        manaConsumido,
-        ejecucionEfectiva: true,
       });
       const resultado = {
         ...(resultadoTemporal ?? resultadoBase),

@@ -2,11 +2,11 @@
 
 ## 1. Estado de la etapa
 
-**Estado:** Cerrada con pendientes.
+**Estado:** Cerrada.
 
-La implementación y la validación técnica disponibles en este entorno están completadas. Queda pendiente la validación manual interactiva del usuario dentro del juego antes de certificar HP2 como `Cerrada`.
+La implementación, la validación técnica disponible y las pruebas manuales básicas fueron completadas. El usuario aprobó expresamente la pasada manual y posteriormente confirmó el commit final de HP2: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`.
 
-No se avanzó a HP3.
+Este documento se corrige documentalmente al iniciar HP3 porque el ZIP confirmado de HP2 conservaba por error el estado previo a esa aprobación.
 
 ---
 
@@ -15,10 +15,10 @@ No se avanzó a HP3.
 - Ruta de trabajo: `/mnt/data/hp2_work/Dark-Moon`
 - Rama: `main`
 - Commit base / cierre confirmado de HP1: `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`
-- HEAD verificado durante HP2: `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`
-- `origin/main`: `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`
-- Commit realizado por esta entrega: **No**
-- Push realizado: **No**
+- HEAD durante la implementación previa al commit: `f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481`
+- Commit final confirmado posteriormente por el usuario: `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`
+- Rama del commit final: `main`
+- Commit/push realizados por el asistente: **No**
 
 El árbol partió limpio. El estado final contiene exclusivamente los cambios no confirmados de HP2 y su documentación.
 
@@ -584,15 +584,15 @@ round(85 ×1,25) ×1,08 = 114,48
 
 ### 19.12. Navegador / Electron interactivos
 
-**Estado:** Pendiente.
+**Estado:** Navegador validado manualmente por el usuario; Electron no ejecutado de forma independiente por el asistente.
 
-El entorno de ejecución disponible no permite certificar una sesión interactiva real del navegador local y no se instalaron dependencias de Electron. No se presenta esta prueba como realizada.
+El entorno del asistente no permitió certificar una sesión interactiva local completa y no se instalaron dependencias para forzar Electron. Posteriormente, el usuario ejecutó y aprobó la pasada manual de HP2 en su entorno real. Electron queda consignado únicamente como compatibilidad arquitectónica no ejecutada de forma independiente.
 
 ---
 
-## 20. Pruebas manuales básicas pendientes
+## 20. Pruebas manuales básicas aprobadas
 
-Estas son las pruebas recomendadas al usuario para certificar HP2:
+El usuario informó que todas las pruebas básicas solicitadas fueron superadas y aprobó el cierre de HP2. La pasada incluyó:
 
 1. iniciar una partida nueva y entrar al mapa sin errores de consola;
 2. equipar/desequipar un objeto con `Vigoroso` y comprobar que Vida máxima aumenta y vuelve al valor anterior;
@@ -619,7 +619,7 @@ Arquitectónicamente compatible.
 - no agrega dependencias;
 - los nuevos módulos y JSON se sirven correctamente mediante HTTP.
 
-La sesión jugable manual queda pendiente del usuario.
+La sesión jugable manual fue realizada y aprobada por el usuario.
 
 ---
 
@@ -633,7 +633,6 @@ HP2 no modifica Electron ni requiere APIs de Node en el juego. No se ejecutó El
 
 ## 23. Riesgos y pendientes
 
-- completar la regresión manual indicada antes de certificar cierre;
 - HP3 debe decidir el catálogo amplio de pasivas/auras/maldiciones y la semántica de categoría de armadura mixta;
 - HP4 debe auditar fuertemente los atributos internos de habilidades;
 - los seis atributos primarios y otros candidatos quedan explícitamente pendientes de decisión, no olvidados;
@@ -672,7 +671,7 @@ refactor(habilidades): centralizar modificadores de combatientes
 - validar contratos, afijos, JSON, imports, fórmulas y recursos web y actualizar la documentación de diseño.
 ```
 
-No realizar el commit hasta superar/aceptar la validación manual.
+La validación manual fue aprobada por el usuario. El commit final posteriormente informado fue `f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65`.
 
 ---
 
@@ -687,16 +686,16 @@ ETAPA CERRADA:
 HP2 — Auditoría exhaustiva, contrato, resolutor y afijos globales
 
 ESTADO:
-Cerrada con pendientes
+Cerrada
 
 COMMIT BASE:
 f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481
 
 HEAD FINAL VERIFICADO:
-f9eb1a9fd894d8c21a7103abe1b5a0a6abf3b481 (sin commit de HP2 realizado por la entrega)
+f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65
 
 GIT STATUS FINAL:
-Cambios de HP2 presentes y no confirmados; rama main sobre el commit base. Requiere validación manual y commit posterior del usuario.
+Commit final de HP2 confirmado por el usuario en rama main; el ZIP utilizado para iniciar HP3 se verificó limpio y con HEAD = origin/main = f8ea59521d521e09cc0dfc0ccf2b805e6ca2fc65.
 
 DOCUMENTO DE ENTREGA:
 docs/habilidades/entregas/ENTREGA_HP2.md
@@ -729,10 +728,11 @@ PRUEBAS CLAVE SUPERADAS:
 - 29/29 objetivos del registro con punto de integración y afijos activos de portador validados.
 - fórmulas plano/%base/%total/multiplicación/redondeo y equivalencias históricas comprobadas.
 - persistencia v3 sin propiedades derivadas y recursos web centrales servidos por HTTP 200.
+- pasada manual interactiva de HP2 superada y aprobada por el usuario antes del commit final.
 
 PROBLEMAS O RIESGOS PENDIENTES:
-- Validación manual interactiva del usuario antes de certificar HP2 como Cerrada.
-- Las semánticas de atributos primarios, categoría de armadura mixta y varios afijos reservados requieren aprobación en sus etapas indicadas.
+- Ninguno conocido que impida considerar HP2 Cerrada.
+- Atributos primarios, semánticas de contenido reservadas y afijos no activos permanecen deliberadamente remitidos a sus etapas futuras; no son pendientes de cierre de HP2.
 
 DECISIONES APROBADAS:
 - Todo objetivo modificable del combatiente atraviesa SistemaModificadoresCombatiente.

@@ -283,7 +283,61 @@
       "tipoPasiva": "Pasiva",
       "sinMaestriasTitulo": "Sin maestrías configuradas",
       "sinMaestriasDetalle": "No hay maestrías configuradas en esta categoría.",
-      "categoriaVacia": "No hay habilidades configuradas en esta maestría."
+      "categoriaVacia": "No hay habilidades configuradas en esta maestría.",
+      "efecto": "Efecto",
+      "efectoActual": "Efecto actual",
+      "efectoVistaPrevia": "Efecto (grado {grado})",
+      "requiere": "Requiere",
+      "sinModificadoresPasiva": "Sin modificadores configurados",
+      "valorInvalido": "valor inválido",
+      "sobreBase": "sobre base",
+      "sobreTotal": "sobre total",
+      "redondeoIntermedio": "redondeo intermedio",
+      "sinValor": "Ninguno",
+      "objetivoVidaMaxima": "Vida máxima",
+      "objetivoManaMaximo": "Maná máximo",
+      "objetivoRegeneracionVida": "Regeneración de Vida",
+      "objetivoRegeneracionMana": "Regeneración de Maná",
+      "objetivoPrecision": "Precisión",
+      "objetivoEvasion": "Evasión",
+      "objetivoArmadura": "Armadura",
+      "objetivoProbabilidadCritico": "Probabilidad de crítico",
+      "objetivoMultiplicadorCritico": "Multiplicador crítico",
+      "objetivoProbabilidadBloqueo": "Probabilidad de bloqueo",
+      "objetivoMitigacionBloqueo": "Mitigación de bloqueo",
+      "objetivoPotenciaEfectos": "Potencia de efectos",
+      "objetivoPotenciaHabilidad": "Potencia de Habilidad",
+      "objetivoResistenciaFuego": "Resistencia al Fuego",
+      "objetivoResistenciaFrio": "Resistencia al Frío",
+      "objetivoResistenciaRayo": "Resistencia al Rayo",
+      "objetivoResistenciaVeneno": "Resistencia al Veneno",
+      "objetivoResistenciaCongelamiento": "Resistencia a Congelamiento",
+      "objetivoResistenciaAturdimiento": "Resistencia a Aturdimiento",
+      "objetivoResistenciaEnvenenamiento": "Resistencia a Envenenamiento",
+      "objetivoResistenciaQuemadura": "Resistencia a Quemadura",
+      "objetivoAlcanceAtaque": "Alcance de ataque",
+      "objetivoPercepcion": "Percepción",
+      "objetivoFactorTiempo": "Factor de tiempo",
+      "objetivoFactorMovimiento": "Factor de movimiento",
+      "objetivoFactorAtaque": "Factor de ataque",
+      "objetivoFactorAccion": "Factor de acción",
+      "objetivoFactorConsumo": "Factor de consumo",
+      "objetivoMultiplicadorDanioFuente": "Daño de la fuente",
+      "condicionTipoCombatiente": "Combatiente",
+      "condicionFamiliaArma": "Arma",
+      "condicionMano": "Mano",
+      "condicionTipoAtaque": "Ataque",
+      "condicionAtaqueDual": "Ataque dual",
+      "condicionCategoriaArmadura": "Armadura",
+      "condicionFamiliaSecundaria": "Secundaria",
+      "condicionConjuntoCompleto": "Conjunto completo",
+      "tipoActiva": "Activa",
+      "mejoraVelocidadAtaque": "Velocidad de ataque",
+      "mejoraVelocidadMovimiento": "Velocidad de movimiento",
+      "mejoraVelocidadAccion": "Velocidad de acciones",
+      "mejoraDanioSecundaria": "Daño de mano secundaria",
+      "mejoraDanio": "Daño",
+      "mejoraDanioCritico": "Daño crítico"
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -1318,6 +1372,198 @@
       "restauracion_mana_lunar": {
         "nombre": "Restauración lunar",
         "descripcion": "Lythra canaliza energía lunar para restaurar por completo el Maná faltante del objetivo."
+      },
+      "ritmo_daga": {
+        "nombre": "Ritmo de daga",
+        "descripcion": "Reduce el tiempo necesario para atacar con dagas."
+      },
+      "punto_vital": {
+        "nombre": "Punto vital",
+        "descripcion": "Aumenta la probabilidad de crítico con dagas."
+      },
+      "maestria_dual": {
+        "nombre": "Maestría dual",
+        "descripcion": "Reduce la penalización de daño de una daga usada en la mano secundaria durante combate dual."
+      },
+      "danza_cuchillas": {
+        "nombre": "Danza de cuchillas",
+        "descripcion": "Aumenta el daño de las fuentes de daga cuando se combate con dos armas."
+      },
+      "tecnica_hoja": {
+        "nombre": "Técnica de hoja",
+        "descripcion": "Aumenta la Precisión con espadas."
+      },
+      "corte_maestro": {
+        "nombre": "Corte maestro",
+        "descripcion": "Aumenta el daño causado por fuentes de espada."
+      },
+      "guardia_duelista": {
+        "nombre": "Guardia de duelista",
+        "descripcion": "Aumenta la Evasión mientras el arma controladora es una espada."
+      },
+      "esgrima_fluida": {
+        "nombre": "Esgrima fluida",
+        "descripcion": "Reduce el tiempo necesario para atacar con espada."
+      },
+      "golpe_brutal_hacha": {
+        "nombre": "Golpe brutal",
+        "descripcion": "Aumenta el daño causado por fuentes de hacha."
+      },
+      "cabeza_equilibrada": {
+        "nombre": "Cabeza equilibrada",
+        "descripcion": "Compensa la menor precisión natural de las hachas."
+      },
+      "impacto_decisivo": {
+        "nombre": "Impacto decisivo",
+        "descripcion": "Aumenta el multiplicador de los golpes críticos con hachas."
+      },
+      "ejecutor_hacha": {
+        "nombre": "Ejecutor",
+        "descripcion": "Aumenta considerablemente la probabilidad de crítico con hachas."
+      },
+      "inercia_mandoble": {
+        "nombre": "Inercia",
+        "descripcion": "Aumenta el daño causado por mandobles."
+      },
+      "dominio_pesado": {
+        "nombre": "Dominio pesado",
+        "descripcion": "Reduce el tiempo de ataque con mandobles."
+      },
+      "guardia_dos_manos": {
+        "nombre": "Guardia a dos manos",
+        "descripcion": "Aumenta la Armadura mientras se utiliza un mandoble."
+      },
+      "quebrantador": {
+        "nombre": "Quebrantador",
+        "descripcion": "Aumenta el multiplicador crítico con mandobles."
+      },
+      "punta_firme": {
+        "nombre": "Punta firme",
+        "descripcion": "Aumenta la Precisión con lanzas."
+      },
+      "empuje_profundo": {
+        "nombre": "Empuje profundo",
+        "descripcion": "Aumenta el daño causado por fuentes de lanza."
+      },
+      "guardia_distancia": {
+        "nombre": "Guardia de distancia",
+        "descripcion": "Aumenta la Evasión mientras se utiliza una lanza."
+      },
+      "dominio_alcance_lanza": {
+        "nombre": "Dominio de alcance",
+        "descripcion": "Aumenta en una casilla el alcance de ataque con lanzas."
+      },
+      "tiro_estable": {
+        "nombre": "Tiro estable",
+        "descripcion": "Aumenta la Precisión con arcos."
+      },
+      "tension_controlada": {
+        "nombre": "Tensión controlada",
+        "descripcion": "Aumenta el daño causado por fuentes de arco."
+      },
+      "tiro_letal": {
+        "nombre": "Tiro letal",
+        "descripcion": "Aumenta la probabilidad de crítico con arcos."
+      },
+      "ojo_halcon": {
+        "nombre": "Ojo de halcón",
+        "descripcion": "Aumenta en una casilla el alcance de ataque con arcos."
+      },
+      "canalizacion_estable": {
+        "nombre": "Canalización estable",
+        "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza un bastón."
+      },
+      "golpe_disciplinado": {
+        "nombre": "Golpe disciplinado",
+        "descripcion": "Aumenta el daño del ataque básico del bastón."
+      },
+      "guardia_baston": {
+        "nombre": "Guardia de bastón",
+        "descripcion": "Aumenta la Armadura mientras se utiliza un bastón."
+      },
+      "foco_profundo": {
+        "nombre": "Foco profundo",
+        "descripcion": "Aumenta la regeneración de Maná mientras se utiliza un bastón."
+      },
+      "canalizacion_fina": {
+        "nombre": "Canalización fina",
+        "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza una varita."
+      },
+      "precision_arcana": {
+        "nombre": "Precisión arcana",
+        "descripcion": "Aumenta la Precisión del ataque básico de las varitas."
+      },
+      "doble_canalizacion": {
+        "nombre": "Doble canalización",
+        "descripcion": "Reduce la penalización de la varita secundaria al combatir con dos varitas."
+      },
+      "canal_extendido": {
+        "nombre": "Canal extendido",
+        "descripcion": "Aumenta en una casilla el alcance del ataque básico de las varitas."
+      },
+      "dominio_armadura_ligera": {
+        "nombre": "Armadura ligera",
+        "descripcion": "Aumenta la Evasión al vestir un conjunto corporal completo de armadura ligera."
+      },
+      "paso_ligero": {
+        "nombre": "Paso ligero",
+        "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura ligera."
+      },
+      "flujo_libre": {
+        "nombre": "Flujo libre",
+        "descripcion": "Aumenta la regeneración de Maná con un conjunto corporal completo de armadura ligera."
+      },
+      "sin_lastre": {
+        "nombre": "Sin lastre",
+        "descripcion": "Reduce el tiempo de las acciones generales con un conjunto corporal completo de armadura ligera."
+      },
+      "defensa_flexible": {
+        "nombre": "Defensa flexible",
+        "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura media."
+      },
+      "movilidad_entrenada": {
+        "nombre": "Movilidad entrenada",
+        "descripcion": "Aumenta la Evasión con un conjunto corporal completo de armadura media."
+      },
+      "preparacion_elemental": {
+        "nombre": "Preparación elemental",
+        "descripcion": "Aumenta las cuatro resistencias elementales con un conjunto corporal completo de armadura media."
+      },
+      "equilibrio_armadura": {
+        "nombre": "Equilibrio",
+        "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura media."
+      },
+      "placas_ajustadas": {
+        "nombre": "Placas ajustadas",
+        "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura pesada."
+      },
+      "aguante_pesado": {
+        "nombre": "Aguante",
+        "descripcion": "Aumenta la Vida máxima con un conjunto corporal completo de armadura pesada."
+      },
+      "firmeza_pesada": {
+        "nombre": "Firmeza",
+        "descripcion": "Aumenta la resistencia al Aturdimiento con un conjunto corporal completo de armadura pesada."
+      },
+      "fortaleza_pesada": {
+        "nombre": "Fortaleza",
+        "descripcion": "Aumenta las cuatro resistencias a efectos con un conjunto corporal completo de armadura pesada."
+      },
+      "guardia_firme": {
+        "nombre": "Guardia firme",
+        "descripcion": "Aumenta la probabilidad de Bloqueo mientras se equipa un escudo."
+      },
+      "bloqueo_experto": {
+        "nombre": "Bloqueo experto",
+        "descripcion": "Aumenta la mitigación producida por un Bloqueo con escudo."
+      },
+      "bastion_escudo": {
+        "nombre": "Bastión",
+        "descripcion": "Aumenta la Armadura mientras se equipa un escudo."
+      },
+      "muro_escudo": {
+        "nombre": "Muro",
+        "descripcion": "Aumenta la Vida máxima mientras se equipa un escudo."
       }
     },
     "maestrias": {
@@ -1332,6 +1578,42 @@
       },
       "veneno": {
         "nombre": "Veneno"
+      },
+      "dagas": {
+        "nombre": "Dagas"
+      },
+      "espadas": {
+        "nombre": "Espadas"
+      },
+      "hachas": {
+        "nombre": "Hachas"
+      },
+      "mandobles": {
+        "nombre": "Mandobles"
+      },
+      "lanzas": {
+        "nombre": "Lanzas"
+      },
+      "arcos": {
+        "nombre": "Arcos"
+      },
+      "bastones": {
+        "nombre": "Bastones"
+      },
+      "varitas": {
+        "nombre": "Varitas"
+      },
+      "armadura_ligera": {
+        "nombre": "Armadura ligera"
+      },
+      "armadura_media": {
+        "nombre": "Armadura media"
+      },
+      "armadura_pesada": {
+        "nombre": "Armadura pesada"
+      },
+      "escudos": {
+        "nombre": "Escudos"
       }
     },
     "mapas": {

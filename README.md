@@ -1,4 +1,6 @@
-Cierre documental final de HP4.
+Cierre documental de HP5.
 
-Contiene 2 documentos para reemplazar y ningún archivo para eliminar.
-No contiene cambios de código adicionales.
+- 2 archivos para reemplazar.
+- 0 archivos para eliminar.
+- No contiene cambios productivos.
+- No realiza commit ni push.

@@ -1,5 +1,6 @@
 import { limitar } from "../../../utilidades/Numeros.js";
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
+import { CONFIGURACION_MAGIA } from "../../../config/ConfiguracionMagia.js";
 import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
@@ -39,6 +40,16 @@ const OBJETIVO_RESISTENCIA_EFECTO = Object.freeze({
 function resolverValor(combatiente, objetivo, valorBase, contexto = {}) {
   if (!combatiente?.sistemaModificadoresCombatiente) return valorBase;
   return combatiente.obtenerValorModificado(objetivo, valorBase, contexto);
+}
+
+function resolverValorConDesglose(combatiente, objetivo, valorBase, contexto, desgloses, clave = objetivo) {
+  if (!combatiente?.sistemaModificadoresCombatiente) {
+    desgloses[clave] = Object.freeze({ objetivo, valorBase, resultado: valorBase, desglose: Object.freeze({ aplicados: Object.freeze([]), omitidos: Object.freeze([]) }) });
+    return valorBase;
+  }
+  const resolucion = combatiente.resolverModificador(objetivo, valorBase, contexto ?? {});
+  desgloses[clave] = resolucion;
+  return resolucion.resultado;
 }
 
 function crearContextoFuenteAtaque(combatiente, fuente, esAtaqueDual) {
@@ -469,6 +480,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
 }
 
 export function calcularEstadisticasDerivadas(combatiente) {
+  const resolucionesModificadores = {};
   const objetos = obtenerObjetosEquipados(combatiente);
   const base = combatiente.estadisticasBase;
   const atributos = combatiente.atributos;
@@ -497,10 +509,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
       (sumarPropiedad(objetos, "regeneracionVidaPorcentaje") / 100);
   const regeneracionVida = Math.max(
     0,
-    resolverValor(
-      combatiente,
-      OBJETIVOS_MODIFICADOR.REGENERACION_VIDA,
-      regeneracionVidaBase,
+    resolverValorConDesglose(
+      combatiente, OBJETIVOS_MODIFICADOR.REGENERACION_VIDA, regeneracionVidaBase, {}, resolucionesModificadores, "regeneracionVida",
     ),
   );
 
@@ -516,10 +526,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
   });
   const regeneracionMana = Math.max(
     0,
-    resolverValor(
-      combatiente,
-      OBJETIVOS_MODIFICADOR.REGENERACION_MANA,
-      regeneracionManaBase,
+    resolverValorConDesglose(
+      combatiente, OBJETIVOS_MODIFICADOR.REGENERACION_MANA, regeneracionManaBase, {}, resolucionesModificadores, "regeneracionMana",
     ),
   );
 
@@ -532,10 +540,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
       (1 + potenciaEfectosAdicional / 100) -
       1) *
     100;
-  const potenciaEfectos = resolverValor(
-    combatiente,
-    OBJETIVOS_MODIFICADOR.POTENCIA_EFECTOS,
-    potenciaEfectosBase,
+  const potenciaEfectos = resolverValorConDesglose(
+    combatiente, OBJETIVOS_MODIFICADOR.POTENCIA_EFECTOS, potenciaEfectosBase, {}, resolucionesModificadores, "potenciaEfectos",
   );
   const multiplicadorEfectos = Math.max(0.01, 1 + potenciaEfectos / 100);
 
@@ -555,10 +561,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
         (atributos.constitucion - 10);
     }
 
-    const valorResuelto = resolverValor(
-      combatiente,
-      OBJETIVO_RESISTENCIA_ELEMENTAL[resistencia],
-      valorBase,
+    const valorResuelto = resolverValorConDesglose(
+      combatiente, OBJETIVO_RESISTENCIA_ELEMENTAL[resistencia], valorBase, {}, resolucionesModificadores, `resistencia:${resistencia}`,
     );
     resistencias[resistencia] = normalizarResistencia(
       valorResuelto,
@@ -579,10 +583,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
       (base.resistenciasEfectos?.[idResistencia] ?? 0) +
       bonificacionResistenciasEfectosPorConstitucion +
       sumarPropiedad(objetos, propiedad);
-    const valorResuelto = resolverValor(
-      combatiente,
-      OBJETIVO_RESISTENCIA_EFECTO[idResistencia],
-      valorBase,
+    const valorResuelto = resolverValorConDesglose(
+      combatiente, OBJETIVO_RESISTENCIA_EFECTO[idResistencia], valorBase, {}, resolucionesModificadores, `resistenciaEfecto:${idResistencia}`,
     );
     resistenciasEfectos[idResistencia] = normalizarResistenciaEfecto(
       valorResuelto,
@@ -603,10 +605,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const armadura = Math.max(
     0,
     Math.round(
-      resolverValor(
-        combatiente,
-        OBJETIVOS_MODIFICADOR.ARMADURA,
-        armaduraBase,
+      resolverValorConDesglose(
+        combatiente, OBJETIVOS_MODIFICADOR.ARMADURA, armaduraBase, {}, resolucionesModificadores, "armadura",
       ),
     ),
   );
@@ -620,32 +620,24 @@ export function calcularEstadisticasDerivadas(combatiente) {
     coeficientes.precisionPorDestreza * atributos.destreza +
     (ataqueControlador.precision ?? 0) +
     sumarPropiedad(objetos, "precisionGlobal");
-  const precision = resolverValor(
-    combatiente,
-    OBJETIVOS_MODIFICADOR.PRECISION,
-    precisionBase,
-    contextoAtaque,
+  const precision = resolverValorConDesglose(
+    combatiente, OBJETIVOS_MODIFICADOR.PRECISION, precisionBase, contextoAtaque, resolucionesModificadores, "precision",
   );
 
   const evasionBase =
     base.evasion +
     coeficientes.evasionPorDestreza * atributos.destreza +
     sumarPropiedad(objetos, "evasion");
-  const evasion = resolverValor(
-    combatiente,
-    OBJETIVOS_MODIFICADOR.EVASION,
-    evasionBase,
+  const evasion = resolverValorConDesglose(
+    combatiente, OBJETIVOS_MODIFICADOR.EVASION, evasionBase, {}, resolucionesModificadores, "evasion",
   );
 
   const probabilidadCriticoBase =
     (ataqueControlador.probabilidadCritico ?? base.probabilidadCritico) +
     sumarPropiedad(objetos, "probabilidadCriticoGlobal");
   const probabilidadCritico = limitar(
-    resolverValor(
-      combatiente,
-      OBJETIVOS_MODIFICADOR.PROBABILIDAD_CRITICO,
-      probabilidadCriticoBase,
-      contextoAtaque,
+    resolverValorConDesglose(
+      combatiente, OBJETIVOS_MODIFICADOR.PROBABILIDAD_CRITICO, probabilidadCriticoBase, contextoAtaque, resolucionesModificadores, "probabilidadCritico",
     ),
     0,
     CONFIGURACION_COMBATE.limites.criticoMaximo,
@@ -664,10 +656,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const probabilidadBloqueoBase =
     base.probabilidadBloqueo + sumarPropiedad(objetos, "probabilidadBloqueo");
   const probabilidadBloqueo = limitar(
-    resolverValor(
-      combatiente,
-      OBJETIVOS_MODIFICADOR.PROBABILIDAD_BLOQUEO,
-      probabilidadBloqueoBase,
+    resolverValorConDesglose(
+      combatiente, OBJETIVOS_MODIFICADOR.PROBABILIDAD_BLOQUEO, probabilidadBloqueoBase, {}, resolucionesModificadores, "probabilidadBloqueo",
     ),
     0,
     CONFIGURACION_COMBATE.limites.bloqueoMaximo,
@@ -675,10 +665,13 @@ export function calcularEstadisticasDerivadas(combatiente) {
 
   const mitigacionBloqueoBase = sumarPropiedad(objetos, "mitigacionBloqueo");
   const mitigacionBloqueo = limitar(
-    resolverValor(
+    resolverValorConDesglose(
       combatiente,
       OBJETIVOS_MODIFICADOR.MITIGACION_BLOQUEO,
       mitigacionBloqueoBase,
+      {},
+      resolucionesModificadores,
+      "mitigacionBloqueo",
     ),
     0,
     CONFIGURACION_COMBATE.limites.mitigacionBloqueoMaxima,
@@ -702,11 +695,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
     probabilidadBloqueo,
     mitigacionBloqueo,
     resistenciaMental: limitar(
-      resolverValor(
-        combatiente,
-        OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL,
-        base.resistenciaMental +
-          coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria,
+      resolverValorConDesglose(
+        combatiente, OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL, base.resistenciaMental + coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria, {}, resolucionesModificadores, "resistenciaMental",
       ),
       0,
       75,
@@ -714,10 +704,222 @@ export function calcularEstadisticasDerivadas(combatiente) {
     potenciaAura:
       base.potenciaAura +
       coeficientes.potenciaAuraPorCarisma * atributos.carisma,
+    // Lectura aditiva: conserva las resoluciones ya ejecutadas en este cálculo.
+    resolucionesModificadores: Object.freeze({ ...resolucionesModificadores }),
     resistencias,
     resistenciasEfectos,
     bonificacionResistenciasEfectosPorConstitucion,
     inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
     danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque),
   };
+}
+
+// Consulta canónica de lectura para presentación. Explica la participación
+// actual de los atributos primarios sin modificar ni sustituir el cálculo de
+// estadísticas derivadas y sin ampliar el contrato de su objeto resultado.
+export function obtenerAportesAtributosPrimarios(combatiente) {
+  if (!combatiente?.atributos) {
+    throw new Error("Se necesita un combatiente válido para consultar aportes de atributos.");
+  }
+  const bonificacionResistenciasEfectosPorConstitucion =
+    combatiente.aplicaBonoConstitucionResistenciasEfectos === true
+      ? calcularBonoResistenciasEfectosPorConstitucion(
+          combatiente.atributos.constitucion,
+        )
+      : 0;
+  return crearAportesAtributos({
+    atributos: combatiente.atributos,
+    configuracionAtaque: obtenerConfiguracionAtaque(combatiente),
+    bonificacionResistenciasEfectosPorConstitucion,
+  });
+}
+
+function crearAportesAtributos({
+  atributos,
+  configuracionAtaque,
+  bonificacionResistenciasEfectosPorConstitucion,
+}) {
+  const combate = CONFIGURACION_COMBATE.atributos;
+  const magia = CONFIGURACION_MAGIA;
+  const referencia = magia.referenciaAtributos;
+  const porAtributo = Object.fromEntries(
+    ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].map(
+      (id) => [id, []],
+    ),
+  );
+  const porEstadistica = {};
+
+  const agregar = (atributo, estadistica, valor, unidad = "numero", opciones = {}) => {
+    if (!Number.isFinite(valor)) return;
+    const aporte = Object.freeze({
+      atributo,
+      estadistica,
+      valor,
+      unidad,
+      sobreBase: opciones.sobreBase !== false,
+      nota: opciones.nota ?? null,
+    });
+    porAtributo[atributo].push(aporte);
+    (porEstadistica[estadistica] ??= []).push(aporte);
+  };
+
+  const atributoAtaque = configuracionAtaque?.propiedadesControladoras?.atributoAtaque;
+  const ataqueEsVarita = esVarita(configuracionAtaque?.armaControladora);
+  for (const atributoFisico of ["fuerza", "destreza", "inteligencia"]) {
+    const aporte = Object.freeze({
+      atributo: atributoFisico,
+      estadistica: "danioFisico",
+      valor:
+        combate.danioPorPuntoRespectoDiez *
+        ((atributos[atributoFisico] ?? 10) - 10) *
+        100,
+      unidad: "porcentaje",
+      sobreBase: true,
+      nota: `armas_${atributoFisico}`,
+    });
+    porAtributo[atributoFisico].push(aporte);
+    if (!ataqueEsVarita && atributoAtaque === atributoFisico) {
+      (porEstadistica.danioFisico ??= []).push(aporte);
+    }
+  }
+
+  agregar(
+    "destreza",
+    "precision",
+    combate.precisionPorDestreza * atributos.destreza,
+  );
+  agregar(
+    "destreza",
+    "evasion",
+    combate.evasionPorDestreza * atributos.destreza,
+  );
+
+  agregar(
+    "constitucion",
+    "vidaMaxima",
+    combate.vidaPorConstitucion * atributos.constitucion,
+  );
+  agregar(
+    "constitucion",
+    "regeneracionVida",
+    combate.regeneracionVidaPorConstitucion * (atributos.constitucion - 10),
+  );
+  agregar(
+    "constitucion",
+    "resistencia:veneno",
+    combate.resistenciaVenenoPorConstitucion * (atributos.constitucion - 10),
+    "porcentaje",
+  );
+  for (const id of IDS_RESISTENCIA_EFECTO) {
+    agregar(
+      "constitucion",
+      `resistenciaEfecto:${id}`,
+      bonificacionResistenciasEfectosPorConstitucion,
+      "porcentaje",
+    );
+  }
+
+  agregar(
+    "inteligencia",
+    "manaMaximo",
+    magia.mana.porInteligenciaRespectoDiez *
+      (atributos.inteligencia - referencia),
+  );
+  agregar(
+    "inteligencia",
+    "danioMagico",
+    magia.multiplicadores.danioMagico.inteligencia *
+      (atributos.inteligencia - referencia) *
+      100,
+    "porcentaje",
+  );
+  agregar(
+    "inteligencia",
+    "potenciaEfectos",
+    magia.multiplicadores.efectos.inteligencia *
+      (atributos.inteligencia - referencia) *
+      100,
+    "porcentaje",
+  );
+
+  agregar(
+    "sabiduria",
+    "manaMaximo",
+    magia.mana.porSabiduriaRespectoDiez *
+      (atributos.sabiduria - referencia),
+  );
+  agregar(
+    "sabiduria",
+    "regeneracionMana",
+    magia.regeneracionMana.porSabiduria * atributos.sabiduria,
+  );
+  agregar(
+    "sabiduria",
+    "danioMagico",
+    magia.multiplicadores.danioMagico.sabiduria *
+      (atributos.sabiduria - referencia) *
+      100,
+    "porcentaje",
+  );
+  agregar(
+    "sabiduria",
+    "potenciaEfectos",
+    magia.multiplicadores.efectos.sabiduria *
+      (atributos.sabiduria - referencia) *
+      100,
+    "porcentaje",
+  );
+  for (const id of RESISTENCIAS) {
+    agregar(
+      "sabiduria",
+      `resistencia:${id}`,
+      combate.resistenciaElementalPorSabiduria *
+        (atributos.sabiduria - 10),
+      "porcentaje",
+    );
+  }
+  agregar(
+    "sabiduria",
+    "resistenciaMental",
+    combate.resistenciaMentalPorSabiduria * atributos.sabiduria,
+    "porcentaje",
+  );
+
+  agregar(
+    "carisma",
+    "potenciaAura",
+    combate.potenciaAuraPorCarisma * atributos.carisma,
+    "porcentaje",
+  );
+
+  if (ataqueEsVarita) {
+    const aporteInteligencia = porAtributo.inteligencia.find(
+      (aporte) => aporte.estadistica === "danioMagico",
+    );
+    const aporteSabiduria = porAtributo.sabiduria.find(
+      (aporte) => aporte.estadistica === "danioMagico",
+    );
+    porEstadistica.danioFisico = Object.freeze(
+      [aporteInteligencia, aporteSabiduria].filter(Boolean),
+    );
+  }
+
+  return Object.freeze({
+    porAtributo: Object.freeze(
+      Object.fromEntries(
+        Object.entries(porAtributo).map(([id, aportes]) => [
+          id,
+          Object.freeze([...aportes]),
+        ]),
+      ),
+    ),
+    porEstadistica: Object.freeze(
+      Object.fromEntries(
+        Object.entries(porEstadistica).map(([id, aportes]) => [
+          id,
+          Object.freeze([...aportes]),
+        ]),
+      ),
+    ),
+  });
 }

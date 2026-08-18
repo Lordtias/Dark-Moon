@@ -1209,7 +1209,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ritmo_daga.png",
       "descripcion": "Reduce el tiempo necesario para atacar con dagas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1250,7 +1250,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/punto_vital.png",
       "descripcion": "Aumenta la probabilidad de crítico con dagas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1291,7 +1291,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/maestria_dual.png",
       "descripcion": "Reduce la penalización de daño de una daga usada en la mano secundaria durante combate dual.",
       "modificadoresPorGrado": {
         "1": [
@@ -1338,7 +1338,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/danza_cuchillas.png",
       "descripcion": "Aumenta el daño de las fuentes de daga cuando se combate con dos armas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1360,7 +1360,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/tecnica_hoja.png",
       "descripcion": "Aumenta la Precisión con espadas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1401,7 +1401,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/corte_maestro.png",
       "descripcion": "Aumenta el daño causado por fuentes de espada.",
       "modificadoresPorGrado": {
         "1": [
@@ -1442,7 +1442,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/guardia_duelista.png",
       "descripcion": "Aumenta la Evasión mientras el arma controladora es una espada.",
       "modificadoresPorGrado": {
         "1": [
@@ -1483,7 +1483,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/esgrima_fluida.png",
       "descripcion": "Reduce el tiempo necesario para atacar con espada.",
       "modificadoresPorGrado": {
         "1": [
@@ -1504,7 +1504,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/golpe_brutal_hacha.png",
       "descripcion": "Aumenta el daño causado por fuentes de hacha.",
       "modificadoresPorGrado": {
         "1": [
@@ -1545,7 +1545,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/cabeza_equilibrada.png",
       "descripcion": "Compensa la menor precisión natural de las hachas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1586,7 +1586,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/impacto_decisivo.png",
       "descripcion": "Aumenta el multiplicador de los golpes críticos con hachas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1627,7 +1627,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ejecutor_hacha.png",
       "descripcion": "Aumenta considerablemente la probabilidad de crítico con hachas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1648,7 +1648,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/inercia_mandoble.png",
       "descripcion": "Aumenta el daño causado por mandobles.",
       "modificadoresPorGrado": {
         "1": [
@@ -1689,7 +1689,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/dominio_pesado.png",
       "descripcion": "Reduce el tiempo de ataque con mandobles.",
       "modificadoresPorGrado": {
         "1": [
@@ -1730,7 +1730,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/guardia_dos_manos.png",
       "descripcion": "Aumenta la Armadura mientras se utiliza un mandoble.",
       "modificadoresPorGrado": {
         "1": [
@@ -1771,7 +1771,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/quebrantador.png",
       "descripcion": "Aumenta el multiplicador crítico con mandobles.",
       "modificadoresPorGrado": {
         "1": [
@@ -1792,7 +1792,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/punta_firme.png",
       "descripcion": "Aumenta la Precisión con lanzas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1833,7 +1833,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/empuje_profundo.png",
       "descripcion": "Aumenta el daño causado por fuentes de lanza.",
       "modificadoresPorGrado": {
         "1": [
@@ -1874,7 +1874,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/guardia_distancia.png",
       "descripcion": "Aumenta la Evasión mientras se utiliza una lanza.",
       "modificadoresPorGrado": {
         "1": [
@@ -1915,7 +1915,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/dominio_alcance_lanza.png",
       "descripcion": "Aumenta en una casilla el alcance de ataque con lanzas.",
       "modificadoresPorGrado": {
         "1": [
@@ -1936,7 +1936,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/tiro_estable.png",
       "descripcion": "Aumenta la Precisión con arcos.",
       "modificadoresPorGrado": {
         "1": [
@@ -1977,7 +1977,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/tension_controlada.png",
       "descripcion": "Aumenta el daño causado por fuentes de arco.",
       "modificadoresPorGrado": {
         "1": [
@@ -2018,7 +2018,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/tiro_letal.png",
       "descripcion": "Aumenta la probabilidad de crítico con arcos.",
       "modificadoresPorGrado": {
         "1": [
@@ -2059,7 +2059,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ojo_halcon.png",
       "descripcion": "Aumenta en una casilla el alcance de ataque con arcos.",
       "modificadoresPorGrado": {
         "1": [
@@ -2080,7 +2080,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/canalizacion_estable.png",
       "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza un bastón.",
       "modificadoresPorGrado": {
         "1": [
@@ -2121,7 +2121,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/golpe_disciplinado.png",
       "descripcion": "Aumenta el daño del ataque básico del bastón.",
       "modificadoresPorGrado": {
         "1": [
@@ -2162,7 +2162,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/guardia_baston.png",
       "descripcion": "Aumenta la Armadura mientras se utiliza un bastón.",
       "modificadoresPorGrado": {
         "1": [
@@ -2203,7 +2203,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/foco_profundo.png",
       "descripcion": "Aumenta la regeneración de Maná mientras se utiliza un bastón.",
       "modificadoresPorGrado": {
         "1": [
@@ -2224,7 +2224,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/canalizacion_fina.png",
       "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza una varita.",
       "modificadoresPorGrado": {
         "1": [
@@ -2265,7 +2265,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/precision_arcana.png",
       "descripcion": "Aumenta la Precisión del ataque básico de las varitas.",
       "modificadoresPorGrado": {
         "1": [
@@ -2306,7 +2306,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/doble_canalizacion.png",
       "descripcion": "Reduce la penalización de la varita secundaria al combatir con dos varitas.",
       "modificadoresPorGrado": {
         "1": [
@@ -2353,7 +2353,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/canal_extendido.png",
       "descripcion": "Aumenta en una casilla el alcance del ataque básico de las varitas.",
       "modificadoresPorGrado": {
         "1": [
@@ -2374,7 +2374,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/dominio_armadura_ligera.png",
       "descripcion": "Aumenta la Evasión al vestir un conjunto corporal completo de armadura ligera.",
       "modificadoresPorGrado": {
         "1": [
@@ -2418,7 +2418,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/paso_ligero.png",
       "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura ligera.",
       "modificadoresPorGrado": {
         "1": [
@@ -2462,7 +2462,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/flujo_libre.png",
       "descripcion": "Aumenta la regeneración de Maná con un conjunto corporal completo de armadura ligera.",
       "modificadoresPorGrado": {
         "1": [
@@ -2506,7 +2506,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/sin_lastre.png",
       "descripcion": "Reduce el tiempo de las acciones generales con un conjunto corporal completo de armadura ligera.",
       "modificadoresPorGrado": {
         "1": [
@@ -2528,7 +2528,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/defensa_flexible.png",
       "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura media.",
       "modificadoresPorGrado": {
         "1": [
@@ -2572,7 +2572,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/movilidad_entrenada.png",
       "descripcion": "Aumenta la Evasión con un conjunto corporal completo de armadura media.",
       "modificadoresPorGrado": {
         "1": [
@@ -2616,7 +2616,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/preparacion_elemental.png",
       "descripcion": "Aumenta las cuatro resistencias elementales con un conjunto corporal completo de armadura media.",
       "modificadoresPorGrado": {
         "1": [
@@ -2741,7 +2741,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/equilibrio_armadura.png",
       "descripcion": "Reduce el tiempo de movimiento con un conjunto corporal completo de armadura media.",
       "modificadoresPorGrado": {
         "1": [
@@ -2763,7 +2763,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/placas_ajustadas.png",
       "descripcion": "Aumenta la Armadura con un conjunto corporal completo de armadura pesada.",
       "modificadoresPorGrado": {
         "1": [
@@ -2807,7 +2807,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aguante_pesado.png",
       "descripcion": "Aumenta la Vida máxima con un conjunto corporal completo de armadura pesada.",
       "modificadoresPorGrado": {
         "1": [
@@ -2851,7 +2851,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/firmeza_pesada.png",
       "descripcion": "Aumenta la resistencia al Aturdimiento con un conjunto corporal completo de armadura pesada.",
       "modificadoresPorGrado": {
         "1": [
@@ -2895,7 +2895,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/fortaleza_pesada.png",
       "descripcion": "Aumenta las cuatro resistencias a efectos con un conjunto corporal completo de armadura pesada.",
       "modificadoresPorGrado": {
         "1": [
@@ -2944,7 +2944,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/guardia_firme.png",
       "descripcion": "Aumenta la probabilidad de Bloqueo mientras se equipa un escudo.",
       "modificadoresPorGrado": {
         "1": [
@@ -2985,7 +2985,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/bloqueo_experto.png",
       "descripcion": "Aumenta la mitigación producida por un Bloqueo con escudo.",
       "modificadoresPorGrado": {
         "1": [
@@ -3026,7 +3026,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/bastion_escudo.png",
       "descripcion": "Aumenta la Armadura mientras se equipa un escudo.",
       "modificadoresPorGrado": {
         "1": [
@@ -3067,7 +3067,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/muro_escudo.png",
       "descripcion": "Aumenta la Vida máxima mientras se equipa un escudo.",
       "modificadoresPorGrado": {
         "1": [
@@ -3088,7 +3088,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/afinidad_ignea.png",
       "descripcion": "Aumenta el daño de todas las habilidades de Fuego.",
       "modificadoresPorGrado": {
         "1": [
@@ -3109,7 +3109,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ascua_eficiente.png",
       "descripcion": "Reduce en 1 el coste de Maná de Ascua.",
       "modificadoresPorGrado": {
         "1": [
@@ -3131,7 +3131,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 7,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/detonacion_expansiva.png",
       "descripcion": "Aumenta en 1 el radio de Explosión ígnea.",
       "modificadoresPorGrado": {
         "1": [
@@ -3153,7 +3153,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/combustion_persistente.png",
       "descripcion": "Aumenta un turno la Quemadura causada por Incinerar.",
       "modificadoresPorGrado": {
         "1": [
@@ -3176,7 +3176,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/afinidad_glacial.png",
       "descripcion": "Aumenta el daño de todas las habilidades de Frío.",
       "modificadoresPorGrado": {
         "1": [
@@ -3197,7 +3197,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/esquirla_persistente.png",
       "descripcion": "Aumenta un turno la Ralentización de Esquirla de hielo.",
       "modificadoresPorGrado": {
         "1": [
@@ -3220,7 +3220,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 7,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/nova_expansiva.png",
       "descripcion": "Aumenta en 1 el radio de Nova de escarcha.",
       "modificadoresPorGrado": {
         "1": [
@@ -3242,7 +3242,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/congelacion_profunda.png",
       "descripcion": "Aumenta 15 puntos la probabilidad de Congelamiento de Ráfaga glacial.",
       "modificadoresPorGrado": {
         "1": [
@@ -3265,7 +3265,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/afinidad_tormentosa.png",
       "descripcion": "Aumenta el daño de todas las habilidades de Rayo.",
       "modificadoresPorGrado": {
         "1": [
@@ -3286,7 +3286,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/chispa_fulminante.png",
       "descripcion": "Aumenta 10% la velocidad de lanzamiento de Chispa.",
       "modificadoresPorGrado": {
         "1": [
@@ -3308,7 +3308,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 7,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/conduccion_multiple.png",
       "descripcion": "Cadena de rayos puede alcanzar un objetivo adicional.",
       "modificadoresPorGrado": {
         "1": [
@@ -3330,7 +3330,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/descarga_extendida.png",
       "descripcion": "Aumenta en 1 la longitud de Descarga fulminante.",
       "modificadoresPorGrado": {
         "1": [
@@ -3352,7 +3352,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/afinidad_toxica.png",
       "descripcion": "Aumenta el daño de habilidades de Veneno, incluido daño periódico y de zona.",
       "modificadoresPorGrado": {
         "1": [
@@ -3373,7 +3373,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/toxina_persistente.png",
       "descripcion": "Aumenta un turno el Envenenamiento de Aguijón tóxico.",
       "modificadoresPorGrado": {
         "1": [
@@ -3396,7 +3396,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 7,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/nube_persistente.png",
       "descripcion": "Aumenta dos turnos la duración de Nube tóxica.",
       "modificadoresPorGrado": {
         "1": [
@@ -3418,7 +3418,7 @@
       "tipo": "pasiva",
       "requisitoNivelMaestria": 9,
       "gradoMaximo": 1,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/plaga_voraz.png",
       "descripcion": "Aumenta en 1 el máximo de acumulaciones de Plaga corrosiva.",
       "modificadoresPorGrado": {
         "1": [
@@ -3441,7 +3441,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/manto_igneo.png",
       "descripcion": "Aumenta temporalmente la resistencia a Fuego de aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -3533,7 +3533,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/velo_glacial.png",
       "descripcion": "Aumenta temporalmente la resistencia a Frio de aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -3625,7 +3625,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/egida_tormenta.png",
       "descripcion": "Aumenta temporalmente la resistencia a Rayo de aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -3717,7 +3717,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/velo_antitoxico.png",
       "descripcion": "Aumenta temporalmente la resistencia a Veneno de aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -3809,7 +3809,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/vulnerabilidad_ignea.png",
       "descripcion": "Aplica la maldición Vulnerabilidad Ígnea a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -3889,7 +3889,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/exposicion.png",
       "descripcion": "Aplica la maldición Exposición a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -3969,7 +3969,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/debilidad.png",
       "descripcion": "Aplica la maldición Debilidad a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4064,7 +4064,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/vulnerabilidad_glacial.png",
       "descripcion": "Aplica la maldición Vulnerabilidad Glacial a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4144,7 +4144,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/lentitud.png",
       "descripcion": "Aplica la maldición Lentitud a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4239,7 +4239,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/ceguera.png",
       "descripcion": "Aplica la maldición Ceguera a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4319,7 +4319,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/vulnerabilidad_electrica.png",
       "descripcion": "Aplica la maldición Vulnerabilidad Eléctrica a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4399,7 +4399,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/torpeza.png",
       "descripcion": "Aplica la maldición Torpeza a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4479,7 +4479,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/maldicion_silencio.png",
       "descripcion": "Aplica la maldición Silencio a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4538,7 +4538,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/vulnerabilidad_toxica.png",
       "descripcion": "Aplica la maldición Vulnerabilidad Tóxica a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4618,7 +4618,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 3,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/marchitamiento.png",
       "descripcion": "Aplica la maldición Marchitamiento a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4713,7 +4713,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 6,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/supresion.png",
       "descripcion": "Aplica la maldición Supresión a un enemigo.",
       "ejecucion": {
         "tipoObjetivo": "enemigo",
@@ -4808,7 +4808,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_celeridad.png",
       "descripcion": "Emite Aura de Celeridad durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -4927,7 +4927,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_disciplina.png",
       "descripcion": "Emite Aura de Disciplina durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5046,7 +5046,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_furia.png",
       "descripcion": "Emite Aura de Furia durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5180,7 +5180,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_impetu.png",
       "descripcion": "Emite Aura de Ímpetu durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5314,7 +5314,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_vigilancia.png",
       "descripcion": "Emite Aura de Vigilancia durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5418,7 +5418,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_precision.png",
       "descripcion": "Emite Aura de Precisión durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5522,7 +5522,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_recuperacion.png",
       "descripcion": "Emite Aura de Recuperación durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5641,7 +5641,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_enfoque.png",
       "descripcion": "Emite Aura de Enfoque durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5760,7 +5760,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_agilidad.png",
       "descripcion": "Emite Aura de Agilidad durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -5883,7 +5883,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_resguardo_elemental.png",
       "descripcion": "Emite Aura de Resguardo Elemental durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -6036,7 +6036,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_guardia.png",
       "descripcion": "Emite Aura de Guardia durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",
@@ -6144,7 +6144,7 @@
       "tipo": "activa",
       "requisitoNivelMaestria": 4,
       "gradoMaximo": 3,
-      "icono": null,
+      "icono": "assets/imagenes/habilidades/aura_voluntad.png",
       "descripcion": "Emite Aura de Voluntad durante 10 turnos sobre aliados cercanos.",
       "ejecucion": {
         "tipoObjetivo": "propio",

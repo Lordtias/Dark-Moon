@@ -470,13 +470,14 @@ function formatearAfijo(afijo) {
       ? `${afijo.tipoEtiqueta.trim()} `
       : "";
 
+  const ambito = typeof afijo.ambitoEtiqueta === "string" && afijo.ambitoEtiqueta.trim() !== "" ? `[${afijo.ambitoEtiqueta.trim()}] ` : "";
   const grado = Number.isInteger(afijo.grado) ? ` (grado ${afijo.grado})` : "";
 
   const efectos = Array.isArray(afijo.efectos)
     ? afijo.efectos.map(formatearEfecto).filter(Boolean).join(", ")
     : "";
 
-  return `${tipo}${afijo.nombre}${grado}` + (efectos ? `: ${efectos}` : "");
+  return `${tipo}${ambito}${afijo.nombre}${grado}` + (efectos ? `: ${efectos}` : "");
 }
 
 function formatearEfecto(efecto) {

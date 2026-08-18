@@ -275,7 +275,7 @@
 
               <nav class="barra-paneles-partida" aria-label="Paneles de la partida" data-i18n-aria-label="interfaz.navegacion.aria">
                 <button id="botonPanelPersonaje" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.personaje">Personaje</button>
-                <button id="botonPanelInventario" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.inventario">Inventario</button>
+                <button id="botonPanelInventario" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.objetos">Objetos</button>
                 <button id="botonPanelHabilidades" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.habilidades">Habilidades</button>
                 <button id="botonPanelRegistro" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.registro">Registro</button>
                 <button id="botonPanelMenu" class="boton-panel-partida" type="button" data-i18n="interfaz.navegacion.menu">Menú</button>
@@ -294,25 +294,25 @@
           <div id="capaPanelesPartida" class="capa-paneles-partida" aria-hidden="true">
             <section id="panelSuperpuestoPersonaje" class="panel-superpuesto-partida" hidden>
               <header class="panel-superpuesto-partida__cabecera">
-                <h2 data-i18n="interfaz.navegacion.personajeEquipamiento">Personaje y equipamiento</h2>
+                <h2 data-i18n="interfaz.navegacion.personaje">Personaje</h2>
                 <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
               </header>
-              <div class="panel-superpuesto-partida__contenido panel-superpuesto-partida__contenido--doble">
+              <div class="panel-superpuesto-partida__contenido panel-superpuesto-partida__contenido--personaje">
                 <aside id="panelPersonaje" class="panel-juego panel-personaje"></aside>
-                <section class="panel-juego panel-equipamiento">
-                  <h2 data-i18n="interfaz.juego.equipamiento">Equipamiento</h2>
-                  <div id="cuadriculaEquipamiento" class="cuadricula-equipamiento"></div>
-                </section>
               </div>
             </section>
 
             <section id="panelSuperpuestoInventario" class="panel-superpuesto-partida" hidden>
               <header class="panel-superpuesto-partida__cabecera">
-                <h2 data-i18n="interfaz.juego.inventario">Inventario</h2>
+                <h2 data-i18n="interfaz.juego.inventarioEquipamiento">Inventario y equipamiento</h2>
                 <button type="button" class="panel-superpuesto-partida__cerrar" data-panel-cerrar data-i18n-aria-label="interfaz.navegacion.cerrar">×</button>
               </header>
-              <div class="panel-superpuesto-partida__contenido">
-                <section class="panel-juego panel-inventario">
+              <div class="panel-superpuesto-partida__contenido panel-superpuesto-partida__contenido--objetos">
+                <section class="panel-juego panel-equipamiento panel-objetos__equipamiento">
+                  <h2 data-i18n="interfaz.juego.equipamiento">Equipamiento</h2>
+                  <div id="cuadriculaEquipamiento" class="cuadricula-equipamiento"></div>
+                </section>
+                <section class="panel-juego panel-inventario panel-objetos__inventario">
                   <h2 data-i18n="interfaz.juego.inventario">Inventario</h2>
                   <p id="mensajeInventario" class="mensaje-vacio" data-i18n="interfaz.juego.inventarioVacio">El inventario está vacío.</p>
                   <div id="cuadriculaInventario" class="cuadricula-inventario"></div>
@@ -572,6 +572,11 @@
           <div class="dato-personaje">
             <span>Bloqueo</span>
             <strong data-personaje="bloqueo">0</strong>
+          </div>
+
+          <div class="dato-personaje">
+            <span data-i18n="interfaz.personaje.mitigacionBloqueo">Mitigación de bloqueo</span>
+            <strong data-personaje="mitigacion-bloqueo">0</strong>
           </div>
 
           <div class="dato-personaje">

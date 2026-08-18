@@ -11,6 +11,7 @@ import { ModalComercio } from "../comercio/ModalComercio.js";
 import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
 import { GestorPanelesPartidaDom } from "./GestorPanelesPartidaDom.js";
 import { HudPartidaDom } from "./HudPartidaDom.js";
+import { obtenerConfiguracionProgresoHabilidades } from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 
 // Crea los componentes visuales persistentes utilizados durante toda una
 // partida. La fábrica no crea reglas jugables: solamente conecta las vistas
@@ -40,6 +41,7 @@ export function crearInterfazPartidaDom({
       "plantillaPanelPersonaje",
       "plantilla del panel del personaje",
     ),
+    configuracionHabilidades: obtenerConfiguracionProgresoHabilidades(),
   });
 
   const panelInventario = new PanelInventario({

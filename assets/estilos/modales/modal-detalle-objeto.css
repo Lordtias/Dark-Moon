@@ -1123,3 +1123,9 @@
     transform: none;
   }
 }
+
+/* HP5: ámbito del afijo. */
+.detalle-objeto__afijo-cabecera { grid-template-columns:auto auto minmax(0,1fr) auto; }
+.detalle-objeto__afijo-ambito { padding:2px 6px;border:1px solid #5d6b5b;border-radius:10px;color:#a8bea2;font-size:10px;font-weight:bold;text-transform:uppercase;white-space:nowrap; }
+.detalle-objeto__afijo-ambito[data-ambito="portador"] { border-color:#716090;color:#c9b1ef; }
+.detalle-objeto__afijo-ambito[data-ambito="local_objeto"] { border-color:#59715e;color:#a9d1b1; }

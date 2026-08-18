@@ -338,6 +338,10 @@ function crearTarjetaAfijo(afijo) {
     obtenerTipoAfijo(afijo),
   );
 
+  const ambito = crearElemento("span", "detalle-objeto__afijo-ambito", typeof afijo.ambitoEtiqueta === "string" ? afijo.ambitoEtiqueta : "");
+  ambito.hidden = ambito.textContent.trim() === "";
+  if (typeof afijo.ambito === "string" && afijo.ambito.trim() !== "") ambito.dataset.ambito = afijo.ambito;
+
   const nombre = crearElemento(
     "strong",
     "detalle-objeto__afijo-nombre",
@@ -354,7 +358,7 @@ function crearTarjetaAfijo(afijo) {
 
   grado.hidden = !Number.isInteger(afijo.grado);
 
-  cabecera.append(tipo, nombre, grado);
+  cabecera.append(tipo, ambito, nombre, grado);
 
   const listaEfectos = crearElemento("ul", "detalle-objeto__afijo-efectos");
 

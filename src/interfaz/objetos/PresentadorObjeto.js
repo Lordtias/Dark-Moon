@@ -249,12 +249,27 @@ function crearPresentacionAfijos(objeto) {
       : traducir("interfaz.detalleObjeto.sufijo", { respaldo: "Sufijo" }),
     nombre: traducirContenido("afijos", afijo.id, "nombre", afijo.nombre),
     grado: afijo.grado,
+    ambito: obtenerAmbitoAfijo(afijo),
+    ambitoEtiqueta: traducirAmbitoAfijo(obtenerAmbitoAfijo(afijo)),
     descripcion:
       typeof afijo.descripcion === "string"
         ? traducirContenido("afijos", afijo.id, "descripcion", afijo.descripcion)
         : "",
     efectos: crearTextosEfectosAfijo(afijo),
   }));
+}
+
+function obtenerAmbitoAfijo(afijo) {
+  const ambitos = new Set((Array.isArray(afijo?.efectos) ? afijo.efectos : []).map((efecto) => efecto?.ambito).filter((ambito) => ambito === "local_objeto" || ambito === "portador"));
+  if (ambitos.size === 1) return [...ambitos][0];
+  if (ambitos.size > 1) return "mixto";
+  return null;
+}
+function traducirAmbitoAfijo(ambito) {
+  if (ambito === "local_objeto") return traducir("interfaz.detalleObjeto.ambitoObjeto", { respaldo: "Objeto" });
+  if (ambito === "portador") return traducir("interfaz.detalleObjeto.ambitoPortador", { respaldo: "Portador" });
+  if (ambito === "mixto") return traducir("interfaz.detalleObjeto.ambitoMixto", { respaldo: "Mixto" });
+  return "";
 }
 
 function crearTextosEfectosAfijo(afijo) {

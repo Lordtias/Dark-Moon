@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas  
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.  
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.  
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3 y HP4 están cerradas. HP3 quedó cerrada en `f5e810d51172cd12b4063b40e0cdd0a90cdef646`. HP4 fue implementada sobre ese cierre con su catálogo aprobado de modificadores internos, pasivas mágicas, auras y maldiciones, y sus pruebas manuales —incluido el refresco centralizado de presentación— fueron superadas y aprobadas por el usuario. La siguiente etapa es HP5. Cada etapa requiere análisis del repositorio real, propuesta concreta y aprobación explícita antes de modificar código.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4 y HP5 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`. HP5 fue implementada sobre ese SHA y sus pruebas manuales, incluido el ajuste de desglose de atributos y Mitigación de bloqueo, fueron superadas y aprobadas por el usuario el 18/08/2026. El árbol de habilidades y los estados compactos en HUD se reservan expresamente para HP6.
 
 ---
 
@@ -2117,8 +2117,8 @@ La cantidad de puntos de maestría **no aumenta en HP4**. Esto es deliberado: un
 - atributos primarios como objetivos modificables: pendientes de aprobación cuando exista una necesidad real;
 - daño físico/mágico global, robo de Vida/Maná y hallazgo de objetos: pendientes de diseño/balance;
 - balance posterior de las 48 pasivas físicas de HP3, 16 pasivas mágicas, 28 auras/maldiciones activas, XP, puntos, Maná, duración, radio y probabilidades;
-- HP5 mantiene la revisión visual del panel, Potencia de Habilidad, nombre Magia/Habilidades, píldora de ámbito de afijo e iconografía definitiva de pasivas;
-- como idea de presentación futura, HP5 puede evaluar iconografía definitiva también para las 28 auras/maldiciones nuevas, que en HP4 usan el fallback visual existente y perfiles Phaser genéricos sin nuevos assets.
+- HP5 implementa Personaje completo, Potencia de Habilidad, Habilidades, Resistencia Mental, ámbito de afijos e iconografía definitiva;
+- HP5 completa también la iconografía de las 28 auras/maldiciones; el árbol y los estados compactos de HUD quedan en HP6.
 
 Resultado técnico esperado de HP4:
 
@@ -2126,46 +2126,26 @@ Resultado técnico esperado de HP4:
 configuración efectiva única de habilidades + 44 contenidos aprendibles + runtime genérico de auras/maldiciones + Resistencia Mental, todo reutilizando el mismo centralizador
 ```
 
-### HP5 — Interfaz, posible rediseño, regresión y cierre
+### HP5 — Reestructuración de interfaz e identidad visual
 
-HP5 comienza con un análisis específico de la pantalla de Personaje.
+**Base:** `70f78115dffe96a223128b5cffbbab0ef58024ce`
+**Estado:** Cerrada. Implementación, validación técnica y pruebas manuales superadas y aprobadas por el usuario. El commit final queda a cargo del usuario.
 
-No se asume de antemano que basten cambios mínimos. Debe decidirse, mediante propuesta previa, si corresponde:
+HP5 reorganiza la presentación sin modificar balance, persistencia ni reglas canónicas: Personaje usa el ancho completo; `Magia` pasa visualmente a `Habilidades`; se muestran Potencia de Habilidad y Resistencia Mental; Pasivas y Efectos activos se leen desde sus fuentes canónicas; Inventario y Equipamiento comparten la pantalla `Objetos`; los afijos muestran `Objeto/Portador`; el desglose de estadísticas usa un modal propio y resoluciones ya producidas por el centralizador; y se completan 92 iconos para dejar 104/104 habilidades con recurso real.
 
-- conservar la estructura actual;
-- reorganizar secciones;
-- incorporar agrupadores/pestañas;
-- rediseñar parcialmente;
-- realizar un rediseño más profundo del panel manteniendo HTML/CSS y el diseño maestro visual.
+Las ocho Maldiciones funcionales `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` tienen identidad iconográfica propia y no heredan obligatoriamente la afinidad donde se aprenden. Las cuatro Vulnerabilidades elementales sí conservan identidad elemental.
 
-Debe contemplar la cantidad final de pasivas, efectos y desgloses producidos por HP2–HP4.
+No se incorpora drag & drop a ranura concreta porque el contrato jugable actual no expone esa selección a la interfaz. No se agregan fórmulas de presentación: las extensiones de desglose son aditivas y de lectura, conservando la misma resolución ya ejecutada.
 
-Mejoras de interfaz ya reservadas y aprobadas para analizar en HP5:
+### HP6 — Árbol genérico, estados en HUD y cierre
 
-- mostrar **Potencia de Habilidad** en el panel Personaje, consumiendo el valor canónico dentro de la sección actualmente denominada `Magia`;
-- analizar la ubicación/presentación de **Resistencia Mental**, ahora que HP4 la convierte en una estadística funcional contra Maldiciones;
-- analizar si esa sección debe seguir llamándose `Magia` o renombrarse a `Habilidades` u otra denominación más general;
-- en cada caja de afijo, agregar junto a `Prefijo/Sufijo` una segunda píldora que comunique al jugador si el efecto es propio del objeto o se aplica al portador. La palabra visible definitiva se diseña en HP5; la UI consume `ambito` y no lo recalcula.
-- diseñar y asignar la **iconografía definitiva de las pasivas**, reutilizando el atributo canónico `icono` de `Habilidades.json`; HP3 no crea iconos provisionales ni otro contrato visual paralelo. HP5 debe definir una dirección visual coherente para las pasivas y validar su lectura dentro del panel real.
+**Estado:** Planificada; no implementada en HP5.
 
-Luego debe:
+`OrganizadorArbolHabilidades` será genérico para **todas** las maestrías/habilidades. Ordenará verticalmente por `requisitoNivelMaestria`, distribuirá nodos del mismo nivel y dibujará únicamente relaciones respaldadas por datos canónicos. Las futuras habilidades físicas activas entrarán por la misma ruta; no habrá ramas `magia/físico` ni coordenadas manuales por ID.
 
-- mostrar Pasivas en el panel de habilidades;
-- mostrar pasivas aprendidas activas/inactivas en Personaje;
-- mostrar auras/maldiciones activas;
-- mostrar desgloses de estadísticas usando el resultado real del resolutor;
-- completar i18n;
-- revisar herramientas de balance/depuración afectadas;
-- validar persistencia nueva, web, Electron y regresión funcional;
-- validar presentación con redimensionamiento y densidad real de contenido;
-- actualizar documentación correspondiente;
-- generar entrega final del hito.
+Auras y Maldiciones activas se mostrarán compactamente alrededor de experiencia/barra rápida, reutilizando `Habilidades.json.icono` y mostrando turnos de referencia restantes como conversión visual de `TIEMPO_REFERENCIA`, sin temporizador paralelo. Cuando exista esa lectura se retirará solo el punto brillante persistente del Player, manteniendo activación, dispersión/emisión, aplicación y vencimiento.
 
-Resultado esperado:
-
-```text
-hito completamente visible, utilizable, verificable y preparado para balance y contenido posterior
-```
+HP6 realizará además la regresión Web/Electron y cierre final del hito.
 
 ---
 
@@ -2183,6 +2163,8 @@ HP3
 HP4
  ↓
 HP5
+ ↓
+HP6
 ```
 
 La secuencia es deliberada:
@@ -2191,7 +2173,8 @@ La secuencia es deliberada:
 - HP2 realiza el inventario exhaustivo y cierra el motor canónico junto con la integración de afijos globales, evitando una etapa pequeña separada;
 - HP3 utiliza ese motor para diseñar un catálogo amplio de pasivas y cerrar la progresión física;
 - HP4 audita profundamente las habilidades y diseña/integra auras y maldiciones, incluyendo efectos sobre enemigos;
-- HP5 decide la arquitectura visual final cuando ya conoce la densidad real de contenido y cierra regresión/documentación.
+- HP5 reestructura Personaje/Objetos, completa desgloses e iconografía sin cambiar balance;
+- HP6 incorpora el árbol genérico, estados compactos en HUD y realiza la regresión/cierre final.
 
 Una etapa puede dividirse internamente en bloques de trabajo si resulta extensa, pero no deben crearse motores temporales que luego se descarten.
 
@@ -2514,7 +2497,7 @@ Quedan aprobadas como dirección del hito:
 45. las herramientas de depuración/regresión no pueden asumir que el catálogo total sigue teniendo solo doce habilidades activas;
 46. tooltips/paneles consumen datos canónicos y nunca reproducen la fórmula del centralizador;
 47. HP5 debe mostrar Potencia de Habilidad, revisar el nombre Magia/Habilidades, mostrar el ámbito de los afijos y diseñar iconografía definitiva de pasivas;
-48. la iconografía de auras/maldiciones nuevas queda como posible mejora visual de HP5, pendiente de validación de diseño;
+48. HP5 completa la iconografía definitiva de auras/maldiciones: las Vulnerabilidades elementales conservan identidad de afinidad y las ocho Maldiciones funcionales poseen identidad visual propia;
 49. `precisionHechizos`, `danoElementalGlobal`, `potenciaAura`, atributos primarios, robos y hallazgo permanecen pendientes de decisión explícita;
 50. cualquier futura transformación estructural de habilidades requiere nueva aprobación y un contrato específico.
 
@@ -2532,7 +2515,6 @@ No bloquean HP4 ni cambian la arquitectura:
 - posible incorporación a corto plazo de `cantidadProyectiles` y `maximoProyectilesSimultaneos` cuando existan habilidades de arco que los consuman;
 - definición futura de habilidades transformativas;
 - decisión sobre `precisionHechizos`, `danoElementalGlobal`, `potenciaAura`, atributos primarios modificables, daño global, robo de Vida/Maná y hallazgo de objetos;
-- posible iconografía definitiva de auras/maldiciones junto con el trabajo visual de HP5.
 
 Estos valores y decisiones deben permanecer configurables siempre que la arquitectura real lo permita. Ninguna etapa de balance debe introducir ramas especiales por nombre de contenido.
 
@@ -2606,3 +2588,30 @@ Reglas explícitas:
 - Phaser solo debe repintarse cuando exista un cambio visual del mundo;
 - queda retirado `ObservadorProgresoHabilidades.js` como ruta visual específica.
 - la validación manual de este contrato de refresco fue superada y aprobada por el usuario antes del cierre de HP4.
+
+### HP5 — Regla de lectura cruzada de atributos y estadísticas
+
+El detalle del Panel Personaje debe permitir navegación conceptual en ambos sentidos: un atributo primario informa a qué estadísticas aporta y cada estadística derivada informa qué atributos primarios participan en su valor base. Los aportes se consultan mediante una función de lectura ubicada junto al cálculo canónico de `EstadisticasDerivadas`; la interfaz no reproduce coeficientes ni fórmulas y el contrato existente del objeto de estadísticas derivadas permanece intacto.
+
+El modal de detalle debe incluir una descripción funcional breve de cada atributo/estadística además del desglose numérico. Cuando un aporte de atributo ya forma parte de `valorBase`, la presentación debe indicarlo explícitamente para evitar una lectura de doble suma.
+
+`Mitigación de bloqueo` forma parte de las estadísticas de combate visibles y utiliza el mismo resultado canónico que combate; su desglose es únicamente una extensión de lectura de esa resolución.
+
+
+### Cierre validado de HP5
+
+La validación manual final fue superada y aprobada por el usuario el 18/08/2026. Quedan confirmados como parte del estado heredado hacia HP6:
+
+- Panel Personaje de ancho completo, sin Equipamiento embebido;
+- pantalla `Objetos` con Inventario y Equipamiento presentados conjuntamente sin fusionar sus responsabilidades;
+- sección `Habilidades`, Potencia de Habilidad y Resistencia Mental visibles;
+- Pasivas aprendidas y Efectos activos alimentados por sus fuentes canónicas;
+- modal propio de detalle de estadísticas, con descripción funcional y desglose sin fórmulas duplicadas en UI;
+- lectura cruzada atributo primario → estadísticas afectadas y estadística derivada → aportes primarios mediante `obtenerAportesAtributosPrimarios`;
+- `Mitigación de bloqueo` visible y desglosada usando el valor canónico de combate;
+- afijos identificados visualmente como `Objeto` o `Portador` a partir de `ambito`;
+- catálogo completo de 104/104 habilidades con icono real 128×128;
+- ocho Maldiciones funcionales con identidad visual propia, independiente de la afinidad donde se aprenden;
+- ausencia de cambios de balance, persistencia o reglas canónicas en HP5.
+
+HP6 hereda esta base estable y queda destinada al árbol genérico de habilidades, estados compactos de Auras/Maldiciones en HUD, retirada del punto persistente del Player manteniendo feedback transitorio y regresión Web/Electron.

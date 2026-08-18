@@ -93,6 +93,7 @@ export class Renderizador {
     this.ultimaEscenaMapa = null;
     this.ultimoDiagnosticoPresentacion = null;
     this.secuenciaPresentacion = 0;
+    this.juegoActual = null;
   }
 
   // Permite que el controlador configure
@@ -182,6 +183,7 @@ export class Renderizador {
     juego,
     { eventos = [], orientacionesSolicitadas = [] } = {},
   ) {
+    this.juegoActual = juego;
     this.nombreJugador = juego.player.nombre;
 
     // Convertimos Juego en una escena plana
@@ -218,7 +220,7 @@ export class Renderizador {
 
     // Los paneles HTML continúan siendo
     // independientes del backend del mapa.
-    this.panelPersonaje.actualizar(juego.player);
+    this.panelPersonaje.actualizar(juego.player, { juego });
     this.hudPartida.actualizar(juego.player);
 
     // PanelInventario recibe también al jugador
@@ -236,7 +238,7 @@ export class Renderizador {
       throw new Error("Renderizador necesita un jugador para actualizar su estado visual.");
     }
 
-    this.panelPersonaje.actualizar(jugador);
+    this.panelPersonaje.actualizar(jugador, { juego: this.juegoActual });
     this.hudPartida.actualizar(jugador);
     return true;
   }

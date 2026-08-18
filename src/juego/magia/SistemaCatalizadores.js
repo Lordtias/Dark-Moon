@@ -92,12 +92,13 @@ export function crearContextoPotenciaHabilidad({
     ? objetos
     : obtenerObjetosEquipadosParaHabilidades(combatiente);
   const potenciaBase = calcularPotenciaHabilidadObjetos(objetosEquipados);
-  const potenciaHabilidad = combatiente?.sistemaModificadoresCombatiente
-    ? combatiente.obtenerValorModificado(
+  const resolucionModificador = combatiente?.sistemaModificadoresCombatiente
+    ? combatiente.resolverModificador(
         OBJETIVOS_MODIFICADOR.POTENCIA_HABILIDAD,
         potenciaBase,
       )
-    : potenciaBase;
+    : null;
+  const potenciaHabilidad = resolucionModificador?.resultado ?? potenciaBase;
 
   return Object.freeze({
     potenciaHabilidad,
@@ -105,6 +106,8 @@ export function crearContextoPotenciaHabilidad({
     cantidadObjetosAportando: objetosEquipados.filter(
       (objeto) => obtenerPotenciaHabilidadObjeto(objeto) > 0,
     ).length,
+    // Misma resolución canónica ya usada para obtener potenciaHabilidad.
+    resolucionModificador,
   });
 }
 

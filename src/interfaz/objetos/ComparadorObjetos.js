@@ -340,6 +340,8 @@ function copiarAfijo(afijo) {
     tipoEtiqueta: afijo.tipoEtiqueta,
     nombre: afijo.nombre,
     grado: afijo.grado,
+    ambito: afijo.ambito ?? null,
+    ambitoEtiqueta: afijo.ambitoEtiqueta ?? "",
     efectos: Array.isArray(afijo.efectos) ? [...afijo.efectos] : [],
   };
 }

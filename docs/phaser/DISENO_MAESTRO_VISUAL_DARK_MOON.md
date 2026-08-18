@@ -2048,3 +2048,17 @@ Reglas de aplicación:
 - Panel Personaje, HUD, Barra y Paneles derivados releen su fuente canónica al refrescar;
 - una invalidación puramente estadística no obliga a redibujar Phaser;
 - el repintado del mundo se solicita únicamente cuando cambie información visual del mapa.
+
+### V-037 — Personaje, Objetos y desglose visual
+
+Personaje utiliza el ancho completo. Equipamiento se integra visualmente con Inventario en `Objetos`, manteniendo responsabilidades técnicas separadas. Los valores detallables no usan tooltip nativo: un clic abre un modal propio que distingue base, bonificación, penalización, multiplicador, límite y resultado. La interfaz consume resoluciones canónicas ya producidas y no reconstruye fórmulas.
+
+Los afijos muestran `Prefijo/Sufijo` y `Objeto/Portador`; este último consume directamente `ambito`.
+
+### V-038 — Iconografía completa y excepción de Maldiciones funcionales
+
+`Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 104 contenidos actuales deben tener icono 1:1 legible. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
+
+### V-039 — Reserva HP6
+
+El árbol futuro usa `OrganizadorArbolHabilidades` para todas las maestrías y habilidades, ordenando por requisitos canónicos y dibujando solo relaciones reales. Auras/Maldiciones se mostrarán además en HUD con su icono y turnos de referencia restantes. Cuando esa lectura exista se retira únicamente el punto brillante persistente del Player, manteniendo activación, dispersión/emisión, aplicación y vencimiento.

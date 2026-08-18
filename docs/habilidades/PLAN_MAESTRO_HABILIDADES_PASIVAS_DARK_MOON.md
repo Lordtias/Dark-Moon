@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada y HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`, HP5 en `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc` y HP6 quedó cerrada documentalmente tras la validación manual satisfactoria informada por el usuario el 18/08/2026. El hito de habilidades/pasivas continúa completado. Posteriormente se aprobó `HP-AUD`, una auditoría extraordinaria post-hito sin crear HP7; sus tres correcciones acotadas están implementadas sobre `e47d2caef9257e64cd663fc8bbc49852b19f163e` y quedan pendientes únicamente de validación manual antes del cierre documental definitivo de la auditoría.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El hito de habilidades/pasivas queda completado y auditado. No se crea HP7 ni se avanza automáticamente a una nueva etapa.
 
 ---
 
@@ -2674,7 +2674,7 @@ Se aprobaron tres correcciones acotadas:
 2. retirar la duplicación de la regla que escalaba magnitudes de modificadores en `CalculadorAtributosMagicos.js` y `SistemaEfectosTemporales.js`;
 3. retirar `Player.agregarExperienciaMaestria()`, que permitía saltarse el traductor canónico aunque el gameplay no la utilizaba.
 
-Quedan fuera de HP-AUD los assets históricos bajo `assets/imagenes/jugador/old/` y deudas anteriores al hito que no fueron introducidas por HP1–HP6.
+Las deudas anteriores al hito no introducidas por HP1–HP6 permanecen fuera de HP-AUD. Como limpieza adicional de cierre realizada por el usuario, se eliminaron los siete PNG históricos de `assets/imagenes/jugador/old/` tras confirmar que no tenían referencias runtime; esta limpieza no modifica contratos ni amplía el alcance funcional de HP-AUD.
 
 ### Implementación
 
@@ -2707,4 +2707,6 @@ La prueba headless con Chromium volvió a quedar limitada por DBus/proceso gráf
 
 ### Estado
 
-Las correcciones aprobadas están implementadas y la validación automática es satisfactoria. HP-AUD queda **pendiente de validación manual del usuario** antes de marcarse Cerrada y antes de proponer el cierre definitivo del hito auditado.
+Las correcciones aprobadas están implementadas y la validación automática es satisfactoria. El usuario informó el 18/08/2026 que las pruebas manuales solicitadas fueron satisfactorias. El commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e` fue verificado con `main`, HEAD y `origin/main` coincidentes y árbol limpio bajo la política CRLF correcta.
+
+HP-AUD queda **Cerrada**. No se crea HP7. La eliminación de los siete PNG históricos de `assets/imagenes/jugador/old/` queda incorporada como limpieza adicional del mismo cierre, sin cambios de gameplay, balance, persistencia ni arquitectura.

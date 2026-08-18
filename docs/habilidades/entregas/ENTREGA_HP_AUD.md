@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Implementada — pendiente de validación manual del usuario.**
+**Cerrada funcionalmente por el usuario — cierre documental preparado sobre el commit `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`.**
 
 HP-AUD no es HP7. Es una auditoría extraordinaria posterior al cierre de HP6 destinada a certificar que el hito completo no dejó motores paralelos, restos productivos o dependencias indebidas.
 
@@ -14,7 +14,9 @@ HP-AUD no es HP7. Es una auditoría extraordinaria posterior al cierre de HP6 de
 - `origin/main` contenido en el ZIP: `e47d2caef9257e64cd663fc8bbc49852b19f163e`
 - `git status` inicial: limpio.
 - Dependencias nuevas: ninguna.
-- Commit/push realizados: ninguno.
+- Commit funcional verificado: `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`.
+- `origin/main` verificado en el ZIP final: `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`.
+- `git status` del commit funcional, usando la política CRLF correcta: limpio.
 
 ## Alcance aprobado
 
@@ -24,7 +26,7 @@ Se aprobaron únicamente tres correcciones:
 2. centralizar la semántica duplicada de escalado de magnitudes de modificadores;
 3. retirar del `Player` la vía directa de XP de maestría, conservando la inyección explícita de prueba en el depurador.
 
-No se modifica balance, contenido, persistencia, assets históricos, Phaser, Electron ni fórmulas jugables.
+No se modifica balance, contenido, persistencia, Phaser, Electron ni fórmulas jugables. Como limpieza adicional realizada por el usuario antes del commit funcional final, se eliminó `assets/imagenes/jugador/old/`, que contenía siete PNG históricos sin referencias runtime.
 
 ## Resultado de la auditoría
 
@@ -109,7 +111,15 @@ Player.registrarExperienciaMaestria()
 
 ## Archivos eliminados
 
-Ninguno.
+- `assets/imagenes/jugador/old/guerrero.png`
+- `assets/imagenes/jugador/old/guerrero2.png`
+- `assets/imagenes/jugador/old/guerrero_derecha.png`
+- `assets/imagenes/jugador/old/mago.png`
+- `assets/imagenes/jugador/old/mago3.png`
+- `assets/imagenes/jugador/old/rogue.png`
+- `assets/imagenes/jugador/old/rogue3.png`
+
+La carpeta `assets/imagenes/jugador/old/` ya no existe en el commit `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`.
 
 ## Dependencias y versiones
 
@@ -137,7 +147,7 @@ No se modifica Electron. `electron/main.js` mantiene `nodeIntegration: false`, `
 
 | Prueba | Resultado | Estado |
 |---|---|---|
-| Ruta/rama/HEAD/origin | `main`, `e47d2ca...`, origin coincidente | Correcto |
+| Ruta/rama/HEAD/origin final funcional | `main`, `bf4939e...`, origin coincidente | Correcto |
 | Git inicial | árbol limpio | Correcto |
 | Sintaxis JS | 277 archivos | Correcto |
 | JSON | 38 archivos | Correcto |
@@ -160,48 +170,64 @@ No se modifica Electron. `electron/main.js` mantiene `nodeIntegration: false`, `
 | `git diff --check` | sin errores | Correcto |
 | HTTP recursos críticos | 200, sin 404 | Correcto |
 | Chromium headless | bloqueo del entorno DBus | Pendiente |
-| Juego manual | requiere validación del usuario | Pendiente |
+| Juego manual | validación satisfactoria informada por el usuario | Correcto |
 | Electron manual | no ejecutado en este entorno | Pendiente |
 
-## Pruebas manuales solicitadas al usuario
+## Validación manual realizada por el usuario
 
-1. iniciar una partida y comprobar consola sin errores;
-2. abrir Personaje, Objetos y Habilidades;
-3. aprender o mejorar una pasiva y verificar actualización inmediata;
-4. lanzar una Aura y una Maldición y verificar aplicación, HUD y expiración;
-5. comprobar una habilidad afectada por una pasiva de atributo interno;
-6. comprobar XP de una maestría mágica mediante consumo de Maná;
-7. comprobar XP de arma y una fuente defensiva (Armadura o Bloqueo);
-8. desde consola, ejecutar una inyección de XP de depuración y verificar que la herramienta sigue disponible;
-9. guardar/cargar y comprobar progreso, equipo y barra;
-10. revisar consola durante el recorrido.
+El usuario informó que las pruebas manuales solicitadas fueron **satisfactorias**. Esto cubre la regresión funcional requerida para HP-AUD sobre arranque, interfaz relacionada, pasivas/Auras/Maldiciones, progresión de maestrías, depuración y guardado/carga según el conjunto de pruebas solicitado en la entrega previa.
+
+No se reclasifica Chromium headless como ejecutado: continúa limitado por DBus/proceso gráfico en el entorno de trabajo. Electron tampoco se declara ejecutado por esta auditoría porque HP-AUD no modificó su integración ni instaló dependencias.
 
 ## Riesgos pendientes
 
-- La regresión jugable visual/manual todavía debe ser validada por el usuario.
-- Chromium headless no es certificable en este entorno por DBus.
-- Los assets históricos bajo `assets/imagenes/jugador/old/` permanecen fuera del alcance de HP-AUD.
-- El balance fino documentado en el Plan Maestro continúa abierto y no forma parte de esta auditoría.
+- Chromium headless continúa sin ser certificable en este entorno por DBus; no bloquea el cierre porque la regresión manual fue satisfactoria.
+- El balance fino y las decisiones de contenido futuro documentadas en el Plan Maestro permanecen fuera de HP-AUD.
+- No quedan riesgos arquitectónicos conocidos derivados de los tres hallazgos corregidos.
 
 ## Criterio de cierre
 
-HP-AUD podrá marcarse **Cerrada** cuando el usuario confirme las pruebas manuales anteriores o una regresión equivalente. En ese momento corresponde actualizar este documento/Plan con el cierre y proponer el commit definitivo sin añadir cambios funcionales.
+El criterio funcional de HP-AUD está **cumplido**: las correcciones aprobadas están implementadas, la validación automática es satisfactoria y el usuario confirmó las pruebas manuales.
 
-## Conventional Commit propuesto
+El commit funcional verificado es:
 
 ```text
-refactor(habilidades): cerrar deuda detectada en auditoría post-hito
-
-- centralizar el escalado de magnitudes de modificadores en el contrato común;
-- retirar del Player el bypass de XP y conservar la inyección explícita de depuración;
-- restaurar y actualizar el README funcional al estado posterior a HP6;
-- documentar HP-AUD y la certificación arquitectónica del hito;
-- validar sintaxis, JSON, imports, ciclos, catálogos, escalado, acumulaciones, XP y recursos web.
+bf4939e08a2bc9b5f0c660a8368483d7fdd9460e
 ```
 
-No realizar este commit hasta completar la validación manual y aprobar el cierre.
+Ese commit también elimina los siete PNG históricos de `assets/imagenes/jugador/old/` y deja `main`, `HEAD` y `origin/main` coincidentes con árbol limpio bajo la política CRLF correcta.
 
-## ENLACE PARA LA SIGUIENTE ETAPA — PROVISIONAL
+Este ajuste de cierre modifica únicamente documentación **después** de `bf4939e...`; por ello requiere un último commit documental del usuario. No se inventa su SHA en este documento.
+
+## Commit funcional verificado
+
+```text
+refactor(habilidades): cerrar auditoría post-hito y eliminar deuda residual
+
+- centraliza el escalado de magnitudes de modificadores en el contrato canónico;
+- elimina la vía productiva directa de XP de maestrías y conserva la inyección explícita de depuración;
+- restaura y actualiza el README funcional del proyecto;
+- certifica la ausencia de motores canónicos duplicados y restos productivos de HP1-HP6;
+- elimina los assets antiguos sin referencias de assets/imagenes/jugador/old;
+- valida modificadores, habilidades, efectos, progresión, persistencia y recursos web;
+- incorpora la validación manual satisfactoria de cierre de HP-AUD;
+- actualiza Plan Maestro y documentación de entrega.
+```
+
+SHA verificado: `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`.
+
+## Conventional Commit propuesto para este cierre documental
+
+```text
+docs(habilidades): cerrar documentalmente HP-AUD
+
+- registrar la validación manual satisfactoria del usuario;
+- incorporar la eliminación de assets históricos al alcance final certificado;
+- actualizar HEAD, estado Git y riesgos de la entrega;
+- cerrar HP-AUD en el Plan Maestro y dejar preparado el enlace para el próximo hito.
+```
+
+## ENLACE PARA LA SIGUIENTE ETAPA
 
 ---------------- INICIO DEL ENLACE ----------------
 
@@ -212,16 +238,16 @@ ETAPA CERRADA:
 HP-AUD — Auditoría post-hito de habilidades y modificadores.
 
 ESTADO:
-Pausada.
+Cerrada.
 
 COMMIT BASE:
 `e47d2caef9257e64cd663fc8bbc49852b19f163e`
 
 HEAD FINAL VERIFICADO:
-`e47d2caef9257e64cd663fc8bbc49852b19f163e` antes del commit final del usuario.
+`bf4939e08a2bc9b5f0c660a8368483d7fdd9460e` para la implementación funcional auditada. El cierre documental posterior requiere un commit `docs` adicional cuyo SHA todavía no existe.
 
 GIT STATUS FINAL:
-Árbol de trabajo con los cambios implementados de HP-AUD; no se realizó commit ni push.
+El ZIP recibido con HEAD `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e` está limpio con `core.autocrlf=true` y coincide con `origin/main`. La aplicación de este cierre documental deja únicamente los documentos de cierre modificados hasta que el usuario realice el commit `docs` final.
 
 DOCUMENTO DE ENTREGA:
 `docs/habilidades/entregas/ENTREGA_HP_AUD.md`
@@ -231,16 +257,17 @@ DOCUMENTOS MAESTROS ACTUALIZADOS:
 - `docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md`: Sin cambios.
 
 OBJETIVO QUE SE COMPLETÓ:
-Auditar transversalmente HP1–HP6 y corregir tres deudas concretas sin crear HP7 ni ampliar el alcance funcional.
+Auditar transversalmente HP1–HP6, corregir deuda demostrada sin crear HP7 y certificar que no quedan dobles motores canónicos conocidos dentro del hito.
 
 ARQUITECTURA HEREDADA:
-Un único `SistemaModificadoresCombatiente`, una única `ConfiguracionHabilidadEfectiva` derivada, un único `SistemaExperienciaMaestrias` productivo, un único `SistemaEfectosTemporales` y persistencia de fuentes canónicas.
+Un único `SistemaModificadoresCombatiente`, una única `ConfiguracionHabilidadEfectiva` derivada, un único `SistemaExperienciaMaestrias` productivo, un único `SistemaEfectosTemporales` y persistencia basada en fuentes canónicas. Phaser/HTML representan resultados y no recalculan reglas.
 
 ARCHIVOS CLAVE:
 - `src/juego/modificadores/ContratosModificadoresCombatiente.js`: contrato y semántica común de escalado.
 - `src/juego/modificadores/SistemaModificadoresCombatiente.js`: resolutor canónico único.
 - `src/juego/maestrias/SistemaExperienciaMaestrias.js`: traductor productivo único de XP.
-- `README.md`: guía funcional del estado real del repositorio.
+- `README.md`: guía funcional restaurada del estado real del repositorio.
+- `docs/habilidades/entregas/ENTREGA_HP_AUD.md`: certificación final del hito auditado.
 
 DEPENDENCIAS Y VERSIONES:
 Ninguna nueva. Phaser 4.2.1; Electron 43.3.0; @electron/packager 20.0.1.
@@ -248,51 +275,58 @@ Ninguna nueva. Phaser 4.2.1; Electron 43.3.0; @electron/packager 20.0.1.
 PRUEBAS CLAVE SUPERADAS:
 - equivalencia 40/40 del escalado anterior frente a la función centralizada;
 - acumulación temporal y snapshot de Potencia de Efectos sin regresión;
-- 0 imports faltantes, 0 ciclos y catálogos HP completos válidos;
-- bypass productivo de XP retirado del Player y recursos web críticos en HTTP 200.
+- 0 imports relativos faltantes, 0 ciclos y catálogos HP completos válidos;
+- bypass productivo de XP retirado del Player y recursos web críticos en HTTP 200;
+- validación manual de gameplay informada como satisfactoria por el usuario;
+- `main`, HEAD y `origin/main` funcionales coincidentes en `bf4939e...` con árbol limpio.
 
 PROBLEMAS O RIESGOS PENDIENTES:
-- validación manual de gameplay por el usuario;
-- Chromium headless limitado por DBus en este entorno;
-- balance futuro y assets históricos fuera del alcance.
+- Chromium headless limitado por DBus en el entorno de auditoría, sin reclasificar como ejecutado;
+- balance y contenido futuro permanecen como decisiones separadas del hito cerrado.
 
 DECISIONES APROBADAS:
 - no crear HP7;
 - ejecutar HP-AUD como auditoría post-hito;
 - centralizar el escalado duplicado;
 - retirar el bypass directo de XP del Player conservando soporte explícito de depuración;
-- restaurar README como documento funcional.
+- restaurar README como documento funcional;
+- eliminar la carpeta histórica `assets/imagenes/jugador/old/` al confirmarse sin referencias runtime;
+- cerrar HP-AUD tras pruebas manuales satisfactorias.
 
 DECISIONES QUE SIGUEN ABIERTAS:
-Las decisiones de balance y contenido futuro ya enumeradas en el Plan Maestro.
+Las decisiones de balance y contenido futuro ya enumeradas en el Plan Maestro; no pertenecen automáticamente a una nueva etapa HP.
 
 SIGUIENTE ETAPA RECOMENDADA:
-Por definir después de cerrar HP-AUD.
+Ninguna etapa HP automática. El próximo hito debe definirse mediante una nueva propuesta independiente.
 
 OBJETIVO DE LA SIGUIENTE ETAPA:
-Debe definirse mediante una nueva propuesta y no pertenece automáticamente al hito HP.
+Por definir en el documento maestro del próximo hito aprobado.
 
 PRIMEROS ARCHIVOS A REVISAR:
 - `README.md`
 - `docs/habilidades/PLAN_MAESTRO_HABILIDADES_PASIVAS_DARK_MOON.md`
-- el documento maestro del próximo hito aprobado.
+- el documento maestro correspondiente al próximo hito aprobado.
 
 NO MODIFICAR SIN NUEVA APROBACIÓN:
 - semántica de `SistemaModificadoresCombatiente`;
 - `ProgresoHabilidadesJugador` / `SistemaExperienciaMaestrias`;
 - `SistemaEfectosTemporales`, Auras y Maldiciones;
-- balance y persistencia.
+- contratos de persistencia;
+- balance del hito cerrado.
 
 CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
 Debe definirse en la propuesta correspondiente.
 
 CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
-`refactor(habilidades): cerrar deuda detectada en auditoría post-hito`
+`refactor(habilidades): cerrar auditoría post-hito y eliminar deuda residual`
 
-- centralizar el escalado de magnitudes de modificadores en el contrato común;
-- retirar del Player el bypass de XP y conservar la inyección explícita de depuración;
-- restaurar y actualizar el README funcional al estado posterior a HP6;
-- documentar HP-AUD y la certificación arquitectónica del hito;
-- validar sintaxis, JSON, imports, ciclos, catálogos, escalado, acumulaciones, XP y recursos web.
+- centraliza el escalado de magnitudes de modificadores en el contrato canónico;
+- elimina la vía productiva directa de XP de maestrías y conserva la inyección explícita de depuración;
+- restaura y actualiza el README funcional del proyecto;
+- certifica la ausencia de motores canónicos duplicados y restos productivos de HP1-HP6;
+- elimina los assets antiguos sin referencias de `assets/imagenes/jugador/old/`;
+- valida modificadores, habilidades, efectos, progresión, persistencia y recursos web;
+- incorpora la validación manual satisfactoria de cierre de HP-AUD;
+- actualiza Plan Maestro y documentación de entrega.
 
 ----------------- FIN DEL ENLACE -----------------

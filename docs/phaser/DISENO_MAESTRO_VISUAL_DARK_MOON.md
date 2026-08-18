@@ -2051,13 +2051,13 @@ Reglas de aplicación:
 
 ### V-037 — Personaje, Objetos y desglose visual
 
-Personaje utiliza el ancho completo. Equipamiento se integra visualmente con Inventario en `Objetos`, manteniendo responsabilidades técnicas separadas. Los valores detallables no usan tooltip nativo: un clic abre un modal propio que distingue base, bonificación, penalización, multiplicador, límite y resultado. La interfaz consume resoluciones canónicas ya producidas y no reconstruye fórmulas.
+Personaje utiliza el ancho completo. Equipamiento se integra visualmente con Inventario en `Objetos`, manteniendo responsabilidades técnicas separadas. El panel superpuesto muestra una sola cabecera `Personaje`; no se repite un segundo título dentro del contenido. Los valores detallables no usan tooltip nativo: un clic abre un modal propio que distingue base, bonificación, penalización, multiplicador, límite y resultado. La interfaz consume resoluciones canónicas ya producidas y no reconstruye fórmulas.
 
 Los afijos muestran `Prefijo/Sufijo` y `Objeto/Portador`; este último consume directamente `ambito`.
 
 ### V-038 — Iconografía completa y excepción de Maldiciones funcionales
 
-`Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 104 contenidos actuales deben tener icono 1:1 legible. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
+`Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 104 contenidos actuales deben tener icono 1:1 legible y quedan normalizados físicamente a 128×128 tras el ajuste correctivo posterior a HP6. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
 
 ### V-039 — Árbol genérico y detalle contextual de habilidades
 
@@ -2069,6 +2069,6 @@ El clic sobre un nodo abre un detalle propio. El formato se deriva del contenido
 
 ### V-040 — Auras y Maldiciones activas en HUD
 
-El HUD muestra Auras a la izquierda y Maldiciones a la derecha, encima de experiencia/barra rápida. Cada estado reutiliza el icono de la habilidad que aplica el efecto y muestra en una esquina los turnos de referencia restantes mediante la conversión visual basada en `TIEMPO_REFERENCIA`. No existe un reloj, intervalo ni duración paralelos de presentación.
+El HUD muestra Auras a la izquierda y Maldiciones a la derecha, encima de experiencia/barra rápida. Cada estado reutiliza el icono de la habilidad que aplica el efecto y muestra en una esquina los turnos de referencia restantes mediante la conversión visual basada en `TIEMPO_REFERENCIA`. La sección detallada `Efectos activos` del Panel Personaje resuelve el mismo recurso mediante la configuración canónica de ejecución (`efectoId → habilidad → icono`), evitando fallbacks de letra cuando existe icono. No existe un reloj, intervalo ni duración paralelos de presentación.
 
 El Player no mantiene una representación persistente de efectos etiquetados `aura` o `maldicion`, porque la lectura permanente pasa al HUD. Se conservan los feedbacks transitorios de aplicación, actualización, dispersión/emisión y vencimiento. Esta supresión persistente es específica de la representación del Player y no elimina la lectura visual de estados en enemigos u otros combatientes.

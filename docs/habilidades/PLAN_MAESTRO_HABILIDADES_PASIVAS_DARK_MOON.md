@@ -2148,7 +2148,7 @@ Las relaciones del árbol quedaron cerradas con dos reglas de presentación, sin
 
 Cada nodo muestra solo el icono y `grado/gradoMaximo`; una habilidad no aprendida se atenúa y una bloqueada por nivel se atenúa aún más. El clic abre un detalle contextual que clasifica el contenido por datos en `Pasiva`, `Aura`, `Maldición` u `Ofensiva`. Cada formato muestra únicamente campos pertinentes —una Aura no presenta `Daño base: —`— y las activas utilizan `ConfiguracionHabilidadEfectiva` para exponer los mismos valores efectivos usados por ejecución/barra. Desde el detalle se aprende/mejora y, cuando corresponde, se asigna o retira de la barra sin crear una segunda progresión.
 
-La ventana de Habilidades prioriza la vista completa del árbol y los recursos se muestran con mayor tamaño en árbol, detalle, barra rápida y estados temporales. HP6 **no modifica ni redimensiona archivos de icono**: la normalización física de los recursos a 128×128 queda separada de esta transformación de presentación.
+La ventana de Habilidades prioriza la vista completa del árbol y los recursos se muestran con mayor tamaño en árbol, detalle, barra rápida y estados temporales. La implementación base de HP6 no redimensionó recursos; el ajuste correctivo posterior al commit `d526797646348ac44000f823da3a1e9de22c0cc4` normaliza los seis iconos restantes de 1254×1254 a 128×128, dejando el catálogo completo en 128×128 sin cambiar `Habilidades.json.icono`.
 
 Auras y Maldiciones activas se muestran compactamente encima de experiencia/barra rápida, reutilizando el icono de la habilidad que aplica cada efecto y mostrando turnos de referencia restantes mediante `ceil((venceEn - tiempoActual) / TIEMPO_REFERENCIA)`, sin temporizador paralelo. El Player deja de conservar la representación persistente de efectos etiquetados `aura`/`maldicion`; aplicación, actualización, dispersión/emisión y demás feedback transitorio se mantienen. En otros combatientes la representación persistente sigue disponible.
 
@@ -2513,13 +2513,15 @@ Quedan aprobadas como dirección del hito:
 54. el detalle de una habilidad se abre por clic y usa presentaciones específicas `Pasiva/Aura/Maldición/Ofensiva`, mostrando únicamente campos aplicables;
 55. los valores activos del detalle se obtienen mediante `ConfiguracionHabilidadEfectiva` y la interfaz no recalcula atributos de habilidad;
 56. aprender/mejorar y gestionar la barra desde el detalle reutiliza `ProgresoHabilidadesJugador` y `SistemaHabilidadesJugador` sin una ruta paralela;
-57. HP6 aumenta únicamente el tamaño de presentación de iconos; no modifica ni redimensiona los PNG fuente;
+57. HP6 aumenta el tamaño de presentación de iconos y el ajuste correctivo posterior al cierre normaliza a 128×128 los seis PNG que aún estaban sobredimensionados, sin cambiar rutas ni contratos;
 58. Auras y Maldiciones activas se presentan en HUD con icono y turnos de referencia restantes, derivados del efecto temporal real y sin temporizador visual paralelo;
 59. el Player no conserva la representación persistente de efectos etiquetados `aura`/`maldicion`, pero mantiene feedback transitorio; otros combatientes conservan su lectura persistente;
 60. HP6 no modifica balance, XP, puntos, persistencia ni reglas canónicas de combate o progresión.
 61. una relación de Afinidad basada en `danoHabilidad` solo se dibuja hacia habilidades activas de la misma maestría que produzcan daño real directo o periódico; no se conecta a Auras, Maldiciones ni activas sin daño;
 62. la detección de daño para el árbol consulta la configuración canónica de ejecución, mientras la definición del modificador de la pasiva continúa proviniendo de progreso/configuración de habilidades;
 63. las pruebas manuales finales de HP6 fueron declaradas satisfactorias por el usuario el 18/08/2026 y el hito de habilidades/pasivas queda cerrado documentalmente.
+64. el Panel Personaje no repite un título interno dentro del panel superpuesto; la cabecera externa es la única cabecera visible;
+65. `Efectos activos` resuelve sus iconos mediante la configuración canónica de ejecución (`efectoId → habilidad → icono`) y no mediante el catálogo reducido de progreso.
 
 ---
 

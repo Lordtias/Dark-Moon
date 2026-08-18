@@ -443,7 +443,11 @@ body.interfaz-captura-entrada .barra-habilidades {
 }
 
 /* HP5: Personaje completo + Objetos unificados. */
-.panel-superpuesto-partida__contenido--personaje { overflow: hidden; }
+#panelSuperpuestoPersonaje {
+  height: min(900px, calc(100vh - 12px));
+  max-height: calc(100vh - 12px);
+}
+.panel-superpuesto-partida__contenido--personaje { overflow: hidden; padding: 10px; }
 .panel-superpuesto-partida__contenido--personaje > .panel-personaje { width: 100%; height: 100%; max-height: none; }
 .panel-superpuesto-partida__contenido--objetos { display:grid; grid-template-columns:minmax(290px,.72fr) minmax(0,1.28fr); gap:14px; overflow:hidden; }
 .panel-superpuesto-partida__contenido--objetos > .panel-juego { min-height:0; height:100%; }

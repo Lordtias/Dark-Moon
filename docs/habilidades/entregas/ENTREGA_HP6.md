@@ -125,7 +125,7 @@ Presentación objetivo:
 
 Existen reducciones responsive para viewports pequeños, manteniendo tamaños superiores o equivalentes a los anteriores.
 
-**HP6 no modifica ni redimensiona ningún archivo PNG de habilidad.** La normalización física de iconos a 128×128 queda fuera de esta transformación y puede realizarse separadamente sin modificar el contrato `Habilidades.json.icono`.
+La implementación base de HP6 no redimensionó los PNG. En el ajuste correctivo posterior al commit `d526797646348ac44000f823da3a1e9de22c0cc4` se normalizaron los seis iconos que aún estaban en 1254×1254 a **128×128**, sin cambiar rutas ni el contrato `Habilidades.json.icono`.
 
 ## 8. Auras y Maldiciones en HUD
 
@@ -223,6 +223,16 @@ HP6 queda **Cerrada**. No se realizó commit ni push desde esta entrega. El comm
 
 La prueba headless de Chromium que había quedado limitada por DBus/proceso gráfico no se reclasifica retroactivamente como ejecutada; el cierre se sustenta en la validación técnica reproducible y en la validación manual informada por el usuario.
 
+## Ajustes correctivos posteriores al commit de cierre
+
+Sobre `d526797646348ac44000f823da3a1e9de22c0cc4` se incorporan tres correcciones visuales sin alterar lógica jugable:
+
+- los seis PNG de habilidades que seguían en 1254×1254 se normalizan a 128×128;
+- se retira el título interno azul `Personaje` del contenido clonado, conservando únicamente el título del panel superpuesto;
+- `PanelPersonaje` recibe también la configuración canónica de ejecución para resolver `efectoId → habilidad → icono`, por lo que Auras y Maldiciones activas como Manto Ígneo muestran su PNG real en `Efectos activos` en vez del fallback de letra.
+
+No se cambia `SistemaEfectosTemporales`, persistencia, balance ni contratos de ejecución.
+
 ## 14. ENLACE PARA LA SIGUIENTE ETAPA
 
 ---------------- INICIO DEL ENLACE ----------------
@@ -276,7 +286,7 @@ PRUEBAS CLAVE SUPERADAS:
 
 PROBLEMAS O RIESGOS PENDIENTES:
 - el balance fino de pasivas, auras, maldiciones, XP y puntos continúa como trabajo futuro ya documentado;
-- la normalización física de todos los iconos a 128×128 queda a cargo del usuario y no forma parte de HP6;
+- los 104 iconos de habilidades quedan normalizados a 128×128 tras el ajuste correctivo posterior al cierre;
 - la ejecución headless con Chromium no pudo certificarse en el entorno de trabajo por limitaciones DBus/proceso gráfico.
 
 DECISIONES APROBADAS:

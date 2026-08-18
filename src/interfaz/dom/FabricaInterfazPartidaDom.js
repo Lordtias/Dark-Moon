@@ -45,6 +45,7 @@ export function crearInterfazPartidaDom({
       "plantilla del panel del personaje",
     ),
     configuracionHabilidades: obtenerConfiguracionProgresoHabilidades(),
+    configuracionEjecucionHabilidades: obtenerConfiguracionEjecucionHabilidades(),
   });
 
   const panelInventario = new PanelInventario({

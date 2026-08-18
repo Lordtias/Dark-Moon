@@ -1,10 +1,10 @@
 # PLAN MAESTRO — HABILIDADES PASIVAS Y MODIFICADORES CANÓNICOS
 
-**Proyecto:** Dark Moon  
-**Hito:** Habilidades pasivas  
-**Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.  
-**Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.  
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4 y HP5 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`. HP5 fue implementada sobre ese SHA y sus pruebas manuales, incluido el ajuste de desglose de atributos y Mitigación de bloqueo, fueron superadas y aprobadas por el usuario el 18/08/2026. El árbol de habilidades y los estados compactos en HUD se reservan expresamente para HP6.
+**Proyecto:** Dark Moon
+**Hito:** Habilidades pasivas
+**Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
+**Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
+**Estado:** Plan maestro rector. HP0 quedó documentada y HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`, HP5 en `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc` y HP6 queda cerrada documentalmente tras la validación manual satisfactoria informada por el usuario el 18/08/2026. El hito de habilidades/pasivas queda completado; no se avanza automáticamente a una nueva etapa.
 
 ---
 
@@ -2139,13 +2139,20 @@ No se incorpora drag & drop a ranura concreta porque el contrato jugable actual 
 
 ### HP6 — Árbol genérico, estados en HUD y cierre
 
-**Estado:** Planificada; no implementada en HP5.
+**Base:** `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc`
+**Estado:** Cerrada. Implementación, validación técnica y pruebas manuales superadas y aprobadas por el usuario el 18/08/2026. El commit final queda a cargo del usuario.
 
-`OrganizadorArbolHabilidades` será genérico para **todas** las maestrías/habilidades. Ordenará verticalmente por `requisitoNivelMaestria`, distribuirá nodos del mismo nivel y dibujará únicamente relaciones respaldadas por datos canónicos. Las futuras habilidades físicas activas entrarán por la misma ruta; no habrá ramas `magia/físico` ni coordenadas manuales por ID.
+`OrganizadorArbolHabilidades` es genérico para **todas** las maestrías/habilidades. Ordena verticalmente por `requisitoNivelMaestria`, distribuye los nodos del mismo nivel y dibuja únicamente relaciones respaldadas por datos canónicos. No contiene ramas `magia/físico`, coordenadas manuales por ID ni un eje artificial para maestrías con pocos nodos: si una maestría física actual no dispone de relaciones, sus iconos quedan simplemente ordenados por nivel hasta que futuro contenido forme un grafo real.
 
-Auras y Maldiciones activas se mostrarán compactamente alrededor de experiencia/barra rápida, reutilizando `Habilidades.json.icono` y mostrando turnos de referencia restantes como conversión visual de `TIEMPO_REFERENCIA`, sin temporizador paralelo. Cuando exista esa lectura se retirará solo el punto brillante persistente del Player, manteniendo activación, dispersión/emisión, aplicación y vencimiento.
+Las relaciones del árbol quedaron cerradas con dos reglas de presentación, sin crear requisitos nuevos: las pasivas con `condiciones.idHabilidad` se conectan a esa habilidad concreta; las pasivas cuyo modificador objetivo es `danoHabilidad` y cuyo ámbito usa `maestriaHabilidad` se conectan únicamente a habilidades activas de esa maestría que realmente producen daño directo o daño periódico canónico. Para comprobar daño se usa la configuración de ejecución, no el catálogo de progresión. Auras, Maldiciones y activas sin daño no reciben esas conexiones. Las cuatro Afinidades elementales quedan por tanto conectadas solo con las ofensivas dañinas correspondientes; las maestrías físicas actuales continúan sin relaciones artificiales cuando sus datos no declaran ninguna.
 
-HP6 realizará además la regresión Web/Electron y cierre final del hito.
+Cada nodo muestra solo el icono y `grado/gradoMaximo`; una habilidad no aprendida se atenúa y una bloqueada por nivel se atenúa aún más. El clic abre un detalle contextual que clasifica el contenido por datos en `Pasiva`, `Aura`, `Maldición` u `Ofensiva`. Cada formato muestra únicamente campos pertinentes —una Aura no presenta `Daño base: —`— y las activas utilizan `ConfiguracionHabilidadEfectiva` para exponer los mismos valores efectivos usados por ejecución/barra. Desde el detalle se aprende/mejora y, cuando corresponde, se asigna o retira de la barra sin crear una segunda progresión.
+
+La ventana de Habilidades prioriza la vista completa del árbol y los recursos se muestran con mayor tamaño en árbol, detalle, barra rápida y estados temporales. HP6 **no modifica ni redimensiona archivos de icono**: la normalización física de los recursos a 128×128 queda separada de esta transformación de presentación.
+
+Auras y Maldiciones activas se muestran compactamente encima de experiencia/barra rápida, reutilizando el icono de la habilidad que aplica cada efecto y mostrando turnos de referencia restantes mediante `ceil((venceEn - tiempoActual) / TIEMPO_REFERENCIA)`, sin temporizador paralelo. El Player deja de conservar la representación persistente de efectos etiquetados `aura`/`maldicion`; aplicación, actualización, dispersión/emisión y demás feedback transitorio se mantienen. En otros combatientes la representación persistente sigue disponible.
+
+HP6 conserva `ObservadorCambiosEstadoJugador` como único canal de invalidación y no modifica balance, XP, puntos, persistencia ni reglas canónicas de combate/progresión. Las pruebas manuales acordadas fueron informadas como satisfactorias por el usuario y HP6 queda cerrada documentalmente.
 
 ---
 
@@ -2499,7 +2506,20 @@ Quedan aprobadas como dirección del hito:
 47. HP5 debe mostrar Potencia de Habilidad, revisar el nombre Magia/Habilidades, mostrar el ámbito de los afijos y diseñar iconografía definitiva de pasivas;
 48. HP5 completa la iconografía definitiva de auras/maldiciones: las Vulnerabilidades elementales conservan identidad de afinidad y las ocho Maldiciones funcionales poseen identidad visual propia;
 49. `precisionHechizos`, `danoElementalGlobal`, `potenciaAura`, atributos primarios, robos y hallazgo permanecen pendientes de decisión explícita;
-50. cualquier futura transformación estructural de habilidades requiere nueva aprobación y un contrato específico.
+50. cualquier futura transformación estructural de habilidades requiere nueva aprobación y un contrato específico;
+51. HP6 utiliza un único `OrganizadorArbolHabilidades` para todas las maestrías, sin condiciones magia/físico ni disposición manual por ID;
+52. una maestría con pocas habilidades puede quedar sin conexiones; no se generan ejes, ramas ni dependencias ficticias para completar visualmente el árbol;
+53. los nodos del árbol muestran solo icono y `grado/maximo`, con opacidad reducida cuando no están aprendidos y mayor atenuación cuando están bloqueados por nivel;
+54. el detalle de una habilidad se abre por clic y usa presentaciones específicas `Pasiva/Aura/Maldición/Ofensiva`, mostrando únicamente campos aplicables;
+55. los valores activos del detalle se obtienen mediante `ConfiguracionHabilidadEfectiva` y la interfaz no recalcula atributos de habilidad;
+56. aprender/mejorar y gestionar la barra desde el detalle reutiliza `ProgresoHabilidadesJugador` y `SistemaHabilidadesJugador` sin una ruta paralela;
+57. HP6 aumenta únicamente el tamaño de presentación de iconos; no modifica ni redimensiona los PNG fuente;
+58. Auras y Maldiciones activas se presentan en HUD con icono y turnos de referencia restantes, derivados del efecto temporal real y sin temporizador visual paralelo;
+59. el Player no conserva la representación persistente de efectos etiquetados `aura`/`maldicion`, pero mantiene feedback transitorio; otros combatientes conservan su lectura persistente;
+60. HP6 no modifica balance, XP, puntos, persistencia ni reglas canónicas de combate o progresión.
+61. una relación de Afinidad basada en `danoHabilidad` solo se dibuja hacia habilidades activas de la misma maestría que produzcan daño real directo o periódico; no se conecta a Auras, Maldiciones ni activas sin daño;
+62. la detección de daño para el árbol consulta la configuración canónica de ejecución, mientras la definición del modificador de la pasiva continúa proviniendo de progreso/configuración de habilidades;
+63. las pruebas manuales finales de HP6 fueron declaradas satisfactorias por el usuario el 18/08/2026 y el hito de habilidades/pasivas queda cerrado documentalmente.
 
 ---
 

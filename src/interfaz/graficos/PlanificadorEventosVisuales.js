@@ -766,6 +766,11 @@ function normalizarEventoEfectoTemporal(evento, entidadesPorId) {
       venceEn: Number.isFinite(evento.venceEn) ? evento.venceEn : null,
       proximoTick: Number.isFinite(evento.proximoTick) ? evento.proximoTick : null,
       beneficioso: evento.beneficioso === true || definicion?.beneficioso === true,
+      etiquetas: Array.isArray(evento.etiquetas)
+        ? [...evento.etiquetas]
+        : Array.isArray(definicion?.etiquetas)
+          ? [...definicion.etiquetas]
+          : [],
       perfilVisual: obtenerPerfilEstadoTemporalVisual(catalogoEfectoId),
     }),
   });

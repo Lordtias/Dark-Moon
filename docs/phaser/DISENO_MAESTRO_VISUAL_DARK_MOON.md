@@ -2059,6 +2059,16 @@ Los afijos muestran `Prefijo/Sufijo` y `Objeto/Portador`; este último consume d
 
 `Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 104 contenidos actuales deben tener icono 1:1 legible. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
 
-### V-039 — Reserva HP6
+### V-039 — Árbol genérico y detalle contextual de habilidades
 
-El árbol futuro usa `OrganizadorArbolHabilidades` para todas las maestrías y habilidades, ordenando por requisitos canónicos y dibujando solo relaciones reales. Auras/Maldiciones se mostrarán además en HUD con su icono y turnos de referencia restantes. Cuando esa lectura exista se retira únicamente el punto brillante persistente del Player, manteniendo activación, dispersión/emisión, aplicación y vencimiento.
+`OrganizadorArbolHabilidades` se aplica a todas las maestrías y habilidades sin distinguir magia, armas o armaduras. El eje vertical deriva exclusivamente de `requisitoNivelMaestria`; los nodos del mismo nivel se distribuyen automáticamente. Solo se dibujan relaciones inferibles desde configuración canónica. No existen posiciones por ID, ramas especiales para maestrías físicas ni un eje artificial para completar visualmente árboles todavía escasos. Las relaciones específicas declaradas mediante `idHabilidad` conectan la Pasiva con esa habilidad concreta. Una Pasiva cuyo modificador sea `danoHabilidad` y cuyo ámbito sea una maestría puede dibujar relaciones punteadas únicamente hacia las habilidades activas de esa misma maestría que produzcan daño real directo o periódico según la configuración canónica de ejecución. Esa relación visual significa «modifica el daño de» y no una dependencia de aprendizaje; Auras, Maldiciones y activas sin daño quedan excluidas.
+
+Cada nodo muestra exclusivamente el icono y el grado `actual/máximo`. Las habilidades sin aprender usan menor opacidad; las bloqueadas por nivel se atenúan más. El árbol debe priorizar verse completo y la ventana de Habilidades usa casi todo el viewport disponible. Los iconos se presentan a mayor tamaño sin alterar los archivos fuente.
+
+El clic sobre un nodo abre un detalle propio. El formato se deriva del contenido y se divide en `Pasiva`, `Aura`, `Maldición` u `Ofensiva`; solo aparecen campos pertinentes. Las Auras no muestran daño inexistente, las Maldiciones exponen probabilidad/duración/resistencia cuando corresponda, las Ofensivas pueden exponer daño directo, efectos o zonas, y las Pasivas muestran sus modificadores y ámbito de aplicación. Las activas leen valores efectivos desde `ConfiguracionHabilidadEfectiva`. Aprender, mejorar y gestionar la barra se realizan desde ese detalle sin replicar reglas de progresión.
+
+### V-040 — Auras y Maldiciones activas en HUD
+
+El HUD muestra Auras a la izquierda y Maldiciones a la derecha, encima de experiencia/barra rápida. Cada estado reutiliza el icono de la habilidad que aplica el efecto y muestra en una esquina los turnos de referencia restantes mediante la conversión visual basada en `TIEMPO_REFERENCIA`. No existe un reloj, intervalo ni duración paralelos de presentación.
+
+El Player no mantiene una representación persistente de efectos etiquetados `aura` o `maldicion`, porque la lectura permanente pasa al HUD. Se conservan los feedbacks transitorios de aplicación, actualización, dispersión/emisión y vencimiento. Esta supresión persistente es específica de la representación del Player y no elimina la lectura visual de estados en enemigos u otros combatientes.

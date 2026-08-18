@@ -28,8 +28,13 @@ export async function reproducirEfectoTemporalActualizado(reproductor, evento, v
     evento.efecto,
   ) === true;
   const centro = obtenerCentroEventoEfecto(reproductor, evento);
+  const mantenerFeedbackTransitorio =
+    evento?.tipoObjetivo === "jugador" &&
+    Array.isArray(evento?.efecto?.etiquetas) &&
+    (evento.efecto.etiquetas.includes("aura") ||
+      evento.efecto.etiquetas.includes("maldicion"));
   const pulso =
-    actualizado && !reproductor.efectosReducidos
+    (actualizado || mantenerFeedbackTransitorio) && !reproductor.efectosReducidos
       ? reproductor.creadorEstadosTemporales?.crearPulsoActualizacion({
           centro,
           efecto: evento.efecto,

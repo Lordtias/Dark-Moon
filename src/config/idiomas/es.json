@@ -445,7 +445,13 @@
       "probabilidad": "Probabilidad",
       "duracion": "Duración",
       "radioAura": "Radio de aura",
-      "bloqueaHabilidadesActivas": "Bloquea habilidades activas"
+      "bloqueaHabilidadesActivas": "Bloquea habilidades activas",
+      "tipoAura": "Aura",
+      "tipoMaldicion": "Maldición",
+      "tipoOfensiva": "Ofensiva",
+      "nivelArbol": "Nivel {nivel}",
+      "todaMaestria": "Todas las habilidades de {maestria}",
+      "aplicaA": "Aplica a"
     },
     "mazmorras": {
       "elegir": "Elegir expedición",

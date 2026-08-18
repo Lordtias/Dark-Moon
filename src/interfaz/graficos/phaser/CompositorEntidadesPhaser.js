@@ -140,6 +140,9 @@ export class CompositorEntidadesPhaser {
   establecerEfectoTemporalEntidad(idVisual, efecto) {
     const nodo = this.obtenerNodoEntidad(idVisual);
     if (!nodo?.contenedor || !efecto?.perfilVisual) return false;
+    if (omitirPersistenteEstadoJugador(nodo.entidad?.tipo, efecto)) {
+      return false;
+    }
 
     if (!(nodo.estadosTemporales instanceof Map)) {
       nodo.estadosTemporales = new Map();
@@ -191,6 +194,7 @@ export class CompositorEntidadesPhaser {
 
     const esperados = new Map(
       (Array.isArray(efectos) ? efectos : [])
+        .filter((efecto) => !omitirPersistenteEstadoJugador(nodo.entidad?.tipo, efecto))
         .map((efecto) => [obtenerClaveEstadoTemporal(efecto), efecto])
         .filter(([clave]) => Boolean(clave)),
     );
@@ -366,6 +370,7 @@ export class CompositorEntidadesPhaser {
     const estadosTemporales = this.agregarEstadosTemporales(
       contenedor,
       entidad.efectosTemporales,
+      entidad.tipo,
     );
 
     this.capaEntidades.add(contenedor);
@@ -401,11 +406,12 @@ export class CompositorEntidadesPhaser {
     return nodo;
   }
 
-  agregarEstadosTemporales(contenedor, efectos = []) {
+  agregarEstadosTemporales(contenedor, efectos = [], tipoEntidad = null) {
     const objetos = new Map();
     if (!contenedor || !Array.isArray(efectos)) return objetos;
 
     for (const efecto of efectos) {
+      if (omitirPersistenteEstadoJugador(tipoEntidad, efecto)) continue;
       const clave = obtenerClaveEstadoTemporal(efecto);
       if (!clave || !efecto?.perfilVisual) continue;
       const objeto = this.creadorEstadosTemporales.crearPersistente({ efecto });
@@ -638,6 +644,12 @@ export class CompositorEntidadesPhaser {
 
 export function obtenerCentroEntidadPhaser(posicion) {
   return obtenerCentroEntidad(posicion);
+}
+
+function omitirPersistenteEstadoJugador(tipoEntidad, efecto) {
+  if (tipoEntidad !== TIPOS_ENTIDAD_VISUAL.JUGADOR) return false;
+  const etiquetas = Array.isArray(efecto?.etiquetas) ? efecto.etiquetas : [];
+  return etiquetas.includes("aura") || etiquetas.includes("maldicion");
 }
 
 function obtenerClaveEstadoTemporal(efecto) {

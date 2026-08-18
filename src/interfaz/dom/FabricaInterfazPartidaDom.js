@@ -11,7 +11,10 @@ import { ModalComercio } from "../comercio/ModalComercio.js";
 import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
 import { GestorPanelesPartidaDom } from "./GestorPanelesPartidaDom.js";
 import { HudPartidaDom } from "./HudPartidaDom.js";
-import { obtenerConfiguracionProgresoHabilidades } from "../../juego/maestrias/ContextoProgresoHabilidades.js";
+import {
+  obtenerConfiguracionEjecucionHabilidades,
+  obtenerConfiguracionProgresoHabilidades,
+} from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 
 // Crea los componentes visuales persistentes utilizados durante toda una
 // partida. La fábrica no crea reglas jugables: solamente conecta las vistas
@@ -63,6 +66,7 @@ export function crearInterfazPartidaDom({
   });
 
   const hudPartida = new HudPartidaDom({
+    configuracionHabilidades: obtenerConfiguracionEjecucionHabilidades(),
     elementos: {
       vidaTexto: obtenerElementoObligatorio("hudVidaTexto", "valor de Vida del HUD"),
       vidaRelleno: obtenerElementoObligatorio("hudVidaRelleno", "relleno de Vida del HUD"),
@@ -77,6 +81,8 @@ export function crearInterfazPartidaDom({
         "barra de experiencia del HUD",
       ),
       nivelTexto: obtenerElementoObligatorio("hudNivelTexto", "nivel del HUD"),
+      aurasActivas: obtenerElementoObligatorio("hudAurasActivas", "auras activas del HUD"),
+      maldicionesActivas: obtenerElementoObligatorio("hudMaldicionesActivas", "maldiciones activas del HUD"),
     },
   });
 

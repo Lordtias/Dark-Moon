@@ -1,5 +1,8 @@
 import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
+import { OrganizadorArbolHabilidades } from "./OrganizadorArbolHabilidades.js";
+import { clasificarPresentacionHabilidad } from "./ClasificadorPresentacionHabilidades.js";
+import { crearConfiguracionHabilidadEfectiva } from "../../juego/habilidades/ConfiguracionHabilidadEfectiva.js";
 
 export class PanelHabilidadesMaestrias {
   constructor({
@@ -29,6 +32,7 @@ export class PanelHabilidadesMaestrias {
     this.categoriaActiva = categorias[0].id;
     this.maestriaActiva = null;
     this.idHabilidadSeleccionada = null;
+    this.organizadorArbol = new OrganizadorArbolHabilidades();
     this.manejadores = [];
     asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
     this.dialogo = this.crearDialogo();
@@ -68,12 +72,19 @@ export class PanelHabilidadesMaestrias {
     return false;
   }
   renderizar() {
+    const detalleAbierto =
+      !this.capaAccion.hidden &&
+      Boolean(this.capaAccion.querySelector(".confirmacion-habilidad--detalle")) &&
+      Boolean(this.idHabilidadSeleccionada);
     const resumen = obtenerResumenProgreso(this.jugador);
     this.asegurarSeleccionValida(resumen);
     this.renderizarCabecera(resumen);
     this.renderizarNavegacion();
     this.contenido.replaceChildren();
     this.renderizarCategoria(resumen);
+    if (detalleAbierto && resumen.habilidades[this.idHabilidadSeleccionada]) {
+      queueMicrotask(() => this.abrirDetalleHabilidad(this.idHabilidadSeleccionada));
+    }
   }
   mostrarMensaje(texto, tipo = "informacion") {
     this.mensaje.textContent = texto;
@@ -249,25 +260,40 @@ export class PanelHabilidadesMaestrias {
       "especifico",
     );
     cabecera.append(identidad, puntos);
+
     const progreso = crearProgresoMaestria({
       estado,
       nivelMaximo: this.configuracionProgreso.reglas.nivelMaximoMaestria,
     });
-    const tarjetas = crearElemento("div", "lista-habilidades-maestria");
     const habilidades = Object.values(resumen.habilidades)
-      .filter((habilidad) => habilidad.maestria === idMaestria)
-      .sort(
-        (a, b) =>
-          a.requisitoNivelMaestria - b.requisitoNivelMaestria ||
-          a.nombre.localeCompare(b.nombre),
-      );
-    habilidades.forEach((habilidad) => {
-      tarjetas.append(
-        this.crearTarjetaHabilidad({ habilidad, estado, resumen }),
-      );
+      .filter((habilidad) => habilidad.maestria === idMaestria);
+    const estructura = this.organizadorArbol.organizar({
+      idMaestria,
+      habilidades,
+      definiciones: this.configuracionProgreso.habilidades,
+      definicionesEjecucion: this.configuracionEjecucion.habilidades,
     });
-    if (habilidades.length === 0) {
-      tarjetas.append(
+    const arbol = this.crearArbolHabilidades({
+      estructura,
+      estado,
+      resumen,
+    });
+
+    seccion.append(cabecera, progreso, arbol);
+    this.contenido.append(selector, seccion);
+  }
+
+  crearArbolHabilidades({ estructura, estado, resumen }) {
+    const arbol = crearElemento("div", "arbol-habilidades");
+    arbol.dataset.maestria = estructura.idMaestria;
+    const lienzo = crearElemento("div", "arbol-habilidades__lienzo");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("arbol-habilidades__conexiones");
+    svg.setAttribute("aria-hidden", "true");
+    lienzo.append(svg);
+
+    if (estructura.niveles.length === 0) {
+      lienzo.append(
         crearElemento(
           "p",
           "seccion-en-construccion__detalle",
@@ -276,10 +302,283 @@ export class PanelHabilidadesMaestrias {
           }),
         ),
       );
+      arbol.append(lienzo);
+      return arbol;
     }
-    seccion.append(cabecera, progreso, tarjetas);
-    this.contenido.append(selector, seccion);
+
+    for (const nivel of estructura.niveles) {
+      const fila = crearElemento("div", "arbol-habilidades__nivel");
+      fila.dataset.nivelMaestria = String(nivel.nivel);
+      const etiqueta = crearElemento(
+        "span",
+        "arbol-habilidades__nivel-etiqueta",
+        traducir("interfaz.habilidades.nivelArbol", {
+          parametros: { nivel: nivel.nivel },
+          respaldo: `Nivel ${nivel.nivel}`,
+        }),
+      );
+      const nodos = crearElemento("div", "arbol-habilidades__nodos");
+      for (const nodo of nivel.nodos) {
+        nodos.append(this.crearNodoArbol({ habilidad: nodo, estado, resumen }));
+      }
+      fila.append(etiqueta, nodos);
+      lienzo.append(fila);
+    }
+    arbol.append(lienzo);
+    requestAnimationFrame(() => {
+      if (arbol.isConnected) this.dibujarRelacionesArbol(arbol, estructura.relaciones);
+    });
+    return arbol;
   }
+
+  crearNodoArbol({ habilidad, estado }) {
+    const ejecucion = this.configuracionEjecucion.habilidades[habilidad.id];
+    const bloqueada = estado.nivel < habilidad.requisitoNivelMaestria;
+    const aprendida = habilidad.grado > 0;
+    const maximo = habilidad.grado >= habilidad.gradoMaximo;
+    const asignada = this.sistema
+      .obtenerEstadoBarra()
+      .some((ranura) => ranura.idHabilidad === habilidad.id);
+    const boton = crearElemento("button", "nodo-habilidad");
+    boton.type = "button";
+    boton.dataset.idHabilidad = habilidad.id;
+    boton.classList.toggle("nodo-habilidad--no-aprendida", !aprendida);
+    boton.classList.toggle("nodo-habilidad--bloqueada", bloqueada);
+    boton.classList.toggle("nodo-habilidad--maximo", maximo);
+    boton.classList.toggle("nodo-habilidad--asignada", asignada);
+    boton.setAttribute(
+      "aria-label",
+      `${nombreHabilidad(habilidad)}. ${habilidad.grado}/${habilidad.gradoMaximo}`,
+    );
+    boton.append(crearIconoNodo(ejecucion, habilidad));
+    boton.append(
+      crearElemento(
+        "span",
+        "nodo-habilidad__grado",
+        `${habilidad.grado}/${habilidad.gradoMaximo}`,
+      ),
+    );
+    boton.addEventListener("click", () => this.abrirDetalleHabilidad(habilidad.id));
+    return boton;
+  }
+
+  dibujarRelacionesArbol(arbol, relaciones) {
+    const svg = arbol.querySelector(".arbol-habilidades__conexiones");
+    const lienzo = arbol.querySelector(".arbol-habilidades__lienzo");
+    if (!svg || !lienzo) return;
+    svg.replaceChildren();
+    const caja = lienzo.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${Math.max(1, caja.width)} ${Math.max(1, caja.height)}`);
+    svg.setAttribute("width", String(Math.max(1, caja.width)));
+    svg.setAttribute("height", String(Math.max(1, caja.height)));
+
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker.id = `flechaArbol-${estructuraIdSeguro(arbol.dataset.maestria)}`;
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "8");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "6");
+    marker.setAttribute("markerHeight", "6");
+    marker.setAttribute("orient", "auto-start-reverse");
+    const punta = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    punta.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    marker.append(punta);
+    defs.append(marker);
+    svg.append(defs);
+
+    for (const relacion of relaciones) {
+      const origen = arbol.querySelector(`[data-id-habilidad="${CSS.escape(relacion.desde)}"]`);
+      if (!origen) continue;
+      const destino = arbol.querySelector(
+        `[data-id-habilidad="${CSS.escape(relacion.hacia)}"]`,
+      );
+      const puntoOrigen = centroRelativo(origen, caja);
+      const puntoDestino = centroRelativo(destino, caja);
+      if (!puntoOrigen || !puntoDestino) continue;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const mitadY = (puntoOrigen.y + puntoDestino.y) / 2;
+      path.setAttribute(
+        "d",
+        `M ${puntoOrigen.x} ${puntoOrigen.y} C ${puntoOrigen.x} ${mitadY}, ${puntoDestino.x} ${mitadY}, ${puntoDestino.x} ${puntoDestino.y}`,
+      );
+      path.setAttribute("marker-end", `url(#${marker.id})`);
+      path.classList.add("arbol-habilidades__conexion");
+      path.classList.toggle(
+        "arbol-habilidades__conexion--afinidad",
+        relacion.tipo === "afinidad",
+      );
+      svg.append(path);
+    }
+  }
+
+  abrirDetalleHabilidad(idHabilidad) {
+    const resumen = obtenerResumenProgreso(this.jugador);
+    const habilidad = resumen.habilidades[idHabilidad];
+    const definicion = this.configuracionProgreso.habilidades[idHabilidad];
+    const ejecucion = this.configuracionEjecucion.habilidades[idHabilidad];
+    if (!habilidad || !definicion || !ejecucion) return false;
+    this.idHabilidadSeleccionada = idHabilidad;
+    const estado = resumen.maestrias[habilidad.maestria];
+    const indiceAsignado = this.sistema
+      .obtenerEstadoBarra()
+      .findIndex((ranura) => ranura.idHabilidad === idHabilidad);
+    const asignada = indiceAsignado >= 0;
+    const contenido = crearElemento("div", "detalle-habilidad-modal");
+    contenido.append(this.crearCabeceraDetalleHabilidad({ habilidad, ejecucion }));
+    contenido.append(
+      this.crearInformacionDetalleHabilidad({
+        habilidad,
+        definicion,
+        ejecucion,
+      }),
+    );
+    contenido.append(
+      this.crearAccionesDetalleHabilidad({
+        habilidad,
+        estado,
+        resumen,
+        ejecucion,
+        asignada,
+        indiceAsignado,
+      }),
+    );
+    this.abrirCapaAccion({
+      titulo: nombreHabilidad(habilidad),
+      cuerpo: contenido,
+      mostrarConfirmar: false,
+      claseTarjeta: "confirmacion-habilidad--detalle",
+    });
+    return true;
+  }
+
+  crearCabeceraDetalleHabilidad({ habilidad, ejecucion }) {
+    const cabecera = crearElemento("div", "detalle-habilidad-modal__cabecera");
+    const icono = crearIconoDetalle(ejecucion, habilidad);
+    const texto = crearElemento("div", "detalle-habilidad-modal__identidad");
+    const tipo = clasificarPresentacionHabilidad({ habilidad, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos });
+    texto.append(
+      crearElemento("strong", "detalle-habilidad-modal__tipo", etiquetaTipoHabilidad(tipo, habilidad.maestria)),
+      crearElemento(
+        "span",
+        "detalle-habilidad-modal__grado",
+        traducir("interfaz.habilidades.grado", {
+          parametros: { grado: habilidad.grado, maximo: habilidad.gradoMaximo },
+          respaldo: `Grado ${habilidad.grado} / ${habilidad.gradoMaximo}`,
+        }),
+      ),
+      crearElemento(
+        "span",
+        "detalle-habilidad-modal__requisito",
+        traducir("interfaz.habilidades.requiereNivel", {
+          parametros: { nivel: habilidad.requisitoNivelMaestria },
+          respaldo: `Requiere nivel ${habilidad.requisitoNivelMaestria} de la maestría.`,
+        }),
+      ),
+      crearElemento("p", "detalle-habilidad-modal__descripcion", descripcionHabilidad(habilidad, ejecucion)),
+    );
+    cabecera.append(icono, texto);
+    return cabecera;
+  }
+
+  crearInformacionDetalleHabilidad({ habilidad, definicion, ejecucion }) {
+    const tipo = clasificarPresentacionHabilidad({ habilidad, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos });
+    const contenedor = crearElemento("div", `detalle-habilidad-modal__informacion detalle-habilidad-modal__informacion--${tipo}`);
+    if (tipo === "pasiva") {
+      contenedor.append(crearSeccionPasiva({ definicion, habilidad }));
+      return contenedor;
+    }
+
+    const gradoVisible = habilidad.grado > 0 ? habilidad.grado : 1;
+    const gradoBase = ejecucion.ejecucion.grados[gradoVisible];
+    const gradoConfig = crearConfiguracionHabilidadEfectiva({
+      lanzador: this.jugador,
+      habilidad: ejecucion,
+      gradoConfig: gradoBase,
+    });
+    if (tipo === "aura") {
+      contenedor.append(crearSeccionAura({ gradoConfig, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos }));
+    } else if (tipo === "maldicion") {
+      contenedor.append(crearSeccionMaldicion({ gradoConfig, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos }));
+    } else {
+      contenedor.append(crearSeccionOfensiva({ gradoConfig, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos }));
+    }
+    contenedor.append(crearSeccionEjecucion({ gradoConfig, ejecucion }));
+    return contenedor;
+  }
+
+  crearAccionesDetalleHabilidad({ habilidad, estado, resumen, ejecucion, asignada, indiceAsignado }) {
+    const acciones = crearElemento("div", "detalle-habilidad-modal__acciones");
+    const bloqueada = estado.nivel < habilidad.requisitoNivelMaestria;
+    const maximo = habilidad.grado >= habilidad.gradoMaximo;
+    const tieneEspecifico = estado.puntosEspecificos > 0;
+    const tieneUniversal = resumen.puntosUniversales > 0;
+    const tienePuntos = tieneEspecifico || tieneUniversal;
+    let selectorOrigen = null;
+
+    if (!bloqueada && !maximo && tieneEspecifico && tieneUniversal) {
+      selectorOrigen = document.createElement("select");
+      selectorOrigen.className = "detalle-habilidad-modal__origen-punto";
+      selectorOrigen.append(
+        crearOpcionSelect("especifico", traducir("interfaz.habilidades.especificos", { respaldo: "Punto específico" })),
+        crearOpcionSelect("universal", traducir("interfaz.habilidades.universales", { respaldo: "Punto universal" })),
+      );
+      acciones.append(selectorOrigen);
+    }
+
+    const mejorar = crearElemento(
+      "button",
+      "tarjeta-habilidad__accion tarjeta-habilidad__accion--principal",
+      habilidad.grado > 0
+        ? traducir("interfaz.habilidades.mejorar", { respaldo: "Mejorar" })
+        : traducir("interfaz.habilidades.aprender", { respaldo: "Aprender" }),
+    );
+    mejorar.type = "button";
+    mejorar.disabled = bloqueada || maximo || !tienePuntos;
+    mejorar.addEventListener("click", () => {
+      const origenPunto = selectorOrigen?.value ?? (tieneEspecifico ? "especifico" : "universal");
+      const resultado = mejorarHabilidadJugador(this.jugador, {
+        idHabilidad: habilidad.id,
+        origenPunto,
+        idMaestriaPunto: origenPunto === "especifico" ? habilidad.maestria : null,
+      });
+      if (!resultado.exito) {
+        this.mostrarMensaje(traducirMotivo(resultado.motivo), "error");
+        return;
+      }
+      this.guardarCambios("progreso");
+      this.mostrarMensaje(
+        traducir("interfaz.habilidades.gradoAlcanzado", {
+          parametros: { habilidad: nombreHabilidad(habilidad), grado: resultado.gradoActual },
+          respaldo: `${nombreHabilidad(habilidad)} alcanzó el grado ${resultado.gradoActual}.`,
+        }),
+        "exito",
+      );
+      this.renderizar();
+    });
+    acciones.append(mejorar);
+
+    if (habilidad.grado > 0 && habilidad.tipo === "activa" && ejecucion?.ejecucion) {
+      const barra = crearElemento(
+        "button",
+        "tarjeta-habilidad__accion",
+        asignada
+          ? traducir("interfaz.habilidades.quitarRanura", {
+              parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
+              respaldo: `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+            })
+          : traducir("interfaz.habilidades.asignarBarra", { respaldo: "Asignar a barra" }),
+      );
+      barra.type = "button";
+      barra.addEventListener("click", () => {
+        if (asignada) this.abrirConfirmacionQuitar({ habilidad, indiceAsignado });
+        else this.abrirSelectorRanura(habilidad);
+      });
+      acciones.append(barra);
+    }
+    return acciones;
+  }
+
   renderizarCategoriaVacia(categoria) {
     const seccion = crearElemento("section", "seccion-en-construccion");
     seccion.append(
@@ -302,270 +601,6 @@ export class PanelHabilidadesMaestrias {
       ),
     );
     this.contenido.append(seccion);
-  }
-  crearTarjetaHabilidad({ habilidad, estado, resumen }) {
-    const ejecucion = this.configuracionEjecucion.habilidades[habilidad.id];
-    const definicionHabilidad = this.configuracionProgreso.habilidades[habilidad.id];
-    if (!definicionHabilidad) {
-      throw new Error(
-        `La habilidad "${habilidad.id}" no existe en la configuración canónica de progreso.`,
-      );
-    }
-    const habilidadPresentacion = {
-      id: habilidad.id,
-      ...definicionHabilidad,
-    };
-    const grado = habilidad.grado;
-    const bloqueada = estado.nivel < habilidad.requisitoNivelMaestria;
-    const aprendida = grado > 0;
-    const maximo = grado >= habilidad.gradoMaximo;
-    const tieneUniversal = resumen.puntosUniversales > 0;
-    const tieneEspecifico = estado.puntosEspecificos > 0;
-    const tienePuntos = tieneUniversal || tieneEspecifico;
-    const mejorable = !bloqueada && !maximo && tienePuntos;
-    const indiceAsignado = this.sistema
-      .obtenerEstadoBarra()
-      .findIndex((ranura) => ranura.idHabilidad === habilidad.id);
-    const asignada = indiceAsignado >= 0;
-    const seleccionada = this.idHabilidadSeleccionada === habilidad.id;
-    const tarjeta = crearElemento("article", "tarjeta-habilidad");
-    tarjeta.dataset.idHabilidad = habilidad.id;
-    tarjeta.classList.toggle("tarjeta-habilidad--bloqueada", bloqueada);
-    tarjeta.classList.toggle("tarjeta-habilidad--aprendida", aprendida);
-    tarjeta.classList.toggle("tarjeta-habilidad--mejorable", mejorable);
-    tarjeta.classList.toggle("tarjeta-habilidad--maximo", maximo);
-    tarjeta.classList.toggle(
-      "tarjeta-habilidad--sin-puntos",
-      !bloqueada && !maximo && !tienePuntos,
-    );
-    tarjeta.classList.toggle("tarjeta-habilidad--asignada", asignada);
-    tarjeta.classList.toggle("tarjeta-habilidad--seleccionada", seleccionada);
-    tarjeta.addEventListener("click", () => {
-      this.idHabilidadSeleccionada = habilidad.id;
-      this.renderizar();
-    });
-    const cabecera = crearElemento("div", "tarjeta-habilidad__cabecera");
-    const icono = crearIconoHabilidad(ejecucion, habilidad);
-    const identidad = crearElemento("div", "tarjeta-habilidad__identidad");
-    identidad.append(
-      crearElemento("h4", "tarjeta-habilidad__nombre", nombreHabilidad(habilidad)),
-      crearElemento(
-        "p",
-        "tarjeta-habilidad__grado",
-        traducir("interfaz.habilidades.grado", {
-          parametros: { grado, maximo: habilidad.gradoMaximo },
-          respaldo: `Grado ${grado} / ${habilidad.gradoMaximo}`,
-        }),
-      ),
-    );
-    cabecera.append(icono, identidad);
-    const insignias = crearElemento("div", "tarjeta-habilidad__estados");
-    agregarInsignia(
-      insignias,
-      habilidad.tipo === "pasiva"
-        ? traducir("interfaz.habilidades.tipoPasiva", { respaldo: "Pasiva" })
-        : traducir("interfaz.habilidades.tipoActiva", { respaldo: "Activa" }),
-      habilidad.tipo === "pasiva" ? "tipo-pasiva" : "tipo-activa",
-    );
-    crearEstadosVisuales({
-      contenedor: insignias,
-      bloqueada,
-      aprendida,
-      mejorable,
-      maximo,
-      tienePuntos,
-      asignada,
-      seleccionada,
-      indiceAsignado,
-    });
-    const descripcion = crearElemento(
-      "p",
-      "tarjeta-habilidad__descripcion",
-      descripcionHabilidad(habilidad, ejecucion),
-    );
-    const requisito = crearElemento(
-      "p",
-      "tarjeta-habilidad__requisito",
-      bloqueada
-        ? traducir("interfaz.habilidades.requiereNivel", {
-            parametros: { nivel: habilidad.requisitoNivelMaestria },
-            respaldo: `Requiere nivel ${habilidad.requisitoNivelMaestria} de la maestría.`,
-          })
-        : traducir("interfaz.habilidades.requisitoCumplido", {
-            parametros: { nivel: habilidad.requisitoNivelMaestria },
-            respaldo: `Requisito de maestría cumplido: nivel ${habilidad.requisitoNivelMaestria}.`,
-          }),
-    );
-    const detalle = crearDetalleEjecucion({
-      ejecucion,
-      habilidad: habilidadPresentacion,
-      grado,
-      tipo: habilidad.tipo,
-      catalogoEfectos: this.configuracionEjecucion.efectos ?? {},
-    });
-    const acciones = crearElemento("div", "tarjeta-habilidad__acciones");
-    const botonMejora = crearElemento(
-      "button",
-      "tarjeta-habilidad__accion tarjeta-habilidad__accion--principal",
-      aprendida
-        ? traducir("interfaz.habilidades.mejorar", { respaldo: "Mejorar" })
-        : traducir("interfaz.habilidades.aprender", { respaldo: "Aprender" }),
-    );
-    botonMejora.type = "button";
-    botonMejora.disabled = bloqueada || maximo || !tienePuntos;
-    botonMejora.addEventListener("click", (evento) => {
-      evento.stopPropagation();
-      this.abrirConfirmacionMejora({ habilidad, estado, resumen });
-    });
-    acciones.append(botonMejora);
-    if (aprendida && habilidad.tipo === "activa" && ejecucion?.ejecucion) {
-      const botonBarra = crearElemento(
-        "button",
-        "tarjeta-habilidad__accion",
-        asignada
-          ? traducir("interfaz.habilidades.quitarRanura", {
-              parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
-              respaldo: `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
-            })
-          : traducir("interfaz.habilidades.asignarBarra", { respaldo: "Asignar a barra" }),
-      );
-      botonBarra.type = "button";
-      botonBarra.addEventListener("click", (evento) => {
-        evento.stopPropagation();
-        if (asignada) {
-          this.abrirConfirmacionQuitar({ habilidad, indiceAsignado });
-        } else {
-          this.abrirSelectorRanura(habilidad);
-        }
-      });
-      acciones.append(botonBarra);
-    }
-    tarjeta.append(
-      cabecera,
-      insignias,
-      descripcion,
-      requisito,
-      detalle,
-      acciones,
-    );
-    tarjeta.title = crearTooltipTexto({
-      habilidad: habilidadPresentacion,
-      ejecucion,
-      grado,
-      estado,
-      asignada,
-      indiceAsignado,
-    });
-    return tarjeta;
-  }
-  abrirConfirmacionMejora({ habilidad, estado, resumen }) {
-    const tieneUniversal = resumen.puntosUniversales > 0;
-    const tieneEspecifico = estado.puntosEspecificos > 0;
-    const gradoNuevo = habilidad.grado + 1;
-    const cuerpo = crearElemento("div", "confirmacion-habilidad__cuerpo");
-    cuerpo.append(
-      crearElemento(
-        "p",
-        "confirmacion-habilidad__resumen",
-        traducir("interfaz.habilidades.resumenGrado", {
-          parametros: {
-            habilidad: nombreHabilidad(habilidad),
-            actual: habilidad.grado,
-            nuevo: gradoNuevo,
-          },
-          respaldo: `${habilidad.nombre}: grado ${habilidad.grado} → ${gradoNuevo}.`,
-        }),
-      ),
-    );
-    let obtenerOrigen;
-    if (tieneUniversal && tieneEspecifico) {
-      const opciones = crearElemento(
-        "fieldset",
-        "confirmacion-habilidad__opciones",
-      );
-      opciones.append(
-        crearElemento(
-          "legend",
-          "",
-          traducir("interfaz.habilidades.elegirPuntoConsumir", {
-            respaldo: "Elegí qué punto consumir",
-          }),
-        ),
-      );
-      opciones.append(
-        crearOpcionPunto({
-          valor: "especifico",
-          texto: traducir("interfaz.habilidades.puntoEspecificoDisponible", {
-            parametros: {
-              maestria: nombreMaestria(
-                this.maestriaActiva,
-                this.configuracionProgreso.maestrias[this.maestriaActiva],
-              ),
-              cantidad: estado.puntosEspecificos,
-            },
-            respaldo: `Específico de ${this.maestriaActiva} (${estado.puntosEspecificos} disponibles)`,
-          }),
-          marcado: true,
-        }),
-        crearOpcionPunto({
-          valor: "universal",
-          texto: traducir("interfaz.habilidades.puntoUniversalDisponible", {
-            parametros: { cantidad: resumen.puntosUniversales },
-            respaldo: `Universal (${resumen.puntosUniversales} disponibles)`,
-          }),
-          marcado: false,
-        }),
-      );
-      cuerpo.append(opciones);
-      obtenerOrigen = () =>
-        opciones.querySelector('input[name="origen-punto-habilidad"]:checked')
-          ?.value ?? null;
-    } else {
-      const origen = tieneEspecifico ? "especifico" : "universal";
-      cuerpo.append(
-        crearElemento(
-          "p",
-          "confirmacion-habilidad__origen",
-          origen === "especifico"
-            ? traducir("interfaz.habilidades.consumiraEspecifico", { parametros: { cantidad: estado.puntosEspecificos - 1 }, respaldo: `Se consumirá 1 punto específico. Quedarán ${estado.puntosEspecificos - 1}.` })
-            : traducir("interfaz.habilidades.consumiraUniversal", { parametros: { cantidad: resumen.puntosUniversales - 1 }, respaldo: `Se consumirá 1 punto universal. Quedarán ${resumen.puntosUniversales - 1}.` }),
-        ),
-      );
-      obtenerOrigen = () => origen;
-    }
-    this.abrirCapaAccion({
-      titulo:
-        habilidad.grado > 0 ? traducir("interfaz.habilidades.confirmarMejora", { respaldo: "Confirmar mejora" }) : traducir("interfaz.habilidades.confirmarAprendizaje", { respaldo: "Confirmar aprendizaje" }),
-      cuerpo,
-      textoConfirmar:
-        habilidad.grado > 0 ? traducir("interfaz.habilidades.mejorarGrado", { respaldo: "Mejorar un grado" }) : traducir("interfaz.habilidades.aprenderHabilidad", { respaldo: "Aprender habilidad" }),
-      alConfirmar: () => {
-        const origenPunto = obtenerOrigen();
-        if (!origenPunto) {
-          throw new Error(traducir("interfaz.habilidades.elegirOrigen", { respaldo: "Debés elegir el origen del punto." }));
-        }
-        const resultado = mejorarHabilidadJugador(this.jugador, {
-          idHabilidad: habilidad.id,
-          origenPunto,
-          idMaestriaPunto:
-            origenPunto === "especifico" ? habilidad.maestria : null,
-        });
-        if (!resultado.exito) {
-          this.mostrarMensaje(traducirMotivo(resultado.motivo), "error");
-          return false;
-        }
-        this.guardarCambios("progreso");
-        this.mostrarMensaje(
-          traducir("interfaz.habilidades.gradoAlcanzado", {
-            parametros: { habilidad: nombreHabilidad(habilidad), grado: resultado.gradoActual },
-            respaldo: `${habilidad.nombre} alcanzó el grado ${resultado.gradoActual}.`,
-          }),
-          "exito",
-        );
-        this.renderizar();
-        return true;
-      },
-    });
   }
   abrirSelectorRanura(habilidad) {
     const cuerpo = crearElemento("div", "selector-ranuras-habilidad");
@@ -669,10 +704,14 @@ export class PanelHabilidadesMaestrias {
     textoConfirmar = traducir("interfaz.habilidades.confirmar", { respaldo: "Confirmar" }),
     alConfirmar = null,
     mostrarConfirmar = true,
+    claseTarjeta = "",
   }) {
     this.capaAccion.replaceChildren();
     this.capaAccion.hidden = false;
-    const tarjeta = crearElemento("section", "confirmacion-habilidad");
+    const tarjeta = crearElemento(
+      "section",
+      `confirmacion-habilidad${claseTarjeta ? ` ${claseTarjeta}` : ""}`,
+    );
     const cabecera = crearElemento(
       "header",
       "confirmacion-habilidad__cabecera",
@@ -737,6 +776,218 @@ export class PanelHabilidadesMaestrias {
     this.manejadores.push({ elemento, tipo, manejador, opciones });
   }
 }
+
+function estructuraIdSeguro(valor) {
+  return String(valor ?? "arbol").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+function centroRelativo(elemento, cajaReferencia) {
+  if (!(elemento instanceof Element)) return null;
+  const caja = elemento.getBoundingClientRect();
+  return {
+    x: caja.left - cajaReferencia.left + caja.width / 2,
+    y: caja.top - cajaReferencia.top + caja.height / 2,
+  };
+}
+
+function crearIconoNodo(ejecucion, habilidad) {
+  const marco = crearElemento("span", "nodo-habilidad__icono");
+  const ruta = ejecucion?.icono ?? null;
+  const fallback = () => marco.replaceChildren(
+    crearElemento("span", "nodo-habilidad__inicial", nombreHabilidad(habilidad).slice(0, 1).toUpperCase()),
+  );
+  if (!ruta) {
+    fallback();
+    return marco;
+  }
+  const imagen = document.createElement("img");
+  imagen.src = ruta;
+  imagen.alt = "";
+  imagen.draggable = false;
+  imagen.addEventListener("error", fallback, { once: true });
+  marco.append(imagen);
+  return marco;
+}
+
+function crearIconoDetalle(ejecucion, habilidad) {
+  const marco = crearElemento("span", "detalle-habilidad-modal__icono");
+  const ruta = ejecucion?.icono ?? null;
+  const fallback = () => marco.replaceChildren(
+    crearElemento("span", "detalle-habilidad-modal__inicial", nombreHabilidad(habilidad).slice(0, 1).toUpperCase()),
+  );
+  if (!ruta) {
+    fallback();
+    return marco;
+  }
+  const imagen = document.createElement("img");
+  imagen.src = ruta;
+  imagen.alt = "";
+  imagen.draggable = false;
+  imagen.addEventListener("error", fallback, { once: true });
+  marco.append(imagen);
+  return marco;
+}
+
+function etiquetaTipoHabilidad(tipo, idMaestria) {
+  const etiquetas = {
+    pasiva: traducir("interfaz.habilidades.tipoPasiva", { respaldo: "Pasiva" }),
+    aura: traducir("interfaz.habilidades.tipoAura", { respaldo: "Aura" }),
+    maldicion: traducir("interfaz.habilidades.tipoMaldicion", { respaldo: "Maldición" }),
+    ofensiva: traducir("interfaz.habilidades.tipoOfensiva", { respaldo: "Ofensiva" }),
+  };
+  const maestria = traducirContenido("maestrias", idMaestria, "nombre", formatearNombre(idMaestria));
+  return `${etiquetas[tipo] ?? formatearNombre(tipo)} · ${maestria}`;
+}
+
+function crearSeccionPasiva({ definicion, habilidad }) {
+  const seccion = crearBloqueDetalle("Efecto");
+  const gradoVisible = habilidad.grado > 0 ? habilidad.grado : 1;
+  const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+  const modificadores = obtenerModificadoresPasiva(definicion, gradoVisible);
+  for (const modificador of modificadores) {
+    const detalle = formatearDetalleModificadorPasiva(modificador);
+    agregarDato(lista, detalle.etiqueta, detalle.valor);
+  }
+  if (modificadores.length === 0) agregarDato(lista, "Efecto", "Sin modificadores configurados");
+  seccion.append(lista);
+
+  const relaciones = new Set();
+  for (const modificador of modificadores) {
+    const condiciones = modificador?.condiciones ?? {};
+    if (condiciones.idHabilidad) relaciones.add(nombreHabilidad({ id: condiciones.idHabilidad, nombre: condiciones.idHabilidad }));
+    else if (condiciones.maestriaHabilidad) {
+      relaciones.add(
+        traducir("interfaz.habilidades.todaMaestria", {
+          parametros: { maestria: traducirContenido("maestrias", condiciones.maestriaHabilidad, "nombre", formatearNombre(condiciones.maestriaHabilidad)) },
+          respaldo: `Todas las habilidades de ${formatearNombre(condiciones.maestriaHabilidad)}`,
+        }),
+      );
+    }
+  }
+  if (relaciones.size > 0) {
+    const aplica = crearBloqueDetalle(traducir("interfaz.habilidades.aplicaA", { respaldo: "Aplica a" }));
+    aplica.append(crearElemento("p", "detalle-habilidad-modal__texto", [...relaciones].join(", ")));
+    const contenedor = crearElemento("div", "detalle-habilidad-modal__bloques");
+    contenedor.append(seccion, aplica);
+    return contenedor;
+  }
+  return seccion;
+}
+
+function crearSeccionAura({ gradoConfig, catalogoEfectos }) {
+  const seccion = crearBloqueDetalle(traducir("interfaz.habilidades.tipoAura", { respaldo: "Aura" }));
+  const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+  for (const efecto of gradoConfig?.efectos ?? []) {
+    for (const modificador of efecto.modificadores ?? []) {
+      const detalle = formatearDetalleModificadorPasiva(modificador);
+      agregarDato(lista, detalle.etiqueta, detalle.valor);
+    }
+    if (Number.isFinite(efecto.emision?.radio)) agregarDato(lista, "Radio", formatearNumero(efecto.emision.radio));
+    if (efecto.emision?.afecta) agregarDato(lista, "Afecta", formatearNombre(efecto.emision.afecta));
+    if (Number.isFinite(efecto.duracion)) agregarDato(lista, "Duración", formatearDuracionTurnos(efecto.duracion));
+    const def = catalogoEfectos?.[efecto.efectoId];
+    if (def?.nombre) agregarDato(lista, "Efecto", traducirContenido("efectos", efecto.efectoId, "nombre", def.nombre));
+  }
+  seccion.append(lista);
+  return seccion;
+}
+
+function crearSeccionMaldicion({ gradoConfig, catalogoEfectos }) {
+  const seccion = crearBloqueDetalle(traducir("interfaz.habilidades.tipoMaldicion", { respaldo: "Maldición" }));
+  const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+  for (const efecto of gradoConfig?.efectos ?? []) {
+    const def = catalogoEfectos?.[efecto.efectoId] ?? null;
+    for (const modificador of efecto.modificadores ?? []) {
+      const detalle = formatearDetalleModificadorPasiva(modificador);
+      agregarDato(lista, detalle.etiqueta, detalle.valor);
+    }
+    if (def?.tipo === "bloqueo_habilidades") agregarDato(lista, "Efecto", "Bloquea habilidades activas");
+    if (Number.isFinite(efecto.probabilidadBase)) agregarDato(lista, "Probabilidad base", `${formatearNumero(efecto.probabilidadBase)}%`);
+    if (Number.isFinite(efecto.duracion)) agregarDato(lista, "Duración", formatearDuracionTurnos(efecto.duracion));
+    if (def?.resistenciaId) agregarDato(lista, "Resistencia", formatearNombre(def.resistenciaId));
+  }
+  seccion.append(lista);
+  return seccion;
+}
+
+function crearSeccionOfensiva({ gradoConfig, catalogoEfectos }) {
+  const contenedor = crearElemento("div", "detalle-habilidad-modal__bloques");
+  const danios = Array.isArray(gradoConfig?.danio) ? gradoConfig.danio : [];
+  if (danios.length > 0) {
+    const seccionDanio = crearBloqueDetalle(traducir("interfaz.habilidades.danioBase", { respaldo: "Daño" }));
+    const listaDanio = crearElemento("dl", "detalle-habilidad-modal__datos");
+    for (const componente of danios) agregarDato(listaDanio, formatearNombre(componente.tipo), formatearNumero(componente.valorBase));
+    seccionDanio.append(listaDanio);
+    contenedor.append(seccionDanio);
+  }
+
+  const efectos = gradoConfig?.efectos ?? [];
+  if (efectos.length > 0) {
+    const seccionEfectos = crearBloqueDetalle(traducir("interfaz.habilidades.efecto", { respaldo: "Efectos" }));
+    const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+    for (const efecto of efectos) {
+      const def = catalogoEfectos?.[efecto.efectoId] ?? null;
+      const nombre = traducirContenido("efectos", efecto.efectoId, "nombre", def?.nombre ?? formatearNombre(efecto.efectoId));
+      if (Number.isFinite(efecto.valorBase)) agregarDato(lista, `${nombre} · daño`, formatearNumero(efecto.valorBase));
+      if (Number.isFinite(efecto.probabilidadBase) && efecto.probabilidadBase !== 100) agregarDato(lista, `${nombre} · probabilidad`, `${formatearNumero(efecto.probabilidadBase)}%`);
+      if (Number.isFinite(efecto.duracion)) agregarDato(lista, `${nombre} · duración`, formatearDuracionTurnos(efecto.duracion));
+      if (Number.isFinite(efecto.intervalo)) agregarDato(lista, `${nombre} · intervalo`, formatearDuracionTurnos(efecto.intervalo));
+    }
+    seccionEfectos.append(lista);
+    contenedor.append(seccionEfectos);
+  }
+
+  if (gradoConfig?.zonaTemporal) {
+    const zona = crearBloqueDetalle("Zona");
+    const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+    if (Number.isFinite(gradoConfig.formaImpacto?.radio)) agregarDato(lista, "Radio", formatearNumero(gradoConfig.formaImpacto.radio));
+    if (Number.isFinite(gradoConfig.zonaTemporal.duracion)) agregarDato(lista, "Duración", formatearDuracionTurnos(gradoConfig.zonaTemporal.duracion));
+    if (Number.isFinite(gradoConfig.zonaTemporal.intervalo)) agregarDato(lista, "Intervalo", formatearDuracionTurnos(gradoConfig.zonaTemporal.intervalo));
+    if (gradoConfig.zonaTemporal.afecta) agregarDato(lista, "Afecta", formatearNombre(gradoConfig.zonaTemporal.afecta));
+    if (typeof gradoConfig.zonaTemporal.bloqueaVision === "boolean") agregarDato(lista, "Bloquea visión", gradoConfig.zonaTemporal.bloqueaVision ? "Sí" : "No");
+    zona.append(lista);
+    contenedor.append(zona);
+  }
+  return contenedor;
+}
+
+function crearSeccionEjecucion({ gradoConfig, ejecucion }) {
+  const seccion = crearBloqueDetalle("Ejecución");
+  const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
+  if (Number.isFinite(gradoConfig?.costoMana)) agregarDato(lista, "Maná", formatearNumero(gradoConfig.costoMana));
+  if (Number.isFinite(gradoConfig?.costoTemporalBase)) agregarDato(lista, "Tiempo", formatearNumero(gradoConfig.costoTemporalBase));
+  if (Number.isFinite(gradoConfig?.alcance)) agregarDato(lista, "Alcance", formatearNumero(gradoConfig.alcance));
+  if (ejecucion?.ejecucion?.tipoObjetivo) agregarDato(lista, "Objetivo", formatearNombre(ejecucion.ejecucion.tipoObjetivo));
+  if (ejecucion?.ejecucion?.patronAtaque) agregarDato(lista, "Patrón", nombrePatronAtaque(ejecucion.ejecucion.patronAtaque));
+  agregarDato(lista, "Línea de visión", ejecucion?.ejecucion?.requiereLineaVision ? "Sí" : "No");
+  const forma = gradoConfig?.formaImpacto;
+  if (forma?.tipo === "radio" && Number.isFinite(forma.radio)) agregarDato(lista, "Radio de impacto", formatearNumero(forma.radio));
+  if (forma?.tipo === "linea") {
+    if (Number.isFinite(forma.longitud)) agregarDato(lista, "Longitud", formatearNumero(forma.longitud));
+    if (Number.isFinite(forma.ancho)) agregarDato(lista, "Ancho", formatearNumero(forma.ancho));
+  }
+  if (forma?.tipo === "cadena") {
+    if (Number.isFinite(forma.maximoObjetivos)) agregarDato(lista, "Objetivos máximos", formatearNumero(forma.maximoObjetivos));
+    if (Number.isFinite(forma.alcanceSalto)) agregarDato(lista, "Alcance de salto", formatearNumero(forma.alcanceSalto));
+    if (Number.isFinite(forma.factorDanioPorSalto)) agregarDato(lista, "Factor por salto", `×${formatearNumero(forma.factorDanioPorSalto)}`);
+  }
+  seccion.append(lista);
+  return seccion;
+}
+
+function crearBloqueDetalle(titulo) {
+  const seccion = crearElemento("section", "detalle-habilidad-modal__bloque");
+  seccion.append(crearElemento("h4", "detalle-habilidad-modal__subtitulo", titulo));
+  return seccion;
+}
+
+function crearOpcionSelect(valor, texto) {
+  const opcion = document.createElement("option");
+  opcion.value = valor;
+  opcion.textContent = texto;
+  return opcion;
+}
+
 function obtenerCategoriasOrdenadas(configuracion) {
   return Object.values(configuracion?.categorias ?? {}).sort(
     (a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre),
@@ -836,258 +1087,10 @@ function crearProgresoMaestria({ estado, nivelMaximo }) {
   );
   return bloque;
 }
-function crearDetalleEjecucion({ ejecucion, habilidad, grado, tipo, catalogoEfectos = {} }) {
-  const lista = crearElemento("dl", "detalle-ejecucion-habilidad");
-  if (tipo === "pasiva") {
-    const gradoVisible = grado > 0 ? grado : 1;
-    const modificadores = obtenerModificadoresPasiva(habilidad, gradoVisible);
-    lista.classList.add("detalle-ejecucion-habilidad--pasiva");
-
-    if (modificadores.length === 0) {
-      agregarDato(
-        lista,
-        traducir("interfaz.habilidades.efecto", { respaldo: "Efecto" }),
-        traducir("interfaz.habilidades.sinModificadoresPasiva", {
-          respaldo: "Sin modificadores configurados",
-        }),
-      );
-      return lista;
-    }
-
-    modificadores.forEach((modificador) => {
-      const detalle = formatearDetalleModificadorPasiva(modificador);
-      agregarDato(lista, detalle.etiqueta, detalle.valor);
-    });
-
-    return lista;
-  }
-  if (!ejecucion?.ejecucion) {
-    return lista;
-  }
-  const gradoVisible = grado > 0 ? grado : 1;
-  const definicionGrado = ejecucion.ejecucion.grados[gradoVisible];
-  lista.classList.add("detalle-ejecucion-habilidad--con-danio");
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.danioBase", { respaldo: "Daño base" }),
-    formatearDanioBase(definicionGrado?.danio),
-  );
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.manaEtiqueta", { respaldo: "Maná" }),
-    definicionGrado?.costoMana ?? "—",
-  );
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.tiempo", { respaldo: "Tiempo" }),
-    definicionGrado?.costoTemporalBase ?? "—",
-  );
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.alcance", { respaldo: "Alcance" }),
-    definicionGrado?.alcance ?? "—",
-  );
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.patron", { respaldo: "Patrón" }),
-    nombrePatronAtaque(ejecucion.ejecucion.patronAtaque),
-  );
-  agregarDato(
-    lista,
-    traducir("interfaz.habilidades.lineaVision", { respaldo: "Línea de visión" }),
-    ejecucion.ejecucion.requiereLineaVision
-      ? traducir("interfaz.habilidades.si", { respaldo: "Sí" })
-      : traducir("interfaz.habilidades.no", { respaldo: "No" }),
-  );
-  agregarDetallesEfectosActivos(lista, definicionGrado, catalogoEfectos);
-  return lista;
-}
-
-function agregarDetallesEfectosActivos(lista, definicionGrado, catalogoEfectos) {
-  const efectos = Array.isArray(definicionGrado?.efectos)
-    ? definicionGrado.efectos
-    : [];
-  for (const efecto of efectos) {
-    const definicionEfecto = catalogoEfectos?.[efecto.efectoId] ?? null;
-    const modificadores = Array.isArray(efecto.modificadores)
-      ? efecto.modificadores
-      : [];
-    for (const modificador of modificadores) {
-      const detalle = formatearDetalleModificadorPasiva(modificador);
-      agregarDato(lista, detalle.etiqueta, detalle.valor);
-    }
-
-    if (definicionEfecto?.tipo === "bloqueo_habilidades") {
-      agregarDato(
-        lista,
-        traducir("interfaz.habilidades.efecto", { respaldo: "Efecto" }),
-        traducir("interfaz.habilidades.bloqueaHabilidadesActivas", {
-          respaldo: "Bloquea habilidades activas",
-        }),
-      );
-    }
-
-    const esMaldicion = definicionEfecto?.etiquetas?.includes("maldicion") === true;
-    if (Number.isFinite(efecto.probabilidadBase) &&
-        (esMaldicion || efecto.probabilidadBase !== 100)) {
-      agregarDato(
-        lista,
-        traducir("interfaz.habilidades.probabilidad", { respaldo: "Probabilidad" }),
-        `${formatearNumero(efecto.probabilidadBase)}%`,
-      );
-    }
-    if (Number.isFinite(efecto.duracion)) {
-      agregarDato(
-        lista,
-        traducir("interfaz.habilidades.duracion", { respaldo: "Duración" }),
-        formatearDuracionTurnos(efecto.duracion),
-      );
-    }
-    if (Number.isFinite(efecto.emision?.radio)) {
-      agregarDato(
-        lista,
-        traducir("interfaz.habilidades.radioAura", { respaldo: "Radio de aura" }),
-        formatearNumero(efecto.emision.radio),
-      );
-    }
-  }
-}
-
 function formatearDuracionTurnos(valor) {
   const turnos = valor / 100;
   const cantidad = formatearNumero(turnos);
   return turnos === 1 ? `${cantidad} turno` : `${cantidad} turnos`;
-}
-function crearEstadosVisuales({
-  contenedor,
-  bloqueada,
-  aprendida,
-  mejorable,
-  maximo,
-  tienePuntos,
-  asignada,
-  seleccionada,
-  indiceAsignado,
-}) {
-  if (bloqueada) agregarInsignia(contenedor, traducir("interfaz.habilidades.bloqueada", { respaldo: "Bloqueada" }), "bloqueada");
-  if (!bloqueada && !aprendida)
-    agregarInsignia(contenedor, traducir("interfaz.habilidades.disponible", { respaldo: "Disponible" }), "disponible");
-  if (aprendida) agregarInsignia(contenedor, traducir("interfaz.habilidades.aprendida", { respaldo: "Aprendida" }), "aprendida");
-  if (mejorable) agregarInsignia(contenedor, traducir("interfaz.habilidades.mejorable", { respaldo: "Mejorable" }), "mejorable");
-  if (maximo) agregarInsignia(contenedor, traducir("interfaz.habilidades.gradoMaximo", { respaldo: "Grado máximo" }), "maximo");
-  if (!bloqueada && !maximo && !tienePuntos) {
-    agregarInsignia(contenedor, traducir("interfaz.habilidades.sinPuntos", { respaldo: "Sin puntos" }), "sin-puntos");
-  }
-  if (asignada) {
-    agregarInsignia(
-      contenedor,
-      traducir("interfaz.habilidades.asignada", {
-        parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
-        respaldo: `Asignada: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
-      }),
-      "asignada",
-    );
-  }
-  if (seleccionada) agregarInsignia(contenedor, traducir("interfaz.habilidades.seleccionada", { respaldo: "Seleccionada" }), "seleccionada");
-}
-function crearIconoHabilidad(ejecucion, habilidad) {
-  const marco = crearElemento("span", "tarjeta-habilidad__icono");
-  const ruta = ejecucion?.icono ?? null;
-  const fallback = () => {
-    marco.replaceChildren(
-      crearElemento("span", "tarjeta-habilidad__inicial", nombreHabilidad(habilidad)[0]),
-    );
-  };
-  if (!ruta) {
-    fallback();
-    return marco;
-  }
-  const imagen = document.createElement("img");
-  imagen.src = ruta;
-  imagen.alt = "";
-  imagen.draggable = false;
-  imagen.addEventListener("error", fallback, { once: true });
-  marco.append(imagen);
-  return marco;
-}
-function crearTooltipTexto({
-  habilidad,
-  ejecucion,
-  grado,
-  estado,
-  asignada,
-  indiceAsignado,
-}) {
-  const nombreMaestriaVisible = traducirContenido(
-    "maestrias",
-    habilidad.maestria,
-    "nombre",
-    formatearNombre(habilidad.maestria),
-  );
-  const lineas = [
-    `${nombreHabilidad(habilidad)} — ${traducir("interfaz.habilidades.grado", { parametros: { grado, maximo: habilidad.gradoMaximo }, respaldo: `grado ${grado}/${habilidad.gradoMaximo}` })}`,
-    traducir("interfaz.habilidades.tooltipMaestria", {
-      parametros: { maestria: nombreMaestriaVisible, nivel: estado.nivel },
-      respaldo: `Maestría: ${nombreMaestriaVisible} (nivel ${estado.nivel})`,
-    }),
-    traducir("interfaz.habilidades.tooltipRequisito", {
-      parametros: { nivel: habilidad.requisitoNivelMaestria },
-      respaldo: `Requisito: nivel ${habilidad.requisitoNivelMaestria}`,
-    }),
-    descripcionHabilidad(habilidad, ejecucion),
-  ];
-  if (ejecucion?.ejecucion) {
-    const gradoVisible = grado > 0 ? grado : 1;
-    const config = ejecucion.ejecucion.grados[gradoVisible];
-    lineas.push(
-      traducir("interfaz.habilidades.tooltipDanioBase", {
-        parametros: { valor: formatearDanioBase(config.danio) },
-        respaldo: `Daño base: ${formatearDanioBase(config.danio)}`,
-      }),
-      traducir("interfaz.habilidades.mana", {
-        parametros: { valor: config.costoMana },
-        respaldo: `Maná: ${config.costoMana}`,
-      }),
-      traducir("interfaz.habilidades.tooltipTiempo", {
-        parametros: { valor: config.costoTemporalBase },
-        respaldo: `Tiempo: ${config.costoTemporalBase}`,
-      }),
-      traducir("interfaz.habilidades.tooltipAlcance", {
-        parametros: { valor: config.alcance },
-        respaldo: `Alcance: ${config.alcance}`,
-      }),
-      traducir("interfaz.habilidades.tooltipPatron", {
-        parametros: { patron: nombrePatronAtaque(ejecucion.ejecucion.patronAtaque) },
-        respaldo: `Patrón: ${nombrePatronAtaque(ejecucion.ejecucion.patronAtaque)}`,
-      }),
-      traducir("interfaz.habilidades.tooltipLineaVision", {
-        parametros: {
-          valor: ejecucion.ejecucion.requiereLineaVision
-            ? traducir("interfaz.habilidades.si", { respaldo: "sí" })
-            : traducir("interfaz.habilidades.no", { respaldo: "no" }),
-        },
-        respaldo: `Línea de visión: ${ejecucion.ejecucion.requiereLineaVision ? "sí" : "no"}`,
-      }),
-    );
-  } else if (habilidad.tipo === "pasiva") {
-    const gradoVisible = grado > 0 ? grado : 1;
-    const modificadores = obtenerModificadoresPasiva(habilidad, gradoVisible);
-    lineas.push(
-      ...modificadores.map((modificador) => {
-        const detalle = formatearDetalleModificadorPasiva(modificador);
-        return `${detalle.etiqueta}: ${detalle.valor}`;
-      }),
-    );
-  }
-  if (asignada) {
-    lineas.push(
-      traducir("interfaz.habilidades.ranura", {
-        parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
-        respaldo: `Ranura: ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
-      }),
-    );
-  }
-  return lineas.filter(Boolean).join("\n");
 }
 function obtenerModificadoresPasiva(habilidad, grado) {
   const porGrado = habilidad?.modificadoresPorGrado;

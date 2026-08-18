@@ -693,6 +693,7 @@ function crearEfectosTemporalesVisuales(juego, entidad) {
       venceEn: Number.isFinite(efecto.venceEn) ? efecto.venceEn : null,
       proximoTick: Number.isFinite(efecto.proximoTick) ? efecto.proximoTick : null,
       beneficioso: efecto.beneficioso === true,
+      etiquetas: Array.isArray(efecto.etiquetas) ? [...efecto.etiquetas] : [],
       suspendido: efecto.suspendido === true,
       perfilVisual: obtenerPerfilEstadoTemporalVisual(catalogoEfectoId),
     };

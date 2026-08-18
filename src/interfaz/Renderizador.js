@@ -221,7 +221,7 @@ export class Renderizador {
     // Los paneles HTML continúan siendo
     // independientes del backend del mapa.
     this.panelPersonaje.actualizar(juego.player, { juego });
-    this.hudPartida.actualizar(juego.player);
+    this.hudPartida.actualizar(juego.player, { juego });
 
     // PanelInventario recibe también al jugador
     // porque el oro no forma parte del contenedor
@@ -239,7 +239,7 @@ export class Renderizador {
     }
 
     this.panelPersonaje.actualizar(jugador, { juego: this.juegoActual });
-    this.hudPartida.actualizar(jugador);
+    this.hudPartida.actualizar(jugador, { juego: this.juegoActual });
     return true;
   }
 

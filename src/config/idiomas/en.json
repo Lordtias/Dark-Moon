@@ -445,7 +445,13 @@
       "probabilidad": "Chance",
       "duracion": "Duration",
       "radioAura": "Aura radius",
-      "bloqueaHabilidadesActivas": "Blocks active skills"
+      "bloqueaHabilidadesActivas": "Blocks active skills",
+      "tipoAura": "Aura",
+      "tipoMaldicion": "Curse",
+      "tipoOfensiva": "Offensive",
+      "nivelArbol": "Level {nivel}",
+      "todaMaestria": "All {maestria} skills",
+      "aplicaA": "Applies to"
     },
     "mazmorras": {
       "elegir": "Choose expedition",

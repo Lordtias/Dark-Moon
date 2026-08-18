@@ -736,3 +736,374 @@
   border-color: #8a65b8;
   color: #d2b6f2;
 }
+
+/* =========================================================
+   HP6 · árbol genérico y detalle contextual de habilidades
+   ========================================================= */
+.modal-habilidades-maestrias {
+  width: min(97vw, 1540px);
+  height: min(96vh, 1100px);
+  max-width: none;
+  max-height: none;
+}
+
+.panel-habilidades,
+.panel-habilidades__cuerpo,
+.panel-habilidades__contenido,
+.maestria-detalle {
+  min-height: 0;
+}
+
+.panel-habilidades {
+  height: 100%;
+}
+
+.panel-habilidades__cuerpo {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.panel-habilidades__contenido {
+  overflow: hidden;
+}
+
+.maestria-detalle {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  overflow: hidden;
+}
+
+.arbol-habilidades {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(121, 107, 70, 0.48);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(97, 82, 38, 0.09), transparent 42%),
+    rgba(5, 8, 6, 0.76);
+}
+
+.arbol-habilidades__lienzo {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-auto-rows: minmax(84px, 1fr);
+  align-content: stretch;
+  gap: 4px;
+  height: 100%;
+  min-height: 0;
+  padding: 20px 22px 16px;
+}
+
+.arbol-habilidades__conexiones {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.arbol-habilidades__conexion {
+  fill: none;
+  stroke: rgba(198, 174, 102, 0.62);
+  stroke-width: 2.1;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+.arbol-habilidades__conexion--afinidad {
+  stroke-dasharray: 5 5;
+  stroke: rgba(154, 141, 97, 0.54);
+}
+
+.arbol-habilidades__conexiones marker path {
+  fill: rgba(207, 183, 111, 0.84);
+}
+
+.arbol-habilidades__nivel {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  min-height: 80px;
+}
+
+.arbol-habilidades__nivel-etiqueta {
+  justify-self: start;
+  padding: 3px 6px;
+  border: 1px solid rgba(121, 107, 70, 0.38);
+  border-radius: 999px;
+  color: #aaa58f;
+  background: rgba(5, 8, 6, 0.8);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.arbol-habilidades__nodos {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(18px, 4vw, 74px);
+  min-width: 0;
+}
+
+.nodo-habilidad {
+  position: relative;
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  overflow: visible;
+  border: 2px solid #7d714c;
+  border-radius: 7px;
+  background: #080b09;
+  box-shadow:
+    inset 0 0 10px rgba(0, 0, 0, 0.9),
+    0 4px 10px rgba(0, 0, 0, 0.62);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, filter 120ms ease, opacity 120ms ease;
+}
+
+.nodo-habilidad:hover,
+.nodo-habilidad:focus-visible {
+  z-index: 5;
+  transform: scale(1.08);
+  border-color: #d5bd73;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 185, 100, 0.18), 0 5px 15px rgba(0, 0, 0, 0.72);
+}
+
+.nodo-habilidad--no-aprendida {
+  opacity: 0.5;
+  filter: grayscale(0.55) saturate(0.65);
+}
+
+.nodo-habilidad--bloqueada {
+  opacity: 0.27;
+  filter: grayscale(0.9) brightness(0.66);
+}
+
+.nodo-habilidad--maximo {
+  border-color: #bca258;
+  box-shadow: inset 0 0 9px rgba(171, 136, 47, 0.24), 0 0 10px rgba(184, 151, 58, 0.2);
+}
+
+.nodo-habilidad--asignada::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(82, 122, 220, 0.72);
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+.nodo-habilidad__icono,
+.nodo-habilidad__icono img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.nodo-habilidad__icono {
+  overflow: hidden;
+  border-radius: 5px;
+}
+
+.nodo-habilidad__icono img {
+  object-fit: cover;
+}
+
+.nodo-habilidad__inicial {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #eee2bc;
+  font: 700 30px/1 Georgia, serif;
+}
+
+.nodo-habilidad__grado {
+  position: absolute;
+  z-index: 3;
+  right: -7px;
+  bottom: -7px;
+  min-width: 30px;
+  padding: 3px 5px;
+  border: 1px solid #8a7a50;
+  border-radius: 7px;
+  background: rgba(4, 6, 5, 0.96);
+  color: #f3ead1;
+  font: 700 11px/1.2 monospace;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.confirmacion-habilidad--detalle {
+  width: min(760px, 88vw);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+}
+
+.detalle-habilidad-modal {
+  display: grid;
+  gap: 16px;
+}
+
+.detalle-habilidad-modal__cabecera {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.detalle-habilidad-modal__icono {
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border: 2px solid #7d714c;
+  border-radius: 8px;
+  background: #070a08;
+  box-shadow: inset 0 0 12px #000;
+}
+
+.detalle-habilidad-modal__icono img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detalle-habilidad-modal__inicial {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font: 700 40px/1 Georgia, serif;
+}
+
+.detalle-habilidad-modal__identidad {
+  display: grid;
+  gap: 5px;
+}
+
+.detalle-habilidad-modal__tipo {
+  color: #d7c58e;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.detalle-habilidad-modal__grado,
+.detalle-habilidad-modal__requisito {
+  color: #c1bdad;
+  font-size: 12px;
+}
+
+.detalle-habilidad-modal__descripcion {
+  margin: 5px 0 0;
+  color: #e4dfd1;
+  line-height: 1.45;
+}
+
+.detalle-habilidad-modal__informacion,
+.detalle-habilidad-modal__bloques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.detalle-habilidad-modal__bloque {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(121, 107, 70, 0.46);
+  border-radius: 7px;
+  background: rgba(8, 12, 9, 0.76);
+}
+
+.detalle-habilidad-modal__subtitulo {
+  margin: 0 0 8px;
+  color: #d8c786;
+  font: 700 12px/1.2 Georgia, serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.detalle-habilidad-modal__datos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  margin: 0;
+}
+
+.detalle-habilidad-modal__datos dt,
+.detalle-habilidad-modal__datos dd {
+  margin: 0;
+  font-size: 12px;
+}
+
+.detalle-habilidad-modal__datos dt { color: #aaa99f; }
+.detalle-habilidad-modal__datos dd { color: #f1ead3; text-align: right; }
+.detalle-habilidad-modal__texto { margin: 0; color: #ded8c8; line-height: 1.4; }
+
+.detalle-habilidad-modal__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(121, 107, 70, 0.4);
+}
+
+.detalle-habilidad-modal__origen-punto {
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid #6a6246;
+  border-radius: 4px;
+  background: #0b0f0c;
+  color: #eee6d1;
+}
+
+@media (max-width: 900px) {
+  .modal-habilidades-maestrias { width: 98vw; height: 97vh; }
+  .arbol-habilidades__lienzo { padding-inline: 12px; }
+  .arbol-habilidades__nivel { grid-template-columns: 48px minmax(0, 1fr); }
+  .arbol-habilidades__nivel-etiqueta { font-size: 9px; padding-inline: 4px; }
+  .nodo-habilidad { width: 62px; height: 62px; }
+  .detalle-habilidad-modal__cabecera { grid-template-columns: 84px minmax(0, 1fr); }
+  .detalle-habilidad-modal__icono { width: 84px; height: 84px; }
+}
+
+@media (max-height: 720px) {
+  .arbol-habilidades__lienzo { grid-auto-rows: minmax(68px, 1fr); padding-block: 16px 10px; }
+  .arbol-habilidades__nivel { min-height: 64px; }
+  .nodo-habilidad { width: 56px; height: 56px; }
+}
+
+.barra-habilidades[data-barra-habilidades="activa"] {
+  grid-template-columns: repeat(10, 56px);
+  grid-template-rows: 56px;
+}
+@media (max-width: 980px) {
+  .barra-habilidades[data-barra-habilidades="activa"] {
+    grid-template-columns: repeat(10, 44px);
+    grid-template-rows: 44px;
+  }
+}
+@media (max-height: 680px) {
+  .barra-habilidades[data-barra-habilidades="activa"] {
+    grid-template-columns: repeat(10, 42px);
+    grid-template-rows: 42px;
+  }
+}
+
+.panel-habilidades__contenido {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+.maestrias__selector { margin-bottom: 0; }

@@ -136,6 +136,38 @@ export function validarOperacionModificador(operacion) {
   return operacion;
 }
 
+// Escala la magnitud declarada de un modificador sin resolver el objetivo.
+// Las operaciones multiplicativas escalan su distancia respecto del neutro 1;
+// los límites máximos son estructurales y no cambian con la intensidad.
+export function escalarMagnitudModificador(descriptor, escala) {
+  if (
+    !descriptor ||
+    typeof descriptor !== "object" ||
+    Array.isArray(descriptor)
+  ) {
+    throw new Error(
+      "Se necesita un descriptor de modificador para escalar su magnitud.",
+    );
+  }
+  const operacion = validarOperacionModificador(descriptor.operacion);
+  if (!Number.isFinite(descriptor.valor)) {
+    throw new Error("La magnitud del modificador debe ser un número finito.");
+  }
+  if (!Number.isFinite(escala) || escala < 0) {
+    throw new Error("La escala del modificador debe ser un número finito no negativo.");
+  }
+
+  switch (operacion) {
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR:
+    case OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR:
+      return 1 + (descriptor.valor - 1) * escala;
+    case OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO:
+      return descriptor.valor;
+    default:
+      return descriptor.valor * escala;
+  }
+}
+
 export function validarAmbitoAfijo(ambito) {
   if (typeof ambito !== "string" || !CONJUNTO_AMBITOS.has(ambito)) {
     throw new Error(`El ámbito de afijo "${ambito}" no existe.`);

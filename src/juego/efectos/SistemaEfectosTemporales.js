@@ -16,7 +16,9 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../mensajes/MensajesJuego.js";
 import { crearMensajeDetalleDanioPeriodico } from "../mensajes/MensajesCalculoCombate.js";
-import { OPERACIONES_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
+import {
+  escalarMagnitudModificador,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
   MODOS_RESISTENCIA_EFECTO,
   POLITICAS_ACUMULACION_EFECTO,
@@ -354,7 +356,7 @@ function crearDescriptoresInstanciaEfecto(efecto) {
   return (efecto.modificadores ?? []).map((descriptor, indice) => ({
     ...descriptor,
     id: `efecto_temporal:${efecto.id}:${indice}:${descriptor.objetivo}`,
-    valor: escalarValorDescriptor(descriptor, escala),
+    valor: escalarMagnitudModificador(descriptor, escala),
     origen: "efecto_temporal",
     fuente: Object.freeze({
       tipo: "efecto_temporal",
@@ -364,18 +366,6 @@ function crearDescriptoresInstanciaEfecto(efecto) {
       nombre: efecto.nombreEfecto,
     }),
   }));
-}
-
-function escalarValorDescriptor(descriptor, escala) {
-  switch (descriptor.operacion) {
-    case OPERACIONES_MODIFICADOR.MULTIPLICAR:
-    case OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR:
-      return 1 + (descriptor.valor - 1) * escala;
-    case OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO:
-      return descriptor.valor;
-    default:
-      return descriptor.valor * escala;
-  }
 }
 
 function crearResumenEfecto(efecto) {

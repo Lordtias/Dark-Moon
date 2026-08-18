@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada y HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`, HP5 en `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc` y HP6 queda cerrada documentalmente tras la validación manual satisfactoria informada por el usuario el 18/08/2026. El hito de habilidades/pasivas queda completado; no se avanza automáticamente a una nueva etapa.
+**Estado:** Plan maestro rector. HP0 quedó documentada y HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas. HP4 quedó cerrada por el usuario en `70f78115dffe96a223128b5cffbbab0ef58024ce`, HP5 en `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc` y HP6 quedó cerrada documentalmente tras la validación manual satisfactoria informada por el usuario el 18/08/2026. El hito de habilidades/pasivas continúa completado. Posteriormente se aprobó `HP-AUD`, una auditoría extraordinaria post-hito sin crear HP7; sus tres correcciones acotadas están implementadas sobre `e47d2caef9257e64cd663fc8bbc49852b19f163e` y quedan pendientes únicamente de validación manual antes del cierre documental definitivo de la auditoría.
 
 ---
 
@@ -2522,6 +2522,9 @@ Quedan aprobadas como dirección del hito:
 63. las pruebas manuales finales de HP6 fueron declaradas satisfactorias por el usuario el 18/08/2026 y el hito de habilidades/pasivas queda cerrado documentalmente.
 64. el Panel Personaje no repite un título interno dentro del panel superpuesto; la cabecera externa es la única cabecera visible;
 65. `Efectos activos` resuelve sus iconos mediante la configuración canónica de ejecución (`efectoId → habilidad → icono`) y no mediante el catálogo reducido de progreso.
+66. HP-AUD no crea HP7 ni un refactor general: certifica el hito cerrado y corrige únicamente deuda demostrada por evidencia.
+67. la semántica para escalar la magnitud de un descriptor según su operación pertenece a `ContratosModificadoresCombatiente.js`; Potencia de Efectos y acumulaciones temporales reutilizan esa única función.
+68. `SistemaExperienciaMaestrias` sigue siendo la única ruta productiva que traduce hechos jugables a XP; `Player` no expone un atajo directo de XP y las herramientas de depuración/balance pueden inyectar progreso únicamente como soporte explícito de prueba/análisis.
 
 ---
 
@@ -2637,3 +2640,71 @@ La validación manual final fue superada y aprobada por el usuario el 18/08/2026
 - ausencia de cambios de balance, persistencia o reglas canónicas en HP5.
 
 HP6 hereda esta base estable y queda destinada al árbol genérico de habilidades, estados compactos de Auras/Maldiciones en HUD, retirada del punto persistente del Player manteniendo feedback transitorio y regresión Web/Electron.
+
+
+---
+
+## HP-AUD — Auditoría post-hito de habilidades y modificadores
+
+### Objetivo y alcance
+
+HP-AUD es una auditoría extraordinaria posterior a HP6. No constituye HP7 ni reabre el hito funcional. Su objetivo es comprobar el resultado conjunto de HP1–HP6 buscando motores duplicados, código histórico productivo, dependencias incorrectas, cálculos repetidos y rutas alternativas que pudieran erosionar los contratos canónicos.
+
+La auditoría confirmó como estructura vigente:
+
+```text
+fuentes declarativas
+  ↓
+SistemaModificadoresCombatiente
+  ↓
+resultado/desglose canónico
+  ↓
+combate / habilidades / tiempo / estadísticas
+  ↓
+HTML o Phaser representa
+```
+
+También confirmó una única progresión `ProgresoHabilidadesJugador`, un único traductor productivo `SistemaExperienciaMaestrias`, un único sistema temporal y una persistencia basada en fuentes, sin resultados derivados guardados.
+
+### Hallazgos aprobados
+
+Se aprobaron tres correcciones acotadas:
+
+1. restaurar `README.md`, reemplazado accidentalmente durante entregas incrementales por instrucciones puntuales que no representaban el repositorio;
+2. retirar la duplicación de la regla que escalaba magnitudes de modificadores en `CalculadorAtributosMagicos.js` y `SistemaEfectosTemporales.js`;
+3. retirar `Player.agregarExperienciaMaestria()`, que permitía saltarse el traductor canónico aunque el gameplay no la utilizaba.
+
+Quedan fuera de HP-AUD los assets históricos bajo `assets/imagenes/jugador/old/` y deudas anteriores al hito que no fueron introducidas por HP1–HP6.
+
+### Implementación
+
+- `ContratosModificadoresCombatiente.js` expone `escalarMagnitudModificador(descriptor, escala)` como semántica única de escalado.
+- `CalculadorAtributosMagicos.js` y `SistemaEfectosTemporales.js` reutilizan esa función y eliminan sus copias locales.
+- `Player` mantiene `registrarExperienciaMaestria()` hacia `SistemaExperienciaMaestrias` y deja de exponer suma directa de XP.
+- `DepuradorMagiaHabilidades` conserva la capacidad de inyectar XP para pruebas, pero accede explícitamente al progreso desde la capa de depuración.
+- `README.md` vuelve a ser la guía funcional completa y queda actualizado al estado posterior a HP6: 16 maestrías, 104 habilidades, pasivas/auras/maldiciones, árbol genérico, HUD y contratos canónicos actuales.
+
+### Validación automática realizada
+
+Sobre la base `e47d2caef9257e64cd663fc8bbc49852b19f163e`:
+
+- 277 archivos JavaScript entre `game.js`, `src/` y `electron/`: sintaxis correcta;
+- 38 JSON: parseo correcto;
+- imports relativos faltantes: 0;
+- ciclos ES detectados: 0;
+- configuración: 16 maestrías, 104 habilidades (40 activas/64 pasivas) y 35 efectos válidos;
+- 104/104 iconos de habilidades presentes y 128×128;
+- escalado centralizado comparado contra la implementación previa: 40/40 combinaciones equivalentes sobre las ocho operaciones;
+- validaciones negativas del escalador: operación, magnitud y escala inválidas producen error explícito;
+- snapshot mágico con Potencia de Efectos: resultados esperados;
+- acumulación temporal real: suma, multiplicación respecto del neutro y límite máximo conservan resultados;
+- `Player.prototype.agregarExperienciaMaestria`: ausente; `registrarExperienciaMaestria`: presente;
+- referencias directas a `agregarExperienciaMaestria` quedan limitadas al progreso, traductor canónico, observador de cambios y herramientas de balance/depuración;
+- `git diff --check`: correcto;
+- servido HTTP: recursos críticos comprobados con HTTP 200 y sin 404.
+
+La prueba headless con Chromium volvió a quedar limitada por DBus/proceso gráfico del entorno. No se clasifica como ejecutada ni superada.
+
+### Estado
+
+Las correcciones aprobadas están implementadas y la validación automática es satisfactoria. HP-AUD queda **pendiente de validación manual del usuario** antes de marcarse Cerrada y antes de proponer el cierre definitivo del hito auditado.

@@ -79,11 +79,7 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     registrarExperienciaMaestria: (evento) =>
       invocarRegistroExperiencia(contexto.obtenerJugador(), evento),
     agregarExperienciaMaestria: (datos) =>
-      invocarProgreso(
-        contexto.obtenerJugador(),
-        "agregarExperienciaMaestria",
-        datos,
-      ),
+      inyectarExperienciaMaestriaParaPrueba(contexto.obtenerJugador(), datos),
     agregarPuntosUniversalesParaPrueba: (cantidad) =>
       invocarProgreso(
         contexto.obtenerJugador(),
@@ -1342,6 +1338,16 @@ function invocarRegistroExperiencia(jugador, evento) {
     throw new Error("El jugador no expone el registro canónico de XP de maestría.");
   }
   return jugador.registrarExperienciaMaestria(evento);
+}
+
+function inyectarExperienciaMaestriaParaPrueba(jugador, datos) {
+  const progreso = obtenerProgreso(jugador);
+  if (typeof progreso.agregarExperienciaMaestria !== "function") {
+    throw new Error(
+      "El progreso no permite inyectar XP de maestría para pruebas.",
+    );
+  }
+  return progreso.agregarExperienciaMaestria(datos);
 }
 
 function obtenerGrado(jugador, idHabilidad) {

@@ -333,10 +333,6 @@ export class Player extends Combatiente {
     return this.sistemaExperienciaMaestrias.registrarEvento(evento);
   }
 
-  agregarExperienciaMaestria(datos) {
-    return this.progresoHabilidades.agregarExperienciaMaestria(datos);
-  }
-
   mejorarHabilidad(datos) {
     const estadoRecursosAnterior = capturarEstadoRecursos(this);
     const resultado = this.progresoHabilidades.mejorarHabilidad(datos);

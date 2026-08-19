@@ -10,8 +10,8 @@ import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
 import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
 
-export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v4";
-export const VERSION_GUARDADO_JUGADOR = 4;
+export const CLAVE_GUARDADO_JUGADOR = "dark-moon:estado-jugador:v5";
+export const VERSION_GUARDADO_JUGADOR = 5;
 
 // Serializa el estado durable del personaje, no la simulación del mapa.
 //
@@ -184,6 +184,7 @@ export function crearJugadorDesdeSnapshot({
     objetosInventarioIniciales: [],
     equipamientoInicial: [],
     estadoProgresoHabilidades: estado.progresoHabilidades,
+    reglasSuerte: configuracionPersonaje.reglasSuerte,
   });
 
   restaurarInventario({
@@ -405,6 +406,7 @@ function validarEstadoJugadorGuardado(estado) {
   );
   validarEnteroNoNegativo(estado.oro, "El oro guardado");
   validarObjetoPlano(estado.atributos, "los atributos guardados");
+  validarAtributosGuardados(estado.atributos);
   validarObjetoPlano(
     estado.factoresTemporales,
     "los factores temporales guardados",
@@ -420,6 +422,32 @@ function validarEstadoJugadorGuardado(estado) {
     !Array.isArray(estado.inventario.espacios)
   ) {
     throw new Error("El inventario guardado no es válido.");
+  }
+}
+
+function validarAtributosGuardados(atributos) {
+  const esperados = [
+    "fuerza",
+    "destreza",
+    "constitucion",
+    "inteligencia",
+    "sabiduria",
+    "suerte",
+  ];
+  const claves = Object.keys(atributos).sort();
+  const canonicas = [...esperados].sort();
+  if (
+    claves.length !== canonicas.length ||
+    claves.some((clave, indice) => clave !== canonicas[indice])
+  ) {
+    throw new Error(
+      "Los atributos guardados no coinciden con el contrato canónico vigente.",
+    );
+  }
+  for (const atributo of esperados) {
+    if (!Number.isInteger(atributos[atributo]) || atributos[atributo] < 0) {
+      throw new Error(`El atributo guardado "${atributo}" no es válido.`);
+    }
   }
 }
 

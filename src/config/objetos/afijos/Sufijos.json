@@ -413,7 +413,8 @@
     "aplicaA": {
       "tipos": [
         "armadura",
-        "quiver"
+        "quiver",
+        "accesorio"
       ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
@@ -480,7 +481,8 @@
     "aplicaA": {
       "tipos": [
         "armadura",
-        "quiver"
+        "quiver",
+        "accesorio"
       ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
@@ -547,7 +549,8 @@
     "aplicaA": {
       "tipos": [
         "armadura",
-        "quiver"
+        "quiver",
+        "accesorio"
       ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
@@ -614,7 +617,8 @@
     "aplicaA": {
       "tipos": [
         "armadura",
-        "quiver"
+        "quiver",
+        "accesorio"
       ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
@@ -1100,41 +1104,6 @@
     "notasDiseno": [],
     "propuestaBalance": "Primer rango sugerido: sabiduria: 1–2."
   },
-  "del_soberano": {
-    "nombre": "Del soberano",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Carisma.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_carisma",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "carisma",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: carisma: 1–2."
-  },
   "de_celeridad": {
     "nombre": "De celeridad",
     "tipoAfijo": "sufijo",
@@ -1467,7 +1436,7 @@
     "grupoExclusion": "resistencia_congelamiento",
     "aplicaA": {
       "tipos": [
-        "armadura"
+        "accesorio"
       ],
       "ranurasIncluidas": [
         "collar",
@@ -1539,7 +1508,7 @@
     "grupoExclusion": "resistencia_aturdimiento",
     "aplicaA": {
       "tipos": [
-        "armadura"
+        "accesorio"
       ],
       "ranurasIncluidas": [
         "collar",
@@ -1611,7 +1580,7 @@
     "grupoExclusion": "resistencia_envenenamiento",
     "aplicaA": {
       "tipos": [
-        "armadura"
+        "accesorio"
       ],
       "ranurasIncluidas": [
         "collar",
@@ -1683,7 +1652,7 @@
     "grupoExclusion": "resistencia_quemadura",
     "aplicaA": {
       "tipos": [
-        "armadura"
+        "accesorio"
       ],
       "ranurasIncluidas": [
         "collar",
@@ -1738,6 +1707,150 @@
     ],
     "notasDiseno": [
       "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
+    ]
+  },
+  "de_lucidez": {
+    "nombre": "De lucidez",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "La Resistencia Mental ya es un objetivo canónico y B3 la habilita exclusivamente en joyería.",
+    "descripcion": "Aumenta la Resistencia Mental.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_mental",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaMental",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "Exclusivo de accesorios; no otorga inmunidad a Maldiciones."
+    ]
+  },
+  "de_fortuna": {
+    "nombre": "De fortuna",
+    "tipoAfijo": "sufijo",
+    "estado": "activo",
+    "motivoEstado": "Hallazgo mágico es un objetivo canónico y modifica únicamente pesos de rareza al materializar botín.",
+    "descripcion": "Aumenta el Hallazgo mágico.",
+    "pesoBase": 700,
+    "requiere": [],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "hallazgo_magico",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "hallazgoMagico",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "hallazgoMagico": {
+            "minimo": 5,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "hallazgoMagico": {
+            "minimo": 11,
+            "maximo": 20
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "hallazgoMagico": {
+            "minimo": 21,
+            "maximo": 30
+          }
+        }
+      }
+    ],
+    "notasDiseno": [
+      "Exclusivo de accesorios; no modifica Suerte ni los precios comerciales."
     ]
   }
 }

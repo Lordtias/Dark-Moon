@@ -138,7 +138,6 @@
       "constitucion": "Constitution",
       "inteligencia": "Intelligence",
       "sabiduria": "Wisdom",
-      "carisma": "Charisma",
       "aumentarFuerza": "Increase Strength",
       "asignarFuerza": "Assign one point to Strength",
       "aumentarDestreza": "Increase Dexterity",
@@ -149,8 +148,6 @@
       "asignarInteligencia": "Assign one point to Intelligence",
       "aumentarSabiduria": "Increase Wisdom",
       "asignarSabiduria": "Assign one point to Wisdom",
-      "aumentarCarisma": "Increase Charisma",
-      "asignarCarisma": "Assign one point to Charisma",
       "resistenciasDanio": "Damage resistances",
       "resistenciasEfectos": "Effect resistances",
       "habilidades": "Skills",
@@ -199,15 +196,16 @@
         "resistenciaEfecto_envenenamiento": "Poisoning resistance",
         "resistenciaEfecto_quemadura": "Burn resistance",
         "resistenciaMental": "Mental Resistance",
-        "potenciaAura": "Aura Power"
+        "potenciaAura": "Aura Power",
+        "ajusteComercial": "Trade adjustment",
+        "hallazgoMagico": "Magic Find"
       },
       "descripcionEstadistica": {
         "atributo_fuerza": "Primary physical attribute. It modifies physical damage for weapons whose offensive attribute is Strength.",
         "atributo_destreza": "Accuracy and agility attribute. It increases Accuracy and Evasion and may govern the physical damage of agile weapons.",
-        "atributo_constitucion": "Body endurance attribute. It contributes maximum Life, Life regeneration, Poison resistance, and defenses against harmful effects.",
+        "atributo_constitucion": "Body endurance and presence attribute. It contributes maximum Life, Life regeneration, Aura Power, Poison resistance, and defenses against harmful effects.",
         "atributo_inteligencia": "Magical power attribute. It contributes maximum Mana, magic damage, and Effect Power.",
         "atributo_sabiduria": "Magical control and resistance attribute. It contributes Mana, regeneration, magic damage and effects, elemental resistances, and Mental Resistance.",
-        "atributo_carisma": "Influence attribute. It increases canonical Aura Power; current auras do not automatically scale their magnitude with this stat.",
         "danio_medio": "Average raw damage of the current physical attack before accuracy, criticals, target Armor, and Block.",
         "dps": "Average raw damage per second based on current average damage and effective attack time.",
         "precision": "Value used to determine hit chance against the target's Evasion.",
@@ -231,7 +229,10 @@
         "res_aturdimiento": "Reduces the chance of receiving Stun.",
         "res_envenenamiento": "Reduces the chance of receiving Poisoning.",
         "res_quemadura": "Reduces the chance of receiving Burn.",
-        "res_mental": "Reduces the chance of receiving Curses. Its final value is capped at 75%."
+        "res_mental": "Reduces the chance of receiving Curses. Its final value is capped at 75%.",
+        "atributo_suerte": "Fortune attribute. It adjusts trade prices and increases the relative weight of rarities above Common when loot is materialized.",
+        "ajuste_comercial": "Canonical price modifier derived from Luck. Merchants consume this result without recalculating Luck.",
+        "hallazgo_magico": "Increases the relative weight of rarities above Common when loot is materialized. It does not change quantity, Tier, or budget."
       },
       "sinPasivas": "No learned passives.",
       "sinEfectos": "No active temporary effects.",
@@ -255,7 +256,13 @@
       "efectoPerjudicial": "Harmful",
       "efectoBloqueaHabilidades": "Blocks active skills",
       "efectoBloqueoTotal": "Temporarily prevents acting",
-      "efectoDanioPeriodico": "Periodic damage"
+      "efectoDanioPeriodico": "Periodic damage",
+      "suerte": "Luck",
+      "aumentarSuerte": "Increase Luck",
+      "asignarSuerte": "Assign one point to Luck",
+      "suerteResultados": "Luck",
+      "ajusteComercial": "Trade adjustment",
+      "hallazgoMagico": "Magic Find"
     },
     "curacion": {
       "subtitulo": "Restore your resources before a new expedition.",
@@ -674,7 +681,10 @@
       "ambitoPortador": "Wearer",
       "ambitoMixto": "Mixed",
       "tipoDesechable": "Junk",
-      "categoriaMaterial": "Material"
+      "categoriaMaterial": "Material",
+      "tipoAccesorio": "Accessory",
+      "resistenciaMental": "Mental Resistance",
+      "hallazgoMagico": "Magic Find"
     },
     "comparacionObjetos": {
       "sinOpciones": "There are no other equipped items to compare.",
@@ -788,8 +798,8 @@
       "sabiduria": {
         "nombre": "Wisdom"
       },
-      "carisma": {
-        "nombre": "Charisma"
+      "suerte": {
+        "nombre": "Luck"
       }
     },
     "profesiones": {
@@ -1119,6 +1129,210 @@
       "piedra": {
         "nombre": "Stone",
         "descripcion": "Usable stone fragments recovered from structures. They can be sold and will serve as crafting material in future systems."
+      },
+      "daga_acero_templado": {
+        "nombre": "Tempered Steel Dagger",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "espada_acero_templado": {
+        "nombre": "Tempered Steel Sword",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "hacha_guerra_templada": {
+        "nombre": "Tempered War Axe",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "mandoble_acero_templado": {
+        "nombre": "Tempered Steel Greatsword",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "lanza_acero_templado": {
+        "nombre": "Tempered Steel Spear",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "arco_compuesto": {
+        "nombre": "Composite Bow",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "baston_maestro": {
+        "nombre": "Master Staff",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "varita_fuego_magistral": {
+        "nombre": "Masterwork Fire Wand",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "varita_frio_magistral": {
+        "nombre": "Masterwork Frost Wand",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "varita_electrica_magistral": {
+        "nombre": "Masterwork Lightning Wand",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "varita_veneno_magistral": {
+        "nombre": "Masterwork Poison Wand",
+        "descripcion": "A high-tier weapon built for the upper end of the current progression."
+      },
+      "capucha_tela_gruesa": {
+        "nombre": "Thick Cloth Hood",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "tunica_tela_gruesa": {
+        "nombre": "Thick Cloth Tunic",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "guantes_tela_gruesos": {
+        "nombre": "Thick Cloth Gloves",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "pantalones_tela_gruesos": {
+        "nombre": "Thick Cloth Trousers",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "botas_tela_gruesas": {
+        "nombre": "Thick Cloth Boots",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "capucha_cuero_remachado": {
+        "nombre": "Riveted Leather Hood",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "jubon_cuero_remachado": {
+        "nombre": "Riveted Leather Jerkin",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "guantes_cuero_remachado": {
+        "nombre": "Riveted Leather Gloves",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "pantalones_cuero_remachado": {
+        "nombre": "Riveted Leather Trousers",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "botas_cuero_remachado": {
+        "nombre": "Riveted Leather Boots",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "casco_acero_templado": {
+        "nombre": "Tempered Steel Helmet",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "coraza_acero_templado": {
+        "nombre": "Tempered Steel Cuirass",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "guantes_acero_templado": {
+        "nombre": "Tempered Steel Gauntlets",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "grebas_acero_templado": {
+        "nombre": "Tempered Steel Greaves",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "botas_acero_templado": {
+        "nombre": "Tempered Steel Boots",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "escudo_acero": {
+        "nombre": "Steel Shield",
+        "descripcion": "High-quality protective equipment built for the upper end of the current progression."
+      },
+      "anillo_rubi_simple": {
+        "nombre": "Simple Ruby Ring",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "collar_rubi_simple": {
+        "nombre": "Simple Ruby Necklace",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "anillo_zafiro_simple": {
+        "nombre": "Simple Sapphire Ring",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "collar_zafiro_simple": {
+        "nombre": "Simple Sapphire Necklace",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "anillo_topacio_simple": {
+        "nombre": "Simple Topaz Ring",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "collar_topacio_simple": {
+        "nombre": "Simple Topaz Necklace",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "anillo_esmeralda_simple": {
+        "nombre": "Simple Emerald Ring",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
+      },
+      "collar_esmeralda_simple": {
+        "nombre": "Simple Emerald Necklace",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
+      },
+      "anillo_rubi_engastado": {
+        "nombre": "Set Ruby Ring",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "collar_rubi_engastado": {
+        "nombre": "Set Ruby Necklace",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "anillo_zafiro_engastado": {
+        "nombre": "Set Sapphire Ring",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "collar_zafiro_engastado": {
+        "nombre": "Set Sapphire Necklace",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "anillo_topacio_engastado": {
+        "nombre": "Set Topaz Ring",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "collar_topacio_engastado": {
+        "nombre": "Set Topaz Necklace",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "anillo_esmeralda_engastado": {
+        "nombre": "Set Emerald Ring",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
+      },
+      "collar_esmeralda_engastado": {
+        "nombre": "Set Emerald Necklace",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
+      },
+      "anillo_rubi_magistral": {
+        "nombre": "Masterwork Ruby Ring",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "collar_rubi_magistral": {
+        "nombre": "Masterwork Ruby Necklace",
+        "descripcion": "Jewelry crafted around a ruby that grants Fire resistance to its wearer."
+      },
+      "anillo_zafiro_magistral": {
+        "nombre": "Masterwork Sapphire Ring",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "collar_zafiro_magistral": {
+        "nombre": "Masterwork Sapphire Necklace",
+        "descripcion": "Jewelry crafted around a sapphire that grants Frost resistance to its wearer."
+      },
+      "anillo_topacio_magistral": {
+        "nombre": "Masterwork Topaz Ring",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "collar_topacio_magistral": {
+        "nombre": "Masterwork Topaz Necklace",
+        "descripcion": "Jewelry crafted around a topaz that grants Lightning resistance to its wearer."
+      },
+      "anillo_esmeralda_magistral": {
+        "nombre": "Masterwork Emerald Ring",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
+      },
+      "collar_esmeralda_magistral": {
+        "nombre": "Masterwork Emerald Necklace",
+        "descripcion": "Jewelry crafted around a emerald that grants Poison resistance to its wearer."
       }
     },
     "afijos": {
@@ -1136,11 +1350,11 @@
       },
       "vigoroso": {
         "nombre": "Vigorous",
-        "descripcion": "Increases maximum Life."
+        "descripcion": "Increases the wearer’s maximum Life."
       },
       "arcano": {
         "nombre": "Arcane",
-        "descripcion": "Would increase maximum Mana."
+        "descripcion": "Increases the wearer’s maximum Mana."
       },
       "ligero": {
         "nombre": "Light",
@@ -1298,10 +1512,6 @@
         "nombre": "of the Owl",
         "descripcion": "Would increase Wisdom."
       },
-      "del_soberano": {
-        "nombre": "of the Sovereign",
-        "descripcion": "Would increase Charisma."
-      },
       "de_celeridad": {
         "nombre": "of Celerity",
         "descripcion": "Would increase movement speed."
@@ -1316,7 +1526,7 @@
       },
       "de_fortuna": {
         "nombre": "of Fortune",
-        "descripcion": "Would increase the quality of items found."
+        "descripcion": "Increases Magic Find without changing Luck or trade prices."
       },
       "de_abundancia": {
         "nombre": "of Abundance",
@@ -1353,6 +1563,10 @@
       "de_ceniza": {
         "nombre": "of Ash",
         "descripcion": "Increases Burn resistance."
+      },
+      "de_lucidez": {
+        "nombre": "of Lucidity",
+        "descripcion": "Increases the wearer’s Mental Resistance."
       }
     },
     "rarezas": {

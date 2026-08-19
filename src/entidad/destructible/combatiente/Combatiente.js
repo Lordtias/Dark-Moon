@@ -39,7 +39,7 @@ const ATRIBUTOS_REQUERIDOS = [
   "constitucion",
   "inteligencia",
   "sabiduria",
-  "carisma",
+  "suerte",
 ];
 const NOMBRES_FACTORES_TEMPORALES = [
   OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,

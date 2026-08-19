@@ -1,9 +1,9 @@
 # PLAN MAESTRO — BOTÍN CANÓNICO DE DARK MOON
 
-**Estado general:** En ejecución.  
-**Última etapa cerrada:** B1 — Contrato y motor canónico de botín.  
-**Etapa actual:** B2 — Migración de fuentes, Desechables y destrucción cerrada el 19/08/2026.
-**Siguiente etapa recomendada tras cerrar B2:** B3 — Suerte, joyería y Tier III. No iniciar automáticamente.
+**Estado general:** En ejecución; sin etapa activa definida.
+**Última etapa cerrada:** B3 — Suerte, joyería y Tier III.
+**Etapa actual:** Sin etapa activa. B3 quedó **cerrada** el 19/08/2026 tras implementación técnica, correcciones de regresión y aprobación de pruebas manuales del usuario.
+**Siguiente etapa recomendada tras B3:** no existe una B4 definida en este Plan Maestro. Cualquier continuación requiere definición y aprobación explícitas de una nueva etapa.
 **Base inicial del plan:** `b5b8b69df1e7faa3a3e0fd7475dc50f0019f95a0`.  
 **Rama:** `main`.  
 **Regla de persistencia del plan:** se asume que no existen partidas guardadas previas que deban conservarse. No se crearán migradores, aliases, wrappers ni parches de compatibilidad.
@@ -465,168 +465,201 @@ Así, agregar un afijo no cambia qué objeto fue seleccionado para una misma sem
 
 ---
 
-## 13. Suerte — diseño aprobado para B3
+## 13. Suerte — diseño consolidado en B3
 
-Carisma será reemplazado canónicamente por **Suerte**.
+Carisma queda reemplazado canónicamente por **Suerte**. No existe compatibilidad transitoria ni alias porque el plan asume cero partidas guardadas anteriores.
 
-No habrá compatibilidad transitoria porque el plan asume cero partidas guardadas anteriores.
+Los seis atributos canónicos pasan a ser:
 
-Suerte producirá dos resultados derivados:
+- Fuerza;
+- Destreza;
+- Constitución;
+- Inteligencia;
+- Sabiduría;
+- Suerte.
 
-### Ajuste comercial
+Los enemigos reciben inicialmente `suerte: 10` como valor neutral. En B3 no existe todavía una utilidad de metajuego para Suerte enemiga.
 
-Mantendrá inicialmente la regla económica actual de Carisma:
+La antigua contribución de Carisma a Potencia de Aura pasa a **Constitución**, manteniendo inicialmente el coeficiente heredado de 2. Esta decisión evita sobrecargar Sabiduría y permite que futuras construcciones de soporte compartan una base defensiva entre magos y guerreros. B3 no modifica todavía la magnitud funcional de las auras a partir de `potenciaAura`.
+
+Suerte produce dos resultados derivados registrados en el resolutor canónico de modificadores:
+
+### 13.1. Ajuste comercial
+
+Regla definitiva de B3:
 
 - referencia: Suerte 10;
-- 2 % por punto;
-- límite ±20 %.
+- 2 % por punto respecto de la referencia;
+- límite mínimo: -20 %;
+- límite máximo: +20 %.
 
-El consumidor comercial deberá recibir el valor canónico ya resuelto; no reinterpretar Suerte por su cuenta.
+`EstadisticasDerivadas` calcula y resuelve `ajusteComercial`. Comercio consume ese resultado canónico y no contiene una segunda fórmula de Suerte.
 
-### Hallazgo mágico
+### 13.2. Hallazgo mágico
 
-Aumentará el peso relativo de rarezas superiores a Común.
+`hallazgoMagico` aumenta únicamente el peso relativo de rarezas activas superiores a Común.
 
-No aumentará:
+Regla definitiva de B3:
+
+- referencia: Suerte 10;
+- +5 % de peso relativo por punto por encima de 10;
+- mínimo: 0 %;
+- límite final: +100 %.
+
+Hallazgo mágico no aumenta:
 
 - cantidad de objetos;
 - probabilidad de que una fuente entregue algo;
 - Tier;
-- materiales.
+- materiales;
+- cantidad de cofres o recipientes;
+- presupuesto procedural.
 
-Propuesta de balance aprobada como punto de partida para B3:
+La rareza `Común` conserva su peso base. Cada rareza activa superior a Común multiplica su peso por `1 + hallazgoMagico / 100`. Una rareza forzada no se altera.
 
-- referencia: Suerte 10;
-- +5 % de peso relativo por punto por encima de 10;
-- límite final configurable.
+El presupuesto de población continúa consultando exclusivamente `SistemaBotin.calcularValorEsperadoSolicitudBotin()` y **no incorpora Hallazgo mágico**. De esta manera Suerte mejora la calidad real de una recompensa sin provocar que el planificador reduzca la recompensa estructural para compensarla.
 
-`ajusteComercial` y `hallazgoMagico` se incorporarán al registro canónico de objetivos modificables.
+### 13.3. Momento de evaluación de Hallazgo mágico
+
+B3 corrige la asimetría heredada en recipientes. La recompensa se evalúa con el Hallazgo mágico actual **cuando se materializa realmente**:
+
+- enemigos: al morir;
+- cofres y recipientes: al abrirse por primera vez;
+- cofre/recipiente todavía sin abrir: al destruirse.
+
+Los cofres y recipientes guardan inicialmente su solicitud canónica de contenido y no los objetos ya tirados. `SistemaBotin` materializa esa solicitud exactamente una vez y la reemplaza por instancias reales. Abrir nuevamente nunca rerollea el contenido.
+
+Si un recipiente se destruye sin abrir, primero se materializa una sola vez y después B2 aplica la supervivencia del 80 % por pila completa. Si ya estaba abierto, destruir procesa solamente las instancias que todavía quedan dentro.
+
+Cambiar equipamiento de Fortuna inmediatamente antes de abrir una recompensa sigue siendo posible en B3. No se agrega una regla artificial de bloqueo de equipo o snapshot al entrar a la mazmorra.
 
 ---
 
-## 14. Joyería — diseño aprobado para B3
+## 14. Joyería — diseño consolidado en B3
 
-Se creará:
+Se incorpora:
 
 `src/config/objetos/Accesorios.json`
 
-Tipo canónico futuro:
+Tipo canónico:
 
 `accesorio`
 
-Ranuras existentes reutilizadas:
+Ranuras reutilizadas:
 
 - collar;
 - anillo derecho;
 - anillo izquierdo.
 
-### 14.1. Identidad elemental
+### 14.1. Identidad elemental y bases
 
-Como las varitas, las joyas estarán ligadas a las cuatro afinidades:
+Por cada Tier existen cuatro anillos y cuatro collares:
 
-- Fuego;
-- Frío;
-- Rayo;
-- Veneno.
+- Rubí → resistencia a Fuego;
+- Zafiro → resistencia a Frío;
+- Topacio → resistencia a Rayo;
+- Esmeralda → resistencia a Veneno.
 
-Cada base posee una resistencia elemental propia.
+Balance base aprobado:
 
-Por cada Tier:
+- Tier I, nivel mínimo 1: 5 %;
+- Tier II, nivel mínimo 5: 10 %;
+- Tier III, nivel mínimo 8: 15 %.
 
-- 4 anillos;
-- 4 collares.
+Con tres Tiers se incorporan **24 bases de joyería**.
 
-Con Tier I, II y III:
+### 14.2. Prefijos
 
-**24 bases de joyería.**
+`Vigoroso` conserva su semántica y suma `accesorio` entre sus tipos permitidos.
 
-Los valores numéricos de resistencia base quedan deliberadamente pendientes de balance de B3.
+`Arcano` pasa de pendiente a activo y puede aparecer en armadura, quiver y accesorio. Rangos de Maná máximo:
 
-### 14.2. Prefijos permitidos
+- grado I: +2 a +4;
+- grado II: +5 a +8;
+- grado III: +9 a +12.
 
-Se reutilizan sin cambiar su semántica:
+### 14.3. Sufijos elementales y de efectos
 
-- `Vigoroso` → Vida máxima;
-- `Arcano` → Maná máximo.
+Los sufijos elementales existentes pueden aparecer también en accesorios:
 
-`Arcano` deberá reanalizar su estado pendiente porque actualmente ya existen numerosas habilidades con coste real de Maná.
+- `De ascuas`;
+- `De escarcha`;
+- `De tormenta`;
+- `Del antídoto`.
 
-### 14.3. Sufijos permitidos
+Las resistencias de efectos quedan exclusivas de `accesorio`, corrigiendo el contrato previo que declaraba tipo armadura aunque sólo apuntaba a collar/anillos:
 
-Las joyas pueden recibir:
+- `Del deshielo`;
+- `De firmeza`;
+- `De purificación`;
+- `De ceniza`.
 
-- resistencia a Fuego;
-- resistencia a Frío;
-- resistencia a Rayo;
-- resistencia a Veneno;
-- resistencia a Congelamiento;
-- resistencia a Aturdimiento;
-- resistencia a Envenenamiento;
-- resistencia a Quemadura;
-- Resistencia Mental;
-- Hallazgo mágico.
+### 14.4. Resistencia Mental — De lucidez
 
-Las resistencias de efectos, Resistencia Mental y Hallazgo mágico serán exclusivas de joyería.
+`De lucidez` es exclusivo de joyería y modifica `resistenciaMental` mediante el resolutor global del portador:
 
-### 14.4. Resistencia Mental
+- grado I: 3–6 %;
+- grado II: 7–10 %;
+- grado III: 11–15 %.
 
-El objetivo `resistenciaMental` ya existe en el motor de modificadores.
+### 14.5. Hallazgo mágico — De fortuna
 
-Nuevo sufijo aprobado:
+`De fortuna` es exclusivo de joyería y modifica `hallazgoMagico` mediante el mismo resolutor:
 
-`De lucidez`
+- grado I: +5 a +10 %;
+- grado II: +11 a +20 %;
+- grado III: +21 a +30 %.
 
-Será exclusivo de joyería y otorgará Resistencia Mental.
-
-### 14.5. Fortuna
-
-`De fortuna` será exclusivo de joyería y modificará `hallazgoMagico`.
-
-No aumenta Suerte directamente y, por tanto, no modifica precios comerciales.
-
-`De abundancia` permanece pendiente y no forma parte de este plan inmediato.
+No aumenta Suerte directamente y por lo tanto no modifica `ajusteComercial`.
 
 ### 14.6. Sufijo antiguo de Carisma
 
-`Del soberano`, actualmente pendiente, no podrá conservar su semántica al desaparecer Carisma.
+`Del soberano` se elimina de la configuración productiva al desaparecer Carisma.
 
-Se prevé reemplazar conceptualmente por un futuro sufijo de Suerte, tentativamente `Del afortunado`, pero permanecerá inactivo hasta balancear el efecto combinado sobre comercio y hallazgo.
-
----
-
-## 15. Tier III — diseño aprobado para B3
-
-El motor deberá aceptar cualquier Tier entero positivo.
-
-No se crearán condiciones de producción del tipo:
-
-```text
-if (tier === 3)
-```
-
-Tier III será contenido normal gobernado por `nivelMinimoGeneracion` y balance.
-
-Se agregarán bases Tier III de armas, armaduras y accesorios una vez estabilizado el motor.
-
-El nivel mínimo exacto queda pendiente de balance; la hipótesis inicial de trabajo se sitúa aproximadamente en nivel 9–10 y debe validarse antes de quedar definitiva.
+No se incorpora todavía `Del afortunado`. Cualquier futuro afijo que aumente Suerte deberá analizar el efecto combinado sobre comercio y hallazgo antes de activarse.
 
 ---
 
-## 16. Dirección visual futura de B3
+## 15. Tier III — diseño consolidado en B3
 
-Los nuevos iconos de accesorios y Tier III deberán:
+El motor continúa aceptando cualquier Tier entero positivo. B3 no incorpora condiciones productivas del tipo `if (tier === 3)`.
 
-- ser PNG;
-- tener fondo transparente;
-- mantener aspecto pseudorrealista;
-- reutilizar como referencia de calidad y lenguaje visual los objetos Tier II existentes;
-- evitar placeholders geométricos o dibujos simples de depuración.
+Tier III se gobierna exclusivamente por los datos normales de cada base y `nivelMinimoGeneracion`.
 
-Cuando B3 implemente estos recursos se actualizará:
+Balance definitivo de B3:
 
-`docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md`
+- nivel mínimo de generación Tier III: **8**.
 
-B1 no modifica el Diseño Maestro Visual porque no incorpora cambios gráficos.
+Se incorporan:
+
+- 11 armas Tier III;
+- 16 armaduras/escudo Tier III;
+- 8 accesorios Tier III, ya contabilizados dentro de las 24 joyas.
+
+Total de bases Tier III: **35**. Total de bases nuevas de objetos en B3: **51**.
+
+La aparición desde nivel 8 permite que Tier III pueda comenzar en el tramo máximo de Fortaleza Abandonada y esté disponible durante Sala de Guerra, sin volverlo exclusivo de niveles 9–10.
+
+---
+
+## 16. Dirección visual consolidada en B3
+
+B3 incorpora 51 iconos nuevos en `assets/imagenes/objetos/`.
+
+Contrato visual aplicado:
+
+- PNG;
+- 64 × 64;
+- fondo transparente;
+- un objeto principal por icono;
+- sin texto ni marco de rareza incorporado;
+- lectura coherente con los objetos existentes;
+- joyas diferenciables por gema/afinidad;
+- Tier III con evolución visible de su familia sin romper la silueta funcional.
+
+El detalle de objeto continúa comunicando rareza y estadísticas desde la interfaz. La joyería muestra sus resistencias y afijos mediante datos canónicos; el icono no codifica resultados derivados ni una rareza fija.
+
+Estas decisiones se reflejan también en `docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md`.
 
 ---
 
@@ -681,21 +714,27 @@ Estado: **Cerrada. Implementación completa, validación técnica superada y pru
 
 ### B3 — Suerte, joyería y Tier III
 
-Objetivo futuro:
+Objetivo implementado:
 
 - Carisma → Suerte;
-- Ajuste comercial;
-- Hallazgo mágico;
+- Potencia de Aura → Constitución;
+- Ajuste comercial canónico;
+- Hallazgo mágico y evaluación al materializar;
+- materialización diferida de cofres/recipientes exactamente una vez;
 - Fortuna;
 - De lucidez;
-- Accesorios Tier I/II/III;
+- Arcano activado y rebalanceado;
+- accesorios Tier I/II/III;
 - 24 bases elementales de joyería;
-- Tier III de equipo;
-- nuevos assets;
-- actualización del Panel de Personaje;
-- actualización del Diseño Maestro Visual.
+- 35 bases Tier III, desde nivel 8;
+- 51 assets nuevos;
+- Panel de Personaje y presentación de objetos actualizados;
+- persistencia v5 sin migradores;
+- Diseño Maestro Visual actualizado.
 
-No comenzar automáticamente después de B2.
+Estado: **Implementada técnicamente. Las validaciones automatizadas disponibles fueron superadas el 19/08/2026; el cierre formal queda pendiente de pruebas manuales dentro del juego y de Electron en un entorno con sus dependencias ya instaladas.**
+
+No existe una B4 definida en este Plan Maestro y no debe iniciarse automáticamente.
 
 ---
 
@@ -934,3 +973,60 @@ Cierre formal:
 - B2 queda cerrada y B3 continúa sin iniciar hasta una nueva solicitud explícita y una nueva verificación de base Git.
 
 B3 no debe comenzar automáticamente.
+
+---
+
+## 29. Implementación de B3
+
+B3 parte del `HEAD` verificado `20d2f59601e9ce4b30057f17474d82a9233484c1`, rama `main`, con `origin/main` coincidente y árbol limpio antes de modificar.
+
+Decisiones consolidadas:
+
+- `Suerte` sustituye a `Carisma` sin alias ni migración;
+- Potencia de Aura toma Constitución con coeficiente inicial 2;
+- `ajusteComercial` y `hallazgoMagico` son objetivos canónicos del resolutor común;
+- comercio consume `ajusteComercial` ya resuelto;
+- Hallazgo mágico sólo modifica pesos relativos de rarezas activas superiores a Común y tiene tope +100 %;
+- el presupuesto procedural es independiente de Hallazgo mágico;
+- cofres y recipientes conservan una solicitud pendiente y se materializan exactamente una vez al primer abrir o, si siguen cerrados, al destruirse;
+- destruir conserva la supervivencia del 80 % definida en B2 sin regenerar objetos retirados;
+- `accesorio` reutiliza collar y los dos anillos del equipamiento existente;
+- se incorporan 24 joyas elementales con 5/10/15 % de resistencia base;
+- `De lucidez` y `De fortuna` son exclusivos de accesorio;
+- `Arcano` pasa a activo con rangos 2–4 / 5–8 / 9–12 de Maná;
+- `Del soberano` se elimina y no se crea todavía `Del afortunado`;
+- Tier III comienza en nivel 8 y se expresa sólo mediante datos normales del catálogo;
+- persistencia pasa a v5 y reconstruye Ajuste comercial/Hallazgo mágico desde sus fuentes.
+
+Validación técnica realizada antes de preparar la entrega:
+
+- 142 módulos JavaScript del flujo afectado cargados realmente en Chromium mediante ES Modules, sin errores de página;
+- configuraciones cargadas mediante el `CargadorConfiguracion` real: 118 objetos, 23 prefijos y 35 sufijos;
+- 24 accesorios comprobados: 8 por Tier y resistencias base 5/10/15 %;
+- 35 bases Tier III comprobadas, todas con `nivelMinimoGeneracion: 8`;
+- Suerte 8/10/15/30 comprobada contra Ajuste comercial y Hallazgo mágico, incluidos los límites;
+- Potencia de Aura comprobada con +2 por punto de Constitución;
+- objetivo de modificador desconocido produce error explícito;
+- `De fortuna` comprobado mediante el resolutor común del equipo;
+- 60.000 tiradas reproducibles por escenario comprobaron que Hallazgo 0/25/100 incrementa sólo el peso efectivo de Mágico y no altera rareza forzada;
+- valor esperado presupuestario idéntico con Hallazgo 0 y 100 (`308.33` en el caso de referencia);
+- materialización diferida comprobada: primer acceso materializa, segundo acceso no rerollea;
+- persistencia v5 comprobada: guarda Suerte, no persiste Ajuste comercial/Hallazgo mágico y rechaza explícitamente v4;
+- los 51 assets B3 existen, son 64×64, RGBA y tienen transparencia;
+- entradas web, JSON principales y los 51 assets respondieron HTTP 200 mediante servidor local;
+- auditoría estática sin segunda definición de valor esperado, sin segunda fórmula de Suerte en Comercio y sin condición especial de Tier III;
+- `git diff --check` superado.
+
+Correcciones detectadas durante la validación manual:
+
+- `PobladorInteractuablesMazmorra` fue ajustado para reconocer un cofre con solicitud pendiente como contenido diferido válido y no confundirlo con un cofre ya materializado vacío;
+- el mayor valor esperado de Equipamiento tras joyería/Tier III requirió elevar `multiplicadorHabitacionEspecial` de 3 a 4 en Cementerio y Fortaleza Abandonada, sin modificar la ecuación canónica ni los presupuestos normales;
+- después de estas correcciones se validaron 50/50 ciclos de creación/materialización/reapertura sin reroll, 30/30 generaciones de Alcantarilla y 200/200 generaciones finales entre las cinco mazmorras en niveles mínimo/máximo.
+
+Cierre:
+
+- el usuario confirmó el 19/08/2026 que las pruebas manuales M1–M11 de B3 fueron satisfactorias;
+- Chromium del entorno del asistente bloqueó por política administrativa la navegación directa a `localhost`/`file`, aunque los módulos se ejecutaron mediante documento de prueba y las rutas HTTP se verificaron por separado;
+- Electron no fue ejecutado independientemente por el asistente porque el ZIP no contiene `node_modules`/binario y B3 no autorizaba instalar dependencias;
+- no quedan bloqueantes conocidos dentro del alcance aprobado;
+- B3 queda cerrada y no existe una B4 definida. Cualquier continuación requiere una nueva etapa explícitamente aprobada.

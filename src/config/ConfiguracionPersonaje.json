@@ -26,8 +26,8 @@
         "nombre": "Sabiduría"
       },
       {
-        "id": "carisma",
-        "nombre": "Carisma"
+        "id": "suerte",
+        "nombre": "Suerte"
       }
     ]
   },
@@ -59,7 +59,7 @@
         "constitucion": 4,
         "inteligencia": 1,
         "sabiduria": 1,
-        "carisma": 1
+        "suerte": 1
       },
       "estadisticasBase": {
         "vida": 20,
@@ -209,7 +209,7 @@
         "constitucion": 3,
         "inteligencia": 2,
         "sabiduria": 2,
-        "carisma": 2
+        "suerte": 2
       },
       "estadisticasBase": {
         "vida": 16,
@@ -347,7 +347,7 @@
         "constitucion": 2,
         "inteligencia": 5,
         "sabiduria": 3,
-        "carisma": 1
+        "suerte": 1
       },
       "estadisticasBase": {
         "vida": 12,
@@ -458,6 +458,20 @@
           }
         ]
       }
+    }
+  },
+  "reglasSuerte": {
+    "ajusteComercial": {
+      "referencia": 10,
+      "variacionPorPunto": 0.02,
+      "minimo": -0.2,
+      "maximo": 0.2
+    },
+    "hallazgoMagico": {
+      "referencia": 10,
+      "variacionPesoPorPunto": 5,
+      "minimo": 0,
+      "maximo": 100
     }
   }
 }

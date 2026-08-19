@@ -1,8 +1,5 @@
 {
   "reglasPrecios": {
-    "carismaReferencia": 10,
-    "variacionPorPuntoCarisma": 0.02,
-    "variacionMaximaCarisma": 0.2,
     "precioMinimo": 1
   },
   "mercaderes": {

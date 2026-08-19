@@ -17,6 +17,7 @@ export class Destructible extends Entidad {
     capacidadContenedor = 0,
     objetosIniciales = [],
     solicitudBotin = null,
+    solicitudContenidoBotin = null,
     bloqueaMovimiento = true,
     bloqueaVision = false,
     bloqueaCruceDiagonal = true,
@@ -62,6 +63,15 @@ export class Destructible extends Entidad {
       (typeof solicitudBotin !== "object" || Array.isArray(solicitudBotin))
     ) {
       throw new Error(`La solicitud de botín de ${nombre} debe ser un objeto o null.`);
+    }
+    if (
+      solicitudContenidoBotin !== null &&
+      (typeof solicitudContenidoBotin !== "object" ||
+        Array.isArray(solicitudContenidoBotin))
+    ) {
+      throw new Error(
+        `La solicitud de contenido de ${nombre} debe ser un objeto o null.`,
+      );
     }
 
     if (
@@ -114,6 +124,10 @@ export class Destructible extends Entidad {
     this.solicitudBotin = solicitudBotin === null
       ? null
       : JSON.parse(JSON.stringify(solicitudBotin));
+    this.solicitudContenidoBotin = solicitudContenidoBotin === null
+      ? null
+      : JSON.parse(JSON.stringify(solicitudContenidoBotin));
+    this.contenidoMaterializado = this.solicitudContenidoBotin === null;
     this.alcanceInteraccion = alcanceInteraccion;
     this.prioridadInteraccion = prioridadInteraccion;
     this.textoInteraccion =
@@ -132,7 +146,10 @@ export class Destructible extends Entidad {
   }
 
   get estaVacio() {
-    return this.contenedorObjetos?.estaVacio?.() ?? true;
+    return (
+      this.contenidoMaterializado &&
+      (this.contenedorObjetos?.estaVacio?.() ?? true)
+    );
   }
 
   get cantidadObjetos() {
@@ -156,7 +173,7 @@ export class Destructible extends Entidad {
     if (
       this.estaDestruido ||
       !this.contenedorObjetos ||
-      this.contenedorObjetos.estaVacio()
+      this.estaVacio
     ) {
       return [];
     }

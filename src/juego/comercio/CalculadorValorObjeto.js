@@ -10,7 +10,7 @@
 //
 // - Precio de compra del mercader.
 // - Precio de venta del mercader.
-// - Carisma del jugador.
+// - Ajuste comercial del jugador (se aplica fuera de este cálculo de valor).
 //
 // Esos factores pertenecen al futuro
 // CalculadorPreciosComercio.

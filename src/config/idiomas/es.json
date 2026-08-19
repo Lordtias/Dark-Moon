@@ -138,7 +138,6 @@
       "constitucion": "Constitución",
       "inteligencia": "Inteligencia",
       "sabiduria": "Sabiduría",
-      "carisma": "Carisma",
       "aumentarFuerza": "Aumentar Fuerza",
       "asignarFuerza": "Asignar un punto a Fuerza",
       "aumentarDestreza": "Aumentar Destreza",
@@ -149,8 +148,6 @@
       "asignarInteligencia": "Asignar un punto a Inteligencia",
       "aumentarSabiduria": "Aumentar Sabiduría",
       "asignarSabiduria": "Asignar un punto a Sabiduría",
-      "aumentarCarisma": "Aumentar Carisma",
-      "asignarCarisma": "Asignar un punto a Carisma",
       "resistenciasDanio": "Resistencias de daño",
       "resistenciasEfectos": "Resistencias de efectos",
       "habilidades": "Habilidades",
@@ -199,15 +196,16 @@
         "resistenciaEfecto_envenenamiento": "Resistencia a Envenenamiento",
         "resistenciaEfecto_quemadura": "Resistencia a Quemadura",
         "resistenciaMental": "Resistencia Mental",
-        "potenciaAura": "Potencia de Aura"
+        "potenciaAura": "Potencia de Aura",
+        "ajusteComercial": "Ajuste comercial",
+        "hallazgoMagico": "Hallazgo mágico"
       },
       "descripcionEstadistica": {
         "atributo_fuerza": "Atributo físico principal. Modifica el daño físico de las armas cuya estadística ofensiva sea Fuerza.",
         "atributo_destreza": "Atributo de precisión y agilidad. Aumenta Precisión y Evasión, y puede gobernar el daño físico de armas ágiles.",
-        "atributo_constitucion": "Atributo de resistencia corporal. Aporta Vida máxima, regeneración de Vida y defensas frente a Veneno y estados perjudiciales.",
+        "atributo_constitucion": "Atributo de resistencia corporal y presencia. Aporta Vida máxima, regeneración de Vida, Potencia de Aura y defensas frente a Veneno y estados perjudiciales.",
         "atributo_inteligencia": "Atributo de poder mágico. Aporta Maná máximo, daño mágico y Potencia de Efectos.",
         "atributo_sabiduria": "Atributo de control y resistencia mágica. Aporta Maná, regeneración, daño y efectos mágicos, resistencias elementales y Resistencia Mental.",
-        "atributo_carisma": "Atributo de influencia. Aumenta la Potencia de Aura canónica; las auras actuales no escalan automáticamente su magnitud por esta estadística.",
         "danio_medio": "Promedio del daño bruto del ataque físico actual antes de precisión, crítico, Armadura y Bloqueo del objetivo.",
         "dps": "Daño bruto medio por segundo según el daño medio y el tiempo efectivo del ataque actual.",
         "precision": "Valor usado para determinar la probabilidad de impactar frente a la Evasión del objetivo.",
@@ -231,7 +229,10 @@
         "res_aturdimiento": "Reduce la probabilidad de recibir Aturdimiento.",
         "res_envenenamiento": "Reduce la probabilidad de recibir Envenenamiento.",
         "res_quemadura": "Reduce la probabilidad de recibir Quemadura.",
-        "res_mental": "Reduce la probabilidad de recibir Maldiciones. Su valor final está limitado a 75%."
+        "res_mental": "Reduce la probabilidad de recibir Maldiciones. Su valor final está limitado a 75%.",
+        "atributo_suerte": "Atributo de fortuna. Ajusta los precios comerciales y aumenta el peso relativo de rarezas superiores a Común al materializar botín.",
+        "ajuste_comercial": "Modificador canónico de precios derivado de Suerte. Los comerciantes consumen este resultado sin recalcular Suerte.",
+        "hallazgo_magico": "Aumenta el peso relativo de rarezas superiores a Común cuando el botín se materializa. No cambia cantidad, Tier ni presupuesto."
       },
       "sinPasivas": "Sin pasivas aprendidas.",
       "sinEfectos": "Sin efectos temporales activos.",
@@ -255,7 +256,13 @@
       "efectoPerjudicial": "Perjudicial",
       "efectoBloqueaHabilidades": "Bloquea habilidades activas",
       "efectoBloqueoTotal": "Impide actuar temporalmente",
-      "efectoDanioPeriodico": "Daño periódico"
+      "efectoDanioPeriodico": "Daño periódico",
+      "suerte": "Suerte",
+      "aumentarSuerte": "Aumentar Suerte",
+      "asignarSuerte": "Asignar un punto a Suerte",
+      "suerteResultados": "Suerte",
+      "ajusteComercial": "Ajuste comercial",
+      "hallazgoMagico": "Hallazgo mágico"
     },
     "curacion": {
       "subtitulo": "Restaurá tus recursos antes de una nueva expedición.",
@@ -674,7 +681,10 @@
       "ambitoPortador": "Portador",
       "ambitoMixto": "Mixto",
       "tipoDesechable": "Desechable",
-      "categoriaMaterial": "Material"
+      "categoriaMaterial": "Material",
+      "tipoAccesorio": "Accesorio",
+      "resistenciaMental": "Resistencia Mental",
+      "hallazgoMagico": "Hallazgo mágico"
     },
     "comparacionObjetos": {
       "sinOpciones": "No hay otros objetos equipados para comparar.",
@@ -788,8 +798,8 @@
       "sabiduria": {
         "nombre": "Sabiduría"
       },
-      "carisma": {
-        "nombre": "Carisma"
+      "suerte": {
+        "nombre": "Suerte"
       }
     },
     "profesiones": {
@@ -1119,6 +1129,210 @@
       "piedra": {
         "nombre": "Piedra",
         "descripcion": "Fragmentos de piedra aprovechables recuperados de estructuras. Puede venderse y servirá como material de fabricación en sistemas futuros."
+      },
+      "daga_acero_templado": {
+        "nombre": "Daga de acero templado",
+        "descripcion": "Una daga de acero templado, veloz y precisa, diseñada para críticos frecuentes."
+      },
+      "espada_acero_templado": {
+        "nombre": "Espada de acero templado",
+        "descripcion": "Una espada templada de excelente equilibrio para combate directo."
+      },
+      "hacha_guerra_templada": {
+        "nombre": "Hacha de guerra templada",
+        "descripcion": "Un hacha de guerra templada que sacrifica precisión por golpes de gran impacto."
+      },
+      "mandoble_acero_templado": {
+        "nombre": "Mandoble de acero templado",
+        "descripcion": "Una enorme hoja templada de dos manos para golpes devastadores."
+      },
+      "lanza_acero_templado": {
+        "nombre": "Lanza de acero templado",
+        "descripcion": "Una lanza templada que combina alcance, control y daño superior."
+      },
+      "arco_compuesto": {
+        "nombre": "Arco compuesto",
+        "descripcion": "Un arco compuesto de alta tensión, preciso y eficaz a gran distancia."
+      },
+      "baston_maestro": {
+        "nombre": "Bastón de maestro",
+        "descripcion": "Un bastón de maestro preparado para canalizar magia con gran potencia."
+      },
+      "varita_fuego_magistral": {
+        "nombre": "Varita de fuego magistral",
+        "descripcion": "Una varita magistral afinada con Fuego para canalización avanzada."
+      },
+      "varita_frio_magistral": {
+        "nombre": "Varita de frío magistral",
+        "descripcion": "Una varita magistral afinada con Frío para canalización avanzada."
+      },
+      "varita_electrica_magistral": {
+        "nombre": "Varita eléctrica magistral",
+        "descripcion": "Una varita magistral afinada con Rayo para canalización avanzada."
+      },
+      "varita_veneno_magistral": {
+        "nombre": "Varita de veneno magistral",
+        "descripcion": "Una varita magistral afinada con Veneno para canalización avanzada."
+      },
+      "capucha_tela_gruesa": {
+        "nombre": "Capucha de tela gruesa",
+        "descripcion": "Capucha de tela gruesa de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "tunica_tela_gruesa": {
+        "nombre": "Túnica de tela gruesa",
+        "descripcion": "Túnica de tela gruesa de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "guantes_tela_gruesos": {
+        "nombre": "Guantes de tela gruesos",
+        "descripcion": "Guantes de tela gruesos de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "pantalones_tela_gruesos": {
+        "nombre": "Pantalones de tela gruesos",
+        "descripcion": "Pantalones de tela gruesos de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "botas_tela_gruesas": {
+        "nombre": "Botas de tela gruesas",
+        "descripcion": "Botas de tela gruesas de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "capucha_cuero_remachado": {
+        "nombre": "Capucha de cuero remachado",
+        "descripcion": "Capucha de cuero remachado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "jubon_cuero_remachado": {
+        "nombre": "Jubón de cuero remachado",
+        "descripcion": "Jubón de cuero remachado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "guantes_cuero_remachado": {
+        "nombre": "Guantes de cuero remachado",
+        "descripcion": "Guantes de cuero remachado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "pantalones_cuero_remachado": {
+        "nombre": "Pantalones de cuero remachado",
+        "descripcion": "Pantalones de cuero remachado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "botas_cuero_remachado": {
+        "nombre": "Botas de cuero remachado",
+        "descripcion": "Botas de cuero remachado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "casco_acero_templado": {
+        "nombre": "Casco de acero templado",
+        "descripcion": "Casco de acero templado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "coraza_acero_templado": {
+        "nombre": "Coraza de acero templado",
+        "descripcion": "Coraza de acero templado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "guantes_acero_templado": {
+        "nombre": "Guantes de acero templado",
+        "descripcion": "Guantes de acero templado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "grebas_acero_templado": {
+        "nombre": "Grebas de acero templado",
+        "descripcion": "Grebas de acero templado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "botas_acero_templado": {
+        "nombre": "Botas de acero templado",
+        "descripcion": "Botas de acero templado de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "escudo_acero": {
+        "nombre": "Escudo de acero",
+        "descripcion": "Escudo de acero de calidad superior, preparada para el tramo alto de la progresión."
+      },
+      "anillo_rubi_simple": {
+        "nombre": "Anillo simple de Rubí",
+        "descripcion": "Una pieza de joyería simple con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "collar_rubi_simple": {
+        "nombre": "Collar simple de Rubí",
+        "descripcion": "Una pieza de joyería simple con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_zafiro_simple": {
+        "nombre": "Anillo simple de Zafiro",
+        "descripcion": "Una pieza de joyería simple con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "collar_zafiro_simple": {
+        "nombre": "Collar simple de Zafiro",
+        "descripcion": "Una pieza de joyería simple con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_topacio_simple": {
+        "nombre": "Anillo simple de Topacio",
+        "descripcion": "Una pieza de joyería simple con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "collar_topacio_simple": {
+        "nombre": "Collar simple de Topacio",
+        "descripcion": "Una pieza de joyería simple con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_esmeralda_simple": {
+        "nombre": "Anillo simple de Esmeralda",
+        "descripcion": "Una pieza de joyería simple con esmeralda que aumenta la resistencia elemental de su portador."
+      },
+      "collar_esmeralda_simple": {
+        "nombre": "Collar simple de Esmeralda",
+        "descripcion": "Una pieza de joyería simple con esmeralda que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_rubi_engastado": {
+        "nombre": "Anillo engastado de Rubí",
+        "descripcion": "Una pieza de joyería engastado con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "collar_rubi_engastado": {
+        "nombre": "Collar engastado de Rubí",
+        "descripcion": "Una pieza de joyería engastado con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_zafiro_engastado": {
+        "nombre": "Anillo engastado de Zafiro",
+        "descripcion": "Una pieza de joyería engastado con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "collar_zafiro_engastado": {
+        "nombre": "Collar engastado de Zafiro",
+        "descripcion": "Una pieza de joyería engastado con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_topacio_engastado": {
+        "nombre": "Anillo engastado de Topacio",
+        "descripcion": "Una pieza de joyería engastado con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "collar_topacio_engastado": {
+        "nombre": "Collar engastado de Topacio",
+        "descripcion": "Una pieza de joyería engastado con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_esmeralda_engastado": {
+        "nombre": "Anillo engastado de Esmeralda",
+        "descripcion": "Una pieza de joyería engastado con esmeralda que aumenta la resistencia elemental de su portador."
+      },
+      "collar_esmeralda_engastado": {
+        "nombre": "Collar engastado de Esmeralda",
+        "descripcion": "Una pieza de joyería engastado con esmeralda que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_rubi_magistral": {
+        "nombre": "Anillo magistral de Rubí",
+        "descripcion": "Una pieza de joyería magistral con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "collar_rubi_magistral": {
+        "nombre": "Collar magistral de Rubí",
+        "descripcion": "Una pieza de joyería magistral con rubí que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_zafiro_magistral": {
+        "nombre": "Anillo magistral de Zafiro",
+        "descripcion": "Una pieza de joyería magistral con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "collar_zafiro_magistral": {
+        "nombre": "Collar magistral de Zafiro",
+        "descripcion": "Una pieza de joyería magistral con zafiro que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_topacio_magistral": {
+        "nombre": "Anillo magistral de Topacio",
+        "descripcion": "Una pieza de joyería magistral con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "collar_topacio_magistral": {
+        "nombre": "Collar magistral de Topacio",
+        "descripcion": "Una pieza de joyería magistral con topacio que aumenta la resistencia elemental de su portador."
+      },
+      "anillo_esmeralda_magistral": {
+        "nombre": "Anillo magistral de Esmeralda",
+        "descripcion": "Una pieza de joyería magistral con esmeralda que aumenta la resistencia elemental de su portador."
+      },
+      "collar_esmeralda_magistral": {
+        "nombre": "Collar magistral de Esmeralda",
+        "descripcion": "Una pieza de joyería magistral con esmeralda que aumenta la resistencia elemental de su portador."
       }
     },
     "afijos": {
@@ -1140,7 +1354,7 @@
       },
       "arcano": {
         "nombre": "Arcano",
-        "descripcion": "Aumentaría el Maná máximo."
+        "descripcion": "Aumenta el Maná máximo."
       },
       "ligero": {
         "nombre": "Ligero",
@@ -1298,10 +1512,6 @@
         "nombre": "Del búho",
         "descripcion": "Aumentaría Sabiduría."
       },
-      "del_soberano": {
-        "nombre": "Del soberano",
-        "descripcion": "Aumentaría Carisma."
-      },
       "de_celeridad": {
         "nombre": "De celeridad",
         "descripcion": "Aumentaría la velocidad de movimiento."
@@ -1316,7 +1526,7 @@
       },
       "de_fortuna": {
         "nombre": "De fortuna",
-        "descripcion": "Aumentaría la calidad de los objetos encontrados."
+        "descripcion": "Aumenta el Hallazgo mágico."
       },
       "de_abundancia": {
         "nombre": "De abundancia",
@@ -1353,6 +1563,10 @@
       "de_ceniza": {
         "nombre": "De ceniza",
         "descripcion": "Aumenta la resistencia a la Quemadura."
+      },
+      "de_lucidez": {
+        "nombre": "De lucidez",
+        "descripcion": "Aumenta la Resistencia Mental."
       }
     },
     "rarezas": {

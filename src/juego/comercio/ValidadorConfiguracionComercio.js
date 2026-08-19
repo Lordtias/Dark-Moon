@@ -24,10 +24,7 @@ export function validarConfiguracionComercio(configuracion) {
 
   validarReglasPrecios(configuracion.reglasPrecios);
 
-  validarMercaderes({
-    mercaderes: configuracion.mercaderes,
-    reglasPrecios: configuracion.reglasPrecios,
-  });
+  validarMercaderes({ mercaderes: configuracion.mercaderes });
 
   return configuracion;
 }
@@ -39,29 +36,6 @@ function validarReglasPrecios(reglasPrecios) {
   });
 
   if (
-    !Number.isInteger(reglasPrecios.carismaReferencia) ||
-    reglasPrecios.carismaReferencia < 0
-  ) {
-    throw new Error(
-      "El Carisma de referencia debe ser un entero igual o mayor que 0.",
-    );
-  }
-
-  validarNumeroPositivo({
-    valor: reglasPrecios.variacionPorPuntoCarisma,
-    descripcion: "La variación por punto de Carisma",
-  });
-
-  validarNumeroNoNegativo({
-    valor: reglasPrecios.variacionMaximaCarisma,
-    descripcion: "La variación máxima por Carisma",
-  });
-
-  if (reglasPrecios.variacionMaximaCarisma >= 1) {
-    throw new Error("La variación máxima por Carisma debe ser menor que 1.");
-  }
-
-  if (
     !Number.isSafeInteger(reglasPrecios.precioMinimo) ||
     reglasPrecios.precioMinimo < 0
   ) {
@@ -69,7 +43,7 @@ function validarReglasPrecios(reglasPrecios) {
   }
 }
 
-function validarMercaderes({ mercaderes, reglasPrecios }) {
+function validarMercaderes({ mercaderes }) {
   validarObjetoRaiz(mercaderes, "el catálogo de mercaderes");
 
   const entradas = Object.entries(mercaderes);
@@ -103,41 +77,10 @@ function validarMercaderes({ mercaderes, reglasPrecios }) {
       descripcion: `El multiplicador de venta de "${idMercader}"`,
     });
 
-    validarMargenesMercader({
-      idMercader,
-      mercader,
-      reglasPrecios,
-    });
-
     validarStockMercader({
       idMercader,
       stock: mercader.stock,
     });
-  }
-}
-
-// Comprueba el caso más favorable posible para el jugador.
-//
-// Incluso con el máximo beneficio de Carisma, vender un
-// objeto al mercader no debe entregar más oro que volver
-// a comprar ese mismo objeto.
-function validarMargenesMercader({ idMercader, mercader, reglasPrecios }) {
-  const variacionMaxima = reglasPrecios.variacionMaximaCarisma;
-
-  const factorCompraMinimo = 1 - variacionMaxima;
-  const factorVentaMaximo = 1 + variacionMaxima;
-
-  const costoCompraMinimo =
-    mercader.multiplicadorCompraJugador * factorCompraMinimo;
-
-  const ingresoVentaMaximo =
-    mercader.multiplicadorVentaJugador * factorVentaMaximo;
-
-  if (ingresoVentaMaximo > costoCompraMinimo) {
-    throw new Error(
-      `Los márgenes de "${idMercader}" permiten ` +
-        "comprar y revender objetos con ganancia.",
-    );
   }
 }
 

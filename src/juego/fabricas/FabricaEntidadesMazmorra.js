@@ -7,7 +7,6 @@ import {
   obtenerEntidadMazmorraConfigurada,
 } from "../configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import { crearDestructible } from "./FabricaDestructibles.js";
-import { resolverSolicitudBotin } from "../botin/SistemaBotin.js";
 
 export const DESTINOS_ENTIDAD_MAZMORRA = Object.freeze({
   OBJETIVOS: "objetivos",
@@ -27,7 +26,7 @@ const CREADORES_ENTIDADES_ESTRUCTURALES = Object.freeze({
   },
 
   cofre(parametros) {
-    const { contenedorObjetos, resultadoBotin } = resolverContenidoContenedor({
+    const { contenedorObjetos, solicitudContenidoBotin } = resolverContenidoContenedor({
       ...parametros,
       solicitudContenido: parametros.solicitudBotin,
       nombreFuente: parametros.nombre ?? "Cofre",
@@ -39,8 +38,9 @@ const CREADORES_ENTIDADES_ESTRUCTURALES = Object.freeze({
       entidad: new Cofre({
         ...parametros,
         contenedorObjetos,
+        solicitudContenidoBotin,
       }),
-      resultadoBotin,
+      resultadoBotin: null,
     };
   },
 
@@ -89,7 +89,7 @@ export function crearEntidadMazmorra({ id, ...parametros } = {}) {
         nombreFuente: definicion.nombre,
         capacidadMinima: definicion.capacidadContenedor,
       })
-    : { contenedorObjetos: null, resultadoBotin: null };
+    : { contenedorObjetos: null, solicitudContenidoBotin: null, resultadoBotin: null };
 
   const entidad = crearDestructible({
     id: idNormalizado,
@@ -98,6 +98,7 @@ export function crearEntidadMazmorra({ id, ...parametros } = {}) {
     configuracionEntidadesMazmorra,
     objetosIniciales:
       contenido.contenedorObjetos?.obtenerObjetos?.() ?? [],
+    solicitudContenidoBotin: contenido.solicitudContenidoBotin,
   });
 
   return {
@@ -152,11 +153,11 @@ function resolverContenidoContenedor({
   capacidadMinima = 6,
 } = {}) {
   if (contenedorObjetos instanceof ContenedorObjetos) {
-    return { contenedorObjetos, resultadoBotin: null };
+    return { contenedorObjetos, solicitudContenidoBotin: null, resultadoBotin: null };
   }
 
   let objetosResueltos = objetosIniciales;
-  let resultadoBotin = null;
+  let solicitudPendiente = null;
 
   if (
     objetosResueltos === null &&
@@ -164,12 +165,8 @@ function resolverContenidoContenedor({
     typeof solicitudContenido === "object" &&
     !Array.isArray(solicitudContenido)
   ) {
-    resultadoBotin = resolverSolicitudBotin({
-      fuente: { nombre: nombreFuente ?? "Contenedor", x, y, nivel },
-      solicitud: solicitudContenido,
-      configuracionObjetos,
-    });
-    objetosResueltos = resultadoBotin.objetosGenerados;
+    solicitudPendiente = JSON.parse(JSON.stringify(solicitudContenido));
+    objetosResueltos = [];
   }
 
   objetosResueltos ??= [];
@@ -185,7 +182,8 @@ function resolverContenidoContenedor({
       capacidad: capacidadResuelta,
       objetosIniciales: objetosResueltos,
     }),
-    resultadoBotin,
+    solicitudContenidoBotin: solicitudPendiente,
+    resultadoBotin: null,
   };
 }
 

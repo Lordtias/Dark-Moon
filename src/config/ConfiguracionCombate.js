@@ -18,7 +18,7 @@ export const CONFIGURACION_COMBATE = {
     resistenciaElementalPorSabiduria: 0.5,
     resistenciaVenenoPorConstitucion: 0.2,
     resistenciaMentalPorSabiduria: 2,
-    potenciaAuraPorCarisma: 2,
+    potenciaAuraPorConstitucion: 2,
   },
   resistenciasEfectos: {
     // El jugador obtiene una defensa pequeña y común contra los cuatro

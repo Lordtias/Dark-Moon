@@ -27,6 +27,7 @@ import {
 } from "./SelectorInteracciones.js";
 
 import { TIPOS_INTERACCION } from "./TiposInteraccion.js";
+import { materializarContenidoContenedor } from "../botin/SistemaBotin.js";
 
 // Administra todas las interacciones que el jugador
 // puede realizar con las entidades del mapa.
@@ -53,6 +54,7 @@ export class SistemaInteraccionJugador {
   constructor({
     jugador,
     interactuables,
+    configuracionObjetos,
     obtenerModoCombateActivo,
     obtenerContextoInteraccion,
     finalizarResultadoAccionJugador,
@@ -64,6 +66,15 @@ export class SistemaInteraccionJugador {
     if (!Array.isArray(interactuables)) {
       throw new Error(
         "SistemaInteraccionJugador necesita una lista de interactuables.",
+      );
+    }
+    if (
+      configuracionObjetos === null ||
+      typeof configuracionObjetos !== "object" ||
+      Array.isArray(configuracionObjetos)
+    ) {
+      throw new Error(
+        "SistemaInteraccionJugador necesita una configuración de objetos válida.",
       );
     }
 
@@ -91,6 +102,7 @@ export class SistemaInteraccionJugador {
     // o retirarse durante la partida.
     this.jugador = jugador;
     this.interactuables = interactuables;
+    this.configuracionObjetos = configuracionObjetos;
 
     // Estas funciones permiten consultar o ejecutar operaciones
     // externas sin acoplar este sistema a la clase Juego completa.
@@ -106,6 +118,27 @@ export class SistemaInteraccionJugador {
       entidad: null,
       x: this.jugador.x,
       y: this.jugador.y,
+    };
+  }
+
+  prepararInteraccionContenedor(interaccion) {
+    if (interaccion?.tipo !== TIPOS_INTERACCION.ABRIR_CONTENEDOR) {
+      return interaccion;
+    }
+
+    const interactuable = interaccion.entidad;
+    if (!interactuable) {
+      throw new Error("La interacción de contenedor necesita una entidad real.");
+    }
+
+    materializarContenidoContenedor({
+      fuente: interactuable,
+      configuracionObjetos: this.configuracionObjetos,
+    });
+
+    return {
+      ...interaccion,
+      contenedorObjetos: interactuable.contenedorObjetos,
     };
   }
 
@@ -630,8 +663,9 @@ export class SistemaInteraccionJugador {
   // cuando ya no contiene objetos.
   retirarInteractuableSiVacio(interactuable) {
     const estaVacio =
-      interactuable?.estaVacio === true ||
-      interactuable?.contenedorObjetos?.estaVacio?.() === true;
+      typeof interactuable?.estaVacio === "boolean"
+        ? interactuable.estaVacio
+        : interactuable?.contenedorObjetos?.estaVacio?.() === true;
 
     if (!estaVacio || interactuable?.retirarAlVaciar !== true) {
       return false;

@@ -1,0 +1,494 @@
+{
+  "anillo_rubi_simple": {
+    "nombre": "Anillo simple de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería simple con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_rubi_simple.png",
+    "valorBase": 60,
+    "pesoUnitario": 0.1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 5
+    }
+  },
+  "collar_rubi_simple": {
+    "nombre": "Collar simple de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería simple con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_rubi_simple.png",
+    "valorBase": 80,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 5
+    }
+  },
+  "anillo_zafiro_simple": {
+    "nombre": "Anillo simple de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería simple con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_zafiro_simple.png",
+    "valorBase": 60,
+    "pesoUnitario": 0.1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 5
+    }
+  },
+  "collar_zafiro_simple": {
+    "nombre": "Collar simple de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería simple con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_zafiro_simple.png",
+    "valorBase": 80,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 5
+    }
+  },
+  "anillo_topacio_simple": {
+    "nombre": "Anillo simple de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería simple con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_topacio_simple.png",
+    "valorBase": 60,
+    "pesoUnitario": 0.1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 5
+    }
+  },
+  "collar_topacio_simple": {
+    "nombre": "Collar simple de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería simple con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_topacio_simple.png",
+    "valorBase": 80,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 5
+    }
+  },
+  "anillo_esmeralda_simple": {
+    "nombre": "Anillo simple de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería simple con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_esmeralda_simple.png",
+    "valorBase": 60,
+    "pesoUnitario": 0.1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 5
+    }
+  },
+  "collar_esmeralda_simple": {
+    "nombre": "Collar simple de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 1,
+    "nivelMinimoGeneracion": 1,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería simple con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_esmeralda_simple.png",
+    "valorBase": 80,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 5
+    }
+  },
+  "anillo_rubi_engastado": {
+    "nombre": "Anillo engastado de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería engastado con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_rubi_engastado.png",
+    "valorBase": 150,
+    "pesoUnitario": 0.12,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 10
+    }
+  },
+  "collar_rubi_engastado": {
+    "nombre": "Collar engastado de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería engastado con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_rubi_engastado.png",
+    "valorBase": 200,
+    "pesoUnitario": 0.25,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 10
+    }
+  },
+  "anillo_zafiro_engastado": {
+    "nombre": "Anillo engastado de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería engastado con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_zafiro_engastado.png",
+    "valorBase": 150,
+    "pesoUnitario": 0.12,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 10
+    }
+  },
+  "collar_zafiro_engastado": {
+    "nombre": "Collar engastado de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería engastado con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_zafiro_engastado.png",
+    "valorBase": 200,
+    "pesoUnitario": 0.25,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 10
+    }
+  },
+  "anillo_topacio_engastado": {
+    "nombre": "Anillo engastado de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería engastado con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_topacio_engastado.png",
+    "valorBase": 150,
+    "pesoUnitario": 0.12,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 10
+    }
+  },
+  "collar_topacio_engastado": {
+    "nombre": "Collar engastado de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería engastado con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_topacio_engastado.png",
+    "valorBase": 200,
+    "pesoUnitario": 0.25,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 10
+    }
+  },
+  "anillo_esmeralda_engastado": {
+    "nombre": "Anillo engastado de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería engastado con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_esmeralda_engastado.png",
+    "valorBase": 150,
+    "pesoUnitario": 0.12,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 10
+    }
+  },
+  "collar_esmeralda_engastado": {
+    "nombre": "Collar engastado de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 2,
+    "nivelMinimoGeneracion": 5,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería engastado con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_esmeralda_engastado.png",
+    "valorBase": 200,
+    "pesoUnitario": 0.25,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 10
+    }
+  },
+  "anillo_rubi_magistral": {
+    "nombre": "Anillo magistral de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería magistral con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_rubi_magistral.png",
+    "valorBase": 320,
+    "pesoUnitario": 0.14,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 15
+    }
+  },
+  "collar_rubi_magistral": {
+    "nombre": "Collar magistral de Rubí",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería magistral con rubí que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_rubi_magistral.png",
+    "valorBase": 420,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFuego": 15
+    }
+  },
+  "anillo_zafiro_magistral": {
+    "nombre": "Anillo magistral de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería magistral con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_zafiro_magistral.png",
+    "valorBase": 320,
+    "pesoUnitario": 0.14,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 15
+    }
+  },
+  "collar_zafiro_magistral": {
+    "nombre": "Collar magistral de Zafiro",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería magistral con zafiro que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_zafiro_magistral.png",
+    "valorBase": 420,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaFrio": 15
+    }
+  },
+  "anillo_topacio_magistral": {
+    "nombre": "Anillo magistral de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería magistral con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_topacio_magistral.png",
+    "valorBase": 320,
+    "pesoUnitario": 0.14,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 15
+    }
+  },
+  "collar_topacio_magistral": {
+    "nombre": "Collar magistral de Topacio",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería magistral con topacio que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_topacio_magistral.png",
+    "valorBase": 420,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaRayo": 15
+    }
+  },
+  "anillo_esmeralda_magistral": {
+    "nombre": "Anillo magistral de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "anillo",
+    "descripcion": "Una pieza de joyería magistral con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/anillo_esmeralda_magistral.png",
+    "valorBase": 320,
+    "pesoUnitario": 0.14,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "anillo_derecho",
+      "anillo_izquierdo"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 15
+    }
+  },
+  "collar_esmeralda_magistral": {
+    "nombre": "Collar magistral de Esmeralda",
+    "tipo": "accesorio",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "collar",
+    "descripcion": "Una pieza de joyería magistral con esmeralda que aumenta la resistencia elemental de su portador.",
+    "recursoVisual": "assets/imagenes/objetos/collar_esmeralda_magistral.png",
+    "valorBase": 420,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "collar"
+    ],
+    "propiedades": {
+      "resistenciaVeneno": 15
+    }
+  }
+}

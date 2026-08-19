@@ -189,10 +189,17 @@
     "descripcion": "Aumenta la Vida máxima.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "vida_maxima_plana",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver",
+        "accesorio"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -245,15 +252,22 @@
   "arcano": {
     "nombre": "Arcano",
     "tipoAfijo": "prefijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "El motor ya aplica Maná máximo, pero todavía no existen habilidades con consumo regular que permitan medir su utilidad real.",
-    "descripcion": "Aumentaría el Maná máximo.",
+    "estado": "activo",
+    "motivoEstado": "El Maná máximo ya es canónico y B3 fija rangos medidos contra los costes actuales de habilidades.",
+    "descripcion": "Aumenta el Maná máximo.",
     "pesoBase": 850,
     "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
     "grupoExclusion": "mana_maximo_plano",
     "aplicaA": {
-      "tipos": ["armadura", "quiver"],
+      "tipos": [
+        "armadura",
+        "quiver",
+        "accesorio"
+      ],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -271,8 +285,8 @@
         "peso": 600,
         "valores": {
           "manaMaximo": {
-            "minimo": 3,
-            "maximo": 6
+            "minimo": 2,
+            "maximo": 4
           }
         }
       },
@@ -282,8 +296,8 @@
         "peso": 800,
         "valores": {
           "manaMaximo": {
-            "minimo": 7,
-            "maximo": 12
+            "minimo": 5,
+            "maximo": 8
           }
         }
       },
@@ -293,14 +307,14 @@
         "peso": 1000,
         "valores": {
           "manaMaximo": {
-            "minimo": 13,
-            "maximo": 20
+            "minimo": 9,
+            "maximo": 12
           }
         }
       }
     ],
     "notasDiseno": [
-      "Debe volver a activo cuando sea posible medir cuántos usos adicionales de habilidades permite cada grado."
+      "Rangos moderados para que el afijo no sustituya la progresión natural de Inteligencia y Sabiduría."
     ]
   },
   "ligero": {

@@ -118,6 +118,7 @@ export class Juego {
     this.sistemaInteraccionJugador = new SistemaInteraccionJugador({
       jugador: this.player,
       interactuables: this.interactuables,
+      configuracionObjetos: this.configuracionObjetos,
       obtenerModoCombateActivo: () => this.modoCombateActivo,
       obtenerContextoInteraccion: () => ({ juego: this }),
       finalizarResultadoAccionJugador: (parametros) =>
@@ -276,6 +277,12 @@ export class Juego {
 
   obtenerOpcionInteraccionSeleccionada() {
     return this.sistemaInteraccionJugador.obtenerOpcionSeleccionada();
+  }
+
+  prepararInteraccionContenedor(interaccion) {
+    return this.sistemaInteraccionJugador.prepararInteraccionContenedor(
+      interaccion,
+    );
   }
 
   entrarModoInteraccion() {

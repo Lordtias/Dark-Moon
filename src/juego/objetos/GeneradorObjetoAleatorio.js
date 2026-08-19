@@ -11,7 +11,12 @@ import {
 
 import { validarPlantillaDisponible } from "./ReglasProgresionObjetos.js";
 
-const TIPOS_EQUIPABLES_CON_AFIJOS = new Set(["arma", "armadura", "quiver"]);
+const TIPOS_EQUIPABLES_CON_AFIJOS = new Set([
+  "arma",
+  "armadura",
+  "quiver",
+  "accesorio",
+]);
 // Crea una instancia completa usando:
 //
 // - La plantilla base.
@@ -35,6 +40,7 @@ export function crearObjetoGenerado({
   nivelProgreso = nivelObjeto,
   aleatorio,
   rarezaForzada = null,
+  hallazgoMagico = 0,
 } = {}) {
   validarObjetoPlano(configuracionObjetos, "La configuración de objetos");
   validarConfiguracionGeneracion(configuracionGeneracionObjetos);
@@ -88,6 +94,7 @@ export function crearObjetoGenerado({
     aleatorio,
     idsPermitidos,
     rarezaForzada,
+    hallazgoMagico,
   });
 
   const idRareza = rarezaSeleccionada.id;

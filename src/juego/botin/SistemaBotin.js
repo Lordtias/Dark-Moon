@@ -153,6 +153,7 @@ export function resolverSolicitudBotin({
 
   const contextoGeneracion = obtenerContextoGeneracionBotin();
   const seleccion = aleatorioSeleccion ?? contextoGeneracion.aleatorioSeleccionBotin;
+  const hallazgoMagico = obtenerHallazgoMagicoActual(contextoGeneracion);
 
   validarGeneradorAleatorioBotin(seleccion);
   validarGeneradorAleatorioObjetos(contextoGeneracion.aleatorioObjetos);
@@ -177,6 +178,7 @@ export function resolverSolicitudBotin({
     aleatorioBotin: contextoGeneracion.aleatorioEspecificosBotin,
     aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
     nivelBaseObjeto,
+    hallazgoMagico,
   });
 
   const resultadoGenerico = resolverGeneracionGenerica({
@@ -189,6 +191,7 @@ export function resolverSolicitudBotin({
     aleatorioSeleccion: seleccion,
     aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
     nivelBaseObjeto,
+    hallazgoMagico,
   });
 
   const resultadoGarantizados = resolverGarantizados({
@@ -198,6 +201,7 @@ export function resolverSolicitudBotin({
       contextoGeneracion.configuracionGeneracionObjetos,
     aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
     nivelBaseObjeto,
+    hallazgoMagico,
   });
 
   const objetosGenerados = consolidarPilasCompatibles([
@@ -232,8 +236,78 @@ export function resolverSolicitudBotin({
       cantidadEspecificos: resultadoEspecificos.objetosGenerados.length,
       cantidadGenericos: resultadoGenerico.objetosGenerados.length,
       cantidadGarantizados: resultadoGarantizados.objetosGenerados.length,
+      hallazgoMagico,
     },
   };
+}
+
+// Materializa una solicitud de contenido pendiente exactamente una vez.
+// Cofres y recipientes conservan la solicitud estructural hasta su primer
+// acceso (abrir o destruir), de modo que Hallazgo mágico se consulta en ese
+// instante sin convertir al recipiente en una segunda autoridad de botín.
+export function materializarContenidoContenedor({
+  fuente,
+  configuracionObjetos,
+} = {}) {
+  if (!fuente || typeof fuente !== "object" || Array.isArray(fuente)) {
+    throw new Error("Se necesita una fuente válida para materializar contenido.");
+  }
+
+  if (fuente.contenidoMaterializado !== false) {
+    return {
+      materializadoAhora: false,
+      resultadoBotin: null,
+      contenedorObjetos: fuente.contenedorObjetos ?? null,
+    };
+  }
+
+  if (!(fuente.contenedorObjetos instanceof ContenedorObjetos)) {
+    throw new Error(
+      `${fuente.nombre ?? "El recipiente"} necesita un contenedor válido.`,
+    );
+  }
+
+  const solicitud = fuente.solicitudContenidoBotin;
+  if (!solicitud || typeof solicitud !== "object" || Array.isArray(solicitud)) {
+    throw new Error(
+      `${fuente.nombre ?? "El recipiente"} tiene contenido pendiente sin una solicitud canónica.`,
+    );
+  }
+
+  const resultadoBotin = resolverSolicitudBotin({
+    fuente,
+    solicitud,
+    configuracionObjetos,
+  });
+  const capacidad = Math.max(
+    fuente.contenedorObjetos.capacidad,
+    resultadoBotin.objetosGenerados.length,
+    1,
+  );
+
+  fuente.contenedorObjetos = new ContenedorObjetos({
+    capacidad,
+    objetosIniciales: resultadoBotin.objetosGenerados,
+  });
+  fuente.contenidoMaterializado = true;
+  fuente.solicitudContenidoBotin = null;
+
+  return {
+    materializadoAhora: true,
+    resultadoBotin,
+    contenedorObjetos: fuente.contenedorObjetos,
+  };
+}
+
+function obtenerHallazgoMagicoActual(contextoGeneracion) {
+  const jugador = contextoGeneracion?.jugador;
+  if (!jugador) return 0;
+
+  const hallazgoMagico = jugador.estadisticasDerivadas?.hallazgoMagico;
+  if (!Number.isFinite(hallazgoMagico) || hallazgoMagico < 0) {
+    throw new Error("El Hallazgo mágico canónico del jugador no es válido.");
+  }
+  return hallazgoMagico;
 }
 
 
@@ -394,6 +468,7 @@ function resolverGeneracionGenerica({
   aleatorioSeleccion,
   aleatorioObjetos,
   nivelBaseObjeto,
+  hallazgoMagico,
 }) {
   const cantidadTiradas = aleatorioSeleccion.entero(
     perfil.tiradas.cantidadMinima,
@@ -458,6 +533,7 @@ function resolverGeneracionGenerica({
       nivelProgreso: nivelBaseObjeto,
       rarezaForzada: null,
       aleatorioObjetos,
+      hallazgoMagico,
     });
 
     objetosGenerados.push(...objetos);
@@ -487,6 +563,7 @@ function resolverGarantizados({
   configuracionGeneracionObjetos,
   aleatorioObjetos,
   nivelBaseObjeto,
+  hallazgoMagico,
 }) {
   const objetosGenerados = [];
   const resultadosTiradas = [];
@@ -509,6 +586,7 @@ function resolverGarantizados({
         idObjeto: garantizado.idObjeto,
       }),
       aleatorioObjetos,
+      hallazgoMagico,
     });
 
     objetosGenerados.push(...objetos);
@@ -569,6 +647,7 @@ function resolverDropsEspecificos({
   aleatorioBotin,
   aleatorioObjetos,
   nivelBaseObjeto = 1,
+  hallazgoMagico = 0,
 } = {}) {
   if (!Array.isArray(entradas)) {
     throw new Error("Los drops específicos deben formar una lista.");
@@ -673,6 +752,7 @@ function resolverDropsEspecificos({
       rarezaForzada: normalizada.rarezaForzada,
 
       aleatorioObjetos,
+      hallazgoMagico,
     });
 
     objetosGenerados.push(...objetosEntrada);
@@ -729,6 +809,7 @@ function crearObjetosParaCantidad({
   nivelProgreso,
   rarezaForzada,
   aleatorioObjetos,
+  hallazgoMagico = 0,
 }) {
   const plantilla = configuracionObjetos[idObjeto];
 
@@ -762,6 +843,7 @@ function crearObjetosParaCantidad({
           nivelObjeto,
           nivelProgreso,
           rarezaForzada,
+          hallazgoMagico,
           aleatorio: aleatorioObjetos,
         }),
       );
@@ -790,6 +872,7 @@ function crearObjetosParaCantidad({
         nivelObjeto,
         nivelProgreso,
         rarezaForzada,
+        hallazgoMagico,
         aleatorio: aleatorioObjetos,
       }),
     );

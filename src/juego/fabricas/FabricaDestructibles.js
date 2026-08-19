@@ -12,6 +12,7 @@ export function crearDestructible({
   y,
   configuracionEntidadesMazmorra,
   objetosIniciales = [],
+  solicitudContenidoBotin = null,
 } = {}) {
   if (!Number.isInteger(x) || !Number.isInteger(y)) {
     throw new Error(
@@ -47,6 +48,7 @@ export function crearDestructible({
       ? definicion.capacidadContenedor
       : 0,
     objetosIniciales: esRecipiente ? objetosIniciales : [],
+    solicitudContenidoBotin: esRecipiente ? solicitudContenidoBotin : null,
     solicitudBotin: definicion.solicitudBotinDestruccion ?? null,
     alcanceInteraccion: definicion.alcanceInteraccion ?? 1,
     prioridadInteraccion: definicion.prioridadInteraccion ?? 90,

@@ -13,7 +13,7 @@ const ETIQUETAS_ATRIBUTO = Object.freeze({
   constitucion: "Constitución",
   inteligencia: "Inteligencia",
   sabiduria: "Sabiduría",
-  carisma: "Carisma",
+  suerte: "Suerte",
 });
 const ETIQUETAS_PATRON_ATAQUE = Object.freeze({
   adyacente: "Adyacente",
@@ -61,6 +61,10 @@ const RESISTENCIAS_VISIBLES = Object.freeze([
   Object.freeze({
     propiedad: "resistenciaQuemadura",
     etiqueta: "Resistencia a la Quemadura",
+  }),
+  Object.freeze({
+    propiedad: "resistenciaMental",
+    etiqueta: "Resistencia Mental",
   }),
 ]);
 
@@ -125,6 +129,8 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
     etiqueta: "mitigación al bloquear",
     porcentaje: true,
   },
+  resistenciaMental: { etiqueta: "Resistencia Mental", porcentaje: true },
+  hallazgoMagico: { etiqueta: "Hallazgo mágico", porcentaje: true },
 });
 
 // Convierte una instancia de Objeto en un modelo visual compartido por
@@ -645,6 +651,9 @@ function crearEstadisticasConsumible(objeto) {
 
 function crearEstadisticasGenericas(objeto) {
   const estadisticas = [];
+  if (objeto.tipo === "accesorio") {
+    estadisticas.push(...crearEstadisticasResistencias(objeto.propiedades));
+  }
   if (objeto.apilable) {
     estadisticas.push(
       crearEstadistica(tDetalle("cantidad", "Cantidad"), formatearNumero(objeto.cantidad)),
@@ -686,6 +695,8 @@ function traducirEtiquetaValorAfijo(propiedad, respaldo) {
     resistenciaAturdimiento: "resistenciaAturdimiento",
     resistenciaEnvenenamiento: "resistenciaEnvenenamiento",
     resistenciaQuemadura: "resistenciaQuemadura",
+    resistenciaMental: "resistenciaMental",
+    hallazgoMagico: "hallazgoMagico",
     probabilidadBloqueo: "probabilidadBloqueo",
     mitigacionBloqueo: "mitigacionBloqueoAfijo",
   };
@@ -726,6 +737,7 @@ function traducirTipoObjeto(tipo) {
     consumible: ["tipoConsumible", "Consumible"],
     material: ["tipoMaterial", "Material"],
     desechable: ["tipoDesechable", "Desechable"],
+    accesorio: ["tipoAccesorio", "Accesorio"],
   };
   const [clave, respaldo] = claves[tipo] ?? [null, formatearIdentificador(tipo)];
   return clave ? tDetalle(clave, respaldo) : respaldo;
@@ -771,6 +783,7 @@ function traducirResistencia(propiedad, respaldo) {
     resistenciaAturdimiento: "resistenciaAturdimiento",
     resistenciaEnvenenamiento: "resistenciaEnvenenamiento",
     resistenciaQuemadura: "resistenciaQuemadura",
+    resistenciaMental: "resistenciaMental",
   };
   const clave = claves[propiedad];
   return clave ? tDetalle(clave, respaldo) : respaldo;

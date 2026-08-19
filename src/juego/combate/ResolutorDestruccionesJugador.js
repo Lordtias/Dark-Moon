@@ -6,6 +6,7 @@ import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   depositarObjetosEnSuelo,
   generarBotinCanonicoEnSuelo,
+  materializarContenidoContenedor,
   resolverSupervivenciaContenidoDestruido,
 } from "../botin/SistemaBotin.js";
 import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
@@ -232,6 +233,11 @@ export class ResolutorDestruccionesJugador {
     ];
     const resultadosBotin = [];
 
+    const materializacionContenido = materializarContenidoContenedor({
+      fuente: objetivo,
+      configuracionObjetos: this.configuracionObjetos,
+    });
+
     const objetosExistentes =
       typeof objetivo.contenedorObjetos?.extraerTodos === "function"
         ? objetivo.contenedorObjetos.extraerTodos()
@@ -247,6 +253,7 @@ export class ResolutorDestruccionesJugador {
           interactuables: this.interactuables,
         });
         resultadoContenido.detalleSupervivencia = supervivencia;
+        resultadoContenido.detalleMaterializacion = materializacionContenido;
         resultadosBotin.push(resultadoContenido);
         agregarMensajeBotin({
           mensajes,

@@ -46,12 +46,12 @@ export function calcularPrecioCompra({
     cantidad,
   });
 
-  const factorCarisma = normalizarFactor(1 - contexto.ajusteCarisma);
+  const factorAjusteComercial = normalizarFactor(1 - contexto.ajusteComercial);
 
   const precioAntesRedondeo =
     contexto.valorComercialTotal *
     contexto.mercader.multiplicadorCompraJugador *
-    factorCarisma;
+    factorAjusteComercial;
 
   const precioTotal = redondearPrecioCompra({
     valor: precioAntesRedondeo,
@@ -69,7 +69,7 @@ export function calcularPrecioCompra({
 
     multiplicadorMercader: contexto.mercader.multiplicadorCompraJugador,
 
-    factorCarisma,
+    factorAjusteComercial,
     precioAntesRedondeo,
     precioTotal,
 
@@ -99,7 +99,7 @@ export function calcularPrecioVenta({
     cantidad,
   });
 
-  const factorCarisma = normalizarFactor(1 + contexto.ajusteCarisma);
+  const factorAjusteComercial = normalizarFactor(1 + contexto.ajusteComercial);
 
   if (objeto.vendible !== true) {
     return crearResultadoPrecio({
@@ -113,7 +113,7 @@ export function calcularPrecioVenta({
 
       multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
 
-      factorCarisma,
+      factorAjusteComercial,
       precioAntesRedondeo: 0,
       precioTotal: 0,
       puedePagar: null,
@@ -130,7 +130,7 @@ export function calcularPrecioVenta({
   const precioAntesRedondeo =
     contexto.valorComercialTotal *
     contexto.mercader.multiplicadorVentaJugador *
-    factorCarisma;
+    factorAjusteComercial;
 
   const precioTotal = redondearPrecioVenta(precioAntesRedondeo);
 
@@ -152,7 +152,7 @@ export function calcularPrecioVenta({
 
       multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
 
-      factorCarisma,
+      factorAjusteComercial,
       precioAntesRedondeo,
       precioTotal: 0,
       puedePagar: null,
@@ -177,38 +177,11 @@ export function calcularPrecioVenta({
 
     multiplicadorMercader: contexto.mercader.multiplicadorVentaJugador,
 
-    factorCarisma,
+    factorAjusteComercial,
     precioAntesRedondeo,
     precioTotal,
     puedePagar: null,
   });
-}
-
-// Convierte el atributo Carisma en una variación
-// económica limitada por la configuración general.
-//
-// Ejemplo con referencia 10 y 2 % por punto:
-//
-// Carisma 6  = -8 %.
-// Carisma 10 =  0 %.
-// Carisma 14 = +8 %.
-export function calcularAjusteCarisma({ carisma, reglasPrecios } = {}) {
-  validarCarisma(carisma);
-  validarReglasPrecios(reglasPrecios);
-
-  const diferencia = carisma - reglasPrecios.carismaReferencia;
-
-  const ajusteSinLimitar = diferencia * reglasPrecios.variacionPorPuntoCarisma;
-
-  const limite = reglasPrecios.variacionMaximaCarisma;
-
-  return normalizarFactor(
-    Math.max(
-      -limite,
-
-      Math.min(limite, ajusteSinLimitar),
-    ),
-  );
 }
 
 // Obtiene una copia del perfil económico
@@ -279,13 +252,8 @@ function prepararContextoCalculo({
 
   const valorComercialTotal = valorComercialUnitario * cantidadNormalizada;
 
-  const carisma = jugador.atributos.carisma;
-
-  const ajusteCarisma = calcularAjusteCarisma({
-    carisma,
-
-    reglasPrecios: configuracionValidada.reglasPrecios,
-  });
+  const suerte = jugador.atributos.suerte;
+  const ajusteComercial = jugador.estadisticasDerivadas.ajusteComercial;
 
   return {
     objeto,
@@ -298,8 +266,8 @@ function prepararContextoCalculo({
 
     valorComercialUnitario,
     valorComercialTotal,
-    carisma,
-    ajusteCarisma,
+    suerte,
+    ajusteComercial,
   };
 }
 
@@ -332,7 +300,7 @@ function crearResultadoPrecio({
   permitido,
   motivoNoPermitido,
   multiplicadorMercader,
-  factorCarisma,
+  factorAjusteComercial,
   precioAntesRedondeo,
   precioTotal,
   puedePagar,
@@ -356,11 +324,11 @@ function crearResultadoPrecio({
 
     multiplicadorMercader,
 
-    carisma: contexto.carisma,
+    suerte: contexto.suerte,
 
-    ajusteCarisma: contexto.ajusteCarisma,
+    ajusteComercial: contexto.ajusteComercial,
 
-    factorCarisma,
+    factorAjusteComercial,
     precioAntesRedondeo,
     precioTotal,
     puedePagar,
@@ -417,16 +385,20 @@ function validarJugador(jugador) {
     throw new Error("Se necesita un jugador válido para calcular precios.");
   }
 
-  validarCarisma(jugador.atributos.carisma);
+  validarSuerte(jugador.atributos.suerte);
+
+  if (!Number.isFinite(jugador.estadisticasDerivadas?.ajusteComercial)) {
+    throw new Error("El jugador necesita un Ajuste comercial canónico válido.");
+  }
 
   if (!Number.isSafeInteger(jugador.oro) || jugador.oro < 0) {
     throw new Error("El jugador necesita una cantidad de oro válida.");
   }
 }
 
-function validarCarisma(carisma) {
-  if (!Number.isFinite(carisma) || carisma < 0) {
-    throw new Error("El Carisma debe ser un número igual o mayor que 0.");
+function validarSuerte(suerte) {
+  if (!Number.isFinite(suerte) || suerte < 0) {
+    throw new Error("La Suerte debe ser un número igual o mayor que 0.");
   }
 }
 
@@ -434,17 +406,11 @@ function validarReglasPrecios(reglasPrecios) {
   if (
     !reglasPrecios ||
     typeof reglasPrecios !== "object" ||
-    Array.isArray(reglasPrecios)
+    Array.isArray(reglasPrecios) ||
+    !Number.isSafeInteger(reglasPrecios.precioMinimo) ||
+    reglasPrecios.precioMinimo < 0
   ) {
     throw new Error("Se necesitan reglas de precio válidas.");
-  }
-
-  if (
-    !Number.isInteger(reglasPrecios.carismaReferencia) ||
-    !Number.isFinite(reglasPrecios.variacionPorPuntoCarisma) ||
-    !Number.isFinite(reglasPrecios.variacionMaximaCarisma)
-  ) {
-    throw new Error("Las reglas de Carisma para comercio no son válidas.");
   }
 }
 

@@ -608,5 +608,342 @@
       "probabilidadBloqueo": 12,
       "mitigacionBloqueo": 55
     }
+  },
+  "capucha_tela_gruesa": {
+    "nombre": "Capucha de tela gruesa",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Capucha de tela gruesa de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/capucha_tela_gruesa.png",
+    "valorBase": 85,
+    "pesoUnitario": 0.35,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "cabeza"
+    ],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "tunica_tela_gruesa": {
+    "nombre": "Túnica de tela gruesa",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Túnica de tela gruesa de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/tunica_tela_gruesa.png",
+    "valorBase": 220,
+    "pesoUnitario": 1.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "torso"
+    ],
+    "propiedades": {
+      "armadura": 4
+    }
+  },
+  "guantes_tela_gruesos": {
+    "nombre": "Guantes de tela gruesos",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Guantes de tela gruesos de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_tela_gruesos.png",
+    "valorBase": 75,
+    "pesoUnitario": 0.35,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "manos"
+    ],
+    "propiedades": {
+      "armadura": 2
+    }
+  },
+  "pantalones_tela_gruesos": {
+    "nombre": "Pantalones de tela gruesos",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Pantalones de tela gruesos de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/pantalones_tela_gruesos.png",
+    "valorBase": 150,
+    "pesoUnitario": 1.1,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "piernas"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "botas_tela_gruesas": {
+    "nombre": "Botas de tela gruesas",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_ligera",
+    "categoriaArmadura": "ligera",
+    "descripcion": "Botas de tela gruesas de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/botas_tela_gruesas.png",
+    "valorBase": 110,
+    "pesoUnitario": 0.6,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "pies"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "capucha_cuero_remachado": {
+    "nombre": "Capucha de cuero remachado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Capucha de cuero remachado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/capucha_cuero_remachado.png",
+    "valorBase": 110,
+    "pesoUnitario": 0.8,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "cabeza"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "jubon_cuero_remachado": {
+    "nombre": "Jubón de cuero remachado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Jubón de cuero remachado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/jubon_cuero_remachado.png",
+    "valorBase": 300,
+    "pesoUnitario": 3.6,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "torso"
+    ],
+    "propiedades": {
+      "armadura": 5
+    }
+  },
+  "guantes_cuero_remachado": {
+    "nombre": "Guantes de cuero remachado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Guantes de cuero remachado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_cuero_remachado.png",
+    "valorBase": 90,
+    "pesoUnitario": 0.9,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "manos"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "pantalones_cuero_remachado": {
+    "nombre": "Pantalones de cuero remachado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Pantalones de cuero remachado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/pantalones_cuero_remachado.png",
+    "valorBase": 200,
+    "pesoUnitario": 2.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "piernas"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "botas_cuero_remachado": {
+    "nombre": "Botas de cuero remachado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_media",
+    "categoriaArmadura": "media",
+    "descripcion": "Botas de cuero remachado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/botas_cuero_remachado.png",
+    "valorBase": 140,
+    "pesoUnitario": 1.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "pies"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "casco_acero_templado": {
+    "nombre": "Casco de acero templado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Casco de acero templado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/casco_acero_templado.png",
+    "valorBase": 250,
+    "pesoUnitario": 3.0,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "cabeza"
+    ],
+    "propiedades": {
+      "armadura": 4
+    }
+  },
+  "coraza_acero_templado": {
+    "nombre": "Coraza de acero templado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Coraza de acero templado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/coraza_acero_templado.png",
+    "valorBase": 620,
+    "pesoUnitario": 8.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "torso"
+    ],
+    "propiedades": {
+      "armadura": 8
+    }
+  },
+  "guantes_acero_templado": {
+    "nombre": "Guantes de acero templado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Guantes de acero templado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/guantes_acero_templado.png",
+    "valorBase": 200,
+    "pesoUnitario": 2.0,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "manos"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "grebas_acero_templado": {
+    "nombre": "Grebas de acero templado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Grebas de acero templado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/grebas_acero_templado.png",
+    "valorBase": 400,
+    "pesoUnitario": 4.3,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "piernas"
+    ],
+    "propiedades": {
+      "armadura": 5
+    }
+  },
+  "botas_acero_templado": {
+    "nombre": "Botas de acero templado",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "armadura_pesada",
+    "categoriaArmadura": "pesada",
+    "descripcion": "Botas de acero templado de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/botas_acero_templado.png",
+    "valorBase": 280,
+    "pesoUnitario": 2.2,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "pies"
+    ],
+    "propiedades": {
+      "armadura": 3
+    }
+  },
+  "escudo_acero": {
+    "nombre": "Escudo de acero",
+    "tipo": "armadura",
+    "tierBase": 3,
+    "nivelMinimoGeneracion": 8,
+    "familiaObjeto": "escudo",
+    "descripcion": "Escudo de acero de calidad superior, preparada para el tramo alto de la progresión.",
+    "recursoVisual": "assets/imagenes/objetos/escudo_acero.png",
+    "valorBase": 240,
+    "pesoUnitario": 6.5,
+    "vendible": true,
+    "apilable": false,
+    "cantidadMaxima": 1,
+    "ranurasCompatibles": [
+      "secundaria"
+    ],
+    "propiedades": {
+      "armadura": 5,
+      "probabilidadBloqueo": 14,
+      "mitigacionBloqueo": 60
+    }
   }
 }

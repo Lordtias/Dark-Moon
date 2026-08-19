@@ -11,6 +11,7 @@ import {
   validarConfiguracionBotin,
   validarReglasBotin,
 } from "../botin/ValidadorConfiguracionBotin.js";
+import { validarConfiguracionSuerte } from "./ValidadorConfiguracionSuerte.js";
 
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
@@ -121,6 +122,11 @@ const CATALOGOS_OBJETOS = Object.freeze([
     descripcion: "el catálogo de armaduras",
   },
   {
+    id: "accesorios",
+    ruta: "./src/config/objetos/Accesorios.json",
+    descripcion: "el catálogo de accesorios",
+  },
+  {
     id: "consumibles",
     ruta: "./src/config/objetos/Consumibles.json",
     descripcion: "el catálogo de consumibles",
@@ -150,11 +156,12 @@ const CATALOGOS_OBJETOS = Object.freeze([
 
 // Carga la configuración utilizada durante
 // la creación del personaje.
-export function cargarConfiguracionPersonaje() {
-  return cargarJson(
+export async function cargarConfiguracionPersonaje() {
+  const configuracion = await cargarJson(
     RUTA_CONFIGURACION_PERSONAJE,
     "la configuración del personaje",
   );
+  return validarConfiguracionSuerte(configuracion);
 }
 
 // Carga conjuntamente los catálogos de plantillas

@@ -775,6 +775,24 @@ Reglas:
 - los objetos de tipo `material` muestran la píldora **Material**;
 - nuevas categorías sólo se incorporarán cuando tengan una necesidad de lectura explícita.
 
+
+## 13.8 Joyería y Tier III
+
+B3 incorpora 51 iconos de objetos nuevos y fija para esta familia el tamaño físico **64 × 64 PNG con transparencia**. Esta medida mantiene coherencia con el catálogo de objetos actual y no modifica el contrato de iconografía 128×128 de habilidades.
+
+La joyería debe leerse principalmente por su forma y gema:
+
+- Rubí → Fuego;
+- Zafiro → Frío;
+- Topacio → Rayo;
+- Esmeralda → Veneno.
+
+Anillos y collares conservan siluetas distintas; los Tiers pueden ganar detalle, metal trabajado y presencia visual, pero no incorporan texto, números ni fondos de rareza. La resistencia real continúa siendo un dato canónico presentado en el detalle del objeto.
+
+Tier III conserva la familia visual de su base previa y la hace reconociblemente superior mediante material, terminación y detalle. No debe transformarse en una silueta totalmente distinta que impida reconocer rápidamente daga, espada, armadura, escudo, arco, bastón o varita.
+
+El Panel de Personaje muestra **Suerte**, **Ajuste comercial** y **Hallazgo mágico** usando los resultados canónicos. Cuando el usuario solicita detalle, la interfaz presenta el desglose ya resuelto y no reconstruye la fórmula. Potencia de Aura debe atribuir su aporte primario a Constitución.
+
 ---
 
 # 14. HABILIDADES Y MAGIA

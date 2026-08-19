@@ -887,8 +887,17 @@ function generarCofreEnZona({
     interactuables,
   });
 
+  const contenidoDiferido =
+    resultado.entidad?.contenidoMaterializado === false &&
+    resultado.entidad?.solicitudContenidoBotin !== null;
   const cantidadObjetos = resultado.resultadoBotin?.objetosGenerados?.length ?? 0;
-  if (cantidadObjetos === 0) {
+
+  // Desde B3 los cofres conservan su solicitud canónica y materializan el
+  // contenido recién al abrirse o destruirse. El cálculo de costo realizado
+  // antes de colocarlos ya valida que la solicitud tenga candidatos para el
+  // nivel del mapa, por lo que un resultadoBotin nulo aquí representa contenido
+  // pendiente y no un cofre inválidamente vacío.
+  if (!contenidoDiferido && cantidadObjetos === 0) {
     throw new Error(
       `El cofre ${tipo} de "${zona.idHabitacion}" quedó vacío. ` +
         "Su tabla debe garantizar al menos un objeto compatible con el nivel del mapa.",
@@ -902,9 +911,10 @@ function generarCofreEnZona({
     x: posicion.x,
     y: posicion.y,
     posicionAcceso: { ...posicionAcceso },
-    cantidadPilas: resultado.resultadoBotin.cantidadPilas,
-    cantidadUnidades: resultado.resultadoBotin.cantidadUnidades,
-    botin: resultado.resultadoBotin.resumen,
+    contenidoPendiente: contenidoDiferido,
+    cantidadPilas: resultado.resultadoBotin?.cantidadPilas ?? null,
+    cantidadUnidades: resultado.resultadoBotin?.cantidadUnidades ?? null,
+    botin: resultado.resultadoBotin?.resumen ?? [],
     costoPoblacion: resumirCosto(costoPoblacion),
   };
 }

@@ -32,6 +32,10 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   MULTIPLICADOR_DANIO_FUENTE: "multiplicadorDanioFuente",
   // Resistencia porcentual (0-75) usada para reducir la probabilidad de Maldiciones.
   RESISTENCIA_MENTAL: "resistenciaMental",
+  // Variación decimal ya resuelta que consume el sistema de comercio.
+  AJUSTE_COMERCIAL: "ajusteComercial",
+  // Bonificación porcentual aplicada al peso de rarezas superiores a Común.
+  HALLAZGO_MAGICO: "hallazgoMagico",
   // Daño base interno de una habilidad antes de atributos mágicos, crítico y defensas.
   DANO_HABILIDAD: "danoHabilidad",
   // Contenedor canónico para modificar un atributo interno validado de una habilidad.

@@ -26,7 +26,7 @@
         "constitucion": 2,
         "inteligencia": 2,
         "sabiduria": 6,
-        "carisma": 2
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,
@@ -165,7 +165,7 @@
         "constitucion": 3,
         "inteligencia": 1,
         "sabiduria": 4,
-        "carisma": 1
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,
@@ -296,7 +296,7 @@
         "constitucion": 5,
         "inteligencia": 4,
         "sabiduria": 6,
-        "carisma": 4
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,
@@ -429,7 +429,7 @@
         "constitucion": 6,
         "inteligencia": 4,
         "sabiduria": 6,
-        "carisma": 4
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,
@@ -556,7 +556,7 @@
         "constitucion": 6,
         "inteligencia": 6,
         "sabiduria": 7,
-        "carisma": 5
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,
@@ -699,7 +699,7 @@
         "constitucion": 8,
         "inteligencia": 5,
         "sabiduria": 8,
-        "carisma": 5
+        "suerte": 10
       },
       "factoresTemporales": {
         "factorTiempo": 100,

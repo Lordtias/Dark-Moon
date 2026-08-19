@@ -86,6 +86,7 @@ export function crearJugadorInicial({
     estadisticasBase: profesion.estadisticasBase,
 
     ataqueNatural: profesion.ataqueNatural ?? null,
+    reglasSuerte: configuracionPersonaje.reglasSuerte,
 
     nivel: 1,
     experiencia: 0,
@@ -229,10 +230,10 @@ function completarConfiguracionMazmorra({
     nivelMapaForzado,
   });
 
-  // El contenido de los cofres se resuelve durante la propia población.
-  // El nivel del mapa se determina aquí, antes de crear entidades, para que
-  // SistemaBotin disponga del mismo contexto canónico que utilizarán después
-  // enemigos y destructibles.
+  // Los cofres y recipientes conservan durante la población su solicitud de
+  // contenido pendiente. El nivel del mapa se determina aquí, antes de crear
+  // entidades, para que SistemaBotin pueda valorar esas solicitudes con el
+  // mismo contexto canónico y materializarlas después al abrir o destruir.
   const nivelMapa = aleatorio.entero(
     plantillaGeneracion.niveles.minimo,
     plantillaGeneracion.niveles.maximo,
@@ -243,6 +244,7 @@ function completarConfiguracionMazmorra({
     configuracionGeneracionObjetos,
     semillaMapa: aleatorio.semilla,
     nivelMapa,
+    jugador: player,
   });
 
   const contenido = generarContenidoMapa({

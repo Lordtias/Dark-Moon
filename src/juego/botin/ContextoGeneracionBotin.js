@@ -23,6 +23,7 @@ export function configurarContextoGeneracionBotin({
   configuracionGeneracionObjetos,
   semillaMapa,
   nivelMapa,
+  jugador = null,
 } = {}) {
   validarConfiguracionBotin(configuracionBotin);
   validarConfiguracionGeneracion(configuracionGeneracionObjetos);
@@ -42,6 +43,10 @@ export function configurarContextoGeneracionBotin({
     );
   }
 
+  if (jugador !== null && (typeof jugador !== "object" || Array.isArray(jugador))) {
+    throw new Error("El jugador del contexto de botín debe ser un objeto o null.");
+  }
+
   const semillaNormalizada = String(semillaMapa);
 
   contextoActual = {
@@ -49,6 +54,10 @@ export function configurarContextoGeneracionBotin({
     configuracionGeneracionObjetos,
     semillaMapa: semillaNormalizada,
     nivelMapa,
+    // Se conserva la referencia al jugador real, no una copia de sus
+    // estadísticas. Así Hallazgo mágico se consulta en el instante exacto en
+    // que una recompensa se materializa.
+    jugador,
 
     // Secuencia dedicada exclusivamente a drops específicos de la fuente.
     // Agregar o quitar un drop característico no desplaza la secuencia usada

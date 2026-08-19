@@ -52,6 +52,58 @@ function resolverValorConDesglose(combatiente, objetivo, valorBase, contexto, de
   return resolucion.resultado;
 }
 
+function calcularBasesSuerte(combatiente) {
+  const reglas = combatiente?.reglasSuerte;
+  const suerte = combatiente?.atributos?.suerte;
+  if (!reglas || !Number.isFinite(suerte)) {
+    return { ajusteComercial: 0, hallazgoMagico: 0 };
+  }
+
+  const comercial = reglas.ajusteComercial;
+  const hallazgo = reglas.hallazgoMagico;
+  return {
+    ajusteComercial: limitar(
+      (suerte - comercial.referencia) * comercial.variacionPorPunto,
+      comercial.minimo,
+      comercial.maximo,
+    ),
+    hallazgoMagico: limitar(
+      Math.max(0, suerte - hallazgo.referencia) * hallazgo.variacionPesoPorPunto,
+      hallazgo.minimo,
+      hallazgo.maximo,
+    ),
+  };
+}
+
+function resolverSuerteLimitada({
+  combatiente,
+  objetivo,
+  valorBase,
+  minimo,
+  maximo,
+  resolucionesModificadores,
+  clave,
+}) {
+  const valorResuelto = resolverValorConDesglose(
+    combatiente,
+    objetivo,
+    valorBase,
+    {},
+    resolucionesModificadores,
+    clave,
+  );
+  const resultado = limitar(valorResuelto, minimo, maximo);
+  const resolucion = resolucionesModificadores[clave];
+  if (resolucion && resultado !== valorResuelto) {
+    resolucionesModificadores[clave] = Object.freeze({
+      ...resolucion,
+      resultado,
+      limiteAplicado: Object.freeze({ minimo, maximo }),
+    });
+  }
+  return resultado;
+}
+
 function crearContextoFuenteAtaque(combatiente, fuente, esAtaqueDual) {
   return {
     familiaArma: fuente.objeto?.familiaObjeto ?? null,
@@ -481,6 +533,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
 
 export function calcularEstadisticasDerivadas(combatiente) {
   const resolucionesModificadores = {};
+  const basesSuerte = calcularBasesSuerte(combatiente);
   const objetos = obtenerObjetosEquipados(combatiente);
   const base = combatiente.estadisticasBase;
   const atributos = combatiente.atributos;
@@ -677,6 +730,26 @@ export function calcularEstadisticasDerivadas(combatiente) {
     CONFIGURACION_COMBATE.limites.mitigacionBloqueoMaxima,
   );
 
+  const reglasSuerte = combatiente?.reglasSuerte;
+  const ajusteComercial = resolverSuerteLimitada({
+    combatiente,
+    objetivo: OBJETIVOS_MODIFICADOR.AJUSTE_COMERCIAL,
+    valorBase: basesSuerte.ajusteComercial,
+    minimo: reglasSuerte?.ajusteComercial?.minimo ?? 0,
+    maximo: reglasSuerte?.ajusteComercial?.maximo ?? 0,
+    resolucionesModificadores,
+    clave: "ajusteComercial",
+  });
+  const hallazgoMagico = resolverSuerteLimitada({
+    combatiente,
+    objetivo: OBJETIVOS_MODIFICADOR.HALLAZGO_MAGICO,
+    valorBase: basesSuerte.hallazgoMagico,
+    minimo: reglasSuerte?.hallazgoMagico?.minimo ?? 0,
+    maximo: reglasSuerte?.hallazgoMagico?.maximo ?? 0,
+    resolucionesModificadores,
+    clave: "hallazgoMagico",
+  });
+
   return {
     ...recursos,
     regeneracionVida,
@@ -694,6 +767,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
     multiplicadorCritico,
     probabilidadBloqueo,
     mitigacionBloqueo,
+    ajusteComercial,
+    hallazgoMagico,
     resistenciaMental: limitar(
       resolverValorConDesglose(
         combatiente, OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL, base.resistenciaMental + coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria, {}, resolucionesModificadores, "resistenciaMental",
@@ -703,7 +778,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     ),
     potenciaAura:
       base.potenciaAura +
-      coeficientes.potenciaAuraPorCarisma * atributos.carisma,
+      coeficientes.potenciaAuraPorConstitucion * atributos.constitucion,
     // Lectura aditiva: conserva las resoluciones ya ejecutadas en este cálculo.
     resolucionesModificadores: Object.freeze({ ...resolucionesModificadores }),
     resistencias,
@@ -731,6 +806,7 @@ export function obtenerAportesAtributosPrimarios(combatiente) {
     atributos: combatiente.atributos,
     configuracionAtaque: obtenerConfiguracionAtaque(combatiente),
     bonificacionResistenciasEfectosPorConstitucion,
+    reglasSuerte: combatiente.reglasSuerte ?? null,
   });
 }
 
@@ -738,12 +814,13 @@ function crearAportesAtributos({
   atributos,
   configuracionAtaque,
   bonificacionResistenciasEfectosPorConstitucion,
+  reglasSuerte,
 }) {
   const combate = CONFIGURACION_COMBATE.atributos;
   const magia = CONFIGURACION_MAGIA;
   const referencia = magia.referenciaAtributos;
   const porAtributo = Object.fromEntries(
-    ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].map(
+    ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "suerte"].map(
       (id) => [id, []],
     ),
   );
@@ -818,6 +895,12 @@ function crearAportesAtributos({
       "porcentaje",
     );
   }
+  agregar(
+    "constitucion",
+    "potenciaAura",
+    combate.potenciaAuraPorConstitucion * atributos.constitucion,
+    "porcentaje",
+  );
 
   agregar(
     "inteligencia",
@@ -885,12 +968,21 @@ function crearAportesAtributos({
     "porcentaje",
   );
 
-  agregar(
-    "carisma",
-    "potenciaAura",
-    combate.potenciaAuraPorCarisma * atributos.carisma,
-    "porcentaje",
-  );
+  if (reglasSuerte) {
+    const basesSuerte = calcularBasesSuerte({ atributos, reglasSuerte });
+    agregar(
+      "suerte",
+      "ajusteComercial",
+      basesSuerte.ajusteComercial * 100,
+      "porcentaje",
+    );
+    agregar(
+      "suerte",
+      "hallazgoMagico",
+      basesSuerte.hallazgoMagico,
+      "porcentaje",
+    );
+  }
 
   if (ataqueEsVarita) {
     const aporteInteligencia = porAtributo.inteligencia.find(

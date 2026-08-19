@@ -19,7 +19,12 @@ const ESTADOS_CONFIGURACION = new Set([
   "descartado",
 ]);
 const TIPOS_AFIJO = new Set(["prefijo", "sufijo"]);
-const TIPOS_OBJETO_COMPATIBLES = new Set(["arma", "armadura", "quiver"]);
+const TIPOS_OBJETO_COMPATIBLES = new Set([
+  "arma",
+  "armadura",
+  "quiver",
+  "accesorio",
+]);
 const OPERACIONES_ACTIVAS = new Set(["sumar"]);
 const PROPIEDADES_ACTIVAS = new Set([
   "danioFisicoLocalMinimo",
@@ -50,6 +55,8 @@ const PROPIEDADES_ACTIVAS = new Set([
   "resistenciaAturdimiento",
   "resistenciaEnvenenamiento",
   "resistenciaQuemadura",
+  "resistenciaMental",
+  "hallazgoMagico",
   "probabilidadBloqueo",
   "mitigacionBloqueo",
   "potenciaHabilidad",

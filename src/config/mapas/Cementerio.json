@@ -655,7 +655,7 @@
         "maximo": 180
       }
     },
-    "multiplicadorHabitacionEspecial": 3
+    "multiplicadorHabitacionEspecial": 4
   },
   "enemigos": {
     "densidadPor100Casillas": 7.5,

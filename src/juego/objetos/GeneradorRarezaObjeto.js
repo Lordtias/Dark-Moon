@@ -7,10 +7,12 @@ export function seleccionarRarezaObjeto({
   aleatorio,
   idsPermitidos = null,
   rarezaForzada = null,
+  hallazgoMagico = 0,
 } = {}) {
   validarCatalogo(configuracionRarezas, "rarezas");
   validarNivelObjeto(nivelObjeto);
   validarAleatorio(aleatorio);
+  validarHallazgoMagico(hallazgoMagico);
 
   const permitidas = normalizarIdsPermitidos(idsPermitidos);
 
@@ -36,7 +38,11 @@ export function seleccionarRarezaObjeto({
       id,
       configuracion,
 
-      peso: configuracion.pesoBase,
+      peso: calcularPesoRareza({
+        idRareza: id,
+        pesoBase: configuracion.pesoBase,
+        hallazgoMagico,
+      }),
     }));
 
   if (elegibles.length === 0) {
@@ -54,6 +60,11 @@ export function seleccionarRarezaObjeto({
 
     descripcion: "una rareza de objeto",
   });
+}
+
+function calcularPesoRareza({ idRareza, pesoBase, hallazgoMagico }) {
+  if (idRareza === "comun") return pesoBase;
+  return pesoBase * (1 + hallazgoMagico / 100);
 }
 
 // Selección ponderada reutilizable para rarezas y grados.
@@ -227,5 +238,11 @@ function validarNivelObjeto(nivelObjeto) {
 function validarAleatorio(aleatorio) {
   if (!aleatorio || typeof aleatorio.siguiente !== "function") {
     throw new Error("Se necesita un generador aleatorio válido.");
+  }
+}
+
+function validarHallazgoMagico(hallazgoMagico) {
+  if (!Number.isFinite(hallazgoMagico) || hallazgoMagico < 0) {
+    throw new Error("Hallazgo mágico debe ser un número igual o mayor que 0.");
   }
 }

@@ -676,7 +676,10 @@ export class ControladorPartida {
       );
     }
 
-    this.presentacionMapaActivo.presentarInteraccion(resultado.interaccion);
+    const interaccionPreparada = this.juego.prepararInteraccionContenedor(
+      resultado.interaccion,
+    );
+    this.presentacionMapaActivo.presentarInteraccion(interaccionPreparada);
     return true;
   }
 

@@ -18,6 +18,7 @@ import {
 import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { ProveedorModificadoresPasivasAprendidas } from "../../../juego/modificadores/ProveedorModificadoresPasivasAprendidas.js";
 import { SistemaExperienciaMaestrias } from "../../../juego/maestrias/SistemaExperienciaMaestrias.js";
+import { validarReglasSuerte } from "../../../juego/configuracion/ValidadorConfiguracionSuerte.js";
 
 const PERCEPCION_BASE_JUGADOR = 10;
 
@@ -27,7 +28,7 @@ const ATRIBUTOS_VALIDOS = [
   "constitucion",
   "inteligencia",
   "sabiduria",
-  "carisma",
+  "suerte",
 ];
 
 // Player conserva responsabilidades propias del personaje:
@@ -70,6 +71,7 @@ export class Player extends Combatiente {
     ],
     equipamientoInicial = [],
     estadoProgresoHabilidades = null,
+    reglasSuerte,
   } = {}) {
     super({
       nombre,
@@ -89,6 +91,9 @@ export class Player extends Combatiente {
     });
 
     this.aplicaBonoConstitucionResistenciasEfectos = true;
+    this.reglasSuerte = JSON.parse(
+      JSON.stringify(validarReglasSuerte(reglasSuerte)),
+    );
 
     if (
       recursoVisual !== null &&

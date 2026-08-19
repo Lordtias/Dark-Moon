@@ -10,11 +10,9 @@ export const RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO =
 
 // Cofre persistente del mapa.
 //
-// No calcula botín ni rareza. Recibe un ContenedorObjetos ya resuelto por el
-// sistema canónico de botín/población. A diferencia de BotinSuelo, permanece
-// en el mapa cuando queda vacío. Su representación se deriva del mismo estado:
-// mientras contiene objetos se muestra cerrado y cuando queda vacío utiliza el
-// sprite abierto, sin necesidad de mantener una segunda bandera visual.
+// No calcula botín ni rareza. Puede recibir una solicitud canónica pendiente
+// que SistemaBotin materializa una sola vez al primer acceso. A diferencia de
+// BotinSuelo, permanece en el mapa cuando queda vacío.
 export class Cofre extends Entidad {
   constructor({
     nombre = "Cofre",
@@ -25,6 +23,7 @@ export class Cofre extends Entidad {
     recursoVisualCerrado = undefined,
     recursoVisualAbierto = RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO,
     contenedorObjetos,
+    solicitudContenidoBotin = null,
     bloqueaMovimiento = true,
     bloqueaVision = false,
     bloqueaCruceDiagonal = true,
@@ -65,6 +64,11 @@ export class Cofre extends Entidad {
     this.recursoVisualCerrado = normalizarRecursoVisual(recursoCerradoResuelto);
     this.recursoVisualAbierto = normalizarRecursoVisual(recursoVisualAbierto);
     this.contenedorObjetos = contenedorObjetos;
+    this.solicitudContenidoBotin = clonarSolicitudOpcional(
+      solicitudContenidoBotin,
+      nombre,
+    );
+    this.contenidoMaterializado = this.solicitudContenidoBotin === null;
     this.alcance = alcance;
     this.prioridad = prioridad;
 
@@ -79,7 +83,7 @@ export class Cofre extends Entidad {
   }
 
   get estaVacio() {
-    return this.contenedorObjetos.estaVacio();
+    return this.contenidoMaterializado && this.contenedorObjetos.estaVacio();
   }
 
   get cantidadObjetos() {
@@ -99,6 +103,14 @@ export class Cofre extends Entidad {
       },
     ];
   }
+}
+
+function clonarSolicitudOpcional(solicitud, nombre) {
+  if (solicitud === null) return null;
+  if (typeof solicitud !== "object" || Array.isArray(solicitud)) {
+    throw new Error(`La solicitud de contenido de ${nombre} debe ser un objeto o null.`);
+  }
+  return JSON.parse(JSON.stringify(solicitud));
 }
 
 function validarRecursoVisual(recurso, estado, nombre) {

@@ -17,6 +17,12 @@ import {
 import { RAREZAS_OBJETO } from "../objetos/RarezasObjeto.js";
 
 import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
+import { normalizarSolicitudBotin } from "./ContratoBotin.js";
+import {
+  obtenerCandidatosObjetosBotin,
+  seleccionarMarcoBotin,
+  seleccionarObjetoBotin,
+} from "./SelectorObjetosBotin.js";
 
 // La ventana de botín queda visualmente
 // más estable cuando conserva algunas
@@ -174,6 +180,311 @@ export function generarContenidoBotin({
     aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
     nivelBaseObjeto,
   });
+}
+
+// Resuelve una solicitud canónica y materializa el resultado sobre la casilla
+// de la fuente. Es el equivalente nuevo de generarBotinEnSuelo y será la ruta
+// productiva de enemigos/destructibles cuando B2 complete la migración.
+export function generarBotinCanonicoEnSuelo({
+  fuente,
+  solicitud,
+  configuracionObjetos,
+  interactuables,
+} = {}) {
+  if (!Array.isArray(interactuables)) {
+    throw new Error("Los interactuables deben estar dentro de una lista.");
+  }
+
+  if (!Number.isInteger(fuente?.x) || !Number.isInteger(fuente?.y)) {
+    throw new Error("La fuente del botín canónico necesita coordenadas enteras.");
+  }
+
+  const resultado = resolverSolicitudBotin({
+    fuente,
+    solicitud,
+    configuracionObjetos,
+  });
+
+  if (resultado.objetosGenerados.length === 0) {
+    return {
+      ...resultado,
+      botin: null,
+      botinCreado: false,
+      botinActualizado: false,
+    };
+  }
+
+  const resultadoSuelo = crearOActualizarBotinSuelo({
+    x: fuente.x,
+    y: fuente.y,
+    objetosNuevos: resultado.objetosGenerados,
+    interactuables,
+  });
+
+  return {
+    ...resultado,
+    ...resultadoSuelo,
+  };
+}
+
+// Resuelve el contrato canónico nuevo sin decidir dónde se almacena el botín.
+//
+// B1 incorpora esta ruta junto a tablaBotin para poder validar el motor antes
+// de migrar fuentes productivas. B2 eliminará la responsabilidad duplicada de
+// configuración al trasladar enemigos, cofres y destructibles al contrato.
+export function resolverSolicitudBotin({
+  fuente,
+  solicitud,
+  configuracionObjetos,
+  aleatorioSeleccion = null,
+} = {}) {
+  validarFuenteCanonica(fuente);
+  validarConfiguracionObjetos(configuracionObjetos);
+
+  const contextoGeneracion = obtenerContextoGeneracionBotin();
+  const seleccion = aleatorioSeleccion ?? contextoGeneracion.aleatorioSeleccionBotin;
+
+  validarGeneradorAleatorioBotin(seleccion);
+  validarGeneradorAleatorioObjetos(contextoGeneracion.aleatorioObjetos);
+
+  const solicitudCanonica = normalizarSolicitudBotin({
+    solicitud,
+    perfilesBotin: contextoGeneracion.configuracionBotin,
+    configuracionObjetos,
+  });
+  const perfil = contextoGeneracion.configuracionBotin[solicitudCanonica.perfil];
+  const nivelBaseObjeto = obtenerNivelBaseObjeto({
+    fuente,
+    nivelMapa: contextoGeneracion.nivelMapa,
+  });
+
+  const resultadoEspecificos = resolverTablaBotin({
+    tablaBotin: solicitudCanonica.especificos,
+    configuracionObjetos,
+    configuracionGeneracionObjetos:
+      contextoGeneracion.configuracionGeneracionObjetos,
+    aleatorioBotin: contextoGeneracion.aleatorioEspecificosBotin,
+    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
+    nivelBaseObjeto,
+  });
+
+  const resultadoGenerico = resolverGeneracionGenerica({
+    perfil,
+    marcosPermitidos: solicitudCanonica.marcosEfectivos,
+    contexto: solicitudCanonica.contexto,
+    configuracionObjetos,
+    configuracionGeneracionObjetos:
+      contextoGeneracion.configuracionGeneracionObjetos,
+    aleatorioSeleccion: seleccion,
+    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
+    nivelBaseObjeto,
+  });
+
+  const resultadoGarantizados = resolverGarantizados({
+    garantizados: solicitudCanonica.garantizados,
+    configuracionObjetos,
+    configuracionGeneracionObjetos:
+      contextoGeneracion.configuracionGeneracionObjetos,
+    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
+    nivelBaseObjeto,
+  });
+
+  const objetosGenerados = consolidarPilasCompatibles([
+    ...resultadoEspecificos.objetosGenerados,
+    ...resultadoGenerico.objetosGenerados,
+    ...resultadoGarantizados.objetosGenerados,
+  ]);
+  const resumen = crearResumenObjetos(objetosGenerados);
+
+  return {
+    objetosGenerados,
+    resultadosTiradas: [
+      ...resultadoEspecificos.resultadosTiradas.map((resultado) => ({
+        origen: "especifico",
+        ...resultado,
+      })),
+      ...resultadoGenerico.resultadosTiradas,
+      ...resultadoGarantizados.resultadosTiradas,
+    ],
+    resumen,
+    resumenTexto: crearResumenTexto(resumen),
+    cantidadTipos: resumen.length,
+    cantidadPilas: objetosGenerados.length,
+    cantidadUnidades: resumen.reduce(
+      (total, entrada) => total + entrada.cantidad,
+      0,
+    ),
+    detalleCanonico: {
+      perfil: solicitudCanonica.perfil,
+      marcosPermitidos: solicitudCanonica.marcosPermitidos,
+      marcosEfectivos: solicitudCanonica.marcosEfectivos,
+      cantidadEspecificos: resultadoEspecificos.objetosGenerados.length,
+      cantidadGenericos: resultadoGenerico.objetosGenerados.length,
+      cantidadGarantizados: resultadoGarantizados.objetosGenerados.length,
+    },
+  };
+}
+
+function resolverGeneracionGenerica({
+  perfil,
+  marcosPermitidos,
+  contexto,
+  configuracionObjetos,
+  configuracionGeneracionObjetos,
+  aleatorioSeleccion,
+  aleatorioObjetos,
+  nivelBaseObjeto,
+}) {
+  const cantidadTiradas = aleatorioSeleccion.entero(
+    perfil.tiradas.cantidadMinima,
+    perfil.tiradas.cantidadMaxima,
+  );
+  const objetosGenerados = [];
+  const resultadosTiradas = [];
+
+  for (let indice = 0; indice < cantidadTiradas; indice++) {
+    const tirada = aleatorioSeleccion.siguiente() * 100;
+    const exito = tirada < perfil.tiradas.probabilidad;
+
+    if (!exito) {
+      resultadosTiradas.push({
+        origen: "generico",
+        indice,
+        tirada,
+        probabilidad: perfil.tiradas.probabilidad,
+        exito: false,
+        marco: null,
+        idObjeto: null,
+        cantidad: 0,
+        objetos: [],
+      });
+      continue;
+    }
+
+    const marco = seleccionarMarcoBotin({
+      perfil,
+      marcosPermitidos,
+      aleatorio: aleatorioSeleccion,
+    });
+    const candidatos = obtenerCandidatosObjetosBotin({
+      configuracionObjetos,
+      marco,
+      nivelProgreso: nivelBaseObjeto,
+      contexto,
+    });
+
+    if (candidatos.length === 0) {
+      throw new Error(
+        `El marco "${marco}" fue seleccionado pero no posee candidatos ` +
+          `válidos para el nivel ${nivelBaseObjeto}.`,
+      );
+    }
+
+    const seleccionado = seleccionarObjetoBotin({
+      candidatos,
+      aleatorio: aleatorioSeleccion,
+    });
+    const rangoCantidad = obtenerRangoCantidadGenerica(seleccionado.plantilla);
+    const cantidad = aleatorioSeleccion.entero(
+      rangoCantidad.cantidadMinima,
+      rangoCantidad.cantidadMaxima,
+    );
+    const objetos = crearObjetosParaCantidad({
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      idObjeto: seleccionado.idObjeto,
+      cantidadTotal: cantidad,
+      nivelBaseObjeto,
+      nivelProgreso: nivelBaseObjeto,
+      rarezaForzada: null,
+      aleatorioObjetos,
+    });
+
+    objetosGenerados.push(...objetos);
+    resultadosTiradas.push({
+      origen: "generico",
+      indice,
+      tirada,
+      probabilidad: perfil.tiradas.probabilidad,
+      exito: true,
+      marco,
+      idObjeto: seleccionado.idObjeto,
+      cantidad,
+      cantidadCandidatos: candidatos.length,
+      objetos: objetos.map(crearDetalleObjetoGenerado),
+    });
+  }
+
+  return {
+    objetosGenerados,
+    resultadosTiradas,
+  };
+}
+
+function resolverGarantizados({
+  garantizados,
+  configuracionObjetos,
+  configuracionGeneracionObjetos,
+  aleatorioObjetos,
+  nivelBaseObjeto,
+}) {
+  const objetosGenerados = [];
+  const resultadosTiradas = [];
+
+  for (const garantizado of garantizados) {
+    const plantilla = configuracionObjetos[garantizado.idObjeto];
+    const nivelProgresoCreacion = Math.max(
+      nivelBaseObjeto,
+      obtenerNivelMinimoGeneracionPlantilla(plantilla),
+    );
+    const objetos = crearObjetosParaCantidad({
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      idObjeto: garantizado.idObjeto,
+      cantidadTotal: garantizado.cantidad,
+      nivelBaseObjeto,
+      nivelProgreso: nivelProgresoCreacion,
+      rarezaForzada: normalizarRarezaForzada({
+        rarezaForzada: garantizado.rarezaForzada,
+        idObjeto: garantizado.idObjeto,
+      }),
+      aleatorioObjetos,
+    });
+
+    objetosGenerados.push(...objetos);
+    resultadosTiradas.push({
+      origen: "garantizado",
+      exito: true,
+      idObjeto: garantizado.idObjeto,
+      cantidad: garantizado.cantidad,
+      objetos: objetos.map(crearDetalleObjetoGenerado),
+    });
+  }
+
+  return {
+    objetosGenerados,
+    resultadosTiradas,
+  };
+}
+
+function obtenerRangoCantidadGenerica(plantilla) {
+  const configuracion = plantilla.generacionBotin ?? {};
+  const cantidadMinima = configuracion.cantidadMinima ?? 1;
+  const cantidadMaxima = configuracion.cantidadMaxima ?? cantidadMinima;
+
+  if (
+    !Number.isInteger(cantidadMinima) ||
+    !Number.isInteger(cantidadMaxima) ||
+    cantidadMinima < 1 ||
+    cantidadMaxima < cantidadMinima
+  ) {
+    throw new Error(
+      `La cantidad genérica de botín de "${plantilla.nombre ?? "objeto"}" ` +
+        "no es válida.",
+    );
+  }
+
+  return { cantidadMinima, cantidadMaxima };
 }
 
 // Procesa independientemente cada entrada
@@ -721,6 +1032,12 @@ function normalizarRarezaForzada({ rarezaForzada, idObjeto }) {
   }
 
   return normalizada;
+}
+
+function validarFuenteCanonica(fuente) {
+  if (!fuente || typeof fuente !== "object") {
+    throw new Error("Se necesita una fuente válida para generar botín.");
+  }
 }
 
 function validarFuente(fuente) {

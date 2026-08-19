@@ -21,6 +21,7 @@ export class GestorMapasPartida {
     estadoPartida,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionBotin,
     configuracionGeneracionObjetos,
     configuracionMapas,
     configuracionCiudad,
@@ -31,6 +32,8 @@ export class GestorMapasPartida {
     validarConfiguracion(configuracionEnemigos, "enemigos");
 
     validarConfiguracion(configuracionObjetos, "objetos");
+
+    validarConfiguracion(configuracionBotin, "botín");
 
     validarConfiguracion(
       configuracionGeneracionObjetos,
@@ -51,6 +54,8 @@ export class GestorMapasPartida {
     this.configuracionEnemigos = configuracionEnemigos;
 
     this.configuracionObjetos = configuracionObjetos;
+
+    this.configuracionBotin = configuracionBotin;
 
     this.configuracionGeneracionObjetos = configuracionGeneracionObjetos;
 
@@ -190,6 +195,8 @@ export class GestorMapasPartida {
       configuracionEnemigos: this.configuracionEnemigos,
 
       configuracionObjetos: this.configuracionObjetos,
+
+      configuracionBotin: this.configuracionBotin,
 
       configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
 

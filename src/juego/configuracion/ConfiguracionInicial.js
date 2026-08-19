@@ -111,6 +111,7 @@ export function crearConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionBotin,
   configuracionGeneracionObjetos,
   configuracionMapas,
   configuracionEntidadesMazmorra,
@@ -145,6 +146,7 @@ export function crearConfiguracionMazmorra({
     player,
     configuracionEnemigos,
     configuracionObjetos,
+    configuracionBotin,
     configuracionGeneracionObjetos,
     configuracionEntidadesMazmorra,
     cantidadEnemigosRecurrentes,
@@ -205,6 +207,7 @@ function completarConfiguracionMazmorra({
   player,
   configuracionEnemigos,
   configuracionObjetos,
+  configuracionBotin,
   configuracionGeneracionObjetos,
   configuracionEntidadesMazmorra,
   cantidadEnemigosRecurrentes,
@@ -236,6 +239,7 @@ function completarConfiguracionMazmorra({
   );
 
   configurarContextoGeneracionBotin({
+    configuracionBotin,
     configuracionGeneracionObjetos,
     semillaMapa: aleatorio.semilla,
     nivelMapa,

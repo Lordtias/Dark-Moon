@@ -4,6 +4,7 @@ import {
   cargarConfiguracionPersonaje,
   cargarConfiguracionEnemigos,
   cargarConfiguracionObjetos,
+  cargarConfiguracionBotin,
   cargarConfiguracionGeneracionObjetos,
   cargarConfiguracionMapas,
   cargarConfiguracionCiudad,
@@ -62,6 +63,7 @@ export class Aplicacion {
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
     this.configuracionObjetos = null;
+    this.configuracionBotin = null;
     this.configuracionGeneracionObjetos = null;
     this.configuracionMapas = null;
     this.configuracionCiudad = null;
@@ -280,6 +282,7 @@ export class Aplicacion {
       configuracionPersonaje,
       configuracionEnemigos,
       configuracionObjetos,
+      configuracionBotin,
       configuracionGeneracionObjetos,
       configuracionMapas,
       configuracionCiudad,
@@ -295,6 +298,7 @@ export class Aplicacion {
       cargarConfiguracionPersonaje(),
       cargarConfiguracionEnemigos(),
       cargarConfiguracionObjetos(),
+      cargarConfiguracionBotin(),
       cargarConfiguracionGeneracionObjetos(),
       cargarConfiguracionMapas(),
       cargarConfiguracionCiudad(),
@@ -312,6 +316,7 @@ export class Aplicacion {
     this.configuracionEnemigos = configuracionEnemigos;
     this.configuracionObjetos =
       validarCatalogoCatalizadores(configuracionObjetos);
+    this.configuracionBotin = configuracionBotin;
     this.configuracionPresentacionCombate =
       configurarPerfilesAtaquePorFamilia({
         configuracion: perfilesAtaquePorFamilia,
@@ -460,6 +465,7 @@ export class Aplicacion {
       configuracionPersonaje: this.configuracionPersonaje,
       configuracionEnemigos: this.configuracionEnemigos,
       configuracionObjetos: this.configuracionObjetos,
+      configuracionBotin: this.configuracionBotin,
       configuracionGeneracionObjetos: this.configuracionGeneracionObjetos,
       configuracionMapas: this.configuracionMapas,
       configuracionCiudad: this.configuracionCiudad,

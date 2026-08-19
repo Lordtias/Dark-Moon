@@ -7,11 +7,14 @@ import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfi
 import { validarConfiguracionComercio } from "../comercio/ValidadorConfiguracionComercio.js";
 import { validarHabilidadesNPC } from "../habilidades/ValidadorHabilidadesNPC.js";
 import { validarConfiguracionEntidadesMazmorra } from "./ValidadorConfiguracionEntidadesMazmorra.js";
+import { validarConfiguracionBotin } from "../botin/ValidadorConfiguracionBotin.js";
 
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
 
 const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
+
+const RUTA_PERFILES_BOTIN = "./src/config/botin/PerfilesBotin.json";
 
 // Las plantillas de enemigos se dividen por función.
 //
@@ -189,6 +192,15 @@ export async function cargarConfiguracionEnemigos() {
 //
 // El resto del juego no necesita saber
 // en qué archivo se encuentra cada objeto.
+export async function cargarConfiguracionBotin() {
+  const configuracion = await cargarJson(
+    RUTA_PERFILES_BOTIN,
+    "los perfiles canónicos de botín",
+  );
+
+  return validarConfiguracionBotin(configuracion);
+}
+
 export async function cargarConfiguracionObjetos() {
   const catalogosCargados = await Promise.all(
     CATALOGOS_OBJETOS.map(async (catalogo) => ({

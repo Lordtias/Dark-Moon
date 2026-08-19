@@ -2,31 +2,28 @@ import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
 
 // Dark Moon mantiene actualmente una única partida activa.
 //
-// Este contexto reúne la configuración y la secuencia
-// pseudoaleatoria utilizadas exclusivamente para generar
-// las instancias de objetos obtenidas como botín.
+// El contexto de botín conserva dos secuencias pseudoaleatorias dedicadas y
+// separadas de la generación procedural del mapa:
 //
-// Se mantiene separado de la secuencia que decide:
+// - aleatorioEspecificosBotin decide drops específicos y sus cantidades;
+// - aleatorioSeleccionBotin decide tiradas genéricas, marcos y plantillas;
+// - aleatorioObjetos decide nivel, rareza, afijos, grados y valores.
 //
-// - Si una entrada de la tabla cae.
-// - Cuántas unidades entrega.
-//
-// Así, agregar o modificar afijos no altera qué entradas
-// de botín resultan exitosas para una misma semilla.
+// Mantenerlas separadas evita que agregar o modificar afijos cambie qué objeto
+// fue seleccionado por el motor canónico para una misma semilla.
 let contextoActual = null;
 
 // Configura la generación de objetos para el mapa activo.
 //
-// Cuando en el futuro se cambie de piso,
-// esta misma función deberá ejecutarse con:
-//
-// - La nueva semilla.
-// - El nuevo nivel de mapa.
+// Cuando en el futuro se cambie de piso, esta misma función deberá ejecutarse
+// con la nueva semilla, el nuevo nivel y los mismos contratos validados.
 export function configurarContextoGeneracionBotin({
+  configuracionBotin,
   configuracionGeneracionObjetos,
   semillaMapa,
   nivelMapa,
 } = {}) {
+  validarConfiguracionBotin(configuracionBotin);
   validarConfiguracionGeneracion(configuracionGeneracionObjetos);
 
   if (
@@ -47,11 +44,28 @@ export function configurarContextoGeneracionBotin({
   const semillaNormalizada = String(semillaMapa);
 
   contextoActual = {
+    configuracionBotin,
     configuracionGeneracionObjetos,
-
     semillaMapa: semillaNormalizada,
-
     nivelMapa,
+
+    // Secuencia dedicada exclusivamente a drops específicos de la fuente.
+    // Agregar o quitar un drop característico no desplaza la secuencia usada
+    // por la generación genérica del perfil.
+    aleatorioEspecificosBotin: crearGeneradorAleatorio(
+      `${semillaNormalizada}:especificos-botin`,
+    ),
+
+    // Secuencia dedicada exclusivamente a:
+    //
+    // - Cantidad de tiradas genéricas.
+    // - Éxito de cada tirada genérica.
+    // - Marco seleccionado.
+    // - Plantilla seleccionada dentro del marco.
+    // - Cantidad generada cuando una plantilla la configure.
+    aleatorioSeleccionBotin: crearGeneradorAleatorio(
+      `${semillaNormalizada}:seleccion-botin`,
+    ),
 
     // Secuencia dedicada a:
     //
@@ -69,9 +83,8 @@ export function configurarContextoGeneracionBotin({
 
 // Devuelve el contexto preparado por ControladorPartida.
 //
-// Fallar de forma explícita evita que los drops
-// creen silenciosamente objetos sin rareza cuando
-// la configuración no fue conectada.
+// Fallar de forma explícita evita que los drops creen silenciosamente objetos
+// sin perfiles, rareza o afijos cuando la configuración no fue conectada.
 export function obtenerContextoGeneracionBotin() {
   if (!contextoActual) {
     throw new Error(
@@ -82,10 +95,20 @@ export function obtenerContextoGeneracionBotin() {
   return contextoActual;
 }
 
-// Facilita pruebas aisladas y futuros reinicios
-// completos de una partida.
+// Facilita pruebas aisladas y futuros reinicios completos de una partida.
 export function limpiarContextoGeneracionBotin() {
   contextoActual = null;
+}
+
+function validarConfiguracionBotin(configuracion) {
+  if (
+    configuracion === null ||
+    typeof configuracion !== "object" ||
+    Array.isArray(configuracion) ||
+    Object.keys(configuracion).length === 0
+  ) {
+    throw new Error("Se necesita una configuración válida de perfiles de botín.");
+  }
 }
 
 function validarConfiguracionGeneracion(configuracion) {

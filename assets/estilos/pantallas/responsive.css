@@ -1,0 +1,726 @@
+/* =========================================================
+   ETAPA 2 · CAPA RESPONSIVE ADITIVA
+   =========================================================
+ *
+ * Desktop conserva los estilos canónicos existentes. Esta hoja se carga al
+ * final y sólo introduce fundaciones neutrales (dvh/safe areas) y reglas
+ * acotadas a viewport móvil, poca altura u operación táctil.
+ */
+
+:root {
+  --dm-safe-top: env(safe-area-inset-top, 0px);
+  --dm-safe-right: env(safe-area-inset-right, 0px);
+  --dm-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --dm-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.pantalla-juego {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.hud-recursos-moviles {
+  display: none;
+}
+
+.hud-recurso-compacto {
+  min-width: 0;
+}
+
+.hud-recurso-compacto__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3px;
+  color: #e8dfc7;
+  font: 700 10px/1.2 Georgia, "Times New Roman", serif;
+}
+
+.hud-recurso-compacto__etiqueta {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hud-recurso-compacto__valor {
+  color: #fff;
+  font: 700 11px/1.2 monospace;
+  text-shadow: 0 1px 2px #000;
+}
+
+.hud-recurso-compacto__barra {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid #655c3f;
+  border-radius: 999px;
+  background: #11140f;
+  box-shadow: inset 0 0 5px #000;
+}
+
+.hud-recurso-compacto__relleno {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: inherit;
+  transition: width 180ms ease-out;
+}
+
+.hud-recurso-compacto__relleno--vida {
+  background: linear-gradient(90deg, rgba(80, 0, 0, 0.9), rgba(190, 36, 38, 0.95) 70%, rgba(242, 78, 69, 0.96));
+}
+
+.hud-recurso-compacto__relleno--mana {
+  background: linear-gradient(90deg, rgba(7, 39, 83, 0.95), rgba(28, 93, 181, 0.96) 70%, rgba(66, 147, 236, 0.96));
+}
+
+/* =========================================================
+   MENÚ Y CREACIÓN · VIEWPORT BAJO / MÓVIL
+   ========================================================= */
+@media (max-width: 700px), (max-height: 620px) {
+  body {
+    align-items: flex-start;
+    min-height: 100dvh;
+    padding:
+      max(8px, var(--dm-safe-top))
+      max(8px, var(--dm-safe-right))
+      max(8px, var(--dm-safe-bottom))
+      max(8px, var(--dm-safe-left));
+    overflow-y: auto;
+  }
+
+  main {
+    width: 100%;
+    min-height: calc(
+      100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 16px
+    );
+  }
+
+  .pantalla-menu-principal,
+  .menu-principal-capa {
+    min-height: calc(
+      100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 16px
+    );
+  }
+
+  .pantalla-menu-principal {
+    height: auto;
+  }
+
+  .menu-principal-capa {
+    justify-content: center;
+    padding: 54px 16px 20px;
+  }
+
+  .panel-creacion--ampliado {
+    width: min(100%, calc(100vw - var(--dm-safe-left) - var(--dm-safe-right) - 16px));
+    max-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 16px);
+    overscroll-behavior: contain;
+    scroll-padding-block: 90px min(34dvh, 280px);
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .pantalla-menu-principal,
+  .menu-principal-capa {
+    min-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 12px);
+  }
+
+  .menu-principal-capa {
+    justify-content: flex-start;
+    padding-block: 42px 14px;
+    overflow-y: auto;
+  }
+
+  .titulo-menu-principal {
+    margin-bottom: 6px;
+    font-size: clamp(30px, 11vh, 44px);
+  }
+
+  .subtitulo-menu-principal {
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .version-menu-principal {
+    margin: -6px 0 12px;
+  }
+
+  .acciones-menu-principal {
+    gap: 8px;
+  }
+
+  .boton-menu-principal {
+    padding-block: 9px;
+    font-size: 16px;
+  }
+}
+
+/* =========================================================
+   HUD · PORTRAIT MÓVIL
+   ========================================================= */
+@media (max-width: 600px) and (orientation: portrait) {
+  .hud-partida {
+    left: max(6px, var(--dm-safe-left));
+    right: max(6px, var(--dm-safe-right));
+    bottom: max(6px, var(--dm-safe-bottom));
+    width: auto;
+    transform: none;
+    grid-template-columns: 1fr;
+    grid-template-areas: "centro";
+    align-items: end;
+    gap: 4px 8px;
+  }
+
+  .hud-recurso--vida,
+  .hud-recurso--mana {
+    display: none;
+  }
+
+  .hud-centro {
+    grid-area: centro;
+    width: 100%;
+    gap: 4px;
+    justify-items: center;
+  }
+
+  .hud-recursos-moviles {
+    display: grid;
+    width: min(100%, 360px);
+    gap: 4px;
+    justify-self: center;
+  }
+
+  .hud-estados-temporales {
+    min-height: 0;
+    gap: 8px;
+  }
+
+  .hud-estados-temporales__grupo {
+    min-height: 0;
+  }
+
+  .hud-estado-temporal {
+    width: 34px;
+    height: 34px;
+  }
+
+  .hud-experiencia {
+    width: 100%;
+    padding: 3px 7px 5px;
+  }
+
+  .hud-experiencia__cabecera {
+    margin-bottom: 2px;
+  }
+
+  .hud-experiencia__barra {
+    height: 7px;
+  }
+
+  .hud-centro .barra-habilidades,
+  .barra-habilidades[data-barra-habilidades="activa"] {
+    width: max-content;
+    max-width: 100%;
+    justify-self: center;
+    grid-template-columns: repeat(5, 46px);
+    grid-template-rows: repeat(2, 46px);
+    justify-content: center;
+    gap: 4px;
+    padding: 5px;
+    overflow: visible;
+  }
+
+  .hud-centro .slot-habilidad,
+  .barra-habilidades[data-barra-habilidades="activa"] [data-ranura-habilidad] {
+    width: 46px;
+    height: 46px;
+  }
+
+  .barra-paneles-partida {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: 100%;
+    gap: 4px;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .boton-panel-partida {
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 2px;
+    font-size: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* =========================================================
+   HUD · LANDSCAPE DE POCA ALTURA
+   ========================================================= */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hud-partida {
+    left: max(6px, var(--dm-safe-left));
+    right: max(6px, var(--dm-safe-right));
+    bottom: max(5px, var(--dm-safe-bottom));
+    width: auto;
+    transform: none;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 5px;
+  }
+
+  .hud-orbe {
+    width: 64px;
+    height: 64px;
+  }
+
+  .hud-orbe__valor {
+    font-size: 8px;
+  }
+
+  .hud-recurso__etiqueta {
+    display: none;
+  }
+
+  .hud-centro {
+    gap: 3px;
+  }
+
+  .hud-estados-temporales,
+  .hud-estados-temporales__grupo {
+    min-height: 30px;
+  }
+
+  .hud-estados-temporales {
+    gap: 8px;
+  }
+
+  .hud-estado-temporal {
+    width: 30px;
+    height: 30px;
+  }
+
+  .hud-experiencia {
+    padding: 2px 6px 4px;
+  }
+
+  .hud-experiencia__cabecera {
+    margin-bottom: 1px;
+    font-size: 8px;
+  }
+
+  .hud-experiencia__barra {
+    height: 6px;
+  }
+
+  .hud-centro .barra-habilidades,
+  .barra-habilidades[data-barra-habilidades="activa"] {
+    grid-template-columns: repeat(10, 44px);
+    grid-template-rows: 44px;
+    gap: 3px;
+    padding: 4px;
+    overflow-x: auto;
+  }
+
+  .hud-centro .slot-habilidad,
+  .barra-habilidades[data-barra-habilidades="activa"] [data-ranura-habilidad] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .barra-paneles-partida {
+    gap: 3px;
+    padding-bottom: 0;
+  }
+
+  .boton-panel-partida {
+    min-height: 36px;
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
+/* =========================================================
+   PANELES DE PARTIDA · FULLSCREEN SÓLO EN MÓVIL
+   ========================================================= */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  body.panel-partida-abierto .hud-partida {
+    display: none;
+  }
+
+  .capa-paneles-partida {
+    inset:
+      var(--dm-safe-top)
+      var(--dm-safe-right)
+      var(--dm-safe-bottom)
+      var(--dm-safe-left);
+    padding: 0;
+  }
+
+  .panel-superpuesto-partida,
+  .panel-superpuesto-partida--menu {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  #panelSuperpuestoPersonaje {
+    height: 100%;
+    max-height: none;
+  }
+
+  .panel-superpuesto-partida__cabecera {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .panel-superpuesto-partida__contenido,
+  .panel-superpuesto-partida__contenido--personaje {
+    padding: 8px;
+  }
+
+  .panel-superpuesto-partida__contenido--objetos {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(280px, 1fr);
+    gap: 8px;
+    overflow: auto;
+  }
+
+  .panel-superpuesto-partida__contenido--objetos > .panel-juego {
+    height: auto;
+    max-height: none;
+  }
+
+  .panel-superpuesto-partida .panel-registro {
+    height: 100%;
+    max-height: none;
+  }
+}
+
+/* Personaje conserva todos sus datos: sólo reorganiza la lectura. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .panel-superpuesto-partida .panel-personaje {
+    grid-template-columns: 1fr;
+    padding: 8px;
+  }
+
+  .panel-personaje > .recurso-personaje,
+  .panel-personaje [data-seccion-personaje] {
+    grid-column: 1;
+  }
+
+  .panel-objetos__inventario .cuadricula-inventario {
+    grid-template-columns: repeat(4, minmax(48px, 1fr));
+  }
+}
+
+/* =========================================================
+   HABILIDADES · NO MINIATURIZAR EL ÁRBOL
+   ========================================================= */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .modal-habilidades-maestrias {
+    width: calc(100vw - var(--dm-safe-left) - var(--dm-safe-right));
+    height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom));
+    max-width: none;
+    max-height: none;
+    margin: var(--dm-safe-top) var(--dm-safe-right) var(--dm-safe-bottom) var(--dm-safe-left);
+    border-radius: 0;
+  }
+
+  .panel-habilidades__cabecera {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .panel-habilidades__cuerpo {
+    min-height: 0;
+  }
+
+  .arbol-habilidades {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .arbol-habilidades__lienzo {
+    height: auto;
+    min-height: max-content;
+    grid-auto-rows: minmax(68px, auto);
+    align-content: start;
+    padding: 12px 10px 18px;
+  }
+
+  .arbol-habilidades__nivel {
+    min-height: 64px;
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .nodo-habilidad {
+    width: 58px;
+    height: 58px;
+  }
+}
+
+@media (max-width: 560px) and (orientation: portrait) {
+  .panel-habilidades__cabecera {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .panel-habilidades__puntos {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .contador-puntos {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .panel-habilidades__navegacion {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+}
+
+/* =========================================================
+   MODALES · VIEWPORT DINÁMICO Y SAFE AREAS
+   ========================================================= */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .modal-comercio,
+  .modal-contenedor-objetos,
+  .modal-curacion,
+  .modal-seleccion-mazmorra,
+  .modal-detalle-objeto,
+  .modal-detalle-entidad {
+    width: calc(100vw - var(--dm-safe-left) - var(--dm-safe-right));
+    max-width: none;
+    height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom));
+    max-height: none;
+    margin: var(--dm-safe-top) var(--dm-safe-right) var(--dm-safe-bottom) var(--dm-safe-left);
+    border-radius: 0;
+  }
+
+  .modal-ayuda-juego {
+    padding:
+      max(6px, var(--dm-safe-top))
+      max(6px, var(--dm-safe-right))
+      max(6px, var(--dm-safe-bottom))
+      max(6px, var(--dm-safe-left));
+  }
+
+  .modal-ayuda-juego__panel,
+  .modal-estadistica__dialogo {
+    max-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 12px);
+  }
+
+  .modal-comercio__contenido,
+  .modal-contenedor-objetos__contenido,
+  .modal-curacion__contenido,
+  .modal-seleccion-mazmorra__contenido,
+  .modal-detalle-entidad__contenido,
+  .modal-detalle-objeto__contenido {
+    max-height: none;
+    min-height: 0;
+  }
+
+  .modal-comercio__contenido {
+    scroll-padding-bottom: min(34dvh, 260px);
+  }
+}
+
+/* =========================================================
+   TOUCH · ÁREAS INTERACTIVAS CÓMODAS
+   ========================================================= */
+@media (pointer: coarse) and (max-width: 980px),
+       (pointer: coarse) and (max-height: 700px) {
+  button,
+  [role="button"],
+  select,
+  input:not([type="hidden"]) {
+    min-height: 44px;
+  }
+
+  .boton-panel-partida,
+  .boton-menu-partida,
+  .boton-menu-principal,
+  .panel-superpuesto-partida__cerrar,
+  .panel-habilidades__cerrar,
+  .modal-comercio__cerrar-superior,
+  .modal-contenedor-objetos__cerrar-superior,
+  .modal-curacion__cerrar-superior,
+  .modal-seleccion-mazmorra__cerrar-superior,
+  .modal-detalle-objeto__cerrar-superior,
+  .modal-detalle-entidad__cerrar-superior,
+  .selector-nivel-expedicion__boton,
+  .modal-comercio__cantidad-boton,
+  .modal-comercio__cantidad-preset {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .slot-inventario.interactuable,
+  .slot-equipamiento.interactuable,
+  [data-ranura-habilidad] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Refinamientos derivados de la matriz de tamaños: en landscape bajo estados
+   y experiencia comparten fila para devolver más altura al mapa. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hud-centro {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "experiencia"
+      "estados"
+      "habilidades"
+      "paneles";
+    align-items: end;
+    justify-items: center;
+  }
+
+  .hud-estados-temporales { grid-area: estados; width: 100%; }
+  .hud-experiencia {
+    grid-area: experiencia;
+    width: min(100%, 240px);
+    justify-self: center;
+  }
+  .hud-centro .barra-habilidades { grid-area: habilidades; }
+  .barra-paneles-partida { grid-area: paneles; }
+}
+
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  body.panel-partida-abierto .pantalla-juego .hud-partida {
+    display: none !important;
+  }
+}
+
+/* Tablet conserva la composición no-fullscreen, pero ningún panel puede
+   exceder la altura realmente reservada por su capa. */
+@media (min-width: 701px) and (max-width: 980px) {
+  #panelSuperpuestoPersonaje {
+    height: 100%;
+    max-height: 100%;
+  }
+}
+
+/* El nombre/duración de Auras y Maldiciones no depende del hover nativo: el
+   mismo texto accesible puede consultarse por foco de teclado o tap. */
+.hud-estado-temporal:focus-visible {
+  outline: 2px solid #f0d67d;
+  outline-offset: 3px;
+}
+
+@media (pointer: coarse) and (max-width: 980px),
+       (pointer: coarse) and (max-height: 700px) {
+  .hud-estado-temporal:focus::after {
+    content: attr(data-etiqueta-efecto);
+    position: absolute;
+    z-index: 12;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    width: max-content;
+    max-width: min(240px, 70vw);
+    transform: translateX(-50%);
+    padding: 6px 8px;
+    border: 1px solid rgba(205, 190, 138, 0.7);
+    border-radius: 5px;
+    background: rgba(5, 8, 6, 0.97);
+    color: #f4edd7;
+    font: 700 11px/1.3 monospace;
+    text-align: center;
+    white-space: normal;
+    pointer-events: none;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.72);
+  }
+}
+
+/* En landscape muy bajo no apilamos la navegación del árbol encima del
+   contenido: el ancho disponible se aprovecha para devolver altura al árbol. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .panel-habilidades__cuerpo {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+
+  .panel-habilidades__navegacion {
+    padding: 6px;
+    border-right: 1px solid #3e497f;
+    border-bottom: 0;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .panel-habilidades__categoria {
+    min-height: 44px;
+    padding: 6px 8px;
+    white-space: normal;
+  }
+
+  .panel-habilidades__contenido {
+    padding: 8px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .panel-habilidades__cabecera {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 7px;
+    padding: 6px 8px;
+  }
+
+  .panel-habilidades__puntos {
+    grid-column: auto;
+    gap: 5px;
+  }
+
+  .contador-puntos {
+    min-width: 68px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+
+  .contador-puntos strong {
+    font-size: 14px;
+  }
+}
+
+/* Portrait también evita gastar una fila exclusiva en XP. Si aparecen muchos
+   estados, su grupo puede crecer naturalmente y el HUD absorbe sólo lo real. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .hud-centro {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "estados"
+      "recursos"
+      "experiencia"
+      "habilidades"
+      "paneles";
+    align-items: end;
+  }
+
+  .hud-estados-temporales { grid-area: estados; width: 100%; }
+  .hud-recursos-moviles { grid-area: recursos; }
+  .hud-experiencia {
+    grid-area: experiencia;
+    width: min(100%, 360px);
+    justify-self: center;
+  }
+  .hud-centro .barra-habilidades { grid-area: habilidades; }
+  .barra-paneles-partida { grid-area: paneles; }
+}

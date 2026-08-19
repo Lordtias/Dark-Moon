@@ -5,7 +5,7 @@
 
     <!-- Permite adaptar correctamente la interfaz
     a pantallas de distintos tamaños. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Dark Moon</title>
 
@@ -20,6 +20,9 @@
 
     <!-- Estilos del mapa y la cámara Phaser. -->
     <link rel="stylesheet" href="./assets/estilos/phaser/phaser.css" />
+
+    <!-- Adaptación responsive aditiva: se carga al final para no alterar desktop. -->
+    <link id="estilosResponsiveDarkMoon" rel="stylesheet" href="./assets/estilos/pantallas/responsive.css" />
   </head>
 
   <body>
@@ -254,6 +257,29 @@
                 <div id="hudAurasActivas" class="hud-estados-temporales__grupo hud-estados-temporales__grupo--auras"></div>
                 <div id="hudMaldicionesActivas" class="hud-estados-temporales__grupo hud-estados-temporales__grupo--maldiciones"></div>
               </div>
+
+              <div class="hud-recursos-moviles" aria-label="Vida y Maná" data-i18n-aria-label="interfaz.hud.recursosMoviles">
+                <article class="hud-recurso-compacto hud-recurso-compacto--vida">
+                  <header class="hud-recurso-compacto__cabecera">
+                    <span class="hud-recurso-compacto__etiqueta" data-i18n="interfaz.personaje.vida">Vida</span>
+                    <strong id="hudVidaTextoMovil" class="hud-recurso-compacto__valor">0 / 0</strong>
+                  </header>
+                  <div class="hud-recurso-compacto__barra" role="progressbar" aria-label="Vida" data-i18n-aria-label="interfaz.personaje.vida">
+                    <span id="hudVidaRellenoMovil" class="hud-recurso-compacto__relleno hud-recurso-compacto__relleno--vida"></span>
+                  </div>
+                </article>
+
+                <article class="hud-recurso-compacto hud-recurso-compacto--mana">
+                  <header class="hud-recurso-compacto__cabecera">
+                    <span class="hud-recurso-compacto__etiqueta" data-i18n="interfaz.personaje.mana">Maná</span>
+                    <strong id="hudManaTextoMovil" class="hud-recurso-compacto__valor">0 / 0</strong>
+                  </header>
+                  <div class="hud-recurso-compacto__barra" role="progressbar" aria-label="Maná" data-i18n-aria-label="interfaz.personaje.mana">
+                    <span id="hudManaRellenoMovil" class="hud-recurso-compacto__relleno hud-recurso-compacto__relleno--mana"></span>
+                  </div>
+                </article>
+              </div>
+
               <div class="hud-experiencia">
                 <div class="hud-experiencia__cabecera">
                   <strong id="hudNivelTexto">Nivel 1</strong>

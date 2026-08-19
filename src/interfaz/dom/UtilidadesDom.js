@@ -15,7 +15,15 @@ export function asegurarHojaEstilos({ id, ruta } = {}) {
   enlace.id = id;
   enlace.rel = "stylesheet";
   enlace.href = ruta;
-  document.head.appendChild(enlace);
+
+  // La capa responsive es deliberadamente aditiva y debe conservar la última
+  // prioridad del cascade incluso cuando un modal carga su CSS bajo demanda.
+  const capaResponsive = document.getElementById("estilosResponsiveDarkMoon");
+  if (capaResponsive?.parentNode === document.head) {
+    document.head.insertBefore(enlace, capaResponsive);
+  } else {
+    document.head.appendChild(enlace);
+  }
 }
 
 export function crearElemento(etiqueta, clase = "", texto = "") {

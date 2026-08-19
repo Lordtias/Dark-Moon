@@ -2104,3 +2104,21 @@ El clic sobre un nodo abre un detalle propio. El formato se deriva del contenido
 El HUD muestra Auras a la izquierda y Maldiciones a la derecha, encima de experiencia/barra rápida. Cada estado reutiliza el icono de la habilidad que aplica el efecto y muestra en una esquina los turnos de referencia restantes mediante la conversión visual basada en `TIEMPO_REFERENCIA`. La sección detallada `Efectos activos` del Panel Personaje resuelve el mismo recurso mediante la configuración canónica de ejecución (`efectoId → habilidad → icono`), evitando fallbacks de letra cuando existe icono. No existe un reloj, intervalo ni duración paralelos de presentación.
 
 El Player no mantiene una representación persistente de efectos etiquetados `aura` o `maldicion`, porque la lectura permanente pasa al HUD. Se conservan los feedbacks transitorios de aplicación, actualización, dispersión/emisión y vencimiento. Esta supresión persistente es específica de la representación del Player y no elimina la lectura visual de estados en enemigos u otros combatientes.
+
+### V-041 — Responsive aditivo y regresión desktop
+
+La interfaz responsive no constituye un modo jugable paralelo ni replica componentes. Desktop es la referencia visual y conserva los layouts canónicos cuando el viewport no entra en condiciones móviles explícitas. La adaptación se concentra en una hoja final `assets/estilos/pantallas/responsive.css`, de forma que los estilos de escritorio permanezcan legibles y las excepciones de portrait, landscape bajo y touch sean auditables en un único lugar.
+
+La aplicación utiliza `100vh` como fallback y `100dvh` como viewport dinámico, junto con `viewport-fit=cover` y `env(safe-area-inset-*)`. El canvas puede continuar ocupando toda el área visual, mientras HUD, paneles y modales respetan las zonas seguras. Una hoja de estilos cargada bajo demanda debe insertarse antes de la capa responsive para que el orden del cascade no dependa del momento en que se abra un modal.
+
+En móvil portrait las esferas de Vida y Maná se reemplazan visualmente por barras horizontales compactas. Vida, Maná y Experiencia quedan centradas arriba de la barra rápida, que conserva exactamente diez ranuras y se presenta `5×2`. En landscape de poca altura se mantienen las esferas laterales, la barra permanece `10×1` y Experiencia queda centrada arriba de las habilidades. No se reduce información jugable para resolver espacio.
+
+Cuando un panel primario captura entrada en viewport móvil, el HUD deja de reservar espacio y el panel utiliza prácticamente todo `100dvh`. En desktop el mismo estado no oculta el HUD ni convierte los paneles en fullscreen. Tablet conserva una composición intermedia.
+
+El árbol de habilidades prioriza un nodo táctil legible antes que mostrar todo simultáneamente. En poca altura utiliza desplazamiento vertical y mantiene navegación lateral cuando el ancho landscape lo permite. Responsive no debe reproducir el error de resolver espacio mediante miniaturización extrema o scroll accidental de la ventana completa.
+
+Los controles de un dispositivo `pointer: coarse` y viewport reducido deben disponer de un área táctil aproximada mínima de 44×44 px. Una notebook táctil con viewport desktop no debe activar por esa sola característica una composición de teléfono.
+
+`hover` y `title` pueden seguir aportando feedback adicional, pero no pueden ser la única vía de información necesaria. Los estados de Aura/Maldición del HUD exponen el mismo nombre y duración mediante foco/tap además del texto accesible.
+
+La regresión visual obligatoria incluye al menos 1366×768, 1920×1080 y 2560×1440. En esas resoluciones la barra debe permanecer `10×1`, los paneles conservar su comportamiento desktop, los modales no pasar a fullscreen y los targets no agrandarse por reglas móviles.

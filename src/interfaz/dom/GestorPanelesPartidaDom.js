@@ -1,5 +1,7 @@
 import { CLASE_CAPTURA_ENTRADA_INTERFAZ } from "../../controles/ContextoEntradaInterfaz.js";
 
+const CLASE_PANEL_PARTIDA_ABIERTO = "panel-partida-abierto";
+
 // Coordina la navegación primaria de la partida. Solamente administra
 // presentación: abrir/cerrar paneles, foco y captura de entrada jugable.
 export class GestorPanelesPartidaDom {
@@ -170,6 +172,7 @@ export class GestorPanelesPartidaDom {
   actualizarEstadoGlobal() {
     const abierto = Boolean(this.panelActivo);
     document.body?.classList.toggle(CLASE_CAPTURA_ENTRADA_INTERFAZ, abierto);
+    document.body?.classList.toggle(CLASE_PANEL_PARTIDA_ABIERTO, abierto);
 
     for (const [id, boton] of this.botones) {
       const activo = id === this.panelActivo;
@@ -187,6 +190,7 @@ export class GestorPanelesPartidaDom {
     this.paneles.clear();
     this.botones.clear();
     document.body?.classList.remove(CLASE_CAPTURA_ENTRADA_INTERFAZ);
+    document.body?.classList.remove(CLASE_PANEL_PARTIDA_ABIERTO);
   }
 
   escuchar(elemento, tipo, manejador, opciones = undefined) {

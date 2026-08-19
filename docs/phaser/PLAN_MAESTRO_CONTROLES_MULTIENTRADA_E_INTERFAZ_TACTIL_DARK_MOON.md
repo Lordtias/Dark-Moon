@@ -4,7 +4,7 @@
 
 - **Etapa 1 — Controles multientrada e inspección:** CERRADA el 19/08/2026.
 - **Validación manual:** APROBADA por el usuario.
-- **Etapa 2 — Auditoría responsive móvil:** PENDIENTE DE ANÁLISIS.
+- **Etapa 2 — Adaptación responsive móvil:** CERRADA el 19/08/2026.
 - **Commit/push:** no realizados durante la entrega.
 
 
@@ -12,7 +12,7 @@
 
 Este plan define un único contrato de acciones jugables para teclado, mouse, touch, barra de habilidades y acciones contextuales. El objetivo no es crear motores paralelos por dispositivo, sino traducir entradas diferentes a los mismos comandos y sistemas canónicos de Dark Moon.
 
-La primera etapa implementa controles multientrada, inspección de entidades, habilidades básicas Atacar/Esperar y ayuda actualizada. La segunda etapa queda reservada para una auditoría responsive integral de la interfaz móvil antes de aprobar cambios visuales globales.
+La primera etapa implementa controles multientrada, inspección de entidades, habilidades básicas Atacar/Esperar y ayuda actualizada. La segunda etapa consolida la adaptación responsive integral de la interfaz móvil manteniendo desktop como referencia visual obligatoria.
 
 ## 2. Principios obligatorios
 
@@ -280,31 +280,86 @@ Con esa aprobación quedan cerrados los contratos de esta etapa:
 
 No quedan correcciones funcionales abiertas dentro de la Etapa 1. Cualquier ajuste posterior sobre estos contratos se tratará como una nueva corrección o como parte de una etapa explícitamente aprobada.
 
-## 14. Segunda etapa — auditoría responsive móvil
+## 14. Segunda etapa — adaptación responsive móvil
 
-La segunda etapa no modifica de inmediato la UI. Primero debe generar un diagnóstico de cada componente y someter las adaptaciones a aprobación.
+**Estado: CERRADA Y APROBADA.**
 
-Auditar:
+La auditoría previa confirmó que la base desktop es válida y que los problemas principales aparecen en portrait, landscape de poca altura, safe areas, objetivos táctiles y ventanas que reservaban espacio innecesario al HUD. La solución aprobada es aditiva: desktop continúa siendo la referencia y la adaptación entra sólo por condiciones explícitas de viewport/orientación/capacidad táctil.
 
-- creación de personaje;
-- HUD y barra de habilidades;
-- Personaje, Inventario y Equipamiento;
-- panel/árbol de habilidades;
-- comercio, botín y curación;
-- ayuda y detalle de entidad;
-- selectores y overlays;
-- landscape y portrait;
-- resoluciones pequeñas y zonas seguras;
-- tamaños de objetivos táctiles;
-- scroll necesario vs. accidental;
-- dependencias de hover;
-- fullscreen, zoom y cámara;
-- teclado virtual cuando corresponda.
+### 14.1 Decisiones aprobadas
 
-Para cada componente se decidirá si debe conservar tamaño, redimensionarse, reorganizar columnas/filas, ocupar casi toda la pantalla, permitir scroll o reducir información secundaria. Responsive no significa simplemente achicar ventanas.
+1. Adoptar `100dvh` con respaldo `100vh` y `env(safe-area-inset-*)`.
+2. Mantener una única interfaz con comportamientos visuales distintos; no crear un modo móvil paralelo en JavaScript.
+3. Barra rápida: `5×2` en móvil portrait y `10×1` en landscape/escritorio.
+4. HUD portrait: ocultar esferas laterales y presentar Vida/Maná como barras compactas, con Vida, Maná y Experiencia centradas arriba de la barra `5×2`.
+5. HUD landscape bajo: conservar las esferas laterales y `10×1`, centrando Experiencia arriba de las habilidades.
+6. Paneles superpuestos: en móvil ocupan prácticamente todo el viewport y el HUD se oculta mientras el panel captura entrada.
+7. Personaje conserva todos sus datos y reorganiza lectura; no se ocultan estadísticas para "hacerlo entrar".
+8. Inventario/Equipamiento conservan la solución responsive previa y sólo refinan grilla, scroll y área útil.
+9. Árbol de habilidades no reduce nodos por debajo de un tamaño táctil legible; en poca altura usa scroll vertical.
+10. Los modales existentes no se rediseñan sin necesidad: adoptan viewport dinámico, safe areas, scroll y targets táctiles.
+11. En dispositivos táctiles pequeños, controles interactivos usan un mínimo aproximado de `44×44 px`.
+12. Ninguna información jugable necesaria depende exclusivamente de `hover` o `title`; hover queda como feedback suplementario.
+13. Creación de personaje y controles de cantidad permiten scroll adecuado frente al teclado virtual.
+14. Responsive no puede resolver problemas ocultando información jugable.
+15. Matriz mínima: 360×800, 390×844, 412×915, 667×375, 844×390, 768×1024, 1366×768 y 1920×1080; se agrega 2560×1440 como regresión desktop amplia.
+16. **Regresión desktop obligatoria:** la adaptación no puede degradar ni alterar innecesariamente la presentación normal de PC. Desktop conserva barra `10×1`, paneles no-fullscreen, layouts y tamaños canónicos existentes.
 
-## 15. Estado de decisiones
+### 14.2 Implementación E2.A — fundaciones y HUD
 
-Todas las decisiones funcionales de la primera etapa fueron aprobadas antes de implementación y sus pruebas manuales fueron superadas. La **Etapa 1 queda cerrada**.
+- `index.html` habilita `viewport-fit=cover`.
+- `responsive.css` se carga al final del cascade como capa aditiva.
+- `100dvh` y safe areas se aplican sin reemplazar los fallbacks desktop.
+- portrait móvil oculta las esferas laterales, muestra barras compactas de Vida/Maná y centra Vida, Maná y Experiencia arriba de la barra `5×2`.
+- landscape bajo conserva las esferas laterales y `10×1`, con Experiencia centrada arriba de las habilidades.
+- menú principal y creación dejan de imponer alturas mínimas incompatibles con landscape bajo.
 
-La auditoría responsive queda prevista como **Etapa 2 independiente y pendiente de análisis**. Su existencia en este plan no aprueba cambios visuales ni de layout por adelantado.
+### 14.3 Implementación E2.B — paneles y habilidades
+
+- `GestorPanelesPartidaDom` publica únicamente el estado visual genérico `panel-partida-abierto`; no conoce breakpoints.
+- responsive decide si ese estado debe ocultar el HUD y convertir los paneles a fullscreen.
+- Personaje conserva contenido completo con scroll real cuando corresponde.
+- tablet mantiene composición intermedia y evita que Personaje exceda la capa disponible.
+- el árbol de habilidades usa scroll en baja altura y mantiene nodos de aproximadamente 58 px.
+- en landscape bajo la navegación de maestrías permanece lateral para no consumir altura vertical.
+
+### 14.4 Implementación E2.C — modales y pulido táctil
+
+- las hojas CSS cargadas dinámicamente se insertan antes de `responsive.css`, garantizando que la capa responsive siga siendo la última autoridad visual sin cambiar desktop.
+- comercio, contenedor, curación, selección de mazmorra, detalles y habilidades adoptan `dvh`/safe areas en móvil.
+- objetivos táctiles pequeños reciben mínimos de aproximadamente 44 px sólo bajo puntero `coarse` y viewport reducido.
+- Aura/Maldición del HUD conserva `aria-label` y además permite foco/tap para mostrar nombre y turnos sin depender del tooltip nativo.
+- creación y comercio incorporan `scroll-padding` para mantener controles útiles frente al teclado virtual.
+
+## 15. Matriz de validación de Etapa 2
+
+Antes del incremental se verifican automáticamente:
+
+- sintaxis de JS modificado;
+- estructura JSON completa del proyecto;
+- `git diff --check`;
+- existencia y prioridad de la hoja responsive;
+- `5×2` en 360×800, 390×844 y 412×915;
+- `10×1` en 667×375 y 844×390;
+- `10×1` sin reglas móviles en 1366×768, 1920×1080 y 2560×1440;
+- HUD oculto y panel fullscreen sólo en viewport móvil con panel activo;
+- tablet 768×1024 sin desbordar la capa del panel;
+- árbol desplazable con nodos táctiles legibles en landscape bajo;
+- menú principal sin mínimo fijo de 720 px en poca altura;
+- targets táctiles y lectura de estados mediante foco/tap.
+
+La validación manual se concentró en percepción real del HUD, responsive, controles y composición. El usuario aprobó las pruebas el **19/08/2026**, incluyendo el correctivo final de HUD portrait/landscape.
+
+## 16. Estado de decisiones
+
+La **Etapa 1** permanece cerrada en SHA `fd601a248f5313ee6f704d85963c1b9ac660977f`.
+
+Las 16 decisiones de responsive fueron aprobadas el **19/08/2026** y las pruebas manuales posteriores fueron superadas el mismo día. La **Etapa 2 queda CERRADA Y APROBADA**.
+
+El ajuste final aprobado del HUD establece:
+
+- portrait móvil: esferas ocultas; barras compactas de Vida y Maná + Experiencia centradas arriba de habilidades `5×2`;
+- landscape móvil: esferas de Vida/Maná conservadas; Experiencia centrada arriba de habilidades `10×1`;
+- desktop: composición previa intacta.
+
+No quedan pendientes dentro del alcance de Etapa 2.

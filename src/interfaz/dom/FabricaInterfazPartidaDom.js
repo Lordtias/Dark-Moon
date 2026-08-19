@@ -72,8 +72,12 @@ export function crearInterfazPartidaDom({
     elementos: {
       vidaTexto: obtenerElementoObligatorio("hudVidaTexto", "valor de Vida del HUD"),
       vidaRelleno: obtenerElementoObligatorio("hudVidaRelleno", "relleno de Vida del HUD"),
+      vidaTextoMovil: document.getElementById("hudVidaTextoMovil"),
+      vidaRellenoMovil: document.getElementById("hudVidaRellenoMovil"),
       manaTexto: obtenerElementoObligatorio("hudManaTexto", "valor de Maná del HUD"),
       manaRelleno: obtenerElementoObligatorio("hudManaRelleno", "relleno de Maná del HUD"),
+      manaTextoMovil: document.getElementById("hudManaTextoMovil"),
+      manaRellenoMovil: document.getElementById("hudManaRellenoMovil"),
       experienciaTexto: obtenerElementoObligatorio(
         "hudExperienciaTexto",
         "experiencia del HUD",

@@ -35,12 +35,16 @@ export class HudPartidaDom {
       maximo: jugador.vidaMaxima,
       texto: this.elementos.vidaTexto,
       relleno: this.elementos.vidaRelleno,
+      textoAlternativo: this.elementos.vidaTextoMovil,
+      rellenoAlternativo: this.elementos.vidaRellenoMovil,
     });
     this.actualizarRecurso({
       actual: jugador.manaActual,
       maximo: jugador.manaMaximo,
       texto: this.elementos.manaTexto,
       relleno: this.elementos.manaRelleno,
+      textoAlternativo: this.elementos.manaTextoMovil,
+      rellenoAlternativo: this.elementos.manaRellenoMovil,
     });
 
     const experiencia = Number(jugador.experiencia) || 0;
@@ -85,14 +89,37 @@ export class HudPartidaDom {
     }
   }
 
-  actualizarRecurso({ actual, maximo, texto, relleno }) {
+  actualizarRecurso({
+    actual,
+    maximo,
+    texto,
+    relleno,
+    textoAlternativo = null,
+    rellenoAlternativo = null,
+  }) {
     const actualSeguro = Number(actual) || 0;
     const maximoSeguro = Number(maximo) || 0;
-    texto.textContent = `${Math.floor(actualSeguro)} / ${Math.floor(maximoSeguro)}`;
+    const textoValor = `${Math.floor(actualSeguro)} / ${Math.floor(maximoSeguro)}`;
     const porcentaje = maximoSeguro > 0
       ? (actualSeguro / maximoSeguro) * 100
       : 0;
-    relleno.style.height = `${limitarPorcentaje(porcentaje)}%`;
+    const porcentajeSeguro = `${limitarPorcentaje(porcentaje)}%`;
+
+    if (texto) {
+      texto.textContent = textoValor;
+    }
+    if (textoAlternativo) {
+      textoAlternativo.textContent = textoValor;
+    }
+
+    if (relleno) {
+      relleno.style.height = porcentajeSeguro;
+      relleno.style.width = porcentajeSeguro;
+    }
+    if (rellenoAlternativo) {
+      rellenoAlternativo.style.height = porcentajeSeguro;
+      rellenoAlternativo.style.width = porcentajeSeguro;
+    }
   }
 }
 
@@ -152,6 +179,8 @@ function crearEstadoTemporal({ efecto, referencia, tiempoActual }) {
   articulo.title = turnos === null
     ? nombre
     : `${nombre} · ${turnos} ${turnos === 1 ? "turno" : "turnos"}`;
+  articulo.dataset.etiquetaEfecto = articulo.title;
+  articulo.tabIndex = 0;
   articulo.setAttribute("aria-label", articulo.title);
   articulo.append(marco, restante);
   return articulo;

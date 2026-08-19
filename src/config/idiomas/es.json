@@ -772,7 +772,8 @@
     "hud": {
       "aria": "Estado del personaje",
       "experiencia": "Experiencia",
-      "habilidadesRapidas": "Habilidades rápidas"
+      "habilidadesRapidas": "Habilidades rápidas",
+      "recursosMoviles": "Recursos móviles"
     },
     "navegacion": {
       "aria": "Paneles de la partida",

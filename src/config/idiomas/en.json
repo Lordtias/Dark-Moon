@@ -772,7 +772,8 @@
     "hud": {
       "aria": "Character status",
       "experiencia": "Experience",
-      "habilidadesRapidas": "Quick abilities"
+      "habilidadesRapidas": "Quick abilities",
+      "recursosMoviles": "Mobile resources"
     },
     "navegacion": {
       "aria": "Game panels",

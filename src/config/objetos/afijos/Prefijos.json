@@ -2,11 +2,8 @@
   "afilado": {
     "nombre": "Afilado",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor ya permite agregar daño físico local a la fuente de ataque.",
     "descripcion": "Aumenta solamente el daño físico mínimo del arma para volver sus golpes más consistentes.",
     "pesoBase": 1000,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_plano",
     "aplicaA": {
@@ -56,21 +53,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "El daño pertenece solamente al arma que contiene el afijo.",
-      "No afecta el ataque natural ni la otra mano.",
-      "Al modificar solo el daño mínimo, mejora la consistencia sin superar de forma general a Brutal."
     ]
   },
   "brutal": {
     "nombre": "Brutal",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor ya calcula daño físico local aumentado porcentualmente.",
     "descripcion": "Aumenta porcentualmente el daño físico local del arma.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "danio_fisico_local_porcentaje",
     "aplicaA": {
@@ -119,17 +108,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "reforzado": {
     "nombre": "Reforzado",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "La armadura plana de los objetos equipados ya se suma a la estadística final.",
     "descripcion": "Agrega Armadura a la pieza.",
     "pesoBase": 1000,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "armadura_plana",
     "aplicaA": {
@@ -178,17 +163,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "vigoroso": {
     "nombre": "Vigoroso",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "La Vida máxima otorgada por equipamiento ya forma parte del cálculo de recursos.",
     "descripcion": "Aumenta la Vida máxima.",
     "pesoBase": 850,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -244,19 +225,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "Sus rangos se mantienen por debajo de la progresión natural de Vida para no borrar las diferencias entre profesiones."
     ]
   },
   "arcano": {
     "nombre": "Arcano",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El Maná máximo ya es canónico y B3 fija rangos medidos contra los costes actuales de habilidades.",
     "descripcion": "Aumenta el Maná máximo.",
     "pesoBase": 850,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -312,157 +287,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "Rangos moderados para que el afijo no sustituya la progresión natural de Inteligencia y Sabiduría."
     ]
-  },
-  "ligero": {
-    "nombre": "Ligero",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_diseno",
-    "motivoEstado": "Falta decidir si la velocidad reduce el coste propio del arma o modifica el factor de ataque, especialmente al usar dos armas.",
-    "descripcion": "Aumentaría la velocidad de ataque local del arma.",
-    "pesoBase": 0,
-    "requiere": ["velocidad_ataque_local", "integracion_doble_arma"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "velocidad_ataque_local",
-    "aplicaA": {
-      "tipos": ["arma"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "velocidadAtaqueLocalPorcentaje",
-        "operacion": "porcentaje_inverso",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [
-      "No debe modificar directamente costoAtaque desde el catálogo.",
-      "Debe definirse cómo participa en el coste combinado de doble arma."
-    ],
-    "propuestaBalance": "Primer rango sugerido: velocidadAtaqueLocalPorcentaje: 5–8."
-  },
-  "sanguinario": {
-    "nombre": "Sanguinario",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "El motor soporta daño físico plano global, pero beneficia todas las fuentes de ataque y todavía no está balanceado frente al daño local.",
-    "descripcion": "Agregaría daño físico a todos los ataques.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "danio_fisico_global_plano",
-    "aplicaA": {
-      "tipos": ["armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioFisicoGlobalMinimo",
-        "operacion": "sumar",
-        "ambito": "portador"
-      },
-      {
-        "propiedad": "danioFisicoGlobalMaximo",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoGlobalMinimo: 1–1; danioFisicoGlobalMaximo: 1–2."
-  },
-  "del_conquistador": {
-    "nombre": "Del conquistador",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "El aumento físico global afecta todas las armas y puede superar fácilmente a los modificadores locales.",
-    "descripcion": "Aumentaría porcentualmente todo el daño físico.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "danio_fisico_global_aumentado",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioFisicoAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoAumentadoPorcentaje: 5–10."
-  },
-  "despiadado": {
-    "nombre": "Despiadado",
-    "tipoAfijo": "prefijo",
-    "estado": "reservado_raro",
-    "motivoEstado": "El modificador de más daño se multiplica con los aumentos normales y es demasiado poderoso para los objetos mágicos iniciales.",
-    "descripcion": "Otorgaría más daño físico multiplicativo.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": ["raro"],
-    "grupoExclusion": "danio_fisico_global_mas",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioFisicoMasPorcentaje",
-        "operacion": "porcentaje_multiplicativo",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFisicoMasPorcentaje: 3–6."
-  },
-  "fortificado": {
-    "nombre": "Fortificado",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_diseno",
-    "motivoEstado": "El cálculo actual es global. Falta separar armadura porcentual local de la pieza y armadura porcentual global del personaje.",
-    "descripcion": "Aumentaría porcentualmente la armadura base de la pieza.",
-    "pesoBase": 0,
-    "requiere": ["armadura_local"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "armadura_local_porcentaje",
-    "aplicaA": {
-      "tipos": ["armadura"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "armaduraLocalPorcentaje",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: armaduraLocalPorcentaje: 10–20."
   },
   "ardiente": {
     "nombre": "Ardiente",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
     "descripcion": "Agrega daño de fuego local al ataque básico del arma.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "ardiente_local_plano",
     "aplicaA": {
@@ -528,21 +359,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "El componente de fuego pertenece solamente al arma que contiene el afijo.",
-      "No aumenta habilidades ni Potencia de Habilidad.",
-      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
     ]
   },
   "glacial": {
     "nombre": "Glacial",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
     "descripcion": "Agrega daño de frío local al ataque básico del arma.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "glacial_local_plano",
     "aplicaA": {
@@ -608,21 +431,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "El componente de frío pertenece solamente al arma que contiene el afijo.",
-      "No aumenta habilidades ni Potencia de Habilidad.",
-      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
     ]
   },
   "electrificado": {
     "nombre": "Electrificado",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
     "descripcion": "Agrega daño de rayo local al ataque básico del arma.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "electrificado_local_plano",
     "aplicaA": {
@@ -688,21 +503,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "El componente de rayo pertenece solamente al arma que contiene el afijo.",
-      "No aumenta habilidades ni Potencia de Habilidad.",
-      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
     ]
   },
   "venenoso": {
     "nombre": "Venenoso",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "El motor común admite componentes de daño elemental local en el ataque básico del arma.",
     "descripcion": "Agrega daño de veneno local al ataque básico del arma.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "venenoso_local_plano",
     "aplicaA": {
@@ -768,229 +575,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "El componente de veneno pertenece solamente al arma que contiene el afijo.",
-      "No aumenta habilidades ni Potencia de Habilidad.",
-      "Comparte la tirada de impacto y crítico del ataque básico, pero usa la resistencia elemental correspondiente."
     ]
-  },
-  "igneo": {
-    "nombre": "Ígneo",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
-    "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
-    "pesoBase": 0,
-    "requiere": ["danio_elemental_global"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "igneo_aumentado",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioFuegoAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFuegoAumentadoPorcentaje: 8–15."
-  },
-  "invernal": {
-    "nombre": "Invernal",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
-    "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
-    "pesoBase": 0,
-    "requiere": ["danio_elemental_global"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "invernal_aumentado",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioFrioAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioFrioAumentadoPorcentaje: 8–15."
-  },
-  "tempestuoso": {
-    "nombre": "Tempestuoso",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
-    "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
-    "pesoBase": 0,
-    "requiere": ["danio_elemental_global"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "tempestuoso_aumentado",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioRayoAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioRayoAumentadoPorcentaje: 8–15."
-  },
-  "toxico": {
-    "nombre": "Tóxico",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Primero debe existir daño elemental global antes de aumentar porcentualmente ese tipo de daño.",
-    "descripcion": "Aumentaría porcentualmente un tipo de daño elemental.",
-    "pesoBase": 0,
-    "requiere": ["danio_elemental_global"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "toxico_aumentado",
-    "aplicaA": {
-      "tipos": ["arma", "armadura", "quiver"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioVenenoAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioVenenoAumentadoPorcentaje: 8–15."
-  },
-  "abrasador": {
-    "nombre": "Abrasador",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
-    "descripcion": "Otorgaría una probabilidad de quemar.",
-    "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "abrasador",
-    "aplicaA": {
-      "tipos": ["arma"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "probabilidadQuemar",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadQuemar: 5–10."
-  },
-  "congelante": {
-    "nombre": "Congelante",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
-    "descripcion": "Otorgaría una probabilidad de congelar.",
-    "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "congelante",
-    "aplicaA": {
-      "tipos": ["arma"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "probabilidadCongelar",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadCongelar: 5–10."
-  },
-  "aturdidor": {
-    "nombre": "Aturdidor",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
-    "descripcion": "Otorgaría una probabilidad de aturdir.",
-    "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "aturdidor",
-    "aplicaA": {
-      "tipos": ["arma"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "probabilidadAturdir",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadAturdir: 5–10."
-  },
-  "ponzonoso": {
-    "nombre": "Ponzoñoso",
-    "tipoAfijo": "prefijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta un sistema general de estados alterados con duración, procesamiento temporal, inmunidades y representación visual.",
-    "descripcion": "Otorgaría una probabilidad de envenenar.",
-    "pesoBase": 0,
-    "requiere": ["estados_alterados"],
-    "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "ponzonoso",
-    "aplicaA": {
-      "tipos": ["arma"],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "probabilidadEnvenenar",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadEnvenenar: 5–10."
   },
   "enfocado": {
     "nombre": "Enfocado",
     "tipoAfijo": "prefijo",
-    "estado": "activo",
-    "motivoEstado": "La Potencia de Habilidad ya forma parte del modelo de catalizadores y puede componerse como un porcentaje aditivo.",
     "descripcion": "Aumenta la Potencia de Habilidad del catalizador.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_habilidad_porcentaje",
     "aplicaA": {
@@ -1041,11 +632,6 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "Solo puede generarse en bastones y varitas.",
-      "Su valor se suma a la Potencia de Habilidad base del catalizador.",
-      "No modifica el ataque básico de la propia arma."
     ]
   }
 }

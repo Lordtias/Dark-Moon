@@ -1,4 +1,4 @@
-import { seleccionarEntradaPonderada } from "./GeneradorRarezaObjeto.js";
+import { seleccionarPonderado } from "../generacion/GeneradorAleatorio.js";
 
 // Genera el nivel de una instancia mediante
 // la distribución declarada en GeneracionObjetos.json.
@@ -49,8 +49,8 @@ export function generarNivelObjeto({
     peso,
   }));
 
-  return seleccionarEntradaPonderada({
-    entradas: opciones,
+  return seleccionarPonderado({
+    elementos: opciones,
 
     obtenerPeso: (opcion) => opcion.peso,
 

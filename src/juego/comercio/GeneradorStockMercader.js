@@ -2,7 +2,10 @@ import { crearObjeto } from "../../objetos/FabricaObjetos.js";
 
 import { crearObjetoGenerado } from "../objetos/GeneradorObjetoAleatorio.js";
 
-import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
+import {
+  crearGeneradorAleatorio,
+  seleccionarPonderado,
+} from "../generacion/GeneradorAleatorio.js";
 
 import {
   obtenerNivelMinimoGeneracionPlantilla,
@@ -340,13 +343,13 @@ function seleccionarObjetosAleatoriosPorGrupos({
     }
 
     const grupoSeleccionado = seleccionarPonderado({
-      candidatos: gruposActivos,
+      elementos: gruposActivos,
       aleatorio,
       descripcion: "los grupos comerciales",
     });
 
     const candidatoSeleccionado = seleccionarPonderado({
-      candidatos: grupoSeleccionado.candidatos,
+      elementos: grupoSeleccionado.candidatos,
       aleatorio,
       descripcion: `el grupo "${grupoSeleccionado.id}"`,
     });
@@ -441,29 +444,6 @@ function contieneAlgunaEtiqueta(etiquetasObjeto, etiquetasExcluidas) {
   return etiquetasExcluidas.some((etiqueta) =>
     etiquetasObjeto.includes(etiqueta),
   );
-}
-
-function seleccionarPonderado({ candidatos, aleatorio, descripcion }) {
-  const pesoTotal = candidatos.reduce(
-    (total, candidato) => total + candidato.peso,
-    0,
-  );
-
-  if (!Number.isFinite(pesoTotal) || pesoTotal <= 0) {
-    throw new Error(`El peso total de ${descripcion} debe ser mayor que 0.`);
-  }
-
-  let valor = aleatorio.siguiente() * pesoTotal;
-
-  for (const candidato of candidatos) {
-    valor -= candidato.peso;
-
-    if (valor < 0) {
-      return candidato;
-    }
-  }
-
-  return candidatos[candidatos.length - 1];
 }
 
 function limitarNivelObjeto({ nivelReferencia, configuracionNivel }) {

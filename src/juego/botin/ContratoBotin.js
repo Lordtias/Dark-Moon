@@ -11,18 +11,40 @@ import {
 // Específicos     -> drops deliberadamente ligados a la fuente.
 // Garantizados    -> objetos que deben existir sin tirada de aparición.
 
+// Validación estructural reutilizable por cualquier configuración que declare
+// una solicitud. No necesita cargar perfiles ni catálogos de objetos.
+export function validarEstructuraSolicitudBotin(
+  solicitud,
+  { descripcion = "la solicitud de botín" } = {},
+) {
+  validarObjetoPlano(solicitud, descripcion);
+  normalizarId(solicitud.perfil, `perfil de ${descripcion}`);
+  normalizarListaMarcos(
+    solicitud.marcosPermitidos,
+    `marcos permitidos de ${descripcion}`,
+  );
+  normalizarContexto(solicitud.contexto ?? {});
+  normalizarEspecificos({ entradas: solicitud.especificos ?? [] });
+  normalizarGarantizados({ entradas: solicitud.garantizados ?? [] });
+  return solicitud;
+}
+
 export function normalizarSolicitudBotin({
   solicitud,
   perfilesBotin,
   configuracionObjetos,
+  configuracionRarezas,
 } = {}) {
-  validarObjetoPlano(solicitud, "una solicitud de botín");
+  validarEstructuraSolicitudBotin(solicitud);
   validarObjetoPlano(perfilesBotin, "los perfiles de botín");
   validarObjetoPlano(configuracionObjetos, "el catálogo de objetos");
+  validarObjetoPlano(configuracionRarezas, "el catálogo de rarezas");
 
   const perfil = normalizarId(solicitud.perfil, "perfil de recompensa");
   if (!perfilesBotin[perfil]) {
-    throw new Error(`La solicitud referencia el perfil de botín inexistente "${perfil}".`);
+    throw new Error(
+      `La solicitud referencia el perfil de botín inexistente "${perfil}".`,
+    );
   }
 
   const marcosPermitidos = normalizarListaMarcos(
@@ -30,7 +52,6 @@ export function normalizarSolicitudBotin({
     "marcos permitidos",
   );
   const contexto = normalizarContexto(solicitud.contexto ?? {});
-
   const marcosEfectivos = resolverMarcosEfectivos({
     marcosPermitidos,
     marcosAdicionales: contexto.marcosAdicionales,
@@ -51,10 +72,12 @@ export function normalizarSolicitudBotin({
     especificos: normalizarEspecificos({
       entradas: solicitud.especificos ?? [],
       configuracionObjetos,
+      configuracionRarezas,
     }),
     garantizados: normalizarGarantizados({
       entradas: solicitud.garantizados ?? [],
       configuracionObjetos,
+      configuracionRarezas,
     }),
   };
 }
@@ -101,22 +124,37 @@ function normalizarContexto(contexto) {
     ),
     idsPermitidos: normalizarListaIds(contexto.idsPermitidos ?? []),
     idsExcluidos: normalizarListaIds(contexto.idsExcluidos ?? []),
-    etiquetasRequeridas: normalizarListaIds(contexto.etiquetasRequeridas ?? []),
-    etiquetasExcluidas: normalizarListaIds(contexto.etiquetasExcluidas ?? []),
+    etiquetasRequeridas: normalizarListaIds(
+      contexto.etiquetasRequeridas ?? [],
+    ),
+    etiquetasExcluidas: normalizarListaIds(
+      contexto.etiquetasExcluidas ?? [],
+    ),
   };
 }
 
-function normalizarEspecificos({ entradas, configuracionObjetos }) {
+function normalizarEspecificos({
+  entradas,
+  configuracionObjetos = null,
+  configuracionRarezas = null,
+}) {
   if (!Array.isArray(entradas)) {
     throw new Error("Los drops específicos deben estar dentro de una lista.");
   }
 
   return entradas.map((entrada, indice) => {
     validarObjetoPlano(entrada, `el drop específico ${indice + 1}`);
-    const idObjeto = validarIdObjeto(entrada.idObjeto, configuracionObjetos);
+    const idObjeto = normalizarIdObjeto({
+      idOriginal: entrada.idObjeto,
+      configuracionObjetos,
+    });
     const probabilidad = entrada.probabilidad;
 
-    if (!Number.isFinite(probabilidad) || probabilidad < 0 || probabilidad > 100) {
+    if (
+      !Number.isFinite(probabilidad) ||
+      probabilidad < 0 ||
+      probabilidad > 100
+    ) {
       throw new Error(
         `La probabilidad del drop específico "${idObjeto}" debe estar entre 0 y 100.`,
       );
@@ -142,19 +180,30 @@ function normalizarEspecificos({ entradas, configuracionObjetos }) {
       probabilidad,
       cantidadMinima,
       cantidadMaxima,
-      rarezaForzada: entrada.rarezaForzada ?? null,
+      rarezaForzada: normalizarRarezaForzada({
+        valor: entrada.rarezaForzada ?? null,
+        idObjeto,
+        configuracionRarezas,
+      }),
     };
   });
 }
 
-function normalizarGarantizados({ entradas, configuracionObjetos }) {
+function normalizarGarantizados({
+  entradas,
+  configuracionObjetos = null,
+  configuracionRarezas = null,
+}) {
   if (!Array.isArray(entradas)) {
     throw new Error("Los drops garantizados deben estar dentro de una lista.");
   }
 
   return entradas.map((entrada, indice) => {
     validarObjetoPlano(entrada, `el drop garantizado ${indice + 1}`);
-    const idObjeto = validarIdObjeto(entrada.idObjeto, configuracionObjetos);
+    const idObjeto = normalizarIdObjeto({
+      idOriginal: entrada.idObjeto,
+      configuracionObjetos,
+    });
 
     return {
       idObjeto,
@@ -162,20 +211,44 @@ function normalizarGarantizados({ entradas, configuracionObjetos }) {
         entrada.cantidad ?? 1,
         `cantidad garantizada de "${idObjeto}"`,
       ),
-      rarezaForzada: entrada.rarezaForzada ?? null,
+      rarezaForzada: normalizarRarezaForzada({
+        valor: entrada.rarezaForzada ?? null,
+        idObjeto,
+        configuracionRarezas,
+      }),
     };
   });
 }
 
-function normalizarListaMarcos(lista, descripcion, { permitirVacia = false } = {}) {
+function normalizarRarezaForzada({ valor, idObjeto, configuracionRarezas }) {
+  if (valor === null) return null;
+
+  const rareza = normalizarId(valor, `ID de rareza forzada de "${idObjeto}"`);
+  if (configuracionRarezas !== null && !configuracionRarezas[rareza]) {
+    throw new Error(
+      `La rareza forzada "${rareza}" de "${idObjeto}" no existe en el catálogo de rarezas.`,
+    );
+  }
+  return rareza;
+}
+
+function normalizarListaMarcos(
+  lista,
+  descripcion,
+  { permitirVacia = false } = {},
+) {
   if (!Array.isArray(lista)) {
     throw new Error(`Los ${descripcion} deben estar dentro de una lista.`);
   }
 
-  const normalizados = [...new Set(lista.map((marco) => validarMarcoBotin(marco)))];
+  const normalizados = [
+    ...new Set(lista.map((marco) => validarMarcoBotin(marco))),
+  ];
 
   if (!permitirVacia && normalizados.length === 0) {
-    throw new Error(`La solicitud necesita al menos uno de estos marcos: ${LISTA_MARCOS_BOTIN.join(", ")}.`);
+    throw new Error(
+      `La solicitud necesita al menos uno de estos marcos: ${LISTA_MARCOS_BOTIN.join(", ")}.`,
+    );
   }
 
   return normalizados;
@@ -183,17 +256,23 @@ function normalizarListaMarcos(lista, descripcion, { permitirVacia = false } = {
 
 function normalizarListaIds(lista) {
   if (!Array.isArray(lista)) {
-    throw new Error("Los filtros de IDs/etiquetas del contexto deben ser listas.");
+    throw new Error(
+      "Los filtros de IDs/etiquetas del contexto deben ser listas.",
+    );
   }
 
-  return [...new Set(lista.map((valor) => normalizarId(valor, "identificador")))];
+  return [
+    ...new Set(lista.map((valor) => normalizarId(valor, "identificador"))),
+  ];
 }
 
-function validarIdObjeto(idOriginal, configuracionObjetos) {
+function normalizarIdObjeto({ idOriginal, configuracionObjetos }) {
   const idObjeto = normalizarId(idOriginal, "ID de objeto");
 
-  if (!configuracionObjetos[idObjeto]) {
-    throw new Error(`La solicitud de botín referencia el objeto inexistente "${idObjeto}".`);
+  if (configuracionObjetos !== null && !configuracionObjetos[idObjeto]) {
+    throw new Error(
+      `La solicitud de botín referencia el objeto inexistente "${idObjeto}".`,
+    );
   }
 
   return idObjeto;

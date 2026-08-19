@@ -16,8 +16,6 @@ const COLOR_RESPALDO = "#d4d4d4";
 //
 // - Nombre visible.
 // - Color.
-// - Estado.
-// - Reglas de generación.
 export function configurarContextoPresentacionObjetos({
   configuracionRarezas,
 } = {}) {
@@ -34,8 +32,6 @@ export function configurarContextoPresentacionObjetos({
         normalizarIdRareza(idRareza),
 
         {
-          ...configuracion,
-
           nombre: configuracion.nombre.trim(),
 
           colorInterfaz: configuracion.colorInterfaz.trim(),
@@ -73,8 +69,6 @@ export function obtenerPresentacionRarezaObjeto(idRareza = "comun") {
 
       0.24,
     ),
-
-    estado: configuracion?.estado ?? "desconocido",
   };
 }
 

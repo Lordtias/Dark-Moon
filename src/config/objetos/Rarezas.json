@@ -1,8 +1,7 @@
 {
   "comun": {
     "nombre": "Común",
-    "estado": "activo",
-    "motivoEstado": "Es la rareza base y no necesita afijos.",
+    "generacionHabilitada": true,
     "colorInterfaz": "#d4d4d4",
     "multiplicadorValor": 1,
     "pesoBase": 7000,
@@ -21,8 +20,7 @@
   },
   "magico": {
     "nombre": "Mágico",
-    "estado": "activo",
-    "motivoEstado": "La primera versión del generador implementará uno o dos afijos, con un máximo de un prefijo y un sufijo.",
+    "generacionHabilitada": true,
     "colorInterfaz": "#528cff",
     "multiplicadorValor": 1.5,
     "pesoBase": 3000,
@@ -45,8 +43,7 @@
   },
   "raro": {
     "nombre": "Raro",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta implementar entre tres y seis afijos, con un máximo de tres prefijos y tres sufijos, además de nombres especiales para objetos raros.",
+    "generacionHabilitada": false,
     "colorInterfaz": "#e8cf5a",
     "multiplicadorValor": 2.5,
     "pesoBase": 0,
@@ -77,8 +74,7 @@
   },
   "unico": {
     "nombre": "Único",
-    "estado": "pendiente_diseno",
-    "motivoEstado": "Los objetos únicos utilizarán plantillas y modificadores fijos diseñados manualmente en lugar de afijos aleatorios comunes.",
+    "generacionHabilitada": false,
     "colorInterfaz": "#c77838",
     "multiplicadorValor": 4,
     "pesoBase": 0,

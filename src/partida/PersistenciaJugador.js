@@ -6,6 +6,10 @@ import {
   validarAlmacenamientoClaveValor,
 } from "../utilidades/AlmacenamientoJson.js";
 import { Player } from "../entidad/destructible/combatiente/Player.js";
+import {
+  ATRIBUTOS_COMBATIENTE_CANONICOS,
+  validarClavesAtributosCombatiente,
+} from "../entidad/destructible/combatiente/ContratosAtributosCombatiente.js";
 import { crearObjeto } from "../objetos/FabricaObjetos.js";
 import { ContenedorObjetos } from "../objetos/ContenedorObjetos.js";
 import { obtenerRecursoVisualPredeterminado } from "../juego/configuracion/RecursosVisualesCombatientes.js";
@@ -426,25 +430,10 @@ function validarEstadoJugadorGuardado(estado) {
 }
 
 function validarAtributosGuardados(atributos) {
-  const esperados = [
-    "fuerza",
-    "destreza",
-    "constitucion",
-    "inteligencia",
-    "sabiduria",
-    "suerte",
-  ];
-  const claves = Object.keys(atributos).sort();
-  const canonicas = [...esperados].sort();
-  if (
-    claves.length !== canonicas.length ||
-    claves.some((clave, indice) => clave !== canonicas[indice])
-  ) {
-    throw new Error(
-      "Los atributos guardados no coinciden con el contrato canónico vigente.",
-    );
-  }
-  for (const atributo of esperados) {
+  validarClavesAtributosCombatiente(atributos, {
+    descripcion: "Los atributos guardados",
+  });
+  for (const atributo of ATRIBUTOS_COMBATIENTE_CANONICOS) {
     if (!Number.isInteger(atributos[atributo]) || atributos[atributo] < 0) {
       throw new Error(`El atributo guardado "${atributo}" no es válido.`);
     }

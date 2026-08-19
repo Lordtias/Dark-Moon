@@ -1,11 +1,9 @@
-import { seleccionarEntradaPonderada } from "./GeneradorRarezaObjeto.js";
+import { seleccionarPonderado } from "../generacion/GeneradorAleatorio.js";
 import {
   AMBITOS_AFIJO,
   OPERACIONES_MODIFICADOR,
   validarAmbitoAfijo,
 } from "../modificadores/ContratosModificadoresCombatiente.js";
-
-const ESTADO_ACTIVO = "activo";
 
 // Comprueba si una rareza puede cumplir sus límites de afijos para una
 // plantilla, nivel y catálogo concretos.
@@ -127,8 +125,8 @@ export function generarAfijosObjeto({
       );
     }
 
-    const seleccion = seleccionarEntradaPonderada({
-      entradas: opciones,
+    const seleccion = seleccionarPonderado({
+      elementos: opciones,
       obtenerPeso: (opcion) => opcion.configuracion.pesoBase,
       aleatorio,
       descripcion: `un afijo para la rareza "${idRareza}"`,
@@ -175,8 +173,8 @@ function seleccionarCantidadAfijos({
     );
   }
 
-  return seleccionarEntradaPonderada({
-    entradas: opciones,
+  return seleccionarPonderado({
+    elementos: opciones,
     obtenerPeso: (entrada) => entrada.peso,
     aleatorio,
     descripcion: `una cantidad de afijos para la rareza "${idRareza}"`,
@@ -276,7 +274,6 @@ function esAfijoCompatible({
   gruposSeleccionados,
 }) {
   if (
-    afijo.estado !== ESTADO_ACTIVO ||
     afijo.pesoBase <= 0 ||
     idsSeleccionados.has(idAfijo)
   ) {
@@ -328,8 +325,8 @@ function generarInstanciaAfijo({ afijoSeleccionado, nivelObjeto, aleatorio }) {
   const gradosElegibles = configuracion.grados.filter(
     (grado) => grado.nivelObjetoMinimo <= nivelObjeto && grado.peso > 0,
   );
-  const grado = seleccionarEntradaPonderada({
-    entradas: gradosElegibles,
+  const grado = seleccionarPonderado({
+    elementos: gradosElegibles,
     obtenerPeso: (entrada) => entrada.peso,
     aleatorio,
     descripcion: `un grado del afijo "${id}"`,

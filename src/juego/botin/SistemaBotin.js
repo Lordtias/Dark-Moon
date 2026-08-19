@@ -14,8 +14,6 @@ import {
   puedeGenerarsePlantilla,
 } from "../objetos/ReglasProgresionObjetos.js";
 
-import { RAREZAS_OBJETO } from "../objetos/RarezasObjeto.js";
-
 import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 import { normalizarSolicitudBotin } from "./ContratoBotin.js";
 import {
@@ -33,8 +31,6 @@ import {
 // adelante, el contenedor será reconstruido
 // con la capacidad necesaria.
 const CAPACIDAD_MINIMA_BOTIN = 6;
-
-const RAREZAS_FORZADAS_VALIDAS = new Set(Object.values(RAREZAS_OBJETO));
 
 // Materializa en el suelo objetos que ya existen. No vuelve a tirar tablas,
 // rarezas ni afijos: conserva exactamente las instancias que tenía la fuente.
@@ -162,6 +158,8 @@ export function resolverSolicitudBotin({
     solicitud,
     perfilesBotin: contextoGeneracion.configuracionBotin.perfiles,
     configuracionObjetos,
+    configuracionRarezas:
+      contextoGeneracion.configuracionGeneracionObjetos.rarezas,
   });
   const perfil =
     contextoGeneracion.configuracionBotin.perfiles[solicitudCanonica.perfil];
@@ -327,6 +325,8 @@ export function calcularValorEsperadoSolicitudBotin({
     solicitud,
     perfilesBotin: contextoGeneracion.configuracionBotin.perfiles,
     configuracionObjetos,
+    configuracionRarezas:
+      contextoGeneracion.configuracionGeneracionObjetos.rarezas,
   });
   const perfil =
     contextoGeneracion.configuracionBotin.perfiles[solicitudCanonica.perfil];
@@ -581,10 +581,7 @@ function resolverGarantizados({
       cantidadTotal: garantizado.cantidad,
       nivelBaseObjeto,
       nivelProgreso: nivelProgresoCreacion,
-      rarezaForzada: normalizarRarezaForzada({
-        rarezaForzada: garantizado.rarezaForzada,
-        idObjeto: garantizado.idObjeto,
-      }),
+      rarezaForzada: garantizado.rarezaForzada,
       aleatorioObjetos,
       hallazgoMagico,
     });
@@ -670,12 +667,8 @@ function resolverDropsEspecificos({
   const objetosGenerados = [];
   const resultadosTiradas = [];
 
-  entradas.forEach((entrada, indice) => {
-    const normalizada = normalizarEntradaBotin({
-      entrada,
-      indice,
-      configuracionObjetos,
-    });
+  entradas.forEach((entrada) => {
+    const normalizada = entrada;
 
     // Siempre realizamos la tirada porcentual,
     // incluso cuando el objeto aún no está
@@ -1084,96 +1077,6 @@ function crearDetalleObjetoGenerado(objeto) {
     prefijos: objeto.prefijos.map((afijo) => afijo.nombre),
     sufijos: objeto.sufijos.map((afijo) => afijo.nombre),
   };
-}
-
-function normalizarEntradaBotin({ entrada, indice, configuracionObjetos }) {
-  if (
-    entrada === null ||
-    typeof entrada !== "object" ||
-    Array.isArray(entrada)
-  ) {
-    throw new Error(
-      `La entrada ${indice + 1} de la tabla de botín no es válida.`,
-    );
-  }
-
-  if (typeof entrada.idObjeto !== "string" || entrada.idObjeto.trim() === "") {
-    throw new Error(
-      `La entrada ${indice + 1} de la tabla de botín ` +
-        "necesita un ID de objeto.",
-    );
-  }
-
-  const idObjeto = entrada.idObjeto.trim().toLowerCase();
-
-  const plantilla = configuracionObjetos[idObjeto];
-
-  if (!plantilla) {
-    throw new Error(
-      "La tabla de botín referencia el objeto inexistente " + `"${idObjeto}".`,
-    );
-  }
-
-  const probabilidad = entrada.probabilidad;
-
-  if (
-    !Number.isFinite(probabilidad) ||
-    probabilidad < 0 ||
-    probabilidad > 100
-  ) {
-    throw new Error(
-      `La probabilidad de "${idObjeto}" debe estar entre 0 y 100.`,
-    );
-  }
-
-  const cantidadMinima = entrada.cantidadMinima ?? 1;
-
-  const cantidadMaxima = entrada.cantidadMaxima ?? cantidadMinima;
-
-  if (
-    !Number.isInteger(cantidadMinima) ||
-    !Number.isInteger(cantidadMaxima) ||
-    cantidadMinima <= 0 ||
-    cantidadMaxima < cantidadMinima
-  ) {
-    throw new Error(`Las cantidades de "${idObjeto}" no son válidas.`);
-  }
-
-  const rarezaForzada = normalizarRarezaForzada({
-    rarezaForzada: entrada.rarezaForzada ?? null,
-    idObjeto,
-  });
-
-  return {
-    idObjeto,
-    probabilidad,
-    cantidadMinima,
-    cantidadMaxima,
-    rarezaForzada,
-    nivelMinimoGeneracion: obtenerNivelMinimoGeneracionPlantilla(plantilla),
-  };
-}
-
-function normalizarRarezaForzada({ rarezaForzada, idObjeto }) {
-  if (rarezaForzada === null) {
-    return null;
-  }
-
-  if (typeof rarezaForzada !== "string" || rarezaForzada.trim() === "") {
-    throw new Error(
-      `La rareza forzada de "${idObjeto}" debe ser un texto válido.`,
-    );
-  }
-
-  const normalizada = rarezaForzada.trim().toLowerCase();
-
-  if (!RAREZAS_FORZADAS_VALIDAS.has(normalizada)) {
-    throw new Error(
-      `La rareza forzada "${rarezaForzada}" de "${idObjeto}" no es válida.`,
-    );
-  }
-
-  return normalizada;
 }
 
 function validarFuenteCanonica(fuente) {

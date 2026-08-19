@@ -1,4 +1,6 @@
-// Selecciona una rareza activa mediante los pesos configurados
+import { seleccionarPonderado } from "../generacion/GeneradorAleatorio.js";
+
+// Selecciona una rareza habilitada mediante los pesos configurados
 // en Rarezas.json. El llamador entrega solamente las rarezas
 // compatibles con la plantilla concreta.
 export function seleccionarRarezaObjeto({
@@ -47,17 +49,14 @@ export function seleccionarRarezaObjeto({
 
   if (elegibles.length === 0) {
     throw new Error(
-      "No existe una rareza activa y elegible para generar el objeto.",
+      "No existe una rareza habilitada y elegible para generar el objeto.",
     );
   }
 
-  return seleccionarEntradaPonderada({
-    entradas: elegibles,
-
+  return seleccionarPonderado({
+    elementos: elegibles,
     obtenerPeso: (entrada) => entrada.peso,
-
     aleatorio,
-
     descripcion: "una rareza de objeto",
   });
 }
@@ -65,72 +64,6 @@ export function seleccionarRarezaObjeto({
 function calcularPesoRareza({ idRareza, pesoBase, hallazgoMagico }) {
   if (idRareza === "comun") return pesoBase;
   return pesoBase * (1 + hallazgoMagico / 100);
-}
-
-// Selección ponderada reutilizable para rarezas y grados.
-//
-// Por ejemplo, pesos 7000 y 3000 equivalen
-// a una distribución de 70 % y 30 %.
-export function seleccionarEntradaPonderada({
-  entradas,
-  obtenerPeso,
-  aleatorio,
-  descripcion = "una entrada",
-} = {}) {
-  if (!Array.isArray(entradas) || entradas.length === 0) {
-    throw new Error(
-      `No se puede seleccionar ${descripcion} desde una lista vacía.`,
-    );
-  }
-
-  if (typeof obtenerPeso !== "function") {
-    throw new Error(
-      "La selección ponderada necesita una función para obtener el peso.",
-    );
-  }
-
-  validarAleatorio(aleatorio);
-
-  const entradasConPeso = entradas.map((entrada) => {
-    const peso = obtenerPeso(entrada);
-
-    if (!Number.isFinite(peso) || peso < 0) {
-      throw new Error(`Existe un peso inválido al seleccionar ${descripcion}.`);
-    }
-
-    return {
-      entrada,
-      peso,
-    };
-  });
-
-  const pesoTotal = entradasConPeso.reduce(
-    (total, elemento) => total + elemento.peso,
-
-    0,
-  );
-
-  if (pesoTotal <= 0) {
-    throw new Error(
-      `La selección de ${descripcion} necesita un peso mayor que 0.`,
-    );
-  }
-
-  const tirada = aleatorio.siguiente() * pesoTotal;
-
-  let acumulado = 0;
-
-  for (const elemento of entradasConPeso) {
-    acumulado += elemento.peso;
-
-    if (tirada < acumulado) {
-      return elemento.entrada;
-    }
-  }
-
-  // Respaldo ante una diferencia mínima
-  // producida por números de coma flotante.
-  return entradasConPeso[entradasConPeso.length - 1].entrada;
 }
 
 function obtenerRarezaForzada({
@@ -162,7 +95,7 @@ function obtenerRarezaForzada({
 
       // Una rareza forzada puede utilizarse
       // aunque tenga peso 0, siempre que esté
-      // activa y sea compatible.
+      // habilitada y sea compatible.
       ignorarPeso: true,
     })
   ) {
@@ -190,7 +123,7 @@ function esRarezaElegible({
   const estaPermitida = idsPermitidos === null || idsPermitidos.has(idRareza);
 
   return (
-    rareza.estado === "activo" &&
+    rareza.generacionHabilitada === true &&
     estaPermitida &&
     rareza.nivelObjetoMinimo <= nivelObjeto &&
     (ignorarPeso || rareza.pesoBase > 0)

@@ -1,3 +1,5 @@
+import { validarEstructuraSolicitudBotin } from "../botin/ContratoBotin.js";
+
 const TIPOS_GENERACION_VALIDOS = ["habitaciones"];
 
 const VARIANTES_REQUERIDAS = ["normal", "enfermo", "gigante", "elite"];
@@ -715,7 +717,7 @@ function validarSolicitudesDestructibles({ idPlantilla, destructibles }) {
       idSolicitud,
       `un ID de solicitud de destructibles de "${idPlantilla}"`,
     );
-    validarSolicitudBotinDeclarativa(
+    validarSolicitudBotinConfigurada(
       solicitud,
       `la solicitud "${idSolicitud}" de destructibles de "${idPlantilla}"`,
     );
@@ -910,7 +912,7 @@ function validarInteractuables(idPlantilla, interactuables) {
     interactuables.cofres.moderados.probabilidadPorHabitacion,
     `la probabilidad de cofre moderado por habitación de "${idPlantilla}"`,
   );
-  validarSolicitudBotinDeclarativa(
+  validarSolicitudBotinConfigurada(
     interactuables.cofres.moderados.solicitudBotin,
     `la solicitud de cofres moderados de "${idPlantilla}"`,
   );
@@ -919,7 +921,7 @@ function validarInteractuables(idPlantilla, interactuables) {
     interactuables.cofres.importante,
     `el cofre importante de "${idPlantilla}"`,
   );
-  validarSolicitudBotinDeclarativa(
+  validarSolicitudBotinConfigurada(
     interactuables.cofres.importante.solicitudBotin,
     `la solicitud del cofre importante de "${idPlantilla}"`,
   );
@@ -954,29 +956,8 @@ function validarListaPonderada(lista, descripcion) {
   return ids;
 }
 
-function validarSolicitudBotinDeclarativa(solicitud, descripcion) {
-  validarObjeto(solicitud, descripcion);
-  validarTexto(solicitud.perfil, `el perfil de ${descripcion}`);
-
-  if (
-    !Array.isArray(solicitud.marcosPermitidos) ||
-    solicitud.marcosPermitidos.length === 0
-  ) {
-    throw new Error(`${descripcion} debe declarar al menos un marco permitido.`);
-  }
-  solicitud.marcosPermitidos.forEach((marco) =>
-    validarTexto(marco, `un marco permitido de ${descripcion}`),
-  );
-
-  if (solicitud.contexto !== undefined) {
-    validarObjeto(solicitud.contexto, `el contexto de ${descripcion}`);
-  }
-  if (solicitud.especificos !== undefined && !Array.isArray(solicitud.especificos)) {
-    throw new Error(`Los drops específicos de ${descripcion} deben formar una lista.`);
-  }
-  if (solicitud.garantizados !== undefined && !Array.isArray(solicitud.garantizados)) {
-    throw new Error(`Los drops garantizados de ${descripcion} deben formar una lista.`);
-  }
+function validarSolicitudBotinConfigurada(solicitud, descripcion) {
+  validarEstructuraSolicitudBotin(solicitud, { descripcion });
 }
 
 function validarProbabilidadesVariantes(

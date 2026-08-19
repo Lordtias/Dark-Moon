@@ -1,3 +1,5 @@
+import { seleccionarPonderado } from "./GeneradorAleatorio.js";
+
 const ID_VARIANTE_NORMAL = "normal";
 
 // Resuelve si una expedición recibe un encuentro especial.
@@ -92,37 +94,6 @@ function seleccionarVariante({ probabilidades, aleatorio }) {
   });
 
   return seleccion.id === ID_VARIANTE_NORMAL ? null : seleccion.id;
-}
-
-function seleccionarPonderado({ elementos, aleatorio, descripcion }) {
-  if (!Array.isArray(elementos) || elementos.length === 0) {
-    throw new Error(
-      `No se puede realizar una selección vacía sobre ${descripcion}.`,
-    );
-  }
-
-  const pesoTotal = elementos.reduce((total, elemento) => {
-    if (!Number.isFinite(elemento.peso) || elemento.peso <= 0) {
-      throw new Error(
-        `El peso de "${elemento.id}" dentro de ${descripcion} ` +
-          "debe ser mayor que 0.",
-      );
-    }
-
-    return total + elemento.peso;
-  }, 0);
-
-  let valor = aleatorio.siguiente() * pesoTotal;
-
-  for (const elemento of elementos) {
-    valor -= elemento.peso;
-
-    if (valor < 0) {
-      return elemento;
-    }
-  }
-
-  return elementos[elementos.length - 1];
 }
 
 function validarConfiguracionEncuentro(configuracion) {

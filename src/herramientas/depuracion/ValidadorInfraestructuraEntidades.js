@@ -25,7 +25,10 @@ import {
   configurarContextoGeneracionBotin,
   limpiarContextoGeneracionBotin,
 } from "../../juego/botin/ContextoGeneracionBotin.js";
-import { generarBotinCanonicoEnSuelo } from "../../juego/botin/SistemaBotin.js";
+import {
+  generarBotinCanonicoEnSuelo,
+  materializarContenidoContenedor,
+} from "../../juego/botin/SistemaBotin.js";
 import { ResolutorDestruccionesJugador } from "../../juego/combate/ResolutorDestruccionesJugador.js";
 import { SistemaEspacial } from "../../juego/espacio/SistemaEspacial.js";
 import { SistemaVisibilidadJugador } from "../../juego/visibilidad/SistemaVisibilidadJugador.js";
@@ -628,9 +631,29 @@ function validarCofreConBotinCanonico() {
     });
 
     assert.equal(resultadoCofre.entidad instanceof Cofre, true);
+    assert.equal(resultadoCofre.entidad.contenidoMaterializado, false);
+    assert.equal(resultadoCofre.entidad.cantidadObjetos, 0);
+    assert.equal(resultadoCofre.resultadoBotin, null);
+
+    const primeraMaterializacion = materializarContenidoContenedor({
+      fuente: resultadoCofre.entidad,
+      configuracionObjetos,
+    });
+    assert.equal(primeraMaterializacion.materializadoAhora, true);
+    assert.equal(primeraMaterializacion.resultadoBotin?.cantidadUnidades, 1);
     assert.equal(resultadoCofre.entidad.cantidadObjetos, 1);
-    assert.equal(resultadoCofre.resultadoBotin?.cantidadUnidades, 1);
-    assert.equal(resultadoCofre.resultadoBotin?.objetosGenerados.length, 1);
+
+    const objetoMaterializado =
+      resultadoCofre.entidad.contenedorObjetos.obtenerObjetos()[0];
+    const segundaMaterializacion = materializarContenidoContenedor({
+      fuente: resultadoCofre.entidad,
+      configuracionObjetos,
+    });
+    assert.equal(segundaMaterializacion.materializadoAhora, false);
+    assert.equal(
+      resultadoCofre.entidad.contenedorObjetos.obtenerObjetos()[0],
+      objetoMaterializado,
+    );
 
     const interactuables = [];
     const resultadoSuelo = generarBotinCanonicoEnSuelo({
@@ -724,11 +747,13 @@ function validarContratoVisualPortalInactivo() {
 
 function crearSistemaInteraccion({
   interactuables,
+  configuracionObjetos = cargarConfiguracionObjetos(),
   finalizarResultadoAccionJugador = ({ resultado }) => resultado,
 }) {
   return new SistemaInteraccionJugador({
     jugador,
     interactuables,
+    configuracionObjetos,
     obtenerModoCombateActivo: () => false,
     obtenerContextoInteraccion: () => ({}),
     finalizarResultadoAccionJugador,
@@ -780,6 +805,7 @@ function cargarConfiguracionObjetos() {
     {},
     leerJsonConfiguracion("objetos/Armas.json"),
     leerJsonConfiguracion("objetos/Armaduras.json"),
+    leerJsonConfiguracion("objetos/Accesorios.json"),
     leerJsonConfiguracion("objetos/Consumibles.json"),
     leerJsonConfiguracion("objetos/Municiones.json"),
     leerJsonConfiguracion("objetos/Contenedores.json"),

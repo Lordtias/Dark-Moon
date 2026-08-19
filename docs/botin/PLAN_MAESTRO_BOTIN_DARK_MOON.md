@@ -1,9 +1,9 @@
 # PLAN MAESTRO — BOTÍN CANÓNICO DE DARK MOON
 
-**Estado general:** En ejecución; sin etapa activa definida.
+**Estado general:** En ejecución; B-AUD implementada técnicamente y pendiente de validación manual.
 **Última etapa cerrada:** B3 — Suerte, joyería y Tier III.
-**Etapa actual:** Sin etapa activa. B3 quedó **cerrada** el 19/08/2026 tras implementación técnica, correcciones de regresión y aprobación de pruebas manuales del usuario.
-**Siguiente etapa recomendada tras B3:** no existe una B4 definida en este Plan Maestro. Cualquier continuación requiere definición y aprobación explícitas de una nueva etapa.
+**Etapa actual:** B-AUD — Auditoría post-hito de botín, objetos y recompensas.
+**Siguiente etapa recomendada tras B-AUD:** no existe una B4 definida en este Plan Maestro. Cualquier continuación requiere definición y aprobación explícitas de una nueva etapa.
 **Base inicial del plan:** `b5b8b69df1e7faa3a3e0fd7475dc50f0019f95a0`.  
 **Rama:** `main`.  
 **Regla de persistencia del plan:** se asume que no existen partidas guardadas previas que deban conservarse. No se crearán migradores, aliases, wrappers ni parches de compatibilidad.
@@ -497,7 +497,7 @@ Regla definitiva de B3:
 
 ### 13.2. Hallazgo mágico
 
-`hallazgoMagico` aumenta únicamente el peso relativo de rarezas activas superiores a Común.
+`hallazgoMagico` aumenta únicamente el peso relativo de rarezas habilitadas superiores a Común.
 
 Regla definitiva de B3:
 
@@ -515,7 +515,7 @@ Hallazgo mágico no aumenta:
 - cantidad de cofres o recipientes;
 - presupuesto procedural.
 
-La rareza `Común` conserva su peso base. Cada rareza activa superior a Común multiplica su peso por `1 + hallazgoMagico / 100`. Una rareza forzada no se altera.
+La rareza `Común` conserva su peso base. Cada rareza habilitada superior a Común multiplica su peso por `1 + hallazgoMagico / 100`. Una rareza forzada no se altera.
 
 El presupuesto de población continúa consultando exclusivamente `SistemaBotin.calcularValorEsperadoSolicitudBotin()` y **no incorpora Hallazgo mágico**. De esta manera Suerte mejora la calidad real de una recompensa sin provocar que el planificador reduzca la recompensa estructural para compensarla.
 
@@ -572,7 +572,7 @@ Con tres Tiers se incorporan **24 bases de joyería**.
 
 `Vigoroso` conserva su semántica y suma `accesorio` entre sus tipos permitidos.
 
-`Arcano` pasa de pendiente a activo y puede aparecer en armadura, quiver y accesorio. Rangos de Maná máximo:
+`Arcano` queda disponible para generación en armadura, quiver y accesorio. Rangos de Maná máximo:
 
 - grado I: +2 a +4;
 - grado II: +5 a +8;
@@ -616,7 +616,6 @@ No aumenta Suerte directamente y por lo tanto no modifica `ajusteComercial`.
 
 `Del soberano` se elimina de la configuración productiva al desaparecer Carisma.
 
-No se incorpora todavía `Del afortunado`. Cualquier futuro afijo que aumente Suerte deberá analizar el efecto combinado sobre comercio y hallazgo antes de activarse.
 
 ---
 
@@ -732,7 +731,20 @@ Objetivo implementado:
 - persistencia v5 sin migradores;
 - Diseño Maestro Visual actualizado.
 
-Estado: **Implementada técnicamente. Las validaciones automatizadas disponibles fueron superadas el 19/08/2026; el cierre formal queda pendiente de pruebas manuales dentro del juego y de Electron en un entorno con sus dependencias ya instaladas.**
+Estado: **Cerrada. Implementación técnica, correcciones de regresión y pruebas manuales aprobadas por el usuario el 19/08/2026.**
+
+### B-AUD — Auditoría post-hito de botín, objetos y recompensas
+
+Objetivo aprobado:
+
+- auditar B1–B3 y sus integraciones directas sin convertir la etapa en una auditoría general de Dark Moon;
+- eliminar configuración productiva que sólo represente backlog o seguimiento de desarrollo;
+- eliminar solapes, validaciones y utilidades duplicadas cuando exista equivalencia demostrable;
+- conservar `Raro` y `Único` visibles en el catálogo de rarezas, pero deshabilitados para generación hasta una futura etapa;
+- preservar exactamente el gameplay observable y las secuencias reproducibles de B3;
+- comprobar también los consumidores cuando la limpieza toque un contrato compartido.
+
+Estado: **Implementada técnicamente. Pendiente de validación manual del usuario antes del cierre formal.**
 
 No existe una B4 definida en este Plan Maestro y no debe iniciarse automáticamente.
 
@@ -986,15 +998,15 @@ Decisiones consolidadas:
 - Potencia de Aura toma Constitución con coeficiente inicial 2;
 - `ajusteComercial` y `hallazgoMagico` son objetivos canónicos del resolutor común;
 - comercio consume `ajusteComercial` ya resuelto;
-- Hallazgo mágico sólo modifica pesos relativos de rarezas activas superiores a Común y tiene tope +100 %;
+- Hallazgo mágico sólo modifica pesos relativos de rarezas habilitadas superiores a Común y tiene tope +100 %;
 - el presupuesto procedural es independiente de Hallazgo mágico;
 - cofres y recipientes conservan una solicitud pendiente y se materializan exactamente una vez al primer abrir o, si siguen cerrados, al destruirse;
 - destruir conserva la supervivencia del 80 % definida en B2 sin regenerar objetos retirados;
 - `accesorio` reutiliza collar y los dos anillos del equipamiento existente;
 - se incorporan 24 joyas elementales con 5/10/15 % de resistencia base;
 - `De lucidez` y `De fortuna` son exclusivos de accesorio;
-- `Arcano` pasa a activo con rangos 2–4 / 5–8 / 9–12 de Maná;
-- `Del soberano` se elimina y no se crea todavía `Del afortunado`;
+- `Arcano` queda disponible para generación con rangos 2–4 / 5–8 / 9–12 de Maná;
+- `Del soberano` se elimina;
 - Tier III comienza en nivel 8 y se expresa sólo mediante datos normales del catálogo;
 - persistencia pasa a v5 y reconstruye Ajuste comercial/Hallazgo mágico desde sus fuentes.
 
@@ -1030,3 +1042,51 @@ Cierre:
 - Electron no fue ejecutado independientemente por el asistente porque el ZIP no contiene `node_modules`/binario y B3 no autorizaba instalar dependencias;
 - no quedan bloqueantes conocidos dentro del alcance aprobado;
 - B3 queda cerrada y no existe una B4 definida. Cualquier continuación requiere una nueva etapa explícitamente aprobada.
+
+---
+
+## 30. Implementación de B-AUD
+
+B-AUD parte del `HEAD` verificado `1701ba9bb0401e49623d4ed90174aa9c895b85ab`, rama `main`, con `origin/main` coincidente y árbol limpio al interpretar correctamente la política de finales de línea del repositorio.
+
+La etapa no agrega contenido ni cambia balance. Su objetivo es que producción represente solamente contratos y datos vigentes, y que una semántica compartida tenga una única implementación cuando la equivalencia pueda demostrarse.
+
+Hallazgos corregidos:
+
+- los catálogos de afijos mezclaban contenido productivo con 31 entradas que sólo representaban diseño, balance o motor pendientes; esas entradas se eliminan en lugar de trasladarse a otro backlog documental;
+- `Sufijos.json` contenía dos claves `de_fortuna`: una propuesta antigua y la implementación real. JSON utilizaba silenciosamente la última; B-AUD elimina la definición solapada y agrega una comprobación de claves duplicadas a la validación de la etapa;
+- los afijos productivos conservaban campos puramente documentales como `estado`, `motivoEstado`, `requiere` y `notasDiseno`; se eliminan del contrato ejecutable;
+- `Rarezas.json` conservaba estados de desarrollo. `Común` y `Mágico` quedan con `generacionHabilitada: true`; `Raro` y `Único` permanecen visibles con `generacionHabilitada: false`;
+- los seis atributos base estaban repetidos en combatiente, jugador, estadísticas, persistencia, validación e interfaz. `ContratosAtributosCombatiente.js` pasa a ser el registro estructural único;
+- la antigua validación especial de `carisma` desaparece: una configuración es válida si coincide exactamente con el contrato canónico vigente;
+- la estructura de una solicitud declarativa de botín se valida desde `ContratoBotin.js`, evitando copias parciales en los validadores de mapas y entidades de mazmorra;
+- rareza, nivel de objeto, afijos, marco/objeto de botín, población, encuentros especiales y stock comercial reutilizan una selección ponderada común basada en el mismo generador reproducible;
+- `RarezasObjeto.js` deja de mantener un segundo catálogo codificado de cuatro rarezas. Sólo conserva las constantes con semántica estructural de Común/Mágico; la existencia y habilitación pertenecen a `Rarezas.json`;
+- se elimina `obtenerTiposPorMarcoBotin()` al confirmarse que no tenía consumidores;
+- `ValidadorInfraestructuraEntidades` estaba desactualizado respecto de B2/B3: no suministraba el catálogo de objetos al sistema de interacción, omitía Accesorios y esperaba materialización inmediata de cofres. Se actualiza como herramienta de depuración, sin modificar gameplay.
+
+Comprobaciones de equivalencia técnica realizadas:
+
+- 500 semillas comparadas antes/después para rareza, nivel de objeto, afijos, marcos, objetos, población, encuentros y stock comercial: salida idéntica byte a byte;
+- 32 solicitudes reales de botín × 5 niveles × 5 semillas = 800 casos comparados contra B3: objetos, rarezas, niveles, afijos, detalle canónico y valor esperado idénticos byte a byte;
+- 100 mazmorras completas comparadas contra B3 entre las cinco plantillas y sus niveles mínimo/máximo: mapa, resumen de generación, objetivos e interactuables idénticos byte a byte;
+- 200 generaciones completas adicionales ejecutadas sobre B-AUD sin fallos;
+- `ValidadorInfraestructuraEntidades` vuelve a ejecutar correctamente su batería completa;
+- todos los JSON de `src/config` se comprobaron sin claves duplicadas;
+- los catálogos de objetos y enemigos no repiten IDs entre sus archivos combinados;
+- no quedan referencias a B1, B2, B3 o B-AUD dentro de producción;
+- no quedan campos de seguimiento de desarrollo en la configuración productiva de objetos;
+- sintaxis de los módulos JavaScript, JSON e imports relativos verificada sin faltantes.
+
+B-AUD no modifica:
+
+- fórmulas de Suerte, Hallazgo mágico o Ajuste comercial;
+- pesos, probabilidades o balance de afijos productivos;
+- valores de joyería o Tier III;
+- supervivencia de destrucción;
+- presupuesto procedural;
+- persistencia v5;
+- contratos de movimiento, combate, muerte, experiencia o habilidades;
+- Diseño Maestro Visual.
+
+El cierre formal de B-AUD requiere la validación manual del usuario y la comprobación final de Git/entrega incremental.

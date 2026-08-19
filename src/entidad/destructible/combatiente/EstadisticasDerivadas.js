@@ -22,6 +22,7 @@ import {
 } from "../../../juego/efectos/ResistenciasEfectos.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
+import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "./ContratosAtributosCombatiente.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
 const OBJETIVO_RESISTENCIA_ELEMENTAL = Object.freeze({
@@ -820,7 +821,7 @@ function crearAportesAtributos({
   const magia = CONFIGURACION_MAGIA;
   const referencia = magia.referenciaAtributos;
   const porAtributo = Object.fromEntries(
-    ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "suerte"].map(
+    ATRIBUTOS_COMBATIENTE_CANONICOS.map(
       (id) => [id, []],
     ),
   );

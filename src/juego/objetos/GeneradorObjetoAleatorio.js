@@ -1,6 +1,6 @@
 import { crearObjeto } from "../../objetos/FabricaObjetos.js";
 
-import { RAREZAS_OBJETO } from "./RarezasObjeto.js";
+import { RAREZA_COMUN } from "./RarezasObjeto.js";
 
 import { seleccionarRarezaObjeto } from "./GeneradorRarezaObjeto.js";
 
@@ -23,7 +23,7 @@ const TIPOS_EQUIPABLES_CON_AFIJOS = new Set([
 // - El tier propio de la plantilla.
 // - El nivel de progreso de la fuente.
 // - El nivel concreto de la instancia.
-// - Las rarezas activas.
+// - Las rarezas habilitadas.
 // - Los afijos compatibles.
 // - Un generador pseudoaleatorio reproducible.
 //
@@ -74,7 +74,7 @@ export function crearObjetoGenerado({
       configuracionObjetos,
       idObjeto: idNormalizado,
       cantidad,
-      rareza: RAREZAS_OBJETO.COMUN,
+      rareza: RAREZA_COMUN,
       nivelObjeto,
     });
   }
@@ -136,7 +136,7 @@ export function obtenerRarezasPermitidasParaPlantilla({
 
   for (const [idRareza, configuracionRareza] of Object.entries(rarezas)) {
     if (
-      configuracionRareza.estado !== "activo" ||
+      configuracionRareza.generacionHabilitada !== true ||
       configuracionRareza.nivelObjetoMinimo > nivelObjeto
     ) {
       continue;
@@ -156,7 +156,7 @@ export function obtenerRarezasPermitidasParaPlantilla({
   }
 
   if (permitidas.length === 0) {
-    throw new Error("La plantilla no tiene ninguna rareza activa disponible.");
+    throw new Error("La plantilla no tiene ninguna rareza habilitada disponible.");
   }
 
   return permitidas;
@@ -179,7 +179,7 @@ function validarRarezaForzadaNoEquipable(rarezaForzada) {
   }
   if (
     typeof rarezaForzada !== "string" ||
-    rarezaForzada.trim().toLowerCase() !== RAREZAS_OBJETO.COMUN
+    rarezaForzada.trim().toLowerCase() !== RAREZA_COMUN
   ) {
     throw new Error(
       "Los objetos no equipables solamente pueden ser de rareza común.",

@@ -2,7 +2,7 @@ import { Objeto } from "./Objeto.js";
 
 import { ContenedorObjetos } from "./ContenedorObjetos.js";
 
-import { RAREZAS_OBJETO } from "../juego/objetos/RarezasObjeto.js";
+import { RAREZA_COMUN } from "../juego/objetos/RarezasObjeto.js";
 import { componerPropiedadesObjeto } from "../juego/objetos/SistemaAfijos.js";
 
 import { aplicarMetadatosComercialesObjeto } from "../juego/comercio/MetadatosComercialesObjeto.js";
@@ -22,7 +22,7 @@ export function crearObjeto({
 
   // Toda creación tradicional continúa
   // generando objetos comunes de nivel 1.
-  rareza = RAREZAS_OBJETO.COMUN,
+  rareza = RAREZA_COMUN,
 
   nivelObjeto = 1,
 
@@ -227,7 +227,7 @@ export function crearObjetosDesdeDefiniciones({
 
         cantidad: definicion.cantidad ?? 1,
 
-        rareza: definicion.rareza ?? RAREZAS_OBJETO.COMUN,
+        rareza: definicion.rareza ?? RAREZA_COMUN,
 
         nivelObjeto: definicion.nivelObjeto ?? 1,
 

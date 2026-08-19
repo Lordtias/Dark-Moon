@@ -15,11 +15,6 @@
         "desplazamiento": 1,
         "peso": 10
       }
-    ],
-    "notasDiseno": [
-      "Cuando varios desplazamientos terminan en el nivel mínimo, sus pesos se acumulan.",
-      "El nivel del objeto habilita grados de afijos, pero no modifica automáticamente las propiedades base de la plantilla.",
-      "Las futuras bases de equipamiento podrán declarar su propio nivel mínimo sin cambiar esta distribución."
     ]
   }
 }

@@ -19,17 +19,9 @@ import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosMod
 import { ProveedorModificadoresPasivasAprendidas } from "../../../juego/modificadores/ProveedorModificadoresPasivasAprendidas.js";
 import { SistemaExperienciaMaestrias } from "../../../juego/maestrias/SistemaExperienciaMaestrias.js";
 import { validarReglasSuerte } from "../../../juego/configuracion/ValidadorConfiguracionSuerte.js";
+import { esAtributoCombatienteCanonico } from "./ContratosAtributosCombatiente.js";
 
 const PERCEPCION_BASE_JUGADOR = 10;
-
-const ATRIBUTOS_VALIDOS = [
-  "fuerza",
-  "destreza",
-  "constitucion",
-  "inteligencia",
-  "sabiduria",
-  "suerte",
-];
 
 // Player conserva responsabilidades propias del personaje:
 //
@@ -304,7 +296,7 @@ export class Player extends Combatiente {
   }
 
   asignarPuntoAtributo(nombreAtributo) {
-    if (!ATRIBUTOS_VALIDOS.includes(nombreAtributo)) {
+    if (!esAtributoCombatienteCanonico(nombreAtributo)) {
       throw new Error(`El atributo "${nombreAtributo}" no existe.`);
     }
 

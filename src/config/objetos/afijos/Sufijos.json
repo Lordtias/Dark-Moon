@@ -2,11 +2,8 @@
   "de_precision": {
     "nombre": "De precisión",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La precisión propia del arma ya participa en cada componente de ataque.",
     "descripcion": "Aumenta la precisión del arma.",
     "pesoBase": 1000,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -60,19 +57,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": [
-      "La bonificación pertenece al arma que contiene el sufijo."
     ]
   },
   "del_verdugo": {
     "nombre": "Del verdugo",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La probabilidad de crítico propia del arma ya se utiliza al resolver el ataque.",
     "descripcion": "Aumenta la probabilidad de crítico del arma.",
     "pesoBase": 550,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -126,17 +117,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_devastacion": {
     "nombre": "De devastación",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "El multiplicador crítico propio del arma ya forma parte del cálculo de cada golpe.",
     "descripcion": "Aumenta el multiplicador de los golpes críticos.",
     "pesoBase": 350,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -193,17 +180,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_evasion": {
     "nombre": "De evasión",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La Evasión plana del equipamiento ya se suma a la estadística final.",
     "descripcion": "Aumenta la Evasión.",
     "pesoBase": 900,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -258,17 +241,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_regeneracion": {
     "nombre": "De regeneración",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La regeneración plana de Vida del equipamiento ya se procesa en los pulsos temporales.",
     "descripcion": "Aumenta la regeneración plana de Vida.",
     "pesoBase": 650,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -326,85 +305,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
-  },
-  "de_claridad": {
-    "nombre": "De claridad",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La regeneración de Maná ya funciona, pero todavía no existen habilidades con consumo regular que permitan valorar este sufijo.",
-    "descripcion": "Aumentaría la regeneración plana de Maná.",
-    "pesoBase": 650,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "regeneracion_mana_plana",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "regeneracionMana",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "regeneracionMana": {
-            "minimo": 0.1,
-            "maximo": 0.2,
-            "decimales": 1
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "regeneracionMana": {
-            "minimo": 0.3,
-            "maximo": 0.5,
-            "decimales": 1
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "regeneracionMana": {
-            "minimo": 0.6,
-            "maximo": 0.9,
-            "decimales": 1
-          }
-        }
-      }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_ascuas": {
     "nombre": "De ascuas",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al fuego ya se compone como estadística general y el motor elemental puede comprobarla con paquetes deterministas.",
     "descripcion": "Aumenta la resistencia al fuego del personaje.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -462,17 +369,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_escarcha": {
     "nombre": "De escarcha",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al frío ya se compone como estadística general y existen fuentes elementales para comprobarla.",
     "descripcion": "Aumenta la resistencia al frío del personaje.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -530,17 +433,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_tormenta": {
     "nombre": "De tormenta",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al rayo ya se compone como estadística general y el motor elemental puede comprobarla con paquetes deterministas.",
     "descripcion": "Aumenta la resistencia al rayo del personaje.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -598,17 +497,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "del_antidoto": {
     "nombre": "Del antídoto",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia al veneno ya se compone como estadística general y existen fuentes elementales para comprobarla.",
     "descripcion": "Aumenta la resistencia al veneno del personaje.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -666,17 +561,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "del_guardian": {
     "nombre": "Del guardián",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La probabilidad de bloqueo del equipamiento ya se suma al valor final.",
     "descripcion": "Aumenta la probabilidad de bloqueo de un escudo.",
     "pesoBase": 500,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -732,17 +623,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
+    ]
   },
   "de_absorcion": {
     "nombre": "De absorción",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La mitigación al bloquear ya se suma desde el equipamiento y respeta su límite global.",
     "descripcion": "Aumenta el porcentaje de daño mitigado al bloquear.",
     "pesoBase": 400,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -798,997 +685,13 @@
           }
         }
       }
-    ],
-    "notasDiseno": []
-  },
-  "de_fatalidad": {
-    "nombre": "De fatalidad",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "El crítico global afecta cualquier arma equipada y necesita balancearse frente al crítico local.",
-    "descripcion": "Aumentaría la probabilidad de crítico de todos los ataques.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "critico_global_probabilidad",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "probabilidadCriticoGlobal",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: probabilidadCriticoGlobal: 1–2."
-  },
-  "de_carniceria": {
-    "nombre": "De carnicería",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "El multiplicador crítico global escala con todas las fuentes de daño y puede crecer demasiado rápido.",
-    "descripcion": "Aumentaría el multiplicador crítico de todos los ataques.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "critico_global_multiplicador",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "multiplicadorCriticoAdicional",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: multiplicadorCriticoAdicional: 0.05–0.1."
-  },
-  "de_renovacion": {
-    "nombre": "De renovación",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La regeneración porcentual escala automáticamente con la Vida máxima y necesita pruebas de balance.",
-    "descripcion": "Regeneraría un porcentaje de la Vida máxima.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "regeneracion_vida_porcentaje",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "regeneracionVidaPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: regeneracionVidaPorcentaje: 0.2–0.5."
-  },
-  "de_meditacion": {
-    "nombre": "De meditación",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_balance",
-    "motivoEstado": "La regeneración porcentual de Maná necesita balancearse junto con habilidades y costes de Maná.",
-    "descripcion": "Regeneraría un porcentaje del Maná máximo.",
-    "pesoBase": 0,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "regeneracion_mana_porcentaje",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "regeneracionManaPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: regeneracionManaPorcentaje: 0.2–0.5."
-  },
-  "del_oso": {
-    "nombre": "Del oso",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Fuerza.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_fuerza",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "fuerza",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: fuerza: 1–2."
-  },
-  "del_lince": {
-    "nombre": "Del lince",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Destreza.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_destreza",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "destreza",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: destreza: 1–2."
-  },
-  "del_roble": {
-    "nombre": "Del roble",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Constitución.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_constitucion",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "constitucion",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: constitucion: 1–2."
-  },
-  "del_sabio": {
-    "nombre": "Del sabio",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Inteligencia.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_inteligencia",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "inteligencia",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: inteligencia: 1–2."
-  },
-  "del_buho": {
-    "nombre": "Del búho",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta calcular atributos finales que combinen los valores base del combatiente con el equipamiento.",
-    "descripcion": "Aumentaría Sabiduría.",
-    "pesoBase": 0,
-    "requiere": [
-      "atributos_por_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "atributo_sabiduria",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "sabiduria",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: sabiduria: 1–2."
-  },
-  "de_celeridad": {
-    "nombre": "De celeridad",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "El movimiento utiliza factores temporales. Falta definir una propiedad de equipamiento y su composición con factorMovimiento.",
-    "descripcion": "Aumentaría la velocidad de movimiento.",
-    "pesoBase": 0,
-    "requiere": [
-      "velocidad_movimiento_equipamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "velocidad_movimiento",
-    "aplicaA": {
-      "tipos": [
-        "armadura"
-      ],
-      "ranurasIncluidas": [
-        "pies"
-      ],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "velocidadMovimientoPorcentaje",
-        "operacion": "porcentaje_inverso",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: velocidadMovimientoPorcentaje: 5–8."
-  },
-  "del_vampiro": {
-    "nombre": "Del vampiro",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta una mecánica que convierta parte del daño realmente aplicado en curación y defina su interacción con doble arma y daño elemental.",
-    "descripcion": "Recuperaría Vida según el daño causado.",
-    "pesoBase": 0,
-    "requiere": [
-      "robo_recursos"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "robo_vida",
-    "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "roboVidaPorcentaje",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: roboVidaPorcentaje: 1–2."
-  },
-  "del_devorador": {
-    "nombre": "Del devorador",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta una mecánica de robo de Maná y suficientes habilidades con coste de Maná para balancearla.",
-    "descripcion": "Recuperaría Maná según el daño causado.",
-    "pesoBase": 0,
-    "requiere": [
-      "robo_recursos"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "robo_mana",
-    "aplicaA": {
-      "tipos": [
-        "arma"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "roboManaPorcentaje",
-        "operacion": "sumar",
-        "ambito": "local_objeto"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: roboManaPorcentaje: 1–2."
-  },
-  "de_fortuna": {
-    "nombre": "De fortuna",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta decidir si modifica la rareza, los grados de afijo o la calidad de las bases encontradas.",
-    "descripcion": "Aumentaría la calidad de los objetos encontrados.",
-    "pesoBase": 0,
-    "requiere": [
-      "calidad_botin"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "rareza_encontrada",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "rarezaObjetosEncontradosPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: rarezaObjetosEncontradosPorcentaje: 5–10."
-  },
-  "de_abundancia": {
-    "nombre": "De abundancia",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta una economía estable y una regla clara para aumentar cantidades sin duplicar indiscriminadamente todos los drops.",
-    "descripcion": "Aumentaría la cantidad de objetos encontrados.",
-    "pesoBase": 0,
-    "requiere": [
-      "cantidad_botin"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "cantidad_encontrada",
-    "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "cantidadObjetosEncontradosPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: cantidadObjetosEncontradosPorcentaje: 5–10."
-  },
-  "del_taumaturgo": {
-    "nombre": "Del taumaturgo",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "La Potencia de Habilidad ya existe, pero este modificador histórico de hechizos todavía no tiene contrato canónico propio.",
-    "descripcion": "Aumentaría el daño de los hechizos.",
-    "pesoBase": 0,
-    "requiere": [
-      "hechizos"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "danio_hechizos",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "danioHechizosAumentadoPorcentaje",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: danioHechizosAumentadoPorcentaje: 8–15."
-  },
-  "de_canalizacion": {
-    "nombre": "De canalización",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Todavía no existe velocidad de lanzamiento ni costes temporales específicos para hechizos.",
-    "descripcion": "Aumentaría la velocidad de lanzamiento.",
-    "pesoBase": 0,
-    "requiere": [
-      "hechizos",
-      "velocidad_lanzamiento"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "velocidad_lanzamiento",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "velocidadLanzamientoPorcentaje",
-        "operacion": "porcentaje_inverso",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: velocidadLanzamientoPorcentaje: 5–8."
-  },
-  "de_concentracion": {
-    "nombre": "De concentración",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Todavía no existe una tirada de precisión separada para hechizos.",
-    "descripcion": "Aumentaría la precisión de los hechizos.",
-    "pesoBase": 0,
-    "requiere": [
-      "hechizos",
-      "precision_hechizos"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "precision_hechizos",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "precisionHechizos",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: precisionHechizos: 2–5."
-  },
-  "del_archimago": {
-    "nombre": "Del archimago",
-    "tipoAfijo": "sufijo",
-    "estado": "pendiente_motor",
-    "motivoEstado": "Falta definir potencia de hechizos y su relación con el Maná máximo.",
-    "descripcion": "Aumentaría el Maná y la potencia de los hechizos.",
-    "pesoBase": 0,
-    "requiere": [
-      "hechizos",
-      "potencia_hechizos"
-    ],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "archimago",
-    "aplicaA": {
-      "tipos": [
-        "arma",
-        "armadura",
-        "quiver"
-      ],
-      "ranurasIncluidas": [],
-      "ranurasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "potenciaHechizos",
-        "operacion": "sumar",
-        "ambito": "portador"
-      },
-      {
-        "propiedad": "manaMaximo",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [],
-    "notasDiseno": [],
-    "propuestaBalance": "Primer rango sugerido: potenciaHechizos: 1–2; manaMaximo: 10–20."
-  },
-  "del_deshielo": {
-    "nombre": "Del deshielo",
-    "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
-    "descripcion": "Aumenta la resistencia al Congelamiento.",
-    "pesoBase": 700,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "resistencia_congelamiento",
-    "aplicaA": {
-      "tipos": [
-        "accesorio"
-      ],
-      "ranurasIncluidas": [
-        "collar",
-        "anillo_derecho",
-        "anillo_izquierdo"
-      ],
-      "ranurasExcluidas": [],
-      "familiasIncluidas": [],
-      "familiasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "resistenciaCongelamiento",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "resistenciaCongelamiento": {
-            "minimo": 3,
-            "maximo": 6
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "resistenciaCongelamiento": {
-            "minimo": 7,
-            "maximo": 10
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "resistenciaCongelamiento": {
-            "minimo": 11,
-            "maximo": 15
-          }
-        }
-      }
-    ],
-    "notasDiseno": [
-      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
-    ]
-  },
-  "de_firmeza": {
-    "nombre": "De firmeza",
-    "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
-    "descripcion": "Aumenta la resistencia al Aturdimiento.",
-    "pesoBase": 700,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "resistencia_aturdimiento",
-    "aplicaA": {
-      "tipos": [
-        "accesorio"
-      ],
-      "ranurasIncluidas": [
-        "collar",
-        "anillo_derecho",
-        "anillo_izquierdo"
-      ],
-      "ranurasExcluidas": [],
-      "familiasIncluidas": [],
-      "familiasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "resistenciaAturdimiento",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "resistenciaAturdimiento": {
-            "minimo": 3,
-            "maximo": 6
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "resistenciaAturdimiento": {
-            "minimo": 7,
-            "maximo": 10
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "resistenciaAturdimiento": {
-            "minimo": 11,
-            "maximo": 15
-          }
-        }
-      }
-    ],
-    "notasDiseno": [
-      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
-    ]
-  },
-  "de_purificacion": {
-    "nombre": "De purificación",
-    "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
-    "descripcion": "Aumenta la resistencia al Envenenamiento.",
-    "pesoBase": 700,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "resistencia_envenenamiento",
-    "aplicaA": {
-      "tipos": [
-        "accesorio"
-      ],
-      "ranurasIncluidas": [
-        "collar",
-        "anillo_derecho",
-        "anillo_izquierdo"
-      ],
-      "ranurasExcluidas": [],
-      "familiasIncluidas": [],
-      "familiasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "resistenciaEnvenenamiento",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "resistenciaEnvenenamiento": {
-            "minimo": 3,
-            "maximo": 6
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "resistenciaEnvenenamiento": {
-            "minimo": 7,
-            "maximo": 10
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "resistenciaEnvenenamiento": {
-            "minimo": 11,
-            "maximo": 15
-          }
-        }
-      }
-    ],
-    "notasDiseno": [
-      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
-    ]
-  },
-  "de_ceniza": {
-    "nombre": "De ceniza",
-    "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La resistencia a efectos forma parte de las estadísticas canónicas y se limita a accesorios.",
-    "descripcion": "Aumenta la resistencia a la Quemadura.",
-    "pesoBase": 700,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "resistencia_quemadura",
-    "aplicaA": {
-      "tipos": [
-        "accesorio"
-      ],
-      "ranurasIncluidas": [
-        "collar",
-        "anillo_derecho",
-        "anillo_izquierdo"
-      ],
-      "ranurasExcluidas": [],
-      "familiasIncluidas": [],
-      "familiasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "resistenciaQuemadura",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "resistenciaQuemadura": {
-            "minimo": 3,
-            "maximo": 6
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "resistenciaQuemadura": {
-            "minimo": 7,
-            "maximo": 10
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "resistenciaQuemadura": {
-            "minimo": 11,
-            "maximo": 15
-          }
-        }
-      }
-    ],
-    "notasDiseno": [
-      "No otorga inmunidad; la inmunidad es una propiedad explícita y separada."
-    ]
-  },
-  "de_lucidez": {
-    "nombre": "De lucidez",
-    "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "La Resistencia Mental ya es un objetivo canónico y B3 la habilita exclusivamente en joyería.",
-    "descripcion": "Aumenta la Resistencia Mental.",
-    "pesoBase": 700,
-    "requiere": [],
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
-    "grupoExclusion": "resistencia_mental",
-    "aplicaA": {
-      "tipos": [
-        "accesorio"
-      ],
-      "ranurasIncluidas": [
-        "collar",
-        "anillo_derecho",
-        "anillo_izquierdo"
-      ],
-      "ranurasExcluidas": [],
-      "familiasIncluidas": [],
-      "familiasExcluidas": []
-    },
-    "efectos": [
-      {
-        "propiedad": "resistenciaMental",
-        "operacion": "sumar",
-        "ambito": "portador"
-      }
-    ],
-    "grados": [
-      {
-        "grado": 1,
-        "nivelObjetoMinimo": 1,
-        "peso": 1000,
-        "valores": {
-          "resistenciaMental": {
-            "minimo": 3,
-            "maximo": 6
-          }
-        }
-      },
-      {
-        "grado": 2,
-        "nivelObjetoMinimo": 3,
-        "peso": 700,
-        "valores": {
-          "resistenciaMental": {
-            "minimo": 7,
-            "maximo": 10
-          }
-        }
-      },
-      {
-        "grado": 3,
-        "nivelObjetoMinimo": 6,
-        "peso": 400,
-        "valores": {
-          "resistenciaMental": {
-            "minimo": 11,
-            "maximo": 15
-          }
-        }
-      }
-    ],
-    "notasDiseno": [
-      "Exclusivo de accesorios; no otorga inmunidad a Maldiciones."
     ]
   },
   "de_fortuna": {
     "nombre": "De fortuna",
     "tipoAfijo": "sufijo",
-    "estado": "activo",
-    "motivoEstado": "Hallazgo mágico es un objetivo canónico y modifica únicamente pesos de rareza al materializar botín.",
     "descripcion": "Aumenta el Hallazgo mágico.",
     "pesoBase": 700,
-    "requiere": [],
     "rarezasPermitidas": [
       "magico",
       "raro"
@@ -1848,9 +751,336 @@
           }
         }
       }
+    ]
+  },
+  "del_deshielo": {
+    "nombre": "Del deshielo",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la resistencia al Congelamiento.",
+    "pesoBase": 700,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
     ],
-    "notasDiseno": [
-      "Exclusivo de accesorios; no modifica Suerte ni los precios comerciales."
+    "grupoExclusion": "resistencia_congelamiento",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaCongelamiento",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaCongelamiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ]
+  },
+  "de_firmeza": {
+    "nombre": "De firmeza",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la resistencia al Aturdimiento.",
+    "pesoBase": 700,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_aturdimiento",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaAturdimiento",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaAturdimiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ]
+  },
+  "de_purificacion": {
+    "nombre": "De purificación",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la resistencia al Envenenamiento.",
+    "pesoBase": 700,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_envenenamiento",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaEnvenenamiento",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaEnvenenamiento": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ]
+  },
+  "de_ceniza": {
+    "nombre": "De ceniza",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la resistencia a la Quemadura.",
+    "pesoBase": 700,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_quemadura",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaQuemadura",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaQuemadura": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
+    ]
+  },
+  "de_lucidez": {
+    "nombre": "De lucidez",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la Resistencia Mental.",
+    "pesoBase": 700,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "resistencia_mental",
+    "aplicaA": {
+      "tipos": [
+        "accesorio"
+      ],
+      "ranurasIncluidas": [
+        "collar",
+        "anillo_derecho",
+        "anillo_izquierdo"
+      ],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "resistenciaMental",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 1000,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 3,
+            "maximo": 6
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 700,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 400,
+        "valores": {
+          "resistenciaMental": {
+            "minimo": 11,
+            "maximo": 15
+          }
+        }
+      }
     ]
   }
 }

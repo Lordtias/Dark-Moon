@@ -31,16 +31,12 @@ import {
   normalizarDescriptorModificador,
 } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { SistemaModificadoresCombatiente } from "../../../juego/modificadores/SistemaModificadoresCombatiente.js";
+import {
+  ATRIBUTOS_COMBATIENTE_CANONICOS,
+  validarClavesAtributosCombatiente,
+} from "./ContratosAtributosCombatiente.js";
 
 const TIPOS_ATAQUE_VALIDOS = ["cuerpoACuerpo", "distancia"];
-const ATRIBUTOS_REQUERIDOS = [
-  "fuerza",
-  "destreza",
-  "constitucion",
-  "inteligencia",
-  "sabiduria",
-  "suerte",
-];
 const NOMBRES_FACTORES_TEMPORALES = [
   OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO,
   OBJETIVOS_MODIFICADOR.FACTOR_MOVIMIENTO,
@@ -50,10 +46,10 @@ const NOMBRES_FACTORES_TEMPORALES = [
 ];
 
 function validarAtributos(nombre, atributos) {
-  if (!atributos || typeof atributos !== "object" || Array.isArray(atributos)) {
-    throw new Error(`${nombre} debe tener atributos válidos.`);
-  }
-  for (const atributo of ATRIBUTOS_REQUERIDOS) {
+  validarClavesAtributosCombatiente(atributos, {
+    descripcion: `Los atributos de ${nombre}`,
+  });
+  for (const atributo of ATRIBUTOS_COMBATIENTE_CANONICOS) {
     if (!Number.isInteger(atributos[atributo]) || atributos[atributo] <= 0) {
       throw new Error(
         `El atributo "${atributo}" de ` +

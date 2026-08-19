@@ -5,7 +5,8 @@ import {
 } from "../juego/combate/PatronesAtaque.js";
 import { TIPOS_EFECTO_CONSUMIBLE } from "./EfectosConsumibles.js";
 import {
-  RAREZAS_OBJETO,
+  RAREZA_COMUN,
+  RAREZA_MAGICA,
   TIPOS_AFIJO_OBJETO,
   normalizarIdRarezaObjeto,
   normalizarTipoAfijoObjeto,
@@ -61,7 +62,7 @@ export class Objeto {
 
     // Toda instancia tiene rareza y nivel,
     // incluso cuando es común.
-    rareza = RAREZAS_OBJETO.COMUN,
+    rareza = RAREZA_COMUN,
     nivelObjeto = 1,
 
     // Los afijos se almacenan separados para conservar
@@ -598,7 +599,7 @@ export class Objeto {
       );
     }
 
-    if (this.rareza === RAREZAS_OBJETO.COMUN && afijos.length > 0) {
+    if (this.rareza === RAREZA_COMUN && afijos.length > 0) {
       throw new Error(
         `El objeto común "${this.nombre}" no puede tener afijos.`,
       );
@@ -686,11 +687,11 @@ export class Objeto {
   }
 
   get esComun() {
-    return this.rareza === RAREZAS_OBJETO.COMUN;
+    return this.rareza === RAREZA_COMUN;
   }
 
   get esMagico() {
-    return this.rareza === RAREZAS_OBJETO.MAGICO;
+    return this.rareza === RAREZA_MAGICA;
   }
 
   get esTierUno() {

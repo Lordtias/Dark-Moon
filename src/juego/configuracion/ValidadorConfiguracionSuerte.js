@@ -1,11 +1,8 @@
-const ATRIBUTOS_CANONICOS = Object.freeze([
-  "fuerza",
-  "destreza",
-  "constitucion",
-  "inteligencia",
-  "sabiduria",
-  "suerte",
-]);
+import {
+  ATRIBUTOS_COMBATIENTE_CANONICOS,
+  validarClavesAtributosCombatiente,
+  validarIdsAtributosCombatiente,
+} from "../../entidad/destructible/combatiente/ContratosAtributosCombatiente.js";
 
 export function validarConfiguracionSuerte(configuracionPersonaje) {
   if (
@@ -43,16 +40,10 @@ function validarAtributosCanonicos(configuracionAtributos) {
     throw new Error("La configuración del personaje necesita una lista de atributos.");
   }
 
-  const ids = lista.map((entrada) => entrada?.id);
-  if (
-    ids.length !== ATRIBUTOS_CANONICOS.length ||
-    ATRIBUTOS_CANONICOS.some((id) => !ids.includes(id)) ||
-    ids.includes("carisma")
-  ) {
-    throw new Error(
-      "Los atributos del personaje deben usar el contrato canónico con Suerte.",
-    );
-  }
+  validarIdsAtributosCombatiente(
+    lista.map((entrada) => entrada?.id),
+    { descripcion: "Los atributos configurados del personaje" },
+  );
 }
 
 function validarPesosProfesiones(profesiones) {
@@ -65,15 +56,15 @@ function validarPesosProfesiones(profesiones) {
     if (pesos === null || typeof pesos !== "object" || Array.isArray(pesos)) {
       throw new Error(`La profesión "${id}" necesita pesos de atributos válidos.`);
     }
-    for (const atributo of ATRIBUTOS_CANONICOS) {
+    validarClavesAtributosCombatiente(pesos, {
+      descripcion: `Los pesos de atributos de la profesión "${id}"`,
+    });
+    for (const atributo of ATRIBUTOS_COMBATIENTE_CANONICOS) {
       if (!Number.isFinite(pesos[atributo]) || pesos[atributo] < 0) {
         throw new Error(
           `La profesión "${id}" necesita un peso válido para "${atributo}".`,
         );
       }
-    }
-    if (Object.prototype.hasOwnProperty.call(pesos, "carisma")) {
-      throw new Error(`La profesión "${id}" todavía declara el atributo Carisma.`);
     }
   }
 }

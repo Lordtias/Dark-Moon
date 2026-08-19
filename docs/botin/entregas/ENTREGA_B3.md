@@ -34,7 +34,7 @@ B3 implementa las decisiones A–L aprobadas por el usuario:
 10. `De fortuna`: 5–10 / 11–20 / 21–30 % de Hallazgo mágico.
 11. `Arcano` queda activo con +2–4 / +5–8 / +9–12 Maná y admite armadura, quiver y accesorio.
 12. Tier III comienza en nivel 8.
-13. `Del soberano` se elimina; no se crea todavía `Del afortunado`.
+13. `Del soberano` se elimina.
 14. Enemigos reciben Suerte neutral 10, sin utilidad actual adicional.
 15. Persistencia pasa a v5 sin migradores.
 16. B3 se trabaja como una sola etapa y un único commit futuro.

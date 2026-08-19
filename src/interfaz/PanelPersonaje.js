@@ -1,5 +1,6 @@
 import { calcularDpsCombatiente } from "../juego/combate/CalculadorDPS.js";
 import { obtenerAportesAtributosPrimarios } from "../entidad/destructible/combatiente/EstadisticasDerivadas.js";
+import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "../entidad/destructible/combatiente/ContratosAtributosCombatiente.js";
 import { crearContextoPotenciaHabilidad } from "../juego/magia/SistemaCatalizadores.js";
 import { TIEMPO_REFERENCIA } from "../juego/tiempo/SistemaTiempo.js";
 import { OPERACIONES_MODIFICADOR, OBJETIVOS_MODIFICADOR } from "../juego/modificadores/ContratosModificadoresCombatiente.js";
@@ -7,7 +8,7 @@ import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 import { ModalDetalleEstadistica } from "./personaje/ModalDetalleEstadistica.js";
 import { obtenerEstadoPasivasJugador } from "./personaje/ConsultaPasivasJugador.js";
 
-const ATRIBUTOS = ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "suerte"];
+const ATRIBUTOS = ATRIBUTOS_COMBATIENTE_CANONICOS;
 const DETALLES = Object.freeze({
   "danio-medio":{etiqueta:"Daño medio",icono:"⚔"}, dps:{etiqueta:"DPS",icono:"✦"},
   precision:{etiqueta:"Precisión",icono:"◎",resolucion:"precision"}, evasion:{etiqueta:"Evasión",icono:"↗",resolucion:"evasion"}, armadura:{etiqueta:"Armadura",icono:"⬙",resolucion:"armadura"},

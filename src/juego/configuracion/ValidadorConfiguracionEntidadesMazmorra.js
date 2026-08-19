@@ -1,3 +1,5 @@
+import { validarEstructuraSolicitudBotin } from "../botin/ContratoBotin.js";
+
 const FAMILIAS_ENTIDAD_MAZMORRA = Object.freeze({
   RECIPIENTE: "recipiente",
   OBSTACULO: "obstaculo",
@@ -141,7 +143,7 @@ function validarDefinicion({ id, familia, definicion }) {
   );
 
   if (definicion.solicitudBotinDestruccion !== undefined) {
-    validarSolicitudBotinDeclarativa(
+    validarSolicitudBotinConfigurada(
       definicion.solicitudBotinDestruccion,
       `la solicitud de botín al destruir "${id}"`,
     );
@@ -164,18 +166,8 @@ function validarDefinicion({ id, familia, definicion }) {
   }
 }
 
-function validarSolicitudBotinDeclarativa(solicitud, descripcion) {
-  validarObjeto(solicitud, descripcion);
-  validarTexto(solicitud.perfil, `el perfil de ${descripcion}`);
-  if (
-    !Array.isArray(solicitud.marcosPermitidos) ||
-    solicitud.marcosPermitidos.length === 0
-  ) {
-    throw new Error(`${descripcion} debe declarar al menos un marco permitido.`);
-  }
-  solicitud.marcosPermitidos.forEach((marco) =>
-    validarTexto(marco, `un marco permitido de ${descripcion}`),
-  );
+function validarSolicitudBotinConfigurada(solicitud, descripcion) {
+  validarEstructuraSolicitudBotin(solicitud, { descripcion });
 }
 
 function validarRecursoVisual(ruta, id) {

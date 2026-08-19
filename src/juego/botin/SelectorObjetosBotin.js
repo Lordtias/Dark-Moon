@@ -1,3 +1,4 @@
+import { seleccionarPonderado } from "../generacion/GeneradorAleatorio.js";
 import { puedeGenerarsePlantilla } from "../objetos/ReglasProgresionObjetos.js";
 import {
   MARCOS_BOTIN,
@@ -23,7 +24,12 @@ export function seleccionarMarcoBotin({
 } = {}) {
   validarAleatorio(aleatorio);
   const candidatos = obtenerCandidatosMarcosBotin({ perfil, marcosPermitidos });
-  return seleccionarPonderado(candidatos, aleatorio, (entrada) => entrada.peso).marco;
+  return seleccionarPonderado({
+    elementos: candidatos,
+    aleatorio,
+    obtenerPeso: (entrada) => entrada.peso,
+    descripcion: "un marco de botín",
+  }).marco;
 }
 
 // Devuelve exactamente la misma distribución de marcos que utiliza la
@@ -112,12 +118,14 @@ export function seleccionarObjetoBotin({ candidatos, aleatorio } = {}) {
     throw new Error("No existen candidatos válidos para seleccionar un objeto de botín.");
   }
 
-  return seleccionarPonderado(candidatos, aleatorio, (entrada) => entrada.peso);
+  return seleccionarPonderado({
+    elementos: candidatos,
+    aleatorio,
+    obtenerPeso: (entrada) => entrada.peso,
+    descripcion: "un objeto de botín",
+  });
 }
 
-export function obtenerTiposPorMarcoBotin(marco) {
-  return [...TIPOS_POR_MARCO[validarMarcoBotin(marco)]];
-}
 
 function obtenerPesoBotinPlantilla(plantilla) {
   const peso = plantilla.generacionBotin?.peso ?? 1;
@@ -129,24 +137,6 @@ function obtenerPesoBotinPlantilla(plantilla) {
   }
 
   return peso;
-}
-
-function seleccionarPonderado(candidatos, aleatorio, obtenerPeso) {
-  const total = candidatos.reduce((suma, candidato) => suma + obtenerPeso(candidato), 0);
-
-  if (!Number.isFinite(total) || total <= 0) {
-    throw new Error("La selección ponderada necesita un peso total mayor que 0.");
-  }
-
-  const objetivo = aleatorio.siguiente() * total;
-  let acumulado = 0;
-
-  for (const candidato of candidatos) {
-    acumulado += obtenerPeso(candidato);
-    if (objetivo < acumulado) return candidato;
-  }
-
-  return candidatos[candidatos.length - 1];
 }
 
 function validarPerfil(perfil) {

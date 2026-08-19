@@ -9,15 +9,6 @@ import {
 // Potencia de Habilidad, filtros por familia y daño elemental local
 // forman parte del mismo contrato general de generación.
 
-const ESTADOS_CONFIGURACION = new Set([
-  "activo",
-  "pendiente_motor",
-  "pendiente_diseno",
-  "pendiente_balance",
-  "reservado_raro",
-  "reservado_unico",
-  "descartado",
-]);
 const TIPOS_AFIJO = new Set(["prefijo", "sufijo"]);
 const TIPOS_OBJETO_COMPATIBLES = new Set([
   "arma",
@@ -25,8 +16,8 @@ const TIPOS_OBJETO_COMPATIBLES = new Set([
   "quiver",
   "accesorio",
 ]);
-const OPERACIONES_ACTIVAS = new Set(["sumar"]);
-const PROPIEDADES_ACTIVAS = new Set([
+const OPERACIONES_AFIJO_LOCAL_SOPORTADAS = new Set(["sumar"]);
+const PROPIEDADES_AFIJO_SOPORTADAS = new Set([
   "danioFisicoLocalMinimo",
   "danioFisicoLocalMaximo",
   "danioFisicoLocalPorcentaje",
@@ -72,9 +63,9 @@ export function validarConfiguracionGeneracionObjetos({
   validarCatalogoRarezas(rarezas);
 
   const idsRarezas = new Set(Object.keys(rarezas));
-  const idsRarezasActivas = new Set(
+  const idsRarezasHabilitadas = new Set(
     Object.entries(rarezas)
-      .filter(([, rareza]) => rareza.estado === "activo")
+      .filter(([, rareza]) => rareza.generacionHabilitada === true)
       .map(([idRareza]) => idRareza),
   );
   const idsAfijos = new Set();
@@ -84,7 +75,7 @@ export function validarConfiguracionGeneracionObjetos({
     tipoEsperado: "prefijo",
     descripcionCatalogo: "el catálogo de prefijos",
     idsRarezas,
-    idsRarezasActivas,
+    idsRarezasHabilitadas,
     idsAfijos,
   });
   validarCatalogoAfijos({
@@ -92,7 +83,7 @@ export function validarConfiguracionGeneracionObjetos({
     tipoEsperado: "sufijo",
     descripcionCatalogo: "el catálogo de sufijos",
     idsRarezas,
-    idsRarezasActivas,
+    idsRarezasHabilitadas,
     idsAfijos,
   });
 
@@ -149,11 +140,6 @@ function validarReglasGeneracion(reglas) {
     );
   }
 
-  validarListaTextos(
-    configuracionNivel.notasDiseno ?? [],
-    "notas de diseño de la generación del nivel de objeto",
-    true,
-  );
 }
 
 function validarCatalogoRarezas(rarezas) {
@@ -163,11 +149,11 @@ function validarCatalogoRarezas(rarezas) {
     validarIdConfiguracion(idRareza, "rareza");
     validarObjetoConfiguracion(rareza, `La rareza "${idRareza}"`);
     validarTexto(rareza.nombre, `nombre de la rareza "${idRareza}"`);
-    validarEstado(rareza.estado, `la rareza "${idRareza}"`);
-    validarTexto(
-      rareza.motivoEstado,
-      `motivo de estado de la rareza "${idRareza}"`,
-    );
+    if (typeof rareza.generacionHabilitada !== "boolean") {
+      throw new Error(
+        `La rareza "${idRareza}" debe indicar si su generación está habilitada.`,
+      );
+    }
 
     if (
       typeof rareza.colorInterfaz !== "string" ||
@@ -219,20 +205,20 @@ function validarCatalogoRarezas(rarezas) {
     validarDistribucionCantidadAfijos(idRareza, rareza);
   }
 
-  const pesoActivo = Object.values(rarezas)
-    .filter((rareza) => rareza.estado === "activo")
+  const pesoHabilitado = Object.values(rarezas)
+    .filter((rareza) => rareza.generacionHabilitada === true)
     .reduce((total, rareza) => total + rareza.pesoBase, 0);
 
-  if (pesoActivo <= 0) {
+  if (pesoHabilitado <= 0) {
     throw new Error(
-      "Las rarezas activas necesitan un peso total mayor que cero.",
+      "Las rarezas habilitadas necesitan un peso total mayor que cero.",
     );
   }
-  if (rarezas.comun?.estado !== "activo") {
-    throw new Error("La rareza común debe existir y estar activa.");
+  if (rarezas.comun?.generacionHabilitada !== true) {
+    throw new Error("La rareza común debe existir y tener generación habilitada.");
   }
-  if (rarezas.magico?.estado !== "activo") {
-    throw new Error("La rareza mágica debe existir y estar activa.");
+  if (rarezas.magico?.generacionHabilitada !== true) {
+    throw new Error("La rareza mágica debe existir y tener generación habilitada.");
   }
 }
 
@@ -287,7 +273,7 @@ function validarCatalogoAfijos({
   tipoEsperado,
   descripcionCatalogo,
   idsRarezas,
-  idsRarezasActivas,
+  idsRarezasHabilitadas,
   idsAfijos,
 }) {
   validarObjetoRaiz(catalogo, descripcionCatalogo);
@@ -309,21 +295,8 @@ function validarCatalogoAfijos({
       );
     }
 
-    validarEstado(afijo.estado, `el afijo "${idAfijo}"`);
-    validarTexto(afijo.motivoEstado, `motivo de estado del afijo "${idAfijo}"`);
     validarTexto(afijo.descripcion, `descripción del afijo "${idAfijo}"`);
-    validarEnteroNoNegativo(afijo.pesoBase, `peso base del afijo "${idAfijo}"`);
-    if (afijo.estado === "activo" && afijo.pesoBase <= 0) {
-      throw new Error(
-        `El afijo activo "${idAfijo}" necesita un peso base mayor que cero.`,
-      );
-    }
-
-    validarListaTextos(
-      afijo.requiere,
-      `dependencias del afijo "${idAfijo}"`,
-      true,
-    );
+    validarEnteroPositivo(afijo.pesoBase, `peso base del afijo "${idAfijo}"`);
     validarListaTextos(
       afijo.rarezasPermitidas,
       `rarezas permitidas del afijo "${idAfijo}"`,
@@ -337,12 +310,9 @@ function validarCatalogoAfijos({
         );
       }
     }
-    if (
-      afijo.estado === "activo" &&
-      !afijo.rarezasPermitidas.some((id) => idsRarezasActivas.has(id))
-    ) {
+    if (!afijo.rarezasPermitidas.some((id) => idsRarezasHabilitadas.has(id))) {
       throw new Error(
-        `El afijo activo "${idAfijo}" no puede aparecer en ninguna rareza activa.`,
+        `El afijo "${idAfijo}" no puede aparecer en ninguna rareza habilitada.`,
       );
     }
 
@@ -353,18 +323,6 @@ function validarCatalogoAfijos({
     validarAplicacionAfijo(idAfijo, afijo.aplicaA);
     validarEfectosAfijo(idAfijo, afijo);
     validarGradosAfijo(idAfijo, afijo);
-    validarListaTextos(
-      afijo.notasDiseno,
-      `notas de diseño del afijo "${idAfijo}"`,
-      true,
-    );
-
-    if (afijo.propuestaBalance !== undefined) {
-      validarTexto(
-        afijo.propuestaBalance,
-        `propuesta de balance de "${idAfijo}"`,
-      );
-    }
   }
 }
 
@@ -428,23 +386,18 @@ function validarEfectosAfijo(idAfijo, afijo) {
     }
     propiedades.add(efecto.propiedad);
 
-    if (
-      afijo.estado === "activo" &&
-      !PROPIEDADES_ACTIVAS.has(efecto.propiedad)
-    ) {
+    if (!PROPIEDADES_AFIJO_SOPORTADAS.has(efecto.propiedad)) {
       throw new Error(
-        `El afijo "${idAfijo}" está activo, pero utiliza la propiedad no soportada "${efecto.propiedad}".`,
+        `El afijo "${idAfijo}" utiliza la propiedad no soportada "${efecto.propiedad}".`,
       );
     }
-    if (afijo.estado === "activo") {
-      if (efecto.ambito === AMBITOS_AFIJO.PORTADOR) {
-        validarObjetivoModificador(efecto.objetivo ?? efecto.propiedad);
-        validarOperacionModificador(efecto.operacion);
-      } else if (!OPERACIONES_ACTIVAS.has(efecto.operacion)) {
-        throw new Error(
-          `El afijo local "${idAfijo}" utiliza la operación no soportada "${efecto.operacion}".`,
-        );
-      }
+    if (efecto.ambito === AMBITOS_AFIJO.PORTADOR) {
+      validarObjetivoModificador(efecto.objetivo ?? efecto.propiedad);
+      validarOperacionModificador(efecto.operacion);
+    } else if (!OPERACIONES_AFIJO_LOCAL_SOPORTADAS.has(efecto.operacion)) {
+      throw new Error(
+        `El afijo local "${idAfijo}" utiliza la operación no soportada "${efecto.operacion}".`,
+      );
     }
   }
 }
@@ -453,8 +406,8 @@ function validarGradosAfijo(idAfijo, afijo) {
   if (!Array.isArray(afijo.grados)) {
     throw new Error(`Los grados del afijo "${idAfijo}" deben ser una lista.`);
   }
-  if (afijo.estado === "activo" && afijo.grados.length === 0) {
-    throw new Error(`El afijo activo "${idAfijo}" necesita al menos un grado.`);
+  if (afijo.grados.length === 0) {
+    throw new Error(`El afijo "${idAfijo}" necesita al menos un grado.`);
   }
 
   const registrados = new Set();
@@ -482,9 +435,9 @@ function validarGradosAfijo(idAfijo, afijo) {
       grado.peso,
       `peso del grado ${grado.grado} de "${idAfijo}"`,
     );
-    if (afijo.estado === "activo" && grado.peso <= 0) {
+    if (grado.peso <= 0) {
       throw new Error(
-        `El grado ${grado.grado} del afijo activo "${idAfijo}" necesita un peso mayor que cero.`,
+        `El grado ${grado.grado} del afijo "${idAfijo}" necesita un peso mayor que cero.`,
       );
     }
 
@@ -537,12 +490,6 @@ function validarRangoGrado(idAfijo, numeroGrado, propiedad, rango) {
     throw new Error(
       `Los decimales del rango "${propiedad}" de "${idAfijo}" deben estar entre cero y cuatro.`,
     );
-  }
-}
-
-function validarEstado(estado, descripcion) {
-  if (typeof estado !== "string" || !ESTADOS_CONFIGURACION.has(estado)) {
-    throw new Error(`El estado de ${descripcion} no es válido.`);
   }
 }
 

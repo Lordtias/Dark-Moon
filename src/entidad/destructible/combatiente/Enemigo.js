@@ -27,7 +27,7 @@ export class Enemigo extends Combatiente {
     experienciaOtorgada = 0,
     capacidadContenedor = 0,
     objetosIniciales = [],
-    tablaBotin = [],
+    solicitudBotin = null,
     ranurasEquipamiento = [],
     equipamientoInicial = [],
     configuracionIA,
@@ -46,7 +46,7 @@ export class Enemigo extends Combatiente {
       simbolo,
       capacidadContenedor,
       objetosIniciales,
-      tablaBotin,
+      solicitudBotin,
       ranurasEquipamiento,
       equipamientoInicial,
     });

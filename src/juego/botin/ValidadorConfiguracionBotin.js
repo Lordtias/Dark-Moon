@@ -41,6 +41,30 @@ export function validarConfiguracionBotin(configuracion) {
   return resultado;
 }
 
+export function validarReglasBotin(configuracion) {
+  validarObjetoPlano(configuracion, "las reglas de botín");
+  validarObjetoPlano(configuracion.destruccion, "las reglas de destrucción del botín");
+
+  const probabilidadSupervivenciaContenido =
+    configuracion.destruccion.probabilidadSupervivenciaContenido;
+
+  if (
+    !Number.isFinite(probabilidadSupervivenciaContenido) ||
+    probabilidadSupervivenciaContenido < 0 ||
+    probabilidadSupervivenciaContenido > 100
+  ) {
+    throw new Error(
+      "La probabilidad de supervivencia del contenido debe estar entre 0 y 100.",
+    );
+  }
+
+  return {
+    destruccion: {
+      probabilidadSupervivenciaContenido,
+    },
+  };
+}
+
 export function validarMarcoBotin(marco, descripcion = "marco de botín") {
   const normalizado = normalizarId(marco, descripcion);
 

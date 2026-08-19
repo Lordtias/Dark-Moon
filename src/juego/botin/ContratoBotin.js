@@ -10,9 +10,7 @@ import {
 // Contexto        -> qué candidatos son válidos en esta situación.
 // Específicos     -> drops deliberadamente ligados a la fuente.
 // Garantizados    -> objetos que deben existir sin tirada de aparición.
-//
-// Las fuentes productivas actuales todavía usan tablaBotin. B1 agrega este
-// contrato sin migrarlas parcialmente; B2 realizará la sustitución completa.
+
 export function normalizarSolicitudBotin({
   solicitud,
   perfilesBotin,

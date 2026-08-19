@@ -672,7 +672,9 @@
       "equipar": "Equip",
       "ambitoObjeto": "Item",
       "ambitoPortador": "Wearer",
-      "ambitoMixto": "Mixed"
+      "ambitoMixto": "Mixed",
+      "tipoDesechable": "Junk",
+      "categoriaMaterial": "Material"
     },
     "comparacionObjetos": {
       "sinOpciones": "There are no other equipped items to compare.",
@@ -1101,6 +1103,22 @@
       "flecha_madera": {
         "nombre": "Wooden Arrow",
         "descripcion": "A simple wooden arrow with a metal tip."
+      },
+      "madera": {
+        "nombre": "Wood",
+        "descripcion": "Wood fragments recovered from structures and furniture. They can be sold and will serve as crafting material in future systems."
+      },
+      "tela": {
+        "nombre": "Cloth",
+        "descripcion": "Cloth scraps recovered from furniture, bags, and worn equipment. They can be sold and will serve as crafting material in future systems."
+      },
+      "metal": {
+        "nombre": "Metal",
+        "descripcion": "Metal pieces and fragments recovered from objects and structures. They can be sold and will serve as crafting material in future systems."
+      },
+      "piedra": {
+        "nombre": "Stone",
+        "descripcion": "Usable stone fragments recovered from structures. They can be sold and will serve as crafting material in future systems."
       }
     },
     "afijos": {

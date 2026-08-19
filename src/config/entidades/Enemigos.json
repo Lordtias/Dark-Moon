@@ -112,20 +112,6 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "cola_rata",
-        "probabilidad": 70,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 5,
@@ -135,7 +121,22 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "cola_rata",
+          "probabilidad": 70,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 1
+        }
+      ],
+      "garantizados": []
+    }
   },
   "cucaracha": {
     "nombre": "Cucaracha",
@@ -242,20 +243,6 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "caparazon_cucaracha",
-        "probabilidad": 65,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 2
-      },
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 2,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 5,
@@ -265,7 +252,22 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "caparazon_cucaracha",
+          "probabilidad": 65,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 2
+        }
+      ],
+      "garantizados": []
+    }
   },
   "esqueleto_arquero": {
     "nombre": "Esqueleto Arquero",
@@ -382,27 +384,23 @@
         "quiver_cuero"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "hueso_esqueleto",
-        "probabilidad": 75,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 3
-      },
-      {
-        "idObjeto": "flecha_madera",
-        "probabilidad": 40,
-        "cantidadMinima": 2,
-        "cantidadMaxima": 6
-      },
-      {
-        "idObjeto": "arco_corto",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
-    "hitos": []
+    "hitos": [],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "hueso_esqueleto",
+          "probabilidad": 75,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 3
+        }
+      ],
+      "garantizados": []
+    }
   },
   "esqueleto_guardia": {
     "nombre": "Esqueleto Guardia",
@@ -513,27 +511,23 @@
         "escudo_madera"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "hueso_esqueleto",
-        "probabilidad": 80,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 3
-      },
-      {
-        "idObjeto": "espada_larga",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "escudo_madera",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
-    "hitos": []
+    "hitos": [],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "hueso_esqueleto",
+          "probabilidad": 80,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 3
+        }
+      ],
+      "garantizados": []
+    }
   },
   "ladron": {
     "nombre": "Ladrón",
@@ -658,32 +652,6 @@
         "jubon_cuero_endurecido"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 12,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "flecha_madera",
-        "probabilidad": 35,
-        "cantidadMinima": 2,
-        "cantidadMaxima": 6
-      },
-      {
-        "idObjeto": "daga_acero",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "capucha_cuero_endurecido",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 8,
@@ -693,7 +661,16 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "lancero": {
     "nombre": "Lancero",
@@ -813,26 +790,6 @@
         "coraza_hierro"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 10,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "lanza_reforzada",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "coraza_hierro",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 8,
@@ -842,6 +799,15 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_comun",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [],
+      "garantizados": []
+    }
   }
 }

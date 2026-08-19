@@ -7,7 +7,20 @@
     "armadura": 5,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "lapida_piedra": {
     "nombre": "Lápida de piedra",
@@ -17,7 +30,20 @@
     "armadura": 7,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "piedra"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "reja_hierro": {
     "nombre": "Reja de hierro",
@@ -27,6 +53,19 @@
     "armadura": 9,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_mayor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "metal"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   }
 }

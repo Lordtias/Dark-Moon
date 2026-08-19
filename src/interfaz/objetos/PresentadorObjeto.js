@@ -133,9 +133,18 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
   validarObjeto(objeto);
 
   const esMaterial = objeto.tipo === "material";
+  const esDesechable = objeto.tipo === "desechable";
   return {
     nombre: traducirContenido("objetos", objeto.id, "nombre", objeto.nombre),
     subtitulo: crearSubtitulo(objeto),
+    etiquetasCategoria: esMaterial
+      ? [
+          {
+            tipo: "material",
+            texto: tDetalle("categoriaMaterial", "Material"),
+          },
+        ]
+      : [],
     descripcion:
       objeto.descripcion.trim() !== ""
         ? traducirContenido("objetos", objeto.id, "descripcion", objeto.descripcion)
@@ -148,7 +157,7 @@ export function crearPresentacionObjeto({ objeto, combatiente = null } = {}) {
     informacionComercial: crearInformacionComercial(objeto),
     afijos: crearPresentacionAfijos(objeto),
     estadisticas: crearEstadisticasObjeto({ objeto, combatiente }),
-    mostrarMensajeSinEstadisticas: !esMaterial,
+    mostrarMensajeSinEstadisticas: !esMaterial && !esDesechable,
   };
 }
 
@@ -376,7 +385,7 @@ function crearEstadisticasObjeto({ objeto, combatiente }) {
   if (objeto.esQuiver) return crearEstadisticasQuiver(objeto);
   if (objeto.esMunicion) return crearEstadisticasMunicion(objeto);
   if (objeto.esConsumible) return crearEstadisticasConsumible(objeto);
-  if (objeto.tipo === "material") return [];
+  if (objeto.tipo === "material" || objeto.tipo === "desechable") return [];
   return crearEstadisticasGenericas(objeto);
 }
 
@@ -716,6 +725,7 @@ function traducirTipoObjeto(tipo) {
     municion: ["tipoMunicion", "Munición"],
     consumible: ["tipoConsumible", "Consumible"],
     material: ["tipoMaterial", "Material"],
+    desechable: ["tipoDesechable", "Desechable"],
   };
   const [clave, respaldo] = claves[tipo] ?? [null, formatearIdentificador(tipo)];
   return clave ? tDetalle(clave, respaldo) : respaldo;

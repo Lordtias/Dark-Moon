@@ -21,23 +21,33 @@ export function seleccionarMarcoBotin({
   marcosPermitidos,
   aleatorio,
 } = {}) {
-  validarPerfil(perfil);
   validarAleatorio(aleatorio);
+  const candidatos = obtenerCandidatosMarcosBotin({ perfil, marcosPermitidos });
+  return seleccionarPonderado(candidatos, aleatorio, (entrada) => entrada.peso).marco;
+}
+
+// Devuelve exactamente la misma distribución de marcos que utiliza la
+// selección real. SistemaBotin también la consulta para calcular expectativas
+// sin reimplementar pesos ni reglas de elegibilidad.
+export function obtenerCandidatosMarcosBotin({ perfil, marcosPermitidos } = {}) {
+  validarPerfil(perfil);
 
   if (!Array.isArray(marcosPermitidos) || marcosPermitidos.length === 0) {
     throw new Error("La selección de botín necesita al menos un marco permitido.");
   }
 
-  const candidatos = [...new Set(marcosPermitidos)].map((marcoOriginal) => {
-    const marco = validarMarcoBotin(marcoOriginal);
-    const peso = perfil.pesosMarcos[marco] ?? 0;
+  const candidatos = [...new Set(marcosPermitidos)]
+    .map((marcoOriginal) => {
+      const marco = validarMarcoBotin(marcoOriginal);
+      const peso = perfil.pesosMarcos[marco] ?? 0;
 
-    if (!Number.isFinite(peso) || peso < 0) {
-      throw new Error(`El peso del marco "${marco}" no es válido.`);
-    }
+      if (!Number.isFinite(peso) || peso < 0) {
+        throw new Error(`El peso del marco "${marco}" no es válido.`);
+      }
 
-    return { marco, peso };
-  }).filter((entrada) => entrada.peso > 0);
+      return { marco, peso };
+    })
+    .filter((entrada) => entrada.peso > 0);
 
   if (candidatos.length === 0) {
     throw new Error(
@@ -45,7 +55,7 @@ export function seleccionarMarcoBotin({
     );
   }
 
-  return seleccionarPonderado(candidatos, aleatorio, (entrada) => entrada.peso).marco;
+  return candidatos;
 }
 
 export function obtenerCandidatosObjetosBotin({

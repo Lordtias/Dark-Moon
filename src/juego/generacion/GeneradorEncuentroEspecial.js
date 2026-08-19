@@ -7,7 +7,6 @@ const ID_VARIANTE_NORMAL = "normal";
 // - Si el encuentro aparece.
 // - Qué plantilla especial fue seleccionada.
 // - Qué variante recibirá.
-// - Qué botín adicional aporta esa aparición.
 //
 // GeneradorContenidoMapa continúa siendo responsable
 // de encontrar una posición válida y crear la instancia.
@@ -41,7 +40,6 @@ export function resolverEncuentroEspecial({
       idEnemigo: null,
       idVariante: null,
       variante: null,
-      tablaBotinAdicional: [],
     };
   }
 
@@ -64,7 +62,6 @@ export function resolverEncuentroEspecial({
     idEnemigo: candidato.id,
     idVariante,
     variante: idVariante ?? ID_VARIANTE_NORMAL,
-    tablaBotinAdicional: clonarLista(candidato.tablaBotinAdicional ?? []),
   };
 }
 
@@ -77,7 +74,6 @@ function crearResultadoSinConfiguracion() {
     idEnemigo: null,
     idVariante: null,
     variante: null,
-    tablaBotinAdicional: [],
   };
 }
 
@@ -176,10 +172,4 @@ function validarAleatorio(aleatorio) {
       "Se necesita un generador aleatorio válido para resolver el encuentro especial.",
     );
   }
-}
-
-function clonarLista(lista) {
-  return lista.map((entrada) => ({
-    ...entrada,
-  }));
 }

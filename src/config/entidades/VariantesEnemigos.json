@@ -33,6 +33,11 @@
     "multiplicadorExperiencia": 2.5,
     "multiplicadoresTemporales": {
       "factorTiempo": 0.9
+    },
+    "botin": {
+      "marcosAdicionales": [
+        "equipamiento"
+      ]
     }
   }
 }

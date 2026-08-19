@@ -7,7 +7,8 @@ import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
 //
 // - aleatorioEspecificosBotin decide drops específicos y sus cantidades;
 // - aleatorioSeleccionBotin decide tiradas genéricas, marcos y plantillas;
-// - aleatorioObjetos decide nivel, rareza, afijos, grados y valores.
+// - aleatorioObjetos decide nivel, rareza, afijos, grados y valores;
+// - aleatorioSupervivenciaContenido decide qué pilas sobreviven a una destrucción.
 //
 // Mantenerlas separadas evita que agregar o modificar afijos cambie qué objeto
 // fue seleccionado por el motor canónico para una misma semilla.
@@ -76,6 +77,12 @@ export function configurarContextoGeneracionBotin({
     // - Grados.
     // - Valores.
     aleatorioObjetos: crearGeneradorAleatorio(`${semillaNormalizada}:objetos`),
+
+    // Secuencia exclusiva para destrucción de contenido ya materializado.
+    // No desplaza selección de objetos ni rarezas.
+    aleatorioSupervivenciaContenido: crearGeneradorAleatorio(
+      `${semillaNormalizada}:supervivencia-contenido`,
+    ),
   };
 
   return contextoActual;
@@ -105,9 +112,15 @@ function validarConfiguracionBotin(configuracion) {
     configuracion === null ||
     typeof configuracion !== "object" ||
     Array.isArray(configuracion) ||
-    Object.keys(configuracion).length === 0
+    configuracion.perfiles === null ||
+    typeof configuracion.perfiles !== "object" ||
+    Array.isArray(configuracion.perfiles) ||
+    Object.keys(configuracion.perfiles).length === 0 ||
+    configuracion.reglas === null ||
+    typeof configuracion.reglas !== "object" ||
+    Array.isArray(configuracion.reglas)
   ) {
-    throw new Error("Se necesita una configuración válida de perfiles de botín.");
+    throw new Error("Se necesita una configuración canónica válida de botín.");
   }
 }
 

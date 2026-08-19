@@ -7,7 +7,10 @@ import { validarConfiguracionGeneracionObjetos } from "../objetos/ValidadorConfi
 import { validarConfiguracionComercio } from "../comercio/ValidadorConfiguracionComercio.js";
 import { validarHabilidadesNPC } from "../habilidades/ValidadorHabilidadesNPC.js";
 import { validarConfiguracionEntidadesMazmorra } from "./ValidadorConfiguracionEntidadesMazmorra.js";
-import { validarConfiguracionBotin } from "../botin/ValidadorConfiguracionBotin.js";
+import {
+  validarConfiguracionBotin,
+  validarReglasBotin,
+} from "../botin/ValidadorConfiguracionBotin.js";
 
 // Rutas de las configuraciones generales.
 const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
@@ -15,6 +18,8 @@ const RUTA_CONFIGURACION_PERSONAJE = "./src/config/ConfiguracionPersonaje.json";
 const RUTA_VARIANTES_ENEMIGOS = "./src/config/entidades/VariantesEnemigos.json";
 
 const RUTA_PERFILES_BOTIN = "./src/config/botin/PerfilesBotin.json";
+
+const RUTA_REGLAS_BOTIN = "./src/config/botin/ReglasBotin.json";
 
 // Las plantillas de enemigos se dividen por función.
 //
@@ -135,6 +140,11 @@ const CATALOGOS_OBJETOS = Object.freeze([
     ruta: "./src/config/objetos/Materiales.json",
     descripcion: "el catálogo de materiales",
   },
+  {
+    id: "desechables",
+    ruta: "./src/config/objetos/Desechables.json",
+    descripcion: "el catálogo de desechables",
+  },
 ]);
 
 
@@ -193,12 +203,15 @@ export async function cargarConfiguracionEnemigos() {
 // El resto del juego no necesita saber
 // en qué archivo se encuentra cada objeto.
 export async function cargarConfiguracionBotin() {
-  const configuracion = await cargarJson(
-    RUTA_PERFILES_BOTIN,
-    "los perfiles canónicos de botín",
-  );
+  const [perfiles, reglas] = await Promise.all([
+    cargarJson(RUTA_PERFILES_BOTIN, "los perfiles canónicos de botín"),
+    cargarJson(RUTA_REGLAS_BOTIN, "las reglas canónicas de botín"),
+  ]);
 
-  return validarConfiguracionBotin(configuracion);
+  return {
+    perfiles: validarConfiguracionBotin(perfiles),
+    reglas: validarReglasBotin(reglas),
+  };
 }
 
 export async function cargarConfiguracionObjetos() {

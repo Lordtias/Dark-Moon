@@ -763,6 +763,18 @@ Puede utilizar:
 
 No debe parecer un enemigo o una habilidad activa.
 
+## 13.7 Categorías funcionales en el detalle
+
+Cuando la categoría de un objeto aporta información útil que no debe confundirse con sus estadísticas, el detalle puede mostrar una píldora breve derivada de datos canónicos del objeto.
+
+Reglas:
+
+- la categoría se obtiene del tipo real del objeto; no se duplica dentro de su descripción;
+- la píldora es informativa y no sustituye nombre, descripción, rareza ni estadísticas;
+- debe ser compacta, legible y coherente con las etiquetas existentes del detalle;
+- los objetos de tipo `material` muestran la píldora **Material**;
+- nuevas categorías sólo se incorporarán cuando tengan una necesidad de lectura explícita.
+
 ---
 
 # 14. HABILIDADES Y MAGIA

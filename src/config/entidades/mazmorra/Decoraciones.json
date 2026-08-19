@@ -7,7 +7,21 @@
     "armadura": 0,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "desechables"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "cola_rata",
+          "carne_putrefacta"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "pila_huesos": {
     "nombre": "Pila de huesos",
@@ -17,7 +31,20 @@
     "armadura": 0,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "desechables"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "hueso_esqueleto"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "mesa_madera": {
     "nombre": "Mesa de madera",
@@ -27,7 +54,20 @@
     "armadura": 1,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "silla_madera": {
     "nombre": "Silla de madera",
@@ -37,7 +77,20 @@
     "armadura": 0,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "cama_madera": {
     "nombre": "Cama de madera",
@@ -47,7 +100,21 @@
     "armadura": 1,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "tela"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "estanteria_madera": {
     "nombre": "Estantería de madera",
@@ -57,7 +124,20 @@
     "armadura": 1,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "banco_madera": {
     "nombre": "Banco de madera",
@@ -67,7 +147,20 @@
     "armadura": 0,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "soporte_entrenamiento": {
     "nombre": "Soporte de entrenamiento",
@@ -77,7 +170,21 @@
     "armadura": 2,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "tela"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "mesa_estrategica": {
     "nombre": "Mesa estratégica",
@@ -87,6 +194,20 @@
     "armadura": 2,
     "bloqueaMovimiento": true,
     "bloqueaVision": false,
-    "bloqueaCruceDiagonal": true
+    "bloqueaCruceDiagonal": true,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "tela"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   }
 }

@@ -105,7 +105,7 @@ export function validarReferenciasEntidadesMazmorra({
         permitido.id,
       );
       if (
-        permitido.idTablaContenido !== undefined &&
+        permitido.idSolicitudContenido !== undefined &&
         definicion.familia !== FAMILIAS_ENTIDAD_MAZMORRA.RECIPIENTE
       ) {
         throw new Error(
@@ -140,6 +140,13 @@ function validarDefinicion({ id, familia, definicion }) {
     `el bloqueo diagonal de "${id}"`,
   );
 
+  if (definicion.solicitudBotinDestruccion !== undefined) {
+    validarSolicitudBotinDeclarativa(
+      definicion.solicitudBotinDestruccion,
+      `la solicitud de botín al destruir "${id}"`,
+    );
+  }
+
   if (familia === FAMILIAS_ENTIDAD_MAZMORRA.RECIPIENTE) {
     validarEnteroPositivo(
       definicion.capacidadContenedor,
@@ -155,6 +162,20 @@ function validarDefinicion({ id, familia, definicion }) {
       );
     }
   }
+}
+
+function validarSolicitudBotinDeclarativa(solicitud, descripcion) {
+  validarObjeto(solicitud, descripcion);
+  validarTexto(solicitud.perfil, `el perfil de ${descripcion}`);
+  if (
+    !Array.isArray(solicitud.marcosPermitidos) ||
+    solicitud.marcosPermitidos.length === 0
+  ) {
+    throw new Error(`${descripcion} debe declarar al menos un marco permitido.`);
+  }
+  solicitud.marcosPermitidos.forEach((marco) =>
+    validarTexto(marco, `un marco permitido de ${descripcion}`),
+  );
 }
 
 function validarRecursoVisual(ruta, id) {

@@ -880,43 +880,25 @@
     "cofres": {
       "moderados": {
         "probabilidadPorHabitacion": 20,
-        "tablaBotin": [
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 45,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 50,
-            "cantidadMinima": 4,
-            "cantidadMaxima": 10
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       },
       "importante": {
-        "tablaBotin": [
-          {
-            "idObjeto": "espada_larga",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1,
-            "rarezaForzada": "magico"
-          },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes",
+            "equipamiento"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       }
     },
     "destructibles": {
@@ -924,17 +906,17 @@
         {
           "id": "barril_madera",
           "peso": 28,
-          "idTablaContenido": "basico"
+          "idSolicitudContenido": "basico"
         },
         {
           "id": "caja_humeda",
           "peso": 24,
-          "idTablaContenido": "basico"
+          "idSolicitudContenido": "basico"
         },
         {
           "id": "suministros_mantenimiento",
           "peso": 16,
-          "idTablaContenido": "mantenimiento"
+          "idSolicitudContenido": "mantenimiento"
         },
         {
           "id": "barricada_improvisada",
@@ -942,65 +924,40 @@
         },
         {
           "id": "restos_abandonados",
-          "peso": 16,
-          "idTablaBotin": "restos"
+          "peso": 16
         }
       ],
-      "tablasBotin": {
-        "basico": [
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 100,
-            "cantidadMinima": 2,
-            "cantidadMaxima": 5
+      "solicitudesBotin": {
+        "basico": {
+          "perfil": "recompensa_menor",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "flecha_madera",
+              "pocion_curacion",
+              "pocion_mana"
+            ]
           },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 20,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
+          "especificos": [],
+          "garantizados": []
+        },
+        "mantenimiento": {
+          "perfil": "recompensa_estandar",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "flecha_madera",
+              "pocion_curacion",
+              "pocion_mana"
+            ]
           },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 15,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ],
-        "mantenimiento": [
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 100,
-            "cantidadMinima": 4,
-            "cantidadMaxima": 8
-          },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 35,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 25,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ],
-        "restos": [
-          {
-            "idObjeto": "cola_rata",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          },
-          {
-            "idObjeto": "carne_putrefacta",
-            "probabilidad": 45,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          }
-        ]
+          "especificos": [],
+          "garantizados": []
+        }
       }
     }
   }

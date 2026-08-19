@@ -232,6 +232,8 @@ function generarDestructiblesPorComposiciones({
           permitido,
           configuracion,
           configuracionObjetos,
+          configuracionEntidadesMazmorra,
+          nivelMapa,
         });
         return { ...elemento, permitido, datos };
       });
@@ -322,6 +324,8 @@ function generarDestructiblesPorComposiciones({
         permitido,
         configuracion,
         configuracionObjetos,
+        configuracionEntidadesMazmorra,
+        nivelMapa,
       });
       if (!puedeConsumirPresupuesto(zona, datos.costoPoblacion)) continue;
 
@@ -422,21 +426,30 @@ function composicionMantieneConectividad({
   );
 }
 
-function resolverDatosDestructible({ permitido, configuracion, configuracionObjetos }) {
-  const tablaContenido = resolverTablaConfigurada({
+function resolverDatosDestructible({
+  permitido,
+  configuracion,
+  configuracionObjetos,
+  configuracionEntidadesMazmorra,
+  nivelMapa,
+}) {
+  const solicitudContenido = resolverSolicitudConfigurada({
     configuracion,
-    idTabla: permitido.idTablaContenido,
+    idSolicitud: permitido.idSolicitudContenido,
   });
-  const tablaBotin = resolverTablaConfigurada({
-    configuracion,
-    idTabla: permitido.idTablaBotin,
-  });
+  const definicion = obtenerEntidadMazmorraConfigurada(
+    configuracionEntidadesMazmorra,
+    permitido.id,
+  );
+  const solicitudDestruccion = definicion.solicitudBotinDestruccion ?? null;
+
   return {
-    tablaContenido,
-    tablaBotin,
+    solicitudContenido,
+    solicitudDestruccion,
     costoPoblacion: calcularCostoDestructiblePoblacion({
-      tablaBotin: [...(tablaContenido ?? []), ...(tablaBotin ?? [])],
+      solicitudesBotin: [solicitudContenido, solicitudDestruccion],
       configuracionObjetos,
+      nivel: nivelMapa,
     }),
   };
 }
@@ -482,8 +495,7 @@ function intentarColocarDestructible({
     x: posicion.x,
     y: posicion.y,
     nivel: nivelMapa,
-    tablaContenido: datos.tablaContenido,
-    tablaBotin: datos.tablaBotin,
+    solicitudContenido: datos.solicitudContenido,
     configuracionObjetos,
     configuracionEntidadesMazmorra,
     aleatorio,
@@ -560,13 +572,17 @@ function retirarPosicionDisponible(zona, posicion) {
   if (indice >= 0) zona.posicionesDisponibles.splice(indice, 1);
 }
 
-function resolverTablaConfigurada({ configuracion, idTabla }) {
-  if (!idTabla) return null;
-  const tabla = configuracion.tablasBotin?.[idTabla];
-  if (!Array.isArray(tabla)) {
-    throw new Error(`La tabla de botín "${idTabla}" no está configurada.`);
+function resolverSolicitudConfigurada({ configuracion, idSolicitud }) {
+  if (!idSolicitud) return null;
+  const solicitud = configuracion.solicitudesBotin?.[idSolicitud];
+  if (
+    solicitud === null ||
+    typeof solicitud !== "object" ||
+    Array.isArray(solicitud)
+  ) {
+    throw new Error(`La solicitud de botín "${idSolicitud}" no está configurada.`);
   }
-  return tabla;
+  return solicitud;
 }
 
 function tieneCasillaAdyacenteDisponible({
@@ -797,8 +813,9 @@ function generarCofreEnZona({
   posicionJugador,
 }) {
   const costoPoblacion = calcularCostoCofrePoblacion({
-    tablaBotin: configuracion.tablaBotin,
+    solicitudBotin: configuracion.solicitudBotin,
     configuracionObjetos,
+    nivel: nivelMapa,
   });
 
   if (!puedeConsumirPresupuesto(zona, costoPoblacion)) {
@@ -863,7 +880,7 @@ function generarCofreEnZona({
     x: posicion.x,
     y: posicion.y,
     nivel: nivelMapa,
-    tablaBotin: configuracion.tablaBotin,
+    solicitudBotin: configuracion.solicitudBotin,
     configuracionObjetos,
     aleatorio,
     objetivos,

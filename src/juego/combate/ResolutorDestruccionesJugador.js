@@ -5,9 +5,9 @@ import {
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
   depositarObjetosEnSuelo,
-  generarBotinEnSuelo,
+  generarBotinCanonicoEnSuelo,
+  resolverSupervivenciaContenidoDestruido,
 } from "../botin/SistemaBotin.js";
-import { crearGeneradorAleatorio } from "../generacion/GeneradorAleatorio.js";
 import { calcularRecompensaExperiencia } from "../progresion/SistemaProgresion.js";
 import {
   crearMensajeTraducible,
@@ -69,7 +69,6 @@ export class ResolutorDestruccionesJugador {
     objetivos,
     interactuables,
     configuracionObjetos,
-    semillaMapa = "partida",
     eliminarActorTemporal,
   } = {}) {
     if (!jugador || typeof jugador !== "object") {
@@ -107,7 +106,6 @@ export class ResolutorDestruccionesJugador {
     this.interactuables = interactuables;
     this.configuracionObjetos = configuracionObjetos;
     this.eliminarActorTemporal = eliminarActorTemporal;
-    this.aleatorioBotin = crearGeneradorAleatorio(`${semillaMapa}:botin`);
     this.objetivosProcesados = new WeakSet();
   }
 
@@ -141,10 +139,10 @@ export class ResolutorDestruccionesJugador {
         parametros: { objetivo: parametroObjetivo },
       }),
     ];
-    const resultadoBotin = generarBotinEnSuelo({
+    const resultadoBotin = generarBotinCanonicoEnSuelo({
       fuente: objetivo,
+      solicitud: objetivo.solicitudBotin,
       configuracionObjetos: this.configuracionObjetos,
-      aleatorio: this.aleatorioBotin,
       interactuables: this.interactuables,
     });
     agregarMensajeBotin({ mensajes, objetivo, resultadoBotin });
@@ -239,31 +237,37 @@ export class ResolutorDestruccionesJugador {
         ? objetivo.contenedorObjetos.extraerTodos()
         : [];
     if (objetosExistentes.length > 0) {
-      const resultadoContenido = depositarObjetosEnSuelo({
-        fuente: objetivo,
+      const supervivencia = resolverSupervivenciaContenidoDestruido({
         objetos: objetosExistentes,
-        interactuables: this.interactuables,
       });
-      resultadosBotin.push(resultadoContenido);
-      agregarMensajeBotin({
-        mensajes,
-        objetivo,
-        resultadoBotin: resultadoContenido,
-      });
+      if (supervivencia.sobrevivientes.length > 0) {
+        const resultadoContenido = depositarObjetosEnSuelo({
+          fuente: objetivo,
+          objetos: supervivencia.sobrevivientes,
+          interactuables: this.interactuables,
+        });
+        resultadoContenido.detalleSupervivencia = supervivencia;
+        resultadosBotin.push(resultadoContenido);
+        agregarMensajeBotin({
+          mensajes,
+          objetivo,
+          resultadoBotin: resultadoContenido,
+        });
+      }
     }
 
-    if (Array.isArray(objetivo.tablaBotin) && objetivo.tablaBotin.length > 0) {
-      const resultadoTabla = generarBotinEnSuelo({
+    if (objetivo.solicitudBotin) {
+      const resultadoSolicitud = generarBotinCanonicoEnSuelo({
         fuente: objetivo,
+        solicitud: objetivo.solicitudBotin,
         configuracionObjetos: this.configuracionObjetos,
-        aleatorio: this.aleatorioBotin,
         interactuables: this.interactuables,
       });
-      resultadosBotin.push(resultadoTabla);
+      resultadosBotin.push(resultadoSolicitud);
       agregarMensajeBotin({
         mensajes,
         objetivo,
-        resultadoBotin: resultadoTabla,
+        resultadoBotin: resultadoSolicitud,
       });
     }
 

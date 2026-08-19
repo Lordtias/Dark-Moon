@@ -16,7 +16,7 @@ export class Destructible extends Entidad {
     armadura = 0,
     capacidadContenedor = 0,
     objetosIniciales = [],
-    tablaBotin = [],
+    solicitudBotin = null,
     bloqueaMovimiento = true,
     bloqueaVision = false,
     bloqueaCruceDiagonal = true,
@@ -57,8 +57,11 @@ export class Destructible extends Entidad {
       );
     }
 
-    if (!Array.isArray(tablaBotin)) {
-      throw new Error(`La tabla de botín de ${nombre} debe ser una lista.`);
+    if (
+      solicitudBotin !== null &&
+      (typeof solicitudBotin !== "object" || Array.isArray(solicitudBotin))
+    ) {
+      throw new Error(`La solicitud de botín de ${nombre} debe ser un objeto o null.`);
     }
 
     if (
@@ -108,7 +111,9 @@ export class Destructible extends Entidad {
           })
         : null;
 
-    this.tablaBotin = tablaBotin.map((entrada) => ({ ...entrada }));
+    this.solicitudBotin = solicitudBotin === null
+      ? null
+      : JSON.parse(JSON.stringify(solicitudBotin));
     this.alcanceInteraccion = alcanceInteraccion;
     this.prioridadInteraccion = prioridadInteraccion;
     this.textoInteraccion =

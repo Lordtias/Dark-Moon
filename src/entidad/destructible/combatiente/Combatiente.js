@@ -326,7 +326,7 @@ export class Combatiente extends Destructible {
     tipoContextoModificadores = "combatiente",
     capacidadContenedor = 0,
     objetosIniciales = [],
-    tablaBotin = [],
+    solicitudBotin = null,
     ranurasEquipamiento = [],
     equipamientoInicial = [],
   } = {}) {
@@ -390,7 +390,7 @@ export class Combatiente extends Destructible {
       armadura: 0,
       capacidadContenedor,
       objetosIniciales,
-      tablaBotin,
+      solicitudBotin,
       // Un combatiente ocupa su casilla, pero no sella una esquina como un
       // obstáculo estructural. La casilla destino continúa bloqueada por la
       // regla normal de ocupación.

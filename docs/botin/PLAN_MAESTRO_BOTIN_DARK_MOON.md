@@ -2,7 +2,8 @@
 
 **Estado general:** En ejecución.  
 **Última etapa cerrada:** B1 — Contrato y motor canónico de botín.  
-**Siguiente etapa recomendada:** B2 — Migración de fuentes, Desechables y destrucción (no iniciada).  
+**Etapa actual:** B2 — Migración de fuentes, Desechables y destrucción cerrada el 19/08/2026.
+**Siguiente etapa recomendada tras cerrar B2:** B3 — Suerte, joyería y Tier III. No iniciar automáticamente.
 **Base inicial del plan:** `b5b8b69df1e7faa3a3e0fd7475dc50f0019f95a0`.  
 **Rama:** `main`.  
 **Regla de persistencia del plan:** se asume que no existen partidas guardadas previas que deban conservarse. No se crearán migradores, aliases, wrappers ni parches de compatibilidad.
@@ -661,7 +662,7 @@ Estado: **Cerrada. Pruebas técnicas superadas y regresión manual aprobada por 
 
 ### B2 — Migración de fuentes, Desechables y destrucción
 
-Objetivo futuro:
+Objetivo implementado:
 
 - migrar enemigos recurrentes/especiales/jefes;
 - auditar cada `tablaBotin` y separar específico frente a genérico;
@@ -673,9 +674,10 @@ Objetivo futuro:
 - aplicar 80 % de supervivencia del contenido;
 - agregar materiales estructurales;
 - integrar `elite → +equipamiento` desde configuración de variantes;
-- dejar `SistemaBotin` como única ruta productiva.
+- dejar `SistemaBotin` como única ruta productiva;
+- hacer que el presupuesto consulte el valor esperado al propio `SistemaBotin`, sin crear un segundo intérprete de perfiles/pesos/probabilidades.
 
-No comenzar sin cierre/aprobación de B1.
+Estado: **Cerrada. Implementación completa, validación técnica superada y pruebas manuales aprobadas por el usuario el 19/08/2026.**
 
 ### B3 — Suerte, joyería y Tier III
 
@@ -763,17 +765,15 @@ No se silencian configuraciones inválidas.
 
 ---
 
-## 22. Balance de perfiles de B1
+## 22. Balance de perfiles
 
-`PerfilesBotin.json` incorpora valores iniciales con:
+B1 utilizó temporalmente `estadoBalance: provisional_b1` para dejar explícito que sus números todavía no habían sido contrastados contra las fuentes productivas.
 
-`estadoBalance: provisional_b1`
+B2 elimina ese atributo de la configuración productiva. El estado de una etapa o de su balance pertenece a la documentación y a las pruebas, no al contrato que ejecuta el juego.
 
-Estos valores permiten probar el contrato y las relaciones de grado de recompensa, pero **no se consideran balance de gameplay cerrado** porque B1 todavía no migra las fuentes productivas.
+Durante B2 los perfiles y las solicitudes reales se contrastaron contra el valor esperado de las tablas heredadas y contra la generación procedural completa. Los perfiles quedan configurables por JSON, pero ya no llevan identificadores de etapa ni metadatos de seguimiento documental.
 
-B2 deberá contrastarlos contra el valor esperado de las tablas actuales antes de activar la generación genérica real.
-
-La arquitectura de los perfiles sí queda estable; sus números pueden ajustarse mediante JSON.
+La consulta de valor esperado pertenece a `SistemaBotin` y reutiliza el mismo contrato normalizado, marcos, candidatos, pesos y rangos de cantidad que la generación real. El planificador de población consume esa consulta y no interpreta botín por su cuenta.
 
 ---
 
@@ -872,3 +872,65 @@ Resultado consolidado:
 - el usuario confirmó la superación de las pruebas manuales de regresión el 18/08/2026;
 - no se reabrieron los Planes Maestros cerrados de Habilidades ni Mazmorras;
 - B2 continúa sin iniciar hasta una nueva solicitud explícita y una nueva verificación de base Git.
+
+
+---
+
+## 27. Implementación de B2
+
+B2 parte del `HEAD` verificado `f2c2ec68e011fc0f67250688ca4debb61d524c23`, rama `main`, con `origin/main` coincidente y árbol limpio antes de modificar.
+
+Decisiones consolidadas:
+
+- `SistemaBotin` es la única autoridad productiva y también la única autoridad para consultar el valor esperado de una solicitud;
+- no existe `CalculadorValorEsperadoBotin` ni otra interpretación paralela del contrato;
+- enemigos, cofres, recipientes y destructibles utilizan solicitudes canónicas;
+- `tablaBotin`, `tablaBotinAdicional`, `generarBotinEnSuelo()` y `generarContenidoBotin()` dejan de formar parte del flujo productivo;
+- los drops característicos permanecen como específicos;
+- los cofres importantes usan `recompensa_mayor` con los marcos `comunes` y `equipamiento`, sin objetos ni rarezas garantizadas;
+- el Señor de la Guerra deja de forzar una `espada_acero` mágica: `espada_acero` queda como específico de probabilidad alta y su rareza sigue el generador canónico;
+- `elite` agrega `equipamiento` desde `VariantesEnemigos.json`, sin condición por nombre dentro de `SistemaBotin`;
+- `Desechables.json` contiene Cola de rata, Caparazón de cucaracha, Hueso de esqueleto, Carne putrefacta y Hueso negro;
+- `Materiales.json` queda reservado inicialmente a Madera, Tela, Metal y Piedra;
+- los materiales muestran una píldora visual `Material` derivada de `tipo: material`, sin duplicar esa categoría dentro de la descripción de cada objeto;
+- abrir un recipiente consume exclusivamente las instancias ya generadas que contiene;
+- destruirlo aplica la supervivencia configurada por pila restante y luego resuelve sus recompensas estructurales;
+- la probabilidad inicial de supervivencia es 80 % y utiliza una secuencia pseudoaleatoria propia del contexto canónico;
+- una pila sobrevive o se destruye completa: no se divide por unidad;
+- Madera, Tela, Metal y Piedra participan en la generación estructural mediante solicitudes declarativas por entidad;
+- el presupuesto procedural consulta `SistemaBotin.calcularValorEsperadoSolicitudBotin()` y no contiene una segunda fórmula de interpretación de loot;
+- `estadoBalance: provisional_b1` se elimina de producción y no se reemplaza por un identificador de B2.
+
+Balance técnico de referencia realizado en B2:
+
+- enemigos recurrentes, considerados como conjunto, quedan aproximadamente 23 % por debajo del valor medio legado;
+- enemigos especiales sin jefe, como conjunto, quedan aproximadamente 17 % por encima;
+- el jefe queda aproximadamente 18 % por encima;
+- contenidos genéricos de recipientes se ajustaron por grado de perfil y se mantienen aproximadamente dentro de ±30 % del valor esperado heredado;
+- cofres moderados quedan aproximadamente 12 % por debajo;
+- cofres importantes usan 2–3 tiradas seguras de `recompensa_mayor` sobre `comunes` + `equipamiento`; Equipamiento es muy probable pero no garantizado y no existe un ID/rareza fijo;
+- los materiales estructurales son recompensa nueva y se presupuestan por separado mediante la misma consulta canónica.
+
+Validación técnica realizada antes de preparar la entrega:
+
+- 41 JSON válidos;
+- 278 archivos JavaScript con sintaxis válida;
+- 529 imports ES relativos comprobados, sin faltantes;
+- 202 referencias visuales de JSON comprobadas, sin recursos faltantes;
+- 132 solicitudes reales validadas, sin errores;
+- validador de infraestructura completo superado;
+- supervivencia configurada a 0 %, 100 % y 80 % comprobada;
+- con 80 %, 798 de 1000 pilas sobrevivieron (79,8 %), con reproducibilidad por semilla y sin alterar cantidades de pila;
+- persistencia v4 comprobada con Madera y Cola de rata mediante snapshot/restauración;
+- 50 mazmorras completas generadas correctamente: 10 semillas por cada una de las cinco mazmorras;
+- carga HTTP de entradas y recursos nuevos comprobada con respuestas 200;
+- `git diff --check` sin errores.
+
+Cierre formal:
+
+- el usuario confirmó el 19/08/2026 que las pruebas manuales de B2 fueron satisfactorias;
+- no se informaron incidencias pendientes sobre apertura/destrucción, enemigos Élite, cofres, inventario ni presentación;
+- la ejecución Electron no fue realizada de forma independiente por el asistente en esta copia porque el ZIP no contiene `node_modules` ni existe un binario Electron disponible; no se instalaron dependencias para forzar esa prueba;
+- B2 queda cerrada y B3 continúa sin iniciar hasta una nueva solicitud explícita y una nueva verificación de base Git.
+
+B3 no debe comenzar automáticamente.

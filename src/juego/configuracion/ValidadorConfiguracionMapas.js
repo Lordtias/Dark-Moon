@@ -2,7 +2,6 @@ const TIPOS_GENERACION_VALIDOS = ["habitaciones"];
 
 const VARIANTES_REQUERIDAS = ["normal", "enfermo", "gigante", "elite"];
 
-const RAREZAS_FORZADAS_VALIDAS = new Set(["comun", "magico", "raro"]);
 
 const EXPRESION_COLOR_HEXADECIMAL = /^#[0-9a-f]{6}$/i;
 
@@ -704,27 +703,36 @@ function validarGrillaComposicion({
   return { ancho, alto: composicion.grilla.length };
 }
 
-function validarTablasDestructibles({ idPlantilla, destructibles }) {
-  const tablas = destructibles.tablasBotin ?? {};
-  validarObjeto(tablas, `las tablas de destructibles de "${idPlantilla}"`);
-  for (const [idTabla, tabla] of Object.entries(tablas)) {
-    validarTexto(idTabla, `un ID de tabla de destructibles de "${idPlantilla}"`);
-    validarTablaBotinAdicional({
-      tabla,
-      descripcion: `la tabla "${idTabla}" de destructibles de "${idPlantilla}"`,
-    });
+function validarSolicitudesDestructibles({ idPlantilla, destructibles }) {
+  const solicitudes = destructibles.solicitudesBotin ?? {};
+  validarObjeto(
+    solicitudes,
+    `las solicitudes de botín de destructibles de "${idPlantilla}"`,
+  );
+
+  for (const [idSolicitud, solicitud] of Object.entries(solicitudes)) {
+    validarTexto(
+      idSolicitud,
+      `un ID de solicitud de destructibles de "${idPlantilla}"`,
+    );
+    validarSolicitudBotinDeclarativa(
+      solicitud,
+      `la solicitud "${idSolicitud}" de destructibles de "${idPlantilla}"`,
+    );
   }
 
   for (const permitido of destructibles.permitidos) {
-    for (const campo of ["idTablaContenido", "idTablaBotin"]) {
-      const idTabla = permitido[campo];
-      if (idTabla === undefined) continue;
-      validarTexto(idTabla, `${campo} de "${permitido.id}" en "${idPlantilla}"`);
-      if (!Object.prototype.hasOwnProperty.call(tablas, idTabla)) {
-        throw new Error(
-          `La entidad "${permitido.id}" de "${idPlantilla}" referencia la tabla inexistente "${idTabla}".`,
-        );
-      }
+    const idSolicitud = permitido.idSolicitudContenido;
+    if (idSolicitud === undefined) continue;
+    validarTexto(
+      idSolicitud,
+      `idSolicitudContenido de "${permitido.id}" en "${idPlantilla}"`,
+    );
+    if (!Object.prototype.hasOwnProperty.call(solicitudes, idSolicitud)) {
+      throw new Error(
+        `La entidad "${permitido.id}" de "${idPlantilla}" referencia ` +
+          `la solicitud inexistente "${idSolicitud}".`,
+      );
     }
   }
 }
@@ -787,9 +795,6 @@ function validarEncuentroEspecial({
   const idsEspeciales = validarListaPonderada(
     encuentroEspecial.permitidos,
     `los enemigos especiales de "${idPlantilla}"`,
-    {
-      validarBotinAdicional: true,
-    },
   );
 
   validarIdsExcluidos({
@@ -824,9 +829,6 @@ function validarJefe({ idPlantilla, jefe, idsExcluidos }) {
   const idsJefes = validarListaPonderada(
     jefe.permitidos,
     `los jefes de "${idPlantilla}"`,
-    {
-      validarBotinAdicional: true,
-    },
   );
 
   validarIdsExcluidos({
@@ -893,7 +895,7 @@ function validarInteractuables(idPlantilla, interactuables) {
     interactuables.destructibles.permitidos,
     `los destructibles permitidos de "${idPlantilla}"`,
   );
-  validarTablasDestructibles({
+  validarSolicitudesDestructibles({
     idPlantilla,
     destructibles: interactuables.destructibles,
     idsDestructibles,
@@ -908,42 +910,22 @@ function validarInteractuables(idPlantilla, interactuables) {
     interactuables.cofres.moderados.probabilidadPorHabitacion,
     `la probabilidad de cofre moderado por habitación de "${idPlantilla}"`,
   );
-  validarTablaBotinAdicional({
-    tabla: interactuables.cofres.moderados.tablaBotin,
-    descripcion: `la tabla de cofres moderados de "${idPlantilla}"`,
-  });
-  validarTablaConEntradaGarantizada({
-    tabla: interactuables.cofres.moderados.tablaBotin,
-    descripcion: `la tabla de cofres moderados de "${idPlantilla}"`,
-  });
+  validarSolicitudBotinDeclarativa(
+    interactuables.cofres.moderados.solicitudBotin,
+    `la solicitud de cofres moderados de "${idPlantilla}"`,
+  );
 
   validarObjeto(
     interactuables.cofres.importante,
     `el cofre importante de "${idPlantilla}"`,
   );
-  validarTablaBotinAdicional({
-    tabla: interactuables.cofres.importante.tablaBotin,
-    descripcion: `la tabla del cofre importante de "${idPlantilla}"`,
-  });
-  validarTablaConEntradaGarantizada({
-    tabla: interactuables.cofres.importante.tablaBotin,
-    descripcion: `la tabla del cofre importante de "${idPlantilla}"`,
-  });
+  validarSolicitudBotinDeclarativa(
+    interactuables.cofres.importante.solicitudBotin,
+    `la solicitud del cofre importante de "${idPlantilla}"`,
+  );
 }
 
-function validarTablaConEntradaGarantizada({ tabla, descripcion }) {
-  if (!tabla.some((entrada) => entrada.probabilidad === 100)) {
-    throw new Error(
-      `${descripcion} debe incluir al menos una entrada con probabilidad 100 para evitar cofres vacíos.`,
-    );
-  }
-}
-
-function validarListaPonderada(
-  lista,
-  descripcion,
-  { validarBotinAdicional = false } = {},
-) {
+function validarListaPonderada(lista, descripcion) {
   if (!Array.isArray(lista) || lista.length === 0) {
     throw new Error(`${descripcion} debe contener al menos un elemento.`);
   }
@@ -967,80 +949,33 @@ function validarListaPonderada(
 
     ids.add(idNormalizado);
 
-    if (validarBotinAdicional) {
-      validarTablaBotinAdicional({
-        tabla: elemento.tablaBotinAdicional ?? [],
-        descripcion: `el botín adicional de "${idNormalizado}" en ${descripcion}`,
-      });
-    }
   }
 
   return ids;
 }
 
-function validarTablaBotinAdicional({ tabla, descripcion }) {
-  if (!Array.isArray(tabla)) {
-    throw new Error(`${descripcion} debe formar una lista.`);
-  }
-
-  const ids = new Set();
-
-  tabla.forEach((entrada, indice) => {
-    validarObjeto(entrada, `${descripcion}, entrada ${indice + 1}`);
-
-    validarTexto(entrada.idObjeto, `el ID de objeto de ${descripcion}`);
-
-    validarPorcentaje(
-      entrada.probabilidad,
-      `la probabilidad de "${entrada.idObjeto}" dentro de ${descripcion}`,
-    );
-
-    const cantidadMinima = entrada.cantidadMinima ?? 1;
-
-    const cantidadMaxima = entrada.cantidadMaxima ?? cantidadMinima;
-
-    validarEnteroMinimo(
-      cantidadMinima,
-      1,
-      `la cantidad mínima de "${entrada.idObjeto}" dentro de ${descripcion}`,
-    );
-
-    validarEnteroMinimo(
-      cantidadMaxima,
-      cantidadMinima,
-      `la cantidad máxima de "${entrada.idObjeto}" dentro de ${descripcion}`,
-    );
-
-    validarRarezaForzada({
-      rarezaForzada: entrada.rarezaForzada ?? null,
-      descripcion,
-      idObjeto: entrada.idObjeto,
-    });
-
-    const idObjeto = entrada.idObjeto.trim();
-
-    if (ids.has(idObjeto)) {
-      throw new Error(
-        `El objeto "${idObjeto}" está repetido dentro de ${descripcion}.`,
-      );
-    }
-
-    ids.add(idObjeto);
-  });
-}
-
-function validarRarezaForzada({ rarezaForzada, descripcion, idObjeto }) {
-  if (rarezaForzada === null) {
-    return;
-  }
+function validarSolicitudBotinDeclarativa(solicitud, descripcion) {
+  validarObjeto(solicitud, descripcion);
+  validarTexto(solicitud.perfil, `el perfil de ${descripcion}`);
 
   if (
-    typeof rarezaForzada !== "string" ||
-    !RAREZAS_FORZADAS_VALIDAS.has(rarezaForzada.trim().toLowerCase())
+    !Array.isArray(solicitud.marcosPermitidos) ||
+    solicitud.marcosPermitidos.length === 0
   ) {
-    throw new Error(
-      `La rareza forzada de "${idObjeto}" dentro de ${descripcion} no es válida.`,
-    );
+    throw new Error(`${descripcion} debe declarar al menos un marco permitido.`);
+  }
+  solicitud.marcosPermitidos.forEach((marco) =>
+    validarTexto(marco, `un marco permitido de ${descripcion}`),
+  );
+
+  if (solicitud.contexto !== undefined) {
+    validarObjeto(solicitud.contexto, `el contexto de ${descripcion}`);
+  }
+  if (solicitud.especificos !== undefined && !Array.isArray(solicitud.especificos)) {
+    throw new Error(`Los drops específicos de ${descripcion} deben formar una lista.`);
+  }
+  if (solicitud.garantizados !== undefined && !Array.isArray(solicitud.garantizados)) {
+    throw new Error(`Los drops garantizados de ${descripcion} deben formar una lista.`);
   }
 }
 

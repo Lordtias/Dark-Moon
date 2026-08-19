@@ -7,7 +7,7 @@ import {
   obtenerEntidadMazmorraConfigurada,
 } from "../configuracion/ValidadorConfiguracionEntidadesMazmorra.js";
 import { crearDestructible } from "./FabricaDestructibles.js";
-import { generarContenidoBotin } from "../botin/SistemaBotin.js";
+import { resolverSolicitudBotin } from "../botin/SistemaBotin.js";
 
 export const DESTINOS_ENTIDAD_MAZMORRA = Object.freeze({
   OBJETIVOS: "objetivos",
@@ -29,7 +29,7 @@ const CREADORES_ENTIDADES_ESTRUCTURALES = Object.freeze({
   cofre(parametros) {
     const { contenedorObjetos, resultadoBotin } = resolverContenidoContenedor({
       ...parametros,
-      tablaContenido: parametros.tablaBotin,
+      solicitudContenido: parametros.solicitudBotin,
       nombreFuente: parametros.nombre ?? "Cofre",
       capacidadMinima: 6,
     });
@@ -98,7 +98,6 @@ export function crearEntidadMazmorra({ id, ...parametros } = {}) {
     configuracionEntidadesMazmorra,
     objetosIniciales:
       contenido.contenedorObjetos?.obtenerObjetos?.() ?? [],
-    tablaBotin: parametros.tablaBotin ?? [],
   });
 
   return {
@@ -143,13 +142,12 @@ export function incorporarEntidadMazmorra({
 function resolverContenidoContenedor({
   contenedorObjetos,
   objetosIniciales = null,
-  tablaContenido = null,
+  solicitudContenido = null,
   nombreFuente,
   x,
   y,
   nivel = null,
   configuracionObjetos,
-  aleatorio,
   capacidad = null,
   capacidadMinima = 6,
 } = {}) {
@@ -160,17 +158,16 @@ function resolverContenidoContenedor({
   let objetosResueltos = objetosIniciales;
   let resultadoBotin = null;
 
-  if (objetosResueltos === null && Array.isArray(tablaContenido)) {
-    resultadoBotin = generarContenidoBotin({
-      fuente: {
-        nombre: nombreFuente ?? "Contenedor",
-        x,
-        y,
-        nivel,
-        tablaBotin: tablaContenido,
-      },
+  if (
+    objetosResueltos === null &&
+    solicitudContenido !== null &&
+    typeof solicitudContenido === "object" &&
+    !Array.isArray(solicitudContenido)
+  ) {
+    resultadoBotin = resolverSolicitudBotin({
+      fuente: { nombre: nombreFuente ?? "Contenedor", x, y, nivel },
+      solicitud: solicitudContenido,
       configuracionObjetos,
-      aleatorio,
     });
     objetosResueltos = resultadoBotin.objetosGenerados;
   }

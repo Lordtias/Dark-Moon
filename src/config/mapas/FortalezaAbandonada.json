@@ -851,21 +851,7 @@
     "permitidos": [
       {
         "id": "comandante",
-        "peso": 100,
-        "tablaBotinAdicional": [
-          {
-            "idObjeto": "espada_acero",
-            "probabilidad": 4,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "coraza_acero",
-            "probabilidad": 3,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ]
+        "peso": 100
       }
     ],
     "probabilidadesVariantes": {
@@ -885,43 +871,25 @@
     "cofres": {
       "moderados": {
         "probabilidadPorHabitacion": 35,
-        "tablaBotin": [
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 45,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 50,
-            "cantidadMinima": 4,
-            "cantidadMaxima": 10
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       },
       "importante": {
-        "tablaBotin": [
-          {
-            "idObjeto": "espada_acero",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1,
-            "rarezaForzada": "magico"
-          },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes",
+            "equipamiento"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       }
     },
     "destructibles": {
@@ -929,22 +897,22 @@
         {
           "id": "caja_madera",
           "peso": 15,
-          "idTablaContenido": "militar_basico"
+          "idSolicitudContenido": "militar_basico"
         },
         {
           "id": "armero_madera",
           "peso": 14,
-          "idTablaContenido": "arsenal"
+          "idSolicitudContenido": "arsenal"
         },
         {
           "id": "arcon_militar",
           "peso": 10,
-          "idTablaContenido": "arsenal"
+          "idSolicitudContenido": "arsenal"
         },
         {
           "id": "barril_madera",
           "peso": 7,
-          "idTablaContenido": "militar_basico"
+          "idSolicitudContenido": "militar_basico"
         },
         {
           "id": "barricada_improvisada",
@@ -971,53 +939,39 @@
           "peso": 7
         }
       ],
-      "tablasBotin": {
-        "militar_basico": [
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 100,
-            "cantidadMinima": 3,
-            "cantidadMaxima": 7
+      "solicitudesBotin": {
+        "militar_basico": {
+          "perfil": "recompensa_menor",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "flecha_madera",
+              "pocion_curacion",
+              "pocion_mana"
+            ]
           },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 20,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
+          "especificos": [],
+          "garantizados": []
+        },
+        "arsenal": {
+          "perfil": "recompensa_estandar",
+          "marcosPermitidos": [
+            "comunes",
+            "equipamiento"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "flecha_madera",
+              "daga_hierro",
+              "espada_larga",
+              "escudo_madera"
+            ]
           },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 15,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ],
-        "arsenal": [
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 100,
-            "cantidadMinima": 5,
-            "cantidadMaxima": 10
-          },
-          {
-            "idObjeto": "daga_hierro",
-            "probabilidad": 28,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "espada_larga",
-            "probabilidad": 12,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "escudo_madera",
-            "probabilidad": 16,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ]
+          "especificos": [],
+          "garantizados": []
+        }
       }
     }
   }

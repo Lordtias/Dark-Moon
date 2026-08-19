@@ -19,6 +19,7 @@ import { RAREZAS_OBJETO } from "../objetos/RarezasObjeto.js";
 import { obtenerContextoGeneracionBotin } from "./ContextoGeneracionBotin.js";
 import { normalizarSolicitudBotin } from "./ContratoBotin.js";
 import {
+  obtenerCandidatosMarcosBotin,
   obtenerCandidatosObjetosBotin,
   seleccionarMarcoBotin,
   seleccionarObjetoBotin,
@@ -34,60 +35,6 @@ import {
 const CAPACIDAD_MINIMA_BOTIN = 6;
 
 const RAREZAS_FORZADAS_VALIDAS = new Set(Object.values(RAREZAS_OBJETO));
-
-// Resuelve la tabla de una fuente y coloca
-// los objetos generados dentro del mapa.
-//
-// La fuente puede ser:
-//
-// - Un enemigo.
-// - Un destructible.
-// - Un jefe.
-// - Cualquier entidad futura que tenga:
-//
-//   x
-//   y
-//   tablaBotin
-export function generarBotinEnSuelo({
-  fuente,
-  configuracionObjetos,
-  aleatorio,
-  interactuables,
-} = {}) {
-  if (!Array.isArray(interactuables)) {
-    throw new Error("Los interactuables deben estar dentro de una lista.");
-  }
-
-  const resultadoTabla = generarContenidoBotin({
-    fuente,
-    configuracionObjetos,
-    aleatorio,
-  });
-
-  // Una tabla puede no entregar ningún objeto.
-  //
-  // En ese caso no se crea una entidad vacía.
-  if (resultadoTabla.objetosGenerados.length === 0) {
-    return {
-      ...resultadoTabla,
-      botin: null,
-      botinCreado: false,
-      botinActualizado: false,
-    };
-  }
-
-  const resultadoSuelo = crearOActualizarBotinSuelo({
-    x: fuente.x,
-    y: fuente.y,
-    objetosNuevos: resultadoTabla.objetosGenerados,
-    interactuables,
-  });
-
-  return {
-    ...resultadoTabla,
-    ...resultadoSuelo,
-  };
-}
 
 // Materializa en el suelo objetos que ya existen. No vuelve a tirar tablas,
 // rarezas ni afijos: conserva exactamente las instancias que tenía la fuente.
@@ -150,41 +97,8 @@ export function depositarObjetosEnSuelo({
   };
 }
 
-// Resuelve el contenido de una fuente sin decidir dónde se almacena.
-//
-// Esta es la integración reutilizable por enemigos, destructibles y cofres.
-// El llamador decide si los objetos terminan en BotinSuelo, un Cofre u otro
-// contenedor futuro; rareza, nivel y afijos continúan perteneciendo al mismo
-// sistema canónico.
-export function generarContenidoBotin({
-  fuente,
-  configuracionObjetos,
-  aleatorio,
-} = {}) {
-  validarFuente(fuente);
-  validarConfiguracionObjetos(configuracionObjetos);
-  validarGeneradorAleatorioBotin(aleatorio);
-
-  const contextoGeneracion = obtenerContextoGeneracionBotin();
-  const nivelBaseObjeto = obtenerNivelBaseObjeto({
-    fuente,
-    nivelMapa: contextoGeneracion.nivelMapa,
-  });
-
-  return resolverTablaBotin({
-    tablaBotin: fuente.tablaBotin,
-    configuracionObjetos,
-    configuracionGeneracionObjetos:
-      contextoGeneracion.configuracionGeneracionObjetos,
-    aleatorioBotin: aleatorio,
-    aleatorioObjetos: contextoGeneracion.aleatorioObjetos,
-    nivelBaseObjeto,
-  });
-}
-
 // Resuelve una solicitud canónica y materializa el resultado sobre la casilla
-// de la fuente. Es el equivalente nuevo de generarBotinEnSuelo y será la ruta
-// productiva de enemigos/destructibles cuando B2 complete la migración.
+// de la fuente. Es la única ruta productiva para generar botín nuevo en suelo.
 export function generarBotinCanonicoEnSuelo({
   fuente,
   solicitud,
@@ -227,11 +141,7 @@ export function generarBotinCanonicoEnSuelo({
   };
 }
 
-// Resuelve el contrato canónico nuevo sin decidir dónde se almacena el botín.
-//
-// B1 incorpora esta ruta junto a tablaBotin para poder validar el motor antes
-// de migrar fuentes productivas. B2 eliminará la responsabilidad duplicada de
-// configuración al trasladar enemigos, cofres y destructibles al contrato.
+// Resuelve el contrato canónico sin decidir dónde se almacena el botín.
 export function resolverSolicitudBotin({
   fuente,
   solicitud,
@@ -249,17 +159,18 @@ export function resolverSolicitudBotin({
 
   const solicitudCanonica = normalizarSolicitudBotin({
     solicitud,
-    perfilesBotin: contextoGeneracion.configuracionBotin,
+    perfilesBotin: contextoGeneracion.configuracionBotin.perfiles,
     configuracionObjetos,
   });
-  const perfil = contextoGeneracion.configuracionBotin[solicitudCanonica.perfil];
+  const perfil =
+    contextoGeneracion.configuracionBotin.perfiles[solicitudCanonica.perfil];
   const nivelBaseObjeto = obtenerNivelBaseObjeto({
     fuente,
     nivelMapa: contextoGeneracion.nivelMapa,
   });
 
-  const resultadoEspecificos = resolverTablaBotin({
-    tablaBotin: solicitudCanonica.especificos,
+  const resultadoEspecificos = resolverDropsEspecificos({
+    entradas: solicitudCanonica.especificos,
     configuracionObjetos,
     configuracionGeneracionObjetos:
       contextoGeneracion.configuracionGeneracionObjetos,
@@ -323,6 +234,155 @@ export function resolverSolicitudBotin({
       cantidadGarantizados: resultadoGarantizados.objetosGenerados.length,
     },
   };
+}
+
+
+// Consulta analítica del mismo contrato que utiliza la generación real. No
+// consume RNG ni crea objetos: SistemaBotin conserva en un único lugar la
+// interpretación de perfiles, marcos, candidatos, específicos y garantizados.
+export function calcularValorEsperadoSolicitudBotin({
+  fuente,
+  solicitud,
+  configuracionObjetos,
+} = {}) {
+  validarFuenteCanonica(fuente);
+  validarConfiguracionObjetos(configuracionObjetos);
+
+  const contextoGeneracion = obtenerContextoGeneracionBotin();
+  const solicitudCanonica = normalizarSolicitudBotin({
+    solicitud,
+    perfilesBotin: contextoGeneracion.configuracionBotin.perfiles,
+    configuracionObjetos,
+  });
+  const perfil =
+    contextoGeneracion.configuracionBotin.perfiles[solicitudCanonica.perfil];
+  const nivelBaseObjeto = obtenerNivelBaseObjeto({
+    fuente,
+    nivelMapa: contextoGeneracion.nivelMapa,
+  });
+
+  const valorEspecificos = solicitudCanonica.especificos.reduce(
+    (total, entrada) => {
+      const plantilla = configuracionObjetos[entrada.idObjeto];
+      if (!puedeGenerarsePlantilla({ plantilla, nivelProgreso: nivelBaseObjeto })) {
+        return total;
+      }
+      const cantidadEsperada =
+        (entrada.cantidadMinima + entrada.cantidadMaxima) / 2;
+      return (
+        total +
+        (entrada.probabilidad / 100) *
+          cantidadEsperada *
+          obtenerValorBasePlantilla(plantilla)
+      );
+    },
+    0,
+  );
+
+  const marcos = obtenerCandidatosMarcosBotin({
+    perfil,
+    marcosPermitidos: solicitudCanonica.marcosEfectivos,
+  });
+  const pesoTotalMarcos = marcos.reduce((total, entrada) => total + entrada.peso, 0);
+  const valorMedioTiradaExitosa = marcos.reduce((total, entradaMarco) => {
+    const candidatos = obtenerCandidatosObjetosBotin({
+      configuracionObjetos,
+      marco: entradaMarco.marco,
+      nivelProgreso: nivelBaseObjeto,
+      contexto: solicitudCanonica.contexto,
+    });
+    if (candidatos.length === 0) {
+      throw new Error(
+        `El marco "${entradaMarco.marco}" no posee candidatos válidos para ` +
+          `calcular su valor esperado en nivel ${nivelBaseObjeto}.`,
+      );
+    }
+    const pesoTotalObjetos = candidatos.reduce(
+      (suma, candidato) => suma + candidato.peso,
+      0,
+    );
+    const valorMedioMarco = candidatos.reduce((suma, candidato) => {
+      const rango = obtenerRangoCantidadGenerica(candidato.plantilla);
+      const cantidadEsperada = (rango.cantidadMinima + rango.cantidadMaxima) / 2;
+      return (
+        suma +
+        (candidato.peso / pesoTotalObjetos) *
+          cantidadEsperada *
+          obtenerValorBasePlantilla(candidato.plantilla)
+      );
+    }, 0);
+    return total + (entradaMarco.peso / pesoTotalMarcos) * valorMedioMarco;
+  }, 0);
+
+  const cantidadTiradasEsperada =
+    (perfil.tiradas.cantidadMinima + perfil.tiradas.cantidadMaxima) / 2;
+  const valorGenerico =
+    cantidadTiradasEsperada *
+    (perfil.tiradas.probabilidad / 100) *
+    valorMedioTiradaExitosa;
+
+  const valorGarantizados = solicitudCanonica.garantizados.reduce(
+    (total, entrada) =>
+      total +
+      entrada.cantidad *
+        obtenerValorBasePlantilla(configuracionObjetos[entrada.idObjeto]),
+    0,
+  );
+
+  return redondearValorEsperado(
+    valorEspecificos + valorGenerico + valorGarantizados,
+  );
+}
+
+// Decide qué pilas ya materializadas sobreviven al romper su recipiente.
+// La probabilidad y su secuencia aleatoria pertenecen al contexto canónico de
+// SistemaBotin, por lo que el resolutor de destrucciones no interpreta reglas.
+export function resolverSupervivenciaContenidoDestruido({ objetos } = {}) {
+  if (!Array.isArray(objetos)) {
+    throw new Error("El contenido destruido debe estar dentro de una lista.");
+  }
+
+  const contexto = obtenerContextoGeneracionBotin();
+  const probabilidad =
+    contexto.configuracionBotin.reglas.destruccion
+      .probabilidadSupervivenciaContenido;
+  const aleatorio = contexto.aleatorioSupervivenciaContenido;
+  validarGeneradorAleatorioBotin(aleatorio);
+
+  const sobrevivientes = [];
+  const destruidos = [];
+  const resultados = objetos.map((objeto, indice) => {
+    if (!objeto) {
+      throw new Error("El contenido destruido no puede contener objetos vacíos.");
+    }
+    const tirada = aleatorio.siguiente() * 100;
+    const sobrevive = tirada < probabilidad;
+    (sobrevive ? sobrevivientes : destruidos).push(objeto);
+    return {
+      indice,
+      idObjeto: objeto.id ?? null,
+      cantidad: objeto.apilable === true ? objeto.cantidad : 1,
+      tirada,
+      probabilidad,
+      sobrevive,
+    };
+  });
+
+  return { probabilidad, sobrevivientes, destruidos, resultados };
+}
+
+function obtenerValorBasePlantilla(plantilla) {
+  const valor = Number(plantilla?.valorBase ?? 0);
+  if (!Number.isFinite(valor) || valor < 0) {
+    throw new Error(
+      `El valor base de "${plantilla?.nombre ?? "objeto"}" no es válido.`,
+    );
+  }
+  return valor;
+}
+
+function redondearValorEsperado(valor) {
+  return Math.round((valor + Number.EPSILON) * 100) / 100;
 }
 
 function resolverGeneracionGenerica({
@@ -487,8 +547,7 @@ function obtenerRangoCantidadGenerica(plantilla) {
   return { cantidadMinima, cantidadMaxima };
 }
 
-// Procesa independientemente cada entrada
-// de una tabla de botín.
+// Procesa independientemente cada drop específico del contrato canónico.
 //
 // Formato:
 //
@@ -503,16 +562,16 @@ function obtenerRangoCantidadGenerica(plantilla) {
 // rarezaForzada es opcional. Cuando existe,
 // la instancia utiliza esa rareza siempre que
 // la plantilla y el nivel permitan generarla.
-export function resolverTablaBotin({
-  tablaBotin,
+function resolverDropsEspecificos({
+  entradas,
   configuracionObjetos,
   configuracionGeneracionObjetos,
   aleatorioBotin,
   aleatorioObjetos,
   nivelBaseObjeto = 1,
 } = {}) {
-  if (!Array.isArray(tablaBotin)) {
-    throw new Error("La tabla de botín debe ser una lista.");
+  if (!Array.isArray(entradas)) {
+    throw new Error("Los drops específicos deben formar una lista.");
   }
 
   validarConfiguracionObjetos(configuracionObjetos);
@@ -532,7 +591,7 @@ export function resolverTablaBotin({
   const objetosGenerados = [];
   const resultadosTiradas = [];
 
-  tablaBotin.forEach((entrada, indice) => {
+  entradas.forEach((entrada, indice) => {
     const normalizada = normalizarEntradaBotin({
       entrada,
       indice,
@@ -1037,20 +1096,6 @@ function normalizarRarezaForzada({ rarezaForzada, idObjeto }) {
 function validarFuenteCanonica(fuente) {
   if (!fuente || typeof fuente !== "object") {
     throw new Error("Se necesita una fuente válida para generar botín.");
-  }
-}
-
-function validarFuente(fuente) {
-  if (!fuente || typeof fuente !== "object") {
-    throw new Error("Se necesita una fuente válida para generar botín.");
-  }
-
-  if (!Number.isInteger(fuente.x) || !Number.isInteger(fuente.y)) {
-    throw new Error("La fuente del botín necesita coordenadas enteras.");
-  }
-
-  if (!Array.isArray(fuente.tablaBotin)) {
-    throw new Error("La fuente necesita una tabla de botín válida.");
   }
 }
 

@@ -1,0 +1,67 @@
+{
+  "cola_rata": {
+    "nombre": "Cola de rata",
+    "tipo": "desechable",
+    "descripcion": "La cola cortada de una rata de alcantarilla. Puede conservarse como prueba de caza o utilizarse en preparaciones poco agradables.",
+    "recursoVisual": "assets/imagenes/materiales/cola_rata.png",
+    "valorBase": 3,
+    "pesoUnitario": 0.1,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "caparazon_cucaracha": {
+    "nombre": "Caparazón de cucaracha",
+    "tipo": "desechable",
+    "descripcion": "Un fragmento duro y resistente del caparazón de una cucaracha gigante.",
+    "recursoVisual": "assets/imagenes/materiales/caparazon_cucaracha.png",
+    "valorBase": 5,
+    "pesoUnitario": 0.2,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "hueso_esqueleto": {
+    "nombre": "Hueso de esqueleto",
+    "tipo": "desechable",
+    "descripcion": "Un hueso viejo animado anteriormente por energía oscura. Todavía conserva un leve frío antinatural.",
+    "recursoVisual": "assets/imagenes/materiales/hueso_esqueleto.png",
+    "valorBase": 4,
+    "pesoUnitario": 0.3,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 30,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "carne_putrefacta": {
+    "nombre": "Carne putrefacta",
+    "tipo": "desechable",
+    "descripcion": "Un trozo de carne descompuesta. Su olor deja pocas dudas sobre su procedencia.",
+    "recursoVisual": "assets/imagenes/materiales/carne_putrefacta.png",
+    "valorBase": 2,
+    "pesoUnitario": 0.4,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 20,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  },
+  "hueso_negro": {
+    "nombre": "Hueso negro",
+    "tipo": "desechable",
+    "descripcion": "Un fragmento óseo endurecido y oscurecido por una energía maligna. Es mucho más resistente que un hueso común.",
+    "recursoVisual": "assets/imagenes/materiales/hueso_negro.png",
+    "valorBase": 15,
+    "pesoUnitario": 0.5,
+    "vendible": true,
+    "apilable": true,
+    "cantidadMaxima": 10,
+    "ranurasCompatibles": [],
+    "propiedades": {}
+  }
+}

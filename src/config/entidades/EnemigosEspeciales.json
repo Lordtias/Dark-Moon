@@ -117,56 +117,6 @@
         "daga_hierro"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "cola_rata",
-        "probabilidad": 65,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 2
-      },
-      {
-        "idObjeto": "flecha_madera",
-        "probabilidad": 45,
-        "cantidadMinima": 3,
-        "cantidadMaxima": 8
-      },
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 18,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "quiver_cuero",
-        "probabilidad": 6,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "daga_hierro",
-        "probabilidad": 5,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "varita_veneno_aprendiz",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "capucha_tela",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "guantes_tela",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 5,
@@ -176,7 +126,23 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_especial",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "cola_rata",
+          "probabilidad": 65,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 2
+        }
+      ],
+      "garantizados": []
+    }
   },
   "zombi": {
     "nombre": "Zombi",
@@ -285,20 +251,6 @@
       "ranuras": [],
       "objetosIniciales": []
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "carne_putrefacta",
-        "probabilidad": 75,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 2
-      },
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 5,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 5,
@@ -309,7 +261,22 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_especial",
+      "marcosPermitidos": [
+        "comunes"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "carne_putrefacta",
+          "probabilidad": 75,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 2
+        }
+      ],
+      "garantizados": []
+    }
   },
   "caballero_oseo": {
     "nombre": "Caballero Óseo",
@@ -434,39 +401,29 @@
         "coraza_hierro"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "hueso_negro",
-        "probabilidad": 100,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 2
-      },
-      {
-        "idObjeto": "hueso_esqueleto",
-        "probabilidad": 60,
-        "cantidadMinima": 2,
-        "cantidadMaxima": 4
-      },
-      {
-        "idObjeto": "hacha_mano",
-        "probabilidad": 5,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "escudo_hierro",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "casco_hierro",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
-    "hitos": []
+    "hitos": [],
+    "solicitudBotin": {
+      "perfil": "enemigo_especial",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "hueso_negro",
+          "probabilidad": 100,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 2
+        },
+        {
+          "idObjeto": "hueso_esqueleto",
+          "probabilidad": 60,
+          "cantidadMinima": 2,
+          "cantidadMaxima": 4
+        }
+      ],
+      "garantizados": []
+    }
   },
   "comandante": {
     "nombre": "Comandante",
@@ -597,44 +554,6 @@
         "coraza_hierro"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 20,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "espada_acero",
-        "probabilidad": 6,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "escudo_hierro",
-        "probabilidad": 5,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "casco_hierro",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "coraza_hierro",
-        "probabilidad": 4,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "lanza_reforzada",
-        "probabilidad": 3,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 8,
@@ -645,7 +564,16 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "enemigo_especial",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "senor_guerra": {
     "nombre": "Señor de la Guerra",
@@ -780,45 +708,6 @@
         "coraza_acero"
       ]
     },
-    "tablaBotin": [
-      {
-        "idObjeto": "pocion_curacion",
-        "probabilidad": 100,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 2
-      },
-      {
-        "idObjeto": "espada_acero",
-        "probabilidad": 100,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1,
-        "rarezaForzada": "magico"
-      },
-      {
-        "idObjeto": "escudo_hierro",
-        "probabilidad": 10,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "hacha_batalla",
-        "probabilidad": 8,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "coraza_acero",
-        "probabilidad": 6,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      },
-      {
-        "idObjeto": "casco_acero",
-        "probabilidad": 6,
-        "cantidadMinima": 1,
-        "cantidadMaxima": 1
-      }
-    ],
     "hitos": [
       {
         "nivel": 10,
@@ -831,6 +720,22 @@
           }
         }
       }
-    ]
+    ],
+    "solicitudBotin": {
+      "perfil": "jefe",
+      "marcosPermitidos": [
+        "comunes",
+        "equipamiento"
+      ],
+      "especificos": [
+        {
+          "idObjeto": "espada_acero",
+          "probabilidad": 75,
+          "cantidadMinima": 1,
+          "cantidadMaxima": 1
+        }
+      ],
+      "garantizados": []
+    }
   }
 }

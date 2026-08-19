@@ -25,10 +25,9 @@ import {
   configurarContextoGeneracionBotin,
   limpiarContextoGeneracionBotin,
 } from "../../juego/botin/ContextoGeneracionBotin.js";
-import { generarBotinEnSuelo } from "../../juego/botin/SistemaBotin.js";
+import { generarBotinCanonicoEnSuelo } from "../../juego/botin/SistemaBotin.js";
 import { ResolutorDestruccionesJugador } from "../../juego/combate/ResolutorDestruccionesJugador.js";
 import { SistemaEspacial } from "../../juego/espacio/SistemaEspacial.js";
-import { crearGeneradorAleatorio } from "../../juego/generacion/GeneradorAleatorio.js";
 import { SistemaVisibilidadJugador } from "../../juego/visibilidad/SistemaVisibilidadJugador.js";
 import {
   crearEntidadMazmorra,
@@ -378,129 +377,154 @@ function validarFabricaGenerica() {
 
 function validarRecipienteContenidoUnico() {
   const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
-  const objeto = {
-    id: "contenido_unico",
-    nombre: "Contenido único",
-    cantidad: 1,
-    apilable: true,
-    rareza: "comun",
-    nivelObjeto: 1,
-    afijos: [],
-  };
-  const objetivos = [];
-  const interactuables = [];
-  const resultado = incorporarEntidadMazmorra({
-    id: "caja_humeda",
-    x: 3,
-    y: 3,
-    objetosIniciales: [objeto],
-    configuracionEntidadesMazmorra,
-    objetivos,
-    interactuables,
+  const configuracionObjetos = cargarConfiguracionObjetos();
+  const configuracionGeneracionObjetos = cargarConfiguracionGeneracionObjetos();
+  const configuracionBotin = cargarConfiguracionBotin();
+  // Esta prueba verifica identidad/no duplicación del contenido. Fuerza 100 %
+  // para no mezclar esa responsabilidad con la prueba estadística del 80 %.
+  configuracionBotin.reglas.destruccion.probabilidadSupervivenciaContenido = 100;
+  configuracionBotin.perfiles.recompensa_menor.tiradas.probabilidad = 100;
+
+  configurarContextoGeneracionBotin({
+    configuracionBotin,
+    configuracionGeneracionObjetos,
+    semillaMapa: "recipiente-contenido-unico",
+    nivelMapa: 3,
   });
-  const recipiente = resultado.entidad;
 
-  assert.equal(recipiente.obtenerInteracciones().length, 1);
-  const sistemaInteraccion = crearSistemaInteraccion({ interactuables });
-  assert.equal(
-    sistemaInteraccion.obtenerInteraccionPrioritaria()?.tipo,
-    TIPOS_INTERACCION.ABRIR_CONTENEDOR,
-  );
-  recipiente.recibirDanio(999);
-
-  const resolutor = new ResolutorDestruccionesJugador({
-    jugador,
-    objetivos,
-    interactuables,
-    configuracionObjetos: {},
-    eliminarActorTemporal: () => {},
-  });
-  const destruccion = resolutor.resolverObjetivo(recipiente);
-  assert.equal(destruccion.procesada, true);
-  assert.equal(interactuables.includes(recipiente), false);
-  assert.equal(recipiente.estaVacio, true);
-
-  const botines = interactuables.filter((entidad) => entidad instanceof BotinSuelo);
-  assert.equal(botines.length, 1);
-  assert.equal(botines[0].contenedorObjetos.obtenerObjetos()[0], objeto);
-  assert.equal(resolutor.resolverObjetivo(recipiente).procesada, false);
-  assert.equal(interactuables.filter((entidad) => entidad instanceof BotinSuelo).length, 1);
-
-  const objetoRetirado = {
-    id: "contenido_retirado",
-    nombre: "Contenido retirado",
-    cantidad: 1,
-    apilable: true,
-    rareza: "comun",
-    nivelObjeto: 1,
-    afijos: [],
-  };
-  const objetoRestante = {
-    id: "contenido_restante",
-    nombre: "Contenido restante",
-    cantidad: 1,
-    apilable: true,
-    rareza: "comun",
-    nivelObjeto: 1,
-    afijos: [],
-  };
-  const recipienteParcial = crearEntidadMazmorra({
-    id: "caja_humeda",
-    x: 5,
-    y: 4,
-    objetosIniciales: [objetoRetirado, objetoRestante],
-    configuracionEntidadesMazmorra,
-  }).entidad;
-  const retirado = recipienteParcial.contenedorObjetos.retirarObjeto(0);
-  assert.equal(retirado, objetoRetirado);
-  recipienteParcial.recibirDanio(999);
-  const interactuablesParcial = [recipienteParcial];
-  const resolutorParcial = new ResolutorDestruccionesJugador({
-    jugador,
-    objetivos: [recipienteParcial],
-    interactuables: interactuablesParcial,
-    configuracionObjetos: {},
-    eliminarActorTemporal: () => {},
-  });
-  resolutorParcial.resolverObjetivo(recipienteParcial);
-  const botinParcial = interactuablesParcial.find(
-    (entidad) => entidad instanceof BotinSuelo,
-  );
-  assert.ok(botinParcial);
-  const objetosLiberados = botinParcial.contenedorObjetos.obtenerObjetos();
-  assert.equal(objetosLiberados.length, 1);
-  assert.equal(objetosLiberados[0], objetoRestante);
-  assert.equal(objetosLiberados.includes(objetoRetirado), false);
-
-  const recipienteVacio = crearEntidadMazmorra({
-    id: "caja_humeda",
-    x: 4,
-    y: 4,
-    objetosIniciales: [{
-      id: "retirado",
-      nombre: "Retirado",
+  try {
+    const objeto = {
+      id: "contenido_unico",
+      nombre: "Contenido único",
       cantidad: 1,
       apilable: true,
       rareza: "comun",
       nivelObjeto: 1,
       afijos: [],
-    }],
-    configuracionEntidadesMazmorra,
-  }).entidad;
-  recipienteVacio.contenedorObjetos.retirarObjeto(0);
-  recipienteVacio.recibirDanio(999);
-  const interactuablesVacio = [recipienteVacio];
-  const resolutorVacio = new ResolutorDestruccionesJugador({
-    jugador,
-    objetivos: [recipienteVacio],
-    interactuables: interactuablesVacio,
-    configuracionObjetos: {},
-    eliminarActorTemporal: () => {},
-  });
-  resolutorVacio.resolverObjetivo(recipienteVacio);
-  assert.equal(interactuablesVacio.length, 0);
-}
+    };
+    const objetivos = [];
+    const interactuables = [];
+    const resultado = incorporarEntidadMazmorra({
+      id: "caja_humeda",
+      x: 3,
+      y: 3,
+      objetosIniciales: [objeto],
+      configuracionEntidadesMazmorra,
+      objetivos,
+      interactuables,
+    });
+    const recipiente = resultado.entidad;
 
+    assert.equal(recipiente.obtenerInteracciones().length, 1);
+    const sistemaInteraccion = crearSistemaInteraccion({ interactuables });
+    assert.equal(
+      sistemaInteraccion.obtenerInteraccionPrioritaria()?.tipo,
+      TIPOS_INTERACCION.ABRIR_CONTENEDOR,
+    );
+    recipiente.recibirDanio(999);
+
+    const resolutor = new ResolutorDestruccionesJugador({
+      jugador,
+      objetivos,
+      interactuables,
+      configuracionObjetos,
+      eliminarActorTemporal: () => {},
+    });
+    const destruccion = resolutor.resolverObjetivo(recipiente);
+    assert.equal(destruccion.procesada, true);
+    assert.equal(interactuables.includes(recipiente), false);
+    assert.equal(recipiente.estaVacio, true);
+
+    const botines = interactuables.filter((entidad) => entidad instanceof BotinSuelo);
+    assert.equal(botines.length, 1);
+    const objetosLiberadosIniciales = botines[0].contenedorObjetos.obtenerObjetos();
+    assert.equal(objetosLiberadosIniciales.includes(objeto), true);
+    assert.equal(objetosLiberadosIniciales.some((entrada) => entrada.id === "madera"), true);
+    assert.equal(resolutor.resolverObjetivo(recipiente).procesada, false);
+    assert.equal(interactuables.filter((entidad) => entidad instanceof BotinSuelo).length, 1);
+
+    const objetoRetirado = {
+      id: "contenido_retirado",
+      nombre: "Contenido retirado",
+      cantidad: 1,
+      apilable: true,
+      rareza: "comun",
+      nivelObjeto: 1,
+      afijos: [],
+    };
+    const objetoRestante = {
+      id: "contenido_restante",
+      nombre: "Contenido restante",
+      cantidad: 1,
+      apilable: true,
+      rareza: "comun",
+      nivelObjeto: 1,
+      afijos: [],
+    };
+    const recipienteParcial = crearEntidadMazmorra({
+      id: "caja_humeda",
+      x: 5,
+      y: 4,
+      objetosIniciales: [objetoRetirado, objetoRestante],
+      configuracionEntidadesMazmorra,
+    }).entidad;
+    const retirado = recipienteParcial.contenedorObjetos.retirarObjeto(0);
+    assert.equal(retirado, objetoRetirado);
+    recipienteParcial.recibirDanio(999);
+    const interactuablesParcial = [recipienteParcial];
+    const resolutorParcial = new ResolutorDestruccionesJugador({
+      jugador,
+      objetivos: [recipienteParcial],
+      interactuables: interactuablesParcial,
+      configuracionObjetos,
+      eliminarActorTemporal: () => {},
+    });
+    resolutorParcial.resolverObjetivo(recipienteParcial);
+    const botinParcial = interactuablesParcial.find(
+      (entidad) => entidad instanceof BotinSuelo,
+    );
+    assert.ok(botinParcial);
+    const objetosLiberados = botinParcial.contenedorObjetos.obtenerObjetos();
+    assert.equal(objetosLiberados.includes(objetoRestante), true);
+    assert.equal(objetosLiberados.includes(objetoRetirado), false);
+    assert.equal(objetosLiberados.some((entrada) => entrada.id === "madera"), true);
+
+    const recipienteVacio = crearEntidadMazmorra({
+      id: "caja_humeda",
+      x: 4,
+      y: 4,
+      objetosIniciales: [{
+        id: "retirado",
+        nombre: "Retirado",
+        cantidad: 1,
+        apilable: true,
+        rareza: "comun",
+        nivelObjeto: 1,
+        afijos: [],
+      }],
+      configuracionEntidadesMazmorra,
+    }).entidad;
+    recipienteVacio.contenedorObjetos.retirarObjeto(0);
+    recipienteVacio.recibirDanio(999);
+    const interactuablesVacio = [recipienteVacio];
+    const resolutorVacio = new ResolutorDestruccionesJugador({
+      jugador,
+      objetivos: [recipienteVacio],
+      interactuables: interactuablesVacio,
+      configuracionObjetos,
+      eliminarActorTemporal: () => {},
+    });
+    resolutorVacio.resolverObjetivo(recipienteVacio);
+    const botinVacio = interactuablesVacio.find(
+      (entidad) => entidad instanceof BotinSuelo,
+    );
+    assert.ok(botinVacio);
+    const objetosVacio = botinVacio.contenedorObjetos.obtenerObjetos();
+    assert.deepEqual(objetosVacio.map((entrada) => entrada.id), ["madera"]);
+  } finally {
+    limpiarContextoGeneracionBotin();
+  }
+}
 
 function validarObstaculoLiberaPasoAlDestruirse() {
   const configuracionEntidadesMazmorra = cargarConfiguracionEntidadesMazmorra();
@@ -527,25 +551,19 @@ function validarDecoracionDropCanonico() {
   const configuracionGeneracionObjetos = cargarConfiguracionGeneracionObjetos();
   const objetivos = [];
   const interactuables = [];
-  const tablaBotin = [
-    {
-      idObjeto: "carne_putrefacta",
-      probabilidad: 100,
-      cantidadMinima: 1,
-      cantidadMaxima: 1,
-    },
-  ];
   const restos = incorporarEntidadMazmorra({
     id: "restos_abandonados",
     x: 3,
     y: 3,
-    tablaBotin,
     configuracionEntidadesMazmorra,
     objetivos,
     interactuables,
   }).entidad;
 
+  const configuracionBotin = cargarConfiguracionBotin();
+  configuracionBotin.perfiles.recompensa_menor.tiradas.probabilidad = 100;
   configurarContextoGeneracionBotin({
+    configuracionBotin,
     configuracionGeneracionObjetos,
     semillaMapa: "decoracion-drop-canonico",
     nivelMapa: 3,
@@ -583,28 +601,30 @@ function validarCofreConBotinCanonico() {
   const configuracionObjetos = cargarConfiguracionObjetos();
   const configuracionGeneracionObjetos = cargarConfiguracionGeneracionObjetos();
 
+  const configuracionBotin = cargarConfiguracionBotin();
+  configuracionBotin.perfiles.recompensa_menor.tiradas.probabilidad = 100;
   configurarContextoGeneracionBotin({
+    configuracionBotin,
     configuracionGeneracionObjetos,
-    semillaMapa: "e2a-cofre-canonico",
+    semillaMapa: "cofre-canonico",
     nivelMapa: 3,
   });
 
   try {
+    const solicitudBotin = {
+      perfil: "recompensa_menor",
+      marcosPermitidos: ["comunes"],
+      contexto: { idsPermitidos: ["pocion_curacion"] },
+      especificos: [],
+      garantizados: [],
+    };
     const resultadoCofre = crearEntidadMazmorra({
       id: "cofre",
       x: 4,
       y: 3,
       nombre: "Cofre de prueba",
-      tablaBotin: [
-        {
-          idObjeto: "pocion_curacion",
-          probabilidad: 100,
-          cantidadMinima: 1,
-          cantidadMaxima: 1,
-        },
-      ],
+      solicitudBotin,
       configuracionObjetos,
-      aleatorio: crearGeneradorAleatorio("e2a-cofre-canonico:tabla"),
     });
 
     assert.equal(resultadoCofre.entidad instanceof Cofre, true);
@@ -612,27 +632,11 @@ function validarCofreConBotinCanonico() {
     assert.equal(resultadoCofre.resultadoBotin?.cantidadUnidades, 1);
     assert.equal(resultadoCofre.resultadoBotin?.objetosGenerados.length, 1);
 
-    // La misma resolución canónica debe seguir alimentando BotinSuelo.
-    // Esta regresión protege el comportamiento previo al extraer
-    // generarContenidoBotin() como punto reutilizable para Cofre.
     const interactuables = [];
-    const resultadoSuelo = generarBotinEnSuelo({
-      fuente: {
-        nombre: "Fuente de prueba",
-        x: 2,
-        y: 2,
-        nivel: 3,
-        tablaBotin: [
-          {
-            idObjeto: "pocion_curacion",
-            probabilidad: 100,
-            cantidadMinima: 1,
-            cantidadMaxima: 1,
-          },
-        ],
-      },
+    const resultadoSuelo = generarBotinCanonicoEnSuelo({
+      fuente: { nombre: "Fuente de prueba", x: 2, y: 2, nivel: 3 },
+      solicitud: solicitudBotin,
       configuracionObjetos,
-      aleatorio: crearGeneradorAleatorio("e2a-botin-suelo:tabla"),
       interactuables,
     });
 
@@ -780,7 +784,15 @@ function cargarConfiguracionObjetos() {
     leerJsonConfiguracion("objetos/Municiones.json"),
     leerJsonConfiguracion("objetos/Contenedores.json"),
     leerJsonConfiguracion("objetos/Materiales.json"),
+    leerJsonConfiguracion("objetos/Desechables.json"),
   );
+}
+
+function cargarConfiguracionBotin() {
+  return {
+    perfiles: leerJsonConfiguracion("botin/PerfilesBotin.json"),
+    reglas: leerJsonConfiguracion("botin/ReglasBotin.json"),
+  };
 }
 
 function cargarConfiguracionGeneracionObjetos() {

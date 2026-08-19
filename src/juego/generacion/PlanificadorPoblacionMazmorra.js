@@ -1,4 +1,5 @@
 import { calcularDatosEnemigo } from "../fabricas/FabricaEnemigos.js";
+import { calcularValorEsperadoSolicitudBotin } from "../botin/SistemaBotin.js";
 import { crearGeneradorAleatorio } from "./GeneradorAleatorio.js";
 import { crearClave, seleccionarPonderado } from "./UtilidadesPoblacionMazmorra.js";
 
@@ -213,7 +214,6 @@ export function calcularCostoEnemigoPoblacion({
   idPlantilla,
   nivel,
   idVariante = null,
-  tablaBotinAdicional = [],
 } = {}) {
   const datos = calcularDatosEnemigo({
     configuracionEnemigos,
@@ -221,24 +221,15 @@ export function calcularCostoEnemigoPoblacion({
     nivel,
     idVariante,
   });
-  const tablaBotin = [
-    ...(datos.tablaBotin ?? []),
-    ...(tablaBotinAdicional ?? []),
-  ];
 
   return calcularCostoPoblacion([
-    {
-      tipo: "presencia_fisica",
-      ocupacion: 1,
-    },
-    {
-      tipo: "amenaza_enemigo",
-      amenaza: datos.experienciaOtorgada ?? 0,
-    },
+    { tipo: "presencia_fisica", ocupacion: 1 },
+    { tipo: "amenaza_enemigo", amenaza: datos.experienciaOtorgada ?? 0 },
     {
       tipo: "botin_esperado",
-      valorRecompensa: calcularValorEsperadoTablaBotin({
-        tablaBotin,
+      valorRecompensa: calcularValorEsperadoSolicitudBotin({
+        fuente: { nivel },
+        solicitud: datos.solicitudBotin,
         configuracionObjetos,
       }),
     },
@@ -246,18 +237,17 @@ export function calcularCostoEnemigoPoblacion({
 }
 
 export function calcularCostoCofrePoblacion({
-  tablaBotin,
+  solicitudBotin,
   configuracionObjetos,
+  nivel,
 } = {}) {
   return calcularCostoPoblacion([
-    {
-      tipo: "presencia_fisica",
-      ocupacion: 1,
-    },
+    { tipo: "presencia_fisica", ocupacion: 1 },
     {
       tipo: "botin_esperado",
-      valorRecompensa: calcularValorEsperadoTablaBotin({
-        tablaBotin,
+      valorRecompensa: calcularValorEsperadoSolicitudBotin({
+        fuente: { nivel },
+        solicitud: solicitudBotin,
         configuracionObjetos,
       }),
     },
@@ -265,24 +255,29 @@ export function calcularCostoCofrePoblacion({
 }
 
 export function calcularCostoDestructiblePoblacion({
-  tablaBotin = [],
-  configuracionObjetos = null,
+  solicitudesBotin = [],
+  configuracionObjetos,
+  nivel,
 } = {}) {
+  if (!Array.isArray(solicitudesBotin)) {
+    throw new Error("Las solicitudes de botín del destructible deben formar una lista.");
+  }
+  const valorRecompensa = solicitudesBotin
+    .filter(Boolean)
+    .reduce(
+      (total, solicitud) =>
+        total +
+        calcularValorEsperadoSolicitudBotin({
+          fuente: { nivel },
+          solicitud,
+          configuracionObjetos,
+        }),
+      0,
+    );
+
   return calcularCostoPoblacion([
-    {
-      tipo: "presencia_fisica",
-      ocupacion: 1,
-    },
-    {
-      tipo: "botin_esperado",
-      valorRecompensa:
-        tablaBotin.length > 0
-          ? calcularValorEsperadoTablaBotin({
-              tablaBotin,
-              configuracionObjetos,
-            })
-          : 0,
-    },
+    { tipo: "presencia_fisica", ocupacion: 1 },
+    { tipo: "botin_esperado", valorRecompensa },
   ]);
 }
 
@@ -359,44 +354,6 @@ export function crearResumenPlanPoblacion(plan) {
   };
 }
 
-export function calcularValorEsperadoTablaBotin({
-  tablaBotin,
-  configuracionObjetos,
-} = {}) {
-  if (!Array.isArray(tablaBotin)) {
-    throw new Error("La tabla de botín debe formar una lista.");
-  }
-  if (
-    configuracionObjetos === null ||
-    typeof configuracionObjetos !== "object" ||
-    Array.isArray(configuracionObjetos)
-  ) {
-    throw new Error(
-      "Se necesita la configuración de objetos para estimar el valor esperado del botín.",
-    );
-  }
-
-  const total = tablaBotin.reduce((acumulado, entrada) => {
-    const plantillaObjeto = configuracionObjetos[entrada.idObjeto];
-    if (!plantillaObjeto) {
-      throw new Error(
-        `No existe el objeto "${entrada.idObjeto}" usado para calcular el valor esperado del botín.`,
-      );
-    }
-
-    const probabilidad = Number(entrada.probabilidad ?? 0) / 100;
-    const cantidadMinima = Number(entrada.cantidadMinima ?? 1);
-    const cantidadMaxima = Number(
-      entrada.cantidadMaxima ?? entrada.cantidadMinima ?? 1,
-    );
-    const cantidadEsperada = (cantidadMinima + cantidadMaxima) / 2;
-    const valorBase = Number(plantillaObjeto.valorBase ?? 0);
-
-    return acumulado + probabilidad * cantidadEsperada * valorBase;
-  }, 0);
-
-  return redondear(total, 2);
-}
 
 function asignarPerfilesPorCupos({
   idsHabitaciones,

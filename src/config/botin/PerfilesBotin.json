@@ -1,7 +1,6 @@
 {
   "enemigo_comun": {
     "descripcion": "Recompensa genérica contenida para enemigos recurrentes. Los drops característicos de la plantilla se resuelven por separado.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 1,
       "cantidadMaxima": 1,
@@ -16,7 +15,6 @@
   },
   "enemigo_especial": {
     "descripcion": "Recompensa genérica superior para enemigos especiales reutilizables entre mazmorras.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 1,
       "cantidadMaxima": 2,
@@ -31,7 +29,6 @@
   },
   "jefe": {
     "descripcion": "Recompensa genérica alta para jefes. Los objetos de misión o diseñados continúan declarándose como garantizados o específicos.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 2,
       "cantidadMaxima": 3,
@@ -46,11 +43,10 @@
   },
   "recompensa_menor": {
     "descripcion": "Recompensa pequeña reutilizable por cualquier fuente no enemiga.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 1,
       "cantidadMaxima": 1,
-      "probabilidad": 35
+      "probabilidad": 80
     },
     "pesosMarcos": {
       "equipamiento": 20,
@@ -61,11 +57,10 @@
   },
   "recompensa_estandar": {
     "descripcion": "Recompensa media reutilizable por cualquier fuente no enemiga.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 1,
       "cantidadMaxima": 2,
-      "probabilidad": 65
+      "probabilidad": 100
     },
     "pesosMarcos": {
       "equipamiento": 35,
@@ -76,7 +71,6 @@
   },
   "recompensa_mayor": {
     "descripcion": "Recompensa alta reutilizable por cualquier fuente no enemiga.",
-    "estadoBalance": "provisional_b1",
     "tiradas": {
       "cantidadMinima": 2,
       "cantidadMaxima": 3,

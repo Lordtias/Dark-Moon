@@ -684,27 +684,7 @@
     "permitidos": [
       {
         "id": "zombi",
-        "peso": 100,
-        "tablaBotinAdicional": [
-          {
-            "idObjeto": "capucha_tela",
-            "probabilidad": 4,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "tunica_aprendiz",
-            "probabilidad": 3,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "varita_veneno_aprendiz",
-            "probabilidad": 2,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ]
+        "peso": 100
       }
     ],
     "probabilidadesVariantes": {
@@ -724,43 +704,25 @@
     "cofres": {
       "moderados": {
         "probabilidadPorHabitacion": 25,
-        "tablaBotin": [
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          },
-          {
-            "idObjeto": "pocion_mana",
-            "probabilidad": 45,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 50,
-            "cantidadMinima": 4,
-            "cantidadMaxima": 10
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       },
       "importante": {
-        "tablaBotin": [
-          {
-            "idObjeto": "hacha_mano",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1,
-            "rarezaForzada": "magico"
-          },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          }
-        ]
+        "solicitudBotin": {
+          "perfil": "recompensa_mayor",
+          "marcosPermitidos": [
+            "comunes",
+            "equipamiento"
+          ],
+          "especificos": [],
+          "garantizados": []
+        }
       }
     },
     "destructibles": {
@@ -768,22 +730,22 @@
         {
           "id": "urna_funeraria",
           "peso": 18,
-          "idTablaContenido": "funerario_basico"
+          "idSolicitudContenido": "funerario_basico"
         },
         {
           "id": "ataud_deteriorado",
           "peso": 16,
-          "idTablaContenido": "funerario_basico"
+          "idSolicitudContenido": "funerario_basico"
         },
         {
           "id": "sarcofago_piedra",
           "peso": 8,
-          "idTablaContenido": "tumba_importante"
+          "idSolicitudContenido": "tumba_importante"
         },
         {
           "id": "restos_oseos",
           "peso": 18,
-          "idTablaContenido": "restos_oseos"
+          "idSolicitudContenido": "restos_oseos"
         },
         {
           "id": "lapida_piedra",
@@ -791,83 +753,62 @@
         },
         {
           "id": "pila_huesos",
-          "peso": 14,
-          "idTablaBotin": "huesos"
+          "peso": 14
         },
         {
           "id": "banco_madera",
           "peso": 7
         }
       ],
-      "tablasBotin": {
-        "funerario_basico": [
-          {
-            "idObjeto": "hueso_esqueleto",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
+      "solicitudesBotin": {
+        "funerario_basico": {
+          "perfil": "recompensa_menor",
+          "marcosPermitidos": [
+            "desechables",
+            "comunes"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "hueso_esqueleto",
+              "pocion_curacion",
+              "flecha_madera"
+            ]
           },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 18,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
+          "especificos": [],
+          "garantizados": []
+        },
+        "restos_oseos": {
+          "perfil": "recompensa_estandar",
+          "marcosPermitidos": [
+            "desechables"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "hueso_esqueleto",
+              "hueso_negro",
+              "carne_putrefacta"
+            ]
           },
-          {
-            "idObjeto": "flecha_madera",
-            "probabilidad": 25,
-            "cantidadMinima": 2,
-            "cantidadMaxima": 5
-          }
-        ],
-        "restos_oseos": [
-          {
-            "idObjeto": "hueso_esqueleto",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 3
+          "especificos": [],
+          "garantizados": []
+        },
+        "tumba_importante": {
+          "perfil": "recompensa_estandar",
+          "marcosPermitidos": [
+            "desechables",
+            "comunes",
+            "equipamiento"
+          ],
+          "contexto": {
+            "idsPermitidos": [
+              "hueso_negro",
+              "pocion_curacion",
+              "daga_hierro"
+            ]
           },
-          {
-            "idObjeto": "hueso_negro",
-            "probabilidad": 8,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "carne_putrefacta",
-            "probabilidad": 20,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ],
-        "tumba_importante": [
-          {
-            "idObjeto": "hueso_negro",
-            "probabilidad": 55,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          },
-          {
-            "idObjeto": "pocion_curacion",
-            "probabilidad": 65,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          },
-          {
-            "idObjeto": "daga_hierro",
-            "probabilidad": 18,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 1
-          }
-        ],
-        "huesos": [
-          {
-            "idObjeto": "hueso_esqueleto",
-            "probabilidad": 100,
-            "cantidadMinima": 1,
-            "cantidadMaxima": 2
-          }
-        ]
+          "especificos": [],
+          "garantizados": []
+        }
       }
     }
   }

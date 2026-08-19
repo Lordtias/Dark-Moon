@@ -56,6 +56,11 @@ export class VistaDetalleObjeto {
 
     this.subtitulo = crearElemento("p", "detalle-objeto__subtitulo");
 
+    this.etiquetasCategoria = crearElemento(
+      "div",
+      "detalle-objeto__etiquetas-categoria",
+    );
+
     this.metadatos = crearElemento("p", "detalle-objeto__metadatos");
 
     // Peso y valor se mantienen dentro del bloque
@@ -71,6 +76,7 @@ export class VistaDetalleObjeto {
     identidad.append(
       this.titulo,
       this.subtitulo,
+      this.etiquetasCategoria,
       this.metadatos,
       this.informacionComercial,
       this.cantidad,
@@ -123,6 +129,8 @@ export class VistaDetalleObjeto {
 
     this.descripcion.textContent = presentacion.descripcion;
 
+    this.actualizarEtiquetasCategoria(presentacion.etiquetasCategoria);
+
     this.actualizarRareza(presentacion);
 
     this.actualizarInformacionComercial(presentacion.informacionComercial);
@@ -140,6 +148,22 @@ export class VistaDetalleObjeto {
     this.actualizarAfijos(
       Array.isArray(presentacion.afijos) ? presentacion.afijos : [],
     );
+  }
+
+  actualizarEtiquetasCategoria(etiquetas) {
+    this.etiquetasCategoria.replaceChildren();
+    const datos = Array.isArray(etiquetas) ? etiquetas : [];
+    this.etiquetasCategoria.hidden = datos.length === 0;
+
+    for (const etiqueta of datos) {
+      if (!etiqueta || typeof etiqueta.texto !== "string") continue;
+      const elemento = crearElemento(
+        "span",
+        `detalle-objeto__pildora detalle-objeto__pildora--${etiqueta.tipo ?? "general"}`,
+        etiqueta.texto,
+      );
+      this.etiquetasCategoria.appendChild(elemento);
+    }
   }
 
   // Muestra rareza y nivel sin mezclarlos

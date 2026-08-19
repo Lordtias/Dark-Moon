@@ -10,7 +10,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 6,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 94
+    "prioridadInteraccion": 94,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "caja_humeda": {
     "nombre": "Caja húmeda",
@@ -23,7 +36,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 6,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 94
+    "prioridadInteraccion": 94,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "suministros_mantenimiento": {
     "nombre": "Suministros de mantenimiento",
@@ -36,7 +62,22 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 8,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 95
+    "prioridadInteraccion": 95,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "tela",
+          "metal"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "urna_funeraria": {
     "nombre": "Urna funeraria",
@@ -49,7 +90,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 5,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 94
+    "prioridadInteraccion": 94,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "piedra"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "ataud_deteriorado": {
     "nombre": "Ataúd deteriorado",
@@ -62,7 +116,21 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 7,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 95
+    "prioridadInteraccion": 95,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "tela"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "sarcofago_piedra": {
     "nombre": "Sarcófago de piedra",
@@ -75,7 +143,21 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 8,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 96
+    "prioridadInteraccion": 96,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_mayor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "piedra",
+          "tela"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "restos_oseos": {
     "nombre": "Restos óseos",
@@ -101,7 +183,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 6,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 94
+    "prioridadInteraccion": 94,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_menor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "armario_madera": {
     "nombre": "Armario de madera",
@@ -114,7 +209,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 8,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 95
+    "prioridadInteraccion": 95,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "armero_madera": {
     "nombre": "Armero de madera",
@@ -127,7 +235,21 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 8,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 95
+    "prioridadInteraccion": 95,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_estandar",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "metal"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   },
   "arcon_militar": {
     "nombre": "Arcón militar",
@@ -140,6 +262,20 @@
     "bloqueaCruceDiagonal": true,
     "capacidadContenedor": 10,
     "alcanceInteraccion": 1,
-    "prioridadInteraccion": 97
+    "prioridadInteraccion": 97,
+    "solicitudBotinDestruccion": {
+      "perfil": "recompensa_mayor",
+      "marcosPermitidos": [
+        "materiales"
+      ],
+      "contexto": {
+        "idsPermitidos": [
+          "madera",
+          "metal"
+        ]
+      },
+      "especificos": [],
+      "garantizados": []
+    }
   }
 }

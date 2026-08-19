@@ -12,6 +12,10 @@
     "ranurasCompatibles": [],
     "propiedades": {
       "tipoMunicion": "flecha"
+    },
+    "generacionBotin": {
+      "cantidadMinima": 3,
+      "cantidadMaxima": 7
     }
   }
 }

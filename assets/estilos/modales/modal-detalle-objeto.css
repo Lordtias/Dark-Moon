@@ -1129,3 +1129,27 @@
 .detalle-objeto__afijo-ambito { padding:2px 6px;border:1px solid #5d6b5b;border-radius:10px;color:#a8bea2;font-size:10px;font-weight:bold;text-transform:uppercase;white-space:nowrap; }
 .detalle-objeto__afijo-ambito[data-ambito="portador"] { border-color:#716090;color:#c9b1ef; }
 .detalle-objeto__afijo-ambito[data-ambito="local_objeto"] { border-color:#59715e;color:#a9d1b1; }
+
+/* Categorías semánticas de objetos. La vista deriva estas píldoras del tipo
+   canónico y no de texto embebido en la descripción. */
+.detalle-objeto__etiquetas-categoria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.detalle-objeto__pildora {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  border: 1px solid rgba(210, 190, 132, 0.55);
+  border-radius: 999px;
+  background: rgba(89, 72, 38, 0.42);
+  color: #eadca9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

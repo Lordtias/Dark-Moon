@@ -362,6 +362,23 @@ function aplicarVariante(datos, variante, idVariante) {
       multiplicadores: variante.multiplicadoresTemporales ?? {},
     }),
   );
+
+  const marcosAdicionales = variante.botin?.marcosAdicionales ?? [];
+  if (!Array.isArray(marcosAdicionales)) {
+    throw new Error(
+      `Los marcos adicionales de botín de la variante "${idVariante}" deben formar una lista.`,
+    );
+  }
+  if (marcosAdicionales.length > 0) {
+    datos.solicitudBotin ??= {};
+    datos.solicitudBotin.contexto ??= {};
+    datos.solicitudBotin.contexto.marcosAdicionales = [
+      ...new Set([
+        ...(datos.solicitudBotin.contexto.marcosAdicionales ?? []),
+        ...marcosAdicionales,
+      ]),
+    ];
+  }
 }
 
 // Valida las secciones obligatorias
@@ -494,8 +511,8 @@ export function calcularDatosEnemigo({
       equipamiento.objetosIniciales ?? [],
     ),
 
-    // El botín se resuelve fuera de la fábrica de enemigos.
-    tablaBotin: clonarConfiguracion(plantilla.tablaBotin ?? []),
+    // El botín se resuelve fuera de la fábrica mediante la solicitud canónica.
+    solicitudBotin: clonarConfiguracion(plantilla.solicitudBotin),
 
     configuracionIA: clonarConfiguracion(plantilla.ia),
   };

@@ -672,7 +672,9 @@
       "equipar": "Equipar",
       "ambitoObjeto": "Objeto",
       "ambitoPortador": "Portador",
-      "ambitoMixto": "Mixto"
+      "ambitoMixto": "Mixto",
+      "tipoDesechable": "Desechable",
+      "categoriaMaterial": "Material"
     },
     "comparacionObjetos": {
       "sinOpciones": "No hay otros objetos equipados para comparar.",
@@ -1101,6 +1103,22 @@
       "flecha_madera": {
         "nombre": "Flecha de madera",
         "descripcion": "Una flecha sencilla con punta de metal."
+      },
+      "madera": {
+        "nombre": "Madera",
+        "descripcion": "Fragmentos de madera recuperados de estructuras y mobiliario. Puede venderse y servirá como material de fabricación en sistemas futuros."
+      },
+      "tela": {
+        "nombre": "Tela",
+        "descripcion": "Retazos de tela recuperados de muebles, bolsas y equipamiento deteriorado. Puede venderse y servirá como material de fabricación en sistemas futuros."
+      },
+      "metal": {
+        "nombre": "Metal",
+        "descripcion": "Piezas y fragmentos metálicos recuperados de objetos y estructuras. Puede venderse y servirá como material de fabricación en sistemas futuros."
+      },
+      "piedra": {
+        "nombre": "Piedra",
+        "descripcion": "Fragmentos de piedra aprovechables recuperados de estructuras. Puede venderse y servirá como material de fabricación en sistemas futuros."
       }
     },
     "afijos": {

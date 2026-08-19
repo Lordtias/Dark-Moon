@@ -238,7 +238,6 @@ export function generarEnemigoUnicoEnZona({
     idPlantilla: resolucion.idEnemigo,
     nivel: nivelMapa,
     idVariante: resolucion.idVariante,
-    tablaBotinAdicional: resolucion.tablaBotinAdicional,
   });
 
   if (!puedeConsumirPresupuesto(zona, costoPoblacion)) {
@@ -310,11 +309,6 @@ export function generarEnemigoUnicoEnZona({
     y: posicion.y,
   });
 
-  agregarBotinAdicional({
-    enemigo,
-    tablaBotinAdicional: resolucion.tablaBotinAdicional,
-    descripcion: esJefe ? "del jefe" : "del encuentro especial",
-  });
 
   posicionesEnemigos.push({ ...posicion });
   zona.cantidadEnemigosUnicos += 1;
@@ -336,7 +330,6 @@ export function generarEnemigoUnicoEnZona({
         esJefe,
         probabilidadEncuentro: resolucion.probabilidadAparicion,
         tiradaEncuentro: resolucion.tirada,
-        cantidadEntradasBotinAdicional: resolucion.tablaBotinAdicional.length,
         costoPoblacion: resumirCosto(costoPoblacion),
       },
     ],
@@ -434,17 +427,6 @@ function crearResultadoEnemigoUnicoVacio(resumen) {
     variantes: {},
     resumen,
   };
-}
-function agregarBotinAdicional({ enemigo, tablaBotinAdicional, descripcion }) {
-  if (!Array.isArray(tablaBotinAdicional)) {
-    throw new Error(`El botín adicional ${descripcion} debe ser una lista.`);
-  }
-
-  enemigo.tablaBotin.push(
-    ...tablaBotinAdicional.map((entrada) => ({
-      ...entrada,
-    })),
-  );
 }
 function seleccionarCandidatoEnemigoConPresupuesto({
   configuracion,

@@ -49,7 +49,6 @@ export class ControladorCamaraPhaser {
     this.seleccionActiva = false;
     this.arrastrando = false;
     this.ultimoPuntero = null;
-    this.ultimoClicIzquierdo = 0;
     this.firmaLimites = null;
     this.canvas = escena.game.canvas;
     this.documento = this.canvas.ownerDocument;
@@ -177,7 +176,6 @@ export class ControladorCamaraPhaser {
     this.seleccionActiva = valorNuevo;
 
     if (this.seleccionActiva) {
-      this.ultimoClicIzquierdo = 0;
       this.finalizarArrastre();
       this.limpiarTeclasDireccion();
       this.siguiendoJugador = true;
@@ -257,25 +255,24 @@ export class ControladorCamaraPhaser {
       this.notificarCambio();
       return;
     }
+  }
 
-    if (pointer.button === 0) {
-      if (this.seleccionActiva) {
-        this.ultimoClicIzquierdo = 0;
-        return;
-      }
-
-      const ahora = performance.now();
-
-      if (
-        ahora - this.ultimoClicIzquierdo <=
-        CONFIGURACION_CAMARA_PHASER.retardoDobleClicMs
-      ) {
-        this.recentrar();
-        this.ultimoClicIzquierdo = 0;
-      } else {
-        this.ultimoClicIzquierdo = ahora;
-      }
+  iniciarArrastreTactil(pointer) {
+    if (!pointer) {
+      return false;
     }
+
+    this.arrastrando = true;
+    this.siguiendoJugador = false;
+    this.ultimoPuntero = { x: pointer.x, y: pointer.y };
+    this.canvas.classList.add("game-canvas--phaser-arrastrando");
+    this.notificarCambio();
+    return true;
+  }
+
+  finalizarArrastreTactil() {
+    this.finalizarArrastre();
+    return true;
   }
 
   manejarPointerMove(pointer) {

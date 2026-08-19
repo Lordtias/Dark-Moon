@@ -4,6 +4,8 @@ import {
 } from "../juego/mensajes/MensajesJuego.js";
 import { crearResultadoAccion } from "../juego/acciones/ResultadoAccion.js";
 import { TIPOS_INTERACCION } from "../juego/interacciones/TiposInteraccion.js";
+import { buscarSiguientePaso } from "../juego/espacio/BuscadorCamino.js";
+import { crearDetalleEntidad } from "../juego/inspeccion/DetalleEntidad.js";
 
 export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   MOVER: "mover",
@@ -14,6 +16,10 @@ export const TIPOS_COMANDO_JUGADOR = Object.freeze({
   SELECCIONAR_HABILIDAD_RANURA: "seleccionar-habilidad-ranura",
   SELECCIONAR_CASILLA: "seleccionar-casilla",
   INTERACTUAR_O_CONFIRMAR: "interactuar-o-confirmar",
+  MOVER_HACIA_CASILLA: "mover-hacia-casilla",
+  INSPECCIONAR_CASILLA: "inspeccionar-casilla",
+  ACTIVAR_ATAQUE_EN_CASILLA: "activar-ataque-en-casilla",
+  INTERACTUAR_EN_CASILLA: "interactuar-en-casilla",
 });
 
 // Ejecuta acciones jugables sin conocer el dispositivo de entrada
@@ -45,7 +51,7 @@ export class EjecutorAccionesJugador {
         return this.ejecutarMovimiento(comando);
 
       case TIPOS_COMANDO_JUGADOR.ESPERAR:
-        return this.juego.esperarTurno();
+        return this.esperar();
 
       case TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION:
         return this.activarOConfirmarSeleccion();
@@ -64,6 +70,18 @@ export class EjecutorAccionesJugador {
 
       case TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR:
         return this.interactuarOConfirmar();
+
+      case TIPOS_COMANDO_JUGADOR.MOVER_HACIA_CASILLA:
+        return this.moverHaciaCasilla(comando);
+
+      case TIPOS_COMANDO_JUGADOR.INSPECCIONAR_CASILLA:
+        return this.inspeccionarCasilla(comando);
+
+      case TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_EN_CASILLA:
+        return this.activarAtaqueEnCasilla(comando);
+
+      case TIPOS_COMANDO_JUGADOR.INTERACTUAR_EN_CASILLA:
+        return this.interactuarEnCasilla(comando);
 
       default:
         throw new Error(`Comando de jugador desconocido: ${comando.tipo}.`);
@@ -87,6 +105,24 @@ export class EjecutorAccionesJugador {
     }
 
     return this.juego.moverJugador(movimientoX, movimientoY);
+  }
+
+  esperar() {
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (sistemaHabilidades?.modoHabilidad) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: crearMensajeTraducible(
+          "mensajes.habilidades.cancelarParaEsperar",
+          {
+            tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+            respaldo:
+              "Cancelá primero la habilidad seleccionada antes de esperar.",
+          },
+        ),
+      });
+    }
+    return this.juego.esperarTurno();
   }
 
   activarOConfirmarSeleccion() {
@@ -177,6 +213,17 @@ export class EjecutorAccionesJugador {
       return null;
     }
 
+    const accionBasica = sistemaHabilidades.obtenerAccionBasicaPorRanura(
+      indiceRanura,
+    );
+
+    if (accionBasica === "atacar") {
+      return this.activarOConfirmarSeleccion();
+    }
+    if (accionBasica === "esperar") {
+      return this.esperar();
+    }
+
     return sistemaHabilidades.seleccionarPorRanura(indiceRanura);
   }
 
@@ -197,6 +244,125 @@ export class EjecutorAccionesJugador {
     }
 
     return crearResultadoAccion({ exito: false });
+  }
+
+  moverHaciaCasilla({ x, y }) {
+    validarCoordenadas(x, y);
+
+    const sistemaHabilidades = this.obtenerSistemaHabilidadesActivo();
+    if (
+      sistemaHabilidades?.modoHabilidad ||
+      this.juego.modoInteraccionActivo ||
+      this.juego.modoCombateActivo
+    ) {
+      return crearResultadoAccion({ exito: false });
+    }
+
+    const origen = { x: this.juego.player.x, y: this.juego.player.y };
+    if (origen.x === x && origen.y === y) {
+      return crearResultadoAccion({ exito: false });
+    }
+
+    const siguientePaso = buscarSiguientePaso({
+      sistemaEspacial: this.juego.sistemaEspacial,
+      origen,
+      destino: { x, y },
+      ignorarEntidades: [this.juego.player],
+    });
+
+    if (!siguientePaso) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: crearMensajeTraducible("mensajes.movimiento.sinCamino", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: "No existe un camino caminable hasta esa casilla.",
+        }),
+      });
+    }
+
+    return this.juego.moverJugador(
+      siguientePaso.x - origen.x,
+      siguientePaso.y - origen.y,
+    );
+  }
+
+  inspeccionarCasilla({ x, y }) {
+    validarCoordenadas(x, y);
+
+    if (
+      typeof this.juego.esCasillaVisibleJugador === "function" &&
+      !this.juego.esCasillaVisibleJugador(x, y)
+    ) {
+      return crearResultadoAccion({ exito: false });
+    }
+
+    const entidad = this.obtenerEntidadInspeccionableEn(x, y);
+    if (!entidad) {
+      return crearResultadoAccion({ exito: false });
+    }
+
+    return crearResultadoAccion({
+      exito: true,
+      detalleEntidad: crearDetalleEntidad({ entidad, juego: this.juego }),
+      turnoConsumido: false,
+      redibujar: false,
+    });
+  }
+
+  activarAtaqueEnCasilla({ x, y }) {
+    validarCoordenadas(x, y);
+    return this.juego.entrarModoCombate(x, y);
+  }
+
+  interactuarEnCasilla({ x, y }) {
+    validarCoordenadas(x, y);
+
+    const bloqueo = this.juego.obtenerBloqueoInteraccion();
+    if (bloqueo) return bloqueo;
+
+    const opciones = this.juego.obtenerOpcionesInteraccion();
+    const opcion = Array.isArray(opciones)
+      ? opciones.find((actual) => actual.x === x && actual.y === y)
+      : null;
+
+    if (!opcion) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: crearMensajeTraducible("mensajes.interacciones.nadaCerca", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo:
+            "Esa entidad no está disponible para interactuar desde tu posición actual.",
+        }),
+      });
+    }
+
+    return this.ejecutarInteraccionInmediataSiCorresponde(
+      crearResultadoAccion({
+        exito: true,
+        interaccion: opcion.interaccionPrioritaria,
+        entidad: opcion.entidad,
+      }),
+    );
+  }
+
+  obtenerEntidadInspeccionableEn(x, y) {
+    const candidatas = [
+      ...(Array.isArray(this.juego.objetivos) ? this.juego.objetivos : []),
+      ...(Array.isArray(this.juego.interactuables)
+        ? this.juego.interactuables.filter(
+            (entidad) => !this.juego.objetivos?.includes?.(entidad),
+          )
+        : []),
+    ];
+
+    return (
+      candidatas.find(
+        (entidad) =>
+          entidad?.estaDestruido !== true &&
+          entidad?.x === x &&
+          entidad?.y === y,
+      ) ?? null
+    );
   }
 
   interactuarOConfirmar() {
@@ -327,6 +493,7 @@ function validarProveedorHabilidades(obtenerSistemaHabilidades) {
 function validarSistemaHabilidades(sistema) {
   const metodosRequeridos = [
     "seleccionarPorRanura",
+    "obtenerAccionBasicaPorRanura",
     "moverSelector",
     "fijarSelector",
     "confirmar",

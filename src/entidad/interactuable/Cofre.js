@@ -16,6 +16,7 @@ export const RECURSO_VISUAL_COFRE_ABIERTO_PREDETERMINADO =
 export class Cofre extends Entidad {
   constructor({
     nombre = "Cofre",
+    descripcion = "Un cofre preparado para almacenar recompensas y objetos.",
     x = 0,
     y = 0,
     simbolo = "C",
@@ -53,6 +54,7 @@ export class Cofre extends Entidad {
 
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

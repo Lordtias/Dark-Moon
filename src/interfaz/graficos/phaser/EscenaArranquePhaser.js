@@ -196,9 +196,23 @@ export function crearEscenaArranquePhaser({
         new ControladorEntradaJugablePhaser({
           escena: this,
           conversorCoordenadas: this.conversorCoordenadas,
-          obtenerModoSeleccion: () =>
-            this.escenaDarkMoon?.combate?.modo ?? null,
+          obtenerEstadoSeleccion: () => ({
+            modo: this.escenaDarkMoon?.combate?.modo ?? null,
+            selector: this.escenaDarkMoon?.combate?.selector ?? null,
+          }),
+          existeEntidadVisibleEnCasilla: (x, y) =>
+            this.escenaDarkMoon?.entidades?.some(
+              (entidad) =>
+                entidad?.tipo !== TIPOS_ENTIDAD_VISUAL.JUGADOR &&
+                entidad?.x === x &&
+                entidad?.y === y,
+            ) === true,
           alEjecutarComando: this.alEjecutarComando,
+          alRecentrarCamara: () => this.controladorCamara?.recentrar(),
+          alIniciarArrastreTactil: (pointer) =>
+            this.controladorCamara?.iniciarArrastreTactil(pointer),
+          alFinalizarArrastreTactil: () =>
+            this.controladorCamara?.finalizarArrastreTactil(),
         });
 
       return true;

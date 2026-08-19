@@ -177,7 +177,7 @@ export class IntegracionHabilidadesDom {
       if (guardada) {
         this.sistema.restaurarBarra(guardada.ranuras);
       } else {
-        this.sistema.vaciarBarra();
+        this.sistema.restaurarBarra(this.sistema.obtenerAsignacionesIniciales());
       }
     } catch (error) {
       console.warn(

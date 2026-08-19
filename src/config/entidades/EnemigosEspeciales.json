@@ -1,6 +1,7 @@
 {
   "hombre_rata_saqueador": {
     "nombre": "Hombre rata saqueador",
+    "descripcion": "Un hombre rata endurecido por el saqueo, más peligroso que las alimañas comunes.",
     "genero": "masculino",
     "simbolo": "S",
     "recursoVisual": {
@@ -146,6 +147,7 @@
   },
   "zombi": {
     "nombre": "Zombi",
+    "descripcion": "Un cadáver reanimado que avanza con lentitud y una resistencia antinatural.",
     "genero": "masculino",
     "simbolo": "Z",
     "recursoVisual": {
@@ -280,6 +282,7 @@
   },
   "caballero_oseo": {
     "nombre": "Caballero Óseo",
+    "descripcion": "Un guerrero óseo fuertemente armado que conserva disciplina de combate.",
     "genero": "masculino",
     "simbolo": "C",
     "recursoVisual": {
@@ -427,6 +430,7 @@
   },
   "comandante": {
     "nombre": "Comandante",
+    "descripcion": "Un enemigo veterano que representa una amenaza superior dentro de la expedición.",
     "genero": "masculino",
     "simbolo": "M",
     "recursoVisual": {
@@ -577,6 +581,7 @@
   },
   "senor_guerra": {
     "nombre": "Señor de la Guerra",
+    "descripcion": "Un adversario de gran poder preparado para dominar el combate frontal.",
     "genero": "masculino",
     "simbolo": "W",
     "recursoVisual": {

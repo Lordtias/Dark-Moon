@@ -8,6 +8,7 @@ import { TIPOS_INTERACCION } from "../../juego/interacciones/TiposInteraccion.js
 export class Destructible extends Entidad {
   constructor({
     nombre,
+    descripcion = "",
     x = 0,
     y = 0,
     simbolo = "?",
@@ -97,6 +98,7 @@ export class Destructible extends Entidad {
 
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

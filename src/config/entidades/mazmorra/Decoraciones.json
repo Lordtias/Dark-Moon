@@ -1,6 +1,7 @@
 {
   "restos_abandonados": {
     "nombre": "Restos abandonados",
+    "descripcion": "Restos abandonados y deteriorados que forman parte del entorno.",
     "simbolo": "R",
     "recursoVisual": "assets/imagenes/destructibles/restos_abandonados.png",
     "vidaMaxima": 5,
@@ -25,6 +26,7 @@
   },
   "pila_huesos": {
     "nombre": "Pila de huesos",
+    "descripcion": "Una pila de huesos amontonados durante años de abandono.",
     "simbolo": "P",
     "recursoVisual": "assets/imagenes/destructibles/pila_huesos.png",
     "vidaMaxima": 5,
@@ -48,6 +50,7 @@
   },
   "mesa_madera": {
     "nombre": "Mesa de madera",
+    "descripcion": "Una mesa de madera sencilla, desgastada por el uso y el tiempo.",
     "simbolo": "T",
     "recursoVisual": "assets/imagenes/destructibles/mesa_madera.png",
     "vidaMaxima": 16,
@@ -71,6 +74,7 @@
   },
   "silla_madera": {
     "nombre": "Silla de madera",
+    "descripcion": "Una silla de madera común que aún puede romperse o apartarse.",
     "simbolo": "I",
     "recursoVisual": "assets/imagenes/destructibles/silla_madera.png",
     "vidaMaxima": 7,
@@ -94,6 +98,7 @@
   },
   "cama_madera": {
     "nombre": "Cama de madera",
+    "descripcion": "Una cama de madera antigua con restos de tela y estructura deteriorada.",
     "simbolo": "K",
     "recursoVisual": "assets/imagenes/destructibles/cama_madera.png",
     "vidaMaxima": 17,
@@ -118,6 +123,7 @@
   },
   "estanteria_madera": {
     "nombre": "Estantería de madera",
+    "descripcion": "Una estantería de madera usada para almacenar objetos y provisiones.",
     "simbolo": "E",
     "recursoVisual": "assets/imagenes/destructibles/estanteria_madera.png",
     "vidaMaxima": 15,
@@ -141,6 +147,7 @@
   },
   "banco_madera": {
     "nombre": "Banco de madera",
+    "descripcion": "Un banco de madera robusto utilizado como mobiliario del lugar.",
     "simbolo": "B",
     "recursoVisual": "assets/imagenes/destructibles/banco_madera.png",
     "vidaMaxima": 10,
@@ -164,6 +171,7 @@
   },
   "soporte_entrenamiento": {
     "nombre": "Soporte de entrenamiento",
+    "descripcion": "Un soporte utilizado para prácticas de combate y entrenamiento.",
     "simbolo": "D",
     "recursoVisual": "assets/imagenes/destructibles/soporte_entrenamiento.png",
     "vidaMaxima": 22,
@@ -188,6 +196,7 @@
   },
   "mesa_estrategica": {
     "nombre": "Mesa estratégica",
+    "descripcion": "Una mesa preparada para mapas, planes y decisiones tácticas.",
     "simbolo": "Q",
     "recursoVisual": "assets/imagenes/destructibles/mesa_estrategica.png",
     "vidaMaxima": 24,

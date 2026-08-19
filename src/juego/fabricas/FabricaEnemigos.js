@@ -384,6 +384,17 @@ function aplicarVariante(datos, variante, idVariante) {
 // Valida las secciones obligatorias
 // de una plantilla de enemigo.
 function validarPlantilla(plantilla, idPlantilla) {
+  if (typeof plantilla.nombre !== "string" || plantilla.nombre.trim() === "") {
+    throw new Error(`La plantilla "${idPlantilla}" necesita un nombre válido.`);
+  }
+  if (
+    typeof plantilla.descripcion !== "string" ||
+    plantilla.descripcion.trim() === ""
+  ) {
+    throw new Error(
+      `La plantilla "${idPlantilla}" necesita una descripción válida.`,
+    );
+  }
   if (!esObjetoConfiguracion(plantilla.baseNivel1)) {
     throw new Error(`La plantilla "${idPlantilla}" ` + "necesita baseNivel1.");
   }
@@ -473,6 +484,7 @@ export function calcularDatosEnemigo({
 
   const datos = {
     nombre: plantilla.nombre,
+    descripcion: plantilla.descripcion,
     idPlantilla,
     idVariante,
     genero: plantilla.genero ?? "masculino",

@@ -399,7 +399,7 @@ En seguimiento o selección táctica, el personaje se conserva como centro. En c
 
 ## 8.6 Recentrado
 
-`H` vuelve al personaje y reactiva el seguimiento. El doble clic izquierdo conserva la misma función como alternativa de ratón.
+`H` vuelve al personaje y reactiva el seguimiento. El doble clic izquierdo conserva la misma función como alternativa de ratón y el doble tap ofrece la equivalencia táctil fuera de una selección activa.
 
 ## 8.7 Coordenadas
 
@@ -1645,7 +1645,7 @@ La presentación Phaser debe analizar ocho vecinos y no dibujar muros como bloqu
 
 Mientras el seguimiento esté activo, el personaje es la referencia permanente de la cámara y permanece exactamente en el centro visual. La regla se aplica desde el primer cuadro del mapa y después de esperas, redibujados, apertura o cierre de modales, cambios de zoom, redimensionamiento y pantalla completa. No se agregan excepciones por acción o nombre de modal.
 
-El desplazamiento manual puede pasar voluntariamente a cámara libre. Al comenzar ataque, interacción o selección de habilidad, el seguimiento vuelve a activarse, se bloquea el arrastre y el zoom conserva al personaje como centro.
+El desplazamiento manual puede pasar voluntariamente a cámara libre. Al comenzar ataque, interacción o selección de habilidad, el seguimiento vuelve a activarse y el zoom conserva al personaje como centro. El desplazamiento de cámara por teclado y arrastre de mouse continúa bloqueado durante selección táctica; touch mantenido y arrastrado puede desplazar temporalmente la vista sin modificar ni confirmar el selector.
 
 ## V-016 — Aura reservada para objetivos contextuales
 
@@ -1657,24 +1657,26 @@ Phaser calcula una vez los límites alfa de cada PNG y conserva tanto el anclaje
 
 ## V-018 — Controles y coordenadas de cámara
 
-La cámara utiliza `IJKL` para desplazamiento, `+` y `-` para zoom y `H` para volver al personaje y reactivar el seguimiento. La rueda, el arrastre derecho o central y el doble clic izquierdo continúan disponibles. Estos controles son exclusivamente visuales: no mueven al personaje, no ejecutan acciones y se ignoran en campos editables.
+La cámara utiliza `IJKL` para desplazamiento, `+` y `-` para zoom y `H` para volver al personaje y reactivar el seguimiento. La rueda, el arrastre derecho o central, el doble clic izquierdo y el doble tap continúan disponibles. Touch mantenido y arrastrado desplaza la cámara. Estos controles son exclusivamente visuales: no mueven al personaje, no ejecutan acciones y se ignoran cuando la interfaz captura la entrada.
 
 Las traducciones entre pantalla, mundo y casilla pertenecen a un conversor único reutilizable. El compositor dibuja y el controlador navega utilizando ese contrato, sin duplicar matemáticas de coordenadas.
 
 
-## V-019 — Selección mediante puntero Phaser
+## V-019 — Entrada multientrada mediante puntero Phaser
 
-Durante combate, interacción o selección de habilidad, el clic izquierdo sobre el mapa Phaser señala una casilla y mueve el selector canónico. La acción continúa confirmándose mediante `F` o `R`; seleccionar no consume turno ni ejecuta automáticamente ataques, habilidades o interacciones.
+Durante combate, interacción o selección de habilidad, clic y tap sobre el mapa Phaser señalan una casilla y mueven el selector canónico. Pulsar otra vez la casilla actualmente seleccionada confirma: combate y habilidades reutilizan la misma intención que `F`, mientras interacción reutiliza la misma intención que `R`. Seleccionar no consume turno y confirmar conserva las reglas del sistema canónico correspondiente.
 
-Durante combate físico, las flechas, WASD y el teclado numérico navegan entre las casillas que el selector canónico admite dentro del alcance. La navegación es direccional y no exige que exista una cadena continua de casillas seleccionables entre la posición actual y la siguiente: si la casilla intermedia es la del propio jugador o no pertenece al selector, se elige la siguiente posición válida mejor alineada en la dirección solicitada. Se prioriza alineación, luego distancia y finalmente un orden determinista. El clic conserva la selección directa de una coordenada admitida por el mismo contrato.
+Durante combate físico, las flechas, WASD y el teclado numérico navegan entre las casillas que el selector canónico admite dentro del alcance. La navegación es direccional y no exige que exista una cadena continua de casillas seleccionables entre la posición actual y la siguiente: si la casilla intermedia es la del propio jugador o no pertenece al selector, se elige la siguiente posición válida mejor alineada en la dirección solicitada. Se prioriza alineación, luego distancia y finalmente un orden determinista. El puntero conserva la selección directa de una coordenada admitida por el mismo contrato.
 
 El selector de interacciones reutiliza la misma geometría direccional cuando existen varias entidades disponibles. El selector de habilidades no adopta ese salto discreto: salvo habilidades de objetivo propio, continúa siendo un cursor libre que avanza una casilla por pulsación y puede situarse temporalmente sobre posiciones inválidas para permitir la previsualización y el feedback canónico de alcance, área y validez.
 
 Al confirmar un ataque, la selección táctica debe retirarse antes del primer movimiento, impacto, texto o efecto de combate. El selector representa la fase de apuntado y no debe permanecer superpuesto durante la resolución visual de una acción ya confirmada.
 
-El clic utiliza la cámara y el zoom reales mediante el conversor único. Fuera de un modo de selección no mueve al personaje ni abre información de entidades. El doble clic conserva el recentrado únicamente fuera de la selección.
+Fuera de un modo de selección, clic/tap sobre una entidad visible solicita su ficha genérica y tiene prioridad sobre el suelo. Clic/tap sobre una casilla caminable solicita avanzar exactamente un paso por el mejor camino disponible; el destino no se conserva ni se genera una cola de movimiento. Cada nueva pulsación recalcula desde el estado actual y el paso final continúa siendo resuelto por `SistemaMovimientoJugador`.
 
-El teclado jugable y la cámara permanecen en componentes especializados. Una futura pantalla de configuración deberá modificar una única asignación central de acciones y teclas para ambos componentes, evitando configuraciones paralelas.
+El doble clic y el doble tap recentran la cámara únicamente fuera de una selección activa. Para distinguir el gesto doble de una acción simple, el puntero utiliza una breve ventana de discriminación; durante selección táctica no se introduce ese retardo. Touch mantenido y arrastrado desplaza la cámara y no genera una acción jugable al soltar.
+
+El teclado jugable, el puntero y la cámara permanecen en componentes especializados y convergen en comandos compartidos. `docs/phaser/PLAN_MAESTRO_CONTROLES_MULTIENTRADA_E_INTERFAZ_TACTIL_DARK_MOON.md` es la referencia canónica del mapeo completo de intenciones, comandos y entradas.
 
 ## V-020 — Presentación cenital global de entidades
 
@@ -1726,9 +1728,9 @@ La referencia P4 agrega:
 - clic izquierdo para seleccionar una casilla durante combate, interacción o habilidad;
 - confirmación conservada mediante `F` o `R`;
 - conversión exacta con cámara, zoom y redimensionamiento;
-- ausencia de acción jugable cuando no existe un modo de selección;
+- ausencia de acción jugable fuera de selección en la referencia histórica P4, posteriormente ampliada por V-019 con movimiento e inspección;
 - doble clic de recentrado disponible solamente fuera de la selección;
-- un único comando neutral para el selector activo;
+- comandos neutrales compartidos por selección, movimiento e inspección;
 - teclado jugable centralizado y cámara especializada, preparados para una futura configuración común de teclas.
 
 ---

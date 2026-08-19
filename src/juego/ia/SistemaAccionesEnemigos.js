@@ -16,7 +16,7 @@ import {
   COSTOS_TEMPORALES_BASE,
   TIPOS_ACCION_TEMPORAL,
 } from "../tiempo/SistemaTiempo.js";
-import { buscarSiguientePaso } from "./BuscadorCamino.js";
+import { buscarSiguientePaso } from "../espacio/BuscadorCamino.js";
 import { crearMensajesResultadoAtaque } from "../mensajes/MensajesCombate.js";
 import {
   crearMensajeTraducible,

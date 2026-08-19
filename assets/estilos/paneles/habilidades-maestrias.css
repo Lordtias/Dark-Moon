@@ -1107,3 +1107,42 @@
   gap: 12px;
 }
 .maestrias__selector { margin-bottom: 0; }
+
+/* Habilidades básicas sin maestría: usan el mismo contrato de barra, pero no
+   muestran XP ni gasto de puntos. */
+.habilidades-independientes {
+  display: grid;
+  gap: 18px;
+}
+
+.habilidades-independientes__cabecera p {
+  max-width: 720px;
+}
+
+.habilidades-independientes__grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.habilidad-independiente {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(142, 160, 205, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.habilidad-independiente__identidad {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.habilidad-independiente__descripcion {
+  margin: 0;
+  color: var(--texto-secundario, #b8c0d9);
+  line-height: 1.45;
+}

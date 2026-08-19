@@ -125,6 +125,7 @@ export { FAMILIAS_ENTIDAD_MAZMORRA };
 function validarDefinicion({ id, familia, definicion }) {
   validarObjeto(definicion, `la definición de "${id}"`);
   validarTexto(definicion.nombre, `el nombre de "${id}"`);
+  validarTexto(definicion.descripcion, `la descripción de "${id}"`);
   validarTexto(definicion.simbolo, `el símbolo de "${id}"`);
   validarRecursoVisual(definicion.recursoVisual, id);
   validarEnteroPositivo(definicion.vidaMaxima, `la Vida máxima de "${id}"`);

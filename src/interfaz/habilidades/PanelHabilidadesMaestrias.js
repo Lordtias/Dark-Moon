@@ -203,6 +203,18 @@ export class PanelHabilidadesMaestrias {
       resumen,
       idCategoria: this.categoriaActiva,
     });
+    const habilidadesIndependientes = this.sistema
+      .obtenerHabilidadesIndependientes()
+      .filter((habilidad) => habilidad.categoria === this.categoriaActiva);
+
+    if (categoria && habilidadesIndependientes.length > 0 && maestrias.length === 0) {
+      this.renderizarHabilidadesIndependientes({
+        categoria,
+        habilidades: habilidadesIndependientes,
+      });
+      return;
+    }
+
     if (!categoria || maestrias.length === 0 || !this.maestriaActiva) {
       this.renderizarCategoriaVacia(categoria);
       return;
@@ -577,6 +589,67 @@ export class PanelHabilidadesMaestrias {
       acciones.append(barra);
     }
     return acciones;
+  }
+
+  renderizarHabilidadesIndependientes({ categoria, habilidades }) {
+    const seccion = crearElemento("section", "habilidades-independientes");
+    const cabecera = crearElemento("header", "habilidades-independientes__cabecera");
+    cabecera.append(
+      crearElemento("p", "panel-habilidades__etiqueta", nombreCategoria(categoria)),
+      crearElemento("h3", "", traducir("interfaz.habilidades.basicasTitulo", {
+        respaldo: "Habilidades básicas",
+      })),
+      crearElemento(
+        "p",
+        "",
+        traducir("interfaz.habilidades.basicasDetalle", {
+          respaldo: "Siempre están aprendidas en grado 1 y pueden asignarse, moverse o quitarse libremente de la barra.",
+        }),
+      ),
+    );
+
+    const grilla = crearElemento("div", "habilidades-independientes__grilla");
+    for (const habilidad of habilidades) {
+      const indiceAsignado = this.sistema
+        .obtenerEstadoBarra()
+        .findIndex((ranura) => ranura.idHabilidad === habilidad.id);
+      const asignada = indiceAsignado >= 0;
+      const tarjeta = crearElemento("article", "habilidad-independiente");
+      const identidad = crearElemento("div", "habilidad-independiente__identidad");
+      identidad.append(
+        crearIconoNodo({ icono: habilidad.icono }, habilidad),
+        crearElemento("strong", "", nombreHabilidad(habilidad)),
+        crearElemento("span", "nodo-habilidad__grado", "1/1"),
+      );
+      tarjeta.append(
+        identidad,
+        crearElemento("p", "habilidad-independiente__descripcion", descripcionHabilidad(habilidad, habilidad)),
+      );
+
+      const boton = crearElemento(
+        "button",
+        "tarjeta-habilidad__accion",
+        asignada
+          ? traducir("interfaz.habilidades.quitarRanura", {
+              parametros: { ranura: indiceAsignado === 9 ? 0 : indiceAsignado + 1 },
+              respaldo: `Quitar de ${indiceAsignado === 9 ? 0 : indiceAsignado + 1}`,
+            })
+          : traducir("interfaz.habilidades.asignarBarra", { respaldo: "Asignar a barra" }),
+      );
+      boton.type = "button";
+      boton.addEventListener("click", () => {
+        if (asignada) {
+          this.abrirConfirmacionQuitar({ habilidad, indiceAsignado });
+        } else {
+          this.abrirSelectorRanura(habilidad);
+        }
+      });
+      tarjeta.append(boton);
+      grilla.append(tarjeta);
+    }
+
+    seccion.append(cabecera, grilla);
+    this.contenido.append(seccion);
   }
 
   renderizarCategoriaVacia(categoria) {

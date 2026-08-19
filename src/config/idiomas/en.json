@@ -458,7 +458,9 @@
       "tipoOfensiva": "Offensive",
       "nivelArbol": "Level {nivel}",
       "todaMaestria": "All {maestria} skills",
-      "aplicaA": "Applies to"
+      "aplicaA": "Applies to",
+      "basicasTitulo": "Basic abilities",
+      "basicasDetalle": "They are always learned at rank 1 and can be assigned, moved, or removed freely from the quick bar."
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -725,7 +727,7 @@
       "camara": "Move the camera without moving the character.",
       "recentrar": "Recenter the camera on the character.",
       "zoom": "Zoom the view in or out.",
-      "arrastrar": "You can also drag the map with the mouse to move the camera.",
+      "arrastrar": "With a mouse, drag using the middle or right button to pan the camera.",
       "diagnosticoTitulo": "Testing diagnostics",
       "diagnosticoDescripcion": "If you find a problem, copy this diagnostic and send it together with a short explanation of what happened.",
       "copiarDiagnostico": "Copy diagnostics",
@@ -753,7 +755,14 @@
         "sinDato": "no data",
         "ciudad": "city",
         "mazmorra": "dungeon"
-      }
+      },
+      "clicTap": "CLICK / TAP",
+      "movimientoPuntero": "Tap a walkable tile to advance one step along the best available path.",
+      "inspeccionarEntidad": "Tap a visible entity to open its information. While selecting, tapping the current selection confirms.",
+      "habilidadesBasicas": "Attack and Wait are always-learned basic abilities. You can assign, move, or remove them from any slot.",
+      "dobleClicTap": "DOUBLE CLICK / TAP",
+      "mantenerArrastrar": "HOLD + DRAG",
+      "arrastrarTactil": "On touch screens, hold and drag to pan the camera without moving the character."
     },
     "cargaMapa": {
       "aria": "Preparing Dark Moon map",
@@ -2198,6 +2207,14 @@
       "aura_voluntad": {
         "nombre": "Aura of Will",
         "descripcion": "Emits a 10-turn shield aura that increases status resistances and Mental Resistance for nearby allies."
+      },
+      "atacar": {
+        "nombre": "Attack",
+        "descripcion": "Activates or confirms the current basic attack."
+      },
+      "esperar": {
+        "nombre": "Wait",
+        "descripcion": "Consumes one turn without moving the character."
       }
     },
     "maestrias": {

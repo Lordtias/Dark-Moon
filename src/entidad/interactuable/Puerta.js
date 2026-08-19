@@ -40,6 +40,7 @@ export const RECURSOS_VISUALES_PUERTA_PREDETERMINADOS = Object.freeze({
 export class Puerta extends Entidad {
   constructor({
     nombre = "Puerta",
+    descripcion = "Una puerta que controla el paso entre dos sectores.",
     x = 0,
     y = 0,
     abierta = false,
@@ -78,6 +79,7 @@ export class Puerta extends Entidad {
 
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo: abierta ? simboloAbierta : simboloCerrada,

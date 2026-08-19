@@ -23,8 +23,8 @@ function crearClavePosicion(x, y) {
  *
  * @param {Object} opciones Información de búsqueda.
  * @param {Object} opciones.sistemaEspacial Autoridad espacial del mapa activo.
- * @param {Object} opciones.origen Posición del enemigo.
- * @param {Object} opciones.destino Posición del jugador.
+ * @param {Object} opciones.origen Posición del actor que busca camino.
+ * @param {Object} opciones.destino Posición objetivo.
  * @param {Array<Object>} opciones.ignorarEntidades Entidades que no deben
  * bloquear esta búsqueda, normalmente el actor que se mueve y su destino.
  * @returns {Object|null} Siguiente posición o null.

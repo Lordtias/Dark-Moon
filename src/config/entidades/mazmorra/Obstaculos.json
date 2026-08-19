@@ -1,6 +1,7 @@
 {
   "barricada_improvisada": {
     "nombre": "Barricada improvisada",
+    "descripcion": "Una barricada improvisada que bloquea el paso con materiales reunidos a toda prisa.",
     "simbolo": "#",
     "recursoVisual": "assets/imagenes/destructibles/barricada_improvisada.png",
     "vidaMaxima": 24,
@@ -24,6 +25,7 @@
   },
   "lapida_piedra": {
     "nombre": "Lápida de piedra",
+    "descripcion": "Una lápida de piedra pesada que ocupa y protege su espacio en el cementerio.",
     "simbolo": "L",
     "recursoVisual": "assets/imagenes/destructibles/lapida_piedra.png",
     "vidaMaxima": 26,
@@ -47,6 +49,7 @@
   },
   "reja_hierro": {
     "nombre": "Reja de hierro",
+    "descripcion": "Una reja de hierro que separa sectores y dificulta el tránsito.",
     "simbolo": "H",
     "recursoVisual": "assets/imagenes/destructibles/reja_hierro.png",
     "vidaMaxima": 32,

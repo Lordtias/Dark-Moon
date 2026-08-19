@@ -26,6 +26,7 @@ const RECURSO_VISUAL_BOTIN_PREDETERMINADO =
 export class BotinSuelo extends Entidad {
   constructor({
     nombre = "Botín",
+    descripcion = "Una pila de objetos abandonados en el suelo.",
     x = 0,
     y = 0,
     simbolo = "*",
@@ -41,6 +42,7 @@ export class BotinSuelo extends Entidad {
   } = {}) {
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

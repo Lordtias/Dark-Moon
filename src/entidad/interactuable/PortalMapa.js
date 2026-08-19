@@ -28,6 +28,7 @@ const TIPOS_INTERACCION_PORTAL_VALIDOS = new Set([
 export class PortalMapa extends Entidad {
   constructor({
     nombre = "Portal",
+    descripcion = "Un acceso que permite abandonar o cambiar de zona cuando está activo.",
     x = 0,
     y = 0,
     simbolo = "O",
@@ -48,6 +49,7 @@ export class PortalMapa extends Entidad {
   } = {}) {
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

@@ -9,6 +9,7 @@ import { ModalContenedorObjetos } from "../objetos/ModalContenedorObjetos.js";
 import { ModalSeleccionMazmorra } from "../ModalSeleccionMazmorra.js";
 import { ModalComercio } from "../comercio/ModalComercio.js";
 import { ModalAyudaJuego } from "../ayuda/ModalAyudaJuego.js";
+import { ModalDetalleEntidad } from "../entidades/ModalDetalleEntidad.js";
 import { GestorPanelesPartidaDom } from "./GestorPanelesPartidaDom.js";
 import { HudPartidaDom } from "./HudPartidaDom.js";
 import {
@@ -88,6 +89,7 @@ export function crearInterfazPartidaDom({
   });
 
   const modalDetalleObjeto = new ModalDetalleObjeto();
+  const modalDetalleEntidad = new ModalDetalleEntidad();
   const modalContenedorObjetos = new ModalContenedorObjetos();
   const modalSeleccionMazmorra = new ModalSeleccionMazmorra();
   const modalComercio = new ModalComercio();
@@ -158,6 +160,7 @@ export function crearInterfazPartidaDom({
     panelEquipamiento,
     gestorPaneles,
     modalDetalleObjeto,
+    modalDetalleEntidad,
     modalContenedorObjetos,
     modalSeleccionMazmorra,
     modalComercio,

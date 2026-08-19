@@ -1,4 +1,6 @@
 import { ControladorTeclado } from "../../controles/ControladorTeclado.js";
+import { TIPOS_COMANDO_JUGADOR } from "../../aplicacion/EjecutorAccionesJugador.js";
+import { ACCIONES_DETALLE_ENTIDAD } from "../../juego/inspeccion/DetalleEntidad.js";
 import { ControladorEquipamientoDom } from "../objetos/ControladorEquipamientoDom.js";
 import { ControladorComercioDom } from "../comercio/ControladorComercioDom.js";
 import { AdaptadorInteraccionesDom } from "../interacciones/AdaptadorInteraccionesDom.js";
@@ -133,6 +135,39 @@ export class PresentacionMapaActivoDom {
     });
   }
 
+  presentarDetalleEntidad(detalleEntidad) {
+    if (!detalleEntidad?.entidad) {
+      throw new Error("El detalle presentado necesita una entidad de origen.");
+    }
+
+    this.interfazPartida.modalDetalleEntidad.abrir({
+      detalle: detalleEntidad,
+      alAccion: ({ accion, detalle }) => {
+        const entidad = detalle?.entidad;
+        if (!entidad) return;
+
+        if (accion.id === ACCIONES_DETALLE_ENTIDAD.ATACAR) {
+          this.alEjecutarComando({
+            tipo: TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_EN_CASILLA,
+            x: entidad.x,
+            y: entidad.y,
+            origenEntrada: "modal-entidad",
+          });
+          return;
+        }
+
+        if (accion.id === ACCIONES_DETALLE_ENTIDAD.INTERACTUAR) {
+          this.alEjecutarComando({
+            tipo: TIPOS_COMANDO_JUGADOR.INTERACTUAR_EN_CASILLA,
+            x: entidad.x,
+            y: entidad.y,
+            origenEntrada: "modal-entidad",
+          });
+        }
+      },
+    });
+  }
+
   activar() {
     if (this.destruida) {
       throw new Error(
@@ -166,6 +201,7 @@ export class PresentacionMapaActivoDom {
     }
 
     this.interfazPartida.renderizador.conectarEntradaMapa(null);
+    this.interfazPartida.modalDetalleEntidad?.cerrar?.();
     this.controladorTeclado.desactivar();
     this.controladorEquipamiento.desactivar();
     this.estaActiva = false;
@@ -236,6 +272,7 @@ function validarInterfazPartida(interfaz) {
     "panelEquipamiento",
     "gestorPaneles",
     "modalDetalleObjeto",
+    "modalDetalleEntidad",
     "modalContenedorObjetos",
     "modalSeleccionMazmorra",
     "modalComercio",

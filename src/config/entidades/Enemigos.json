@@ -1,6 +1,7 @@
 {
   "rata": {
     "nombre": "Rata",
+    "descripcion": "Una rata de alcantarilla agresiva, pequeña pero persistente.",
     "genero": "femenino",
     "simbolo": "r",
     "recursoVisual": {
@@ -140,6 +141,7 @@
   },
   "cucaracha": {
     "nombre": "Cucaracha",
+    "descripcion": "Una cucaracha de gran tamaño acostumbrada a sobrevivir entre residuos y humedad.",
     "genero": "femenino",
     "simbolo": "c",
     "recursoVisual": {
@@ -271,6 +273,7 @@
   },
   "esqueleto_arquero": {
     "nombre": "Esqueleto Arquero",
+    "descripcion": "Un arquero esquelético que mantiene la distancia y ataca con proyectiles.",
     "genero": "masculino",
     "simbolo": "A",
     "recursoVisual": {
@@ -404,6 +407,7 @@
   },
   "esqueleto_guardia": {
     "nombre": "Esqueleto Guardia",
+    "descripcion": "Un guardia esquelético armado para resistir y combatir a corta distancia.",
     "genero": "masculino",
     "simbolo": "G",
     "recursoVisual": {
@@ -531,6 +535,7 @@
   },
   "ladron": {
     "nombre": "Ladrón",
+    "descripcion": "Un saqueador oportunista que recurre a la agilidad y al combate rápido.",
     "genero": "masculino",
     "simbolo": "L",
     "recursoVisual": {
@@ -674,6 +679,7 @@
   },
   "lancero": {
     "nombre": "Lancero",
+    "descripcion": "Un combatiente que controla la distancia con el alcance de su lanza.",
     "genero": "masculino",
     "simbolo": "P",
     "recursoVisual": {

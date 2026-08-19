@@ -10,6 +10,7 @@ const ESTRATEGIAS_SIN_RECURSOS_VALIDAS = ["ataqueNatural", "esperar"];
 export class Enemigo extends Combatiente {
   constructor({
     nombre,
+    descripcion = "",
     idPlantilla = null,
     idVariante = null,
     genero = null,
@@ -34,6 +35,7 @@ export class Enemigo extends Combatiente {
   } = {}) {
     super({
       nombre,
+      descripcion,
       nivel,
       x,
       y,

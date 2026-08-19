@@ -35,6 +35,7 @@ export function crearDestructible({
 
   return new Destructible({
     nombre: definicion.nombre,
+    descripcion: definicion.descripcion,
     x,
     y,
     simbolo: definicion.simbolo,

@@ -145,24 +145,28 @@ function crearSeccionMovimiento() {
       <span class="ayuda-control__texto" data-ayuda-i18n="movimiento"></span>
     </div>
     <div class="ayuda-control"><span class="tecla tecla--ancha" data-tecla-especial="espacio"></span><span class="tecla">5</span><span class="ayuda-control__texto" data-ayuda-i18n="esperar"></span></div>
+    <div class="ayuda-control"><span class="tecla tecla--ancha" data-ayuda-i18n="clicTap"></span><span class="ayuda-control__texto" data-ayuda-i18n="movimientoPuntero"></span></div>
   </section>`;
 }
 function crearSeccionAcciones() {
   return `<section class="ayuda-bloque"><h3 data-ayuda-i18n="accionesTitulo"></h3>
     <div class="ayuda-control"><span class="tecla">F</span><span class="ayuda-control__texto" data-ayuda-i18n="combate"></span></div>
     <div class="ayuda-control"><span class="tecla">R</span><span class="ayuda-control__texto" data-ayuda-i18n="interactuar"></span></div>
+    <div class="ayuda-control"><span class="tecla tecla--ancha" data-ayuda-i18n="clicTap"></span><span class="ayuda-control__texto" data-ayuda-i18n="inspeccionarEntidad"></span></div>
   </section>`;
 }
 function crearSeccionHabilidades() {
   return `<section class="ayuda-bloque"><h3 data-ayuda-i18n="habilidadesTitulo"></h3>
     <div class="ayuda-control"><div class="teclas-linea">${[1,2,3,4,5,6,7,8,9,0].map((n)=>`<span class="tecla">${n}</span>`).join("")}</div><span class="ayuda-control__texto" data-ayuda-i18n="habilidades"></span></div>
+    <div class="ayuda-control"><span class="ayuda-control__texto" data-ayuda-i18n="habilidadesBasicas"></span></div>
   </section>`;
 }
 function crearSeccionCamara() {
   return `<section class="ayuda-bloque"><h3 data-ayuda-i18n="camaraTitulo"></h3>
     <div class="ayuda-control"><div class="teclado-cruz"><span class="tecla">I</span><div><span class="tecla">J</span><span class="tecla">K</span><span class="tecla">L</span></div></div><span class="ayuda-control__texto" data-ayuda-i18n="camara"></span></div>
-    <div class="ayuda-control"><span class="tecla">H</span><span class="ayuda-control__texto" data-ayuda-i18n="recentrar"></span></div>
+    <div class="ayuda-control"><span class="tecla">H</span><span class="tecla tecla--ancha" data-ayuda-i18n="dobleClicTap"></span><span class="ayuda-control__texto" data-ayuda-i18n="recentrar"></span></div>
     <div class="ayuda-control"><span class="tecla">+</span><span class="tecla">−</span><span class="tecla tecla--ancha" data-tecla-especial="rueda"></span><span class="ayuda-control__texto" data-ayuda-i18n="zoom"></span></div>
     <div class="ayuda-control"><span class="tecla tecla--ancha" data-tecla-especial="arrastrar"></span><span class="ayuda-control__texto" data-ayuda-i18n="arrastrar"></span></div>
+    <div class="ayuda-control"><span class="tecla tecla--ancha" data-ayuda-i18n="mantenerArrastrar"></span><span class="ayuda-control__texto" data-ayuda-i18n="arrastrarTactil"></span></div>
   </section>`;
 }

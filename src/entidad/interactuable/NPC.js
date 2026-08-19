@@ -59,6 +59,7 @@ export class NPC extends Entidad {
   } = {}) {
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

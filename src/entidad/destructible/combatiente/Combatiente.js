@@ -310,6 +310,7 @@ function obtenerContextoArmaduraCorporal(equipamiento) {
 export class Combatiente extends Destructible {
   constructor({
     nombre,
+    descripcion = "",
     nivel = 1,
     x = 0,
     y = 0,
@@ -379,6 +380,7 @@ export class Combatiente extends Destructible {
     });
     super({
       nombre,
+      descripcion,
       x,
       y,
       simbolo,

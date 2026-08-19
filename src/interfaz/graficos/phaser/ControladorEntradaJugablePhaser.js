@@ -8,129 +8,287 @@ const MODOS_SELECCION_JUGABLE = new Set([
   "habilidad",
 ]);
 
-// Adapta exclusivamente el clic izquierdo sobre el mapa Phaser.
-//
-// Su responsabilidad termina al convertir la posición de pantalla en una
-// casilla lógica y emitir el mismo comando neutral utilizado por cualquier
-// otro dispositivo de entrada. No valida alcance, objetivos, interacciones ni
-// reglas de habilidades.
+// Traduce mouse y touch a comandos neutrales. Las reglas jugables continúan en
+// EjecutorAccionesJugador y los sistemas canónicos; este controlador solamente
+// interpreta gestos, casillas y la intención de selección/confirmación.
 export class ControladorEntradaJugablePhaser {
   constructor({
     escena,
     conversorCoordenadas,
-    obtenerModoSeleccion,
+    obtenerEstadoSeleccion,
+    existeEntidadVisibleEnCasilla,
     alEjecutarComando,
+    alRecentrarCamara,
+    alIniciarArrastreTactil,
+    alFinalizarArrastreTactil,
   } = {}) {
     if (!escena?.input || !conversorCoordenadas) {
       throw new Error(
         "ControladorEntradaJugablePhaser necesita escena y conversor.",
       );
     }
-
-    if (typeof obtenerModoSeleccion !== "function") {
-      throw new Error(
-        "La entrada Phaser necesita consultar el modo de selección activo.",
-      );
-    }
-
-    if (typeof alEjecutarComando !== "function") {
-      throw new Error(
-        "La entrada Phaser necesita una función para ejecutar comandos.",
-      );
+    for (const [nombre, funcion] of Object.entries({
+      obtenerEstadoSeleccion,
+      existeEntidadVisibleEnCasilla,
+      alEjecutarComando,
+      alRecentrarCamara,
+      alIniciarArrastreTactil,
+      alFinalizarArrastreTactil,
+    })) {
+      if (typeof funcion !== "function") {
+        throw new Error(`La entrada Phaser necesita la función ${nombre}.`);
+      }
     }
 
     this.escena = escena;
     this.conversorCoordenadas = conversorCoordenadas;
-    this.obtenerModoSeleccion = obtenerModoSeleccion;
+    this.obtenerEstadoSeleccion = obtenerEstadoSeleccion;
+    this.existeEntidadVisibleEnCasilla = existeEntidadVisibleEnCasilla;
     this.alEjecutarComando = alEjecutarComando;
-    this.ultimaSeleccion = null;
+    this.alRecentrarCamara = alRecentrarCamara;
+    this.alIniciarArrastreTactil = alIniciarArrastreTactil;
+    this.alFinalizarArrastreTactil = alFinalizarArrastreTactil;
+    this.gestoActual = null;
+    this.clicPendiente = null;
     this.destruido = false;
 
     this.alPointerDown = (pointer) => this.manejarPointerDown(pointer);
-    this.escena.input.on("pointerdown", this.alPointerDown);
+    this.alPointerMove = (pointer) => this.manejarPointerMove(pointer);
+    this.alPointerUp = (pointer) => this.manejarPointerUp(pointer);
+    this.alPointerOut = (pointer) => this.manejarPointerOut(pointer);
+    escena.input.on("pointerdown", this.alPointerDown);
+    escena.input.on("pointermove", this.alPointerMove);
+    escena.input.on("pointerup", this.alPointerUp);
+    escena.input.on("pointerout", this.alPointerOut);
   }
 
   manejarPointerDown(pointer) {
+    if (!this.puedeProcesarPuntero(pointer)) return;
+
+    const casilla = this.obtenerCasilla(pointer);
+    if (!casilla) return;
+
+    const estadoSeleccion = this.obtenerEstadoSeleccion() ?? {};
+    const tactil = esPunteroTactil(pointer);
+    if (MODOS_SELECCION_JUGABLE.has(estadoSeleccion.modo) && !tactil) {
+      pointer.event?.preventDefault?.();
+      this.cancelarClicPendiente();
+      this.ejecutarSeleccionOConfirmacion(casilla, estadoSeleccion);
+      return;
+    }
+
+    this.gestoActual = {
+      casilla,
+      origenPantalla: { x: pointer.x, y: pointer.y },
+      ultimaPantalla: { x: pointer.x, y: pointer.y },
+      instanteInicio: obtenerInstantePointer(pointer),
+      tactil,
+      arrastrandoCamara: false,
+      origenEntrada: tactil ? "touch" : "mouse",
+      estadoSeleccionInicial: MODOS_SELECCION_JUGABLE.has(estadoSeleccion.modo)
+        ? estadoSeleccion
+        : null,
+    };
+  }
+
+  manejarPointerMove(pointer) {
+    const gesto = this.gestoActual;
+    if (!gesto?.tactil || !pointer) return;
+
+    const desplazamiento = distanciaPantalla(gesto.origenPantalla, pointer);
+    const duracion = obtenerInstantePointer(pointer) - gesto.instanteInicio;
+
     if (
-      this.destruido ||
-      pointer?.button !== 0 ||
-      estaEntradaJugableCapturada(this.escena?.game?.canvas?.ownerDocument)
+      !gesto.arrastrandoCamara &&
+      desplazamiento >=
+        CONFIGURACION_CAMARA_PHASER.umbralArrastreTactilPixeles &&
+      duracion >= CONFIGURACION_CAMARA_PHASER.retardoArrastreTactilMs
     ) {
-      return;
+      gesto.arrastrandoCamara = true;
+      this.cancelarClicPendiente();
+      this.alIniciarArrastreTactil(pointer);
     }
 
-    const modoSeleccion = this.obtenerModoSeleccion();
-    if (!MODOS_SELECCION_JUGABLE.has(modoSeleccion)) {
-      return;
+    if (gesto.arrastrandoCamara) {
+      pointer.event?.preventDefault?.();
     }
 
-    const casilla = this.conversorCoordenadas.pantallaACasilla(
-      pointer.x,
-      pointer.y,
-    );
+    gesto.ultimaPantalla = { x: pointer.x, y: pointer.y };
+  }
 
-    if (!casilla) {
-      return;
-    }
+  manejarPointerUp(pointer) {
+    if (this.destruido || pointer?.button !== 0) return;
 
-    const instante = obtenerInstantePointer(pointer);
-    if (
-      esRepeticionInmediata({
-        anterior: this.ultimaSeleccion,
-        actual: { ...casilla, modo: modoSeleccion, instante },
-      })
-    ) {
+    const gesto = this.gestoActual;
+    this.gestoActual = null;
+    if (!gesto) return;
+
+    if (gesto.arrastrandoCamara) {
+      this.alFinalizarArrastreTactil(pointer);
       pointer.event?.preventDefault?.();
       return;
     }
 
-    this.ultimaSeleccion = {
-      ...casilla,
-      modo: modoSeleccion,
-      instante,
-    };
+    if (estaEntradaJugableCapturada(this.obtenerDocumento())) return;
+
+    const casilla = this.obtenerCasilla(pointer) ?? gesto.casilla;
+    if (!casilla) return;
     pointer.event?.preventDefault?.();
+
+    if (gesto.estadoSeleccionInicial) {
+      this.cancelarClicPendiente();
+      this.ejecutarSeleccionOConfirmacion(
+        casilla,
+        this.obtenerEstadoSeleccion() ?? gesto.estadoSeleccionInicial,
+      );
+      return;
+    }
+
+    this.procesarClicSimpleODoble({
+      casilla,
+      puntoPantalla: { x: pointer.x, y: pointer.y },
+      instante: obtenerInstantePointer(pointer),
+      origenEntrada: gesto.origenEntrada,
+    });
+  }
+
+  manejarPointerOut(pointer) {
+    if (this.gestoActual?.arrastrandoCamara) {
+      this.alFinalizarArrastreTactil(pointer);
+    }
+    this.gestoActual = null;
+  }
+
+  ejecutarSeleccionOConfirmacion(casilla, estadoSeleccion) {
+    const selector = estadoSeleccion.selector;
+    const mismaCasilla =
+      Number.isInteger(selector?.x) &&
+      Number.isInteger(selector?.y) &&
+      selector.x === casilla.x &&
+      selector.y === casilla.y;
+
+    if (mismaCasilla) {
+      this.alEjecutarComando({
+        tipo:
+          estadoSeleccion.modo === "interaccion"
+            ? TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR
+            : TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION,
+        origenEntrada: "puntero",
+      });
+      return;
+    }
+
     this.alEjecutarComando({
       tipo: TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA,
       x: casilla.x,
       y: casilla.y,
-      origenEntrada: "phaser",
+      origenEntrada: "puntero",
     });
   }
 
-  destruir() {
-    if (this.destruido) {
-      return false;
+  procesarClicSimpleODoble(clicActual) {
+    const anterior = this.clicPendiente;
+    if (anterior && esDoblePuntero(anterior, clicActual)) {
+      clearTimeout(anterior.temporizador);
+      this.clicPendiente = null;
+      this.alRecentrarCamara();
+      return;
     }
 
+    this.cancelarClicPendiente();
+    const temporizador = setTimeout(() => {
+      if (this.destruido) return;
+      this.clicPendiente = null;
+      if (estaEntradaJugableCapturada(this.obtenerDocumento())) return;
+      this.ejecutarClicSimple(clicActual);
+    }, CONFIGURACION_CAMARA_PHASER.retardoDobleClicMs);
+
+    this.clicPendiente = { ...clicActual, temporizador };
+  }
+
+  ejecutarClicSimple({ casilla, origenEntrada }) {
+    const inspeccionar = this.existeEntidadVisibleEnCasilla(
+      casilla.x,
+      casilla.y,
+    );
+    this.alEjecutarComando({
+      tipo: inspeccionar
+        ? TIPOS_COMANDO_JUGADOR.INSPECCIONAR_CASILLA
+        : TIPOS_COMANDO_JUGADOR.MOVER_HACIA_CASILLA,
+      x: casilla.x,
+      y: casilla.y,
+      origenEntrada,
+    });
+  }
+
+  cancelarClicPendiente() {
+    if (this.clicPendiente?.temporizador) {
+      clearTimeout(this.clicPendiente.temporizador);
+    }
+    this.clicPendiente = null;
+  }
+
+  puedeProcesarPuntero(pointer) {
+    return Boolean(
+      !this.destruido &&
+        pointer?.button === 0 &&
+        !estaEntradaJugableCapturada(this.obtenerDocumento()),
+    );
+  }
+
+  obtenerCasilla(pointer) {
+    return this.conversorCoordenadas.pantallaACasilla(pointer.x, pointer.y);
+  }
+
+  obtenerDocumento() {
+    return this.escena?.game?.canvas?.ownerDocument;
+  }
+
+  destruir() {
+    if (this.destruido) return false;
+    this.cancelarClicPendiente();
+    if (this.gestoActual?.arrastrandoCamara) {
+      this.alFinalizarArrastreTactil(null);
+    }
     this.escena?.input?.off("pointerdown", this.alPointerDown);
+    this.escena?.input?.off("pointermove", this.alPointerMove);
+    this.escena?.input?.off("pointerup", this.alPointerUp);
+    this.escena?.input?.off("pointerout", this.alPointerOut);
     this.destruido = true;
     this.escena = null;
     this.conversorCoordenadas = null;
-    this.obtenerModoSeleccion = null;
+    this.obtenerEstadoSeleccion = null;
+    this.existeEntidadVisibleEnCasilla = null;
     this.alEjecutarComando = null;
-    this.ultimaSeleccion = null;
     return true;
   }
 }
 
-
-function obtenerInstantePointer(pointer) {
-  if (Number.isFinite(pointer?.downTime)) {
-    return pointer.downTime;
-  }
-
-  return globalThis.performance?.now?.() ?? Date.now();
+function esDoblePuntero(anterior, actual) {
+  return Boolean(
+    actual.instante >= anterior.instante &&
+      actual.instante - anterior.instante <=
+        CONFIGURACION_CAMARA_PHASER.retardoDobleClicMs &&
+      distanciaPantalla(anterior.puntoPantalla, actual.puntoPantalla) <=
+        CONFIGURACION_CAMARA_PHASER.umbralDoblePunteroPixeles,
+  );
 }
 
-function esRepeticionInmediata({ anterior, actual }) {
-  return Boolean(
-    anterior &&
-      anterior.x === actual.x &&
-      anterior.y === actual.y &&
-      anterior.modo === actual.modo &&
-      actual.instante >= anterior.instante &&
-      actual.instante - anterior.instante <=
-        CONFIGURACION_CAMARA_PHASER.retardoDobleClicMs,
+function distanciaPantalla(origen, destino) {
+  return Math.hypot(
+    (destino?.x ?? 0) - (origen?.x ?? 0),
+    (destino?.y ?? 0) - (origen?.y ?? 0),
   );
+}
+
+function esPunteroTactil(pointer) {
+  const tipo = pointer?.event?.pointerType ?? pointer?.pointerType ?? "";
+  return tipo === "touch" || tipo === "pen" || pointer?.wasTouch === true;
+}
+
+function obtenerInstantePointer(pointer) {
+  if (Number.isFinite(pointer?.event?.timeStamp)) return pointer.event.timeStamp;
+  if (Number.isFinite(pointer?.upTime)) return pointer.upTime;
+  if (Number.isFinite(pointer?.downTime)) return pointer.downTime;
+  return globalThis.performance?.now?.() ?? Date.now();
 }

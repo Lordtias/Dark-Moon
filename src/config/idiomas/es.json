@@ -458,7 +458,9 @@
       "tipoOfensiva": "Ofensiva",
       "nivelArbol": "Nivel {nivel}",
       "todaMaestria": "Todas las habilidades de {maestria}",
-      "aplicaA": "Aplica a"
+      "aplicaA": "Aplica a",
+      "basicasTitulo": "Habilidades básicas",
+      "basicasDetalle": "Siempre están aprendidas en grado 1 y pueden asignarse, moverse o quitarse libremente de la barra."
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -725,7 +727,7 @@
       "camara": "Mover la cámara sin mover al personaje.",
       "recentrar": "Recentrar la cámara sobre el personaje.",
       "zoom": "Acercar o alejar la vista.",
-      "arrastrar": "También podés arrastrar el mapa con el mouse para mover la cámara.",
+      "arrastrar": "Con mouse, arrastrá usando el botón central o derecho para mover la cámara.",
       "diagnosticoTitulo": "Diagnóstico para pruebas",
       "diagnosticoDescripcion": "Si encontrás un problema, copiá este diagnóstico y enviáselo junto con una breve explicación de lo que ocurrió.",
       "copiarDiagnostico": "Copiar diagnóstico",
@@ -753,7 +755,14 @@
         "sinDato": "sin dato",
         "ciudad": "ciudad",
         "mazmorra": "mazmorra"
-      }
+      },
+      "clicTap": "CLIC / TAP",
+      "movimientoPuntero": "Tocá una casilla caminable para avanzar un solo paso por el mejor camino disponible.",
+      "inspeccionarEntidad": "Tocá una entidad visible para abrir su información. En un selector, tocar la selección actual confirma.",
+      "habilidadesBasicas": "Atacar y Esperar son habilidades básicas siempre aprendidas. Podés asignarlas, moverlas o quitarlas de cualquier ranura.",
+      "dobleClicTap": "DOBLE CLIC / TAP",
+      "mantenerArrastrar": "MANTENER + ARRASTRAR",
+      "arrastrarTactil": "En pantalla táctil, mantené y arrastrá para desplazar la cámara sin mover al personaje."
     },
     "cargaMapa": {
       "aria": "Preparando mapa de Dark Moon",
@@ -2198,6 +2207,14 @@
       "aura_voluntad": {
         "nombre": "Aura de Voluntad",
         "descripcion": "Emite Aura de Voluntad durante 10 turnos sobre aliados cercanos."
+      },
+      "atacar": {
+        "nombre": "Atacar",
+        "descripcion": "Activa o confirma el ataque básico actual."
+      },
+      "esperar": {
+        "nombre": "Esperar",
+        "descripcion": "Consume un turno sin desplazar al personaje."
       }
     },
     "maestrias": {

@@ -48,6 +48,12 @@ import {
   validarIndiceRanuraBarra,
 } from "./ContratoBarraHabilidades.js";
 import { crearConfiguracionHabilidadEfectiva } from "./ConfiguracionHabilidadEfectiva.js";
+import {
+  crearAsignacionesBasicasIniciales,
+  esHabilidadBasica,
+  obtenerCatalogoHabilidadesBasicas,
+  obtenerHabilidadBasica,
+} from "./HabilidadesBasicas.js";
 import { cumpleCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
 
 const MOTIVOS = Object.freeze({
@@ -91,13 +97,51 @@ export class SistemaHabilidadesJugador {
     return this.seleccion ? { x: this.seleccion.x, y: this.seleccion.y } : null;
   }
 
+  obtenerCatalogoHabilidadesBarra() {
+    return {
+      ...this.configuracion.habilidades,
+      ...obtenerCatalogoHabilidadesBasicas({ jugador: this.jugador }),
+    };
+  }
+
+  obtenerHabilidadBarra(idHabilidad) {
+    return (
+      this.configuracion.habilidades[idHabilidad] ??
+      obtenerHabilidadBasica({ idHabilidad, jugador: this.jugador })
+    );
+  }
+
+  obtenerGradoBarra(idHabilidad) {
+    return esHabilidadBasica(idHabilidad) ? 1 : this.obtenerGrado(idHabilidad);
+  }
+
+  obtenerAccionBasicaPorRanura(indiceRanura) {
+    validarIndiceRanuraBarra(indiceRanura);
+    const idHabilidad =
+      obtenerAsignacionesHabilidades(this.jugador)[indiceRanura];
+    return (
+      obtenerHabilidadBasica({ idHabilidad, jugador: this.jugador })
+        ?.accionCanonica ?? null
+    );
+  }
+
+  obtenerHabilidadesIndependientes() {
+    return Object.values(
+      obtenerCatalogoHabilidadesBasicas({ jugador: this.jugador }),
+    );
+  }
+
+  obtenerAsignacionesIniciales() {
+    return crearAsignacionesBasicasIniciales();
+  }
+
   obtenerEstadoBarra() {
     const asignaciones = obtenerAsignacionesHabilidades(this.jugador);
     return asignaciones.map((idHabilidad, indice) => {
       const habilidad = idHabilidad
-        ? this.configuracion.habilidades[idHabilidad]
+        ? this.obtenerHabilidadBarra(idHabilidad)
         : null;
-      const grado = habilidad ? this.obtenerGrado(idHabilidad) : 0;
+      const grado = habilidad ? this.obtenerGradoBarra(idHabilidad) : 0;
       const gradoConfigBase = habilidad?.ejecucion?.grados?.[grado] ?? null;
       const gradoConfig = gradoConfigBase
         ? crearConfiguracionHabilidadEfectiva({
@@ -115,11 +159,15 @@ export class SistemaHabilidadesJugador {
         icono: habilidad?.icono ?? null,
         descripcion: habilidad?.descripcion ?? "",
         grado,
-        configurada: Boolean(habilidad?.ejecucion),
-        costoMana: gradoConfig?.costoMana ?? null,
-        manaSuficiente: gradoConfig
-          ? manaActual >= gradoConfig.costoMana
-          : false,
+        configurada: Boolean(habilidad?.ejecucion || habilidad?.accionCanonica),
+        costoMana: esHabilidadBasica(idHabilidad)
+          ? habilidad?.costoMana ?? null
+          : gradoConfig?.costoMana ?? null,
+        manaSuficiente: esHabilidadBasica(idHabilidad)
+          ? (habilidad?.costoMana ?? 0) <= manaActual
+          : gradoConfig
+            ? manaActual >= gradoConfig.costoMana
+            : false,
         seleccionada: this.seleccion?.indiceRanura === indice,
       };
     });
@@ -133,7 +181,10 @@ export class SistemaHabilidadesJugador {
     const validadas = validarBarraContraJugador({
       ranuras,
       habilidades: this.configuracion.habilidades,
-      obtenerGrado: (idHabilidad) => this.obtenerGrado(idHabilidad),
+      habilidadesAdicionales: obtenerCatalogoHabilidadesBasicas({
+        jugador: this.jugador,
+      }),
+      obtenerGrado: (idHabilidad) => this.obtenerGradoBarra(idHabilidad),
     });
     for (let indice = 0; indice < CANTIDAD_RANURAS_BARRA; indice += 1) {
       asignarHabilidadARanura(this.jugador, indice, null);
@@ -166,14 +217,17 @@ export class SistemaHabilidadesJugador {
 
   asignarHabilidad(indiceRanura, idHabilidad) {
     validarIndiceRanuraBarra(indiceRanura);
-    const habilidad = this.configuracion.habilidades[idHabilidad];
+    const habilidad = this.obtenerHabilidadBarra(idHabilidad);
     if (!habilidad) {
       throw new Error(`La habilidad "${idHabilidad}" no existe.`);
     }
-    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) {
+    if (
+      habilidad.tipo !== "activa" ||
+      (!habilidad.ejecucion && !habilidad.accionCanonica)
+    ) {
       throw new Error(`La habilidad "${idHabilidad}" no es una habilidad activa jugable.`);
     }
-    if (this.obtenerGrado(idHabilidad) <= 0) {
+    if (this.obtenerGradoBarra(idHabilidad) <= 0) {
       throw new Error(`La habilidad "${idHabilidad}" todavía no fue aprendida.`);
     }
     asignarHabilidadARanura(this.jugador, indiceRanura, idHabilidad);
@@ -191,7 +245,7 @@ export class SistemaHabilidadesJugador {
     if (!estadoRanura?.idHabilidad) {
       return crearRechazo(MOTIVOS.RANURA_VACIA, "La ranura está vacía.");
     }
-    const habilidad = this.configuracion.habilidades[estadoRanura.idHabilidad];
+    const habilidad = this.obtenerHabilidadBarra(estadoRanura.idHabilidad);
     if (!habilidad) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_DESCONOCIDA,
@@ -204,7 +258,7 @@ export class SistemaHabilidadesJugador {
         "La habilidad no es una habilidad activa jugable.",
       );
     }
-    const grado = this.obtenerGrado(habilidad.id);
+    const grado = this.obtenerGradoBarra(habilidad.id);
     if (grado <= 0) {
       return crearRechazo(
         MOTIVOS.HABILIDAD_NO_APRENDIDA,

@@ -5,6 +5,7 @@
 export class Entidad {
     constructor({
         nombre,
+        descripcion = "",
         x = 0,
         y = 0,
         simbolo = "?",
@@ -21,6 +22,10 @@ export class Entidad {
             throw new Error(
                 "Toda entidad debe tener un nombre válido."
             );
+        }
+
+        if (typeof descripcion !== "string") {
+            throw new Error(`${nombre} debe tener una descripción válida.`);
         }
 
         // Las posiciones del mapa deben ser números enteros.
@@ -49,6 +54,7 @@ export class Entidad {
         // Guardamos el nombre sin espacios innecesarios
         // al principio o al final.
         this.nombre = nombre.trim();
+        this.descripcion = descripcion.trim();
 
         // Posición dentro de la cuadrícula del mapa.
         this.x = x;

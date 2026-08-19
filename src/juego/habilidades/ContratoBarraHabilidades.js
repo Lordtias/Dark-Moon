@@ -24,6 +24,7 @@ export function validarBarraContraJugador({
   ranuras,
   habilidades,
   obtenerGrado,
+  habilidadesAdicionales = {},
 } = {}) {
   const normalizadas = normalizarRanurasBarra(ranuras);
   if (
@@ -37,16 +38,17 @@ export function validarBarraContraJugador({
     throw new Error("Falta la función para consultar grados aprendidos.");
   }
 
+  const catalogo = { ...habilidades, ...habilidadesAdicionales };
   const idsUsados = new Set();
   return normalizadas.map((idHabilidad, indice) => {
     if (idHabilidad === null) return null;
-    const habilidad = habilidades[idHabilidad];
+    const habilidad = catalogo[idHabilidad];
     if (!habilidad) {
       throw new Error(
         `La ranura ${indice + 1} referencia la habilidad inexistente "${idHabilidad}".`,
       );
     }
-    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) {
+    if (habilidad.tipo !== "activa" || (!habilidad.ejecucion && !habilidad.accionCanonica)) {
       throw new Error(
         `La habilidad "${idHabilidad}" no es una habilidad activa ejecutable.`,
       );

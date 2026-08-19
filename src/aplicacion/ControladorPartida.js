@@ -531,6 +531,7 @@ export class ControladorPartida {
     const resultadoProcesado = this.procesarResultadoAccion(
       resultadoParaProcesar,
     );
+    this.presentarDetalleEntidadResultado(resultadoProcesado);
     this.presentarInteraccionResultado(resultadoProcesado);
     return resultadoProcesado;
   }
@@ -663,6 +664,21 @@ export class ControladorPartida {
     // delegar cualquier decisión de presentación al adaptador visual.
     this.estadoPartida?.eliminarEstadoDurable();
     return this.alJugadorDerrotado(detalle);
+  }
+
+  presentarDetalleEntidadResultado(resultado) {
+    if (!resultado?.detalleEntidad) {
+      return false;
+    }
+
+    if (!this.presentacionMapaActivo) {
+      throw new Error(
+        "No se puede presentar el detalle de una entidad sin un mapa activo.",
+      );
+    }
+
+    this.presentacionMapaActivo.presentarDetalleEntidad(resultado.detalleEntidad);
+    return true;
   }
 
   presentarInteraccionResultado(resultado) {
@@ -1020,14 +1036,20 @@ function crearContextoHabilidadParaComando({
     integracionHabilidades?.obtenerSistemaParaEntrada() ?? null;
   const modoHabilidadAntes = sistemaHabilidades?.modoHabilidad === true;
   const tipo = comando?.tipo;
+  const accionBasicaRanura =
+    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA
+      ? sistemaHabilidades?.obtenerAccionBasicaPorRanura?.(comando.indiceRanura) ?? null
+      : null;
   const esSeleccionRanura =
-    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA;
+    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA &&
+    accionBasicaRanura === null;
   const esSeleccionCasilla =
     modoHabilidadAntes &&
     tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA;
   const esConfirmacion =
     modoHabilidadAntes &&
-    tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION;
+    (tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION ||
+      accionBasicaRanura === "atacar");
   const esBloqueoRespaldo =
     modoHabilidadAntes &&
     tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_RESPALDO;

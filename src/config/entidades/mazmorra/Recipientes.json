@@ -1,6 +1,7 @@
 {
   "barril_madera": {
     "nombre": "Barril",
+    "descripcion": "Un barril de madera que puede ocultar objetos útiles entre sus tablas.",
     "simbolo": "B",
     "recursoVisual": "assets/imagenes/destructibles/barril_madera.png",
     "vidaMaxima": 6,
@@ -27,6 +28,7 @@
   },
   "caja_humeda": {
     "nombre": "Caja húmeda",
+    "descripcion": "Una caja castigada por la humedad y el moho de la mazmorra.",
     "simbolo": "C",
     "recursoVisual": "assets/imagenes/destructibles/caja_humeda.png",
     "vidaMaxima": 10,
@@ -53,6 +55,7 @@
   },
   "suministros_mantenimiento": {
     "nombre": "Suministros de mantenimiento",
+    "descripcion": "Suministros abandonados para reparaciones y mantenimiento del lugar.",
     "simbolo": "S",
     "recursoVisual": "assets/imagenes/destructibles/suministros_mantenimiento.png",
     "vidaMaxima": 12,
@@ -81,6 +84,7 @@
   },
   "urna_funeraria": {
     "nombre": "Urna funeraria",
+    "descripcion": "Una urna funeraria envejecida que aún permanece entre los restos del recinto.",
     "simbolo": "U",
     "recursoVisual": "assets/imagenes/destructibles/urna_funeraria.png",
     "vidaMaxima": 7,
@@ -107,6 +111,7 @@
   },
   "ataud_deteriorado": {
     "nombre": "Ataúd deteriorado",
+    "descripcion": "Un ataúd deteriorado por el tiempo, la humedad y el abandono.",
     "simbolo": "A",
     "recursoVisual": "assets/imagenes/destructibles/ataud_deteriorado.png",
     "vidaMaxima": 18,
@@ -134,6 +139,7 @@
   },
   "sarcofago_piedra": {
     "nombre": "Sarcófago de piedra",
+    "descripcion": "Un pesado sarcófago de piedra construido para resistir el paso del tiempo.",
     "simbolo": "G",
     "recursoVisual": "assets/imagenes/destructibles/sarcofago_piedra.png",
     "vidaMaxima": 34,
@@ -161,6 +167,7 @@
   },
   "restos_oseos": {
     "nombre": "Restos óseos",
+    "descripcion": "Restos óseos acumulados que pueden esconder pequeños objetos entre los huesos.",
     "simbolo": "O",
     "recursoVisual": "assets/imagenes/destructibles/restos_oseos.png",
     "vidaMaxima": 5,
@@ -174,6 +181,7 @@
   },
   "caja_madera": {
     "nombre": "Caja de madera",
+    "descripcion": "Una caja de madera sencilla utilizada para almacenar provisiones.",
     "simbolo": "C",
     "recursoVisual": "assets/imagenes/destructibles/caja_madera.png",
     "vidaMaxima": 11,
@@ -200,6 +208,7 @@
   },
   "armario_madera": {
     "nombre": "Armario de madera",
+    "descripcion": "Un armario de madera destinado a guardar objetos y equipamiento.",
     "simbolo": "M",
     "recursoVisual": "assets/imagenes/destructibles/armario_madera.png",
     "vidaMaxima": 18,
@@ -226,6 +235,7 @@
   },
   "armero_madera": {
     "nombre": "Armero de madera",
+    "descripcion": "Un armero construido para almacenar armas y pertrechos.",
     "simbolo": "R",
     "recursoVisual": "assets/imagenes/destructibles/armero_madera.png",
     "vidaMaxima": 20,
@@ -253,6 +263,7 @@
   },
   "arcon_militar": {
     "nombre": "Arcón militar",
+    "descripcion": "Un arcón reforzado utilizado para proteger suministros militares importantes.",
     "simbolo": "N",
     "recursoVisual": "assets/imagenes/destructibles/arcon_militar.png",
     "vidaMaxima": 25,

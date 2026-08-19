@@ -5,6 +5,9 @@ export const TAMANO_CASILLA_REFERENCIA = 32;
 export const CONFIGURACION_CAMARA_PHASER = Object.freeze({
   velocidadTecladoPixelesVisiblesSegundo: 420,
   retardoDobleClicMs: 320,
+  retardoArrastreTactilMs: 140,
+  umbralArrastreTactilPixeles: 10,
+  umbralDoblePunteroPixeles: 28,
 });
 
 // La resolución es una referencia visual. No limita el tamaño real de los

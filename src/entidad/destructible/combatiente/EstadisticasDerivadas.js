@@ -363,6 +363,26 @@ function calcularComponenteDanio(combatiente, fuente, objetos, esAtaqueDual) {
     precisionBase,
     contextoFuente,
   );
+  const dispersion = limitar(
+    resolverValor(
+      combatiente,
+      OBJETIVOS_MODIFICADOR.DISPERSION,
+      propiedades.dispersion ?? 0,
+      contextoFuente,
+    ),
+    CONFIGURACION_COMBATE.dispersion.minima,
+    CONFIGURACION_COMBATE.dispersion.maxima,
+  );
+  const penetracionArmadura = limitar(
+    resolverValor(
+      combatiente,
+      OBJETIVOS_MODIFICADOR.PENETRACION_ARMADURA,
+      propiedades.penetracionArmadura ?? 0,
+      contextoFuente,
+    ),
+    CONFIGURACION_COMBATE.penetracionArmadura.minima,
+    CONFIGURACION_COMBATE.penetracionArmadura.maxima,
+  );
   const probabilidadCriticoBase =
     (propiedades.probabilidadCritico ?? base.probabilidadCritico) +
     sumarPropiedad(objetos, "probabilidadCriticoGlobal");
@@ -404,6 +424,8 @@ function calcularComponenteDanio(combatiente, fuente, objetos, esAtaqueDual) {
     bonoAtributo,
     multiplicadorAtributo,
     precision,
+    dispersion,
+    penetracionArmadura,
     probabilidadCritico,
     multiplicadorCritico,
     esAtaqueMagicoBasico: fuenteEsVarita,
@@ -677,6 +699,30 @@ export function calcularEstadisticasDerivadas(combatiente) {
   const precision = resolverValorConDesglose(
     combatiente, OBJETIVOS_MODIFICADOR.PRECISION, precisionBase, contextoAtaque, resolucionesModificadores, "precision",
   );
+  const dispersion = limitar(
+    resolverValorConDesglose(
+      combatiente,
+      OBJETIVOS_MODIFICADOR.DISPERSION,
+      ataqueControlador.dispersion ?? 0,
+      contextoAtaque,
+      resolucionesModificadores,
+      "dispersion",
+    ),
+    CONFIGURACION_COMBATE.dispersion.minima,
+    CONFIGURACION_COMBATE.dispersion.maxima,
+  );
+  const penetracionArmadura = limitar(
+    resolverValorConDesglose(
+      combatiente,
+      OBJETIVOS_MODIFICADOR.PENETRACION_ARMADURA,
+      ataqueControlador.penetracionArmadura ?? 0,
+      contextoAtaque,
+      resolucionesModificadores,
+      "penetracionArmadura",
+    ),
+    CONFIGURACION_COMBATE.penetracionArmadura.minima,
+    CONFIGURACION_COMBATE.penetracionArmadura.maxima,
+  );
 
   const evasionBase =
     base.evasion +
@@ -761,6 +807,8 @@ export function calcularEstadisticasDerivadas(combatiente) {
     bonificacionEfectosPorcentaje: potenciaEfectos,
     potenciaEfectos,
     precision,
+    dispersion,
+    penetracionArmadura,
     evasion,
     armadura,
     desgloseArmadura,

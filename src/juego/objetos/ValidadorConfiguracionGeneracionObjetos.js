@@ -1,5 +1,6 @@
 import {
   AMBITOS_AFIJO,
+  normalizarCondicionesModificador,
   validarAmbitoAfijo,
   validarObjetivoModificador,
   validarOperacionModificador,
@@ -51,6 +52,9 @@ const PROPIEDADES_AFIJO_SOPORTADAS = new Set([
   "probabilidadBloqueo",
   "mitigacionBloqueo",
   "potenciaHabilidad",
+  "dispersion",
+  "penetracionArmadura",
+  "reduccionCargaPorcentaje",
 ]);
 
 export function validarConfiguracionGeneracionObjetos({
@@ -394,6 +398,7 @@ function validarEfectosAfijo(idAfijo, afijo) {
     if (efecto.ambito === AMBITOS_AFIJO.PORTADOR) {
       validarObjetivoModificador(efecto.objetivo ?? efecto.propiedad);
       validarOperacionModificador(efecto.operacion);
+      normalizarCondicionesModificador(efecto.condiciones ?? {});
     } else if (!OPERACIONES_AFIJO_LOCAL_SOPORTADAS.has(efecto.operacion)) {
       throw new Error(
         `El afijo local "${idAfijo}" utiliza la operación no soportada "${efecto.operacion}".`,

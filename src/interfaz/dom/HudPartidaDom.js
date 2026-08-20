@@ -75,8 +75,9 @@ export class HudPartidaDom {
     this.elementos.aurasActivas.replaceChildren();
     this.elementos.maldicionesActivas.replaceChildren();
     const efectos = juego?.obtenerEfectosTemporales?.(jugador) ?? [];
+    const estadosTacticos = juego?.obtenerEstadosTacticos?.(jugador) ?? [];
     const tiempoActual = Number(juego?.tiempoActual);
-    if (!Array.isArray(efectos)) return;
+    if (!Array.isArray(efectos) || !Array.isArray(estadosTacticos)) return;
 
     for (const efecto of efectos) {
       const etiquetas = Array.isArray(efecto?.etiquetas) ? efecto.etiquetas : [];
@@ -86,6 +87,10 @@ export class HudPartidaDom {
       const referencia = this.indiceEfectos.get(efecto.efectoId) ?? null;
       const nodo = crearEstadoTemporal({ efecto, referencia, tiempoActual });
       (esAura ? this.elementos.aurasActivas : this.elementos.maldicionesActivas).append(nodo);
+    }
+
+    for (const estado of estadosTacticos) {
+      this.elementos.aurasActivas.append(crearEstadoTactico(estado));
     }
   }
 
@@ -183,6 +188,37 @@ function crearEstadoTemporal({ efecto, referencia, tiempoActual }) {
   articulo.tabIndex = 0;
   articulo.setAttribute("aria-label", articulo.title);
   articulo.append(marco, restante);
+  return articulo;
+}
+
+function crearEstadoTactico(estado) {
+  const articulo = document.createElement("article");
+  articulo.className = "hud-estado-temporal hud-estado-temporal--tactico";
+  const marco = document.createElement("span");
+  marco.className = "hud-estado-temporal__icono";
+  const nombre = estado?.nombre ?? "Estado táctico";
+
+  if (estado?.icono) {
+    const imagen = document.createElement("img");
+    imagen.src = estado.icono;
+    imagen.alt = "";
+    imagen.draggable = false;
+    marco.append(imagen);
+  } else {
+    const inicial = document.createElement("span");
+    inicial.className = "hud-estado-temporal__inicial";
+    inicial.textContent = nombre.slice(0, 1).toUpperCase();
+    marco.append(inicial);
+  }
+
+  const indicador = document.createElement("strong");
+  indicador.className = "hud-estado-temporal__restante hud-estado-temporal__restante--indefinido";
+  indicador.textContent = "∞";
+  articulo.title = estado?.descripcion ? `${nombre} · ${estado.descripcion}` : nombre;
+  articulo.dataset.etiquetaEfecto = articulo.title;
+  articulo.tabIndex = 0;
+  articulo.setAttribute("aria-label", articulo.title);
+  articulo.append(marco, indicador);
   return articulo;
 }
 

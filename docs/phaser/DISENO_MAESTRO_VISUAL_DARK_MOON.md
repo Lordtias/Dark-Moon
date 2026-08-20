@@ -2125,3 +2125,13 @@ Los controles de un dispositivo `pointer: coarse` y viewport reducido deben disp
 `hover` y `title` pueden seguir aportando feedback adicional, pero no pueden ser la única vía de información necesaria. Los estados de Aura/Maldición del HUD exponen el mismo nombre y duración mediante foco/tap además del texto accesible.
 
 La regresión visual obligatoria incluye al menos 1366×768, 1920×1080 y 2560×1440. En esas resoluciones la barra debe permanecer `10×1`, los paneles conservar su comportamiento desktop, los modales no pasar a fullscreen y los targets no agrandarse por reglas móviles.
+
+### V-042 — Estados tácticos y probabilidad final en selectores
+
+El HUD puede presentar estados tácticos favorables junto al bloque visual de Auras sin convertirlos en Auras ni incorporarlos a `SistemaEfectosTemporales`. El primer estado productivo es `Flecha cargada`: no muestra turnos restantes y permanece mientras la lógica canónica de preparación continúe válida.
+
+Los selectores de combate e habilidades pueden mostrar la probabilidad final de impacto cuando existe un objetivo al que realmente se realiza una tirada. La lógica entrega el porcentaje ya resuelto; Phaser no recalcula Precisión, Evasión, distancia ni Dispersión.
+
+La presentación usa un entero sin decimales con símbolo `%`, por ejemplo `68%`, en 11 px y con el mismo color del selector activo. En acciones de área, cada enemigo afectado muestra su propia probabilidad final en lugar de un único porcentaje sobre el centro del área.
+
+La Dispersión de ataques a distancia forma parte del cálculo canónico previo a la probabilidad final. El valor visual debe coincidir con la probabilidad que utilizará la resolución real si el contexto no cambia.

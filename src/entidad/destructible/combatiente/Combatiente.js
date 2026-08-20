@@ -31,6 +31,7 @@ import {
   normalizarDescriptorModificador,
 } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { SistemaModificadoresCombatiente } from "../../../juego/modificadores/SistemaModificadoresCombatiente.js";
+import { SistemaEstadosTacticosCombatiente } from "../../../juego/estado/SistemaEstadosTacticosCombatiente.js";
 import {
   ATRIBUTOS_COMBATIENTE_CANONICOS,
   validarClavesAtributosCombatiente,
@@ -405,6 +406,9 @@ export class Combatiente extends Destructible {
     this._factoresTemporalesBase = { ...factoresTemporalesNormalizados };
     this.tipoContextoModificadores = tipoContextoModificadores.trim().toLowerCase();
     this.sistemaModificadoresCombatiente = new SistemaModificadoresCombatiente({
+      combatiente: this,
+    });
+    this.sistemaEstadosTacticosCombatiente = new SistemaEstadosTacticosCombatiente({
       combatiente: this,
     });
     if (modificadoresInicialesNormalizados.length > 0) {

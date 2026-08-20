@@ -3,6 +3,11 @@ import {
   TIEMPO_REFERENCIA,
   TIPOS_ACCION_TEMPORAL,
 } from "../tiempo/SistemaTiempo.js";
+import {
+  ataqueUsaAccionCompuesta,
+  calcularCostoBaseFaseAtaque,
+  FASES_ACCION_COMPUESTA,
+} from "../acciones/CostosAccionCompuesta.js";
 
 // Calcula el DPS bruto del ataque actual.
 //
@@ -36,18 +41,33 @@ export function calcularDpsCombatiente(combatiente) {
     throw new Error(`El daño medio de ${combatiente.nombre} no es válido.`);
   }
 
+  const configuracionAtaque = combatiente.configuracionAtaqueActual;
   const costoAtaqueBase = combatiente.costoAtaqueActual;
 
-  // Aplicamos factorTiempo y factorAtaque
-  // exactamente igual que al registrar
-  // una acción real en la agenda.
-  const costoAtaqueEfectivo = calcularCostoAccionCombatiente({
-    combatiente,
-
-    tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
-
-    costoBase: costoAtaqueBase,
-  });
+  // Una acción compuesta se mide exactamente como se ejecuta: cada fase pasa
+  // por sus modificadores contextuales y luego por los factores temporales.
+  const costosBaseFases = ataqueUsaAccionCompuesta(configuracionAtaque)
+    ? [
+        calcularCostoBaseFaseAtaque({
+          combatiente,
+          configuracionAtaque,
+          fase: FASES_ACCION_COMPUESTA.PREPARACION,
+        }),
+        calcularCostoBaseFaseAtaque({
+          combatiente,
+          configuracionAtaque,
+          fase: FASES_ACCION_COMPUESTA.EJECUCION,
+        }),
+      ]
+    : [costoAtaqueBase];
+  const costoAtaqueEfectivo = costosBaseFases.reduce((total, costoBase) => {
+    if (costoBase <= 0) return total;
+    return total + calcularCostoAccionCombatiente({
+      combatiente,
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
+      costoBase,
+    });
+  }, 0);
 
   // Cien unidades temporales representan
   // un segundo completo.

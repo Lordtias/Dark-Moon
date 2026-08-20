@@ -2710,3 +2710,17 @@ La prueba headless con Chromium volvió a quedar limitada por DBus/proceso gráf
 Las correcciones aprobadas están implementadas y la validación automática es satisfactoria. El usuario informó el 18/08/2026 que las pruebas manuales solicitadas fueron satisfactorias. El commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e` fue verificado con `main`, HEAD y `origin/main` coincidentes y árbol limpio bajo la política CRLF correcta.
 
 HP-AUD queda **Cerrada**. No se crea HP7. La eliminación de los siete PNG históricos de `assets/imagenes/jugador/old/` queda incorporada como limpieza adicional del mismo cierre, sin cambios de gameplay, balance, persistencia ni arquitectura.
+
+---
+
+## Integración con combate a distancia — Dispersión, Penetración y fases de acción
+
+El contrato de modificadores incorpora los objetivos canónicos `dispersion`, `penetracionArmadura` y `costoFaseAccion`, junto con las claves de contexto `tipoAccion` y `faseAccion`.
+
+- `dispersion` modifica la pérdida máxima de Precisión contextual a larga distancia y no altera por sí sola la Precisión permanente del personaje;
+- `penetracionArmadura` pertenece a la fuente del ataque y se consume después de obtener la mitigación producida por la fórmula canónica de Armadura;
+- `costoFaseAccion` permite que una fuente de modificadores afecte una fase concreta —por ejemplo preparación— sin duplicar `factorAtaque` ni la fórmula temporal general.
+
+Los afijos locales conservan sus propiedades en el objeto. Un afijo que modifica el coste de una fase utiliza ámbito `portador` y condiciones canónicas de contexto mientras el arma aplicable esté equipada.
+
+La semántica completa de estas reglas pertenece a `docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md`.

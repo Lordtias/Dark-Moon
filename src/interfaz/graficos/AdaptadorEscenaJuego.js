@@ -333,12 +333,18 @@ function crearSelectorCombateVisual(juego, casillasVisibles) {
     return null;
   }
 
+  const esValido =
+    !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y) &&
+    juego.esCasillaAtacable(selector.x, selector.y);
+  const desgloseImpacto = esValido
+    ? juego.obtenerDesgloseImpactoAtaqueEn?.(selector.x, selector.y) ?? null
+    : null;
+
   return {
     x: selector.x,
     y: selector.y,
-    esValido:
-      !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y) &&
-      juego.esCasillaAtacable(selector.x, selector.y),
+    esValido,
+    probabilidadImpactoFinal: desgloseImpacto?.probabilidadFinal ?? null,
   };
 }
 
@@ -478,7 +484,14 @@ function copiarPosiciones(lista) {
 
 function copiarObjetivosHabilidad(lista) {
   if (!Array.isArray(lista)) return [];
-  return lista.map(({ x, y, orden = 0 }) => ({ x, y, orden }));
+  return lista.map(({ x, y, orden = 0, probabilidadImpactoFinal = null }) => ({
+    x,
+    y,
+    orden,
+    probabilidadImpactoFinal: Number.isFinite(probabilidadImpactoFinal)
+      ? probabilidadImpactoFinal
+      : null,
+  }));
 }
 
 function copiarObjetivosHabilidadVisibles({

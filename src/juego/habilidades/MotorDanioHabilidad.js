@@ -68,7 +68,7 @@ export function resolverImpactoHabilidad({
   const vidaObjetivoAntes = leerVidaActual(objetivo);
   const vidaObjetivoMaxima = leerVidaMaxima(objetivo);
   const desgloseImpacto = resolverImpacto
-    ? obtenerDesgloseImpactoSeguro(lanzador, objetivo)
+    ? obtenerDesgloseImpactoHabilidad(lanzador, objetivo)
     : crearDesgloseImpactoAutomatico();
   const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = obtenerTirada("impacto");
@@ -115,7 +115,7 @@ export function resolverDanioHabilidad({
   const estadisticasLanzador = obtenerEstadisticas(lanzador);
   const estadisticasObjetivo = obtenerEstadisticas(objetivo);
   const desgloseImpacto = resolverImpacto
-    ? obtenerDesgloseImpactoSeguro(lanzador, objetivo)
+    ? obtenerDesgloseImpactoHabilidad(lanzador, objetivo)
     : crearDesgloseImpactoAutomatico();
   const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = obtenerTirada("impacto");
@@ -285,7 +285,7 @@ function validarEntradaDanio({ lanzador, objetivo, componentesConfigurados }) {
   }
 }
 
-function obtenerDesgloseImpactoSeguro(lanzador, objetivo) {
+export function obtenerDesgloseImpactoHabilidad(lanzador, objetivo) {
   try {
     const desglose = obtenerDesgloseProbabilidadImpacto(lanzador, objetivo);
     return Object.freeze({

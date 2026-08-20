@@ -327,7 +327,10 @@
       "manos": 2,
       "bloqueaSecundaria": false,
       "requiereQuiver": true,
-      "tipoMunicion": "flecha"
+      "tipoMunicion": "flecha",
+      "requierePreparacionAtaque": true,
+      "dispersion": -24,
+      "penetracionArmadura": 4
     }
   },
   "arco_recurvo": {
@@ -358,7 +361,10 @@
       "manos": 2,
       "bloqueaSecundaria": false,
       "requiereQuiver": true,
-      "tipoMunicion": "flecha"
+      "tipoMunicion": "flecha",
+      "requierePreparacionAtaque": true,
+      "dispersion": -20,
+      "penetracionArmadura": 7
     }
   },
   "baston_aprendiz": {
@@ -906,7 +912,10 @@
       "manos": 2,
       "bloqueaSecundaria": false,
       "requiereQuiver": true,
-      "tipoMunicion": "flecha"
+      "tipoMunicion": "flecha",
+      "requierePreparacionAtaque": true,
+      "dispersion": -16,
+      "penetracionArmadura": 10
     }
   },
   "baston_maestro": {

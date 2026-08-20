@@ -29,6 +29,9 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   FACTOR_ATAQUE: "factorAtaque",
   FACTOR_ACCION: "factorAccion",
   FACTOR_CONSUMO: "factorConsumo",
+  COSTO_FASE_ACCION: "costoFaseAccion",
+  DISPERSION: "dispersion",
+  PENETRACION_ARMADURA: "penetracionArmadura",
   MULTIPLICADOR_DANIO_FUENTE: "multiplicadorDanioFuente",
   // Resistencia porcentual (0-75) usada para reducir la probabilidad de Maldiciones.
   RESISTENCIA_MENTAL: "resistenciaMental",
@@ -87,6 +90,10 @@ export const CLAVES_CONTEXTO_MODIFICADOR = Object.freeze({
   MANO: "mano",
   // Tipo canónico del ataque físico: cuerpo a cuerpo o distancia.
   TIPO_ATAQUE: "tipoAtaque",
+  // Tipo de acción compuesta cuyo coste contextual se está resolviendo.
+  TIPO_ACCION: "tipoAccion",
+  // Fase concreta de una acción compuesta: preparación o ejecución.
+  FASE_ACCION: "faseAccion",
   // Indica si la resolución actual pertenece a un ataque con dos fuentes de arma.
   ES_ATAQUE_DUAL: "esAtaqueDual",
   // Categoría conjunta de las cinco piezas corporales: ligera, media, pesada o mixta.

@@ -1,10 +1,22 @@
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 import {
+  ataqueUsaAccionCompuesta,
+  calcularCostoBaseFaseAtaque,
+  FASES_ACCION_COMPUESTA,
+} from "../../../juego/acciones/CostosAccionCompuesta.js";
+import {
+  activarPreparacionAccion,
+  obtenerPreparacionAccion,
+  retirarPreparacionAccion,
+} from "../../../juego/acciones/PreparacionAccionesCombatiente.js";
+import {
   crearMensajeTraducible,
   crearParametroContenidoMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../../../juego/mensajes/MensajesJuego.js";
+
+const ICONO_TACTICO_FLECHA_CARGADA = "assets/imagenes/habilidades/basicas/flecha_cargada_tactica.png";
 
 // Analiza el equipo actual y determina:
 //
@@ -339,7 +351,92 @@ export function verificarRequisitosAtaque(combatiente) {
   };
 }
 
-export function consumirRecursosAtaque(combatiente) {
+export function ataqueRequierePreparacion(combatiente) {
+  return ataqueUsaAccionCompuesta(obtenerConfiguracionAtaque(combatiente));
+}
+
+export function validarPreparacionAtaque(combatiente, { retirarSiInvalida = true } = {}) {
+  const configuracion = obtenerConfiguracionAtaque(combatiente);
+  if (!ataqueUsaAccionCompuesta(configuracion)) {
+    const estadoExistente = obtenerPreparacionAccion(combatiente);
+    // El ataque natural forzado es un respaldo transitorio y no representa un
+    // cambio de arma. No invalida una preparación del arma equipada.
+    if (combatiente.ataqueNaturalForzado === true) {
+      return { valida: true, requierePreparacion: false, configuracion, estado: estadoExistente };
+    }
+    if (retirarSiInvalida) retirarPreparacionAccion(combatiente);
+    return { valida: true, requierePreparacion: false, configuracion, estado: null };
+  }
+
+  const estado = obtenerPreparacionAccion(combatiente);
+  const requisitos = verificarRequisitosAtaque(combatiente);
+  const valida = Boolean(
+    estado &&
+    estado.datos?.tipoAccion === "ataque" &&
+    estado.datos?.arma === configuracion.armaControladora &&
+    estado.datos?.quiver === configuracion.quiver &&
+    estado.datos?.tipoMunicion === configuracion.tipoMunicion &&
+    requisitos.disponible
+  );
+  if (!valida && retirarSiInvalida) retirarPreparacionAccion(combatiente);
+  return { valida, requierePreparacion: true, configuracion, estado: valida ? estado : null, requisitos };
+}
+
+export function prepararAtaque(combatiente) {
+  const requisitos = verificarRequisitosAtaque(combatiente);
+  const configuracion = requisitos.configuracion;
+  if (!ataqueUsaAccionCompuesta(configuracion)) {
+    return { preparado: false, requierePreparacion: false, requisitos, costoBase: 0, estado: null };
+  }
+  const actual = validarPreparacionAtaque(combatiente);
+  if (actual.valida) {
+    return { preparado: true, yaPreparado: true, requierePreparacion: true, requisitos, costoBase: 0, estado: actual.estado };
+  }
+  if (!requisitos.disponible) {
+    return { preparado: false, requierePreparacion: true, requisitos, costoBase: 0, estado: null };
+  }
+
+  const municion = obtenerDescriptorMunicionCompatible(configuracion);
+  const estado = activarPreparacionAccion(combatiente, {
+    tipoAccion: "ataque",
+    nombre: configuracion.tipoMunicion === "flecha" ? "Flecha cargada" : "Arma preparada",
+    descripcion:
+      configuracion.tipoMunicion === "flecha"
+        ? "El arco quedó cargado y listo para disparar."
+        : "Preparación lista para ejecutar el ataque.",
+    icono:
+      configuracion.tipoMunicion === "flecha"
+        ? ICONO_TACTICO_FLECHA_CARGADA
+        : municion?.recursoVisual ?? configuracion.armaControladora?.recursoVisual ?? null,
+    datos: {
+      arma: configuracion.armaControladora,
+      quiver: configuracion.quiver,
+      tipoMunicion: configuracion.tipoMunicion,
+    },
+  });
+  const costoBase = calcularCostoBaseFaseAtaque({
+    combatiente,
+    configuracionAtaque: configuracion,
+    fase: FASES_ACCION_COMPUESTA.PREPARACION,
+  });
+  return { preparado: true, yaPreparado: false, requierePreparacion: true, requisitos, costoBase, estado };
+}
+
+export function consumirPreparacionAtaque(combatiente) {
+  return retirarPreparacionAccion(combatiente);
+}
+
+export function obtenerCostoEjecucionAtaque(combatiente) {
+  const configuracion = obtenerConfiguracionAtaque(combatiente);
+  if (!ataqueUsaAccionCompuesta(configuracion)) return configuracion.costoAtaqueBase;
+  return calcularCostoBaseFaseAtaque({
+    combatiente,
+    configuracionAtaque: configuracion,
+    fase: FASES_ACCION_COMPUESTA.EJECUCION,
+  });
+}
+
+export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } = {}) {
   const requisitos = verificarRequisitosAtaque(combatiente);
   const resultadoBase = {
     consumida: false,
@@ -371,7 +468,7 @@ export function consumirRecursosAtaque(combatiente) {
 
   let municionConsumida = false;
   let municionUtilizada = null;
-  if (configuracion.requiereQuiver) {
+  if (configuracion.requiereQuiver && consumirMunicion) {
     const contenedorMunicion = configuracion.quiver.contenedorObjetos;
     const objetoMunicion = contenedorMunicion.buscarPrimerObjeto(
       (objeto) =>
@@ -415,6 +512,16 @@ function crearDescriptorRecursoMunicion(objeto) {
     tipoMunicion: objeto.propiedades?.tipoMunicion ?? null,
     recursoVisual: objeto.recursoVisual ?? null,
   });
+}
+
+export function obtenerDescriptorMunicionCompatible(configuracion) {
+  if (!configuracion?.requiereQuiver || !configuracion.quiver?.contenedorObjetos) return null;
+  const objeto = configuracion.quiver.contenedorObjetos.buscarPrimerObjeto(
+    (candidato) =>
+      candidato.esMunicion &&
+      candidato.propiedades.tipoMunicion === configuracion.tipoMunicion,
+  );
+  return crearDescriptorRecursoMunicion(objeto);
 }
 
 function obtenerArmaEnRanura(combatiente, nombreRanura) {

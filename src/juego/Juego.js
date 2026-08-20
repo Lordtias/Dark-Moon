@@ -355,6 +355,17 @@ export class Juego {
     return this.sistemaCombateJugador.esCasillaAtacable(x, y);
   }
 
+  obtenerDesgloseImpactoAtaqueEn(x, y) {
+    return this.sistemaCombateJugador.obtenerDesgloseImpactoEn(x, y);
+  }
+
+  obtenerEstadosTacticos(combatiente = this.player) {
+    if (combatiente === this.player) {
+      this.sistemaCombateJugador.validarPreparacionActiva();
+    }
+    return combatiente?.sistemaEstadosTacticosCombatiente?.obtenerTodos?.() ?? [];
+  }
+
   obtenerEnemigoPrioritarioCombate() {
     return this.sistemaCombateJugador.obtenerEnemigoPrioritario();
   }
@@ -528,7 +539,9 @@ export class Juego {
         costoBase,
       });
 
-    return this.incorporarDestruccionesPendientes(resultadoTemporal);
+    const final = this.incorporarDestruccionesPendientes(resultadoTemporal);
+    this.sistemaCombateJugador.validarPreparacionActiva();
+    return final;
   }
 
   finalizarAccionJugador({
@@ -548,7 +561,9 @@ export class Juego {
       eventos: resultadoConDerrotasInmediatas.eventos ?? [],
     });
 
-    return this.incorporarDestruccionesPendientes(resultadoTemporal);
+    const final = this.incorporarDestruccionesPendientes(resultadoTemporal);
+    this.sistemaCombateJugador.validarPreparacionActiva();
+    return final;
   }
 
   esperarTurno() {

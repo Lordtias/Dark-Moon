@@ -41,6 +41,29 @@ export const CONFIGURACION_COMBATE = {
     // Un valor mayor hace que la armadura reduzca menos
     // los golpes pequeños, evitando daños redondeados a cero.
     factorDanio: 20,
+    // La penetración puede superar la mitigación producida por la Armadura.
+    // El excedente se convierte en vulnerabilidad física, limitada al 50%.
+    vulnerabilidadMinima: -0.5,
+  },
+  dispersion: {
+    // 0% representa ausencia de pérdida. Los valores negativos expresan la
+    // pérdida máxima de Precisión al alcanzar el límite de alcance.
+    minima: -50,
+    maxima: 0,
+    inicioTramoAlcance: 0.5,
+  },
+  penetracionArmadura: {
+    minima: 0,
+    maxima: 100,
+  },
+  accionesCompuestas: {
+    ataque: {
+      // Solo se declara contenido existente. Ballesta (75/25) y armas de
+      // fuego (90/10) quedan como referencias documentales futuras.
+      porFamilia: {
+        arco: { preparacion: 0.6, ejecucion: 0.4 },
+      },
+    },
   },
   // Combatir con dos armas produce más daño,
   // pero obliga a renunciar al escudo y consume

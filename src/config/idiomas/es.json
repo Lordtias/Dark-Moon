@@ -232,7 +232,9 @@
         "res_mental": "Reduce la probabilidad de recibir Maldiciones. Su valor final está limitado a 75%.",
         "atributo_suerte": "Atributo de fortuna. Ajusta los precios comerciales y aumenta el peso relativo de rarezas superiores a Común al materializar botín.",
         "ajuste_comercial": "Modificador canónico de precios derivado de Suerte. Los comerciantes consumen este resultado sin recalcular Suerte.",
-        "hallazgo_magico": "Aumenta el peso relativo de rarezas superiores a Común cuando el botín se materializa. No cambia cantidad, Tier ni presupuesto."
+        "hallazgo_magico": "Aumenta el peso relativo de rarezas superiores a Común cuando el botín se materializa. No cambia cantidad, Tier ni presupuesto.",
+        "dispersion": "Pérdida máxima de Precisión a larga distancia. Comienza después de la mitad del alcance; cuanto más cerca de 0%, mejor.",
+        "penetracion_armadura": "Reduce en puntos porcentuales la mitigación producida por la Armadura del objetivo. El exceso puede generar vulnerabilidad física."
       },
       "sinPasivas": "Sin pasivas aprendidas.",
       "sinEfectos": "Sin efectos temporales activos.",
@@ -262,7 +264,9 @@
       "asignarSuerte": "Asignar un punto a Suerte",
       "suerteResultados": "Suerte",
       "ajusteComercial": "Ajuste comercial",
-      "hallazgoMagico": "Hallazgo mágico"
+      "hallazgoMagico": "Hallazgo mágico",
+      "dispersion": "Dispersión",
+      "penetracionArmadura": "Penetración de Armadura"
     },
     "curacion": {
       "subtitulo": "Restaurá tus recursos antes de una nueva expedición.",
@@ -686,7 +690,10 @@
       "categoriaMaterial": "Material",
       "tipoAccesorio": "Accesorio",
       "resistenciaMental": "Resistencia Mental",
-      "hallazgoMagico": "Hallazgo mágico"
+      "hallazgoMagico": "Hallazgo mágico",
+      "dispersion": "Dispersión",
+      "penetracionArmadura": "Penetración de Armadura",
+      "reduccionCarga": "Carga rápida"
     },
     "comparacionObjetos": {
       "sinOpciones": "No hay otros objetos equipados para comparar.",
@@ -2410,7 +2417,9 @@
       "derrotadoNoAtaca": "No podés atacar estando derrotado.",
       "cancelarInteraccionRespaldo": "Cancelá la interacción antes de usar el ataque de respaldo.",
       "respaldoActivo": "Ataque de respaldo activo. Seleccioná una casilla adyacente y confirmá.",
-      "objetivoYaDestruido": "{objetivo} ya está destruido."
+      "objetivoYaDestruido": "{objetivo} ya está destruido.",
+      "preparacionAtaqueLista": "Flecha cargada. Volvé a atacar para seleccionar un objetivo.",
+      "preparacionAtaquePerdida": "La preparación del ataque dejó de ser válida."
     },
     "alcance": {
       "propiaCasilla": "No podés atacar tu propia casilla.",

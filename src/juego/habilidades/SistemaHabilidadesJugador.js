@@ -32,6 +32,7 @@ import {
 import {
   configurarTiradasDeterministasHabilidad,
   obtenerContextoPotenciaHabilidad,
+  obtenerDesgloseImpactoHabilidad,
   obtenerEstadoTiradasDeterministasHabilidad,
   resolverDanioHabilidad,
   resolverImpactoHabilidad,
@@ -650,13 +651,19 @@ export class SistemaHabilidadesJugador {
       geometria: vistaPrevia.geometria,
       casillasSeleccionables: vistaPrevia.casillasSeleccionables.map(copiarCasilla),
       casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
-      objetivosAfectados: vistaPrevia.objetivosAfectados.map((entrada) => ({
-        nombre: entrada.objetivo.nombre ?? "Objetivo",
-        x: entrada.x,
-        y: entrada.y,
-        orden: entrada.orden,
-        multiplicadorDanio: entrada.multiplicadorDanio,
-      })),
+      objetivosAfectados: vistaPrevia.objetivosAfectados.map((entrada) => {
+        const desgloseImpacto = habilidad.ejecucion.hostil
+          ? obtenerDesgloseImpactoHabilidad(this.jugador, entrada.objetivo)
+          : null;
+        return {
+          nombre: entrada.objetivo.nombre ?? "Objetivo",
+          x: entrada.x,
+          y: entrada.y,
+          orden: entrada.orden,
+          multiplicadorDanio: entrada.multiplicadorDanio,
+          probabilidadImpactoFinal: desgloseImpacto?.probabilidadFinal ?? null,
+        };
+      }),
       recorrido: vistaPrevia.recorrido.map((paso) => ({ ...paso })),
       mensajeValidacion: vistaPrevia.mensaje,
     };

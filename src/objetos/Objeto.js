@@ -265,6 +265,9 @@ export class Objeto {
       manos,
       bloqueaSecundaria,
       requiereQuiver,
+      requierePreparacionAtaque = false,
+      dispersion = 0,
+      penetracionArmadura = 0,
     } = this.propiedades;
 
     if (
@@ -346,6 +349,16 @@ export class Objeto {
 
     if (typeof requiereQuiver !== "boolean") {
       throw new Error(`"${this.nombre}" debe indicar si requiere carcaj.`);
+    }
+
+    if (typeof requierePreparacionAtaque !== "boolean") {
+      throw new Error(`"${this.nombre}" debe indicar si su ataque requiere preparación.`);
+    }
+    if (!Number.isFinite(dispersion) || dispersion > 0) {
+      throw new Error(`La dispersión de "${this.nombre}" debe ser un porcentaje igual o menor que 0.`);
+    }
+    if (!Number.isFinite(penetracionArmadura) || penetracionArmadura < 0) {
+      throw new Error(`La penetración de Armadura de "${this.nombre}" no es válida.`);
     }
 
     if (bloqueaSecundaria && !this.ranurasCompatibles.includes("arma")) {

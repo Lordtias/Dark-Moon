@@ -1,6 +1,14 @@
 import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
-import { verificarRequisitosAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
+import {
+  ataqueRequierePreparacion,
+  consumirPreparacionAtaque,
+  obtenerCostoEjecucionAtaque,
+  prepararAtaque,
+  validarPreparacionAtaque,
+  verificarRequisitosAtaque,
+} from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
+import { obtenerDesgloseProbabilidadImpactoFuente } from "./SistemaCombate.js";
 import {
   crearEventoAtaqueResuelto,
   crearEventoHostilidadCambiada,
@@ -226,6 +234,48 @@ export class SistemaCombateJugador {
     return this.obtenerCasillaInicial();
   }
 
+  validarPreparacionActiva() {
+    return validarPreparacionAtaque(this.jugador);
+  }
+
+  obtenerDesgloseImpactoEn(x, y) {
+    const objetivo = this.obtenerObjetivoEn(x, y);
+    if (!objetivo || !this.esCasillaAtacable(x, y)) return null;
+    return obtenerDesgloseProbabilidadImpactoFuente({
+      atacante: this.jugador,
+      objetivo,
+    });
+  }
+
+  prepararAtaqueSiCorresponde() {
+    if (!ataqueRequierePreparacion(this.jugador)) return null;
+    const estado = validarPreparacionAtaque(this.jugador);
+    if (estado.valida) return null;
+
+    const preparacion = prepararAtaque(this.jugador);
+    if (!preparacion.preparado) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: preparacion.requisitos?.mensajePresentacion ?? preparacion.requisitos?.mensaje,
+        turnoConsumido: false,
+        redibujar: false,
+      });
+    }
+
+    const mensaje = crearMensajeTraducible("mensajes.combate.preparacionAtaqueLista", {
+      tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+      respaldo: "Flecha cargada. Volvé a atacar para seleccionar un objetivo.",
+    });
+    if (preparacion.costoBase <= 0) {
+      return crearResultadoAccion({ mensaje, turnoConsumido: false, redibujar: true });
+    }
+    return this.finalizarAccionJugador({
+      mensaje,
+      tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
+      costoBase: preparacion.costoBase,
+    });
+  }
+
   entrar(selectorX = null, selectorY = null) {
     if (!this.jugador.estaVivo) {
       return crearResultadoAccion({ exito: false });
@@ -238,6 +288,9 @@ export class SistemaCombateJugador {
         }),
       });
     }
+
+    const resultadoPreparacion = this.prepararAtaqueSiCorresponde();
+    if (resultadoPreparacion) return resultadoPreparacion;
 
     const seleccionExplicita = selectorX !== null && selectorY !== null;
     const seleccion = seleccionExplicita
@@ -510,6 +563,20 @@ export class SistemaCombateJugador {
       });
     }
 
+    // La ejecución de una acción compuesta exige conservar su preparación.
+    const preparacion = validarPreparacionAtaque(this.jugador);
+    if (preparacion.requierePreparacion && !preparacion.valida) {
+      return crearResultadoAccion({
+        exito: false,
+        mensaje: crearMensajeTraducible("mensajes.combate.preparacionAtaquePerdida", {
+          tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
+          respaldo: "La preparación del ataque ya no es válida. Cargá el arma nuevamente.",
+        }),
+        turnoConsumido: false,
+        redibujar: true,
+      });
+    }
+
     // Esta validación sucede antes de limpiar el selector, registrar hostilidad
     // o finalizar la acción temporal.
     const requisitos = verificarRequisitosAtaque(this.jugador);
@@ -522,11 +589,14 @@ export class SistemaCombateJugador {
       });
     }
 
-    const costoAtaque = this.jugador.costoAtaqueActual;
+    const costoAtaque = obtenerCostoEjecucionAtaque(this.jugador);
     const objetivo = this.obtenerObjetivoEn(x, y);
     const usaRespaldo = this.jugador.ataqueNaturalForzado === true;
 
     try {
+      if (preparacion.requierePreparacion) {
+        consumirPreparacionAtaque(this.jugador);
+      }
       const resultadoAtaque = objetivo
         ? this.resolverAtaqueObjetivo(objetivo)
         : crearResultadoAtaqueCasillaVacia({

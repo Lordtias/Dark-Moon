@@ -81,6 +81,9 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
   vidaMaxima: { etiqueta: "Vida máxima" },
   manaMaximo: { etiqueta: "Maná máximo" },
   precision: { etiqueta: "Precisión" },
+  dispersion: { etiqueta: "Dispersión", porcentaje: true },
+  penetracionArmadura: { etiqueta: "Penetración de Armadura", porcentaje: true },
+  reduccionCargaPorcentaje: { etiqueta: "coste de preparación", porcentaje: true },
   probabilidadCritico: {
     etiqueta: "probabilidad de crítico",
     porcentaje: true,
@@ -449,6 +452,14 @@ function crearEstadisticasArma({ objeto, combatiente }) {
     crearEstadistica(
       tDetalle("precision", "Precisión"),
       formatearNumeroConSigno(propiedades.precision),
+    ),
+    crearEstadistica(
+      tDetalle("dispersion", "Dispersión"),
+      `${formatearNumeroConSigno(propiedades.dispersion ?? 0)} %`,
+    ),
+    crearEstadistica(
+      tDetalle("penetracionArmadura", "Penetración de Armadura"),
+      `${formatearNumero(propiedades.penetracionArmadura ?? 0)} %`,
     ),
     crearEstadistica(
       tDetalle("velocidadAtaque", "Velocidad de ataque"),

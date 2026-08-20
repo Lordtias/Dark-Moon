@@ -252,12 +252,14 @@ export function resolverComponenteDanio({
   tipo,
   danioBruto,
   armadura = 0,
+  penetracionArmadura = 0,
   resistencias = {},
   bloqueo = {},
 } = {}) {
   const tipoNormalizado = normalizarTipoDanio(tipo);
   validarNumeroFinito(danioBruto, "El daño bruto");
   validarNumeroFinito(armadura, "La Armadura");
+  validarNumeroFinito(penetracionArmadura, "La penetración de Armadura");
   if (danioBruto < 0) {
     throw new Error("El daño bruto no puede ser negativo.");
   }
@@ -279,16 +281,28 @@ export function resolverComponenteDanio({
   const danioDespuesBloqueo = Math.max(0, bruto - danioMitigadoBloqueo);
 
   let armaduraAplicada = 0;
+  let reduccionArmaduraBase = 0;
   let reduccionArmadura = 0;
+  let penetracionArmaduraAplicada = 0;
   let resistenciaAplicada = 0;
   let reduccionResistencia = 0;
   let danioAntesRedondeo = danioDespuesBloqueo;
 
   if (esFisico) {
     armaduraAplicada = Math.max(0, armadura);
-    reduccionArmadura = calcularReduccionArmadura(
+    reduccionArmaduraBase = calcularReduccionArmadura(
       armaduraAplicada,
       danioDespuesBloqueo,
+    );
+    penetracionArmaduraAplicada = limitar(
+      Math.max(0, penetracionArmadura),
+      CONFIGURACION_COMBATE.penetracionArmadura.minima,
+      CONFIGURACION_COMBATE.penetracionArmadura.maxima,
+    );
+    reduccionArmadura = limitar(
+      reduccionArmaduraBase - penetracionArmaduraAplicada / 100,
+      CONFIGURACION_COMBATE.armadura.vulnerabilidadMinima,
+      1,
     );
     danioAntesRedondeo = danioDespuesBloqueo * (1 - reduccionArmadura);
   } else {
@@ -301,7 +315,7 @@ export function resolverComponenteDanio({
   }
 
   const danioMitigadoArmadura = esFisico
-    ? Math.max(0, danioDespuesBloqueo - danioAntesRedondeo)
+    ? danioDespuesBloqueo - danioAntesRedondeo
     : 0;
   const danioFinal = Math.max(0, Math.floor(danioAntesRedondeo));
   return {
@@ -314,8 +328,11 @@ export function resolverComponenteDanio({
     danioDespuesBloqueo,
     armadura: armaduraAplicada,
     factorArmadura: CONFIGURACION_COMBATE.armadura.factorDanio,
+    reduccionArmaduraBase,
+    penetracionArmadura: penetracionArmaduraAplicada,
     reduccionArmadura,
     danioMitigadoArmadura,
+    vulnerabilidadFisica: reduccionArmadura < 0 ? -reduccionArmadura : 0,
     resistencia: resistenciaAplicada,
     reduccionResistencia,
     danioAntesRedondeo,
@@ -328,6 +345,7 @@ export function resolverComponenteDanio({
 export function resolverPaqueteDanio({
   componentes,
   armadura = 0,
+  penetracionArmadura = 0,
   resistencias = {},
   bloqueo = {},
 } = {}) {
@@ -341,6 +359,7 @@ export function resolverPaqueteDanio({
       tipo: componente.tipo,
       danioBruto: componente.danioBruto,
       armadura,
+      penetracionArmadura,
       resistencias,
       bloqueo,
     });

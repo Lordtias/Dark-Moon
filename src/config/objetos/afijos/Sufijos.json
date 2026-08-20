@@ -1082,5 +1082,204 @@
         }
       }
     ]
+  },
+  "de_estabilidad": {
+    "nombre": "De estabilidad",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Reduce la Dispersión del arco y conserva más Precisión a larga distancia.",
+    "pesoBase": 650,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "dispersion_local",
+    "aplicaA": {
+      "tipos": [
+        "arma"
+      ],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [
+        "arco"
+      ],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "dispersion",
+        "operacion": "sumar",
+        "ambito": "local_objeto"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": {
+          "dispersion": {
+            "minimo": 3,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": {
+          "dispersion": {
+            "minimo": 5,
+            "maximo": 7
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": {
+          "dispersion": {
+            "minimo": 7,
+            "maximo": 10
+          }
+        }
+      }
+    ]
+  },
+  "perforante": {
+    "nombre": "Perforante",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Aumenta la Penetración de Armadura de ataques con armas físicas.",
+    "pesoBase": 550,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "penetracion_armadura_local",
+    "aplicaA": {
+      "tipos": [
+        "arma"
+      ],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [],
+      "familiasExcluidas": [
+        "varita",
+        "baston"
+      ]
+    },
+    "efectos": [
+      {
+        "propiedad": "penetracionArmadura",
+        "operacion": "sumar",
+        "ambito": "local_objeto"
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": {
+          "penetracionArmadura": {
+            "minimo": 2,
+            "maximo": 3
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": {
+          "penetracionArmadura": {
+            "minimo": 4,
+            "maximo": 5
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": {
+          "penetracionArmadura": {
+            "minimo": 6,
+            "maximo": 8
+          }
+        }
+      }
+    ]
+  },
+  "de_carga_rapida": {
+    "nombre": "De carga rápida",
+    "tipoAfijo": "sufijo",
+    "descripcion": "Reduce solamente el coste temporal de la fase de preparación de ataques con arco.",
+    "pesoBase": 450,
+    "rarezasPermitidas": [
+      "magico",
+      "raro"
+    ],
+    "grupoExclusion": "costo_preparacion_ataque",
+    "aplicaA": {
+      "tipos": [
+        "arma"
+      ],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasIncluidas": [
+        "arco"
+      ],
+      "familiasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "reduccionCargaPorcentaje",
+        "objetivo": "costoFaseAccion",
+        "operacion": "porcentaje_total",
+        "ambito": "portador",
+        "condiciones": {
+          "familiaArma": "arco",
+          "tipoAccion": "ataque",
+          "faseAccion": "preparacion"
+        }
+      }
+    ],
+    "grados": [
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": {
+          "reduccionCargaPorcentaje": {
+            "minimo": -12,
+            "maximo": -8
+          }
+        }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": {
+          "reduccionCargaPorcentaje": {
+            "minimo": -18,
+            "maximo": -13
+          }
+        }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": {
+          "reduccionCargaPorcentaje": {
+            "minimo": -25,
+            "maximo": -19
+          }
+        }
+      }
+    ]
   }
 }

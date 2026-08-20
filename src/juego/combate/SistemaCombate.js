@@ -1,6 +1,7 @@
 import { limitar } from "../../utilidades/Numeros.js";
 import { Destructible } from "../../entidad/destructible/Destructible.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
+import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import {
   verificarRequisitosAtaque,
   consumirRecursosAtaque,
@@ -156,6 +157,48 @@ export function calcularProbabilidadImpacto(
     objetivo,
     precisionAtaque,
   ).probabilidadFinal;
+}
+
+export function calcularDispersionAplicada({ dispersion = 0, distancia, alcance } = {}) {
+  if (!Number.isFinite(dispersion)) {
+    throw new Error("La Dispersión debe ser numérica.");
+  }
+  if (!Number.isFinite(distancia) || !Number.isFinite(alcance) || alcance <= 0) {
+    return 0;
+  }
+  const configuracion = CONFIGURACION_COMBATE.dispersion;
+  const dispersionLimitada = limitar(dispersion, configuracion.minima, configuracion.maxima);
+  const inicio = alcance * configuracion.inicioTramoAlcance;
+  if (distancia <= inicio) return 0;
+  const tramo = alcance - inicio;
+  if (tramo <= 0) return dispersionLimitada;
+  const progreso = limitar((distancia - inicio) / tramo, 0, 1);
+  return dispersionLimitada * progreso;
+}
+
+export function obtenerDesgloseProbabilidadImpactoFuente({ atacante, objetivo, fuente = null } = {}) {
+  if (!atacante || !objetivo) {
+    throw new Error("La consulta de impacto necesita atacante y objetivo.");
+  }
+  const fuenteResuelta = fuente ?? atacante.estadisticasDerivadas?.danioFisico?.componentes?.[0] ?? null;
+  const precisionBase = fuenteResuelta?.precision ?? atacante.estadisticasDerivadas.precision;
+  const dispersion = fuenteResuelta?.dispersion ?? 0;
+  const distancia = Number.isFinite(atacante.x) && Number.isFinite(atacante.y) && Number.isFinite(objetivo.x) && Number.isFinite(objetivo.y)
+    ? calcularDistanciaCuadricula(atacante, objetivo)
+    : null;
+  const alcance = atacante.alcanceAtaque;
+  const dispersionAplicada = calcularDispersionAplicada({ dispersion, distancia, alcance });
+  const precisionContextual = Math.max(1, precisionBase * (1 + dispersionAplicada / 100));
+  const desglose = obtenerDesgloseProbabilidadImpacto(atacante, objetivo, precisionContextual);
+  return Object.freeze({
+    ...desglose,
+    precisionBase,
+    precisionContextual,
+    dispersion,
+    dispersionAplicada,
+    distancia,
+    alcance,
+  });
 }
 
 function obtenerComponentesDanioFuente(fuente) {
@@ -327,11 +370,11 @@ function resolverFuenteAtaque({
   tiradaDanioGlobal,
   estadisticasObjetivo,
 }) {
-  const desgloseImpacto = obtenerDesgloseProbabilidadImpacto(
+  const desgloseImpacto = obtenerDesgloseProbabilidadImpactoFuente({
     atacante,
     objetivo,
-    fuente.precision,
-  );
+    fuente,
+  });
   const probabilidadImpacto = desgloseImpacto.probabilidadFinal;
   const tiradaImpacto = tirarPorcentaje(probabilidadImpacto);
 
@@ -354,6 +397,8 @@ function resolverFuenteAtaque({
       desgloseImpacto,
       tiradaImpacto: tiradaImpacto.tirada,
       armadura: 0,
+      penetracionArmadura: fuente.penetracionArmadura ?? 0,
+      dispersion: fuente.dispersion ?? 0,
       reduccionArmadura: 0,
       danioMitigadoArmadura: 0,
       distribucionMitigacionArmadura: crearDistribucionMitigacionArmadura(0, null),
@@ -389,6 +434,7 @@ function resolverFuenteAtaque({
       danioBruto: componente.danioBruto,
     })),
     armadura,
+    penetracionArmadura: fuente.penetracionArmadura ?? 0,
     resistencias,
     bloqueo: {
       activo: resultadoBloqueo.bloqueado,
@@ -447,6 +493,9 @@ function resolverFuenteAtaque({
     mitigacionBloqueo: resultadoBloqueo.mitigacionBloqueo,
     tiradaBloqueo: resultadoBloqueo.tiradaBloqueo,
     armadura: primerFisico?.armadura ?? 0,
+    penetracionArmadura: primerFisico?.penetracionArmadura ?? fuente.penetracionArmadura ?? 0,
+    dispersion: fuente.dispersion ?? 0,
+    reduccionArmaduraBase: primerFisico?.reduccionArmaduraBase ?? 0,
     reduccionArmadura: primerFisico?.reduccionArmadura ?? 0,
     resistencias,
     probabilidadImpacto,
@@ -512,13 +561,15 @@ function crearTextoDesglose(resultadoGolpe) {
     );
     let defensa = "";
 
-    if (
-      entrada.tipo === TIPOS_DANIO.FISICO &&
-      (componente?.armadura ?? 0) > 0
-    ) {
-      defensa =
-        `, Armadura -` +
-        `${formatearNumero((componente.reduccionArmadura ?? 0) * 100)}%`;
+    if (entrada.tipo === TIPOS_DANIO.FISICO) {
+      const reduccion = (componente?.reduccionArmadura ?? 0) * 100;
+      const penetracion = componente?.penetracionArmadura ?? 0;
+      defensa = reduccion >= 0
+        ? `, Armadura -${formatearNumero(reduccion)}%`
+        : `, vulnerabilidad física +${formatearNumero(Math.abs(reduccion))}%`;
+      if (penetracion > 0) {
+        defensa += `, penetración ${formatearNumero(penetracion)}%`;
+      }
     } else if ((componente?.resistencia ?? 0) > 0) {
       defensa = `, resistencia ${formatearNumero(componente.resistencia)}%`;
     }
@@ -554,9 +605,15 @@ function crearTextoGolpe(resultadoGolpe, cantidadGolpes) {
     (entrada) => entrada.tipo === TIPOS_DANIO.FISICO,
   );
   const porcentajeArmadura = resultadoGolpe.reduccionArmadura * 100;
+  const penetracionArmadura = resultadoGolpe.penetracionArmadura ?? 0;
+  const textoDefensaFisica = porcentajeArmadura >= 0
+    ? `mitigación ${formatearNumero(porcentajeArmadura)}%`
+    : `vulnerabilidad +${formatearNumero(Math.abs(porcentajeArmadura))}%`;
+  const textoPenetracion = penetracionArmadura > 0
+    ? `, penetración ${formatearNumero(penetracionArmadura)}%`
+    : "";
   const textoArmadura = incluyeFisico
-    ? ` Armadura: ${resultadoGolpe.armadura} ` +
-      `(-${formatearNumero(porcentajeArmadura)}%).`
+    ? ` Armadura: ${resultadoGolpe.armadura} (${textoDefensaFisica}${textoPenetracion}).`
     : "";
   const textoDesglose = crearTextoDesglose(resultadoGolpe);
 

@@ -232,7 +232,9 @@
         "res_mental": "Reduces the chance of receiving Curses. Its final value is capped at 75%.",
         "atributo_suerte": "Fortune attribute. It adjusts trade prices and increases the relative weight of rarities above Common when loot is materialized.",
         "ajuste_comercial": "Canonical price modifier derived from Luck. Merchants consume this result without recalculating Luck.",
-        "hallazgo_magico": "Increases the relative weight of rarities above Common when loot is materialized. It does not change quantity, Tier, or budget."
+        "hallazgo_magico": "Increases the relative weight of rarities above Common when loot is materialized. It does not change quantity, Tier, or budget.",
+        "dispersion": "Maximum Accuracy loss at long range. It begins after half of the attack range; values closer to 0% are better.",
+        "penetracion_armadura": "Reduces the mitigation produced by target Armor by percentage points. Excess penetration can create physical vulnerability."
       },
       "sinPasivas": "No learned passives.",
       "sinEfectos": "No active temporary effects.",
@@ -262,7 +264,9 @@
       "asignarSuerte": "Assign one point to Luck",
       "suerteResultados": "Luck",
       "ajusteComercial": "Trade adjustment",
-      "hallazgoMagico": "Magic Find"
+      "hallazgoMagico": "Magic Find",
+      "dispersion": "Dispersion",
+      "penetracionArmadura": "Armor Penetration"
     },
     "curacion": {
       "subtitulo": "Restore your resources before a new expedition.",
@@ -686,7 +690,10 @@
       "categoriaMaterial": "Material",
       "tipoAccesorio": "Accessory",
       "resistenciaMental": "Mental Resistance",
-      "hallazgoMagico": "Magic Find"
+      "hallazgoMagico": "Magic Find",
+      "dispersion": "Dispersion",
+      "penetracionArmadura": "Armor Penetration",
+      "reduccionCarga": "Quick Load"
     },
     "comparacionObjetos": {
       "sinOpciones": "There are no other equipped items to compare.",
@@ -2410,7 +2417,9 @@
       "derrotadoNoAtaca": "You cannot attack while defeated.",
       "cancelarInteraccionRespaldo": "Cancel the interaction before using the fallback attack.",
       "respaldoActivo": "Fallback attack active. Select an adjacent tile and confirm.",
-      "objetivoYaDestruido": "{objetivo} is already destroyed."
+      "objetivoYaDestruido": "{objetivo} is already destroyed.",
+      "preparacionAtaqueLista": "Arrow loaded. Attack again to select a target.",
+      "preparacionAtaquePerdida": "The attack preparation is no longer valid."
     },
     "alcance": {
       "propiaCasilla": "You cannot attack your own tile.",

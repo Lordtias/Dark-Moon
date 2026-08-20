@@ -112,6 +112,12 @@ export class CompositorSeleccionPhaser {
     }
 
     this.capaSeleccion.add(graficos);
+    if (combate.selector) {
+      this.dibujarProbabilidadImpacto(
+        combate.selector,
+        esHabilidad ? estiloHabilidad?.selector : null,
+      );
+    }
     this.dibujarObjetivosHabilidad(
       combate.objetivosAfectados,
       esHabilidad ? estiloHabilidad : null,
@@ -169,6 +175,32 @@ export class CompositorSeleccionPhaser {
     graficos.lineBetween(x0, y1, x0, y1 - longitud);
     graficos.lineBetween(x1, y1, x1 - longitud, y1);
     graficos.lineBetween(x1, y1, x1, y1 - longitud);
+  }
+
+  dibujarProbabilidadImpacto(objetivo, colorPersonalizado = null) {
+    if (!Number.isFinite(objetivo?.probabilidadImpactoFinal)) return;
+    const posicion = this.obtenerPosicionCasilla(objetivo);
+    if (!posicion) return;
+
+    const color = colorPersonalizado ?? (objetivo.esValido === false
+      ? COLOR_SELECTOR_INVALIDO
+      : COLOR_SELECTOR_VALIDO);
+    const texto = this.escena.add
+      .text(
+        posicion.x + TAMANO_CASILLA_REFERENCIA / 2,
+        Math.max(2, posicion.y - 2),
+        `${Math.round(objetivo.probabilidadImpactoFinal)}%`,
+        {
+          color: colorEnteroACss(color),
+          fontFamily: "monospace",
+          fontSize: "11px",
+          fontStyle: "bold",
+          stroke: "#111111",
+          strokeThickness: 2,
+        },
+      )
+      .setOrigin(0.5, 1);
+    this.capaSeleccion.add(texto);
   }
 
   dibujarRecorrido(graficos, recorrido, estiloHabilidad = null) {
@@ -229,6 +261,10 @@ export class CompositorSeleccionPhaser {
         )
         .setOrigin(0.5);
       this.capaSeleccion.add(texto);
+      this.dibujarProbabilidadImpacto(
+        objetivo,
+        estiloHabilidad?.selector ?? COLOR_SELECTOR_VALIDO,
+      );
     }
   }
 
@@ -295,6 +331,11 @@ function obtenerEstiloSeleccionHabilidadPhaser(maestria) {
     objetivoFondoCss: "#50236e",
     selector: COLOR_SELECTOR_VALIDO,
   };
+}
+
+function colorEnteroACss(color) {
+  const valor = Number.isInteger(color) ? color : COLOR_SELECTOR_VALIDO;
+  return `#${valor.toString(16).padStart(6, "0").slice(-6)}`;
 }
 
 function normalizarCasilla(casilla, geometria) {

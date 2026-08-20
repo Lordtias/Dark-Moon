@@ -11,6 +11,8 @@ const REGLAS_ESTADISTICAS = Object.freeze({
   "dano fisico": { tipo: "rangoDanio", unidad: " de daño medio" },
   "dano elemental": { tipo: "rangoDanio", unidad: " de daño medio" },
   precision: { tipo: "numero", unidad: "" },
+  dispersion: { tipo: "numero", unidad: " p.p." },
+  "penetracion de armadura": { tipo: "numero", unidad: " p.p." },
   "velocidad de ataque": { tipo: "numero", unidad: " ataques/s" },
   critico: { tipo: "critico", unidad: " % de aporte crítico" },
   alcance: { tipo: "numero", unidad: "" },

@@ -98,7 +98,11 @@ body {
       max(8px, var(--dm-safe-right))
       max(8px, var(--dm-safe-bottom))
       max(8px, var(--dm-safe-left));
+    overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   main {
@@ -124,11 +128,16 @@ body {
     padding: 54px 16px 20px;
   }
 
+  /* En móvil la pantalla completa es la superficie desplazable. Evitamos
+     un scroll interno anidado en creación porque algunos navegadores táctiles
+     no transfieren de forma fiable el swipe iniciado sobre sus controles. */
   .panel-creacion--ampliado {
     width: min(100%, calc(100vw - var(--dm-safe-left) - var(--dm-safe-right) - 16px));
-    max-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 16px);
-    overscroll-behavior: contain;
-    scroll-padding-block: 90px min(34dvh, 280px);
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
   }
 }
 

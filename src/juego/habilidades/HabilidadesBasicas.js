@@ -10,19 +10,19 @@ export const ACCIONES_HABILIDAD_BASICA = Object.freeze({
   ESPERAR: "esperar",
 });
 
-const ICONO_PUNO = "assets/imagenes/habilidades/basicas/ataque_puno.svg";
-const ICONO_DUAL = "assets/imagenes/habilidades/basicas/ataque_dual.svg";
-const ICONO_ESPERAR = "assets/imagenes/habilidades/basicas/esperar_turno.svg";
+const ICONO_PUNO = "assets/imagenes/habilidades/basicas/ataque_puno.png";
+const ICONO_DUAL = "assets/imagenes/habilidades/basicas/ataque_dual.png";
+const ICONO_ESPERAR = "assets/imagenes/habilidades/basicas/esperar_turno.png";
 
 const ICONOS_ATAQUE_POR_FAMILIA = Object.freeze({
-  daga: "assets/imagenes/habilidades/basicas/ataque_dagas.svg",
-  espada: "assets/imagenes/habilidades/basicas/ataque_espada.svg",
-  hacha: "assets/imagenes/habilidades/basicas/ataque_hacha.svg",
-  mandoble: "assets/imagenes/habilidades/basicas/ataque_mandoble.svg",
-  lanza: "assets/imagenes/habilidades/basicas/ataque_lanza.svg",
-  arco: "assets/imagenes/habilidades/basicas/ataque_arco.svg",
-  baston: "assets/imagenes/habilidades/basicas/ataque_baston.svg",
-  varita: "assets/imagenes/habilidades/basicas/ataque_varita.svg",
+  daga: "assets/imagenes/habilidades/basicas/ataque_dagas.png",
+  espada: "assets/imagenes/habilidades/basicas/ataque_espada.png",
+  hacha: "assets/imagenes/habilidades/basicas/ataque_hacha.png",
+  mandoble: "assets/imagenes/habilidades/basicas/ataque_mandoble.png",
+  lanza: "assets/imagenes/habilidades/basicas/ataque_lanza.png",
+  arco: "assets/imagenes/habilidades/basicas/ataque_arco.png",
+  baston: "assets/imagenes/habilidades/basicas/ataque_baston.png",
+  varita: "assets/imagenes/habilidades/basicas/ataque_varita.png",
 });
 
 export function esHabilidadBasica(idHabilidad) {

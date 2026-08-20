@@ -293,6 +293,7 @@ export class PanelHabilidadesMaestrias {
 
     seccion.append(cabecera, progreso, arbol);
     this.contenido.append(selector, seccion);
+    requestAnimationFrame(() => mantenerOpcionActivaVisible(selector));
   }
 
   crearArbolHabilidades({ estructura, estado, resumen }) {
@@ -1394,6 +1395,23 @@ function nombreObjetivoModificador(objetivo) {
   };
   const [clave, respaldo] = claves[objetivo] ?? [null, formatearNombre(objetivo)];
   return clave ? traducir(clave, { respaldo }) : respaldo;
+}
+
+function mantenerOpcionActivaVisible(selector) {
+  if (!(selector instanceof HTMLElement)) return;
+  const activa = selector.querySelector(".maestria-selector--activa");
+  if (!(activa instanceof HTMLElement)) return;
+
+  const inicioVisible = selector.scrollLeft;
+  const finVisible = inicioVisible + selector.clientWidth;
+  const inicioOpcion = activa.offsetLeft;
+  const finOpcion = inicioOpcion + activa.offsetWidth;
+
+  if (inicioOpcion < inicioVisible) {
+    selector.scrollLeft = inicioOpcion;
+  } else if (finOpcion > finVisible) {
+    selector.scrollLeft = Math.max(0, finOpcion - selector.clientWidth);
+  }
 }
 
 function crearContador(etiqueta, valor, tipo) {

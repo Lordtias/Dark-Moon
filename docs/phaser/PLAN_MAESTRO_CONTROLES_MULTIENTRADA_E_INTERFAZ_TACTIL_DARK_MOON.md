@@ -282,7 +282,7 @@ No quedan correcciones funcionales abiertas dentro de la Etapa 1. Cualquier ajus
 
 ## 14. Segunda etapa — adaptación responsive móvil
 
-**Estado: CERRADA Y APROBADA.**
+**Estado: CERRADA Y APROBADA; correctivo post-cierre de scroll/habilidades móvil pendiente de validación manual.**
 
 La auditoría previa confirmó que la base desktop es válida y que los problemas principales aparecen en portrait, landscape de poca altura, safe areas, objetivos táctiles y ventanas que reservaban espacio innecesario al HUD. La solución aprobada es aditiva: desktop continúa siendo la referencia y la adaptación entra sólo por condiciones explícitas de viewport/orientación/capacidad táctil.
 
@@ -320,13 +320,17 @@ La auditoría previa confirmó que la base desktop es válida y que los problema
 - responsive decide si ese estado debe ocultar el HUD y convertir los paneles a fullscreen.
 - Personaje conserva contenido completo con scroll real cuando corresponde.
 - tablet mantiene composición intermedia y evita que Personaje exceda la capa disponible.
-- el árbol de habilidades usa scroll en baja altura y mantiene nodos de aproximadamente 58 px.
-- en landscape bajo la navegación de maestrías permanece lateral para no consumir altura vertical.
+- el árbol de habilidades conserva su estructura de grafo y usa scroll vertical cuando la altura disponible no permite mostrar todos los niveles.
+- tras la prueba en dispositivo real, la navegación móvil de categorías queda en una banda superior compacta de cuatro opciones y las maestrías de la categoría activa pasan a una única banda horizontal desplazable; esto evita que Armas/Armaduras consuman la mayor parte del viewport antes del árbol.
+- los nodos móviles se compactan moderadamente (aprox. 50 px en portrait y 46 px en landscape bajo) sin abandonar el formato de árbol/grafo.
+- el selector horizontal mantiene visible la maestría activa después de cada render, sin reglas por categoría o por nombre.
 
 ### 14.4 Implementación E2.C — modales y pulido táctil
 
 - las hojas CSS cargadas dinámicamente se insertan antes de `responsive.css`, garantizando que la capa responsive siga siendo la última autoridad visual sin cambiar desktop.
 - comercio, contenedor, curación, selección de mazmorra, detalles y habilidades adoptan `dvh`/safe areas en móvil.
+- los modales móviles largos usan un único cuerpo desplazable principal; listas, detalle y acciones dejan de competir con scrolls verticales anidados. Un swipe iniciado sobre la ficha, una lista o los botones debe desplazar el mismo modal.
+- la misma regla de scroll único se aplica a paneles fullscreen de Personaje, Objetos y Registro; listas internas de pasivas/efectos no capturan el gesto vertical en móvil.
 - objetivos táctiles pequeños reciben mínimos de aproximadamente 44 px sólo bajo puntero `coarse` y viewport reducido.
 - Aura/Maldición del HUD conserva `aria-label` y además permite foco/tap para mostrar nombre y turnos sin depender del tooltip nativo.
 - creación y comercio incorporan `scroll-padding` para mantener controles útiles frente al teclado virtual.
@@ -344,7 +348,7 @@ Antes del incremental se verifican automáticamente:
 - `10×1` sin reglas móviles en 1366×768, 1920×1080 y 2560×1440;
 - HUD oculto y panel fullscreen sólo en viewport móvil con panel activo;
 - tablet 768×1024 sin desbordar la capa del panel;
-- árbol desplazable con nodos táctiles legibles en landscape bajo;
+- árbol desplazable con nodos táctiles legibles y selector de maestrías horizontal compacto en móvil;
 - menú principal sin mínimo fijo de 720 px en poca altura;
 - targets táctiles y lectura de estados mediante foco/tap.
 
@@ -362,4 +366,4 @@ El ajuste final aprobado del HUD establece:
 - landscape móvil: esferas de Vida/Maná conservadas; Experiencia centrada arriba de habilidades `10×1`;
 - desktop: composición previa intacta.
 
-No quedan pendientes dentro del alcance de Etapa 2.
+Tras el cierre se detectaron dos regresiones únicamente en dispositivo móvil real: scroll táctil fragmentado y exceso de espacio consumido por la navegación de maestrías. El correctivo asociado mantiene la Etapa 2 como base cerrada, pero queda **pendiente de validación manual en celular** antes de considerar resueltos estos ajustes post-cierre.

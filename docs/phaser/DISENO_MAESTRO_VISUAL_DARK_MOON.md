@@ -2115,7 +2115,10 @@ En móvil portrait las esferas de Vida y Maná se reemplazan visualmente por bar
 
 Cuando un panel primario captura entrada en viewport móvil, el HUD deja de reservar espacio y el panel utiliza prácticamente todo `100dvh`. En desktop el mismo estado no oculta el HUD ni convierte los paneles en fullscreen. Tablet conserva una composición intermedia.
 
-El árbol de habilidades prioriza un nodo táctil legible antes que mostrar todo simultáneamente. En poca altura utiliza desplazamiento vertical y mantiene navegación lateral cuando el ancho landscape lo permite. Responsive no debe reproducir el error de resolver espacio mediante miniaturización extrema o scroll accidental de la ventana completa.
+El árbol de habilidades prioriza un nodo táctil legible antes que mostrar todo simultáneamente. En móvil conserva el formato de grafo, pero la navegación de categorías se compacta en una banda superior y las maestrías de la categoría activa se presentan en una única banda horizontal desplazable. De este modo categorías con muchas maestrías, como Armas, no consumen verticalmente el viewport antes del árbol. Los nodos se mantienen aproximadamente en 50 px en portrait y 46 px en landscape bajo, usando desplazamiento vertical del árbol cuando sea necesario. Responsive no debe reproducir el error de resolver espacio mediante miniaturización extrema.
+
+
+Los modales y paneles fullscreen móviles deben tener **una única superficie vertical desplazable principal**. Las listas, fichas de detalle y pies de acciones no pueden crear zonas táctiles aisladas que impidan continuar el mismo swipe al cambiar de sección. En escritorio se mantienen los scrolls internos existentes cuando resultan útiles.
 
 Los controles de un dispositivo `pointer: coarse` y viewport reducido deben disponer de un área táctil aproximada mínima de 44×44 px. Una notebook táctil con viewport desktop no debe activar por esa sola característica una composición de teléfono.
 

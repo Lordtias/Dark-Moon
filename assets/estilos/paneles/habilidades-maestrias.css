@@ -1146,3 +1146,116 @@
   color: var(--texto-secundario, #b8c0d9);
   line-height: 1.45;
 }
+
+/* =========================================================
+   TEMA VISUAL DORADO / MOSTAZA
+   ========================================================= */
+.modal-habilidades-maestrias {
+  border-color: #8f7440;
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.78),
+    0 0 0 1px rgba(205, 176, 91, 0.12) inset;
+}
+
+.panel-habilidades {
+  background:
+    radial-gradient(circle at 80% -10%, rgba(184, 154, 67, 0.16), transparent 35%),
+    linear-gradient(145deg, #14110a, #090b14 72%);
+}
+
+.panel-habilidades__cabecera {
+  border-bottom-color: rgba(143, 116, 64, 0.58);
+  background: rgba(14, 12, 8, 0.9);
+}
+
+.panel-habilidades__etiqueta,
+.maestria-detalle__categoria,
+.seccion-en-construccion__etiqueta,
+.confirmacion-habilidad__aviso,
+.confirmacion-habilidad__origen,
+.confirmacion-habilidad__resumen {
+  color: #bbaa7b;
+}
+
+.panel-habilidades__titulo,
+.maestria-detalle__nombre,
+.seccion-en-construccion h3,
+.confirmacion-habilidad__cabecera h3 {
+  color: #f0e4bf;
+}
+
+.contador-puntos {
+  border-color: rgba(143, 116, 64, 0.68);
+  background: rgba(24, 18, 10, 0.95);
+  color: #dbc790;
+}
+
+.contador-puntos strong {
+  color: #fff4cf;
+}
+
+.contador-puntos--universal,
+.contador-puntos--especifico {
+  border-color: #b89a43;
+}
+
+.panel-habilidades__cerrar,
+.confirmacion-habilidad__cerrar,
+.confirmacion-habilidad__acciones button,
+.seccion-en-construccion__boton {
+  border-color: #8f7440;
+  background: #17130b;
+  color: #f0e4bf;
+}
+
+.panel-habilidades__cuerpo {
+  border-top-color: rgba(143, 116, 64, 0.2);
+}
+
+.panel-habilidades__navegacion {
+  border-right-color: rgba(143, 116, 64, 0.58);
+  background: rgba(14, 12, 8, 0.72);
+}
+
+.panel-habilidades__categoria {
+  color: #d9c692;
+}
+
+.panel-habilidades__categoria:hover,
+.panel-habilidades__categoria:focus-visible {
+  border-color: rgba(143, 116, 64, 0.78);
+  background: rgba(143, 116, 64, 0.11);
+}
+
+.panel-habilidades__categoria--activa {
+  border-color: #c9a95a;
+  background: rgba(64, 48, 20, 0.78);
+  color: #fff4cf;
+  box-shadow: inset 3px 0 #e3c56a;
+}
+
+.panel-habilidades__contenido {
+  scrollbar-color: #70582c #16130c;
+}
+
+.panel-habilidades__mensaje {
+  border-top-color: rgba(143, 116, 64, 0.52);
+  color: #dbc790;
+  background: rgba(11, 10, 8, 0.84);
+}
+
+.confirmacion-habilidad {
+  border-color: #8f7440;
+  background: linear-gradient(180deg, rgba(72, 57, 21, 0.18), rgba(13, 11, 8, 0.98));
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.48);
+}
+
+.confirmacion-habilidad__opciones,
+.confirmacion-habilidad__accion,
+.maestria-detalle,
+.maestria-selector,
+.seccion-en-construccion,
+.habilidad-independiente,
+.panel-habilidades__capa-accion {
+  border-color: rgba(143, 116, 64, 0.6);
+}

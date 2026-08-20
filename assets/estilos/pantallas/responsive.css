@@ -733,3 +733,697 @@ body {
   .hud-centro .barra-habilidades { grid-area: habilidades; }
   .barra-paneles-partida { grid-area: paneles; }
 }
+
+/* =========================================================
+   CORRECTIVO POST-ETAPA 2 · SCROLL TÁCTIL EN MODALES MÓVILES
+   =========================================================
+ *
+ * Los diálogos fullscreen móviles necesitan una altura interna definida para
+ * que sus filas minmax(0, 1fr) / hijos flex puedan encogerse y entregar el
+ * desplazamiento al área correcta. Sin este contrato, el contenido puede
+ * crecer fuera del dialog y un swipe real no encuentra una superficie
+ * desplazable aunque exista overflow-y:auto en un descendiente.
+ */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .modal-comercio__contenido,
+  .modal-contenedor-objetos__contenido,
+  .modal-curacion__contenido,
+  .modal-seleccion-mazmorra__contenido,
+  .modal-detalle-entidad__contenido,
+  .modal-detalle-objeto__contenido {
+    height: 100%;
+    max-height: none;
+    min-height: 0;
+  }
+
+  /* Botín usa un cuerpo flex; debe ocupar el espacio restante para que su
+     overflow-y:auto móvil tenga una altura real sobre la que desplazarse. */
+  .modal-contenedor-objetos__cuerpo {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* Superficies desplazables táctiles auditadas. El scroll sigue viviendo en
+     el componente que ya era canónico; sólo explicitamos el gesto vertical y
+     la inercia para navegadores móviles reales. */
+  .modal-contenedor-objetos__cuerpo,
+  .modal-comercio__cuerpo,
+  .modal-curacion__servicios,
+  .modal-seleccion-mazmorra__cuerpo,
+  .modal-detalle-entidad__secciones,
+  .detalle-objeto,
+  .comparacion-objetos,
+  .modal-ayuda-juego__contenido,
+  .arbol-habilidades,
+  .panel-superpuesto-partida__contenido,
+  .panel-objetos__equipamiento,
+  .panel-objetos__inventario {
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-detalle-entidad__secciones {
+    min-height: 0;
+  }
+}
+
+/* =========================================================
+   CORRECTIVO POST-ETAPA 2 · SCROLL ÚNICO EN MODALES MÓVILES
+   =========================================================
+ * En móvil el gesto vertical pertenece al contenedor principal del modal.
+ * Los descendientes dejan de mantener scrolls verticales competidores. Esto
+ * permite iniciar el swipe tanto sobre listas como sobre detalles y acciones.
+ */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .modal-contenedor-objetos__contenido,
+  .modal-comercio__contenido,
+  .modal-curacion__contenido,
+  .modal-seleccion-mazmorra__contenido,
+  .modal-detalle-objeto__contenido,
+  .modal-detalle-entidad__contenido,
+  .modal-ayuda-juego__panel {
+    display: block;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-contenedor-objetos__cuerpo,
+  .modal-comercio__cuerpo,
+  .modal-seleccion-mazmorra__cuerpo {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .modal-contenedor-objetos__seccion-lista,
+  .modal-contenedor-objetos__seccion-detalle,
+  .modal-contenedor-objetos .detalle-objeto,
+  .modal-contenedor-objetos .comparacion-objetos,
+  .modal-comercio__seccion-lista,
+  .modal-comercio__detalle,
+  .modal-curacion__servicios,
+  .modal-seleccion-mazmorra__lista,
+  .modal-seleccion-mazmorra__detalle,
+  .modal-detalle-entidad__secciones,
+  .modal-detalle-objeto__vistas,
+  .modal-detalle-objeto .detalle-objeto,
+  .modal-detalle-objeto .comparacion-objetos,
+  .modal-ayuda-juego__contenido {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .modal-contenedor-objetos__cabecera,
+  .modal-comercio__cabecera,
+  .modal-curacion__cabecera,
+  .modal-seleccion-mazmorra__cabecera,
+  .modal-ayuda-juego__cabecera {
+    position: sticky;
+    z-index: 4;
+    top: 0;
+  }
+
+  .modal-contenedor-objetos__acciones,
+  .modal-comercio__acciones,
+  .modal-curacion__acciones,
+  .modal-seleccion-mazmorra__acciones,
+  .modal-detalle-entidad__acciones,
+  .modal-detalle-objeto__acciones,
+  .modal-ayuda-juego__acciones,
+  .modal-contenedor-objetos button,
+  .modal-comercio button,
+  .modal-curacion button,
+  .modal-seleccion-mazmorra button,
+  .modal-detalle-entidad button,
+  .modal-detalle-objeto button,
+  .modal-ayuda-juego button,
+  .modal-contenedor-objetos__contenido *,
+  .modal-comercio__contenido *,
+  .modal-curacion__contenido *,
+  .modal-seleccion-mazmorra__contenido *,
+  .modal-detalle-entidad__contenido *,
+  .modal-detalle-objeto__contenido *,
+  .modal-ayuda-juego__panel * {
+    touch-action: pan-y;
+  }
+}
+
+/* =========================================================
+   HABILIDADES · COMPOSICIÓN MÓVIL COMPACTA
+   =========================================================
+ * Conserva el árbol/grafo. La ganancia de espacio proviene de compactar el
+ * encabezado y convertir categorías/maestrías en bandas horizontales de una
+ * sola fila, en lugar de apilar todos sus botones sobre el árbol.
+ */
+@media (max-width: 700px) {
+  .modal-habilidades-maestrias {
+    width: calc(100vw - var(--dm-safe-left) - var(--dm-safe-right));
+    height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom));
+    margin: var(--dm-safe-top) var(--dm-safe-right) var(--dm-safe-bottom) var(--dm-safe-left);
+  }
+
+  .panel-habilidades {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .panel-habilidades__cabecera {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
+    min-height: 52px;
+    padding: 5px 7px;
+  }
+
+  .panel-habilidades__etiqueta {
+    display: none;
+  }
+
+  .panel-habilidades__titulo {
+    font-size: 15px;
+    line-height: 1.1;
+  }
+
+  .panel-habilidades__puntos {
+    grid-column: auto;
+    gap: 4px;
+  }
+
+  .contador-puntos {
+    min-width: 52px;
+    padding: 3px 5px;
+    font-size: 8px;
+    line-height: 1.05;
+  }
+
+  .contador-puntos strong {
+    font-size: 13px;
+  }
+
+  .panel-habilidades__cerrar {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+
+  .panel-habilidades__cuerpo {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .panel-habilidades__navegacion {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px;
+    border-right: 0;
+    border-bottom: 1px solid #3e497f;
+    overflow: visible;
+  }
+
+  .panel-habilidades__categoria {
+    min-width: 0;
+    min-height: 42px;
+    padding: 4px 3px;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .panel-habilidades__categoria--activa {
+    box-shadow: inset 0 -3px #aeb8ff;
+  }
+
+  .panel-habilidades__contenido {
+    min-height: 0;
+    padding: 5px;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  .maestrias__selector {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 3px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .maestria-selector {
+    flex: 0 0 92px;
+    min-height: 44px;
+    padding: 5px 6px;
+    gap: 1px;
+    font-size: 10px;
+  }
+
+  .maestria-selector__nombre {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .maestria-selector__nivel {
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .maestria-detalle {
+    min-height: 0;
+    height: 100%;
+    padding: 6px;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .maestria-detalle__cabecera {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .maestria-detalle__categoria {
+    display: none;
+  }
+
+  .maestria-detalle__nombre {
+    font-size: 14px;
+    line-height: 1.15;
+  }
+
+  .maestria-detalle__cabecera .contador-puntos {
+    min-width: 64px;
+    flex: 0 0 auto;
+  }
+
+  .progreso-maestria {
+    margin: 5px 0 7px;
+  }
+
+  .progreso-maestria__cabecera {
+    margin-bottom: 2px;
+    font-size: 9px;
+  }
+
+  .progreso-maestria__barra {
+    height: 6px;
+  }
+
+  .progreso-maestria small {
+    font-size: 8px;
+  }
+
+  .arbol-habilidades {
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .arbol-habilidades__lienzo {
+    height: auto;
+    min-height: max-content;
+    grid-auto-rows: minmax(58px, auto);
+    align-content: start;
+    gap: 2px;
+    padding: 6px 5px 10px;
+  }
+
+  .arbol-habilidades__nivel {
+    min-height: 56px;
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .arbol-habilidades__nivel-etiqueta {
+    padding: 2px 3px;
+    font-size: 8px;
+  }
+
+  .arbol-habilidades__nodos {
+    gap: clamp(6px, 2.5vw, 16px);
+  }
+
+  .nodo-habilidad {
+    width: 50px;
+    height: 50px;
+  }
+
+  .nodo-habilidad__grado {
+    font-size: 8px;
+  }
+
+  .panel-habilidades__mensaje {
+    min-height: 0;
+    padding: 4px 8px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .habilidades-independientes {
+    gap: 8px;
+    overflow-y: auto;
+    touch-action: pan-y;
+  }
+
+  .habilidades-independientes__grilla {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .habilidad-independiente {
+    gap: 7px;
+    padding: 9px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .panel-habilidades__cabecera {
+    min-height: 46px;
+    padding: 3px 6px;
+  }
+
+  .panel-habilidades__titulo {
+    font-size: 13px;
+  }
+
+  .panel-habilidades__navegacion {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 3px;
+  }
+
+  .panel-habilidades__categoria {
+    min-height: 36px;
+    padding: 2px 3px;
+    font-size: 9px;
+  }
+
+  .maestria-selector {
+    flex-basis: 84px;
+    min-height: 38px;
+    padding: 3px 5px;
+  }
+
+  .maestria-detalle {
+    padding: 4px;
+  }
+
+  .progreso-maestria {
+    margin: 3px 0 4px;
+  }
+
+  .arbol-habilidades__lienzo {
+    grid-auto-rows: minmax(52px, auto);
+    padding-block: 4px 7px;
+  }
+
+  .arbol-habilidades__nivel {
+    min-height: 50px;
+  }
+
+  .nodo-habilidad {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* Landscape móvil también usa navegación compacta superior. El criterio es
+   por altura, no sólo por ancho, para teléfonos anchos rotados. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .panel-habilidades__cuerpo {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .panel-habilidades__navegacion {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    padding: 3px;
+    border-right: 0;
+    border-bottom: 1px solid #3e497f;
+    overflow: visible;
+  }
+
+  .panel-habilidades__contenido {
+    min-height: 0;
+    padding: 4px;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .maestrias__selector {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .maestria-selector {
+    flex: 0 0 84px;
+    min-height: 40px;
+    padding: 3px 5px;
+    gap: 1px;
+  }
+
+  .maestria-selector__nombre {
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .maestria-selector__nivel {
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .maestria-detalle {
+    min-height: 0;
+    height: 100%;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .maestria-detalle__categoria,
+  .panel-habilidades__etiqueta {
+    display: none;
+  }
+
+  .maestria-detalle__nombre {
+    font-size: 12px;
+  }
+
+  .arbol-habilidades {
+    height: 100%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .panel-habilidades__capa-accion {
+    padding: 6px;
+  }
+
+  .confirmacion-habilidad {
+    width: min(520px, 96%);
+    max-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 20px);
+    padding: 10px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 700px) {
+  .panel-habilidades__capa-accion {
+    padding: 7px;
+  }
+
+  .confirmacion-habilidad {
+    width: min(520px, 96%);
+    max-height: calc(100dvh - var(--dm-safe-top) - var(--dm-safe-bottom) - 24px);
+    padding: 11px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Los paneles fullscreen de partida siguen la misma regla: un único scroll
+   vertical en el contenido del panel. Listas internas no capturan el swipe. */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .panel-superpuesto-partida__contenido,
+  .panel-superpuesto-partida__contenido--personaje,
+  .panel-superpuesto-partida__contenido--objetos {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .panel-superpuesto-partida .panel-personaje,
+  .panel-superpuesto-partida .panel-registro,
+  .panel-superpuesto-partida .panel-objetos__equipamiento,
+  .panel-superpuesto-partida .panel-objetos__inventario,
+  .panel-superpuesto-partida .panel-equipamiento,
+  .panel-superpuesto-partida .panel-inventario,
+  .lista-pasivas-personaje,
+  .lista-efectos-personaje {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .panel-superpuesto-partida button,
+  .panel-superpuesto-partida [role="button"] {
+    touch-action: pan-y;
+  }
+
+  .modal-estadistica__dialogo,
+  .confirmacion-habilidad {
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .panel-superpuesto-partida__contenido--objetos {
+    display: block;
+  }
+
+  .panel-superpuesto-partida__contenido--objetos > .panel-juego + .panel-juego {
+    margin-top: 8px;
+  }
+
+  /* Inventario y Equipamiento no son superficies de scroll independientes en
+     móvil. El gesto vertical pertenece siempre al cuerpo unificado del panel. */
+  .panel-superpuesto-partida__contenido--objetos > .panel-juego,
+  .panel-superpuesto-partida__contenido--objetos .panel-inventario,
+  .panel-superpuesto-partida__contenido--objetos .panel-equipamiento {
+    overflow: visible;
+    overscroll-behavior: auto;
+    touch-action: pan-y;
+  }
+
+  .panel-superpuesto-partida__contenido--objetos .cuadricula-inventario,
+  .panel-superpuesto-partida__contenido--objetos .cuadricula-equipamiento,
+  .panel-superpuesto-partida__contenido--objetos .slot-inventario,
+  .panel-superpuesto-partida__contenido--objetos .slot-equipamiento {
+    touch-action: pan-y;
+  }
+}
+
+/* =========================================================
+   HABILIDADES · TEMA DORADO/MOSTAZA EN MÓVIL
+   ========================================================= */
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  .modal-habilidades-maestrias {
+    border-color: #8f7440;
+    background-color: #090b14;
+    box-shadow:
+      0 20px 46px rgba(0, 0, 0, 0.78),
+      0 0 0 1px rgba(205, 176, 91, 0.12) inset;
+  }
+
+  .panel-habilidades {
+    background:
+      radial-gradient(circle at 80% -10%, rgba(184, 154, 67, 0.18), transparent 34%),
+      linear-gradient(145deg, #14110a, #090b14 74%);
+  }
+
+  .panel-habilidades__cabecera {
+    border-bottom-color: rgba(143, 116, 64, 0.62);
+    background: rgba(14, 12, 8, 0.9);
+  }
+
+  .panel-habilidades__titulo,
+  .maestria-detalle__nombre,
+  .confirmacion-habilidad__cabecera h3 {
+    color: #f0e4bf;
+  }
+
+  .panel-habilidades__puntos .contador-puntos {
+    border-color: rgba(143, 116, 64, 0.72);
+    background: rgba(24, 18, 10, 0.95);
+    color: #dbc790;
+  }
+
+  .panel-habilidades__puntos .contador-puntos strong {
+    color: #fff4cf;
+  }
+
+  .panel-habilidades__cerrar,
+  .confirmacion-habilidad__cerrar {
+    border-color: #8f7440;
+    background: #17130b;
+    color: #f0e4bf;
+  }
+
+  .panel-habilidades__navegacion {
+    border-color: rgba(143, 116, 64, 0.58);
+    background: rgba(14, 12, 8, 0.72);
+  }
+
+  .panel-habilidades__categoria {
+    color: #d9c692;
+  }
+
+  .panel-habilidades__categoria:hover,
+  .panel-habilidades__categoria:focus-visible {
+    border-color: rgba(143, 116, 64, 0.78);
+    background: rgba(143, 116, 64, 0.11);
+  }
+
+  .panel-habilidades__categoria--activa {
+    border-color: #c9a95a;
+    background: rgba(64, 48, 20, 0.78);
+    color: #fff4cf;
+    box-shadow: inset 0 -3px #e3c56a;
+  }
+
+  .panel-habilidades__contenido {
+    background: linear-gradient(180deg, rgba(72, 57, 21, 0.06), rgba(12, 10, 7, 0.1));
+  }
+
+  .panel-habilidades__mensaje {
+    border-top-color: rgba(143, 116, 64, 0.52);
+    color: #dbc790;
+    background: rgba(11, 10, 8, 0.84);
+  }
+}

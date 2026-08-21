@@ -1,288 +1,318 @@
-# Entrega AR1.2 — Alcance canónico y composición del árbol de habilidades
+# Entrega AR1.2 — Alcance, grafo y cierre funcional de habilidades de Arco
 
-## Estado de la entrega
+## Estado
 
-- Implementación: completa según el alcance aprobado.
-- Estado de cierre: **Pausada a la espera de validación manual dentro del juego**.
-- Motivo: el entorno permitió validar lógica, configuración, sintaxis, rutas HTTP y una maqueta estructural de CSS, pero el navegador automatizado bloqueó por política administrativa la navegación a `localhost`. No se declara una prueba visual real dentro de Dark Moon que no pudo ejecutarse.
-- CD2 — Resistencias negativas permanece pendiente y no fue iniciado.
+- **Etapa:** AR1.2.
+- **Estado final:** **Cerrada**.
+- **Fecha de cierre:** 21/08/2026.
+- **Validación manual:** el usuario informó que las pruebas del incremental funcional fueron satisfactorias.
+- **Siguiente etapa:** CD2 — Resistencias negativas.
+- **CD2 no fue iniciado durante AR1.2.**
 
-## Base de verdad
+## Base de verdad del cierre
 
-- Fuente utilizada: `Dark-Moon-AR1-1(1).zip` entregado por el usuario.
-- Ruta de trabajo verificada: `/mnt/data/ar1_2_work/Dark-Moon`.
+- ZIP de base: `Dark-Moon-AR1-2.zip`.
+- Ruta de verificación final: `/mnt/data/ar1_2_close/Dark-Moon`.
 - Rama: `main`.
-- Commit base: `658555f724d9459207de120250761d57d22abae4`.
-- HEAD verificado antes y después de implementar: `658555f724d9459207de120250761d57d22abae4`.
+- Commit base / HEAD confirmado: `6fd2536d63ac623dbc8f402d3da1fcaded4edffd`.
+- Incremental funcional aplicado y probado por el usuario: `Dark-Moon-AR1-2-funcional-incremental.zip`.
 - No se realizó commit ni push.
+- No se utilizaron `git reset`, `git clean`, `git checkout` ni `git restore` masivo.
+- No se instalaron dependencias.
 
-### Estado Git heredado
+### Estado Git y ruido CRLF
 
-La extracción original del ZIP mostraba 179 archivos modificados. Antes de interpretar ese estado como trabajo real se comprobó una copia limpia del mismo ZIP:
+La extracción del ZIP base marca numerosos archivos como modificados por conversión de finales de línea. Ese ruido se separó del diff semántico antes de documentar el cierre.
 
-- `git status --short`: 179 archivos modificados;
-- `git diff --ignore-space-at-eol --quiet`: código de salida 0;
-- conclusión: las 179 diferencias heredadas son exclusivamente conversión de finales de línea del empaquetado, no cambios funcionales recuperables.
+En la copia final, `git status --short` muestra 247 archivos tracked modificados después de aplicar los dos incrementales. Al contrastar con `git diff -w --numstat`, el cierre posee **26 archivos con diferencias semánticas reales** respecto de `6fd2536d...`: **22 funcionales + 4 documentales**. No existen archivos semánticamente eliminados ni temporales de QA incorporados al cierre.
 
-No se utilizó `git reset`, `git clean`, `git checkout` ni `git restore` masivo.
+## Objetivo completado
 
-## Alcance aprobado
+Cerrar AR1.2 corrigiendo el alcance de las habilidades de Arco, haciendo legible y genérico su grafo, y completar los ajustes funcionales solicitados durante la validación sin crear lógica paralela:
 
-AR1.2 corrige dos defectos de AR1.1 y ajusta el contrato visual del árbol sin reabrir CD1 ni cambiar el balance de las habilidades de Arco:
+- alcance de arma consumido desde `Combatiente.alcanceAtaque`;
+- separación entre estadística general y atributo interno de habilidad;
+- árbol genérico por nivel + conectividad, con 17 sinergias reales de Arcos;
+- porcentaje final de impacto preservado hasta Phaser;
+- Disparo múltiple con lectura visual de ráfaga;
+- Disparo potente con estela reforzada;
+- Disparo evasivo como herramienta de objetivo libre y movilidad;
+- disparo y salto simultáneos únicamente en presentación;
+- disponibilidad canónica para la barra de habilidades;
+- feedback temporal de munición insuficiente en el mapa;
+- desglose canónico de Alcance y fuentes de pasivas/modificadores expuesto a UI.
 
-1. las habilidades de arma que declaran `ataqueArma.usaAlcanceArma=true` deben consumir el alcance canónico ya resuelto de `Combatiente.alcanceAtaque`;
-2. `ATRIBUTO_HABILIDAD.ALCANCE` queda reservado para habilidades que realmente poseen un alcance interno propio;
-3. una relación `modificacion`/línea continua representa una modificación específica de la habilidad destino;
-4. una relación `sinergia`/línea punteada representa un beneficio mediante una estadística, estado o contexto compartido;
-5. Arcos reclasifica como sinergias las doce relaciones de sus cuatro pasivas generales con los tres disparos ofensivos;
-6. `Aura de Precisión` agrega tres sinergias con `Disparo múltiple`, `Disparo potente` y `Disparo evasivo`;
-7. `Francotirador` conserva sus dos sinergias con `Disparo potente` y `Disparo evasivo`;
-8. el grafo de Arcos queda con 17 relaciones reales, todas punteadas con el contenido actual;
-9. `requisitoNivelMaestria` continúa siendo el único eje vertical del árbol;
-10. la conectividad real del grafo distribuye horizontalmente los nodos sin casos por maestría, nombre o ID;
-11. las conexiones SVG parten y llegan al borde de los nodos y se recalculan con `ResizeObserver` cuando cambia la geometría;
-12. si el árbol excede la altura disponible, se desplaza verticalmente en lugar de recortarse;
-13. se auditó la misma regla de acceso al contenido en los otros paneles principales; no se aplicaron cambios indiscriminados donde ya existía una superficie canónica de scroll.
+## Arquitectura final
 
-## Fuera de alcance
+### 1. Alcance general frente a atributo específico
 
-- iconos definitivos de las cuatro habilidades activas de Arco; el usuario indicó que los incorporará por separado;
-- cambios de daño, preparación, Dispersión, Penetración de Armadura, munición o desplazamiento táctico;
-- CD2 — Resistencias negativas;
-- nuevas dependencias, librerías o frameworks;
-- cambios de Phaser, Electron, Node.js o npm;
-- migraciones de persistencia.
-
-## Problema 1 — Alcance de habilidades de Arco
-
-### Estado anterior
-
-`ConfiguracionHabilidadEfectiva` intentaba leer:
-
-```text
-lanzador.estadisticasDerivadas.alcanceAtaque
-```
-
-pero `estadisticasDerivadas` no expone ese atributo. El fallback terminaba llevando `Disparo múltiple`, `Disparo potente` y `Disparo evasivo` a alcance 1 aunque el arco equipado tuviera alcance 6 o 7.
-
-### Estado final
-
-Para una habilidad con `usaAlcanceArma=true` el flujo queda:
+Una habilidad con `ataqueArma.usaAlcanceArma=true` consume el alcance del ataque actual del combatiente:
 
 ```text
 arma equipada
 → ConfiguracionAtaqueActual
-→ Combatiente.alcanceAtaque
+→ Combatiente.resolverAlcanceAtaque()
 → OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE
+→ resultado canónico + desglose
 → ConfiguracionHabilidadEfectiva
 → geometría / selector / ejecución
 ```
 
-No se vuelve a resolver ese mismo valor mediante `ATRIBUTO_HABILIDAD.ALCANCE`.
+`ATRIBUTO_HABILIDAD.ALCANCE` queda reservado para habilidades cuyo alcance pertenece a la habilidad concreta. No se resuelve dos veces el mismo concepto.
 
-Las habilidades con alcance propio conservan el flujo:
+`Combatiente.alcanceAtaque` continúa siendo el getter numérico de gameplay. `resolverAlcanceAtaque()` reutiliza la misma resolución y expone el desglose para presentación, evitando que el Panel Personaje reconstruya la fórmula.
 
-```text
-alcance configurado de la habilidad
-→ OBJETIVOS_MODIFICADOR.ATRIBUTO_HABILIDAD
-→ atributoHabilidad = alcance
-→ ConfiguracionHabilidadEfectiva
-```
+### 2. Árbol de habilidades
 
-Esto conserva la diferencia aprobada entre una estadística general del combatiente/ataque y un atributo interno específico de una habilidad.
+- `requisitoNivelMaestria` determina exclusivamente el eje vertical;
+- la conectividad real del grafo distribuye horizontalmente los nodos;
+- `modificacion`/línea continua indica modificación específica de la habilidad destino;
+- `sinergia`/línea punteada indica beneficio por estadística, estado o contexto compartido;
+- no existen posiciones ni ramas especiales por `arcos`, magia, ID o nombre visible;
+- Arcos conserva 17 sinergias con el contenido actual;
+- el árbol usa scroll vertical cuando no cabe y redibuja conexiones al cambiar su geometría.
 
-## Problema 2 — Grafo de Arcos
+### 3. Probabilidad final de impacto
 
-### Estado anterior
-
-AR1.1 poseía 14 relaciones, pero cada nivel de Arcos contenía un único nodo y el organizador centraba cada fila. Las conexiones se dibujaban después de la posición y por eso las líneas quedaban prácticamente superpuestas en una única columna vertical. Además, en escritorio el contenedor tenía `overflow: hidden`, por lo que un árbol más alto que el espacio disponible podía quedar cortado.
-
-### Estado final
-
-El organizador trabaja para cualquier maestría con dos reglas independientes:
-
-- eje vertical: exclusivamente `requisitoNivelMaestria`;
-- eje horizontal: conectividad entrante/saliente del grafo real.
-
-El algoritmo no consulta `arcos`, magia, armadura ni IDs de habilidades. Las fuentes puras, destinos puros, nodos mixtos y nodos aislados reciben carriles relativos distintos; si varios nodos comparten nivel, se busca un carril libre cercano de forma determinista.
-
-Las conexiones siguen siendo datos reales, no requisitos inventados. No se crean troncos visuales falsos para reducir el número de líneas.
-
-## Semántica final de las relaciones
-
-### `modificacion` — línea continua
-
-El efecto está dirigido específicamente a la habilidad destino. Ejemplos existentes en árboles mágicos incluyen modificadores cuya condición identifica una habilidad concreta o un atributo interno de esa habilidad.
-
-### `sinergia` — línea punteada
-
-La habilidad destino se beneficia de una estadística, estado o contexto compartido, pero el modificador no pertenece internamente a esa habilidad.
-
-En Arcos, el contenido actual queda así:
-
-- `Tiro estable` → los tres disparos: Precisión general de Arco;
-- `Tensión controlada` → los tres disparos: multiplicador general de daño de fuente para Arco;
-- `Tiro letal` → los tres disparos: probabilidad de crítico general para Arco;
-- `Ojo de halcón` → los tres disparos: alcance de ataque general para Arco;
-- `Aura de Precisión` → los tres disparos: Precisión compartida por Aura bajo la condición de Arco;
-- `Francotirador` → `Disparo potente` y `Disparo evasivo`: estado `Apuntando` consumido por contexto compatible.
-
-Total actual: **17 sinergias**.
-
-## Regla de scroll auditada
-
-La decisión aprobada no se implementó como un reemplazo global de todos los `overflow: hidden`, porque algunos son parte legítima de la composición interna. Se revisaron las superficies principales relacionadas:
-
-- Árbol de habilidades: corregido; ahora posee `overflow-y:auto` y el lienzo puede crecer por encima del alto visible.
-- Panel superpuesto de partida: ya utiliza una superficie de contenido desplazable.
-- Personaje: ya posee scroll canónico en su contenido interior.
-- Inventario/Equipamiento: ya poseen scroll canónico en escritorio y el responsive móvil unifica el gesto en la superficie principal.
-- Botín/Comercio/Curación/Selección/Detalles/Ayuda en móvil: ya existe la corrección de scroll principal único en `responsive.css`.
-
-Por ese motivo AR1.2 no modifica `responsive.css` ni otros paneles que ya cumplen el principio aprobado.
-
-## Archivos modificados
-
-1. `src/juego/habilidades/ConfiguracionHabilidadEfectiva.js`
-   - usa `lanzador.alcanceAtaque` cuando `usaAlcanceArma=true`;
-   - conserva `ATRIBUTOS_HABILIDAD.ALCANCE` para alcance interno de habilidad.
-
-2. `src/config/habilidades/Habilidades.json`
-   - versión 11 → 12;
-   - reclasifica doce enlaces de Arcos como `sinergia`;
-   - agrega tres relaciones de `Aura de Precisión`;
-   - conserva las dos sinergias de `Francotirador`.
-
-3. `src/interfaz/habilidades/OrganizadorArbolHabilidades.js`
-   - calcula relaciones antes de posicionar;
-   - asigna posiciones horizontales genéricas desde conectividad;
-   - conserva el nivel de maestría como única coordenada vertical.
-
-4. `src/interfaz/habilidades/PanelHabilidadesMaestrias.js`
-   - aplica la posición horizontal relativa a cada nodo;
-   - conecta bordes de nodos en vez de sus centros;
-   - redibuja SVG mediante `ResizeObserver` con debounce por `requestAnimationFrame`;
-   - desconecta observadores al rerenderizar/destruir el panel.
-
-5. `assets/estilos/paneles/habilidades-maestrias.css`
-   - permite scroll vertical del árbol;
-   - deja que el lienzo crezca naturalmente;
-   - ubica nodos mediante posición horizontal relativa sin reglas por contenido.
-
-6. `docs/habilidades/PLAN_MAESTRO_HABILIDADES_PASIVAS_DARK_MOON.md`
-   - documenta semántica `modificacion`/`sinergia`;
-   - documenta las 17 relaciones de Arcos;
-   - documenta alcance de arma frente a atributo específico de habilidad;
-   - documenta el organizador topológico genérico.
-
-7. `docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md`
-   - fija la cadena canónica del alcance en habilidades basadas en arma;
-   - mantiene CD2 como siguiente bloque de combate.
-
-8. `docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md`
-   - actualiza V-039 para grafo genérico, semántica de líneas, conexiones por bordes y resize;
-   - amplía la regla de scroll para impedir recorte de información jugable.
-
-## Archivo agregado
-
-- `docs/habilidades/entregas/ENTREGA_AR1_2.md`.
-
-## Archivos eliminados
-
-- Ninguno.
-
-## Archivos revisados pero no modificados por esta corrección
-
-Entre otros:
-
-- `src/entidad/destructible/combatiente/Combatiente.js`: ya contiene el getter canónico `alcanceAtaque` y no necesitó cambio;
-- `src/config/objetos/Armas.json`: los alcances de los arcos ya eran correctos;
-- `src/juego/habilidades/GeometriaHabilidades.js`: ya consume la configuración efectiva y no necesitó regla especial;
-- `src/juego/modificadores/SistemaModificadoresCombatiente.js`: no se cambia el resolutor;
-- `src/juego/combate/SistemaCombate.js`: no se cambia el motor de combate;
-- `assets/estilos/pantallas/responsive.css`: auditado; la política móvil de scroll ya cubre el caso y no requiere duplicación;
-- `package.json` y `package-lock.json`: sin cambios;
-- Electron/Phaser vendor: sin cambios.
-
-## Arquitectura antes y después
-
-### Antes — alcance
+La probabilidad se calcula en dominio y llega a Phaser sin recalcularse:
 
 ```text
-arma con alcance 6/7
-→ Combatiente.alcanceAtaque correcto
-→ ConfiguracionHabilidadEfectiva lee una propiedad inexistente de estadisticasDerivadas
-→ fallback 1
-→ habilidad con alcance 1
+resolución canónica de impacto
+→ SistemaHabilidadesJugador
+→ probabilidadImpactoFinal
+→ Renderizador / estado visual
+→ AdaptadorEscenaJuego
+→ CompositorSeleccionPhaser
 ```
 
-### Después — alcance
+El porcentaje ya contempla Precisión, Evasión y Dispersión dependiente de distancia cuando corresponda. Phaser solo lo representa.
+
+### 4. Disparo múltiple
+
+La cantidad de proyectiles, sus impactos, críticos y daño continúan siendo canónicos. Phaser únicamente:
+
+- escalona la salida de las flechas como ráfaga;
+- separa levemente origen y llegada visual para evitar superposición;
+- no altera objetivos, casillas, Dispersión, daño ni cantidad de proyectiles.
+
+### 5. Disparo potente
+
+La flecha real de la munición conserva su función canónica. La presentación refuerza su impulso mediante una estela luminosa adherida al proyectil. La traza no modifica alcance, daño, colisión ni afinidad elemental.
+
+### 6. Disparo evasivo
+
+`Disparo evasivo` pasa a `tipoObjetivo="libre"`.
+
+Puede seleccionar:
+
+- un enemigo válido; o
+- una casilla de suelo vacía, transitable, dentro de alcance y línea de visión.
+
+Si se elige suelo vacío:
+
+- se consume la munición declarada;
+- se genera la representación del disparo;
+- no se inventan impacto, daño, hostilidad ni experiencia;
+- el desplazamiento se intenta hasta dos casillas en dirección opuesta al destino elegido;
+- `paso_a_paso` sigue respetando bloqueos, límites y zonas.
+
+El orden del dominio permanece:
 
 ```text
-arma con alcance 6/7
-→ Combatiente.alcanceAtaque
-→ SMC aplica modificadores generales como Ojo de halcón
-→ ConfiguracionHabilidadEfectiva consume ese valor
-→ selector y ejecución usan el alcance correcto
+disparo
+→ impacto/muerte cuando existe objetivo
+→ desplazamiento táctico
+→ cierre temporal
 ```
 
-### Antes — árbol
+El plan visual puede absorber el evento de desplazamiento de la misma ejecución y reproducir proyectil + salto concurrentemente. La simultaneidad es visual y no cambia el orden canónico.
 
-```text
-nivel de maestría
-→ fila
-→ nodo único centrado
-→ relaciones dibujadas después
-→ múltiples conexiones superpuestas
-```
+### 7. Disponibilidad de la barra
 
-### Después — árbol
+`SistemaHabilidadesJugador.obtenerEstadoBarra()` expone el estado de disponibilidad utilizando contratos existentes de:
 
-```text
-relaciones reales
-→ mapa de conectividad
-→ posición horizontal relativa
-+
-nivel de maestría
-→ posición vertical
-→ nodos y conexiones legibles mediante el mismo organizador genérico
-```
+- aprendizaje/configuración;
+- Maná;
+- requisitos de equipamiento;
+- configuración de ataque;
+- munición.
+
+La UI consume `disponible`, motivo/mensaje y datos asociados. `BarraHabilidades` solo atenúa la ranura y muestra el motivo; no vuelve a leer arma, quiver ni inventario para decidir reglas de gameplay.
+
+### 8. Munición insuficiente
+
+Ataques básicos y habilidades de arma conservan el rechazo canónico por falta de munición. Cuando ese es el motivo, el resultado puede transportar `feedbackMapa` con el mismo mensaje. `ProcesadorResultadoAccion` lo entrega al renderizador y Phaser muestra un texto temporal cerca del jugador.
+
+No existe un segundo cálculo de munición en Phaser.
+
+### 9. Desgloses de pasivas
+
+La auditoría confirmó que el proveedor `pasivas_aprendidas` sigue integrado al `SistemaModificadoresCombatiente`; el problema no era una exclusión general de pasivas.
+
+Se corrigieron consumidores que obtenían un resultado numérico sin conservar la resolución necesaria para UI:
+
+- `Alcance`: `resolverAlcanceAtaque()` expone el mismo desglose que produce el valor real;
+- componentes de daño: conservan `resolucionMultiplicadorDanioFuente`, permitiendo atribuir pasivas contextuales como `Tensión controlada` sin recalcularlas en interfaz.
+
+## Archivos funcionales modificados después del SHA base
+
+1. `assets/estilos/paneles/habilidades-maestrias.css`
+2. `src/aplicacion/ProcesadorResultadoAccion.js`
+3. `src/config/habilidades/Habilidades.json`
+4. `src/config/idiomas/en.json`
+5. `src/config/idiomas/es.json`
+6. `src/entidad/destructible/combatiente/Combatiente.js`
+7. `src/entidad/destructible/combatiente/EstadisticasDerivadas.js`
+8. `src/interfaz/PanelPersonaje.js`
+9. `src/interfaz/Renderizador.js`
+10. `src/interfaz/graficos/AdaptadorEscenaJuego.js`
+11. `src/interfaz/graficos/PlanificadorEventosVisuales.js`
+12. `src/interfaz/graficos/phaser/CreadorEfectosHabilidadesPhaser.js`
+13. `src/interfaz/graficos/phaser/EscenaArranquePhaser.js`
+14. `src/interfaz/graficos/phaser/RenderizadorPhaser.js`
+15. `src/interfaz/graficos/phaser/reproductores/ReproductorHabilidadesArmaDistanciaPhaser.js`
+16. `src/interfaz/habilidades/BarraHabilidades.js`
+17. `src/interfaz/habilidades/IntegracionHabilidadesDom.js`
+18. `src/juego/combate/SistemaCombateJugador.js`
+19. `src/juego/habilidades/GeometriaHabilidades.js`
+20. `src/juego/habilidades/MotorAtaqueArmaHabilidad.js`
+21. `src/juego/habilidades/SistemaHabilidadesJugador.js`
+22. `src/juego/habilidades/ValidadorConfiguracionEjecucionHabilidades.js`
+
+## Documentos actualizados en el cierre
+
+1. `docs/habilidades/PLAN_MAESTRO_HABILIDADES_PASIVAS_DARK_MOON.md`
+2. `docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md`
+3. `docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md`
+4. `docs/habilidades/entregas/ENTREGA_AR1_2.md`
+
+## Archivos agregados/eliminados
+
+- Agregados en este cierre documental: ninguno.
+- Eliminados: ninguno.
+- Dependencias agregadas: ninguna.
 
 ## Dependencias y versiones
 
-### Nuevas dependencias
+AR1.2 no instala ni actualiza dependencias. Permanecen sin cambios las dependencias existentes del proyecto, incluyendo Phaser 4.2.1 y la configuración Electron ya presente.
 
-- Ninguna.
+No hay instrucciones de instalación adicionales.
 
-### Dependencias existentes no modificadas
+## Persistencia
 
-- Phaser 4.2.1, copia local del proyecto;
-- Electron 43.3.0 declarado como dependencia de desarrollo existente;
-- `@electron/packager` 20.0.1 declarado como dependencia de desarrollo existente.
+- No cambia el esquema de guardado.
+- No se persiste disponibilidad de barra.
+- No se persiste probabilidad final.
+- No se persiste el desglose de Alcance.
+- No se persiste el movimiento concurrente visual.
+- Se siguen persistiendo únicamente las fuentes canónicas existentes.
 
-AR1.2 no instala, actualiza ni requiere ninguna de ellas para aplicar el incremental. `ResizeObserver` es API nativa del navegador.
+## Compatibilidad web
 
-## Instalación / aplicación del incremental
+Los cambios mantienen la carga web actual. No se modifican puntos de entrada ni se incorpora una dependencia de Node/Electron para gameplay.
 
-No hay instalación de dependencias.
+## Compatibilidad Electron
 
-Reemplazar por las versiones incluidas en el ZIP incremental:
+No se modifican `electron/`, preload, aislamiento, empaquetado ni APIs de Node. La misma lógica HTML/JS/Phaser continúa siendo consumible por el empaquetado existente.
+
+## Validaciones técnicas del incremental funcional
+
+El incremental funcional entregado antes del cierre fue reconstruido y validado antes de ser entregado al usuario. Las comprobaciones registradas fueron:
+
+- ZIP válido mediante `unzip -t`;
+- 22/22 archivos del ZIP coincidentes por hash con la copia funcional validada;
+- 295 archivos JavaScript comprobados, 0 errores de sintaxis;
+- 42 JSON comprobados, 0 errores;
+- 843 referencias relativas comprobadas, 0 imports faltantes;
+- validadores canónicos de habilidades/progreso/perfiles correctos;
+- `Habilidades.json` versión 13;
+- Arcos conserva 9 habilidades y 17 relaciones;
+- Disparo evasivo valida como `tipoObjetivo=libre`;
+- geometría aislada: suelo vacío transitable correcto, enemigo correcto, pared rechazada;
+- habilidades de Arco continúan obteniendo alcance del arma sin forzar `atributoHabilidad.alcance`;
+- una habilidad de alcance propio continúa usando su atributo específico;
+- disponibilidad distingue estado disponible, munición insuficiente y arma incompatible;
+- ataque básico sin flechas produce rechazo canónico y feedback de mapa;
+- un valor de probabilidad final de prueba se conservó a través del contrato visual hasta la representación Phaser;
+- el plan visual de Disparo evasivo integra el movimiento táctico como movimiento concurrente;
+- resoluciones de pasivas verificadas mediante SMC conservaron sus fuentes de desglose.
+
+Una prueba aislada adicional del motor de Disparo evasivo no pudo completarse con un mock incompleto porque el combatiente real exige `SistemaEstadosTacticosCombatiente`. No se modificó producción para acomodar ese mock; las validaciones reales y las pruebas manuales posteriores cubrieron el comportamiento aprobado.
+
+## Pruebas manuales finales
+
+El usuario aplicó el incremental funcional y el 21/08/2026 informó: **“Las pruebas fueron correctas.”** Por lo tanto se registran como superados los casos manuales solicitados para cierre:
+
+1. porcentaje final de acierto visible en habilidades y sensible a contexto/distancia;
+2. Disparo múltiple con ráfaga y separación visual adecuada;
+3. Disparo potente con traza/estela reforzada;
+4. Disparo evasivo contra enemigo;
+5. Disparo evasivo hacia casilla libre válida como herramienta de movilidad;
+6. simultaneidad visual disparo/salto;
+7. límites del salto frente a pared, borde y casillas bloqueadas;
+8. barra apagada ante incompatibilidad de arma, falta de quiver/munición u otros requisitos;
+9. feedback temporal de munición insuficiente;
+10. desglose de Alcance/pasivas;
+11. árbol de Arcos y sus relaciones sin regresión;
+12. regresión básica de habilidades mágicas y ataque básico.
+
+**Resultado obtenido:** Correcto según validación manual comunicada por el usuario.
+
+## Casos fallidos o pendientes
+
+No quedan fallos funcionales conocidos de AR1.2 después de la validación manual.
+
+Pendientes fuera del alcance:
+
+- los iconos definitivos de las habilidades activas de Arco son gestionados por el usuario como ajuste visual separado;
+- CD2 — Resistencias negativas no fue iniciado.
+
+## Validación del incremental documental de cierre
+
+Después de actualizar los documentos, el ZIP documental se aplicó sobre otra extracción fresca del SHA base que ya tenía aplicado el incremental funcional. Resultado:
+
+- `unzip -t`: sin errores;
+- 4/4 documentos coinciden por SHA-256 con la copia usada para empaquetar;
+- 295 JavaScript continúan pasando `node --check`;
+- 42 JSON continúan parseando correctamente;
+- 564 referencias relativas de módulos detectadas por la comprobación final, 0 destinos faltantes;
+- `Habilidades.json` continúa en versión 13;
+- `Disparo evasivo` continúa con `tipoObjetivo=libre`;
+- Arcos continúa con 17 relaciones declaradas;
+- diff semántico total contra HEAD: 26 archivos;
+- diff semántico documental: exactamente 4 archivos;
+- `git status --short`: 247 archivos tracked marcados después de aplicar ambos incrementales, con el resto atribuible al ruido de finales de línea del ZIP;
+- no se detectaron archivos temporales, `.patch` ni `.mjs` incorporados al diff semántico.
+
+## Comprobación de restricciones
+
+- Una sola lógica canónica de combate: cumplido.
+- Una sola resolución de modificadores: cumplido.
+- Phaser representa resultados y no recalcula gameplay: cumplido.
+- Sin condicionales productivos por nombre visible/maestría para el árbol: cumplido.
+- Sin segunda lógica de disponibilidad en la barra: cumplido.
+- Sin segunda lógica de munición en Phaser: cumplido.
+- Sin persistir resultados derivados: cumplido.
+- Sin dependencias nuevas: cumplido.
+- Sin `.patch`/`.mjs`: cumplido.
+- Sin commit ni push: cumplido.
+- Sin avanzar a CD2: cumplido.
+
+## Aplicación del incremental documental de cierre
+
+Reemplazar:
 
 ```text
-assets/estilos/paneles/habilidades-maestrias.css
-src/config/habilidades/Habilidades.json
-src/interfaz/habilidades/OrganizadorArbolHabilidades.js
-src/interfaz/habilidades/PanelHabilidadesMaestrias.js
-src/juego/habilidades/ConfiguracionHabilidadEfectiva.js
-docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md
 docs/habilidades/PLAN_MAESTRO_HABILIDADES_PASIVAS_DARK_MOON.md
+docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md
 docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md
+docs/habilidades/entregas/ENTREGA_AR1_2.md
 ```
 
 Agregar:
 
 ```text
-docs/habilidades/entregas/ENTREGA_AR1_2.md
+Ningún archivo.
 ```
 
 Eliminar:
@@ -291,248 +321,21 @@ Eliminar:
 Ningún archivo.
 ```
 
-## Ejecución
-
-La versión web conserva el mecanismo actual:
-
-```bash
-python3 -m http.server 8000
-```
-
-Abrir:
-
-```text
-http://localhost:8000/index.html
-```
-
-No se modifica el arranque de Electron.
-
-## Desinstalación
-
-No corresponde: no se instalaron paquetes, servicios ni herramientas. Para revertir AR1.2 debe restaurarse únicamente la versión anterior de los ocho archivos reemplazados y eliminarse este documento de entrega.
-
-## Validaciones realizadas
-
-### 1. Verificación Git inicial
-
-- Preparación: extracción nueva de `Dark-Moon-AR1-1(1).zip`.
-- Pasos: comprobar rama, HEAD, `git status` y `git diff --ignore-space-at-eol --quiet`.
-- Esperado: `main`, HEAD aprobado y confirmar si la gran cantidad de cambios era real o de empaquetado.
-- Obtenido: `main`; HEAD `658555f724d9459207de120250761d57d22abae4`; 179 archivos marcados, pero diferencia funcional nula ignorando finales de línea.
-- Estado: **Correcto**.
-- Evidencia: código de salida 0 de `git diff --ignore-space-at-eol --quiet` sobre una extracción nueva.
-
-### 2. Sintaxis JavaScript completa
-
-- Preparación: repositorio con AR1.2 aplicado.
-- Pasos: ejecutar `node --check` sobre todos los `.js` del repositorio.
-- Esperado: cero errores sintácticos.
-- Obtenido: **295 archivos JavaScript correctos**.
-- Estado: **Correcto**.
-
-### 3. JSON completo
-
-- Preparación: repositorio con AR1.2 aplicado.
-- Pasos: parsear todos los `.json` del repositorio.
-- Esperado: cero errores.
-- Obtenido: **42 JSON correctos, 0 errores**.
-- Estado: **Correcto**.
-
-### 4. Imports relativos
-
-- Preparación: repositorio con AR1.2 aplicado.
-- Pasos: resolver imports/exports relativos detectados en los módulos JavaScript.
-- Esperado: ningún destino faltante.
-- Obtenido: **841 referencias relativas verificadas, 0 faltantes**.
-- Estado: **Correcto**.
-
-### 5. Validadores canónicos de habilidades
-
-- Preparación: cargar `Maestrias.json`, `Habilidades.json` y `Efectos.json` y ejecutar los validadores productivos.
-- Pasos: `validarConfiguracionProgresoHabilidades` y `validarConfiguracionEjecucionHabilidades`.
-- Esperado: versión de habilidades 12 válida y sin errores de contrato.
-- Obtenido: validación correcta; versión efectiva 12.
-- Estado: **Correcto**.
-
-### 6. Relaciones del árbol
-
-- Preparación: usar `OrganizadorArbolHabilidades` con las configuraciones ya validadas.
-- Pasos: organizar Arcos, Fuego, Frío, Rayo y Veneno y contar tipos de relación.
-- Esperado:
-  - Arcos: 17 `sinergia`, 0 `modificacion` con el contenido actual;
-  - maestrías mágicas: conservar relaciones continuas específicas y punteadas de afinidad.
-- Obtenido:
-  - Arcos: 17 `sinergia`;
-  - Fuego: 3 `sinergia` + 3 `modificacion`;
-  - Frío: 3 `sinergia` + 3 `modificacion`;
-  - Rayo: 3 `sinergia` + 3 `modificacion`;
-  - Veneno: 3 `sinergia` + 3 `modificacion`.
-- Estado: **Correcto**.
-
-### 7. Posición horizontal genérica
-
-- Preparación: misma organización anterior.
-- Pasos: inspeccionar `posicionHorizontal` calculada por el organizador.
-- Esperado: Arcos no queda en una única columna y no existen coordenadas por ID/maestría.
-- Obtenido: los nodos emisores de Arcos se ubicaron en una columna relativa aproximada 0,333 y los destinos ofensivos en 0,667; los nodos aislados de árboles mágicos conservan centro 0,5. No se encontraron nombres ni IDs de Arcos dentro del organizador o panel.
-- Estado: **Correcto** para la estructura lógica; la apreciación visual final dentro del juego queda pendiente de prueba manual.
-
-### 8. Alcance efectivo de habilidades de Arco
-
-- Preparación: configuración validada y lanzador de prueba con `alcanceAtaque=7`.
-- Pasos: resolver `Disparo múltiple`, `Disparo potente` y `Disparo evasivo` mediante `crearConfiguracionHabilidadEfectiva` y contar resoluciones de `atributoHabilidad=alcance`.
-- Esperado: las tres habilidades deben devolver 7 y no pasar por el atributo específico de habilidad.
-- Obtenido:
-  - `disparo_multiple`: 7;
-  - `disparo_potente`: 7;
-  - `disparo_evasivo`: 7;
-  - resoluciones `atributoHabilidad.alcance`: 0.
-- Estado: **Correcto**.
-
-### 9. Regresión de alcance específico de magia
-
-- Preparación: misma prueba, habilidad `Ascua` grado 1.
-- Pasos: resolver configuración efectiva.
-- Esperado: alcance propio 4 y una resolución mediante `atributoHabilidad.alcance`.
-- Obtenido: alcance 4; una resolución del atributo específico.
-- Estado: **Correcto**.
-
-### 10. Getter canónico `Combatiente.alcanceAtaque`
-
-- Preparación: invocar el getter real con configuraciones de ataque de Arco y un modificador de prueba `alcanceAtaque +1`.
-- Pasos: probar alcances base 6, 7 y 7.
-- Esperado: 7, 8 y 8, conservando `familiaArma=arco` en contexto.
-- Obtenido: 7, 8 y 8.
-- Estado: **Correcto**.
-
-### 11. Carga HTTP de recursos afectados
-
-- Preparación: `python3 -m http.server 8766` en la raíz del repositorio.
-- Pasos: solicitar `index.html`, `game.js`, módulos modificados, CSS y `Habilidades.json`.
-- Esperado: HTTP 200.
-- Obtenido: HTTP 200 para todos los recursos consultados.
-- Estado: **Correcto**.
-
-### 12. Composición estructural responsive del árbol
-
-- Preparación: Chromium headless sobre una maqueta DOM que usa el CSS real de Habilidades y `responsive.css`, con nueve filas equivalentes al árbol de Arcos.
-- Pasos: medir overflow y separación de nodos en 1366×768, 1920×1080, 2560×1440, 390×844 y 844×390.
-- Esperado: sin overflow horizontal; scroll vertical cuando el alto no alcance; posiciones horizontales separadas.
-- Obtenido:
-  - 1366×768 / 1920×1080 / 2560×1440: contenido de 824 px dentro de superficie de 600 px, `overflow-y:auto`, sin overflow horizontal;
-  - 390×844: sin overflow horizontal y nodos compactados por responsive;
-  - 844×390: contenido de 511 px dentro de superficie de 310 px, `overflow-y:auto`, sin overflow horizontal;
-  - en todos los casos los nodos fuente y destino quedaron separados horizontalmente.
-- Estado: **Correcto como prueba estructural aislada**.
-- Límite: no sustituye una sesión real dentro del juego.
-
-### 13. Navegación automatizada del juego real
-
-- Preparación: servidor HTTP local activo y Chromium headless disponible.
-- Pasos: navegar a `http://127.0.0.1:8766/index.html`.
-- Esperado: cargar Dark Moon y realizar prueba visual/interactiva.
-- Obtenido: Chromium devolvió `net::ERR_BLOCKED_BY_ADMINISTRATOR` al intentar acceder a localhost desde este entorno.
-- Estado: **Pendiente por restricción del entorno**.
-- Interpretación: el servidor y los recursos sí responden HTTP 200 por `curl`; no se considera un fallo del juego, pero impide afirmar que la prueba visual real fue ejecutada.
-
-### 14. Prueba manual dentro del juego
-
-- Preparación requerida: navegador normal del usuario con servidor HTTP local.
-- Pasos requeridos:
-  1. equipar Arco corto y verificar rango de los tres disparos;
-  2. equipar Arco recurvo y Arco compuesto;
-  3. aprender `Ojo de halcón` y verificar incremento canónico;
-  4. abrir Arcos y recorrer las 17 conexiones;
-  5. redimensionar la ventana con el panel abierto;
-  6. probar 1366×768, 1920×1080 y una vista móvil;
-  7. revisar Fuego/Frío/Rayo/Veneno para regresión visual.
-- Esperado: alcance 6/7/7 según arma antes de modificadores, incremento de Ojo de halcón, 17 relaciones punteadas legibles, scroll cuando corresponda y árboles mágicos conservados.
-- Obtenido: no ejecutado en el entorno de entrega.
-- Estado: **Pendiente**.
-
-### 15. Electron
-
-- Preparación requerida: dependencias ya instaladas en una copia apta para Electron.
-- Pasos: iniciar el empaquetado/ejecución existente y abrir el panel.
-- Esperado: mismo comportamiento HTML/CSS/JS que web.
-- Obtenido: no ejecutado; el ZIP de entrada no contiene `node_modules` y la etapa prohíbe instalar dependencias nuevas.
-- Estado: **Pendiente / no necesario para validar un cambio sin contrato Electron**, pero debe formar parte de una regresión futura cuando se disponga del entorno.
-
-## Comprobación de restricciones
-
-- No se creó un segundo motor de alcance.
-- No se modificó `SistemaCombate` ni el SMC para resolver este defecto.
-- No se creó lógica por nombre visible, ID o tipo de maestría en el organizador/panel.
-- No se introdujo `AR1.2`, `AR1`, `CD1`, `CD2` o `UI-I1` en identificadores productivos de `src/`/CSS.
-- No se instalaron dependencias.
-- No se modificó Phaser ni Electron.
-- No se creó `.patch` ni `.mjs` productivo.
-- Los scripts temporales de validación fueron eliminados.
-- No se realizó commit ni push.
-- No se utilizó reset/clean/restore masivo.
-- No se avanzó a CD2.
-- No se modificaron los iconos pendientes.
-
-## Compatibilidad web
-
-No cambian puntos de entrada, rutas de módulos ni mecanismo de publicación. Los recursos afectados responden HTTP 200. La prueba de navegación real del navegador queda pendiente únicamente porque el entorno bloquea localhost para Chromium automatizado.
-
-## Compatibilidad Electron
-
-No cambia ningún contrato Electron, preload, aislamiento, Node ni empaquetado. El cambio continúa siendo HTML/CSS/JavaScript del juego. No se ejecutó Electron por ausencia de dependencias instaladas en el ZIP y por la prohibición de instalarlas durante esta etapa.
-
-## Impacto sobre persistencia
-
-- Ningún cambio de esquema.
-- Ninguna migración.
-- No se persiste `posicionHorizontal`.
-- No se persiste alcance derivado.
-- Se siguen persistiendo únicamente las fuentes canónicas ya existentes.
-- La versión 12 de `Habilidades.json` es versión de configuración, no una nueva versión de guardado.
-
-## Impacto sobre contenido nuevo
-
-El beneficio es genérico:
-
-- cualquier habilidad de arma futura puede optar por `usaAlcanceArma` sin duplicar el alcance como atributo interno;
-- cualquier maestría puede declarar más relaciones y el mismo organizador intentará separarlas horizontalmente;
-- una futura propiedad realmente interna de habilidad debe registrarse como atributo específico en lugar de reutilizar una estadística general existente.
-
-## Riesgos y pendientes
-
-1. Falta la validación visual/interactiva real dentro de Dark Moon por restricción del entorno de navegador.
-2. Debe comprobarse en gameplay que Arco corto/recurvo/compuesto exponen 6/7/7 y que `Ojo de halcón` incrementa ese alcance en selector y ejecución, no solo en el resolutor aislado.
-3. Con 17 relaciones, el grafo de Arcos es deliberadamente más denso que los árboles mágicos. La organización ya deja de colapsarlo en una columna, pero la legibilidad final debe aprobarse visualmente dentro del juego.
-4. Los cuatro iconos definitivos quedan fuera de AR1.2 por decisión del usuario.
-5. CD2 continúa pendiente y no debe iniciarse hasta cerrar esta validación.
-6. El ZIP fuente conserva la anomalía de finales de línea; al aplicar el incremental sobre una copia Git normal debe revisarse el diff ignorando cambios de EOL antes de commitear.
-
-## Criterio pendiente para cerrar AR1.2
-
-La implementación queda lista para prueba. Para cambiar el estado de `Pausada` a `Cerrada` deben comprobarse manualmente como mínimo:
-
-- Arco corto: alcance 6 en Disparo múltiple, potente y evasivo;
-- Arco recurvo: alcance 7;
-- Arco compuesto: alcance 7;
-- `Ojo de halcón`: modifica esos alcances mediante el contrato general;
-- preview y ejecución aceptan el mismo rango;
-- Arcos muestra las 17 sinergias como líneas punteadas legibles;
-- ningún nivel queda inaccesible por recorte;
-- resize redibuja las conexiones;
-- Fuego, Frío, Rayo y Veneno conservan sus líneas continuas/punteadas correctas;
-- no aparecen errores nuevos de consola.
+Este ZIP documental debe aplicarse **después** del incremental funcional AR1.2 ya validado por el usuario.
 
 ## Conventional Commit propuesto
 
 ```text
-fix(habilidades): corregir alcance y grafo de arcos
+fix(habilidades): cerrar ajustes funcionales de AR1.2
 
-- usar el alcance canónico del arma en habilidades compatibles;
-- reclasificar sinergias de Arcos e incorporar Aura de Precisión;
-- distribuir el grafo por conectividad, habilitar scroll y redibujar conexiones;
-- validar contratos, configuración, sintaxis, imports y carga HTTP;
-- actualizar planes maestros y diseño visual.
+- preservar la probabilidad final de impacto hasta Phaser y reflejar disponibilidad canónica en la barra;
+- reforzar la presentación de Disparo múltiple y Disparo potente sin alterar su resolución;
+- convertir Disparo evasivo en objetivo libre y reproducir disparo y salto como una maniobra visual concurrente;
+- mostrar feedback de munición insuficiente y exponer desgloses canónicos de Alcance/pasivas;
+- registrar las pruebas manuales satisfactorias y actualizar la documentación de cierre.
 ```
+
+No se realizó el commit.
 
 ## ENLACE PARA LA SIGUIENTE ETAPA
 
@@ -542,19 +345,19 @@ PLAN:
 Sistema de habilidades/modificadores y combate a distancia de Dark Moon
 
 ETAPA CERRADA:
-AR1.2 — Alcance canónico y composición del árbol de habilidades
+AR1.2 — Alcance, grafo y cierre funcional de habilidades de Arco
 
 ESTADO:
-Pausada
+Cerrada
 
 COMMIT BASE:
-658555f724d9459207de120250761d57d22abae4
+6fd2536d63ac623dbc8f402d3da1fcaded4edffd
 
 HEAD FINAL VERIFICADO:
-658555f724d9459207de120250761d57d22abae4
+6fd2536d63ac623dbc8f402d3da1fcaded4edffd
 
 GIT STATUS FINAL:
-`git status --short` muestra 187 archivos tracked modificados y 1 archivo untracked. De esos 187, 179 corresponden a las diferencias CRLF heredadas del ZIP y 8 contienen el diff funcional aprobado de AR1.2. El archivo untracked es `docs/habilidades/entregas/ENTREGA_AR1_2.md`. No hay archivos eliminados. El diff funcional se verificó con `git diff --ignore-space-at-eol --numstat`.
+Después de aplicar el incremental funcional y el documental sobre una extracción fresca, `git status --short` muestra 247 archivos tracked modificados. Contrastando con `git diff -w --numstat`, el cierre contiene 26 archivos con diferencias semánticas reales respecto de HEAD: 22 funcionales del incremental ya validado por el usuario y 4 documentales de cierre. No hay eliminaciones ni temporales de QA incluidos.
 
 DOCUMENTO DE ENTREGA:
 docs/habilidades/entregas/ENTREGA_AR1_2.md
@@ -565,48 +368,50 @@ DOCUMENTOS MAESTROS ACTUALIZADOS:
 - docs/phaser/DISENO_MAESTRO_VISUAL_DARK_MOON.md
 
 OBJETIVO QUE SE COMPLETÓ:
-Corregir la fuente de alcance de las habilidades de Arco y convertir el árbol en un grafo genérico legible que conserva niveles verticales y utiliza relaciones reales para la distribución horizontal.
+Cerrar las habilidades de Arco con alcance canónico correcto, árbol genérico legible, probabilidad final visible, disponibilidad canónica de barra, feedback de munición, desgloses de pasivas y una versión de Disparo evasivo que también funciona como herramienta de movilidad sobre casillas libres.
 
 ARQUITECTURA HEREDADA:
-Las habilidades con `usaAlcanceArma=true` consumen `Combatiente.alcanceAtaque`; las habilidades con alcance interno usan `ATRIBUTO_HABILIDAD.ALCANCE`. `modificacion` es relación específica de habilidad y línea continua; `sinergia` es interacción por estadística/estado/contexto compartido y línea punteada. El árbol usa nivel solo para Y y conectividad para X, sin casos por maestría o ID.
+Las habilidades con `usaAlcanceArma=true` consumen el alcance general ya resuelto; los atributos internos siguen usando `atributoHabilidad`. El SMC continúa siendo el único resolutor de modificadores. La barra consume disponibilidad calculada por `SistemaHabilidadesJugador` y no replica reglas. Phaser recibe probabilidad, proyectiles, impactos y desplazamientos ya decididos y solo los representa. `modificacion` es relación específica/continua y `sinergia` relación contextual/punteada. El árbol usa nivel para Y y conectividad para X sin excepciones por maestría.
 
 ARCHIVOS CLAVE:
-- src/juego/habilidades/ConfiguracionHabilidadEfectiva.js: decide si el alcance viene del arma o de un atributo interno de habilidad.
-- src/interfaz/habilidades/OrganizadorArbolHabilidades.js: organiza el grafo genéricamente.
-- src/interfaz/habilidades/PanelHabilidadesMaestrias.js: representa nodos, relaciones y redibujado.
-- src/config/habilidades/Habilidades.json: contiene las 17 relaciones actuales de Arcos.
+- src/juego/habilidades/SistemaHabilidadesJugador.js: disponibilidad canónica, selección, probabilidad y ejecución de habilidades.
+- src/juego/habilidades/MotorAtaqueArmaHabilidad.js: ejecución de habilidad de arma con objetivo real o posición libre.
+- src/entidad/destructible/combatiente/Combatiente.js: alcance canónico y desglose de su resolución.
+- src/interfaz/graficos/PlanificadorEventosVisuales.js: integra desplazamiento táctico como movimiento concurrente de la habilidad.
+- src/interfaz/graficos/phaser/reproductores/ReproductorHabilidadesArmaDistanciaPhaser.js: compone ráfaga, estela y simultaneidad visual sin recalcular gameplay.
 
 DEPENDENCIAS Y VERSIONES:
-Ninguna nueva. Phaser 4.2.1, Electron 43.3.0 y @electron/packager 20.0.1 permanecen sin cambios.
+Ninguna nueva. Phaser 4.2.1 y la configuración Electron existente permanecen sin cambios.
 
 PRUEBAS CLAVE SUPERADAS:
-- 295 JavaScript con sintaxis válida, 42 JSON válidos y 841 imports relativos sin faltantes.
-- Validadores canónicos aceptan Habilidades v12; Arcos produce 17 sinergias y los cuatro árboles mágicos conservan 3 sinergias + 3 modificaciones cada uno.
-- Disparo múltiple, potente y evasivo toman alcance 7 del arma sin resolver `atributoHabilidad.alcance`; Ascua conserva alcance interno 4 y sí usa ese atributo.
-- Recursos afectados responden HTTP 200 y la maqueta estructural responsive no presenta recorte horizontal ni pérdida vertical de contenido.
+- validación técnica del incremental: sintaxis JS, JSON, imports, contratos, hashes y ZIP correctos;
+- Disparo evasivo acepta enemigo y suelo libre transitable, rechaza obstáculos y conserva munición/desplazamiento canónicos;
+- probabilidad final llega a Phaser, la barra refleja disponibilidad canónica y la falta de munición produce feedback de mapa;
+- pasivas/modificadores aparecen mediante los desgloses canónicos correspondientes;
+- el usuario aplicó el incremental funcional y confirmó que las pruebas manuales fueron correctas.
 
 PROBLEMAS O RIESGOS PENDIENTES:
-- Falta validación visual/interactiva dentro del juego porque Chromium automatizado bloqueó localhost por política administrativa.
-- Los cuatro iconos definitivos de Arco quedan fuera de AR1.2 y serán incorporados por el usuario.
-- Debe aprobarse manualmente la legibilidad final de las 17 conexiones y el rango real 6/7/7 más Ojo de halcón.
+- Los iconos definitivos de las habilidades activas de Arco quedan como ajuste visual separado a cargo del usuario.
+- El ZIP de base conserva ruido CRLF; antes del commit debe revisarse el diff semántico para no incluir cambios de EOL ajenos.
 
 DECISIONES APROBADAS:
-- AR1.2 se corrige antes de CD2.
-- Alcance de arma y alcance específico de habilidad son conceptos distintos y no se resuelven dos veces.
-- El nivel determina únicamente el eje vertical; la conectividad real determina la distribución horizontal.
-- Los paneles no pueden ocultar información por falta de altura; debe existir una superficie de scroll adecuada.
-- Las conexiones se redibujan con una solución nativa sin dependencia.
-- Los iconos quedan como ajuste visual separado.
-- Aura de Precisión agrega tres sinergias, llevando Arcos a 17 relaciones.
+- alcance general de arma y alcance interno de habilidad son conceptos distintos;
+- Arcos conserva 17 sinergias y el árbol se organiza genéricamente por conectividad;
+- Disparo múltiple usa una ráfaga visual más separada y Disparo potente una estela reforzada;
+- Disparo evasivo es de objetivo libre y puede usarse para movilidad;
+- disparo y salto son simultáneos en presentación sin alterar el orden canónico;
+- disponibilidad de barra y munición se resuelven en sistemas canónicos, no en UI;
+- la falta de munición puede mostrarse como feedback temporal en el mapa;
+- las fuentes de pasivas deben aparecer en desgloses producidos por la misma resolución canónica.
 
 DECISIONES QUE SIGUEN ABIERTAS:
-- Aprobación final de las pruebas manuales de AR1.2 dentro del juego.
+Ninguna de AR1.2.
 
 SIGUIENTE ETAPA RECOMENDADA:
 CD2 — Resistencias negativas
 
 OBJETIVO DE LA SIGUIENTE ETAPA:
-Generalizar de forma controlada resistencias elementales y de efectos por debajo de cero, definiendo límites y vulnerabilidad y comprobando regresión de Maldiciones/estados, solo después de cerrar AR1.2.
+Generalizar de forma controlada resistencias elementales y resistencias a efectos por debajo de cero, definiendo límites y vulnerabilidad y verificando la regresión de Maldiciones/estados sin crear fórmulas paralelas.
 
 PRIMEROS ARCHIVOS A REVISAR:
 - docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md
@@ -614,20 +419,22 @@ PRIMEROS ARCHIVOS A REVISAR:
 - src/juego/combate/SistemaCombate.js
 
 NO MODIFICAR SIN NUEVA APROBACIÓN:
-- contrato `usaAlcanceArma` y separación de alcance general/específico;
+- separación entre alcance general y atributo interno de habilidad;
+- contrato canónico de disponibilidad/munición de la barra;
 - semántica `modificacion` continua / `sinergia` punteada;
-- organización genérica del árbol sin casos por maestría o ID.
+- organización genérica del árbol sin casos por maestría o ID;
+- orden canónico disparo → impacto/muerte → desplazamiento de Disparo evasivo.
 
 CRITERIO DE CIERRE DE LA SIGUIENTE ETAPA:
-Resistencias negativas resueltas por una única ecuación canónica, límites documentados, vulnerabilidad comprobada en daño/efectos y regresión completa de resistencias, Maldiciones, estados, web y persistencia sin introducir excepciones por contenido.
+Las resistencias negativas deben quedar resueltas por contratos canónicos únicos, con límites explícitos, sin duplicación entre jugador/enemigos/UI, con regresión de daño, Maldiciones, estados, persistencia y presentación validada antes de avanzar.
 
 CONVENTIONAL COMMIT PROPUESTO PARA LA ETAPA CERRADA:
-fix(habilidades): corregir alcance y grafo de arcos
+fix(habilidades): cerrar ajustes funcionales de AR1.2
 
-- usar el alcance canónico del arma en habilidades compatibles;
-- reclasificar sinergias de Arcos e incorporar Aura de Precisión;
-- distribuir el grafo por conectividad, habilitar scroll y redibujar conexiones;
-- validar contratos, configuración, sintaxis, imports y carga HTTP;
-- actualizar planes maestros y diseño visual.
+- preservar la probabilidad final de impacto hasta Phaser y reflejar disponibilidad canónica en la barra;
+- reforzar la presentación de Disparo múltiple y Disparo potente sin alterar su resolución;
+- convertir Disparo evasivo en objetivo libre y reproducir disparo y salto como una maniobra visual concurrente;
+- mostrar feedback de munición insuficiente y exponer desgloses canónicos de Alcance/pasivas;
+- registrar las pruebas manuales satisfactorias y actualizar la documentación de cierre.
 
 ----------------- FIN DEL ENLACE -----------------

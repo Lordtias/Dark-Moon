@@ -2261,7 +2261,7 @@
       },
       "disparo_evasivo": {
         "nombre": "Evasive Shot",
-        "descripcion": "Fires for reduced damage, then attempts a short backward jump of up to two tiles."
+        "descripcion": "Fires for reduced damage at an enemy or a valid free tile and simultaneously performs an evasive jump of up to two tiles in the opposite direction."
       }
     },
     "maestrias": {
@@ -2675,6 +2675,7 @@
       "objetivoInvalido": "The target or tile is not valid for the skill.",
       "preparacionArmaLista": "{habilidad} grade {grado} is prepared. Use it again to select the shot.",
       "ataqueArmaResuelto": "{habilidad}: {impactos} of {proyectiles} projectiles hit.",
+      "ataqueArmaLibreResuelto": "{habilidad}: shot executed on the selected tile.",
       "estadoTacticoActivado": "{habilidad} activates its tactical state.",
       "bloqueoTemporal": "The player cannot use skills right now."
     },

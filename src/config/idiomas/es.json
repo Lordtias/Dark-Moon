@@ -2261,7 +2261,7 @@
       },
       "disparo_evasivo": {
         "nombre": "Disparo evasivo",
-        "descripcion": "Dispara con daño reducido y después intenta realizar un salto evasivo de hasta dos casillas hacia atrás."
+        "descripcion": "Dispara con daño reducido hacia un enemigo o una casilla libre válida y realiza simultáneamente un salto evasivo de hasta dos casillas en dirección opuesta."
       }
     },
     "maestrias": {
@@ -2675,6 +2675,7 @@
       "objetivoInvalido": "El objetivo o la casilla no son válidos para la habilidad.",
       "preparacionArmaLista": "{habilidad} grado {grado} quedó preparada. Volvé a usarla para seleccionar el disparo.",
       "ataqueArmaResuelto": "{habilidad}: {impactos} de {proyectiles} proyectiles impactan.",
+      "ataqueArmaLibreResuelto": "{habilidad}: disparo ejecutado sobre la casilla seleccionada.",
       "estadoTacticoActivado": "{habilidad} activa su estado táctico.",
       "bloqueoTemporal": "El jugador no puede usar habilidades en este momento."
     },

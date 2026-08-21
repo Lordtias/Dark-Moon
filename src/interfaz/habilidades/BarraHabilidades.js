@@ -60,6 +60,13 @@ export class BarraHabilidades {
         "habilidad-sin-mana",
         Boolean(ranura.idHabilidad) && !ranura.manaSuficiente,
       );
+      elemento.classList.toggle(
+        "habilidad-no-disponible",
+        Boolean(ranura.idHabilidad) && ranura.disponible === false,
+      );
+      elemento.dataset.disponibilidadHabilidad = ranura.idHabilidad
+        ? (ranura.disponible === false ? "no-disponible" : "disponible")
+        : "vacia";
       elemento.replaceChildren();
 
       const tecla = crearElemento("span", "habilidad-tecla", ranura.tecla);
@@ -201,6 +208,9 @@ function crearTitulo(ranura) {
     ranura.manaSuficiente
       ? ""
       : traducir("interfaz.habilidades.manaInsuficiente", { respaldo: "Maná insuficiente" }),
+    ranura.disponible === false && ranura.mensajeNoDisponible
+      ? ranura.mensajeNoDisponible
+      : "",
   ]
     .filter(Boolean)
     .join("\n");

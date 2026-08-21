@@ -41,6 +41,10 @@ export function aplicarResultadoAccion({
     renderizador.mostrarMensaje(resultadoNormalizado.mensaje);
   }
 
+  if (resultadoNormalizado.feedbackMapa) {
+    renderizador.mostrarFeedbackMapa?.(resultadoNormalizado.feedbackMapa);
+  }
+
   // Una acción temporal siempre puede haber modificado el mundo,
   // incluso aunque no establezca manualmente "redibujar".
   //

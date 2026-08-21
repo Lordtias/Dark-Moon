@@ -1,4 +1,8 @@
 import { limitar } from "../../utilidades/Numeros.js";
+import {
+  verificarRequisitosAtaque,
+  verificarRequisitosMunicionAtaque,
+} from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import { Enemigo } from "../../entidad/destructible/combatiente/Enemigo.js";
 import {
@@ -50,6 +54,7 @@ import {
 } from "./ContratoBarraHabilidades.js";
 import { crearConfiguracionHabilidadEfectiva } from "./ConfiguracionHabilidadEfectiva.js";
 import {
+  ACCIONES_HABILIDAD_BASICA,
   crearAsignacionesBasicasIniciales,
   esHabilidadBasica,
   obtenerCatalogoHabilidadesBasicas,
@@ -165,6 +170,21 @@ export class SistemaHabilidadesJugador {
           })
         : null;
       const manaActual = leerManaActual(this.jugador);
+      const costoMana = esHabilidadBasica(idHabilidad)
+        ? habilidad?.costoMana ?? null
+        : gradoConfig?.costoMana ?? null;
+      const manaSuficiente = costoMana === null || costoMana <= manaActual;
+      const disponibilidad = evaluarDisponibilidadBarra({
+        jugador: this.jugador,
+        habilidad,
+        idHabilidad,
+        grado,
+        gradoConfig,
+        manaActual,
+        costoMana,
+        manaSuficiente,
+      });
+
       return {
         indice,
         tecla: indice === 9 ? "0" : String(indice + 1),
@@ -174,14 +194,13 @@ export class SistemaHabilidadesJugador {
         descripcion: habilidad?.descripcion ?? "",
         grado,
         configurada: Boolean(habilidad?.ejecucion || habilidad?.accionCanonica),
-        costoMana: esHabilidadBasica(idHabilidad)
-          ? habilidad?.costoMana ?? null
-          : gradoConfig?.costoMana ?? null,
-        manaSuficiente: esHabilidadBasica(idHabilidad)
-          ? (habilidad?.costoMana ?? 0) <= manaActual
-          : gradoConfig
-            ? manaActual >= gradoConfig.costoMana
-            : false,
+        costoMana,
+        manaSuficiente,
+        disponible: disponibilidad.disponible,
+        motivoNoDisponible: disponibilidad.motivo,
+        mensajeNoDisponible: disponibilidad.mensaje,
+        requisitosCumplidos: disponibilidad.requisitosCumplidos,
+        municionSuficiente: disponibilidad.municionSuficiente,
         seleccionada: this.seleccion?.indiceRanura === indice,
       };
     });
@@ -259,6 +278,17 @@ export class SistemaHabilidadesJugador {
     if (!estadoRanura?.idHabilidad) {
       return crearRechazo(MOTIVOS.RANURA_VACIA, "La ranura está vacía.");
     }
+    if (!estadoRanura.disponible && !esHabilidadBasica(estadoRanura.idHabilidad)) {
+      const rechazo = crearRechazo(
+        estadoRanura.motivoNoDisponible === MOTIVOS_DISPONIBILIDAD_BARRA.MANA
+          ? MOTIVOS.MANA_INSUFICIENTE
+          : MOTIVOS.OBJETIVO_INVALIDO,
+        estadoRanura.mensajeNoDisponible ?? "La habilidad no está disponible en el estado actual.",
+      );
+      return estadoRanura.motivoNoDisponible === MOTIVOS_DISPONIBILIDAD_BARRA.MUNICION
+        ? { ...rechazo, feedbackMapa: rechazo.mensaje }
+        : rechazo;
+    }
     const habilidad = this.obtenerHabilidadBarra(estadoRanura.idHabilidad);
     if (!habilidad) {
       return crearRechazo(
@@ -311,11 +341,14 @@ export class SistemaHabilidadesJugador {
           grado,
         });
         if (!preparacion.preparado) {
-          return crearRechazo(
-            MOTIVOS.OBJETIVO_INVALIDO,
-            preparacion.requisitos?.mensajePresentacion ??
-              preparacion.requisitos?.mensaje ??
-              "No hay recursos suficientes para preparar la habilidad.",
+          return agregarFeedbackMunicion(
+            crearRechazo(
+              MOTIVOS.OBJETIVO_INVALIDO,
+              preparacion.requisitos?.mensajePresentacion ??
+                preparacion.requisitos?.mensaje ??
+                "No hay recursos suficientes para preparar la habilidad.",
+            ),
+            preparacion.requisitos,
           );
         }
         if (!preparacion.yaPreparado) {
@@ -661,10 +694,13 @@ export class SistemaHabilidadesJugador {
 
       faseIrreversible = true;
       const objetivo = plan.objetivoPrimario ?? plan.objetivos[0]?.objetivo ?? null;
-      if (!objetivo) {
+      const permiteObjetivoLibre = plan.habilidad.ejecucion.tipoObjetivo === "libre";
+      if (!objetivo && !permiteObjetivoLibre) {
         throw new Error("La habilidad de arma no tiene un objetivo válido.");
       }
-      if (plan.habilidad.ejecucion.hostil) registrarHostilidad(this.juego, objetivo);
+      if (objetivo && plan.habilidad.ejecucion.hostil) {
+        registrarHostilidad(this.juego, objetivo);
+      }
       const origenActor = { x: this.jugador.x, y: this.jugador.y };
 
       const ejecucion = ejecutarHabilidadArma({
@@ -674,6 +710,7 @@ export class SistemaHabilidadesJugador {
         grado: plan.grado,
         gradoConfig: plan.gradoConfig,
         objetivo,
+        posicionObjetivo: plan.centro,
       });
       const resultadoAtaque = ejecucion.resultadoAtaque;
       const impactosResultado = ejecucion.impactos.map((impacto) => ({
@@ -725,20 +762,29 @@ export class SistemaHabilidadesJugador {
       });
       const cantidadImpactos = ejecucion.impactos.filter((i) => i.impacto).length;
       const cantidadCriticos = ejecucion.impactos.filter((i) => i.critico).length;
-      const mensaje = crearMensajeTraducible(
-        "mensajes.habilidades.ataqueArmaResuelto",
-        {
-          parametros: {
-            habilidad: parametroHabilidad(plan.habilidad),
-            impactos: cantidadImpactos,
-            proyectiles: ejecucion.impactos.length,
-          },
-          tipo: cantidadImpactos > 0
-            ? TIPOS_MENSAJE_JUEGO.POSITIVO
-            : TIPOS_MENSAJE_JUEGO.NEGATIVO,
-          respaldo: `${plan.habilidad.nombre}: ${cantidadImpactos} de ${ejecucion.impactos.length} proyectiles impactan.`,
-        },
-      );
+      const mensaje = objetivo
+        ? crearMensajeTraducible(
+            "mensajes.habilidades.ataqueArmaResuelto",
+            {
+              parametros: {
+                habilidad: parametroHabilidad(plan.habilidad),
+                impactos: cantidadImpactos,
+                proyectiles: ejecucion.impactos.length,
+              },
+              tipo: cantidadImpactos > 0
+                ? TIPOS_MENSAJE_JUEGO.POSITIVO
+                : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+              respaldo: `${plan.habilidad.nombre}: ${cantidadImpactos} de ${ejecucion.impactos.length} proyectiles impactan.`,
+            },
+          )
+        : crearMensajeTraducible(
+            "mensajes.habilidades.ataqueArmaLibreResuelto",
+            {
+              parametros: { habilidad: parametroHabilidad(plan.habilidad) },
+              tipo: TIPOS_MENSAJE_JUEGO.SISTEMA,
+              respaldo: `${plan.habilidad.nombre}: disparo evasivo ejecutado sobre la casilla seleccionada.`,
+            },
+          );
       const resultadoAntesDesplazamiento = {
         exito: true,
         motivo: MOTIVOS.OK,
@@ -755,7 +801,7 @@ export class SistemaHabilidadesJugador {
         ejecucionEfectiva: true,
         impacto: resultadoAtaque.impacto === true,
         critico: resultadoAtaque.critico === true,
-        cantidadObjetivos: 1,
+        cantidadObjetivos: objetivo ? 1 : 0,
         cantidadImpactos,
         cantidadCriticos,
         impactos: impactosResultado,
@@ -1143,9 +1189,10 @@ export class SistemaHabilidadesJugador {
       );
     }
     const creaZonaTemporal = Boolean(gradoConfig.zonaTemporal);
+    const permiteObjetivoLibre = habilidad.ejecucion.tipoObjetivo === "libre";
     if (
       !vistaPrevia.objetivoValido ||
-      (!creaZonaTemporal && vistaPrevia.objetivosAfectados.length === 0)
+      (!creaZonaTemporal && !permiteObjetivoLibre && vistaPrevia.objetivosAfectados.length === 0)
     ) {
       return crearRechazo(
         MOTIVOS.OBJETIVO_INVALIDO,
@@ -1173,11 +1220,14 @@ export class SistemaHabilidadesJugador {
         retirarSiInvalida: true,
       });
       if (habilidad.ejecucion.ataqueArma.requierePreparacion && !preparacion.valida) {
-        return crearRechazo(
-          MOTIVOS.OBJETIVO_INVALIDO,
-          preparacion.requisitos?.mensajePresentacion ??
-            preparacion.requisitos?.mensaje ??
-            "La preparación de la habilidad ya no es válida. Volvé a cargarla.",
+        return agregarFeedbackMunicion(
+          crearRechazo(
+            MOTIVOS.OBJETIVO_INVALIDO,
+            preparacion.requisitos?.mensajePresentacion ??
+              preparacion.requisitos?.mensaje ??
+              "La preparación de la habilidad ya no es válida. Volvé a cargarla.",
+          ),
+          preparacion.requisitos,
         );
       }
     }
@@ -1204,7 +1254,7 @@ export class SistemaHabilidadesJugador {
       if (esHabilidadAtaqueArma(habilidad)) {
         const objetivo = vistaPrevia.objetivoPrimario ??
           vistaPrevia.objetivosAfectados[0]?.objetivo ?? null;
-        if (!objetivo) {
+        if (!objetivo && !permiteObjetivoLibre) {
           throw new Error("La habilidad de arma necesita un objetivo válido.");
         }
         return {
@@ -1720,6 +1770,148 @@ function obtenerLimitesMapa(mapa) {
     mapa?.terreno?.length ??
     1;
   return { ancho: Math.max(1, ancho), alto: Math.max(1, alto) };
+}
+
+const MOTIVOS_DISPONIBILIDAD_BARRA = Object.freeze({
+  DISPONIBLE: null,
+  VACIA: "vacia",
+  NO_CONFIGURADA: "no_configurada",
+  NO_APRENDIDA: "no_aprendida",
+  MANA: "mana",
+  EQUIPAMIENTO: "equipamiento",
+  MUNICION: "municion",
+  RECURSOS_ATAQUE: "recursos_ataque",
+});
+
+function evaluarDisponibilidadBarra({
+  jugador,
+  habilidad,
+  idHabilidad,
+  grado,
+  gradoConfig,
+  manaActual,
+  costoMana,
+  manaSuficiente,
+}) {
+  if (!habilidad || !idHabilidad) {
+    return crearDisponibilidadBarra(false, MOTIVOS_DISPONIBILIDAD_BARRA.VACIA, null, {
+      requisitosCumplidos: false,
+      municionSuficiente: false,
+    });
+  }
+  if (!habilidad.ejecucion && !habilidad.accionCanonica) {
+    return crearDisponibilidadBarra(
+      false,
+      MOTIVOS_DISPONIBILIDAD_BARRA.NO_CONFIGURADA,
+      "La habilidad no tiene una ejecución disponible.",
+      { requisitosCumplidos: false, municionSuficiente: false },
+    );
+  }
+  if (!Number.isInteger(grado) || grado <= 0) {
+    return crearDisponibilidadBarra(
+      false,
+      MOTIVOS_DISPONIBILIDAD_BARRA.NO_APRENDIDA,
+      "La habilidad todavía no fue aprendida.",
+      { requisitosCumplidos: false, municionSuficiente: false },
+    );
+  }
+  if (!manaSuficiente) {
+    return crearDisponibilidadBarra(
+      false,
+      MOTIVOS_DISPONIBILIDAD_BARRA.MANA,
+      `Maná insuficiente: necesitás ${costoMana ?? 0} y tenés ${manaActual}.`,
+      { requisitosCumplidos: true, municionSuficiente: true },
+    );
+  }
+
+  if (esHabilidadBasica(idHabilidad)) {
+    if (habilidad.accionCanonica !== ACCIONES_HABILIDAD_BASICA.ATACAR) {
+      return crearDisponibilidadBarra(true);
+    }
+    const requisitosAtaque = verificarRequisitosAtaque(jugador);
+    if (requisitosAtaque.disponible) return crearDisponibilidadBarra(true);
+    const faltaMunicion = esFaltaMunicion(requisitosAtaque);
+    return crearDisponibilidadBarra(
+      false,
+      faltaMunicion
+        ? MOTIVOS_DISPONIBILIDAD_BARRA.MUNICION
+        : MOTIVOS_DISPONIBILIDAD_BARRA.RECURSOS_ATAQUE,
+      requisitosAtaque.mensaje,
+      {
+        requisitosCumplidos: true,
+        municionSuficiente: !faltaMunicion,
+      },
+    );
+  }
+
+  const requisitosLanzador = habilidad.ejecucion?.requisitosLanzador ?? {};
+  const cumpleEquipamiento =
+    Object.keys(requisitosLanzador).length === 0 ||
+    cumpleCondicionesModificador(
+      requisitosLanzador,
+      jugador.obtenerContextoModificadores(),
+    );
+  if (!cumpleEquipamiento) {
+    return crearDisponibilidadBarra(
+      false,
+      MOTIVOS_DISPONIBILIDAD_BARRA.EQUIPAMIENTO,
+      "No cumplís los requisitos de equipamiento para usar esta habilidad.",
+      { requisitosCumplidos: false, municionSuficiente: true },
+    );
+  }
+
+  if (esHabilidadAtaqueArma(habilidad)) {
+    const requiereMunicion = habilidad.ejecucion.ataqueArma.requiereMunicion === true;
+    const cantidadMunicion = requiereMunicion
+      ? gradoConfig?.ataqueArma?.cantidadMunicion
+      : 0;
+    const requisitosMunicion = verificarRequisitosMunicionAtaque(jugador, {
+      requiereMunicion,
+      cantidadMunicionRequerida: cantidadMunicion,
+    });
+    if (!requisitosMunicion.disponible) {
+      return crearDisponibilidadBarra(
+        false,
+        MOTIVOS_DISPONIBILIDAD_BARRA.MUNICION,
+        requisitosMunicion.mensaje,
+        { requisitosCumplidos: true, municionSuficiente: false },
+      );
+    }
+  }
+
+  return crearDisponibilidadBarra(true);
+}
+
+function crearDisponibilidadBarra(
+  disponible,
+  motivo = MOTIVOS_DISPONIBILIDAD_BARRA.DISPONIBLE,
+  mensaje = null,
+  { requisitosCumplidos = true, municionSuficiente = true } = {},
+) {
+  return Object.freeze({
+    disponible: disponible === true,
+    motivo,
+    mensaje,
+    requisitosCumplidos: requisitosCumplidos === true,
+    municionSuficiente: municionSuficiente === true,
+  });
+}
+
+function esFaltaMunicion(requisitos) {
+  return Boolean(
+    requisitos?.disponible === false &&
+    requisitos?.requiereMunicion === true &&
+    Number.isInteger(requisitos?.cantidadMunicionRequerida) &&
+    Number(requisitos?.cantidadMunicion ?? 0) < requisitos.cantidadMunicionRequerida,
+  );
+}
+
+function agregarFeedbackMunicion(resultado, requisitos) {
+  if (!resultado || !esFaltaMunicion(requisitos)) return resultado;
+  return {
+    ...resultado,
+    feedbackMapa: resultado.mensaje ?? requisitos?.mensajePresentacion ?? requisitos?.mensaje ?? null,
+  };
 }
 
 function crearRechazo(motivo, mensaje) {

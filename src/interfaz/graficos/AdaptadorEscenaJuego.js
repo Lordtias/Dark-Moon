@@ -375,8 +375,8 @@ function crearSelectorInteraccionVisual(juego, casillasVisibles) {
 }
 
 // Convierte la selección de una habilidad en el contrato visual común.
-// La casilla se marca como válida únicamente cuando contiene un objetivo y
-// también cumple alcance, patrón y línea de visión.
+// La validez ya fue resuelta por el sistema de habilidades; este adaptador
+// conserva además la probabilidad final cuando existe un objetivo hostil.
 function crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles) {
   const selector = habilidad?.selector;
 
@@ -390,6 +390,9 @@ function crearSelectorHabilidadVisual(habilidad, juego, casillasVisibles) {
     esValido:
       selector.puedeEjecutar === true &&
       !hayEnemigoOcultoEn(juego, casillasVisibles, selector.x, selector.y),
+    probabilidadImpactoFinal: Number.isFinite(selector.probabilidadImpactoFinal)
+      ? selector.probabilidadImpactoFinal
+      : null,
   };
 }
 

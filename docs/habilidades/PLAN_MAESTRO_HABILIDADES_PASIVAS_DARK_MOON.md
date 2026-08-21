@@ -1455,6 +1455,8 @@ estado de condición
 
 Los nombres visibles y traducciones se resuelven en presentación, no en la lógica.
 
+AR1.2 cierra además una deuda concreta de este contrato: una estadística puede tener un valor final correcto y aun así ser imposible de explicar si su consumidor solo solicita el número. `Combatiente.resolverAlcanceAtaque()` conserva la misma resolución de `OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE` que utiliza el getter `alcanceAtaque`, pero devuelve también el desglose. El Panel de Personaje consume ese descriptor para mostrar fuentes como `Ojo de halcón` sin recalcular Alcance. Del mismo modo, los componentes de daño conservan la resolución de `MULTIPLICADOR_DANIO_FUENTE` para que pasivas contextuales como `Tensión controlada` puedan atribuirse a su fuente cuando la UI exponga ese dato.
+
 ---
 
 ## 15. PERSISTENCIA
@@ -2168,6 +2170,12 @@ AR1.1 generaliza además el grafo de habilidades. Toda habilidad de cualquier ma
 AR1.2 corrige dos deudas detectadas después de AR1.1. Las habilidades de arma con `ataqueArma.usaAlcanceArma=true` consumen directamente `Combatiente.alcanceAtaque`, que ya incorpora el alcance del arma y los modificadores generales `alcanceAtaque`; no vuelven a pasar por `ATRIBUTO_HABILIDAD.ALCANCE`. Los atributos internos de una habilidad —radio, proyectiles, factor de daño, desplazamiento u otros futuros— continúan usando `atributoHabilidad` solamente cuando pertenecen a esa habilidad concreta.
 
 El grafo conserva el nivel de maestría como único eje vertical y utiliza únicamente conectividad real para separar horizontalmente fuentes, destinos y nodos neutros. Para Arcos, `Tiro estable`, `Tensión controlada`, `Tiro letal`, `Ojo de halcón` y `Aura de Precisión` benefician los tres disparos mediante estadísticas/contextos generales y por eso sus relaciones son `sinergia`; `Francotirador` mantiene sinergia con `Disparo potente` y `Disparo evasivo`. El contenido actual suma 17 sinergias y ninguna modificación específica de habilidad. El árbol habilita desplazamiento vertical cuando excede el espacio y sus conexiones SVG se recalculan al cambiar la geometría del panel.
+
+El ajuste final de AR1.2 extiende la disponibilidad de la barra como una **consulta canónica del sistema de habilidades**. Cada ranura puede informar `disponible`, motivo, mensaje, cumplimiento de requisitos y suficiencia de munición/maná; la barra solo representa ese estado y no vuelve a interpretar arma equipada, quiver, cantidad de flechas ni condiciones de gameplay. Intentar una habilidad no disponible continúa pasando por el sistema canónico, que conserva la responsabilidad de rechazar la acción y producir el motivo.
+
+`Disparo evasivo` pasa a `tipoObjetivo=libre`: una casilla vacía transitable dentro del alcance es un destino válido además de un enemigo. Si no existe enemigo no se inventa impacto, daño ni experiencia; se conserva consumo de munición y se calcula el desplazamiento táctico de hasta dos casillas en dirección opuesta a la casilla elegida. La regla espacial sigue siendo `paso_a_paso`; la simultaneidad disparo/salto pertenece únicamente a la planificación visual.
+
+La previsualización de habilidades preserva `probabilidadImpactoFinal` hasta el estado visual que consume Phaser. Ese porcentaje ya incluye Precisión, Evasión, distancia y Dispersión cuando corresponda; la interfaz no recalcula ninguna de esas variables. La falta de munición puede producir además `feedbackMapa` a través del resultado canónico de la acción, reutilizando el mismo mensaje de rechazo en vez de crear una segunda validación visual.
 
 ---
 

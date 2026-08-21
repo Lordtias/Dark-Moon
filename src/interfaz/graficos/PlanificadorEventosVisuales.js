@@ -175,27 +175,30 @@ export function crearPlanEventosVisuales({
 }
 
 function agregarMovimiento(plan, evento, entidadesPorId) {
+  const movimiento = crearMovimientoVisual(evento, entidadesPorId);
+  if (movimiento) plan.push(movimiento);
+}
+
+function crearMovimientoVisual(evento, entidadesPorId) {
   const idEntidad = obtenerIdSeguro(evento.entidad);
   const entidadVisual = entidadesPorId.get(idEntidad) ?? null;
 
   if (!idEntidad || !esPosicion(evento.origen) || !esPosicion(evento.destino)) {
-    return;
+    return null;
   }
 
-  plan.push(
-    Object.freeze({
-      tipo: TIPOS_EVENTO_VISUAL.MOVIMIENTO_ENTIDAD,
-      idEntidad,
-      tipoEntidad: entidadVisual?.tipo ?? null,
-      origen: copiarPosicion(evento.origen),
-      destino: copiarPosicion(evento.destino),
-      desplazamientoTactico: evento.desplazamientoTactico ?? null,
-      ejecucionTemporal: evento.ejecucionTemporal ?? null,
-      ritmoVisual: crearPlanRitmoVisualMovimiento({
-        ejecucionTemporal: evento.ejecucionTemporal,
-      }),
+  return Object.freeze({
+    tipo: TIPOS_EVENTO_VISUAL.MOVIMIENTO_ENTIDAD,
+    idEntidad,
+    tipoEntidad: entidadVisual?.tipo ?? null,
+    origen: copiarPosicion(evento.origen),
+    destino: copiarPosicion(evento.destino),
+    desplazamientoTactico: evento.desplazamientoTactico ?? null,
+    ejecucionTemporal: evento.ejecucionTemporal ?? null,
+    ritmoVisual: crearPlanRitmoVisualMovimiento({
+      ejecucionTemporal: evento.ejecucionTemporal,
     }),
-  );
+  });
 }
 
 function agregarAtaque(plan, evento, entidadesPorId, contexto = {}) {
@@ -266,6 +269,13 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     ejecucionTemporal: evento.ejecucionTemporal,
   });
   const eventosCorrelacionados = correlacionarEventosEfectosHabilidad({
+    eventoHabilidad: evento,
+    entidadesPorId,
+    eventos: contexto.eventos ?? [],
+    indiceActual: contexto.indiceActual ?? -1,
+    indicesConsumidos: contexto.indicesConsumidos ?? new Set(),
+  });
+  const movimientoConcurrente = extraerMovimientoConcurrenteHabilidad({
     eventoHabilidad: evento,
     entidadesPorId,
     eventos: contexto.eventos ?? [],
@@ -358,9 +368,34 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     perfilVisual,
     idEjecucion: evento.idEjecucion ?? null,
     ejecucionTemporal: evento.ejecucionTemporal ?? null,
+    movimientoConcurrente,
     ritmoVisual,
   }));
 
+}
+
+function extraerMovimientoConcurrenteHabilidad({
+  eventoHabilidad,
+  entidadesPorId,
+  eventos,
+  indiceActual,
+  indicesConsumidos,
+}) {
+  const idActor = obtenerIdSeguro(eventoHabilidad?.actor);
+  if (!idActor || !Array.isArray(eventos)) return null;
+
+  for (let indice = indiceActual + 1; indice < eventos.length; indice += 1) {
+    if (indicesConsumidos.has(indice)) continue;
+    const candidato = eventos[indice];
+    if (candidato?.tipo !== TIPOS_EVENTO_ACCION.ENTIDAD_MOVIDA) continue;
+    if (!candidato.desplazamientoTactico) continue;
+    if (obtenerIdSeguro(candidato.entidad) !== idActor) continue;
+    const movimiento = crearMovimientoVisual(candidato, entidadesPorId);
+    if (!movimiento) return null;
+    indicesConsumidos.add(indice);
+    return movimiento;
+  }
+  return null;
 }
 
 function agregarZonaTemporal(plan, evento, tipoVisual) {

@@ -410,18 +410,19 @@ function calcularComponenteDanio(
     multiplicadorCriticoBase,
     contextoFuente,
   );
-  const multiplicadorGolpe = resolverValor(
-    combatiente,
+  const resolucionMultiplicadorDanioFuente = combatiente.resolverModificador(
     OBJETIVOS_MODIFICADOR.MULTIPLICADOR_DANIO_FUENTE,
     fuente.multiplicadorGolpe,
     contextoFuente,
   );
+  const multiplicadorGolpe = resolucionMultiplicadorDanioFuente.resultado;
 
   return {
     nombre: fuente.nombre,
     objeto: fuente.objeto,
     mano: fuente.mano,
     multiplicadorGolpe,
+    resolucionMultiplicadorDanioFuente,
     atributoOfensivo,
     valorAtributo,
     minimoLocal,

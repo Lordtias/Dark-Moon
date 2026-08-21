@@ -271,9 +271,11 @@ export class SistemaCombateJugador {
 
     const preparacion = prepararAtaque(this.jugador);
     if (!preparacion.preparado) {
+      const mensaje = preparacion.requisitos?.mensajePresentacion ?? preparacion.requisitos?.mensaje;
       return crearResultadoAccion({
         exito: false,
-        mensaje: preparacion.requisitos?.mensajePresentacion ?? preparacion.requisitos?.mensaje,
+        mensaje,
+        feedbackMapa: esFaltaMunicion(preparacion.requisitos) ? mensaje : null,
         turnoConsumido: false,
         redibujar: false,
       });
@@ -598,9 +600,11 @@ export class SistemaCombateJugador {
     // o finalizar la acción temporal.
     const requisitos = verificarRequisitosAtaque(this.jugador);
     if (!requisitos.disponible) {
+      const mensaje = requisitos.mensajePresentacion ?? requisitos.mensaje;
       return crearResultadoAccion({
         exito: false,
-        mensaje: requisitos.mensajePresentacion ?? requisitos.mensaje,
+        mensaje,
+        feedbackMapa: esFaltaMunicion(requisitos) ? mensaje : null,
         turnoConsumido: false,
         redibujar: false,
       });
@@ -645,4 +649,13 @@ export class SistemaCombateJugador {
     this.modoActivo = false;
     this.selector = { x: this.jugador.x, y: this.jugador.y };
   }
+}
+
+function esFaltaMunicion(requisitos) {
+  return Boolean(
+    requisitos?.disponible === false &&
+    requisitos?.requiereMunicion === true &&
+    Number.isInteger(requisitos?.cantidadMunicionRequerida) &&
+    Number(requisitos?.cantidadMunicion ?? 0) < requisitos.cantidadMunicionRequerida,
+  );
 }

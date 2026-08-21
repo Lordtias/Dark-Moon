@@ -125,22 +125,23 @@ export class CreadorEfectosHabilidadesPhaser {
     const principal = convertirColor(perfil.colorPrincipal);
     const secundario = convertirColor(perfil.colorSecundario);
     const escala = obtenerEscalaGrado(perfil, grado);
-    const longitud = 13 * escala;
+    const longitud = 24 * escala;
     const grafico = this.escena.add.graphics({ x: centro.x, y: centro.y });
 
-    // Cola breve, adherida al proyectil. El reproductor desplaza este gráfico
-    // junto a la flecha, evitando la estela estática que parecía una serie de
-    // impactos separados a lo largo de toda la trayectoria.
-    grafico.lineStyle?.(2.2 * escala, principal, 0.42);
-    grafico.lineBetween?.(-longitud * 0.25, 0, -longitud, 0);
-    grafico.lineStyle?.(1.1 * escala, secundario, 0.52);
-    grafico.lineBetween?.(-longitud * 0.15, 0, -longitud * 0.68, 0);
-    grafico.fillStyle?.(secundario, 0.38);
-    grafico.fillCircle?.(-longitud * 0.38, 0, Math.max(0.8, 1.25 * escala));
-    grafico.fillStyle?.(principal, 0.25);
-    grafico.fillCircle?.(-longitud * 0.78, 0, Math.max(0.7, 0.95 * escala));
+    // Cola luminosa adherida a la flecha. Sigue siendo un efecto puramente
+    // visual: no describe alcance, colisión ni potencia del disparo.
+    grafico.lineStyle?.(3.4 * escala, principal, 0.58);
+    grafico.lineBetween?.(-longitud * 0.18, 0, -longitud, 0);
+    grafico.lineStyle?.(1.7 * escala, secundario, 0.82);
+    grafico.lineBetween?.(-longitud * 0.08, 0, -longitud * 0.76, 0);
+    grafico.fillStyle?.(secundario, 0.76);
+    grafico.fillCircle?.(-longitud * 0.18, 0, Math.max(1.1, 1.9 * escala));
+    grafico.fillStyle?.(secundario, 0.5);
+    grafico.fillCircle?.(-longitud * 0.48, 0, Math.max(0.9, 1.45 * escala));
+    grafico.fillStyle?.(principal, 0.34);
+    grafico.fillCircle?.(-longitud * 0.82, 0, Math.max(0.8, 1.15 * escala));
     grafico.setRotation?.(anguloRad);
-    grafico.setAlpha?.(0.62);
+    grafico.setAlpha?.(0.86);
     this.compositor.agregarEfectoTemporal(grafico);
     return grafico;
   }

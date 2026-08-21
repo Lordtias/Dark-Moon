@@ -261,7 +261,7 @@ Las habilidades productivas iniciales de Arco son:
 | Disparo múltiple | 2 | 2/3/4 proyectiles; 60/50/45% del daño de arma por proyectil; preparación ×1,15/1,30/1,45 |
 | Disparo potente | 5 | 1 proyectil; 160/185/210% del daño de arma; preparación ×1,80/1,70/1,60 |
 | Francotirador | 7 | activa el estado táctico `Apuntando` |
-| Disparo evasivo | 10 | 1 proyectil al 65/75/85% y desplazamiento posterior de hasta 2 casillas |
+| Disparo evasivo | 10 | 1 proyectil al 65/75/85%; objetivo enemigo o casilla libre válida; desplazamiento de hasta 2 casillas en dirección opuesta |
 
 `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` pasan a ser atributos productivos de habilidad porque ya poseen consumidores reales. `maximoProyectilesSimultaneos` permanece reservado.
 
@@ -286,7 +286,17 @@ El desplazamiento causado por habilidades se resuelve mediante un contrato indep
 - regla espacial: `paso_a_paso`, `trayectoria_libre` o `destino_unicamente`;
 - forma visual: `movimiento`, `dash`, `salto` o `teletransporte`.
 
-La forma visual no concede permisos espaciales. Phaser dispone de representación explícita para las cuatro formas: movimiento normal, `dash` continuo y rápido, `salto` con arco corto y `teletransporte` con desaparición/reposicionamiento/aparición. Tener una representación no habilita por sí solo una regla espacial. Disparo evasivo utiliza `paso_a_paso + salto`: intenta dos casillas en dirección opuesta al objetivo, puede recorrer 2/1/0 según bloqueo y notifica cada paso real a las zonas. El orden canónico es disparo → impacto/muerte → desplazamiento → cierre temporal.
+La forma visual no concede permisos espaciales. Phaser dispone de representación explícita para las cuatro formas: movimiento normal, `dash` continuo y rápido, `salto` con arco corto y `teletransporte` con desaparición/reposicionamiento/aparición. Tener una representación no habilita por sí solo una regla espacial. Disparo evasivo utiliza `paso_a_paso + salto`: intenta dos casillas en dirección opuesta a la casilla elegida, puede recorrer 2/1/0 según bloqueo y notifica cada paso real a las zonas. Su selección es `libre`: admite enemigo o suelo vacío transitable dentro de alcance y línea de visión. Una ejecución sobre suelo vacío consume la munición declarada y genera proyectil/maniobra, pero no inventa tirada de impacto, daño, hostilidad ni experiencia. El orden canónico continúa siendo disparo → impacto/muerte cuando existe objetivo → desplazamiento → cierre temporal; la presentación puede reproducir proyectil y salto de forma concurrente porque ambos resultados ya fueron decididos por dominio.
+
+### 11.4 Disponibilidad y feedback de recursos
+
+La barra de habilidades no decide si una acción es utilizable. `SistemaHabilidadesJugador` expone una consulta de disponibilidad que reutiliza contratos canónicos de requisitos de lanzador, Maná, configuración de ataque y munición. La UI recibe el resultado y únicamente atenúa la ranura o muestra el motivo; no inspecciona directamente el arma, quiver ni inventario para replicar reglas.
+
+La falta de munición sigue siendo un rechazo del gameplay. Cuando el rechazo corresponde específicamente a munición insuficiente, el resultado puede transportar `feedbackMapa` con el mismo mensaje canónico. `ProcesadorResultadoAccion` entrega ese texto al renderizador y Phaser lo presenta temporalmente cerca del jugador. El feedback no consume turno, no cambia la disponibilidad y no constituye una segunda validación. El ataque básico y las habilidades de arma comparten este principio.
+
+### 11.5 Probabilidad final de habilidades
+
+La previsualización de una habilidad hostil conserva la misma `probabilidadImpactoFinal` calculada por el motor que resolvería el disparo. En habilidades de arma, el desglose incluye la Dispersión dependiente de distancia cuando corresponda. El valor viaja por `SistemaHabilidadesJugador` → estado visual → adaptador de escena → Phaser; ninguna capa de presentación recalcula Precisión, Evasión o Dispersión. Una casilla libre usada por Disparo evasivo no muestra porcentaje porque no existe una tirada contra objetivo.
 
 ## 12. Resistencias negativas
 
@@ -319,6 +329,6 @@ La decisión debe revisarse durante una etapa explícita de balance, comparando 
 - **UI-I1 — Normalización visual:** cerrada; iconografía ilustrada sin pixelado ni halos artificiales.
 - **AR1 — Habilidades activas de Arco:** incorpora ataques de arma mediante habilidad, estados tácticos como fuente SMC, preparación compartida y desplazamiento táctico.
 - **AR1.1 — Cierre técnico de Arco:** completa la independencia de munición, valida eventos tácticos, evita interrupciones por acciones fallidas, completa las formas visuales de desplazamiento y generaliza relaciones de árbol para cualquier maestría.
-- **AR1.2 — Corrección de alcance y grafo:** consume `Combatiente.alcanceAtaque` en habilidades de arma, distingue modificación específica de sinergia general y distribuye el árbol horizontalmente desde la conectividad real.
+- **AR1.2 — Corrección de alcance y grafo:** consume `Combatiente.alcanceAtaque` en habilidades de arma, distingue modificación específica de sinergia general y distribuye el árbol horizontalmente desde la conectividad real; su ajuste final preserva probabilidad final hasta Phaser, centraliza disponibilidad de barra/munición, expone desgloses de Alcance y convierte Disparo evasivo en herramienta de objetivo libre con simultaneidad visual de disparo y salto.
 - **CD2 — Resistencias negativas:** permanece como siguiente bloque de combate; generalización controlada de resistencias elementales y de efectos por debajo de cero, con límites, vulnerabilidad y regresión de Maldiciones/estados.
 - **Balance posterior:** revisar daño esperado de arcos únicamente con evidencia del nuevo sistema ya estabilizado; CD1 y AR1 conservan el daño base anterior.

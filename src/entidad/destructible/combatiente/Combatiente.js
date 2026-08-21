@@ -559,10 +559,10 @@ export class Combatiente extends Destructible {
     return costoAtaque;
   }
 
-  get alcanceAtaque() {
-    const alcance =
+  resolverAlcanceAtaque() {
+    const alcanceBase =
       this.configuracionAtaqueActual.propiedadesControladoras.alcance;
-    if (!Number.isInteger(alcance) || alcance < 1) {
+    if (!Number.isInteger(alcanceBase) || alcanceBase < 1) {
       throw new Error(`El alcance de ${this.nombre} no es válido.`);
     }
     const configuracion = this.configuracionAtaqueActual;
@@ -572,16 +572,21 @@ export class Combatiente extends Destructible {
       tipoAtaque: configuracion.propiedadesControladoras.tipoAtaque,
       esAtaqueDual: configuracion.esAtaqueDual,
     };
-    return Math.max(
-      1,
-      Math.round(
-        this.obtenerValorModificado(
-          OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE,
-          alcance,
-          contexto,
-        ),
-      ),
+    const resolucion = this.resolverModificador(
+      OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE,
+      alcanceBase,
+      contexto,
     );
+    const resultado = Math.max(1, Math.round(resolucion.resultado));
+    return Object.freeze({
+      ...resolucion,
+      resultado,
+      resultadoAntesRedondeo: resolucion.resultado,
+    });
+  }
+
+  get alcanceAtaque() {
+    return this.resolverAlcanceAtaque().resultado;
   }
 
   get tipoAtaqueActual() {

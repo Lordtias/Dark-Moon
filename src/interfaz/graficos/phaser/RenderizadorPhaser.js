@@ -168,6 +168,14 @@ export class RenderizadorPhaser {
     return this.escenaPhaser?.esperarPresentacionPendiente?.() ?? null;
   }
 
+  mostrarFeedbackTemporal({ texto, tipo = "alerta" } = {}) {
+    if (typeof texto !== "string" || texto.trim() === "") return false;
+    return this.escenaPhaser?.mostrarFeedbackTemporal?.({
+      texto: texto.trim(),
+      tipo,
+    }) === true;
+  }
+
   configurarAnimaciones(configuracion = {}) {
     if (!configuracion || typeof configuracion !== "object") {
       throw new Error("La configuración de animaciones debe ser un objeto.");

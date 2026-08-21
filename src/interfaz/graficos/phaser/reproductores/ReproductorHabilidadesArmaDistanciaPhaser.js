@@ -7,6 +7,7 @@ import {
 import {
   reproducirResultadoImpactoHabilidad,
 } from "./ReproductorResultadosVisualesPhaser.js";
+import { reproducirMovimiento } from "./ReproductorMovimientoPhaser.js";
 
 // Representa ataques de arma ya resueltos por una habilidad. La munición,
 // cantidad de proyectiles, impactos y críticos vienen del dominio; Phaser solo
@@ -46,7 +47,7 @@ export async function reproducirHabilidadArmaDistancia(
     fases.trayectoria ?? 0.38,
   );
   const intervaloRapidFire = esMultiple
-    ? Math.max(24, Math.round((duracionManifestacion + duracionTrayectoria) * 0.16))
+    ? Math.max(55, Math.round((duracionManifestacion + duracionTrayectoria) * 0.18))
     : 0;
   const duracionVuelo = esMultiple
     ? Math.max(70, Math.round(duracionTrayectoria * 0.78))
@@ -70,12 +71,17 @@ export async function reproducirHabilidadArmaDistancia(
 
   if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
 
+  const promesaMovimiento = evento.movimientoConcurrente
+    ? reproducirMovimiento(reproductor, evento.movimientoConcurrente, version)
+    : Promise.resolve();
+
   const promesas = impactos.map((impacto, indice) =>
     reproducirProyectilProgramado({
       reproductor,
       evento,
       impacto,
       indice,
+      cantidadProyectiles: impactos.length,
       version,
       recursoVisual,
       centroActor,
@@ -88,7 +94,7 @@ export async function reproducirHabilidadArmaDistancia(
     }),
   );
 
-  await Promise.all(promesas);
+  await Promise.all([promesaMovimiento, ...promesas]);
 
   if (contenedorActor) {
     await reproductor.crearTween({
@@ -106,6 +112,7 @@ async function reproducirProyectilProgramado({
   evento,
   impacto,
   indice,
+  cantidadProyectiles,
   version,
   recursoVisual,
   centroActor,
@@ -126,20 +133,30 @@ async function reproducirProyectilProgramado({
     destino: centroObjetivo,
   });
   const lateral = { x: -direccion.y, y: direccion.x };
+  const centroIndice = indice - (Math.max(1, cantidadProyectiles) - 1) / 2;
+  const separacionSalida = cantidadProyectiles > 1 ? centroIndice * 4.2 : 0;
+  const separacionLlegada = cantidadProyectiles > 1 ? centroIndice * 5.4 : 0;
+  const origenVisual = {
+    x: centroActor.x + lateral.x * separacionSalida,
+    y: centroActor.y + lateral.y * separacionSalida,
+  };
   const signo = indice % 2 === 0 ? 1 : -1;
   const destino = impacto?.impacto === false
     ? {
-        x: centroObjetivo.x + lateral.x * signo * (8 + indice * 2) + direccion.x * 4,
-        y: centroObjetivo.y + lateral.y * signo * (8 + indice * 2) + direccion.y * 4,
+        x: centroObjetivo.x + lateral.x * (separacionLlegada + signo * (10 + indice * 2)) + direccion.x * 4,
+        y: centroObjetivo.y + lateral.y * (separacionLlegada + signo * (10 + indice * 2)) + direccion.y * 4,
       }
-    : centroObjetivo;
-  const angulo = Math.atan2(destino.y - centroActor.y, destino.x - centroActor.x);
+    : {
+        x: centroObjetivo.x + lateral.x * separacionLlegada,
+        y: centroObjetivo.y + lateral.y * separacionLlegada,
+      };
+  const angulo = Math.atan2(destino.y - origenVisual.y, destino.x - origenVisual.x);
 
   const proyectil = reproductor.efectosReducidos
     ? null
     : await reproductor.creadorRecursosVisuales?.crearSpriteTemporal({
         recursoVisual,
-        centro: centroActor,
+        centro: origenVisual,
         longitudVisiblePx: Math.max(18, Number(perfil?.tamanoVisualPx) || 20),
         anguloRad: angulo,
         orientacionBaseGrados: 0,
@@ -155,7 +172,7 @@ async function reproducirProyectilProgramado({
 
   const estela = usaImpulsoFuerte && !reproductor.efectosReducidos
     ? reproductor.creadorEfectosHabilidades?.crearEstelaMovilProyectil({
-        centro: centroActor,
+        centro: origenVisual,
         perfil,
         grado,
         anguloRad: angulo,
@@ -180,7 +197,7 @@ async function reproducirProyectilProgramado({
       targets: estela,
       x: destino.x,
       y: destino.y,
-      alpha: impacto?.impacto === false ? 0.12 : 0.22,
+      alpha: impacto?.impacto === false ? 0.28 : 0.58,
       duration: duracionVuelo,
       ease: "Cubic.easeIn",
     }, version));

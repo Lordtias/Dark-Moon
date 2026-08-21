@@ -27,7 +27,7 @@ import {
   validarTipoEventoEstadoTactico,
 } from "../estado/SistemaEstadosTacticosCombatiente.js";
 
-const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio"]);
+const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio", "libre"]);
 const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
 
 export function validarConfiguracionEjecucionHabilidades(

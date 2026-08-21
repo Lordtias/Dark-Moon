@@ -280,6 +280,45 @@ export function crearEscenaArranquePhaser({
       programarRedibujo();
     }
 
+    mostrarFeedbackTemporal({ texto, tipo = "alerta" } = {}) {
+      if (typeof texto !== "string" || texto.trim() === "" || !this.compositor) {
+        return false;
+      }
+      const jugador = this.escenaDarkMoon?.entidades?.find(
+        (entidad) => entidad?.tipo === TIPOS_ENTIDAD_VISUAL.JUGADOR,
+      );
+      const centro = jugador ? this.compositor.obtenerCentroCasilla(jugador) : null;
+      if (!centro) return false;
+      const color = tipo === "negativo"
+        ? "#ffb0a8"
+        : tipo === "positivo"
+          ? "#c8f3b0"
+          : "#ffe29a";
+      const objeto = this.add
+        .text(centro.x, centro.y - 24, texto.trim(), {
+          color,
+          fontFamily: "monospace",
+          fontSize: "11px",
+          fontStyle: "bold",
+          stroke: "#111111",
+          strokeThickness: 3,
+          align: "center",
+          wordWrap: { width: 220, useAdvancedWrap: true },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(1200);
+      this.compositor.agregarEfectoTemporal?.(objeto);
+      this.tweens.add({
+        targets: objeto,
+        y: centro.y - 38,
+        alpha: 0,
+        duration: 1150,
+        ease: "Sine.easeOut",
+        onComplete: () => objeto.destroy?.(),
+      });
+      return true;
+    }
+
     mostrarFeedbackCamara(estado, motivo) {
       if (!this.textoZoom || !estado || motivo !== "zoom") return;
       const porcentaje = Math.round(estado.zoom * 100);

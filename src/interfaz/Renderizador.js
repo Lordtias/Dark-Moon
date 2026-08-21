@@ -290,6 +290,24 @@ export class Renderizador {
     this.combatLogText.scrollTop = this.combatLogText.scrollHeight;
   }
 
+  mostrarFeedbackMapa(mensaje) {
+    const mensajes = normalizarMensajesJuego(mensaje, {
+      nombreJugador: this.nombreJugador,
+    });
+    const evento = mensajes[0] ?? null;
+    if (!evento) return false;
+    const presentacion = resolverPresentacionMensajeJuego(evento);
+    const texto = [presentacion.destacado, presentacion.texto]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    if (!texto) return false;
+    return this.renderizadorMapa.mostrarFeedbackTemporal?.({
+      texto,
+      tipo: evento.tipo,
+    }) === true;
+  }
+
   // Evita que el historial crezca
   // indefinidamente.
   limitarHistorialMensajes() {
@@ -308,6 +326,7 @@ function crearEstadoVisualHabilidad(estado = null) {
           y: selector.y,
           objetivoValido: selector.objetivoValido === true,
           puedeEjecutar: selector.geometria?.puedeEjecutar === true,
+          probabilidadImpactoFinal: obtenerProbabilidadImpactoSelector(selector),
         })
       : null;
 
@@ -339,6 +358,18 @@ function crearEstadoVisualHabilidad(estado = null) {
     objetivosAfectados: congelarListaObjetivos(selector?.objetivosAfectados),
     recorrido: congelarListaRecorrido(selector?.recorrido),
   });
+}
+
+function obtenerProbabilidadImpactoSelector(selector) {
+  if (Number.isFinite(selector?.probabilidadImpactoFinal)) {
+    return selector.probabilidadImpactoFinal;
+  }
+  const objetivo = selector?.objetivosAfectados?.find?.(
+    (item) => item?.x === selector.x && item?.y === selector.y,
+  );
+  return Number.isFinite(objetivo?.probabilidadImpactoFinal)
+    ? objetivo.probabilidadImpactoFinal
+    : null;
 }
 
 function congelarValorSimple(valor) {
@@ -375,6 +406,9 @@ function congelarListaObjetivos(lista) {
           x: item.x,
           y: item.y,
           orden: Number.isInteger(item.orden) ? item.orden : 0,
+          probabilidadImpactoFinal: Number.isFinite(item.probabilidadImpactoFinal)
+            ? item.probabilidadImpactoFinal
+            : null,
         }),
       ),
   );

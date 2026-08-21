@@ -1,5 +1,5 @@
 {
-  "version": 12,
+  "version": 13,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -6679,9 +6679,9 @@
       "requisitoNivelMaestria": 10,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/tiro_letal.png",
-      "descripcion": "Dispara con daño reducido y después intenta realizar un salto evasivo de hasta dos casillas hacia atrás.",
+      "descripcion": "Dispara con daño reducido hacia un enemigo o una casilla libre válida y realiza simultáneamente un salto evasivo de hasta dos casillas en dirección opuesta.",
       "ejecucion": {
-        "tipoObjetivo": "enemigo",
+        "tipoObjetivo": "libre",
         "patronAtaque": "libre",
         "requiereLineaVision": true,
         "hostil": true,

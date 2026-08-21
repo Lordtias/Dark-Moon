@@ -228,12 +228,20 @@ export function ejecutarHabilidadArma({
   habilidad,
   grado,
   gradoConfig,
-  objetivo,
+  objetivo = null,
+  posicionObjetivo = null,
 } = {}) {
   validarContratoHabilidadArma({ combatiente, habilidad, gradoConfig });
-  if (!objetivo || objetivo.estaDestruido === true) {
+  const permiteObjetivoLibre = habilidad.ejecucion.tipoObjetivo === "libre";
+  if (objetivo?.estaDestruido === true) {
+    throw new Error("La habilidad de arma no puede usar un objetivo destruido.");
+  }
+  if (!objetivo && !permiteObjetivoLibre) {
     throw new Error("La habilidad de arma necesita un objetivo activo.");
   }
+  const posicionObjetivoResuelta = objetivo
+    ? { x: objetivo.x, y: objetivo.y }
+    : normalizarPosicionObjetivoLibre(posicionObjetivo);
   const descriptor = habilidad.ejecucion.ataqueArma;
   const cantidadMunicion = obtenerCantidadMunicionRequerida({
     descriptor,
@@ -283,15 +291,21 @@ export function ejecutarHabilidadArma({
   });
   if (descriptor.requierePreparacion) retirarPreparacionAccion(combatiente);
 
-  const posicionObjetivoOriginal = { x: objetivo.x, y: objetivo.y };
-  const resultadoAtaque = resolverSecuenciaFuenteAtaque({
-    atacante: combatiente,
-    objetivo,
-    fuente: fuentes[0],
-    configuracionDanio,
-    cantidadGolpes: gradoConfig.ataqueArma.cantidadProyectiles,
-    factorDanio: gradoConfig.ataqueArma.factorDanioArma,
-  });
+  const posicionObjetivoOriginal = posicionObjetivoResuelta;
+  const resultadoAtaque = objetivo
+    ? resolverSecuenciaFuenteAtaque({
+        atacante: combatiente,
+        objetivo,
+        fuente: fuentes[0],
+        configuracionDanio,
+        cantidadGolpes: gradoConfig.ataqueArma.cantidadProyectiles,
+        factorDanio: gradoConfig.ataqueArma.factorDanioArma,
+      })
+    : crearResultadoDisparoSinObjetivo({
+        fuente: fuentes[0],
+        cantidadProyectiles: gradoConfig.ataqueArma.cantidadProyectiles,
+        factorDanio: gradoConfig.ataqueArma.factorDanioArma,
+      });
   resultadoAtaque.municionRestante = recursoMunicion.restante;
   resultadoAtaque.municionUtilizada = recursoMunicion.municionUtilizada;
 
@@ -304,16 +318,20 @@ export function ejecutarHabilidadArma({
     { etiquetas: etiquetasEjecucion },
   );
 
-  const experienciaMaestria = registrarExperienciaArma({
-    combatiente,
-    resultadoAtaque,
-    habilidad,
-  });
+  const experienciaMaestria = objetivo
+    ? registrarExperienciaArma({
+        combatiente,
+        resultadoAtaque,
+        habilidad,
+      })
+    : Object.freeze({ exito: false, experienciaGanada: 0, resultados: Object.freeze([]) });
 
-  const impactos = crearImpactosProyectiles({
-    resultadoAtaque,
-    objetivo,
-  });
+  const impactos = objetivo
+    ? crearImpactosProyectiles({ resultadoAtaque, objetivo })
+    : crearImpactosProyectilesSinObjetivo({
+        resultadoAtaque,
+        posicionObjetivo: posicionObjetivoResuelta,
+      });
   const desplazamientoPendiente = gradoConfig.ataqueArma.distanciaDesplazamiento > 0
     ? Object.freeze({
         posicionObjetivoOriginal: Object.freeze({ ...posicionObjetivoOriginal }),
@@ -400,6 +418,72 @@ function obtenerCantidadMunicionRequerida({ descriptor, gradoConfig }) {
     throw new Error("La habilidad de arma requiere una cantidad de munición válida por grado.");
   }
   return cantidad;
+}
+
+function normalizarPosicionObjetivoLibre(posicion) {
+  if (!Number.isInteger(posicion?.x) || !Number.isInteger(posicion?.y)) {
+    throw new Error("La habilidad de objetivo libre necesita una casilla válida.");
+  }
+  return { x: posicion.x, y: posicion.y };
+}
+
+function crearResultadoDisparoSinObjetivo({
+  fuente,
+  cantidadProyectiles,
+  factorDanio,
+}) {
+  if (!Number.isInteger(cantidadProyectiles) || cantidadProyectiles <= 0) {
+    throw new Error("El disparo libre necesita una cantidad de proyectiles válida.");
+  }
+  const golpes = Array.from({ length: cantidadProyectiles }, (_, indice) => ({
+    nombreFuente: fuente?.nombre ?? null,
+    idFuente: fuente?.objeto?.id ?? null,
+    familiaArma: fuente?.objeto?.familiaObjeto ?? null,
+    mano: fuente?.mano ?? null,
+    multiplicadorGolpe: factorDanio,
+    orden: indice,
+    impacto: false,
+    bloqueado: false,
+    critico: false,
+    danio: 0,
+    danioCalculado: 0,
+    danioBruto: 0,
+    componentesDanio: [],
+  }));
+  return {
+    impacto: false,
+    bloqueado: false,
+    critico: false,
+    danio: 0,
+    danioCalculado: 0,
+    danioBruto: 0,
+    golpesProgramados: cantidadProyectiles,
+    golpesRealizados: cantidadProyectiles,
+    golpes,
+  };
+}
+
+function crearImpactosProyectilesSinObjetivo({
+  resultadoAtaque,
+  posicionObjetivo,
+}) {
+  return (resultadoAtaque.golpes ?? []).map((golpe, indice) => ({
+    objetivoEntidad: null,
+    posicionObjetivo: { ...posicionObjetivo },
+    orden: indice,
+    multiplicadorDanio: golpe.multiplicadorGolpe ?? 1,
+    impacto: false,
+    critico: false,
+    objetivoDerrotado: false,
+    danio: {
+      ...golpe,
+      danio: 0,
+      vidaObjetivoAntes: null,
+      vidaObjetivoDespues: null,
+      vidaObjetivoMaxima: null,
+    },
+    efectos: [],
+  }));
 }
 
 function crearImpactosProyectiles({ resultadoAtaque, objetivo }) {

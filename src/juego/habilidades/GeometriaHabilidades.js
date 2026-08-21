@@ -85,6 +85,7 @@ export function crearVistaPreviaHabilidad({
         tipoObjetivo: habilidad.ejecucion.tipoObjetivo,
         objetivoPrimario,
         objetivosAfectados: resolucionImpacto.objetivosAfectados,
+        casillasAfectadas: resolucionImpacto.casillasAfectadas,
       });
   const puedeEjecutar = geometria.puedeEjecutar && objetivoValido;
 
@@ -199,9 +200,12 @@ export function evaluarSeleccionHabilidad({
     const lineaVisionDespejada = Boolean(
       resultado.lineaVisionDespejada ?? resultado.puedeAtacar,
     );
+    const casillaLibreValida = habilidad.ejecucion.tipoObjetivo !== "libre" ||
+      esCasillaSuelo(mapa, x, y, sistemaEspacial);
     const puedeEjecutar =
       dentroAlcance &&
       patronValido &&
+      casillaLibreValida &&
       (!habilidad.ejecucion.requiereLineaVision || lineaVisionDespejada);
 
     return {
@@ -212,7 +216,9 @@ export function evaluarSeleccionHabilidad({
       distancia: resultado.distancia ?? null,
       mensaje: puedeEjecutar
         ? null
-        : (resultado.mensaje ?? "La casilla no es válida para la habilidad."),
+        : !casillaLibreValida
+          ? "La habilidad necesita una casilla de suelo válida."
+          : (resultado.mensaje ?? "La casilla no es válida para la habilidad."),
       detalle: resultado,
     };
   } catch (error) {
@@ -505,8 +511,10 @@ function validarObjetivoSeleccion({
   tipoObjetivo,
   objetivoPrimario,
   objetivosAfectados,
+  casillasAfectadas = [],
 }) {
   if (tipoObjetivo === "enemigo") return Boolean(objetivoPrimario);
+  if (tipoObjetivo === "libre") return casillasAfectadas.length > 0;
   return objetivosAfectados.length > 0;
 }
 

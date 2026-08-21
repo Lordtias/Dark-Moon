@@ -247,6 +247,9 @@ export class IntegracionHabilidadesDom {
     }
 
     this.renderizador.mostrarMensaje(resultado.mensaje);
+    if (resultado.feedbackMapa) {
+      this.renderizador.mostrarFeedbackMapa?.(resultado.feedbackMapa);
+    }
     return resultado;
   }
 

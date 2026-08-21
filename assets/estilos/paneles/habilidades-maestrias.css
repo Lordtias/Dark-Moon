@@ -21,9 +21,7 @@
 
 [data-ranura-habilidad].habilidad-seleccionada {
   border-color: #f0d86f;
-  box-shadow:
-    0 0 0 2px #8a782c,
-    0 0 13px rgba(240, 216, 111, 0.65);
+  box-shadow: 0 0 0 2px #8a782c;
 }
 
 [data-ranura-habilidad].habilidad-bloqueada {
@@ -46,8 +44,7 @@
 
 .habilidad-icono {
   object-fit: contain;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  image-rendering: auto;
   pointer-events: none;
 }
 
@@ -436,7 +433,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 .tarjeta-habilidad__inicial {
   color: var(--tema);
@@ -890,7 +887,7 @@
 
 .nodo-habilidad--maximo {
   border-color: #bca258;
-  box-shadow: inset 0 0 9px rgba(171, 136, 47, 0.24), 0 0 10px rgba(184, 151, 58, 0.2);
+  box-shadow: inset 0 0 0 2px rgba(171, 136, 47, 0.24);
 }
 
 .nodo-habilidad--asignada::after {
@@ -916,6 +913,7 @@
 
 .nodo-habilidad__icono img {
   object-fit: cover;
+  image-rendering: auto;
 }
 
 .nodo-habilidad__inicial {
@@ -976,6 +974,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  image-rendering: auto;
 }
 
 .detalle-habilidad-modal__inicial {

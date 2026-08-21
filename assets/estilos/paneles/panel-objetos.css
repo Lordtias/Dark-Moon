@@ -23,17 +23,13 @@
 .slot-inventario.objeto-con-rareza,
 .casilla-equipamiento.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 8px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .slot-inventario.interactuable.objeto-con-rareza:hover,
 .slot-equipamiento.interactuable:hover .casilla-equipamiento.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 14px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 2px var(--color-rareza-objeto-suave) inset;
 }
 
 .objeto-con-rareza .nombre-objeto,
@@ -41,9 +37,6 @@
   color: var(--color-rareza-objeto);
 }
 
-.objeto-con-rareza .imagen-objeto {
-  filter: drop-shadow(0 0 3px var(--color-rareza-objeto-suave));
-}
 
 /* Reserva visual de un arma de dos manos. */
 .casilla-equipamiento.reservada {
@@ -99,16 +92,12 @@
 .slot-inventario.ocupado.objeto-con-rareza,
 .casilla-equipamiento.ocupada.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 8px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .slot-inventario.ocupado.interactuable.objeto-con-rareza:hover,
 .slot-equipamiento.interactuable:hover
   .casilla-equipamiento.ocupada.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 14px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 2px var(--color-rareza-objeto-suave) inset;
 }

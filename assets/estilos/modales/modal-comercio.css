@@ -179,23 +179,19 @@ button.modal-comercio__slot:hover {
 
 .modal-comercio__slot.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 8px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .modal-comercio__slot.seleccionado {
   border-color: #efd06d;
-  box-shadow:
-    0 0 0 2px rgba(239, 208, 109, 0.27),
-    0 0 17px rgba(239, 208, 109, 0.12);
+  box-shadow: 0 0 0 2px rgba(239, 208, 109, 0.42);
 }
 
 .modal-comercio__slot.seleccionado.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
   box-shadow:
-    0 0 0 2px rgba(239, 208, 109, 0.27),
-    0 0 18px var(--color-rareza-objeto-suave);
+    0 0 0 2px rgba(239, 208, 109, 0.42),
+    0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .modal-comercio__slot--vacio {
@@ -209,7 +205,7 @@ button.modal-comercio__slot:hover {
   width: 42px;
   height: 42px;
   object-fit: contain;
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
 .modal-comercio__nombre-respaldo,

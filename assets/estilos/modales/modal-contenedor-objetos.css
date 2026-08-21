@@ -123,9 +123,7 @@
 
 .modal-contenedor-objetos__slot.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 9px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .modal-contenedor-objetos__slot:hover {
@@ -134,35 +132,28 @@
 
 .modal-contenedor-objetos__slot.objeto-con-rareza:hover {
   border-color: var(--color-rareza-objeto);
-  box-shadow:
-    0 0 0 1px var(--color-rareza-objeto-suave) inset,
-    0 0 15px var(--color-rareza-objeto-suave);
+  box-shadow: 0 0 0 2px var(--color-rareza-objeto-suave) inset;
 }
 
 .modal-contenedor-objetos__slot.seleccionado {
   border-color: #e4c56e;
-  box-shadow:
-    0 0 0 2px rgba(228, 197, 110, 0.22),
-    0 0 16px rgba(228, 197, 110, 0.1);
+  box-shadow: 0 0 0 2px rgba(228, 197, 110, 0.42);
 }
 
 .modal-contenedor-objetos__slot.seleccionado.objeto-con-rareza {
   border-color: var(--color-rareza-objeto);
   box-shadow:
-    0 0 0 2px rgba(228, 197, 110, 0.3),
-    0 0 18px var(--color-rareza-objeto-suave);
+    0 0 0 2px rgba(228, 197, 110, 0.42),
+    0 0 0 1px var(--color-rareza-objeto-suave) inset;
 }
 
 .modal-contenedor-objetos__slot .imagen-objeto {
   width: 44px;
   height: 44px;
   object-fit: contain;
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
-.modal-contenedor-objetos__slot.objeto-con-rareza .imagen-objeto {
-  filter: drop-shadow(0 0 4px var(--color-rareza-objeto-suave));
-}
 
 .modal-contenedor-objetos__nombre-respaldo {
   max-width: 100%;

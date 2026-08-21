@@ -1,10 +1,10 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon
-Versión del documento: 1.2
+Versión del documento: 1.3
 Fecha inicial: 30 de julio de 2026
-Última actualización: 10 de agosto de 2026
-Estado: guía visual principal, editable; decisiones P0 y corte visual P2 incorporados
+Última actualización: 20 de agosto de 2026
+Estado: guía visual principal, editable; decisiones P0/P2 y normalización UI-I1 incorporadas
 
 > **Estado gráfico vigente:** Phaser 4.2.1 es el único renderizador propio mantenido por Dark Moon. La implementación Canvas 2D legacy fue retirada después de certificar la cobertura funcional y visual de Phaser. Las referencias a Canvas 2D dentro de la crónica de P5, P6 y P7 se conservan como contexto histórico de esas validaciones y no describen el runtime actual.
 
@@ -703,6 +703,21 @@ Los iconos deben:
 - evitar marcos incorporados si la interfaz ya los aporta;
 - mantener orientación coherente por familia.
 
+### 13.1.1 Renderizado canónico de iconografía UI
+
+La iconografía actual pertenece a una dirección ilustrada de alta resolución y no debe tratarse como pixel art durante su presentación.
+
+Reglas canónicas:
+
+- los PNG e imágenes ilustradas de habilidades, objetos, profesiones, efectos y estados utilizan el suavizado normal del navegador (`image-rendering: auto`);
+- no se utilizarán `pixelated` ni `crisp-edges` para iconografía de interfaz;
+- no se aplicará `filter: drop-shadow(...)` directamente al PNG/SVG de un icono para representar selección o rareza;
+- selección, rareza y estados interactivos pertenecen al contenedor y se comunican mediante borde, color, anillo sólido, fondo o tratamiento interior sin halo difuminado;
+- `grayscale`, `opacity`, `brightness` u otros filtros pueden mantenerse cuando expresan de forma deliberada un estado semántico como bloqueado, no aprendido o no disponible;
+- el redimensionamiento de una imagen no debe alterar su archivo fuente ni exigir una versión específica por tamaño de panel.
+
+La misma dirección se aplica al mundo Phaser: `antialias: true`, `pixelArt: false`, `roundPixels: false` y el canvas con `image-rendering: auto`. El zoom fraccionario puede producir el suavizado normal del filtrado lineal y no debe corregirse activando pixel art o redondeo de píxeles. Cualquier cambio futuro del filtrado Phaser requiere evidencia de un defecto real y no puede alterar geometría, cámara ni reglas de juego.
+
 ## 13.2 Armas
 
 Orientación recomendada para inventario:
@@ -742,12 +757,12 @@ No depender únicamente del color del líquido.
 La rareza debe comunicarse desde la interfaz mediante:
 
 - borde;
-- halo discreto;
+- anillo o tratamiento interior discreto;
 - etiqueta;
 - color;
 - detalle.
 
-El icono no debe incorporar un fondo de rareza irreversible.
+El icono no debe incorporar un fondo de rareza irreversible ni recibir un halo difuminado que reduzca su nitidez.
 
 ## 13.6 Botín en mapa
 

@@ -189,7 +189,7 @@
   height: 82px;
 
   object-fit: contain;
-  image-rendering: pixelated;
+  image-rendering: auto;
 
   user-select: none;
 }

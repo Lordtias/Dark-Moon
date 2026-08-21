@@ -73,3 +73,49 @@ export function calcularCostoBaseFaseAtaque({ combatiente, configuracionAtaque, 
   }
   return Math.max(0, Math.round(resuelto));
 }
+
+export function calcularCostoBaseFaseHabilidadArma({
+  combatiente,
+  configuracionAtaque,
+  fase,
+  idHabilidad,
+  factorPreparacion = 1,
+} = {}) {
+  if (!combatiente || typeof combatiente !== "object") {
+    throw new Error("Se necesita un combatiente para resolver la fase de habilidad de arma.");
+  }
+  if (!Object.values(FASES_ACCION_COMPUESTA).includes(fase)) {
+    throw new Error(`La fase de acción "${fase}" no es válida.`);
+  }
+  if (typeof idHabilidad !== "string" || idHabilidad.trim() === "") {
+    throw new Error("La fase de habilidad de arma necesita un ID de habilidad.");
+  }
+  if (!Number.isFinite(factorPreparacion) || factorPreparacion <= 0) {
+    throw new Error("El factor de preparación de la habilidad debe ser mayor que 0.");
+  }
+
+  const costos = obtenerCostosBaseFasesAtaque(configuracionAtaque);
+  let valorBase = costos[fase];
+  if (fase === FASES_ACCION_COMPUESTA.PREPARACION) {
+    valorBase = Math.round(valorBase * factorPreparacion);
+  }
+  const arma = configuracionAtaque?.armaControladora;
+  const contexto = {
+    tipoAccion: TIPOS_ACCION_COMPUESTA.HABILIDAD,
+    faseAccion: fase,
+    familiaArma: arma?.familiaObjeto ?? null,
+    tipoAtaque: configuracionAtaque?.propiedadesControladoras?.tipoAtaque ?? null,
+    esAtaqueDual: configuracionAtaque?.esAtaqueDual === true,
+    idHabilidad: idHabilidad.trim().toLowerCase(),
+  };
+  const resuelto = combatiente.obtenerValorModificado(
+    OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+    valorBase,
+    contexto,
+  );
+  if (!Number.isFinite(resuelto)) {
+    throw new Error("El coste de fase de habilidad resuelto no es válido.");
+  }
+  return Math.max(0, Math.round(resuelto));
+}
+

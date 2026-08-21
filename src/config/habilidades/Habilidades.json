@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -1018,11 +1018,7 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1057,11 +1053,7 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1096,11 +1088,7 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": [
-                "al_crear",
-                "al_entrar",
-                "por_intervalo"
-              ],
+              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1969,7 +1957,21 @@
             }
           }
         ]
-      }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_multiple",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_potente",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "modificacion"
+        }
+      ]
     },
     "tension_controlada": {
       "nombre": "Tensión controlada",
@@ -2010,7 +2012,21 @@
             }
           }
         ]
-      }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_multiple",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_potente",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "modificacion"
+        }
+      ]
     },
     "tiro_letal": {
       "nombre": "Tiro letal",
@@ -2051,7 +2067,21 @@
             }
           }
         ]
-      }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_multiple",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_potente",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "modificacion"
+        }
+      ]
     },
     "ojo_halcon": {
       "nombre": "Ojo de halcón",
@@ -2072,7 +2102,21 @@
             }
           }
         ]
-      }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_multiple",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_potente",
+          "tipo": "modificacion"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "modificacion"
+        }
+      ]
     },
     "canalizacion_estable": {
       "nombre": "Canalización estable",
@@ -6299,6 +6343,395 @@
         },
         "requisitosLanzador": {
           "familiaSecundaria": "escudo"
+        }
+      }
+    },
+    "disparo_multiple": {
+      "nombre": "Disparo múltiple",
+      "maestria": "arcos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 2,
+      "gradoMaximo": 3,
+      "icono": "assets/imagenes/habilidades/tiro_estable.png",
+      "descripcion": "Prepara varias flechas y las dispara como una ráfaga rápida contra un enemigo.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "requisitosLanzador": {
+          "familiaArma": "arco"
+        },
+        "ataqueArma": {
+          "requierePreparacion": true,
+          "requiereMunicion": true,
+          "consumeMunicion": true,
+          "usaAlcanceArma": true,
+          "etiquetasEjecucion": ["proyectil", "disparo_multiple"],
+          "etiquetaContexto": "disparo_multiple"
+        },
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 2,
+            "factorDanioArma": 0.6,
+            "factorPreparacion": 1.15,
+            "cantidadMunicion": 2
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 3,
+            "factorDanioArma": 0.5,
+            "factorPreparacion": 1.3,
+            "cantidadMunicion": 3
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 4,
+            "factorDanioArma": 0.45,
+            "factorPreparacion": 1.45,
+            "cantidadMunicion": 4
+          }
+        }
+      }
+    },
+    "disparo_potente": {
+      "nombre": "Disparo potente",
+      "maestria": "arcos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 5,
+      "gradoMaximo": 3,
+      "icono": "assets/imagenes/habilidades/tension_controlada.png",
+      "descripcion": "Carga un único disparo de gran potencia a cambio de un tiempo de preparación elevado.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "requisitosLanzador": {
+          "familiaArma": "arco"
+        },
+        "ataqueArma": {
+          "requierePreparacion": true,
+          "requiereMunicion": true,
+          "consumeMunicion": true,
+          "usaAlcanceArma": true,
+          "etiquetasEjecucion": [
+            "proyectil",
+            "disparo_concentrado",
+            "disparo_potente"
+          ],
+          "etiquetaContexto": "disparo_concentrado"
+        },
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 1.6,
+            "factorPreparacion": 1.8,
+            "cantidadMunicion": 1
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 1.85,
+            "factorPreparacion": 1.7,
+            "cantidadMunicion": 1
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 2.1,
+            "factorPreparacion": 1.6,
+            "cantidadMunicion": 1
+          }
+        }
+      }
+    },
+    "francotirador": {
+      "nombre": "Francotirador",
+      "maestria": "arcos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 7,
+      "gradoMaximo": 3,
+      "icono": "assets/imagenes/habilidades/ojo_halcon.png",
+      "descripcion": "Invierte tiempo en apuntar. El siguiente disparo compatible gana mucha Precisión, Crítico y menor Dispersión.",
+      "ejecucion": {
+        "tipoObjetivo": "propio",
+        "patronAtaque": "libre",
+        "requiereLineaVision": false,
+        "hostil": false,
+        "requisitosLanzador": {
+          "familiaArma": "arco"
+        },
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 150,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [],
+            "estadoTactico": {
+              "id": "apuntando",
+              "tipo": "concentracion",
+              "nombre": "Apuntando",
+              "descripcion": "Concentración de francotirador: mejora el próximo disparo compatible y se pierde al romper la quietud.",
+              "modificadores": [
+                {
+                  "objetivo": "precision",
+                  "operacion": "porcentaje_total",
+                  "valor": 25,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "probabilidadCritico",
+                  "operacion": "sumar",
+                  "valor": 15,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "dispersion",
+                  "operacion": "sumar",
+                  "valor": 8,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                }
+              ],
+              "politicas": {
+                "interrumpirPor": [
+                  "movimiento",
+                  "espera",
+                  "accion",
+                  "consumo",
+                  "danio_recibido",
+                  "habilidad_ejecutada"
+                ],
+                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
+                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+              }
+            }
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 140,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [],
+            "estadoTactico": {
+              "id": "apuntando",
+              "tipo": "concentracion",
+              "nombre": "Apuntando",
+              "descripcion": "Concentración de francotirador: mejora el próximo disparo compatible y se pierde al romper la quietud.",
+              "modificadores": [
+                {
+                  "objetivo": "precision",
+                  "operacion": "porcentaje_total",
+                  "valor": 40,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "probabilidadCritico",
+                  "operacion": "sumar",
+                  "valor": 25,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "dispersion",
+                  "operacion": "sumar",
+                  "valor": 12,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                }
+              ],
+              "politicas": {
+                "interrumpirPor": [
+                  "movimiento",
+                  "espera",
+                  "accion",
+                  "consumo",
+                  "danio_recibido",
+                  "habilidad_ejecutada"
+                ],
+                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
+                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+              }
+            }
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 130,
+            "alcance": 1,
+            "danio": [],
+            "efectos": [],
+            "estadoTactico": {
+              "id": "apuntando",
+              "tipo": "concentracion",
+              "nombre": "Apuntando",
+              "descripcion": "Concentración de francotirador: mejora el próximo disparo compatible y se pierde al romper la quietud.",
+              "modificadores": [
+                {
+                  "objetivo": "precision",
+                  "operacion": "porcentaje_total",
+                  "valor": 55,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "probabilidadCritico",
+                  "operacion": "sumar",
+                  "valor": 35,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                },
+                {
+                  "objetivo": "dispersion",
+                  "operacion": "sumar",
+                  "valor": 16,
+                  "condiciones": {
+                    "familiaArma": "arco",
+                    "etiquetaAccion": "disparo_concentrado"
+                  }
+                }
+              ],
+              "politicas": {
+                "interrumpirPor": [
+                  "movimiento",
+                  "espera",
+                  "accion",
+                  "consumo",
+                  "danio_recibido",
+                  "habilidad_ejecutada"
+                ],
+                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
+                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+              }
+            }
+          }
+        }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_potente",
+          "tipo": "sinergia"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "sinergia"
+        }
+      ]
+    },
+    "disparo_evasivo": {
+      "nombre": "Disparo evasivo",
+      "maestria": "arcos",
+      "tipo": "activa",
+      "requisitoNivelMaestria": 10,
+      "gradoMaximo": 3,
+      "icono": "assets/imagenes/habilidades/tiro_letal.png",
+      "descripcion": "Dispara con daño reducido y después intenta realizar un salto evasivo de hasta dos casillas hacia atrás.",
+      "ejecucion": {
+        "tipoObjetivo": "enemigo",
+        "patronAtaque": "libre",
+        "requiereLineaVision": true,
+        "hostil": true,
+        "requisitosLanzador": {
+          "familiaArma": "arco"
+        },
+        "ataqueArma": {
+          "requierePreparacion": true,
+          "requiereMunicion": true,
+          "consumeMunicion": true,
+          "usaAlcanceArma": true,
+          "etiquetasEjecucion": [
+            "proyectil",
+            "disparo_concentrado",
+            "disparo_evasivo"
+          ],
+          "etiquetaContexto": "disparo_concentrado"
+        },
+        "grados": {
+          "1": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 0.65,
+            "factorPreparacion": 1.0,
+            "distanciaDesplazamiento": 2,
+            "desplazamientoTactico": {
+              "reglaEspacial": "paso_a_paso",
+              "formaVisual": "salto"
+            },
+            "cantidadMunicion": 1
+          },
+          "2": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 0.75,
+            "factorPreparacion": 1.0,
+            "distanciaDesplazamiento": 2,
+            "desplazamientoTactico": {
+              "reglaEspacial": "paso_a_paso",
+              "formaVisual": "salto"
+            },
+            "cantidadMunicion": 1
+          },
+          "3": {
+            "costoMana": 0,
+            "costoTemporalBase": 100,
+            "danio": [],
+            "efectos": [],
+            "cantidadProyectiles": 1,
+            "factorDanioArma": 0.85,
+            "factorPreparacion": 1.0,
+            "distanciaDesplazamiento": 2,
+            "desplazamientoTactico": {
+              "reglaEspacial": "paso_a_paso",
+              "formaVisual": "salto"
+            },
+            "cantidadMunicion": 1
+          }
         }
       }
     }

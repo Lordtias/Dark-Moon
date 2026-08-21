@@ -44,10 +44,36 @@ export function crearConfiguracionHabilidadEfectiva({
     lanzador, contextoBase, atributo: ATRIBUTOS_HABILIDAD.COSTO_TEMPORAL,
     valorBase: gradoConfig.costoTemporalBase, normalizar: enteroPositivo,
   });
-  efectiva.alcance = resolverAtributo({
-    lanzador, contextoBase, atributo: ATRIBUTOS_HABILIDAD.ALCANCE,
-    valorBase: gradoConfig.alcance, normalizar: enteroPositivo,
-  });
+  efectiva.alcance = habilidad.ejecucion.ataqueArma?.usaAlcanceArma === true
+    ? enteroPositivo(lanzador.estadisticasDerivadas?.alcanceAtaque ?? 1)
+    : resolverAtributo({
+        lanzador, contextoBase, atributo: ATRIBUTOS_HABILIDAD.ALCANCE,
+        valorBase: gradoConfig.alcance, normalizar: enteroPositivo,
+      });
+
+  if (efectiva.ataqueArma) {
+    efectiva.ataqueArma.cantidadProyectiles = resolverAtributo({
+      lanzador,
+      contextoBase,
+      atributo: ATRIBUTOS_HABILIDAD.CANTIDAD_PROYECTILES,
+      valorBase: gradoConfig.ataqueArma.cantidadProyectiles,
+      normalizar: enteroPositivo,
+    });
+    efectiva.ataqueArma.factorDanioArma = resolverAtributo({
+      lanzador,
+      contextoBase,
+      atributo: ATRIBUTOS_HABILIDAD.FACTOR_DANIO_ARMA,
+      valorBase: gradoConfig.ataqueArma.factorDanioArma,
+      normalizar: numeroPositivo,
+    });
+    efectiva.ataqueArma.distanciaDesplazamiento = resolverAtributo({
+      lanzador,
+      contextoBase,
+      atributo: ATRIBUTOS_HABILIDAD.DISTANCIA_DESPLAZAMIENTO,
+      valorBase: gradoConfig.ataqueArma.distanciaDesplazamiento,
+      normalizar: enteroNoNegativo,
+    });
+  }
 
   if (efectiva.formaImpacto) {
     resolverFormaImpacto({ lanzador, contextoBase, forma: efectiva.formaImpacto });

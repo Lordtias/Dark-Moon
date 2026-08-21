@@ -5,6 +5,7 @@ import { calcularDistanciaCuadricula } from "../espacio/GeometriaCuadricula.js";
 import {
   verificarRequisitosAtaque,
   consumirRecursosAtaque,
+  obtenerContextoSemanticoAtaque,
 } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
@@ -447,7 +448,11 @@ function resolverFuenteAtaque({
       ...componenteResuelto,
     }),
   );
-  const danioAplicado = objetivo.recibirDanio(paquete.danioCalculado);
+  const danioAplicado = objetivo.recibirDanio(paquete.danioCalculado, {
+    fuente: atacante,
+    tipoAccion: "ataque",
+    hostil: true,
+  });
   const componentesFisicos = componentesDanio.filter(
     (componente) => componente.tipo === TIPOS_DANIO.FISICO,
   );
@@ -698,6 +703,95 @@ export function resolverAtaqueSinObjetivo({ atacante } = {}) {
   };
 }
 
+// Resuelve una secuencia de golpes de una misma fuente de arma para una
+// habilidad. No consume recursos ni tiempo: reutiliza exactamente impacto,
+// crítico, bloqueo, Armadura, Penetración y daño del motor canónico.
+export function resolverSecuenciaFuenteAtaque({
+  atacante,
+  objetivo,
+  fuente,
+  configuracionDanio,
+  cantidadGolpes = 1,
+  factorDanio = 1,
+} = {}) {
+  if (!atacante?.estaVivo) {
+    throw new Error("La secuencia de arma necesita un atacante vivo.");
+  }
+  if (!(objetivo instanceof Destructible) || objetivo.estaDestruido) {
+    throw new Error("La secuencia de arma necesita un objetivo destructible activo.");
+  }
+  if (!fuente || typeof fuente !== "object") {
+    throw new Error("La secuencia de arma necesita una fuente canónica.");
+  }
+  if (!configuracionDanio || typeof configuracionDanio !== "object") {
+    throw new Error("La secuencia de arma necesita la configuración canónica de daño.");
+  }
+  if (!Number.isInteger(cantidadGolpes) || cantidadGolpes <= 0) {
+    throw new Error("La cantidad de golpes de la secuencia debe ser un entero positivo.");
+  }
+  if (!Number.isFinite(factorDanio) || factorDanio <= 0) {
+    throw new Error("El factor de daño de la secuencia debe ser mayor que 0.");
+  }
+
+  const idResolucion = crearIdResolucionAtaque();
+  const fuenteHabilidad = {
+    ...fuente,
+    multiplicadorGolpe: fuente.multiplicadorGolpe * factorDanio,
+  };
+  const golpes = [];
+
+  for (let indice = 0; indice < cantidadGolpes; indice += 1) {
+    // Una ráfaga ya comprometida resuelve todos sus proyectiles. Si un golpe
+    // destruye al objetivo, los siguientes continúan su trayectoria y pueden
+    // resolver impacto/crítico, pero recibirDanio devolverá 0 sobre Vida ya
+    // agotada. Así visuales, munición y cantidad programada permanecen coherentes.
+    const tiradaDanioGlobal = tirarRango(
+      configuracionDanio.danioPlanoGlobal.minimo,
+      configuracionDanio.danioPlanoGlobal.maximo,
+    );
+    golpes.push(
+      resolverFuenteAtaque({
+        atacante,
+        objetivo,
+        fuente: fuenteHabilidad,
+        configuracionDanio,
+        tiradaDanioGlobal,
+        estadisticasObjetivo: obtenerEstadisticasCombatiente(objetivo),
+      }),
+    );
+  }
+
+  const primerGolpe = golpes[0] ?? null;
+  return {
+    idResolucion,
+    impacto: golpes.some((golpe) => golpe.impacto),
+    bloqueado: golpes.some((golpe) => golpe.bloqueado),
+    critico: golpes.some((golpe) => golpe.critico),
+    danio: sumarCampo(golpes, "danio"),
+    danioCalculado: sumarCampo(golpes, "danioCalculado"),
+    danioBruto: sumarCampo(golpes, "danioBruto"),
+    desgloseDanio: combinarDesgloses(golpes),
+    componentesDanio: golpes.flatMap((golpe) => golpe.componentesDanio ?? []),
+    danioMitigadoArmadura: sumarCampo(golpes, "danioMitigadoArmadura"),
+    danioMitigadoBloqueo: sumarCampo(golpes, "danioMitigadoBloqueo"),
+    danioDespuesBloqueo: sumarCampo(golpes, "danioDespuesBloqueo"),
+    probabilidadBloqueo: primerGolpe?.probabilidadBloqueo ?? 0,
+    mitigacionBloqueo: primerGolpe?.mitigacionBloqueo ?? 0,
+    tiradaBloqueo: primerGolpe?.tiradaBloqueo ?? null,
+    armadura: primerGolpe?.armadura ?? 0,
+    reduccionArmadura: primerGolpe?.reduccionArmadura ?? 0,
+    objetivoDestruido: objetivo.estaDestruido,
+    probabilidadImpacto: primerGolpe?.probabilidadImpacto ?? 0,
+    tiradaImpacto: primerGolpe?.tiradaImpacto ?? null,
+    esAtaqueDual: false,
+    golpesProgramados: cantidadGolpes,
+    golpesRealizados: golpes.length,
+    golpes,
+    factorDanio,
+    mensaje: `${atacante.nombre} ejecuta una habilidad de arma contra ${objetivo.nombre}.`,
+  };
+}
+
 export function resolverAtaque({ atacante, objetivo } = {}) {
   if (!atacante?.estaVivo) {
     return {
@@ -752,7 +846,15 @@ export function resolverAtaque({ atacante, objetivo } = {}) {
   // por acción de ataque.
   const resultadoMunicion = consumirRecursosAtaque(atacante);
   const idResolucion = crearIdResolucionAtaque();
-  const estadisticasAtacante = atacante.estadisticasDerivadas;
+  const contextoSemantico = obtenerContextoSemanticoAtaque(requisitos.configuracion);
+  const estadisticasAtacante =
+    contextoSemantico.etiquetaAccion &&
+    typeof atacante.obtenerEstadisticasDerivadasContextuales === "function"
+      ? atacante.obtenerEstadisticasDerivadasContextuales({
+          tipoAccion: "ataque",
+          etiquetaAccion: contextoSemantico.etiquetaAccion,
+        })
+      : atacante.estadisticasDerivadas;
   const configuracionDanio = estadisticasAtacante.danioFisico;
   const fuentes = configuracionDanio.componentes;
 

@@ -61,7 +61,12 @@ export const CONFIGURACION_COMBATE = {
       // Solo se declara contenido existente. Ballesta (75/25) y armas de
       // fuego (90/10) quedan como referencias documentales futuras.
       porFamilia: {
-        arco: { preparacion: 0.6, ejecucion: 0.4 },
+        arco: {
+          preparacion: 0.6,
+          ejecucion: 0.4,
+          etiquetaContexto: "disparo_concentrado",
+          etiquetasEjecucion: ["ataque_arma", "disparo_concentrado"],
+        },
       },
     },
   },

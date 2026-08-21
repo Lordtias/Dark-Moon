@@ -489,22 +489,21 @@ El registro productivo de atributos internos queda formado por:
 | `duracionZona` | duración de una zona temporal estática | unidades de `SistemaTiempo` | `SistemaZonasTemporales` |
 | `intervaloZona` | separación entre activaciones periódicas de zona | unidades de `SistemaTiempo` | `SistemaZonasTemporales` |
 | `radioAura` | radio de una emisión móvil alrededor de su emisor | casillas | coordinador espacial de auras |
+| `cantidadProyectiles` | número de proyectiles resueltos por una única ejecución de habilidad de arma | cantidad entera | `MotorAtaqueArmaHabilidad` |
+| `factorDanioArma` | multiplicador aplicado al daño canónico de la fuente de arma | multiplicador | `MotorAtaqueArmaHabilidad` / `SistemaCombate` |
+| `distanciaDesplazamiento` | distancia máxima de un desplazamiento táctico causado por una habilidad | casillas | `ResolutorDesplazamientoTactico` |
 
-Estos nombres y significados también están comentados junto al registro productivo en `src/juego/habilidades/ContratosAtributosHabilidad.js`. `ConfiguracionHabilidadEfectiva` resuelve un snapshot derivado y congelado para la ejecución/vista previa sin modificar `Habilidades.json` ni persistir resultados.
+Estos nombres y significados también están comentados junto al registro productivo en `src/juego/habilidades/ContratosAtributosHabilidad.js`. `ConfiguracionHabilidadEfectiva` resuelve un snapshot derivado y congelado para la ejecución/vista previa sin modificar `Habilidades.json` ni persistir resultados. AR1 promovió `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` al registro productivo porque ya poseen consumidores canónicos reales.
 
 #### Reservados a corto plazo
 
-La auditoría identificó dos campos especialmente probables para habilidades de arco y proyectiles:
+Permanece reservado únicamente:
 
 ```text
-cantidadProyectiles
 maximoProyectilesSimultaneos
 ```
 
-- `cantidadProyectiles`: número de proyectiles generados por una única ejecución;
-- `maximoProyectilesSimultaneos`: tope de proyectiles de esa misma fuente que pueden coexistir en el mundo.
-
-Se consideran **candidatos de corto plazo**, por ejemplo para Disparo múltiple, Abanico de proyectiles o Lluvia de flechas. Están documentados y comentados en código como reservados, pero no forman parte del registro productivo hasta que exista un consumidor canónico real.
+`maximoProyectilesSimultaneos` representa un futuro tope de proyectiles de una misma fuente que puedan coexistir en el mundo. No se habilita hasta que exista un consumidor canónico que realmente necesite ese límite; AR1 resuelve la ráfaga de Disparo múltiple sin introducir ese atributo artificialmente.
 
 #### Pendientes de decisión explícita en una etapa posterior
 
@@ -878,7 +877,7 @@ Una afinidad elemental puede afectar todos los daños derivados de su habilidad;
 
 ### 8.3. Atributos internos
 
-Los 18 atributos productivos están registrados en la sección 5.1 y en código. Todo modificador de `atributoHabilidad` debe indicar la clave exacta que modifica.
+Los 21 atributos productivos actuales están registrados en la sección 5.1 y en código. Todo modificador de `atributoHabilidad` debe indicar la clave exacta que modifica. AR1 promovió `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` cuando aparecieron sus consumidores reales.
 
 Ejemplo:
 
@@ -2109,7 +2108,7 @@ La cantidad de puntos de maestría **no aumenta en HP4**. Esto es deliberado: un
 
 #### Ideas y decisiones futuras documentadas
 
-- `cantidadProyectiles` y `maximoProyectilesSimultaneos`: candidatos de corto plazo para habilidades de arco;
+- `maximoProyectilesSimultaneos`: reservado a corto plazo hasta que exista un consumidor real; `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` son productivos desde AR1;
 - habilidades transformativas: requieren contrato específico, no un `reemplazar` arbitrario;
 - `precisionHechizos`: pendiente porque hoy las habilidades usan la Precisión general;
 - `danoElementalGlobal`: pendiente por afectar transversalmente armas y habilidades;
@@ -2144,7 +2143,7 @@ No se incorpora drag & drop a ranura concreta porque el contrato jugable actual 
 
 `OrganizadorArbolHabilidades` es genérico para **todas** las maestrías/habilidades. Ordena verticalmente por `requisitoNivelMaestria`, distribuye los nodos del mismo nivel y dibuja únicamente relaciones respaldadas por datos canónicos. No contiene ramas `magia/físico`, coordenadas manuales por ID ni un eje artificial para maestrías con pocos nodos: si una maestría física actual no dispone de relaciones, sus iconos quedan simplemente ordenados por nivel hasta que futuro contenido forme un grafo real.
 
-Las relaciones del árbol quedaron cerradas con dos reglas de presentación, sin crear requisitos nuevos: las pasivas con `condiciones.idHabilidad` se conectan a esa habilidad concreta; las pasivas cuyo modificador objetivo es `danoHabilidad` y cuyo ámbito usa `maestriaHabilidad` se conectan únicamente a habilidades activas de esa maestría que realmente producen daño directo o daño periódico canónico. Para comprobar daño se usa la configuración de ejecución, no el catálogo de progresión. Auras, Maldiciones y activas sin daño no reciben esas conexiones. Las cuatro Afinidades elementales quedan por tanto conectadas solo con las ofensivas dañinas correspondientes; las maestrías físicas actuales continúan sin relaciones artificiales cuando sus datos no declaran ninguna.
+Las relaciones del árbol no crean requisitos nuevos. El organizador combina relaciones **inferibles** desde modificadores canónicos y relaciones **declarativas** `relacionesArbol` presentes en la configuración de cualquier habilidad. Las pasivas con `condiciones.idHabilidad` se conectan a esa habilidad concreta; las pasivas cuyo modificador objetivo es `danoHabilidad` y cuyo ámbito usa `maestriaHabilidad` se conectan únicamente a habilidades activas de esa maestría que realmente producen daño directo o periódico. AR1.1 agrega el contrato declarativo genérico `modificacion|sinergia`, valida destino existente, prohíbe autorrelaciones, duplicados y cruces de maestría no aprobados, y permite que Arcos u otras maestrías físicas formen un grafo real sin condiciones por tipo de maestría. Las conexiones no significan dependencia de aprendizaje.
 
 Cada nodo muestra solo el icono y `grado/gradoMaximo`; una habilidad no aprendida se atenúa y una bloqueada por nivel se atenúa aún más. El clic abre un detalle contextual que clasifica el contenido por datos en `Pasiva`, `Aura`, `Maldición` u `Ofensiva`. Cada formato muestra únicamente campos pertinentes —una Aura no presenta `Daño base: —`— y las activas utilizan `ConfiguracionHabilidadEfectiva` para exponer los mismos valores efectivos usados por ejecución/barra. Desde el detalle se aprende/mejora y, cuando corresponde, se asigna o retira de la barra sin crear una segunda progresión.
 
@@ -2153,6 +2152,16 @@ La ventana de Habilidades prioriza la vista completa del árbol y los recursos s
 Auras y Maldiciones activas se muestran compactamente encima de experiencia/barra rápida, reutilizando el icono de la habilidad que aplica cada efecto y mostrando turnos de referencia restantes mediante `ceil((venceEn - tiempoActual) / TIEMPO_REFERENCIA)`, sin temporizador paralelo. El Player deja de conservar la representación persistente de efectos etiquetados `aura`/`maldicion`; aplicación, actualización, dispersión/emisión y demás feedback transitorio se mantienen. En otros combatientes la representación persistente sigue disponible.
 
 HP6 conserva `ObservadorCambiosEstadoJugador` como único canal de invalidación y no modifica balance, XP, puntos, persistencia ni reglas canónicas de combate/progresión. Las pruebas manuales acordadas fueron informadas como satisfactorias por el usuario y HP6 queda cerrada documentalmente.
+
+### AR1 / AR1.1 — Habilidades activas de Arco y cierre de contratos físicos
+
+AR1 incorpora `Disparo múltiple`, `Disparo potente`, `Francotirador` y `Disparo evasivo` mediante un contrato genérico de ataque de arma por habilidad. La habilidad obtiene la fuente real del arma y delega impacto, crítico, Armadura, Penetración y daño a `SistemaCombate`; no existe una segunda ecuación física. La preparación comparte un único slot táctico reemplazable entre ataque básico y habilidades de arma, mientras estados independientes como `Apuntando` pueden coexistir.
+
+La política de munición queda independiente de la cantidad de proyectiles. Cada descriptor declara `requiereMunicion` y `consumeMunicion`, y cada grado declara `cantidadMunicion`; `cantidadProyectiles` describe resoluciones/proyectiles, no inventario. Preparar o reemplazar una acción valida disponibilidad pero no descuenta munición; el consumo ocurre únicamente al ejecutar. Esto permite futuras habilidades de arma sin munición o con consumo distinto de su cantidad visual sin reutilizar reglas del ataque básico.
+
+Los estados tácticos se incorporan como fuente declarativa adicional del `SistemaModificadoresCombatiente`. Sus políticas de interrupción consumen un registro canónico `TIPOS_EVENTO_ESTADO_TACTICO`; un nombre desconocido falla en validación. Los eventos representan hechos ya ocurridos: una acción rechazada con `exito=false` no rompe concentración. `Francotirador` utiliza esta infraestructura para `Apuntando` sin condiciones por ID de habilidad dentro del SMC.
+
+AR1.1 generaliza además el grafo de habilidades. Toda habilidad de cualquier maestría puede declarar `relacionesArbol` con tipo `modificacion` o `sinergia`. El validador exige destino existente y misma maestría, salvo que en el futuro se apruebe un contrato transversal. `OrganizadorArbolHabilidades` mezcla esas relaciones con las relaciones inferibles existentes y no conoce magia, armas, armaduras ni IDs concretos. Arcos declara relaciones reales de sus pasivas hacia los disparos afectados y una sinergia de `Francotirador` únicamente con los disparos compatibles.
 
 ---
 
@@ -2724,3 +2733,34 @@ El contrato de modificadores incorpora los objetivos canónicos `dispersion`, `p
 Los afijos locales conservan sus propiedades en el objeto. Un afijo que modifica el coste de una fase utiliza ámbito `portador` y condiciones canónicas de contexto mientras el arma aplicable esté equipada.
 
 La semántica completa de estas reglas pertenece a `docs/combate/PLAN_MAESTRO_COMBATE_A_DISTANCIA_Y_DEFENSAS_DARK_MOON.md`.
+
+---
+
+## Integración AR1 — Habilidades activas basadas en arma y estados tácticos modificadores
+
+AR1 amplía el contrato de habilidades sin crear un segundo motor de combate. Una habilidad activa puede declarar `ataqueArma`; en ese caso la fuente de daño sigue siendo el arma equipada y `SistemaCombate` conserva la resolución única de impacto, crítico, bloqueo, Armadura, Penetración y aplicación de daño.
+
+Los atributos productivos incorporados son `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento`. Continúan pasando por `ConfiguracionHabilidadEfectiva` y por el objetivo general `atributoHabilidad` del SMC. `maximoProyectilesSimultaneos` permanece reservado porque todavía no tiene consumidor canónico.
+
+La preparación de habilidades de arma reutiliza el mismo slot táctico `preparacion_accion` que el ataque básico. Solo puede existir una preparación simultánea; una nueva reemplaza la anterior, paga nuevamente su fase de preparación y no consume munición hasta la ejecución. El icono del estado preparado es el de la propia habilidad; el ataque básico conserva su icono de flecha cargada.
+
+`SistemaEstadosTacticosCombatiente` se incorpora como nueva fuente declarativa del `SistemaModificadoresCombatiente` mediante `ProveedorModificadoresEstadosTacticos`. No todos los estados necesitan modificadores. El SMC recibe descriptores normales y no reconoce IDs de estados ni habilidades.
+
+El primer consumidor modificador es `Apuntando`, activado por Francotirador. Sus grados aportan, respectivamente, +25/+40/+55% de Precisión total, +15/+25/+35 puntos de probabilidad de crítico y +8/+12/+16 puntos de Dispersión hacia 0. Los modificadores se condicionan mediante `etiquetaAccion=disparo_concentrado`, no mediante el ID visible de una habilidad.
+
+La política del estado controla interrupción y consumo. `Apuntando` sobrevive al reemplazo de una preparación; se consume con un disparo compatible y se interrumpe por movimiento, espera, interacción/consumo, otra habilidad incompatible o daño hostil. La activación del propio Francotirador reemplaza/refresca el estado sin crear duplicados.
+
+El catálogo productivo pasa de 104 a 108 habilidades. Las cuatro habilidades iniciales de Arco quedan ubicadas en niveles 2, 5, 7 y 10 de la maestría: Disparo múltiple, Disparo potente, Francotirador y Disparo evasivo. No se modifica el daño base natural de los arcos.
+
+
+## Integración AR1.1 — Cierre de contratos y árbol universal
+
+AR1.1 consolida la implementación de Arco sin modificar los valores de balance aprobados de las cuatro habilidades. La política de munición de una habilidad de arma queda separada de su cantidad de proyectiles: el descriptor declara `requiereMunicion` y `consumeMunicion`, mientras cada grado declara `cantidadMunicion`. `cantidadProyectiles` ya no se utiliza como sustituto implícito del inventario. La preparación valida la política propia de la habilidad y no vuelve a imponer automáticamente los requisitos del ataque básico.
+
+Los tipos de hecho que pueden interrumpir/consumir un estado táctico están cerrados en `TIPOS_EVENTO_ESTADO_TACTICO`. La configuración rechaza valores desconocidos y los consumidores usan las constantes canónicas. Una acción rechazada no se considera un hecho jugable consumado y por tanto no interrumpe `Apuntando`; movimiento, espera, consumo, acción ejecutada o daño hostil siguen respetando las políticas declaradas.
+
+El grafo de habilidades se generaliza mediante `relacionesArbol`. Cualquier habilidad de cualquier maestría puede declarar una relación `modificacion` o `sinergia` con otra habilidad de la misma maestría. El contrato valida tipos, destino, autorrelaciones, duplicados y cruces de maestría. `OrganizadorArbolHabilidades` combina estas relaciones con las inferencias canónicas ya existentes y no contiene ramas por magia, armas, armaduras ni IDs de contenido. Las líneas expresan interacción real, nunca requisito de aprendizaje.
+
+Para Arcos se declaran relaciones reales entre `Tiro estable`, `Tensión controlada`, `Tiro letal` y `Ojo de halcón` con los disparos ofensivos que consumen esos atributos; `Francotirador` declara sinergia únicamente con `Disparo potente` y `Disparo evasivo`, coherente con la incompatibilidad aprobada de `Disparo múltiple`.
+
+La UI del detalle de habilidades de arma expone proyectiles, munición, daño por proyectil, preparación, desplazamiento y políticas tácticas mediante i18n ES/EN. Las formas de desplazamiento y los tipos de interrupción también se traducen desde sus contratos canónicos, evitando mostrar identificadores internos españoles al utilizar la interfaz en inglés.

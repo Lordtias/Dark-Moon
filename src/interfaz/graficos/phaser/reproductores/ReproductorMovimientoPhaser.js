@@ -6,6 +6,9 @@ import {
   calcularDuracionAnimacionPhaser,
   CONFIGURACION_ANIMACIONES_PHASER,
 } from "../ConfiguracionAnimacionesPhaser.js";
+import {
+  FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO,
+} from "../../../../juego/movimiento/ResolutorDesplazamientoTactico.js";
 
 // Reproducción de movimiento, transiciones de visibilidad y hostilidad.
 
@@ -75,6 +78,46 @@ export async function reproducirMovimiento(reproductor, evento, version) {
     cantidadPendiente: 0,
   });
 
+  const formaVisual = evento.desplazamientoTactico?.formaVisual ??
+    FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.MOVIMIENTO;
+
+  if (formaVisual === FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.SALTO) {
+    await reproducirSaltoTactico(reproductor, {
+      evento,
+      nodo,
+      origen,
+      destino,
+      duracion: Math.max(90, Math.round(duracion * 0.68)),
+      version,
+    });
+    reproductor.compositor.posicionarNodoEntidad(evento.idEntidad, destino);
+    return;
+  }
+
+  if (formaVisual === FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.DASH) {
+    await reproducirDashTactico(reproductor, {
+      evento,
+      nodo,
+      destino,
+      duracion: Math.max(55, Math.round(duracion * 0.46)),
+      version,
+    });
+    reproductor.compositor.posicionarNodoEntidad(evento.idEntidad, destino);
+    return;
+  }
+
+  if (formaVisual === FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.TELETRANSPORTE) {
+    await reproducirTeletransporteTactico(reproductor, {
+      evento,
+      nodo,
+      destino,
+      duracion: Math.max(80, Math.round(duracion * 0.55)),
+      version,
+    });
+    reproductor.compositor.posicionarNodoEntidad(evento.idEntidad, destino);
+    return;
+  }
+
   await reproductor.crearTween({
     targets: [nodo.contenedor, nodo.sombra].filter(Boolean),
     x: destino.x,
@@ -96,6 +139,157 @@ export async function reproducirMovimiento(reproductor, evento, version) {
 
   reproductor.compositor.posicionarNodoEntidad(evento.idEntidad, destino);
 }
+async function reproducirDashTactico(reproductor, {
+  evento,
+  nodo,
+  destino,
+  duracion,
+  version,
+}) {
+  const alActualizar = () => notificarPosicionJugadorVisual(reproductor, evento, nodo);
+  await reproductor.crearTween({
+    targets: [nodo.contenedor, nodo.sombra].filter(Boolean),
+    x: destino.x,
+    y: destino.y,
+    duration: duracion,
+    ease: "Cubic.easeOut",
+    onUpdate: alActualizar,
+  }, version);
+}
+
+async function reproducirTeletransporteTactico(reproductor, {
+  evento,
+  nodo,
+  destino,
+  duracion,
+  version,
+}) {
+  const elementos = [nodo.contenedor, nodo.sombra].filter(Boolean);
+  const alphaOriginal = new Map(
+    elementos.map((elemento) => [elemento, Number.isFinite(elemento.alpha) ? elemento.alpha : 1]),
+  );
+  if (reproductor.efectosReducidos) {
+    for (const elemento of elementos) {
+      elemento.x = destino.x;
+      elemento.y = destino.y;
+    }
+    notificarPosicionJugadorVisual(reproductor, evento, nodo);
+    return;
+  }
+
+  const mitad = Math.max(1, Math.round(duracion / 2));
+  await reproductor.crearTween({
+    targets: elementos,
+    alpha: 0,
+    duration: mitad,
+    ease: "Quad.easeIn",
+  }, version);
+  if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
+
+  for (const elemento of elementos) {
+    elemento.x = destino.x;
+    elemento.y = destino.y;
+  }
+  notificarPosicionJugadorVisual(reproductor, evento, nodo);
+
+  await Promise.all(
+    elementos.map((elemento) => reproductor.crearTween({
+      targets: elemento,
+      alpha: alphaOriginal.get(elemento) ?? 1,
+      duration: Math.max(1, duracion - mitad),
+      ease: "Quad.easeOut",
+    }, version)),
+  );
+}
+
+function notificarPosicionJugadorVisual(reproductor, evento, nodo) {
+  if (
+    evento.tipoEntidad === TIPOS_ENTIDAD_VISUAL.JUGADOR &&
+    typeof reproductor.alMoverJugadorVisual === "function"
+  ) {
+    reproductor.alMoverJugadorVisual({
+      x: nodo.contenedor.x,
+      y: nodo.contenedor.y,
+    });
+  }
+}
+
+async function reproducirSaltoTactico(reproductor, {
+  evento,
+  nodo,
+  origen,
+  destino,
+  duracion,
+  version,
+}) {
+  const mitad = {
+    x: (origen.x + destino.x) / 2,
+    y: (origen.y + destino.y) / 2 - (reproductor.efectosReducidos ? 0 : 10),
+  };
+  const primeraMitad = Math.max(1, Math.round(duracion / 2));
+  const segundaMitad = Math.max(1, duracion - primeraMitad);
+  const alActualizar = () => {
+    if (
+      evento.tipoEntidad === TIPOS_ENTIDAD_VISUAL.JUGADOR &&
+      typeof reproductor.alMoverJugadorVisual === "function"
+    ) {
+      reproductor.alMoverJugadorVisual({
+        x: nodo.contenedor.x,
+        y: nodo.contenedor.y,
+      });
+    }
+  };
+
+  const escalaSombraX = nodo.sombra?.scaleX ?? 1;
+  const escalaSombraY = nodo.sombra?.scaleY ?? 1;
+  const moverSombra = nodo.sombra
+    ? (async () => {
+        await reproductor.crearTween({
+          targets: nodo.sombra,
+          x: mitad.x,
+          y: (origen.y + destino.y) / 2,
+          scaleX: reproductor.efectosReducidos ? escalaSombraX : escalaSombraX * 0.86,
+          scaleY: reproductor.efectosReducidos ? escalaSombraY : escalaSombraY * 0.86,
+          duration: primeraMitad,
+          ease: "Quad.easeOut",
+        }, version);
+        if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
+        await reproductor.crearTween({
+          targets: nodo.sombra,
+          x: destino.x,
+          y: destino.y,
+          scaleX: escalaSombraX,
+          scaleY: escalaSombraY,
+          duration: segundaMitad,
+          ease: "Quad.easeIn",
+        }, version);
+      })()
+    : Promise.resolve();
+
+  await Promise.all([
+    (async () => {
+      await reproductor.crearTween({
+        targets: nodo.contenedor,
+        x: mitad.x,
+        y: mitad.y,
+        duration: primeraMitad,
+        ease: "Quad.easeOut",
+        onUpdate: alActualizar,
+      }, version);
+      if (version !== reproductor.versionCancelacion || reproductor.destruido) return;
+      await reproductor.crearTween({
+        targets: nodo.contenedor,
+        x: destino.x,
+        y: destino.y,
+        duration: segundaMitad,
+        ease: "Quad.easeIn",
+        onUpdate: alActualizar,
+      }, version);
+    })(),
+    moverSombra,
+  ]);
+}
+
 export async function reproducirSalidaCampoVisible(reproductor, evento, version) {
   const nodo = reproductor.compositor.obtenerNodoEntidad(evento.idEntidad);
   if (!nodo?.contenedor) return;

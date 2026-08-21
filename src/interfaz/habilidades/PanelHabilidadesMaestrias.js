@@ -3,6 +3,15 @@ import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 import { OrganizadorArbolHabilidades } from "./OrganizadorArbolHabilidades.js";
 import { clasificarPresentacionHabilidad } from "./ClasificadorPresentacionHabilidades.js";
 import { crearConfiguracionHabilidadEfectiva } from "../../juego/habilidades/ConfiguracionHabilidadEfectiva.js";
+import {
+  TIPOS_RELACION_ARBOL_HABILIDADES,
+} from "../../juego/habilidades/ContratosArbolHabilidades.js";
+import {
+  FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO,
+} from "../../juego/movimiento/ResolutorDesplazamientoTactico.js";
+import {
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "../../juego/estado/EstadosTacticosCombatiente.js";
 
 export class PanelHabilidadesMaestrias {
   constructor({
@@ -418,8 +427,8 @@ export class PanelHabilidadesMaestrias {
       path.setAttribute("marker-end", `url(#${marker.id})`);
       path.classList.add("arbol-habilidades__conexion");
       path.classList.toggle(
-        "arbol-habilidades__conexion--afinidad",
-        relacion.tipo === "afinidad",
+        "arbol-habilidades__conexion--sinergia",
+        relacion.tipo === TIPOS_RELACION_ARBOL_HABILIDADES.SINERGIA,
       );
       svg.append(path);
     }
@@ -986,6 +995,81 @@ function crearSeccionMaldicion({ gradoConfig, catalogoEfectos }) {
 
 function crearSeccionOfensiva({ gradoConfig, catalogoEfectos }) {
   const contenedor = crearElemento("div", "detalle-habilidad-modal__bloques");
+
+  if (gradoConfig?.ataqueArma) {
+    const seccionArma = crearBloqueDetalle(
+      traducir("interfaz.habilidades.ataqueArmaTitulo", { respaldo: "Ataque de arma" }),
+    );
+    const listaArma = crearElemento("dl", "detalle-habilidad-modal__datos");
+    agregarDato(
+      listaArma,
+      traducir("interfaz.habilidades.proyectiles", { respaldo: "Proyectiles" }),
+      formatearNumero(gradoConfig.ataqueArma.cantidadProyectiles),
+    );
+    agregarDato(
+      listaArma,
+      traducir("interfaz.habilidades.municion", { respaldo: "Munición" }),
+      formatearNumero(gradoConfig.ataqueArma.cantidadMunicion ?? 0),
+    );
+    agregarDato(
+      listaArma,
+      traducir("interfaz.habilidades.danioPorProyectil", { respaldo: "Daño por proyectil" }),
+      traducir("interfaz.habilidades.danioPorProyectilValor", {
+        respaldo: "{porcentaje}% del arma",
+        parametros: {
+          porcentaje: formatearNumero(gradoConfig.ataqueArma.factorDanioArma * 100),
+        },
+      }),
+    );
+    agregarDato(
+      listaArma,
+      traducir("interfaz.habilidades.preparacion", { respaldo: "Preparación" }),
+      traducir("interfaz.habilidades.preparacionValor", {
+        respaldo: "×{factor} de la carga base",
+        parametros: { factor: formatearNumero(gradoConfig.ataqueArma.factorPreparacion) },
+      }),
+    );
+    if (gradoConfig.ataqueArma.distanciaDesplazamiento > 0) {
+      const forma = gradoConfig.ataqueArma.desplazamientoTactico?.formaVisual ?? "movimiento";
+      agregarDato(
+        listaArma,
+        traducir("interfaz.habilidades.desplazamiento", { respaldo: "Desplazamiento" }),
+        traducir("interfaz.habilidades.desplazamientoValor", {
+          respaldo: "{casillas} casillas · {forma}",
+          parametros: {
+            casillas: formatearNumero(gradoConfig.ataqueArma.distanciaDesplazamiento),
+            forma: traducirFormaDesplazamientoTactico(forma),
+          },
+        }),
+      );
+    }
+    seccionArma.append(listaArma);
+    contenedor.append(seccionArma);
+  }
+
+  if (gradoConfig?.estadoTactico) {
+    const estado = gradoConfig.estadoTactico;
+    const seccionEstado = crearBloqueDetalle(
+      estado.nombre ?? traducir("interfaz.habilidades.estadoTactico", { respaldo: "Estado táctico" }),
+    );
+    const listaEstado = crearElemento("dl", "detalle-habilidad-modal__datos");
+    for (const modificador of estado.modificadores ?? []) {
+      const detalle = formatearDetalleModificadorPasiva(modificador);
+      agregarDato(listaEstado, detalle.etiqueta, detalle.valor);
+    }
+    if ((estado.politicas?.interrumpirPor ?? []).length > 0) {
+      agregarDato(
+        listaEstado,
+        traducir("interfaz.habilidades.seInterrumpeAl", { respaldo: "Se interrumpe al" }),
+        estado.politicas.interrumpirPor
+          .map(traducirEventoEstadoTactico)
+          .join(", "),
+      );
+    }
+    seccionEstado.append(listaEstado);
+    contenedor.append(seccionEstado);
+  }
+
   const danios = Array.isArray(gradoConfig?.danio) ? gradoConfig.danio : [];
   if (danios.length > 0) {
     const seccionDanio = crearBloqueDetalle(traducir("interfaz.habilidades.danioBase", { respaldo: "Daño" }));
@@ -1029,7 +1113,17 @@ function crearSeccionEjecucion({ gradoConfig, ejecucion }) {
   const seccion = crearBloqueDetalle("Ejecución");
   const lista = crearElemento("dl", "detalle-habilidad-modal__datos");
   if (Number.isFinite(gradoConfig?.costoMana)) agregarDato(lista, "Maná", formatearNumero(gradoConfig.costoMana));
-  if (Number.isFinite(gradoConfig?.costoTemporalBase)) agregarDato(lista, "Tiempo", formatearNumero(gradoConfig.costoTemporalBase));
+  if (gradoConfig?.ataqueArma) {
+    agregarDato(
+      lista,
+      traducir("interfaz.habilidades.tiempo", { respaldo: "Tiempo" }),
+      traducir("interfaz.habilidades.tiempoAtaqueArma", {
+        respaldo: "Preparación + ejecución según el arma equipada",
+      }),
+    );
+  } else if (Number.isFinite(gradoConfig?.costoTemporalBase)) {
+    agregarDato(lista, "Tiempo", formatearNumero(gradoConfig.costoTemporalBase));
+  }
   if (Number.isFinite(gradoConfig?.alcance)) agregarDato(lista, "Alcance", formatearNumero(gradoConfig.alcance));
   if (ejecucion?.ejecucion?.tipoObjetivo) agregarDato(lista, "Objetivo", formatearNombre(ejecucion.ejecucion.tipoObjetivo));
   if (ejecucion?.ejecucion?.patronAtaque) agregarDato(lista, "Patrón", nombrePatronAtaque(ejecucion.ejecucion.patronAtaque));
@@ -1255,6 +1349,8 @@ function formatearDetalleModificadorPasiva(modificador) {
     "resistenciaAturdimiento",
     "resistenciaEnvenenamiento",
     "resistenciaQuemadura",
+    "dispersion",
+    "penetracionArmadura",
   ]);
 
   if (operacion === "sumar") {
@@ -1382,6 +1478,8 @@ function nombreObjetivoModificador(objetivo) {
     resistenciaEnvenenamiento: ["interfaz.habilidades.objetivoResistenciaEnvenenamiento", "Resistencia a Envenenamiento"],
     resistenciaQuemadura: ["interfaz.habilidades.objetivoResistenciaQuemadura", "Resistencia a Quemadura"],
     resistenciaMental: ["interfaz.habilidades.objetivoResistenciaMental", "Resistencia Mental"],
+    dispersion: [null, "Dispersión"],
+    penetracionArmadura: [null, "Penetración de Armadura"],
     danoHabilidad: ["interfaz.habilidades.objetivoDanioHabilidad", "Daño de habilidad"],
     atributoHabilidad: ["interfaz.habilidades.objetivoAtributoHabilidad", "Atributo de habilidad"],
     alcanceAtaque: ["interfaz.habilidades.objetivoAlcanceAtaque", "Alcance de ataque"],
@@ -1534,6 +1632,33 @@ function nombrePatronAtaque(patron) {
   };
   const [clave, respaldo] = claves[patron] ?? [null, formatearNombre(patron)];
   return clave ? traducir(clave, { respaldo }) : respaldo;
+}
+
+function traducirFormaDesplazamientoTactico(forma) {
+  const claves = {
+    [FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.MOVIMIENTO]: "interfaz.habilidades.formaMovimiento",
+    [FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.DASH]: "interfaz.habilidades.formaDash",
+    [FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.SALTO]: "interfaz.habilidades.formaSalto",
+    [FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO.TELETRANSPORTE]: "interfaz.habilidades.formaTeletransporte",
+  };
+  const clave = claves[forma];
+  return clave ? traducir(clave, { respaldo: formatearNombre(forma) }) : formatearNombre(forma);
+}
+
+function traducirEventoEstadoTactico(tipoEvento) {
+  const claves = {
+    [TIPOS_EVENTO_ESTADO_TACTICO.MOVIMIENTO]: "interfaz.habilidades.eventoMovimiento",
+    [TIPOS_EVENTO_ESTADO_TACTICO.ESPERA]: "interfaz.habilidades.eventoEspera",
+    [TIPOS_EVENTO_ESTADO_TACTICO.ACCION]: "interfaz.habilidades.eventoAccion",
+    [TIPOS_EVENTO_ESTADO_TACTICO.CONSUMO]: "interfaz.habilidades.eventoConsumo",
+    [TIPOS_EVENTO_ESTADO_TACTICO.DANIO_RECIBIDO]: "interfaz.habilidades.eventoDanioRecibido",
+    [TIPOS_EVENTO_ESTADO_TACTICO.HABILIDAD_EJECUTADA]: "interfaz.habilidades.eventoHabilidadEjecutada",
+    [TIPOS_EVENTO_ESTADO_TACTICO.ACCION_EJECUTADA]: "interfaz.habilidades.eventoAccionEjecutada",
+  };
+  const clave = claves[tipoEvento];
+  return clave
+    ? traducir(clave, { respaldo: formatearNombre(tipoEvento) })
+    : formatearNombre(tipoEvento);
 }
 
 function formatearNombre(valor) {

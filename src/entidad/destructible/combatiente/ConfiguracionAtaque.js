@@ -17,6 +17,31 @@ import {
 } from "../../../juego/mensajes/MensajesJuego.js";
 
 const ICONO_TACTICO_FLECHA_CARGADA = "assets/imagenes/habilidades/basicas/flecha_cargada_tactica.png";
+export const ID_ACCION_ATAQUE_BASICO = "ataque_basico";
+
+// Expone etiquetas semánticas declaradas por familia para que preview, SMC y
+// consumo de estados tácticos hablen el mismo idioma sin reconocer armas por ID.
+export function obtenerContextoSemanticoAtaque(configuracionAtaque) {
+  const familia = configuracionAtaque?.armaControladora?.familiaObjeto ?? null;
+  const perfil = familia
+    ? CONFIGURACION_COMBATE.accionesCompuestas?.ataque?.porFamilia?.[familia] ?? null
+    : null;
+  const etiquetaAccion =
+    typeof perfil?.etiquetaContexto === "string" && perfil.etiquetaContexto.trim() !== ""
+      ? perfil.etiquetaContexto.trim().toLowerCase()
+      : null;
+  const etiquetasEjecucion = Array.isArray(perfil?.etiquetasEjecucion)
+    ? [...new Set(
+        perfil.etiquetasEjecucion
+          .filter((etiqueta) => typeof etiqueta === "string" && etiqueta.trim() !== "")
+          .map((etiqueta) => etiqueta.trim().toLowerCase()),
+      )]
+    : [];
+  return Object.freeze({
+    etiquetaAccion,
+    etiquetasEjecucion: Object.freeze(etiquetasEjecucion),
+  });
+}
 
 // Analiza el equipo actual y determina:
 //
@@ -241,9 +266,47 @@ function parametroObjeto(objeto, respaldo = "") {
   });
 }
 
-// Comprueba conjuntamente munición y Maná antes de que el ataque pueda alterar
-// hostilidad, Vida, selector o agenda temporal.
-export function verificarRequisitosAtaque(combatiente) {
+// Comprueba únicamente la política de munición declarada por la acción. Una
+// habilidad de arma puede requerir o no munición con independencia del ataque
+// básico del arma; por eso este contrato no consulta el coste de Maná del
+// ataque básico ni fuerza el uso de quiver cuando la acción declara que no lo
+// necesita.
+export function verificarRequisitosMunicionAtaque(
+  combatiente,
+  {
+    requiereMunicion = true,
+    cantidadMunicionRequerida = 1,
+  } = {},
+) {
+  if (typeof requiereMunicion !== "boolean") {
+    throw new Error("La política de munición debe declarar requiereMunicion como booleano.");
+  }
+  if (
+    !Number.isInteger(cantidadMunicionRequerida) ||
+    cantidadMunicionRequerida < 0 ||
+    (requiereMunicion && cantidadMunicionRequerida <= 0)
+  ) {
+    throw new Error(
+      "La cantidad de munición requerida debe ser un entero no negativo y mayor que 0 cuando la acción requiere munición.",
+    );
+  }
+  const configuracion = obtenerConfiguracionAtaque(combatiente);
+  return verificarRequisitosMunicionConfiguracion({
+    configuracion,
+    requiereMunicion,
+    cantidadMunicionRequerida,
+  });
+}
+
+// Comprueba conjuntamente munición y Maná antes de que el ataque básico pueda
+// alterar hostilidad, Vida, selector o agenda temporal.
+export function verificarRequisitosAtaque(
+  combatiente,
+  { cantidadMunicionRequerida = 1 } = {},
+) {
+  if (!Number.isInteger(cantidadMunicionRequerida) || cantidadMunicionRequerida <= 0) {
+    throw new Error("La cantidad de munición requerida debe ser un entero mayor que 0.");
+  }
   const configuracion = obtenerConfiguracionAtaque(combatiente);
   const costoMana = configuracion.costoManaAtaqueBasico ?? 0;
   const manaActual = Number.isFinite(combatiente.manaActual)
@@ -255,6 +318,10 @@ export function verificarRequisitosAtaque(combatiente) {
       disponible: false,
       configuracion,
       cantidadMunicion: configuracion.requiereQuiver ? 0 : null,
+      cantidadMunicionRequerida: configuracion.requiereQuiver
+        ? cantidadMunicionRequerida
+        : 0,
+      requiereMunicion: configuracion.requiereQuiver === true,
       costoMana,
       manaActual,
       mensaje:
@@ -273,13 +340,32 @@ export function verificarRequisitosAtaque(combatiente) {
     };
   }
 
-  if (!configuracion.requiereQuiver) {
+  const requisitosMunicion = verificarRequisitosMunicionConfiguracion({
+    configuracion,
+    requiereMunicion: configuracion.requiereQuiver === true,
+    cantidadMunicionRequerida: configuracion.requiereQuiver
+      ? cantidadMunicionRequerida
+      : 0,
+  });
+  return {
+    ...requisitosMunicion,
+    costoMana,
+    manaActual,
+  };
+}
+
+function verificarRequisitosMunicionConfiguracion({
+  configuracion,
+  requiereMunicion,
+  cantidadMunicionRequerida,
+}) {
+  if (!requiereMunicion) {
     return {
       disponible: true,
       configuracion,
+      requiereMunicion: false,
       cantidadMunicion: null,
-      costoMana,
-      manaActual,
+      cantidadMunicionRequerida: 0,
       mensaje: null,
       mensajePresentacion: null,
     };
@@ -289,11 +375,11 @@ export function verificarRequisitosAtaque(combatiente) {
     return {
       disponible: false,
       configuracion,
+      requiereMunicion: true,
       cantidadMunicion: 0,
-      costoMana,
-      manaActual,
+      cantidadMunicionRequerida,
       mensaje:
-        `${configuracion.armaControladora.nombre} ` +
+        `${configuracion.armaControladora?.nombre ?? "El arma"} ` +
         "necesita un quiver equipado en secundaria.",
       mensajePresentacion: crearMensajeTraducible("mensajes.combate.requiereQuiver", {
         tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
@@ -303,17 +389,18 @@ export function verificarRequisitosAtaque(combatiente) {
   }
 
   if (
+    !configuracion.tipoMunicion ||
     configuracion.quiver.propiedades.tipoMunicion !== configuracion.tipoMunicion
   ) {
     return {
       disponible: false,
       configuracion,
+      requiereMunicion: true,
       cantidadMunicion: 0,
-      costoMana,
-      manaActual,
+      cantidadMunicionRequerida,
       mensaje:
         `${configuracion.quiver.nombre} no admite la munición requerida por ` +
-        `${configuracion.armaControladora.nombre}.`,
+        `${configuracion.armaControladora?.nombre ?? "el arma"}.`,
       mensajePresentacion: crearMensajeTraducible("mensajes.combate.quiverIncompatible", {
         tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
         parametros: {
@@ -325,14 +412,16 @@ export function verificarRequisitosAtaque(combatiente) {
   }
 
   const cantidadMunicion = contarMunicionCompatible(configuracion);
-  if (cantidadMunicion <= 0) {
+  if (cantidadMunicion < cantidadMunicionRequerida) {
     return {
       disponible: false,
       configuracion,
-      cantidadMunicion: 0,
-      costoMana,
-      manaActual,
-      mensaje: `${configuracion.quiver.nombre} no tiene munición compatible.`,
+      requiereMunicion: true,
+      cantidadMunicion,
+      cantidadMunicionRequerida,
+      mensaje: cantidadMunicion <= 0
+        ? `${configuracion.quiver.nombre} no tiene munición compatible.`
+        : `${configuracion.quiver.nombre} tiene ${cantidadMunicion} de ${cantidadMunicionRequerida} municiones requeridas.`,
       mensajePresentacion: crearMensajeTraducible("mensajes.combate.sinMunicion", {
         tipo: TIPOS_MENSAJE_JUEGO.ALERTA,
         parametros: { quiver: parametroObjeto(configuracion.quiver) },
@@ -343,9 +432,9 @@ export function verificarRequisitosAtaque(combatiente) {
   return {
     disponible: true,
     configuracion,
+    requiereMunicion: true,
     cantidadMunicion,
-    costoMana,
-    manaActual,
+    cantidadMunicionRequerida,
     mensaje: null,
     mensajePresentacion: null,
   };
@@ -372,14 +461,53 @@ export function validarPreparacionAtaque(combatiente, { retirarSiInvalida = true
   const requisitos = verificarRequisitosAtaque(combatiente);
   const valida = Boolean(
     estado &&
-    estado.datos?.tipoAccion === "ataque" &&
+    estado.datos?.tipoAccion === "ataque_arma" &&
+    estado.datos?.idAccion === ID_ACCION_ATAQUE_BASICO &&
     estado.datos?.arma === configuracion.armaControladora &&
     estado.datos?.quiver === configuracion.quiver &&
     estado.datos?.tipoMunicion === configuracion.tipoMunicion &&
     requisitos.disponible
   );
-  if (!valida && retirarSiInvalida) retirarPreparacionAccion(combatiente);
+  if (
+    !valida &&
+    retirarSiInvalida &&
+    estado?.datos?.tipoAccion === "ataque_arma" &&
+    estado?.datos?.idAccion === ID_ACCION_ATAQUE_BASICO
+  ) {
+    retirarPreparacionAccion(combatiente);
+  }
   return { valida, requierePreparacion: true, configuracion, estado: valida ? estado : null, requisitos };
+}
+
+// Valida la preparación de arma activa sin asumir que pertenece al ataque
+// básico. Sirve para conservar un único slot de preparación compartido por
+// ataques y habilidades, e invalidarlo únicamente cuando cambia el equipo o
+// deja de existir la munición que ese estado declaró necesitar.
+export function validarPreparacionAtaqueArmaActual(
+  combatiente,
+  { retirarSiInvalida = true } = {},
+) {
+  const estado = obtenerPreparacionAccion(combatiente);
+  if (!estado || estado.datos?.tipoAccion !== "ataque_arma") {
+    return { valida: true, estado, requisitos: null };
+  }
+  const requiereMunicion = estado.datos?.requiereMunicion !== false;
+  const cantidadMunicionRequerida = requiereMunicion
+    ? Math.max(1, Math.round(estado.datos?.cantidadMunicionRequerida ?? 1))
+    : 0;
+  const configuracion = obtenerConfiguracionAtaque(combatiente);
+  const requisitos = verificarRequisitosMunicionAtaque(combatiente, {
+    requiereMunicion,
+    cantidadMunicionRequerida,
+  });
+  const valida = Boolean(
+    requisitos.disponible &&
+    estado.datos?.arma === configuracion.armaControladora &&
+    (!requiereMunicion || estado.datos?.quiver === configuracion.quiver) &&
+    (!requiereMunicion || estado.datos?.tipoMunicion === configuracion.tipoMunicion)
+  );
+  if (!valida && retirarSiInvalida) retirarPreparacionAccion(combatiente);
+  return { valida, estado: valida ? estado : null, requisitos, configuracion };
 }
 
 export function prepararAtaque(combatiente) {
@@ -388,7 +516,7 @@ export function prepararAtaque(combatiente) {
   if (!ataqueUsaAccionCompuesta(configuracion)) {
     return { preparado: false, requierePreparacion: false, requisitos, costoBase: 0, estado: null };
   }
-  const actual = validarPreparacionAtaque(combatiente);
+  const actual = validarPreparacionAtaque(combatiente, { retirarSiInvalida: false });
   if (actual.valida) {
     return { preparado: true, yaPreparado: true, requierePreparacion: true, requisitos, costoBase: 0, estado: actual.estado };
   }
@@ -398,7 +526,7 @@ export function prepararAtaque(combatiente) {
 
   const municion = obtenerDescriptorMunicionCompatible(configuracion);
   const estado = activarPreparacionAccion(combatiente, {
-    tipoAccion: "ataque",
+    tipoAccion: "ataque_arma",
     nombre: configuracion.tipoMunicion === "flecha" ? "Flecha cargada" : "Arma preparada",
     descripcion:
       configuracion.tipoMunicion === "flecha"
@@ -409,9 +537,13 @@ export function prepararAtaque(combatiente) {
         ? ICONO_TACTICO_FLECHA_CARGADA
         : municion?.recursoVisual ?? configuracion.armaControladora?.recursoVisual ?? null,
     datos: {
+      idAccion: ID_ACCION_ATAQUE_BASICO,
       arma: configuracion.armaControladora,
       quiver: configuracion.quiver,
       tipoMunicion: configuracion.tipoMunicion,
+      requiereMunicion: configuracion.requiereQuiver === true,
+      consumeMunicion: configuracion.requiereQuiver === true,
+      cantidadMunicionRequerida: configuracion.requiereQuiver ? 1 : 0,
     },
   });
   const costoBase = calcularCostoBaseFaseAtaque({
@@ -436,8 +568,41 @@ export function obtenerCostoEjecucionAtaque(combatiente) {
   });
 }
 
-export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } = {}) {
-  const requisitos = verificarRequisitosAtaque(combatiente);
+export function consumirRecursosAtaque(
+  combatiente,
+  {
+    requiereMunicion = null,
+    consumirMunicion = true,
+    cantidadMunicion = 1,
+    consumirManaAtaqueBasico = true,
+  } = {},
+) {
+  if (typeof consumirMunicion !== "boolean" || typeof consumirManaAtaqueBasico !== "boolean") {
+    throw new Error("La política de consumo del ataque debe usar valores booleanos.");
+  }
+  const configuracion = obtenerConfiguracionAtaque(combatiente);
+  const requiereMunicionResuelto = requiereMunicion === null
+    ? configuracion.requiereQuiver === true
+    : requiereMunicion;
+  if (typeof requiereMunicionResuelto !== "boolean") {
+    throw new Error("La política de consumo debe declarar requiereMunicion como booleano.");
+  }
+  if (!Number.isInteger(cantidadMunicion) || cantidadMunicion < 0) {
+    throw new Error("La cantidad de munición a consumir debe ser un entero no negativo.");
+  }
+  if (requiereMunicionResuelto && cantidadMunicion <= 0) {
+    throw new Error("Una acción que requiere munición debe solicitar al menos una unidad.");
+  }
+  const consumirMunicionResuelto = requiereMunicionResuelto && consumirMunicion;
+
+  const requisitos = consumirManaAtaqueBasico
+    ? verificarRequisitosAtaque(combatiente, {
+        cantidadMunicionRequerida: requiereMunicionResuelto ? cantidadMunicion : 1,
+      })
+    : verificarRequisitosMunicionAtaque(combatiente, {
+        requiereMunicion: requiereMunicionResuelto,
+        cantidadMunicionRequerida: cantidadMunicion,
+      });
   const resultadoBase = {
     consumida: false,
     restante: requisitos.cantidadMunicion,
@@ -449,7 +614,7 @@ export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } 
 
   if (!requisitos.disponible) return resultadoBase;
 
-  const { configuracion, costoMana } = requisitos;
+  const costoMana = consumirManaAtaqueBasico ? requisitos.costoMana ?? 0 : 0;
   const manaAnterior = combatiente.manaActual;
 
   if (costoMana > 0) {
@@ -468,7 +633,7 @@ export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } 
 
   let municionConsumida = false;
   let municionUtilizada = null;
-  if (configuracion.requiereQuiver && consumirMunicion) {
+  if (consumirMunicionResuelto) {
     const contenedorMunicion = configuracion.quiver.contenedorObjetos;
     const objetoMunicion = contenedorMunicion.buscarPrimerObjeto(
       (objeto) =>
@@ -481,11 +646,15 @@ export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } 
       throw new Error("No fue posible localizar la munición del ataque.");
     }
 
-    municionUtilizada = crearDescriptorRecursoMunicion(objetoMunicion);
-    municionConsumida = contenedorMunicion.consumirCantidadObjeto(
-      (objeto) => objeto === objetoMunicion,
-      1,
-    );
+    municionUtilizada = Object.freeze({
+      ...crearDescriptorRecursoMunicion(objetoMunicion),
+      cantidad: cantidadMunicion,
+    });
+    municionConsumida = consumirMunicionCompatibleAtomica({
+      contenedor: contenedorMunicion,
+      tipoMunicion: configuracion.tipoMunicion,
+      cantidad: cantidadMunicion,
+    });
 
     if (!municionConsumida) {
       combatiente.manaActual = manaAnterior;
@@ -495,7 +664,7 @@ export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } 
 
   return {
     consumida: municionConsumida,
-    restante: configuracion.requiereQuiver
+    restante: requiereMunicionResuelto
       ? contarMunicionCompatible(configuracion)
       : null,
     municionUtilizada,
@@ -503,6 +672,31 @@ export function consumirRecursosAtaque(combatiente, { consumirMunicion = true } 
     manaRestante: combatiente.manaActual,
     requisitos,
   };
+}
+
+function consumirMunicionCompatibleAtomica({ contenedor, tipoMunicion, cantidad }) {
+  const candidatos = contenedor.obtenerObjetos().filter(
+    (objeto) =>
+      objeto.esMunicion &&
+      objeto.propiedades.tipoMunicion === tipoMunicion,
+  );
+  const total = candidatos.reduce((suma, objeto) => suma + objeto.cantidad, 0);
+  if (total < cantidad) return false;
+
+  let restante = cantidad;
+  for (const objeto of candidatos) {
+    if (restante <= 0) break;
+    const consumir = Math.min(restante, objeto.cantidad);
+    const ok = contenedor.consumirCantidadObjeto(
+      (candidato) => candidato === objeto,
+      consumir,
+    );
+    if (!ok) {
+      throw new Error("El contenedor cambió durante el consumo atómico de munición.");
+    }
+    restante -= consumir;
+  }
+  return restante === 0;
 }
 
 function crearDescriptorRecursoMunicion(objeto) {
@@ -549,7 +743,7 @@ function crearFuenteDesdeArma(arma, { mano, multiplicadorGolpe }) {
   };
 }
 
-function contarMunicionCompatible(configuracion) {
+export function contarMunicionCompatible(configuracion) {
   if (!configuracion.quiver?.contenedorObjetos || !configuracion.tipoMunicion) {
     return 0;
   }

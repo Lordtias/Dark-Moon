@@ -1,5 +1,8 @@
 import { TIPOS_HABILIDAD } from "../maestrias/ValidadorConfiguracionProgresoHabilidades.js";
-import { normalizarCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
+import {
+  normalizarCondicionesModificador,
+  normalizarDescriptorModificador,
+} from "../modificadores/ContratosModificadoresCombatiente.js";
 import {
   TIPOS_DANIO_VALIDOS,
   normalizarTipoDanio,
@@ -17,6 +20,12 @@ import {
   POLITICAS_OBSTACULOS_HABILIDAD,
   validarPoliticaObstaculosHabilidad,
 } from "./ResolucionEspacialHabilidades.js";
+import {
+  validarContratoDesplazamientoTactico,
+} from "../movimiento/ResolutorDesplazamientoTactico.js";
+import {
+  validarTipoEventoEstadoTactico,
+} from "../estado/SistemaEstadosTacticosCombatiente.js";
 
 const TIPOS_OBJETIVO = Object.freeze(["enemigo", "casilla", "propio"]);
 const PATRONES_PERMITIDOS = Object.freeze(["adyacente", "lineal", "libre"]);
@@ -122,6 +131,9 @@ function normalizarEjecucion({
   const requisitosLanzador = normalizarCondicionesModificador(
     ejecucion.requisitosLanzador ?? {},
   );
+  const ataqueArma = ejecucion.ataqueArma
+    ? normalizarAtaqueArma(ejecucion.ataqueArma, idHabilidad)
+    : null;
 
   validarObjeto(ejecucion.grados, `los grados de "${idHabilidad}"`);
   const grados = {};
@@ -139,10 +151,17 @@ function normalizarEjecucion({
       definicionGrado.costoTemporalBase,
       `el coste temporal de "${idHabilidad}" grado ${grado}`,
     );
-    validarEnteroPositivo(
-      definicionGrado.alcance,
-      `el alcance de "${idHabilidad}" grado ${grado}`,
-    );
+
+    let alcance = definicionGrado.alcance;
+    if (ataqueArma?.usaAlcanceArma) {
+      alcance = null;
+    } else {
+      validarEnteroPositivo(
+        alcance,
+        `el alcance de "${idHabilidad}" grado ${grado}`,
+      );
+    }
+
     const formaImpacto = normalizarFormaImpacto({
       formaImpacto: definicionGrado.formaImpacto,
       idHabilidad,
@@ -156,11 +175,38 @@ function normalizarEjecucion({
       grado,
       catalogoEfectos,
     );
-    if (danio.length === 0 && efectos.length === 0) {
+    const estadoTactico = definicionGrado.estadoTactico
+      ? normalizarEstadoTacticoHabilidad(
+          definicionGrado.estadoTactico,
+          idHabilidad,
+          grado,
+        )
+      : null;
+    const configuracionAtaqueArma = ataqueArma
+      ? normalizarGradoAtaqueArma(
+          definicionGrado,
+          idHabilidad,
+          grado,
+          ataqueArma,
+        )
+      : null;
+
+    if (
+      danio.length === 0 &&
+      efectos.length === 0 &&
+      !estadoTactico &&
+      !configuracionAtaqueArma
+    ) {
       throw new Error(
-        `La habilidad "${idHabilidad}" grado ${grado} no posee daño ni efectos.`,
+        `La habilidad "${idHabilidad}" grado ${grado} no posee daño, efectos, ataque de arma ni estado táctico.`,
       );
     }
+    if (estadoTactico && configuracionAtaqueArma) {
+      throw new Error(
+        `La habilidad "${idHabilidad}" grado ${grado} no puede activar un estado táctico y atacar con arma en la misma ejecución.`,
+      );
+    }
+
     const zonaTemporal = definicionGrado.zonaTemporal
       ? normalizarConfiguracionZonaTemporal(definicionGrado.zonaTemporal, {
           etiqueta: `la zona temporal de "${idHabilidad}" grado ${grado}`,
@@ -170,11 +216,13 @@ function normalizarEjecucion({
     grados[grado] = {
       costoMana: definicionGrado.costoMana,
       costoTemporalBase: definicionGrado.costoTemporalBase,
-      alcance: definicionGrado.alcance,
+      alcance,
       formaImpacto,
       danio,
       efectos,
       zonaTemporal,
+      estadoTactico,
+      ataqueArma: configuracionAtaqueArma,
     };
   }
 
@@ -189,8 +237,158 @@ function normalizarEjecucion({
     requiereLineaVision: ejecucion.requiereLineaVision,
     hostil: ejecucion.hostil,
     requisitosLanzador,
+    ataqueArma,
     grados,
   };
+}
+
+function normalizarAtaqueArma(definicion, idHabilidad) {
+  validarObjeto(definicion, `el ataque de arma de "${idHabilidad}"`);
+  for (const clave of ["requierePreparacion", "requiereMunicion", "consumeMunicion", "usaAlcanceArma"]) {
+    if (typeof definicion[clave] !== "boolean") {
+      throw new Error(`El ataque de arma de "${idHabilidad}" debe declarar ${clave} como booleano.`);
+    }
+  }
+  const etiquetaContexto = normalizarId(definicion.etiquetaContexto);
+  if (!etiquetaContexto) {
+    throw new Error(
+      `El ataque de arma de "${idHabilidad}" debe declarar etiquetaContexto.`,
+    );
+  }
+  const etiquetasEjecucion = normalizarListaIds(
+    definicion.etiquetasEjecucion ?? [],
+    `las etiquetas de ataque de arma de "${idHabilidad}"`,
+  );
+  if (definicion.consumeMunicion && !definicion.requiereMunicion) {
+    throw new Error(
+      `El ataque de arma de "${idHabilidad}" no puede consumir munición si no la requiere.`,
+    );
+  }
+  return {
+    requierePreparacion: definicion.requierePreparacion,
+    requiereMunicion: definicion.requiereMunicion,
+    consumeMunicion: definicion.consumeMunicion,
+    usaAlcanceArma: definicion.usaAlcanceArma,
+    etiquetaContexto,
+    etiquetasEjecucion,
+  };
+}
+
+function normalizarGradoAtaqueArma(
+  definicion,
+  idHabilidad,
+  grado,
+  descriptorAtaqueArma,
+) {
+  const cantidadProyectiles = definicion.cantidadProyectiles ?? 1;
+  const cantidadMunicion = definicion.cantidadMunicion ??
+    (descriptorAtaqueArma.requiereMunicion ? cantidadProyectiles : 0);
+  const factorDanioArma = definicion.factorDanioArma ?? 1;
+  const factorPreparacion = definicion.factorPreparacion ?? 1;
+  const distanciaDesplazamiento = definicion.distanciaDesplazamiento ?? 0;
+  validarEnteroPositivo(
+    cantidadProyectiles,
+    `la cantidad de proyectiles de "${idHabilidad}" grado ${grado}`,
+  );
+  validarEnteroNoNegativo(
+    cantidadMunicion,
+    `la cantidad de munición de "${idHabilidad}" grado ${grado}`,
+  );
+  if (descriptorAtaqueArma.requiereMunicion && cantidadMunicion <= 0) {
+    throw new Error(
+      `La habilidad "${idHabilidad}" grado ${grado} requiere munición y debe declarar una cantidad mayor que 0.`,
+    );
+  }
+  if (!descriptorAtaqueArma.requiereMunicion && cantidadMunicion !== 0) {
+    throw new Error(
+      `La habilidad "${idHabilidad}" grado ${grado} no requiere munición y debe usar cantidadMunicion 0.`,
+    );
+  }
+  validarNumeroPositivo(
+    factorDanioArma,
+    `el factor de daño de arma de "${idHabilidad}" grado ${grado}`,
+  );
+  validarNumeroPositivo(
+    factorPreparacion,
+    `el factor de preparación de "${idHabilidad}" grado ${grado}`,
+  );
+  validarEnteroNoNegativo(
+    distanciaDesplazamiento,
+    `la distancia de desplazamiento de "${idHabilidad}" grado ${grado}`,
+  );
+  let desplazamientoTactico = null;
+  if (distanciaDesplazamiento > 0) {
+    validarObjeto(
+      definicion.desplazamientoTactico,
+      `el desplazamiento táctico de "${idHabilidad}" grado ${grado}`,
+    );
+    desplazamientoTactico = validarContratoDesplazamientoTactico({
+      reglaEspacial: normalizarId(definicion.desplazamientoTactico.reglaEspacial),
+      formaVisual: normalizarId(definicion.desplazamientoTactico.formaVisual),
+    });
+  } else if (definicion.desplazamientoTactico !== undefined) {
+    throw new Error(
+      `La habilidad "${idHabilidad}" grado ${grado} declara desplazamiento sin distancia.`,
+    );
+  }
+  return {
+    cantidadProyectiles,
+    cantidadMunicion,
+    factorDanioArma,
+    factorPreparacion,
+    distanciaDesplazamiento,
+    desplazamientoTactico,
+  };
+}
+
+function normalizarEstadoTacticoHabilidad(definicion, idHabilidad, grado) {
+  validarObjeto(
+    definicion,
+    `el estado táctico de "${idHabilidad}" grado ${grado}`,
+  );
+  const modificadores = Array.isArray(definicion.modificadores)
+    ? definicion.modificadores.map((descriptor, indice) =>
+        normalizarDescriptorModificador(
+          {
+            ...descriptor,
+            id:
+              descriptor.id ??
+              `estado_tactico:${idHabilidad}:${grado}:${indice + 1}`,
+          },
+          { origenPredeterminado: `estado_tactico:${idHabilidad}` },
+        ),
+      )
+    : [];
+  const politicas = definicion.politicas ?? {};
+  validarObjeto(politicas, `las políticas tácticas de "${idHabilidad}" grado ${grado}`);
+  return {
+    id: normalizarId(definicion.id),
+    tipo: normalizarId(definicion.tipo ?? "concentracion"),
+    nombre: normalizarTexto(definicion.nombre, `nombre del estado táctico de "${idHabilidad}"`),
+    descripcion: normalizarTextoOpcional(definicion.descripcion),
+    modificadores,
+    politicas: {
+      interrumpirPor: normalizarListaIds(
+        politicas.interrumpirPor ?? [],
+        `las interrupciones de "${idHabilidad}" grado ${grado}`,
+      ).map((tipoEvento) => validarTipoEventoEstadoTactico(tipoEvento)),
+      consumirAlEjecutarEtiquetas: normalizarListaIds(
+        politicas.consumirAlEjecutarEtiquetas ?? [],
+        `las etiquetas de consumo de "${idHabilidad}" grado ${grado}`,
+      ),
+      interrumpirAlEjecutarEtiquetas: normalizarListaIds(
+        politicas.interrumpirAlEjecutarEtiquetas ?? [],
+        `las etiquetas de interrupción de "${idHabilidad}" grado ${grado}`,
+      ),
+    },
+  };
+}
+
+function normalizarListaIds(valores, etiqueta) {
+  if (!Array.isArray(valores)) {
+    throw new Error(`${etiqueta} debe ser una lista.`);
+  }
+  return [...new Set(valores.map((valor) => normalizarId(valor)))];
 }
 
 function normalizarFormaImpacto({

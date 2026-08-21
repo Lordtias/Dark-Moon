@@ -464,7 +464,30 @@
       "todaMaestria": "Todas las habilidades de {maestria}",
       "aplicaA": "Aplica a",
       "basicasTitulo": "Habilidades básicas",
-      "basicasDetalle": "Siempre están aprendidas en grado 1 y pueden asignarse, moverse o quitarse libremente de la barra."
+      "basicasDetalle": "Siempre están aprendidas en grado 1 y pueden asignarse, moverse o quitarse libremente de la barra.",
+      "ataqueArmaTitulo": "Ataque de arma",
+      "proyectiles": "Proyectiles",
+      "municion": "Munición",
+      "danioPorProyectil": "Daño por proyectil",
+      "danioPorProyectilValor": "{porcentaje}% del arma",
+      "preparacion": "Preparación",
+      "preparacionValor": "×{factor} de la carga base",
+      "desplazamiento": "Desplazamiento",
+      "desplazamientoValor": "{casillas} casillas · {forma}",
+      "estadoTactico": "Estado táctico",
+      "seInterrumpeAl": "Se interrumpe al",
+      "tiempoAtaqueArma": "Preparación + ejecución según el arma equipada",
+      "formaMovimiento": "Movimiento",
+      "formaDash": "Dash",
+      "formaSalto": "Salto",
+      "formaTeletransporte": "Teletransporte",
+      "eventoMovimiento": "Movimiento",
+      "eventoEspera": "Esperar",
+      "eventoAccion": "Acción",
+      "eventoConsumo": "Consumo",
+      "eventoDanioRecibido": "Daño recibido",
+      "eventoHabilidadEjecutada": "Habilidad ejecutada",
+      "eventoAccionEjecutada": "Ataque ejecutado"
     },
     "mazmorras": {
       "elegir": "Elegir expedición",
@@ -2223,6 +2246,22 @@
       "esperar": {
         "nombre": "Esperar",
         "descripcion": "Consume un turno sin desplazar al personaje."
+      },
+      "disparo_multiple": {
+        "nombre": "Disparo múltiple",
+        "descripcion": "Prepara varias flechas y las dispara como una ráfaga rápida contra un enemigo."
+      },
+      "disparo_potente": {
+        "nombre": "Disparo potente",
+        "descripcion": "Carga un único disparo de gran potencia a cambio de un tiempo de preparación elevado."
+      },
+      "francotirador": {
+        "nombre": "Francotirador",
+        "descripcion": "Invierte tiempo en apuntar. El siguiente disparo compatible gana mucha Precisión, Crítico y menor Dispersión."
+      },
+      "disparo_evasivo": {
+        "nombre": "Disparo evasivo",
+        "descripcion": "Dispara con daño reducido y después intenta realizar un salto evasivo de hasta dos casillas hacia atrás."
       }
     },
     "maestrias": {
@@ -2634,6 +2673,9 @@
       "bloqueoGenerico": "{efecto} impide realizar acciones.",
       "cancelada": "La operación de habilidad fue cancelada.",
       "objetivoInvalido": "El objetivo o la casilla no son válidos para la habilidad.",
+      "preparacionArmaLista": "{habilidad} grado {grado} quedó preparada. Volvé a usarla para seleccionar el disparo.",
+      "ataqueArmaResuelto": "{habilidad}: {impactos} de {proyectiles} proyectiles impactan.",
+      "estadoTacticoActivado": "{habilidad} activa su estado táctico.",
       "bloqueoTemporal": "El jugador no puede usar habilidades en este momento."
     },
     "tiempo": {

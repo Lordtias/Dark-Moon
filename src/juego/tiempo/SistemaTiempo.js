@@ -9,6 +9,7 @@ export const TIEMPO_REFERENCIA = 100;
 export const TIPOS_ACCION_TEMPORAL = Object.freeze({
   MOVIMIENTO: "movimiento",
   ATAQUE: "ataque",
+  HABILIDAD: "habilidad",
   ACCION: "accion",
   CONSUMO: "consumo",
   ESPERA: "espera",
@@ -32,6 +33,7 @@ export const FACTORES_TEMPORALES_PREDETERMINADOS = Object.freeze({
 const FACTOR_ESPECIFICO_POR_ACCION = Object.freeze({
   [TIPOS_ACCION_TEMPORAL.MOVIMIENTO]: "factorMovimiento",
   [TIPOS_ACCION_TEMPORAL.ATAQUE]: "factorAtaque",
+  [TIPOS_ACCION_TEMPORAL.HABILIDAD]: "factorAccion",
   [TIPOS_ACCION_TEMPORAL.ACCION]: "factorAccion",
   [TIPOS_ACCION_TEMPORAL.CONSUMO]: "factorConsumo",
   [TIPOS_ACCION_TEMPORAL.ESPERA]: null,

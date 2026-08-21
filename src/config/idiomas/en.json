@@ -464,7 +464,30 @@
       "todaMaestria": "All {maestria} skills",
       "aplicaA": "Applies to",
       "basicasTitulo": "Basic abilities",
-      "basicasDetalle": "They are always learned at rank 1 and can be assigned, moved, or removed freely from the quick bar."
+      "basicasDetalle": "They are always learned at rank 1 and can be assigned, moved, or removed freely from the quick bar.",
+      "ataqueArmaTitulo": "Weapon attack",
+      "proyectiles": "Projectiles",
+      "municion": "Ammunition",
+      "danioPorProyectil": "Damage per projectile",
+      "danioPorProyectilValor": "{porcentaje}% of weapon damage",
+      "preparacion": "Preparation",
+      "preparacionValor": "×{factor} of base preparation",
+      "desplazamiento": "Displacement",
+      "desplazamientoValor": "{casillas} tiles · {forma}",
+      "estadoTactico": "Tactical state",
+      "seInterrumpeAl": "Interrupted by",
+      "tiempoAtaqueArma": "Preparation + execution based on the equipped weapon",
+      "formaMovimiento": "Movement",
+      "formaDash": "Dash",
+      "formaSalto": "Jump",
+      "formaTeletransporte": "Teleport",
+      "eventoMovimiento": "Movement",
+      "eventoEspera": "Waiting",
+      "eventoAccion": "Action",
+      "eventoConsumo": "Consumption",
+      "eventoDanioRecibido": "Damage received",
+      "eventoHabilidadEjecutada": "Skill executed",
+      "eventoAccionEjecutada": "Attack executed"
     },
     "mazmorras": {
       "elegir": "Choose expedition",
@@ -2223,6 +2246,22 @@
       "esperar": {
         "nombre": "Wait",
         "descripcion": "Consumes one turn without moving the character."
+      },
+      "disparo_multiple": {
+        "nombre": "Multi Shot",
+        "descripcion": "Prepares several arrows and releases them as a rapid burst against one enemy."
+      },
+      "disparo_potente": {
+        "nombre": "Power Shot",
+        "descripcion": "Charges a single high-power shot at the cost of a long preparation time."
+      },
+      "francotirador": {
+        "nombre": "Marksman",
+        "descripcion": "Takes time to aim. The next compatible shot gains major Accuracy, Critical Chance and reduced Spread."
+      },
+      "disparo_evasivo": {
+        "nombre": "Evasive Shot",
+        "descripcion": "Fires for reduced damage, then attempts a short backward jump of up to two tiles."
       }
     },
     "maestrias": {
@@ -2634,6 +2673,9 @@
       "bloqueoGenerico": "{efecto} prevents you from acting.",
       "cancelada": "The skill operation was canceled.",
       "objetivoInvalido": "The target or tile is not valid for the skill.",
+      "preparacionArmaLista": "{habilidad} grade {grado} is prepared. Use it again to select the shot.",
+      "ataqueArmaResuelto": "{habilidad}: {impactos} of {proyectiles} projectiles hit.",
+      "estadoTacticoActivado": "{habilidad} activates its tactical state.",
       "bloqueoTemporal": "The player cannot use skills right now."
     },
     "tiempo": {

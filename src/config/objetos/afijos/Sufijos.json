@@ -1215,7 +1215,7 @@
   "de_carga_rapida": {
     "nombre": "De carga rápida",
     "tipoAfijo": "sufijo",
-    "descripcion": "Reduce solamente el coste temporal de la fase de preparación de ataques con arco.",
+    "descripcion": "Reduce solamente el coste temporal de la fase de preparación de ataques y habilidades de arco.",
     "pesoBase": 450,
     "rarezasPermitidas": [
       "magico",
@@ -1241,7 +1241,10 @@
         "ambito": "portador",
         "condiciones": {
           "familiaArma": "arco",
-          "tipoAccion": "ataque",
+          "tipoAccion": [
+            "ataque",
+            "habilidad"
+          ],
           "faseAccion": "preparacion"
         }
       }

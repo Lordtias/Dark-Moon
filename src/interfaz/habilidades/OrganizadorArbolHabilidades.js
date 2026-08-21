@@ -1,3 +1,7 @@
+import {
+  TIPOS_RELACION_ARBOL_HABILIDADES,
+} from "../../juego/habilidades/ContratosArbolHabilidades.js";
+
 // Organiza visualmente cualquier maestría a partir de los mismos datos
 // canónicos. No distingue entre magia, armas o armaduras y no inventa
 // dependencias: solo ordena por requisito de nivel y expone relaciones que ya
@@ -85,6 +89,21 @@ function obtenerRelaciones({
   const relaciones = [];
   const claves = new Set();
 
+  // Las relaciones explícitas pertenecen a la configuración de la habilidad,
+  // no al tipo de maestría. Permiten representar sinergias reales de armas,
+  // armaduras o cualquier familia futura con el mismo árbol visual.
+  for (const nodo of nodos) {
+    const definicion = definiciones[nodo.id];
+    for (const relacion of definicion?.relacionesArbol ?? []) {
+      if (!ids.has(relacion.hacia)) continue;
+      agregarRelacion(relaciones, claves, {
+        desde: nodo.id,
+        hacia: relacion.hacia,
+        tipo: relacion.tipo,
+      });
+    }
+  }
+
   for (const nodo of nodos) {
     const definicion = definiciones[nodo.id];
     if (!definicion || definicion.tipo !== "pasiva") continue;
@@ -102,7 +121,7 @@ function obtenerRelaciones({
         agregarRelacion(relaciones, claves, {
           desde: nodo.id,
           hacia: idObjetivo,
-          tipo: "habilidad",
+          tipo: TIPOS_RELACION_ARBOL_HABILIDADES.MODIFICACION,
         });
         continue;
       }
@@ -125,7 +144,7 @@ function obtenerRelaciones({
           agregarRelacion(relaciones, claves, {
             desde: nodo.id,
             hacia: objetivo.id,
-            tipo: "afinidad",
+            tipo: TIPOS_RELACION_ARBOL_HABILIDADES.SINERGIA,
           });
         }
       }

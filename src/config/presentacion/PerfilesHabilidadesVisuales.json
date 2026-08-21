@@ -1173,6 +1173,114 @@
       "efectoCasilla": "halo_runa",
       "efectoObjetivo": "pulso_aura",
       "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "disparo_multiple": {
+      "nivelVisual": "intermedia",
+      "secuencia": "proyectil_basico",
+      "forma": "flecha_rapida",
+      "movimiento": "rapido",
+      "textura": "flecha_fisica",
+      "estela": "trazo_breve",
+      "impacto": "impacto_punzante",
+      "colorPrincipal": "#c8a85b",
+      "colorSecundario": "#f1dc91",
+      "tamanoVisualPx": 20,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "impacto_punzante",
+      "efectoObjetivoPrimario": "impacto_punzante"
+    },
+    "disparo_potente": {
+      "nivelVisual": "avanzada",
+      "secuencia": "proyectil_basico",
+      "forma": "flecha_potente",
+      "movimiento": "impulso_fuerte",
+      "textura": "flecha_fisica",
+      "estela": "estela_cometa_sutil",
+      "impacto": "impacto_potente",
+      "colorPrincipal": "#d3ad58",
+      "colorSecundario": "#fff0a8",
+      "tamanoVisualPx": 23,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "impacto_potente",
+      "efectoObjetivoPrimario": "impacto_potente"
+    },
+    "francotirador": {
+      "nivelVisual": "avanzada",
+      "secuencia": "area_conjurada",
+      "forma": "enfoque_precision",
+      "movimiento": "concentrado",
+      "textura": "reticula_sutil",
+      "estela": "pulso_concentracion",
+      "impacto": "destello_enfoque",
+      "colorPrincipal": "#c6ad69",
+      "colorSecundario": "#fff4bd",
+      "tamanoVisualPx": 20,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "area_instantanea",
+      "centroVisual": "actor",
+      "efectoCasilla": "halo_runa",
+      "efectoObjetivo": "pulso_aura",
+      "efectoObjetivoPrimario": "pulso_aura"
+    },
+    "disparo_evasivo": {
+      "nivelVisual": "avanzada",
+      "secuencia": "proyectil_basico",
+      "forma": "flecha_evasiva",
+      "movimiento": "rapido",
+      "textura": "flecha_fisica",
+      "estela": "trazo_breve",
+      "impacto": "impacto_punzante",
+      "colorPrincipal": "#c9b36f",
+      "colorSecundario": "#f5e7ad",
+      "tamanoVisualPx": 20,
+      "escalaPorGrado": [
+        1,
+        1.08,
+        1.16
+      ],
+      "sonido": {
+        "preparacion": null,
+        "lanzamiento": null,
+        "impacto": null
+      },
+      "patronVisual": "proyectil",
+      "centroVisual": "objetivo_primario",
+      "efectoCasilla": null,
+      "efectoObjetivo": "impacto_punzante",
+      "efectoObjetivoPrimario": "impacto_punzante"
     }
   }
 }

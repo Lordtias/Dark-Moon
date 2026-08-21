@@ -1,5 +1,8 @@
 import { normalizarDescriptorModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
 import { normalizarFuenteExperienciaMaestria } from "./ContratosExperienciaMaestrias.js";
+import {
+  normalizarRelacionesArbolHabilidad,
+} from "../habilidades/ContratosArbolHabilidades.js";
 
 export const TIPOS_HABILIDAD = Object.freeze({
   ACTIVA: "activa",
@@ -263,6 +266,11 @@ function normalizarHabilidades({
       });
     }
 
+    const relacionesArbol = normalizarRelacionesArbolHabilidad({
+      idHabilidad,
+      relaciones: definicion.relacionesArbol ?? [],
+    });
+
     resultado[idHabilidad] = {
       id: idHabilidad,
       nombre: definicion.nombre.trim(),
@@ -271,10 +279,30 @@ function normalizarHabilidades({
       requisitoNivelMaestria: definicion.requisitoNivelMaestria,
       gradoMaximo: definicion.gradoMaximo,
       modificadoresPorGrado,
+      relacionesArbol,
     };
   }
 
+  validarDestinosRelacionesArbol(resultado);
   return resultado;
+}
+
+function validarDestinosRelacionesArbol(habilidades) {
+  for (const habilidad of Object.values(habilidades)) {
+    for (const relacion of habilidad.relacionesArbol ?? []) {
+      const destino = habilidades[relacion.hacia];
+      if (!destino) {
+        throw new Error(
+          `La habilidad "${habilidad.id}" relaciona el árbol con la habilidad desconocida "${relacion.hacia}".`,
+        );
+      }
+      if (destino.maestria !== habilidad.maestria) {
+        throw new Error(
+          `La relación de árbol "${habilidad.id}" → "${destino.id}" cruza maestrías sin un contrato transversal aprobado.`,
+        );
+      }
+    }
+  }
 }
 
 function normalizarModificadoresPasiva({

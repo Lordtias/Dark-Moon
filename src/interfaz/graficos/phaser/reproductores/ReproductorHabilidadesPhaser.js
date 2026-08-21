@@ -1,3 +1,4 @@
+import { reproducirHabilidadArmaDistancia } from "./ReproductorHabilidadesArmaDistanciaPhaser.js";
 import { reproducirHabilidadArea } from "./ReproductorHabilidadesAreaPhaser.js";
 import { reproducirHabilidadCadena } from "./ReproductorHabilidadesCadenaPhaser.js";
 import { reproducirHabilidadLinea } from "./ReproductorHabilidadesLineaPhaser.js";
@@ -7,6 +8,11 @@ import { reproducirHabilidadZona } from "./ReproductorHabilidadesZonaPersistente
 // Fachada estable para la reproducción visual de habilidades ya resueltas.
 export async function reproducirHabilidadResuelta(reproductor, evento, version) {
   reproductor.compositor.ocultarSeleccionTemporal?.();
+
+  if (evento?.habilidad?.ataqueArma) {
+    await reproducirHabilidadArmaDistancia(reproductor, evento, version);
+    return;
+  }
 
   if (evento?.ritmoVisual?.secuencia === "area_conjurada") {
     await reproducirHabilidadArea(reproductor, evento, version);

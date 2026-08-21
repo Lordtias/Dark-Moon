@@ -32,6 +32,11 @@ import {
 } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { SistemaModificadoresCombatiente } from "../../../juego/modificadores/SistemaModificadoresCombatiente.js";
 import { SistemaEstadosTacticosCombatiente } from "../../../juego/estado/SistemaEstadosTacticosCombatiente.js";
+import { obtenerModificadoresEstadosTacticos } from "../../../juego/modificadores/ProveedorModificadoresEstadosTacticos.js";
+import {
+  procesarEventoEstadoTacticoCombatiente,
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "../../../juego/estado/EstadosTacticosCombatiente.js";
 import {
   ATRIBUTOS_COMBATIENTE_CANONICOS,
   validarClavesAtributosCombatiente,
@@ -411,6 +416,11 @@ export class Combatiente extends Destructible {
     this.sistemaEstadosTacticosCombatiente = new SistemaEstadosTacticosCombatiente({
       combatiente: this,
     });
+    this.sistemaModificadoresCombatiente.registrarProveedor({
+      id: "estados_tacticos",
+      obtenerModificadores: ({ combatiente }) =>
+        obtenerModificadoresEstadosTacticos({ combatiente }),
+    });
     if (modificadoresInicialesNormalizados.length > 0) {
       this.sistemaModificadoresCombatiente.registrarProveedor({
         id: "configuracion_combatiente",
@@ -463,6 +473,18 @@ export class Combatiente extends Destructible {
     return this.resolverModificador(objetivo, valorBase, contexto).resultado;
   }
 
+  recibirDanio(cantidad, contexto = {}) {
+    const aplicado = super.recibirDanio(cantidad);
+    if (aplicado > 0 && contexto?.hostil === true) {
+      procesarEventoEstadoTacticoCombatiente(this, TIPOS_EVENTO_ESTADO_TACTICO.DANIO_RECIBIDO, {
+        cantidad: aplicado,
+        fuente: contexto.fuente ?? null,
+        tipoAccion: contexto.tipoAccion ?? null,
+      });
+    }
+    return aplicado;
+  }
+
   obtenerFactoresTemporalesBase() {
     return { ...this._factoresTemporalesBase };
   }
@@ -504,6 +526,10 @@ export class Combatiente extends Destructible {
     this.vidaActual = Math.min(this.vidaActual, this.vidaMaxima);
     this.manaActual = Math.min(this.manaActual, this.manaMaximo);
     return estadisticas;
+  }
+
+  obtenerEstadisticasDerivadasContextuales(contexto = {}) {
+    return calcularEstadisticasDerivadas(this, contexto);
   }
 
   get armaEquipada() {

@@ -812,7 +812,7 @@
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
 }
 
-.arbol-habilidades__conexion--afinidad {
+.arbol-habilidades__conexion--sinergia {
   stroke-dasharray: 5 5;
   stroke: rgba(154, 141, 97, 0.54);
 }

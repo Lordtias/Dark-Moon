@@ -56,6 +56,19 @@ import {
   obtenerHabilidadBasica,
 } from "./HabilidadesBasicas.js";
 import { cumpleCondicionesModificador } from "../modificadores/ContratosModificadoresCombatiente.js";
+import {
+  esHabilidadAtaqueArma,
+  ejecutarDesplazamientoPosteriorHabilidadArma,
+  ejecutarHabilidadArma,
+  obtenerDesgloseImpactoHabilidadArma,
+  prepararHabilidadArma,
+  validarPreparacionHabilidadArma,
+} from "./MotorAtaqueArmaHabilidad.js";
+import {
+  activarEstadoTacticoCombatiente,
+  procesarEventoEstadoTacticoCombatiente,
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "../estado/EstadosTacticosCombatiente.js";
 
 const MOTIVOS = Object.freeze({
   OK: "OK",
@@ -267,6 +280,81 @@ export class SistemaHabilidadesJugador {
       );
     }
     this.cancelarAtaqueFisico();
+
+    const gradoConfigBase = habilidad.ejecucion.grados[grado];
+    const gradoConfig = crearConfiguracionHabilidadEfectiva({
+      lanzador: this.jugador,
+      habilidad,
+      gradoConfig: gradoConfigBase,
+    });
+
+    if (esHabilidadAtaqueArma(habilidad)) {
+      const requisitosLanzador = habilidad.ejecucion.requisitosLanzador ?? {};
+      if (
+        Object.keys(requisitosLanzador).length > 0 &&
+        !cumpleCondicionesModificador(
+          requisitosLanzador,
+          this.jugador.obtenerContextoModificadores(),
+        )
+      ) {
+        return crearRechazo(
+          MOTIVOS.OBJETIVO_INVALIDO,
+          "No cumplís los requisitos de equipamiento para usar esta habilidad.",
+        );
+      }
+
+      try {
+        const preparacion = prepararHabilidadArma({
+          combatiente: this.jugador,
+          habilidad,
+          gradoConfig,
+          grado,
+        });
+        if (!preparacion.preparado) {
+          return crearRechazo(
+            MOTIVOS.OBJETIVO_INVALIDO,
+            preparacion.requisitos?.mensajePresentacion ??
+              preparacion.requisitos?.mensaje ??
+              "No hay recursos suficientes para preparar la habilidad.",
+          );
+        }
+        if (!preparacion.yaPreparado) {
+          this.seleccion = null;
+          const resultadoBase = {
+            exito: true,
+            motivo: MOTIVOS.OK,
+            mensaje: crearMensajeTraducible(
+              "mensajes.habilidades.preparacionArmaLista",
+              {
+                parametros: { habilidad: parametroHabilidad(habilidad), grado },
+                tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+                respaldo: `${habilidad.nombre} quedó preparada. Volvé a usarla para seleccionar el disparo.`,
+              },
+            ),
+            turnoConsumido: preparacion.costoBase > 0,
+            redibujar: true,
+            tipoAccion: "habilidad_preparacion",
+            idHabilidad: habilidad.id,
+            idMaestria: habilidad.maestria,
+            grado,
+            preparada: true,
+            costoTemporal: preparacion.costoBase,
+            eventos: [],
+          };
+          const resultado = preparacion.costoBase > 0
+            ? finalizarTiempo(this.juego, {
+                resultado: resultadoBase,
+                costoTemporalBase: preparacion.costoBase,
+              })
+            : resultadoBase;
+          this.emitirCambio();
+          return resultado;
+        }
+      } catch (error) {
+        return crearRechazo(MOTIVOS.ERROR_EJECUCION, error.message);
+      }
+    }
+
     const puntoInicial = this.obtenerPuntoInicial(habilidad, grado);
     this.seleccion = {
       indiceRanura,
@@ -383,6 +471,13 @@ export class SistemaHabilidadesJugador {
     const plan = this.prepararPlanEjecucion();
     if (!plan.exito) return plan;
 
+    if (plan.gradoConfig.ataqueArma) {
+      return this.confirmarAtaqueArma(plan);
+    }
+    if (plan.gradoConfig.estadoTactico) {
+      return this.confirmarEstadoTactico(plan);
+    }
+
     const manaAntes = leerManaActual(this.jugador);
     const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
     let faseIrreversible = false;
@@ -461,6 +556,11 @@ export class SistemaHabilidadesJugador {
         ],
         zonaTemporal: resultadoZona?.zona ?? null,
       });
+      procesarEventoEstadoTacticoCombatiente(
+        this.jugador,
+        TIPOS_EVENTO_ESTADO_TACTICO.HABILIDAD_EJECUTADA,
+        { idHabilidad: plan.habilidad.id },
+      );
       const mensaje = plan.creaZonaTemporal
         ? crearMensajeCreacionZona({
             habilidad: plan.habilidad,
@@ -535,6 +635,289 @@ export class SistemaHabilidadesJugador {
         0,
         manaAntes - leerManaActual(this.jugador),
       );
+      resultado.faseIrreversible = faseIrreversible;
+      registrarUltimaEjecucion(this.jugador, resultado);
+      this.emitirCambio();
+      return resultado;
+    }
+  }
+
+  confirmarAtaqueArma(plan) {
+    const manaAntes = leerManaActual(this.jugador);
+    const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
+    let faseIrreversible = false;
+
+    try {
+      consumirMana(this.jugador, plan.costoMana);
+      const manaDespues = leerManaActual(this.jugador);
+      const manaConsumido = Math.max(0, manaAntes - manaDespues);
+      if (manaConsumido !== plan.costoMana) {
+        restaurarMana(this.jugador, manaAntes);
+        return crearRechazo(
+          MOTIVOS.MANA_INSUFICIENTE,
+          "No fue posible descontar el Maná completo de forma atómica.",
+        );
+      }
+
+      faseIrreversible = true;
+      const objetivo = plan.objetivoPrimario ?? plan.objetivos[0]?.objetivo ?? null;
+      if (!objetivo) {
+        throw new Error("La habilidad de arma no tiene un objetivo válido.");
+      }
+      if (plan.habilidad.ejecucion.hostil) registrarHostilidad(this.juego, objetivo);
+      const origenActor = { x: this.jugador.x, y: this.jugador.y };
+
+      const ejecucion = ejecutarHabilidadArma({
+        juego: this.juego,
+        combatiente: this.jugador,
+        habilidad: plan.habilidad,
+        grado: plan.grado,
+        gradoConfig: plan.gradoConfig,
+        objetivo,
+      });
+      const resultadoAtaque = ejecucion.resultadoAtaque;
+      const impactosResultado = ejecucion.impactos.map((impacto) => ({
+        ...impacto,
+        objetivo: resumirObjetivoMensaje(impacto.objetivoEntidad),
+      }));
+      const eventoHabilidad = crearEventoHabilidadResuelta({
+        actor: this.jugador,
+        tipoActor: TIPOS_ACTOR_HABILIDAD.JUGADOR,
+        habilidad: {
+          ...plan.habilidad,
+          formaImpacto: plan.gradoConfig.formaImpacto ?? null,
+          ataqueArma: {
+            ...plan.habilidad.ejecucion.ataqueArma,
+            ...plan.gradoConfig.ataqueArma,
+          },
+        },
+        grado: plan.grado,
+        origenActor,
+        posicionObjetivo: plan.centro,
+        objetivoPrimario: objetivo,
+        casillasAfectadas: plan.casillasAfectadas,
+        recorrido: plan.recorrido,
+        impactos: ejecucion.impactos,
+        recursosActor: [
+          {
+            recurso: "mana",
+            valorAntes: manaAntes,
+            valorDespues: manaDespues,
+            cantidadReal: manaConsumido,
+            valorMaximo: leerManaMaximo(this.jugador),
+            tipoCambio: "consumo",
+          },
+          ...(ejecucion.recursoMunicion?.consumida
+            ? [{
+                recurso: "municion",
+                valorAntes:
+                  (ejecucion.recursoMunicion.restante ?? 0) +
+                  (ejecucion.recursoMunicion.municionUtilizada?.cantidad ?? 0),
+                valorDespues: ejecucion.recursoMunicion.restante ?? 0,
+                cantidadReal: ejecucion.recursoMunicion.municionUtilizada?.cantidad ?? 0,
+                valorMaximo: null,
+                tipoCambio: "consumo",
+              }]
+            : []),
+        ],
+        recursoProyectil: ejecucion.recursoProyectil,
+        idEjecucion,
+      });
+      const cantidadImpactos = ejecucion.impactos.filter((i) => i.impacto).length;
+      const cantidadCriticos = ejecucion.impactos.filter((i) => i.critico).length;
+      const mensaje = crearMensajeTraducible(
+        "mensajes.habilidades.ataqueArmaResuelto",
+        {
+          parametros: {
+            habilidad: parametroHabilidad(plan.habilidad),
+            impactos: cantidadImpactos,
+            proyectiles: ejecucion.impactos.length,
+          },
+          tipo: cantidadImpactos > 0
+            ? TIPOS_MENSAJE_JUEGO.POSITIVO
+            : TIPOS_MENSAJE_JUEGO.NEGATIVO,
+          respaldo: `${plan.habilidad.nombre}: ${cantidadImpactos} de ${ejecucion.impactos.length} proyectiles impactan.`,
+        },
+      );
+      const resultadoAntesDesplazamiento = {
+        exito: true,
+        motivo: MOTIVOS.OK,
+        mensaje,
+        turnoConsumido: true,
+        redibujar: true,
+        idEjecucion,
+        idHabilidad: plan.habilidad.id,
+        idMaestria: plan.habilidad.maestria,
+        grado: plan.grado,
+        manaConsumido,
+        costoTemporal: ejecucion.costoEjecucion,
+        tipoAccion: "habilidad",
+        ejecucionEfectiva: true,
+        impacto: resultadoAtaque.impacto === true,
+        critico: resultadoAtaque.critico === true,
+        cantidadObjetivos: 1,
+        cantidadImpactos,
+        cantidadCriticos,
+        impactos: impactosResultado,
+        danio: resultadoAtaque.danio,
+        efectos: [],
+        municionConsumida: ejecucion.recursoMunicion?.municionUtilizada?.cantidad ?? 0,
+        municionRestante: ejecucion.recursoMunicion?.restante ?? null,
+        experienciaMaestria: ejecucion.experienciaMaestria,
+        desplazamientoTactico: null,
+        eventos: [eventoHabilidad],
+      };
+      // El disparo y sus destrucciones se consolidan antes del retroceso. Así
+      // el orden canónico queda: disparo -> impacto/muerte -> desplazamiento.
+      const resultadoConDerrotas =
+        typeof this.juego.incorporarDestruccionesPendientes === "function"
+          ? this.juego.incorporarDestruccionesPendientes(resultadoAntesDesplazamiento)
+          : resultadoAntesDesplazamiento;
+      const desplazamiento = ejecutarDesplazamientoPosteriorHabilidadArma({
+        juego: this.juego,
+        combatiente: this.jugador,
+        desplazamientoPendiente: ejecucion.desplazamientoPendiente,
+      });
+      const resultadoBase = {
+        ...resultadoConDerrotas,
+        desplazamientoTactico: desplazamiento?.desplazamientoTactico ?? null,
+        eventos: [
+          ...(resultadoConDerrotas.eventos ?? []),
+          ...(desplazamiento?.eventos ?? []),
+        ],
+      };
+      const resultadoTemporal = finalizarTiempo(this.juego, {
+        resultado: resultadoBase,
+        costoTemporalBase: ejecucion.costoEjecucion,
+      });
+      const resultado = {
+        ...(resultadoTemporal ?? resultadoBase),
+        experienciaMaestria: ejecucion.experienciaMaestria,
+      };
+      registrarUltimaEjecucion(this.jugador, resultado);
+      this.seleccion = null;
+      this.emitirCambio();
+      return resultado;
+    } catch (error) {
+      if (!faseIrreversible) restaurarMana(this.jugador, manaAntes);
+      const resultado = crearRechazo(
+        MOTIVOS.ERROR_EJECUCION,
+        `La habilidad de arma no pudo completarse: ${error.message}`,
+      );
+      resultado.idEjecucion = idEjecucion;
+      resultado.error = error;
+      resultado.manaConsumido = Math.max(0, manaAntes - leerManaActual(this.jugador));
+      resultado.faseIrreversible = faseIrreversible;
+      registrarUltimaEjecucion(this.jugador, resultado);
+      this.emitirCambio();
+      return resultado;
+    }
+  }
+
+  confirmarEstadoTactico(plan) {
+    const manaAntes = leerManaActual(this.jugador);
+    const idEjecucion = generarIdEjecucionHabilidad(this.jugador);
+    let faseIrreversible = false;
+
+    try {
+      consumirMana(this.jugador, plan.costoMana);
+      const manaDespues = leerManaActual(this.jugador);
+      const manaConsumido = Math.max(0, manaAntes - manaDespues);
+      if (manaConsumido !== plan.costoMana) {
+        restaurarMana(this.jugador, manaAntes);
+        return crearRechazo(MOTIVOS.MANA_INSUFICIENTE, "No fue posible descontar el Maná completo.");
+      }
+
+      faseIrreversible = true;
+      procesarEventoEstadoTacticoCombatiente(
+        this.jugador,
+        TIPOS_EVENTO_ESTADO_TACTICO.HABILIDAD_EJECUTADA,
+        { idHabilidad: plan.habilidad.id },
+      );
+      const descriptor = plan.gradoConfig.estadoTactico;
+      const estado = activarEstadoTacticoCombatiente(
+        this.jugador,
+        {
+          ...descriptor,
+          icono: plan.habilidad.icono ?? null,
+          etiquetas: ["favorable", descriptor.tipo ?? "estado_tactico"],
+          datos: { idHabilidad: plan.habilidad.id, grado: plan.grado },
+        },
+        { origen: `habilidad:${plan.habilidad.id}` },
+      );
+      const eventoHabilidad = crearEventoHabilidadResuelta({
+        actor: this.jugador,
+        tipoActor: TIPOS_ACTOR_HABILIDAD.JUGADOR,
+        habilidad: {
+          ...plan.habilidad,
+          formaImpacto: plan.gradoConfig.formaImpacto ?? null,
+        },
+        grado: plan.grado,
+        posicionObjetivo: plan.centro,
+        objetivoPrimario: this.jugador,
+        casillasAfectadas: plan.casillasAfectadas,
+        recorrido: plan.recorrido,
+        impactos: [],
+        recursosActor: [
+          {
+            recurso: "mana",
+            valorAntes: manaAntes,
+            valorDespues: manaDespues,
+            cantidadReal: manaConsumido,
+            valorMaximo: leerManaMaximo(this.jugador),
+            tipoCambio: "consumo",
+          },
+        ],
+        idEjecucion,
+      });
+      const resultadoBase = {
+        exito: true,
+        motivo: MOTIVOS.OK,
+        mensaje: crearMensajeTraducible(
+          "mensajes.habilidades.estadoTacticoActivado",
+          {
+            parametros: { habilidad: parametroHabilidad(plan.habilidad) },
+            tipo: TIPOS_MENSAJE_JUEGO.POSITIVO,
+            respaldo: `${plan.habilidad.nombre} activa ${estado.nombre}.`,
+          },
+        ),
+        turnoConsumido: true,
+        redibujar: true,
+        idEjecucion,
+        idHabilidad: plan.habilidad.id,
+        idMaestria: plan.habilidad.maestria,
+        grado: plan.grado,
+        manaConsumido,
+        costoTemporal: plan.costoTemporal,
+        tipoAccion: "habilidad",
+        ejecucionEfectiva: true,
+        impacto: false,
+        critico: false,
+        cantidadObjetivos: 0,
+        cantidadImpactos: 0,
+        cantidadCriticos: 0,
+        impactos: [],
+        efectos: [],
+        estadoTactico: estado,
+        eventos: [eventoHabilidad],
+      };
+      const resultadoTemporal = finalizarTiempo(this.juego, {
+        resultado: resultadoBase,
+        costoTemporalBase: plan.costoTemporal,
+      });
+      const resultado = resultadoTemporal ?? resultadoBase;
+      registrarUltimaEjecucion(this.jugador, resultado);
+      this.seleccion = null;
+      this.emitirCambio();
+      return resultado;
+    } catch (error) {
+      if (!faseIrreversible) restaurarMana(this.jugador, manaAntes);
+      const resultado = crearRechazo(
+        MOTIVOS.ERROR_EJECUCION,
+        `La habilidad no pudo activar su estado táctico: ${error.message}`,
+      );
+      resultado.idEjecucion = idEjecucion;
+      resultado.error = error;
       resultado.faseIrreversible = faseIrreversible;
       registrarUltimaEjecucion(this.jugador, resultado);
       this.emitirCambio();
@@ -653,7 +1036,13 @@ export class SistemaHabilidadesJugador {
       casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
       objetivosAfectados: vistaPrevia.objetivosAfectados.map((entrada) => {
         const desgloseImpacto = habilidad.ejecucion.hostil
-          ? obtenerDesgloseImpactoHabilidad(this.jugador, entrada.objetivo)
+          ? esHabilidadAtaqueArma(habilidad)
+            ? obtenerDesgloseImpactoHabilidadArma({
+                combatiente: this.jugador,
+                habilidad,
+                objetivo: entrada.objetivo,
+              })
+            : obtenerDesgloseImpactoHabilidad(this.jugador, entrada.objetivo)
           : null;
         return {
           nombre: entrada.objetivo.nombre ?? "Objetivo",
@@ -776,6 +1165,23 @@ export class SistemaHabilidadesJugador {
         "No cumplís los requisitos de equipamiento para usar esta habilidad.",
       );
     }
+    if (esHabilidadAtaqueArma(habilidad)) {
+      const preparacion = validarPreparacionHabilidadArma({
+        combatiente: this.jugador,
+        habilidad,
+        gradoConfig: { ...gradoConfig, gradoResuelto: grado },
+        retirarSiInvalida: true,
+      });
+      if (habilidad.ejecucion.ataqueArma.requierePreparacion && !preparacion.valida) {
+        return crearRechazo(
+          MOTIVOS.OBJETIVO_INVALIDO,
+          preparacion.requisitos?.mensajePresentacion ??
+            preparacion.requisitos?.mensaje ??
+            "La preparación de la habilidad ya no es válida. Volvé a cargarla.",
+        );
+      }
+    }
+
     if (leerManaActual(this.jugador) < gradoConfig.costoMana) {
       return crearRechazo(
         MOTIVOS.MANA_INSUFICIENTE,
@@ -795,6 +1201,29 @@ export class SistemaHabilidadesJugador {
     }
 
     try {
+      if (esHabilidadAtaqueArma(habilidad)) {
+        const objetivo = vistaPrevia.objetivoPrimario ??
+          vistaPrevia.objetivosAfectados[0]?.objetivo ?? null;
+        if (!objetivo) {
+          throw new Error("La habilidad de arma necesita un objetivo válido.");
+        }
+        return {
+          exito: true,
+          habilidad,
+          grado,
+          gradoConfig,
+          objetivos: vistaPrevia.objetivosAfectados.map((entrada) => ({ ...entrada })),
+          contextoPotencia: null,
+          creaZonaTemporal: false,
+          centro: copiarCasilla(vistaPrevia.centro),
+          objetivoPrimario: objetivo,
+          casillasAfectadas: vistaPrevia.casillasAfectadas.map(copiarCasilla),
+          recorrido: vistaPrevia.recorrido.map((paso) => ({ ...paso })),
+          costoMana: gradoConfig.costoMana,
+          costoTemporal: gradoConfig.costoTemporalBase,
+        };
+      }
+
       validarDisponibilidadEfectosHabilidad({
         juego: this.juego,
         efectosConfigurados: gradoConfig.efectos,

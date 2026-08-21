@@ -180,6 +180,7 @@ export function resolverDanioHabilidad({
     idEjecucion,
     fuente: lanzador,
     tipoAccion: "habilidad",
+    hostil: lanzador !== objetivo,
   });
 
   return {

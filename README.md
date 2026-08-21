@@ -27,7 +27,7 @@ La versión actual incluye:
 - comerciantes y curandera;
 - progresión general, experiencia, niveles y oro;
 - dieciséis maestrías generales: cuatro mágicas, ocho de armas y cuatro defensivas;
-- 104 habilidades configuradas: 40 activas y 64 pasivas;
+- 108 habilidades configuradas: 44 activas y 64 pasivas;
 - pasivas, auras y maldiciones integradas mediante el resolutor canónico de modificadores;
 - árbol genérico de habilidades con detalle contextual y estados activos en HUD;
 - efectos temporales, resistencias e inmunidades;
@@ -731,6 +731,10 @@ La armadura se aplica al componente físico. Las resistencias elementales se apl
 
 Las varitas y bastones son armas normales configuradas en `Armas.json`. No existe un catálogo paralelo de catalizadores.
 
+Los arcos usan además el contrato de preparación introducido por CD1: el ataque se divide en preparación y ejecución, la carga se representa como estado táctico transitorio, Dispersión modifica la Precisión contextual a larga distancia y Penetración de Armadura pertenece a la fuente del ataque. Las habilidades de arma reutilizan este mismo pipeline mediante `MotorAtaqueArmaHabilidad.js`; no existe una segunda fórmula física.
+
+La política de munición de una habilidad distingue `requiereMunicion`, `consumeMunicion` y `cantidadMunicion` de `cantidadProyectiles`. Reemplazar una preparación paga nuevamente el tiempo de carga pero no descuenta flechas. Los estados tácticos pueden aportar modificadores al `SistemaModificadoresCombatiente` y sus interrupciones utilizan `TIPOS_EVENTO_ESTADO_TACTICO`; una acción rechazada no cuenta como interrupción consumada.
+
 ---
 
 ## 11. Muerte, experiencia, oro y botín
@@ -1066,7 +1070,7 @@ Reglas vigentes configuradas:
 
 ### Habilidades, pasivas, auras y maldiciones
 
-Cada entrada declara `tipo: "activa"` o `tipo: "pasiva"`. El catálogo actual contiene 104 habilidades: 40 activas y 64 pasivas. Las 48 pasivas físicas de HP3 y las 16 pasivas mágicas de HP4 utilizan la misma progresión; una pasiva no posee ejecución directa, no puede asignarse a la barra y aporta únicamente descriptores declarativos mientras esté aprendida y se cumplan sus condiciones.
+Cada entrada declara `tipo: "activa"` o `tipo: "pasiva"`. El catálogo actual contiene 108 habilidades: 44 activas y 64 pasivas. Las 48 pasivas físicas de HP3 y las 16 pasivas mágicas de HP4 utilizan la misma progresión; una pasiva no posee ejecución directa, no puede asignarse a la barra y aporta únicamente descriptores declarativos mientras esté aprendida y se cumplan sus condiciones.
 
 `ProveedorModificadoresPasivasAprendidas.js` traduce pasivas y grados a descriptores, pero no evalúa condiciones ni calcula estadísticas: toda composición continúa en `SistemaModificadoresCombatiente`.
 
@@ -1080,6 +1084,15 @@ Las cuatro maestrías mágicas conservan sus ofensivas base y amplían el árbol
 | Frío | Esquirla de hielo | Nova de escarcha | Ráfaga glacial |
 | Rayo | Chispa | Cadena de rayos | Descarga fulminante |
 | Veneno | Aguijón tóxico | Nube tóxica | Plaga corrosiva |
+
+La maestría Arcos incorpora además cuatro activas físicas que consumen la fuente real del arma:
+
+| Nivel | Habilidad | Identidad |
+|---:|---|---|
+| 2 | Disparo múltiple | ráfaga de 2/3/4 proyectiles con tiradas independientes |
+| 5 | Disparo potente | un proyectil de daño elevado y preparación prolongada |
+| 7 | Francotirador | activa `Apuntando`, que mejora Precisión, crítico y Dispersión del siguiente disparo compatible |
+| 10 | Disparo evasivo | dispara y luego intenta un salto táctico de hasta dos casillas hacia atrás |
 
 `ConfiguracionHabilidadEfectiva.js` crea un snapshot derivado para cada ejecución o vista previa. Coste de Maná, coste temporal, alcance, geometría numérica, daño, probabilidad/duración de efectos, acumulaciones y radios pasan por `SistemaModificadoresCombatiente` antes de ser consumidos. El snapshot no se persiste.
 
@@ -1095,6 +1108,8 @@ src/juego/habilidades/EstadoSesionHabilidades.js
 src/juego/habilidades/GeometriaHabilidades.js
 src/juego/habilidades/MotorDanioHabilidad.js
 src/juego/habilidades/MotorEfectosHabilidad.js
+src/juego/habilidades/MotorAtaqueArmaHabilidad.js
+src/juego/habilidades/ContratosArbolHabilidades.js
 src/juego/habilidades/ObservadorProgresoHabilidades.js
 ```
 
@@ -1107,9 +1122,10 @@ src/juego/habilidades/ObservadorProgresoHabilidades.js
 - `GeometriaHabilidades`: casillas y formas de impacto.
 - `MotorDanioHabilidad`: daño de habilidad.
 - `MotorEfectosHabilidad`: aplicación de efectos.
+- `MotorAtaqueArmaHabilidad`: ejecución de habilidades físicas que reutilizan la fuente/combate del arma equipada.
 - `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel y comandos; cuando cambia el progreso solicita el guardado a la autoridad de partida mediante callback.
 - `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
-- `OrganizadorArbolHabilidades`: organiza niveles y relaciones visuales respaldadas por configuración, sin crear dependencias de aprendizaje.
+- `OrganizadorArbolHabilidades`: organiza niveles y relaciones visuales respaldadas por configuración, sin crear dependencias de aprendizaje; combina relaciones inferibles con `relacionesArbol` declarativas para cualquier maestría.
 - `ClasificadorPresentacionHabilidades`: deriva la presentación Pasiva/Aura/Maldición/Ofensiva a partir de los datos.
 - `PanelHabilidadesMaestrias`: árbol genérico, detalle contextual, aprendizaje/mejora y gestión de la barra reutilizando los sistemas existentes.
 
@@ -1392,7 +1408,7 @@ Los IDs son contratos entre JSON, código, persistencia e interfaz. Antes de ren
 
 El panel superpuesto **Personaje** ocupa el ancho completo y muestra estadísticas, Habilidades, pasivas aprendidas y efectos activos consumiendo valores/desgloses canónicos. **Objetos** integra visualmente Inventario y Equipamiento sin fusionar sus responsabilidades técnicas. Los valores detallables abren `ModalDetalleEstadistica`; la interfaz no reconstruye fórmulas.
 
-La ventana **Habilidades** utiliza un árbol genérico para las dieciséis maestrías. Cada nodo muestra icono y grado; el detalle se clasifica por datos como Pasiva, Aura, Maldición u Ofensiva. Aprender/mejorar reutiliza `ProgresoHabilidadesJugador` y asignar/quitar reutiliza `SistemaHabilidadesJugador`. Las relaciones de Afinidad basadas en `danoHabilidad` solo se dibujan hacia activas de la misma maestría que produzcan daño real directo o periódico.
+La ventana **Habilidades** utiliza un árbol genérico para las dieciséis maestrías. Cada nodo muestra icono y grado; el detalle se clasifica por datos como Pasiva, Aura, Maldición u Ofensiva. Aprender/mejorar reutiliza `ProgresoHabilidadesJugador` y asignar/quitar reutiliza `SistemaHabilidadesJugador`. El mismo organizador consume relaciones inferibles de modificadores y relaciones `relacionesArbol` declaradas por cualquier maestría. `modificacion` usa conexión normal y `sinergia` conexión punteada; ninguna línea crea por sí sola un requisito de aprendizaje. Arcos utiliza este contrato igual que las maestrías mágicas, sin lógica de UI específica de arma.
 
 El HUD muestra Auras activas a la izquierda y Maldiciones a la derecha sobre experiencia/barra. Los contadores derivan del tiempo real del efecto; no existe temporizador visual paralelo. El Player no mantiene una representación persistente de aura/maldición sobre el sprite, aunque conserva feedback transitorio; otros combatientes sí pueden conservar su lectura persistente.
 

@@ -94,6 +94,9 @@ export const CLAVES_CONTEXTO_MODIFICADOR = Object.freeze({
   TIPO_ACCION: "tipoAccion",
   // Fase concreta de una acción compuesta: preparación o ejecución.
   FASE_ACCION: "faseAccion",
+  // Clasificación canónica de la acción ofensiva que permite contextualizar
+  // posturas tácticas sin depender del ID visible de una habilidad.
+  ETIQUETA_ACCION: "etiquetaAccion",
   // Indica si la resolución actual pertenece a un ataque con dos fuentes de arma.
   ES_ATAQUE_DUAL: "esAtaqueDual",
   // Categoría conjunta de las cinco piezas corporales: ligera, media, pesada o mixta.

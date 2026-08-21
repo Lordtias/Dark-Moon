@@ -38,18 +38,21 @@ export const ATRIBUTOS_HABILIDAD = Object.freeze({
   INTERVALO_ZONA: "intervaloZona",
   // Radio en casillas de una emisión móvil de aura alrededor de su emisor.
   RADIO_AURA: "radioAura",
+  // Cantidad de proyectiles resueltos por una única ejecución de habilidad de arma.
+  CANTIDAD_PROYECTILES: "cantidadProyectiles",
+  // Multiplicador aplicado al daño canónico de la fuente de arma usada por la habilidad.
+  FACTOR_DANIO_ARMA: "factorDanioArma",
+  // Distancia máxima de un desplazamiento táctico causado por una habilidad.
+  DISTANCIA_DESPLAZAMIENTO: "distanciaDesplazamiento",
 });
 
 export const ATRIBUTOS_HABILIDAD_VALIDOS = Object.freeze(
   Object.values(ATRIBUTOS_HABILIDAD),
 );
 
-// Campos ya identificados como probables a corto plazo para habilidades de
-// arco (disparo múltiple, lluvia/abanico de proyectiles). Permanecen fuera del
-// registro productivo hasta que exista un consumidor canónico real.
+// Campos identificados a corto plazo que todavía carecen de consumidor
+// canónico productivo. No se habilitan hasta que una regla real los necesite.
 export const ATRIBUTOS_HABILIDAD_RESERVADOS_CORTO_PLAZO = Object.freeze({
-  // Cantidad de proyectiles generados por una única ejecución.
-  CANTIDAD_PROYECTILES: "cantidadProyectiles",
   // Tope de proyectiles de la misma fuente que pueden coexistir en el mundo.
   MAXIMO_PROYECTILES_SIMULTANEOS: "maximoProyectilesSimultaneos",
 });

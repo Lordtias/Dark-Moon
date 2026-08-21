@@ -1075,6 +1075,11 @@ export class SistemaEfectosTemporales {
       : null;
     const danioAplicado = efecto.objetivo.recibirDanio(
       paquete.danioCalculado,
+      {
+        fuente: efecto.fuente ?? null,
+        tipoAccion: "efecto_periodico",
+        hostil: efecto.beneficioso !== true,
+      },
     );
     const vidaDespues = Number.isFinite(efecto.objetivo?.vidaActual)
       ? Math.max(0, efecto.objetivo.vidaActual)

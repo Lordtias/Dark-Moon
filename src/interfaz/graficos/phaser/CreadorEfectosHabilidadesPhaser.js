@@ -108,6 +108,43 @@ export class CreadorEfectosHabilidadesPhaser {
     return grafico;
   }
 
+  crearEstelaMovilProyectil({
+    centro,
+    perfil,
+    grado = 1,
+    anguloRad = 0,
+  } = {}) {
+    if (
+      !esCentroValido(centro) ||
+      !perfil ||
+      perfil.estela !== "estela_cometa_sutil" ||
+      !Number.isFinite(anguloRad)
+    ) {
+      return null;
+    }
+    const principal = convertirColor(perfil.colorPrincipal);
+    const secundario = convertirColor(perfil.colorSecundario);
+    const escala = obtenerEscalaGrado(perfil, grado);
+    const longitud = 13 * escala;
+    const grafico = this.escena.add.graphics({ x: centro.x, y: centro.y });
+
+    // Cola breve, adherida al proyectil. El reproductor desplaza este gráfico
+    // junto a la flecha, evitando la estela estática que parecía una serie de
+    // impactos separados a lo largo de toda la trayectoria.
+    grafico.lineStyle?.(2.2 * escala, principal, 0.42);
+    grafico.lineBetween?.(-longitud * 0.25, 0, -longitud, 0);
+    grafico.lineStyle?.(1.1 * escala, secundario, 0.52);
+    grafico.lineBetween?.(-longitud * 0.15, 0, -longitud * 0.68, 0);
+    grafico.fillStyle?.(secundario, 0.38);
+    grafico.fillCircle?.(-longitud * 0.38, 0, Math.max(0.8, 1.25 * escala));
+    grafico.fillStyle?.(principal, 0.25);
+    grafico.fillCircle?.(-longitud * 0.78, 0, Math.max(0.7, 0.95 * escala));
+    grafico.setRotation?.(anguloRad);
+    grafico.setAlpha?.(0.62);
+    this.compositor.agregarEfectoTemporal(grafico);
+    return grafico;
+  }
+
   crearImpacto({
     centro,
     perfil,

@@ -2104,11 +2104,13 @@ Los afijos muestran `Prefijo/Sufijo` y `Objeto/Portador`; este último consume d
 
 ### V-038 — Iconografía completa y excepción de Maldiciones funcionales
 
-`Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 104 contenidos actuales deben tener icono 1:1 legible y quedan normalizados físicamente a 128×128 tras el ajuste correctivo posterior a HP6. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
+`Habilidades.json.icono` sigue siendo el único contrato de imagen. Los 108 contenidos actuales deben tener icono 1:1 legible y quedan normalizados físicamente a 128×128 tras el ajuste correctivo posterior a HP6. Auras/Vulnerabilidades elementales pueden mantener su afinidad. `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` representan su función y no heredan automáticamente el color/tema de la afinidad donde se aprenden.
 
 ### V-039 — Árbol genérico y detalle contextual de habilidades
 
-`OrganizadorArbolHabilidades` se aplica a todas las maestrías y habilidades sin distinguir magia, armas o armaduras. El eje vertical deriva exclusivamente de `requisitoNivelMaestria`; los nodos del mismo nivel se distribuyen automáticamente. Solo se dibujan relaciones inferibles desde configuración canónica. No existen posiciones por ID, ramas especiales para maestrías físicas ni un eje artificial para completar visualmente árboles todavía escasos. Las relaciones específicas declaradas mediante `idHabilidad` conectan la Pasiva con esa habilidad concreta. Una Pasiva cuyo modificador sea `danoHabilidad` y cuyo ámbito sea una maestría puede dibujar relaciones punteadas únicamente hacia las habilidades activas de esa misma maestría que produzcan daño real directo o periódico según la configuración canónica de ejecución. Esa relación visual significa «modifica el daño de» y no una dependencia de aprendizaje; Auras, Maldiciones y activas sin daño quedan excluidas.
+`OrganizadorArbolHabilidades` se aplica a todas las maestrías y habilidades sin distinguir magia, armas o armaduras. El eje vertical deriva exclusivamente de `requisitoNivelMaestria`; los nodos del mismo nivel se distribuyen automáticamente. No existen posiciones por ID, ramas especiales para maestrías físicas ni un eje artificial para completar visualmente árboles todavía escasos.
+
+Las conexiones pueden provenir de relaciones inferibles desde modificadores canónicos o del contrato declarativo `relacionesArbol`, disponible para cualquier maestría. Los tipos visuales productivos son `modificacion` (línea normal) y `sinergia` (línea punteada); ambos expresan interacción real y **nunca** un requisito de aprendizaje. El validador exige destino existente, evita autorrelaciones/duplicados y no permite cruces de maestría sin un futuro contrato transversal aprobado. Las pasivas con `idHabilidad` y las afinidades de `danoHabilidad` conservan su inferencia previa; Arcos utiliza el mismo organizador mediante relaciones declaradas en datos, sin CSS/JS específico de esa maestría.
 
 Cada nodo muestra exclusivamente el icono y el grado `actual/máximo`. Las habilidades sin aprender usan menor opacidad; las bloqueadas por nivel se atenúan más. El árbol debe priorizar verse completo y la ventana de Habilidades usa casi todo el viewport disponible. Los iconos se presentan a mayor tamaño sin alterar los archivos fuente.
 
@@ -2150,3 +2152,17 @@ Los selectores de combate e habilidades pueden mostrar la probabilidad final de 
 La presentación usa un entero sin decimales con símbolo `%`, por ejemplo `68%`, en 11 px y con el mismo color del selector activo. En acciones de área, cada enemigo afectado muestra su propia probabilidad final en lugar de un único porcentaje sobre el centro del área.
 
 La Dispersión de ataques a distancia forma parte del cálculo canónico previo a la probabilidad final. El valor visual debe coincidir con la probabilidad que utilizará la resolución real si el contexto no cambia.
+
+### V-043 — Representación visual de habilidades físicas de Arco
+
+Las habilidades de arma se resuelven completamente en dominio y Phaser recibe proyectiles, impactos, críticos, recurso real de munición y cualquier desplazamiento táctico ya decidido. Phaser no decide cantidad de flechas, daño, hit chance, muerte, distancia recorrida ni casillas válidas.
+
+`Disparo múltiple` debe sentirse como una única ráfaga continua: sus 2–4 proyectiles se escalonan dentro de la misma ejecución con intervalos breves, evitando reproducir varios ataques básicos completos uno detrás de otro. Cada proyectil conserva el resultado canónico independiente que recibió.
+
+`Disparo potente` utiliza la flecha real de la munición y agrega una estela corta y sutil **adherida al proyectil** durante la trayectoria, junto con un impacto algo más marcado. La cola viaja con la flecha y se desvanece con ella; no se representa como puntos estáticos distribuidos por toda la trayectoria. El efecto no debe parecer una habilidad elemental de Fuego ni ocultar la cuadrícula.
+
+`Francotirador` representa su concentración mediante el estado táctico `Apuntando` en el HUD, reutilizando el icono de la habilidad. La preparación de cada habilidad de Arco aparece simultáneamente como otro estado táctico con el icono de esa habilidad; reemplazar la preparación actual actualiza ese icono sin afectar `Apuntando`.
+
+`Disparo evasivo` se representa después del proyectil y del impacto mediante un salto corto hacia el destino canónico ya resuelto. La animación es un arco bajo y rápido, no un salto sobrenatural. La sombra acompaña el desplazamiento y recupera su escala original al aterrizar.
+
+El contrato general de desplazamiento separa la regla espacial (`paso_a_paso`, `trayectoria_libre`, `destino_unicamente`) de la forma visual (`movimiento`, `dash`, `salto`, `teletransporte`). Una forma visual nunca autoriza por sí misma atravesar obstáculos. Phaser posee representación genérica para las cuatro formas: movimiento normal, dash continuo/rápido, salto corto y teletransporte por desaparición/aparición. En AR1 el consumidor de contenido actual es `salto`; disponer del resto de representaciones no agrega permisos de gameplay ni crea habilidades nuevas.

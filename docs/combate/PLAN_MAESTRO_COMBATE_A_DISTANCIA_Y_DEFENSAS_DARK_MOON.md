@@ -214,7 +214,8 @@ Rangos iniciales:
 - el afijo pertenece al arco pero su efecto es del `portador`;
 - objetivo: `costoFaseAccion`;
 - operación: porcentaje sobre total;
-- condiciones: `familiaArma=arco`, `tipoAccion=ataque`, `faseAccion=preparacion`.
+- condiciones: `familiaArma=arco`, `tipoAccion=ataque|habilidad`, `faseAccion=preparacion`;
+- por lo tanto afecta tanto la carga del ataque básico como la preparación de habilidades de arma sin modificar su fase de ejecución.
 
 Rangos iniciales:
 
@@ -243,9 +244,41 @@ No se cambia la versión de guardado. Se persisten solamente las fuentes canóni
 
 ## 11. Compatibilidad con habilidades
 
-Las habilidades actuales continúan usando su cálculo canónico de impacto. La previsualización consume ese mismo desglose para objetivos individuales o múltiples.
+Las habilidades que no dependen de un arma continúan usando su cálculo canónico de impacto y daño. La previsualización consume ese mismo desglose para objetivos individuales o múltiples.
 
-El contrato queda abierto a que una habilidad futura declare preparación y política de munición independientemente. No se agregan ahora habilidades de arco ni excepciones por ID de habilidad.
+AR1 activa el contrato de **habilidad basada en arma**. Una habilidad puede declarar preparación, política de munición, cantidad de proyectiles, factor de daño del arma, contexto semántico y desplazamiento posterior. La resolución física no se duplica: obtiene la fuente real del arma equipada y delega impacto, crítico, bloqueo, Armadura, Penetración y daño al mismo `SistemaCombate`.
+
+AR1.1 separa explícitamente tres conceptos que no deben deducirse entre sí: `requiereMunicion`, `consumeMunicion` y `cantidadMunicion` describen inventario/requisitos, mientras `cantidadProyectiles` describe cuántas resoluciones visuales/físicas produce la ejecución. Una habilidad puede por contrato no requerir munición; en ese caso la validación de su preparación no vuelve a imponer el quiver/requisito del ataque básico. Si requiere munición, la cantidad se valida al preparar y nuevamente al ejecutar, y solo se descuenta si `consumeMunicion=true`.
+
+La preparación comparte un único estado `preparacion_accion` entre ataque básico y habilidades de arma. Preparar otra acción reemplaza la anterior y vuelve a pagar el tiempo de preparación, pero no consume munición porque las flechas se descuentan únicamente cuando se ejecuta el disparo. Estados tácticos de otra clase, como concentración, pueden coexistir con esa preparación.
+
+Las habilidades productivas iniciales de Arco son:
+
+| Habilidad | Nivel de maestría | Contrato principal |
+| --- | ---: | --- |
+| Disparo múltiple | 2 | 2/3/4 proyectiles; 60/50/45% del daño de arma por proyectil; preparación ×1,15/1,30/1,45 |
+| Disparo potente | 5 | 1 proyectil; 160/185/210% del daño de arma; preparación ×1,80/1,70/1,60 |
+| Francotirador | 7 | activa el estado táctico `Apuntando` |
+| Disparo evasivo | 10 | 1 proyectil al 65/75/85% y desplazamiento posterior de hasta 2 casillas |
+
+`cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` pasan a ser atributos productivos de habilidad porque ya poseen consumidores reales. `maximoProyectilesSimultaneos` permanece reservado.
+
+### 11.1 Estados tácticos como fuente de modificadores
+
+`SistemaEstadosTacticosCombatiente` puede almacenar modificadores declarativos. `ProveedorModificadoresEstadosTacticos` los entrega al `SistemaModificadoresCombatiente`, que continúa siendo el único resolutor. El SMC no reconoce nombres de estados.
+
+Las políticas usan `TIPOS_EVENTO_ESTADO_TACTICO` como registro canónico (`movimiento`, `espera`, `accion`, `consumo`, `danio_recibido`, `habilidad_ejecutada`, `accion_ejecutada`). Un valor desconocido falla al validar/activar el estado. Las interrupciones por acción se procesan solo después de un resultado realmente exitoso; intentar una acción inválida no elimina una concentración que nunca llegó a ser interrumpida por un hecho jugable.
+
+`Apuntando` aporta Precisión, probabilidad de crítico y Dispersión únicamente cuando el contexto de la acción declara la etiqueta semántica `disparo_concentrado`. Se conserva al reemplazar preparaciones, se consume al ejecutar un disparo compatible y se interrumpe por movimiento, espera, interacción/consumo, otra habilidad incompatible o daño hostil. Disparo múltiple declara un contexto diferente y por ello no recibe sus bonificaciones.
+
+### 11.2 Desplazamiento táctico
+
+El desplazamiento causado por habilidades se resuelve mediante un contrato independiente de la representación. Declara:
+
+- regla espacial: `paso_a_paso`, `trayectoria_libre` o `destino_unicamente`;
+- forma visual: `movimiento`, `dash`, `salto` o `teletransporte`.
+
+La forma visual no concede permisos espaciales. Phaser dispone de representación explícita para las cuatro formas: movimiento normal, `dash` continuo y rápido, `salto` con arco corto y `teletransporte` con desaparición/reposicionamiento/aparición. Tener una representación no habilita por sí solo una regla espacial. Disparo evasivo utiliza `paso_a_paso + salto`: intenta dos casillas en dirección opuesta al objetivo, puede recorrer 2/1/0 según bloqueo y notifica cada paso real a las zonas. El orden canónico es disparo → impacto/muerte → desplazamiento → cierre temporal.
 
 ## 12. Resistencias negativas
 
@@ -274,6 +307,9 @@ La decisión debe revisarse durante una etapa explícita de balance, comparando 
 
 ## 15. Roadmap inmediato
 
-- **CD1 — Preparación, Dispersión y Penetración:** estados tácticos, ataque preparado en fases, arco 60/40, Dispersión, preview de impacto, Penetración y afijos asociados.
-- **CD2 — Resistencias negativas:** generalización controlada de resistencias elementales y de efectos por debajo de cero, con límites, vulnerabilidad y regresión de Maldiciones/estados.
-- **Balance posterior:** revisar daño esperado de arcos únicamente con evidencia del nuevo sistema ya estabilizado; CD1 conserva el daño base anterior.
+- **CD1 — Preparación, Dispersión y Penetración:** cerrada; estados tácticos, ataque preparado en fases, arco 60/40, Dispersión, preview de impacto, Penetración y afijos asociados.
+- **UI-I1 — Normalización visual:** cerrada; iconografía ilustrada sin pixelado ni halos artificiales.
+- **AR1 — Habilidades activas de Arco:** incorpora ataques de arma mediante habilidad, estados tácticos como fuente SMC, preparación compartida y desplazamiento táctico.
+- **AR1.1 — Cierre técnico de Arco:** completa la independencia de munición, valida eventos tácticos, evita interrupciones por acciones fallidas, completa las formas visuales de desplazamiento y generaliza relaciones de árbol para cualquier maestría.
+- **CD2 — Resistencias negativas:** permanece como siguiente bloque de combate; generalización controlada de resistencias elementales y de efectos por debajo de cero, con límites, vulnerabilidad y regresión de Maldiciones/estados.
+- **Balance posterior:** revisar daño esperado de arcos únicamente con evidencia del nuevo sistema ya estabilizado; CD1 y AR1 conservan el daño base anterior.

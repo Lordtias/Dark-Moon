@@ -13,6 +13,10 @@ import {
   TIPOS_ACCION_TEMPORAL,
 } from "./tiempo/SistemaTiempo.js";
 import { CoordinadorTiempoPartida } from "./tiempo/CoordinadorTiempoPartida.js";
+import {
+  procesarEventoEstadoTacticoCombatiente,
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "./estado/EstadosTacticosCombatiente.js";
 
 export class Juego {
   constructor({
@@ -532,6 +536,11 @@ export class Juego {
   finalizarResultadoAccionJugador({ resultado, tipoAccion, costoBase } = {}) {
     const resultadoConDerrotasInmediatas =
       this.incorporarDestruccionesPendientes(resultado);
+    // Una política táctica reacciona a hechos que realmente ocurrieron. Un
+    // intento rechazado (exito=false) no rompe concentración ni postura.
+    if (resultadoConDerrotasInmediatas?.exito === true) {
+      this.procesarInterrupcionTacticaPorAccion(tipoAccion);
+    }
     const resultadoTemporal =
       this.coordinadorTiempo.finalizarResultadoAccionJugador({
         resultado: resultadoConDerrotasInmediatas,
@@ -550,6 +559,7 @@ export class Juego {
     costoBase,
     eventos = [],
   } = {}) {
+    this.procesarInterrupcionTacticaPorAccion(tipoAccion);
     const resultadoConDerrotasInmediatas = this.incorporarDestruccionesPendientes({
       mensaje,
       eventos,
@@ -564,6 +574,19 @@ export class Juego {
     const final = this.incorporarDestruccionesPendientes(resultadoTemporal);
     this.sistemaCombateJugador.validarPreparacionActiva();
     return final;
+  }
+
+  procesarInterrupcionTacticaPorAccion(tipoAccion) {
+    const eventoPorTipo = {
+      [TIPOS_ACCION_TEMPORAL.ACCION]: TIPOS_EVENTO_ESTADO_TACTICO.ACCION,
+      [TIPOS_ACCION_TEMPORAL.CONSUMO]: TIPOS_EVENTO_ESTADO_TACTICO.CONSUMO,
+      [TIPOS_ACCION_TEMPORAL.ESPERA]: TIPOS_EVENTO_ESTADO_TACTICO.ESPERA,
+    };
+    const evento = eventoPorTipo[tipoAccion];
+    if (!evento) return Object.freeze([]);
+    return procesarEventoEstadoTacticoCombatiente(this.player, evento, {
+      tipoAccion,
+    });
   }
 
   esperarTurno() {

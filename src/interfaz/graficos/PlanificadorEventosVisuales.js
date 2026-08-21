@@ -189,6 +189,7 @@ function agregarMovimiento(plan, evento, entidadesPorId) {
       tipoEntidad: entidadVisual?.tipo ?? null,
       origen: copiarPosicion(evento.origen),
       destino: copiarPosicion(evento.destino),
+      desplazamientoTactico: evento.desplazamientoTactico ?? null,
       ejecucionTemporal: evento.ejecucionTemporal ?? null,
       ritmoVisual: crearPlanRitmoVisualMovimiento({
         ejecucionTemporal: evento.ejecucionTemporal,
@@ -352,6 +353,7 @@ function agregarHabilidad(plan, evento, entidadesPorId, contexto = {}) {
     recorrido: evento.recorrido ?? Object.freeze([]),
     impactos,
     recursosActor: evento.recursosActor ?? Object.freeze([]),
+    recursoProyectil: evento.recursoProyectil ?? null,
     zonaTemporal: zonaTemporalVisual,
     perfilVisual,
     idEjecucion: evento.idEjecucion ?? null,

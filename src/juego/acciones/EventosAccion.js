@@ -28,6 +28,7 @@ export function crearEventoEntidadMovida({
   entidad,
   origen,
   destino,
+  desplazamientoTactico = null,
 } = {}) {
   validarEntidad(entidad, "movida");
   validarPosicion(origen, "origen del movimiento");
@@ -38,6 +39,30 @@ export function crearEventoEntidadMovida({
     entidad,
     origen: copiarPosicion(origen),
     destino: copiarPosicion(destino),
+    desplazamientoTactico: copiarDesplazamientoTactico(desplazamientoTactico),
+  });
+}
+
+
+function copiarDesplazamientoTactico(descriptor) {
+  if (descriptor === null || descriptor === undefined) return null;
+  if (typeof descriptor !== "object" || Array.isArray(descriptor)) {
+    throw new Error("El desplazamiento táctico del evento debe ser un objeto.");
+  }
+  return Object.freeze({
+    reglaEspacial: descriptor.reglaEspacial ?? null,
+    formaVisual: descriptor.formaVisual ?? null,
+    distanciaSolicitada: Number.isInteger(descriptor.distanciaSolicitada)
+      ? descriptor.distanciaSolicitada
+      : null,
+    distanciaRecorrida: Number.isInteger(descriptor.distanciaRecorrida)
+      ? descriptor.distanciaRecorrida
+      : null,
+    pasos: Object.freeze(
+      Array.isArray(descriptor.pasos)
+        ? descriptor.pasos.map((paso) => copiarPosicion(paso))
+        : [],
+    ),
   });
 }
 
@@ -96,6 +121,7 @@ export function crearEventoHabilidadResuelta({
   impactos = [],
   recursosActor = [],
   zonaTemporal = null,
+  recursoProyectil = null,
   idEjecucion = null,
 } = {}) {
   validarEntidad(actor, "ejecutora de la habilidad");
@@ -146,12 +172,14 @@ export function crearEventoHabilidadResuelta({
       patronAtaque: normalizarTexto(habilidad.ejecucion?.patronAtaque),
       formaImpacto: copiarValorSimple(habilidad.formaImpacto ?? null),
       zonaTemporal: copiarValorSimple(habilidad.zonaTemporal ?? null),
+      ataqueArma: copiarValorSimple(habilidad.ataqueArma ?? null),
     }),
     casillasAfectadas: copiarListaPosiciones(casillasAfectadas),
     recorrido: copiarRecorridoHabilidad(recorrido),
     impactos: copiarImpactosHabilidad(impactos),
     recursosActor: copiarCambiosRecursos(recursosActor),
     zonaTemporal: copiarZonaTemporalHabilidad(zonaTemporal),
+    recursoProyectil: copiarDescriptorRecursoObjeto(recursoProyectil),
     idEjecucion: normalizarTexto(idEjecucion),
     ejecucionTemporal: null,
   });
@@ -624,6 +652,7 @@ function copiarDescriptorRecursoObjeto(descriptor) {
     idObjeto,
     tipoMunicion: normalizarTexto(descriptor.tipoMunicion),
     recursoVisual,
+    cantidad: normalizarEnteroPositivo(descriptor.cantidad),
   });
 }
 

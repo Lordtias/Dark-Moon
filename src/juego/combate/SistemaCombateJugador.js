@@ -4,11 +4,17 @@ import {
   ataqueRequierePreparacion,
   consumirPreparacionAtaque,
   obtenerCostoEjecucionAtaque,
+  obtenerContextoSemanticoAtaque,
   prepararAtaque,
   validarPreparacionAtaque,
+  validarPreparacionAtaqueArmaActual,
   verificarRequisitosAtaque,
 } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { obtenerDesgloseProbabilidadImpactoFuente } from "./SistemaCombate.js";
+import {
+  procesarEventoEstadoTacticoCombatiente,
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "../estado/EstadosTacticosCombatiente.js";
 import {
   crearEventoAtaqueResuelto,
   crearEventoHostilidadCambiada,
@@ -235,15 +241,26 @@ export class SistemaCombateJugador {
   }
 
   validarPreparacionActiva() {
-    return validarPreparacionAtaque(this.jugador);
+    return validarPreparacionAtaqueArmaActual(this.jugador);
   }
 
   obtenerDesgloseImpactoEn(x, y) {
     const objetivo = this.obtenerObjetivoEn(x, y);
     if (!objetivo || !this.esCasillaAtacable(x, y)) return null;
+    const configuracion = this.jugador.configuracionAtaqueActual;
+    const contextoSemantico = obtenerContextoSemanticoAtaque(configuracion);
+    const estadisticas =
+      contextoSemantico.etiquetaAccion &&
+      typeof this.jugador.obtenerEstadisticasDerivadasContextuales === "function"
+        ? this.jugador.obtenerEstadisticasDerivadasContextuales({
+            tipoAccion: "ataque",
+            etiquetaAccion: contextoSemantico.etiquetaAccion,
+          })
+        : this.jugador.estadisticasDerivadas;
     return obtenerDesgloseProbabilidadImpactoFuente({
       atacante: this.jugador,
       objetivo,
+      fuente: estadisticas.danioFisico?.componentes?.[0] ?? null,
     });
   }
 
@@ -597,12 +614,21 @@ export class SistemaCombateJugador {
       if (preparacion.requierePreparacion) {
         consumirPreparacionAtaque(this.jugador);
       }
+      const configuracionEjecutada = this.jugador.configuracionAtaqueActual;
       const resultadoAtaque = objetivo
         ? this.resolverAtaqueObjetivo(objetivo)
         : crearResultadoAtaqueCasillaVacia({
             jugador: this.jugador,
             posicionObjetivo: { x, y },
           });
+      const contextoSemantico = obtenerContextoSemanticoAtaque(configuracionEjecutada);
+      if (contextoSemantico.etiquetasEjecucion.length > 0) {
+        procesarEventoEstadoTacticoCombatiente(
+          this.jugador,
+          TIPOS_EVENTO_ESTADO_TACTICO.ACCION_EJECUTADA,
+          { etiquetas: contextoSemantico.etiquetasEjecucion },
+        );
+      }
       this.limpiarSelector();
       return this.finalizarAccionJugador({
         mensaje: resultadoAtaque.mensaje,

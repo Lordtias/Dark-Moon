@@ -1,5 +1,9 @@
 import { Combatiente } from "../../entidad/destructible/combatiente/Combatiente.js";
 import { crearEventoEntidadMovida } from "../acciones/EventosAccion.js";
+import {
+  procesarEventoEstadoTacticoCombatiente,
+  TIPOS_EVENTO_ESTADO_TACTICO,
+} from "../estado/EstadosTacticosCombatiente.js";
 import { crearResultadoAccion } from "../acciones/ResultadoAccion.js";
 import {
   COSTOS_TEMPORALES_BASE,
@@ -173,6 +177,13 @@ export class SistemaMovimientoJugador {
     this.jugador.x = nuevaX;
     this.jugador.y = nuevaY;
     this.registrarUltimaDireccionCombate(movimientoX, movimientoY);
+    procesarEventoEstadoTacticoCombatiente(
+      this.jugador,
+      TIPOS_EVENTO_ESTADO_TACTICO.MOVIMIENTO,
+      {
+      origen,
+      destino: { x: nuevaX, y: nuevaY },
+    });
 
     const resultadoZona = this.notificarMovimientoActor({
       actor: this.jugador,

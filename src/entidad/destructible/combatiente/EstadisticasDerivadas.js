@@ -297,7 +297,13 @@ function obtenerDescriptoresElementalesFuente(fuente) {
 
 // Crea las estadísticas específicas de una fuente individual. Cada mano
 // conserva su precisión, crítico y multiplicador dual del motor existente.
-function calcularComponenteDanio(combatiente, fuente, objetos, esAtaqueDual) {
+function calcularComponenteDanio(
+  combatiente,
+  fuente,
+  objetos,
+  esAtaqueDual,
+  contextoDinamico = {},
+) {
   const propiedades = fuente.propiedades;
   const base = combatiente.estadisticasBase;
   const atributos = combatiente.atributos;
@@ -347,11 +353,10 @@ function calcularComponenteDanio(combatiente, fuente, objetos, esAtaqueDual) {
     });
   }
 
-  const contextoFuente = crearContextoFuenteAtaque(
-    combatiente,
-    fuente,
-    esAtaqueDual,
-  );
+  const contextoFuente = {
+    ...crearContextoFuenteAtaque(combatiente, fuente, esAtaqueDual),
+    ...contextoDinamico,
+  };
   const precisionBase =
     base.precision +
     coeficientes.precisionPorDestreza * atributos.destreza +
@@ -473,13 +478,14 @@ function calcularRangoDescriptor({
 
 // El nombre se conserva por compatibilidad con los consumidores existentes,
 // aunque sus fuentes pueden contener componentes físicos y elementales.
-function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
+function calcularDanioFisico(combatiente, objetos, configuracionAtaque, contextoDinamico = {}) {
   const componentesBase = configuracionAtaque.fuentesDanio.map((fuente) =>
     calcularComponenteDanio(
       combatiente,
       fuente,
       objetos,
       configuracionAtaque.esAtaqueDual,
+      contextoDinamico,
     ),
   );
   const danioPlanoGlobalMinimo = sumarPropiedad(
@@ -554,7 +560,7 @@ function calcularDanioFisico(combatiente, objetos, configuracionAtaque) {
   };
 }
 
-export function calcularEstadisticasDerivadas(combatiente) {
+export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}) {
   const resolucionesModificadores = {};
   const basesSuerte = calcularBasesSuerte(combatiente);
   const objetos = obtenerObjetosEquipados(combatiente);
@@ -567,6 +573,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     familiaArma: configuracionAtaque.armaControladora?.familiaObjeto ?? null,
     tipoAtaque: ataqueControlador.tipoAtaque,
     esAtaqueDual: configuracionAtaque.esAtaqueDual,
+    ...contextoDinamico,
   };
   const recursos = calcularRecursosMaximos({
     nivel: combatiente.nivel,
@@ -834,7 +841,7 @@ export function calcularEstadisticasDerivadas(combatiente) {
     resistenciasEfectos,
     bonificacionResistenciasEfectosPorConstitucion,
     inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
-    danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque),
+    danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque, contextoDinamico),
   };
 }
 

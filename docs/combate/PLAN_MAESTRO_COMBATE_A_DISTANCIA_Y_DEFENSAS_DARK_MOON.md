@@ -250,6 +250,8 @@ AR1 activa el contrato de **habilidad basada en arma**. Una habilidad puede decl
 
 AR1.1 separa explícitamente tres conceptos que no deben deducirse entre sí: `requiereMunicion`, `consumeMunicion` y `cantidadMunicion` describen inventario/requisitos, mientras `cantidadProyectiles` describe cuántas resoluciones visuales/físicas produce la ejecución. Una habilidad puede por contrato no requerir munición; en ese caso la validación de su preparación no vuelve a imponer el quiver/requisito del ataque básico. Si requiere munición, la cantidad se valida al preparar y nuevamente al ejecutar, y solo se descuenta si `consumeMunicion=true`.
 
+AR1.2 fija además el origen del alcance para ataques de arma por habilidad. Si `ataqueArma.usaAlcanceArma=true`, la configuración efectiva consume `Combatiente.alcanceAtaque`, que ya resuelve el alcance del arma equipada y `OBJETIVOS_MODIFICADOR.ALCANCE_ATAQUE`. No se vuelve a interpretar ese mismo valor como `atributoHabilidad.alcance`. Las habilidades con alcance propio mantienen el atributo específico de habilidad.
+
 La preparación comparte un único estado `preparacion_accion` entre ataque básico y habilidades de arma. Preparar otra acción reemplaza la anterior y vuelve a pagar el tiempo de preparación, pero no consume munición porque las flechas se descuentan únicamente cuando se ejecuta el disparo. Estados tácticos de otra clase, como concentración, pueden coexistir con esa preparación.
 
 Las habilidades productivas iniciales de Arco son:
@@ -271,7 +273,13 @@ Las políticas usan `TIPOS_EVENTO_ESTADO_TACTICO` como registro canónico (`movi
 
 `Apuntando` aporta Precisión, probabilidad de crítico y Dispersión únicamente cuando el contexto de la acción declara la etiqueta semántica `disparo_concentrado`. Se conserva al reemplazar preparaciones, se consume al ejecutar un disparo compatible y se interrumpe por movimiento, espera, interacción/consumo, otra habilidad incompatible o daño hostil. Disparo múltiple declara un contexto diferente y por ello no recibe sus bonificaciones.
 
-### 11.2 Desplazamiento táctico
+### 11.2 Alcance de habilidades basadas en arma
+
+El alcance de `Disparo múltiple`, `Disparo potente` y `Disparo evasivo` no es un atributo interno independiente: deriva del ataque actual del combatiente. La cadena canónica es arma equipada → configuración de ataque → `Combatiente.alcanceAtaque` → modificadores generales de alcance → `ConfiguracionHabilidadEfectiva` → geometría/selector. Así `Ojo de halcón` o cualquier futuro modificador general de `alcanceAtaque` afecta tanto al ataque básico como a las habilidades de Arco sin duplicar reglas.
+
+Una propiedad futura que exista únicamente dentro de una habilidad —por ejemplo una cantidad de objetivos atravesados si se aprobara ese contenido— deberá registrarse como atributo específico de habilidad en vez de reutilizar `penetracionArmadura`, que continúa siendo una estadística general del ataque.
+
+### 11.3 Desplazamiento táctico
 
 El desplazamiento causado por habilidades se resuelve mediante un contrato independiente de la representación. Declara:
 
@@ -311,5 +319,6 @@ La decisión debe revisarse durante una etapa explícita de balance, comparando 
 - **UI-I1 — Normalización visual:** cerrada; iconografía ilustrada sin pixelado ni halos artificiales.
 - **AR1 — Habilidades activas de Arco:** incorpora ataques de arma mediante habilidad, estados tácticos como fuente SMC, preparación compartida y desplazamiento táctico.
 - **AR1.1 — Cierre técnico de Arco:** completa la independencia de munición, valida eventos tácticos, evita interrupciones por acciones fallidas, completa las formas visuales de desplazamiento y generaliza relaciones de árbol para cualquier maestría.
+- **AR1.2 — Corrección de alcance y grafo:** consume `Combatiente.alcanceAtaque` en habilidades de arma, distingue modificación específica de sinergia general y distribuye el árbol horizontalmente desde la conectividad real.
 - **CD2 — Resistencias negativas:** permanece como siguiente bloque de combate; generalización controlada de resistencias elementales y de efectos por debajo de cero, con límites, vulnerabilidad y regresión de Maldiciones/estados.
 - **Balance posterior:** revisar daño esperado de arcos únicamente con evidencia del nuevo sistema ya estabilizado; CD1 y AR1 conservan el daño base anterior.

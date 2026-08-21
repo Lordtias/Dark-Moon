@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "habilidades": {
     "ascua": {
       "nombre": "Ascua",
@@ -1961,15 +1961,15 @@
       "relacionesArbol": [
         {
           "hacia": "disparo_multiple",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_potente",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_evasivo",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         }
       ]
     },
@@ -2016,15 +2016,15 @@
       "relacionesArbol": [
         {
           "hacia": "disparo_multiple",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_potente",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_evasivo",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         }
       ]
     },
@@ -2071,15 +2071,15 @@
       "relacionesArbol": [
         {
           "hacia": "disparo_multiple",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_potente",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_evasivo",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         }
       ]
     },
@@ -2106,15 +2106,15 @@
       "relacionesArbol": [
         {
           "hacia": "disparo_multiple",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_potente",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         },
         {
           "hacia": "disparo_evasivo",
-          "tipo": "modificacion"
+          "tipo": "sinergia"
         }
       ]
     },
@@ -5558,7 +5558,21 @@
         "requisitosLanzador": {
           "familiaArma": "arco"
         }
-      }
+      },
+      "relacionesArbol": [
+        {
+          "hacia": "disparo_multiple",
+          "tipo": "sinergia"
+        },
+        {
+          "hacia": "disparo_potente",
+          "tipo": "sinergia"
+        },
+        {
+          "hacia": "disparo_evasivo",
+          "tipo": "sinergia"
+        }
+      ]
     },
     "aura_recuperacion": {
       "nombre": "Aura de Recuperación",

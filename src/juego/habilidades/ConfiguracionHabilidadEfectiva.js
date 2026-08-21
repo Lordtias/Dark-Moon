@@ -45,7 +45,7 @@ export function crearConfiguracionHabilidadEfectiva({
     valorBase: gradoConfig.costoTemporalBase, normalizar: enteroPositivo,
   });
   efectiva.alcance = habilidad.ejecucion.ataqueArma?.usaAlcanceArma === true
-    ? enteroPositivo(lanzador.estadisticasDerivadas?.alcanceAtaque ?? 1)
+    ? enteroPositivo(lanzador.alcanceAtaque)
     : resolverAtributo({
         lanzador, contextoBase, atributo: ATRIBUTOS_HABILIDAD.ALCANCE,
         valorBase: gradoConfig.alcance, normalizar: enteroPositivo,

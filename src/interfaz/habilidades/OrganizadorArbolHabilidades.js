@@ -2,10 +2,12 @@ import {
   TIPOS_RELACION_ARBOL_HABILIDADES,
 } from "../../juego/habilidades/ContratosArbolHabilidades.js";
 
+const CANTIDAD_CARRILES_MINIMA = 5;
+
 // Organiza visualmente cualquier maestría a partir de los mismos datos
-// canónicos. No distingue entre magia, armas o armaduras y no inventa
-// dependencias: solo ordena por requisito de nivel y expone relaciones que ya
-// pueden inferirse de los modificadores configurados.
+// canónicos. El nivel de maestría conserva exclusivamente el eje vertical y
+// la conectividad real del grafo distribuye el eje horizontal. No distingue
+// entre magia, armas o armaduras ni contiene posiciones por habilidad.
 export class OrganizadorArbolHabilidades {
   organizar({
     idMaestria,
@@ -17,18 +19,19 @@ export class OrganizadorArbolHabilidades {
       throw new Error("El árbol necesita una maestría válida.");
     }
 
-    const nodos = habilidades
+    const nodosBase = habilidades
       .map((habilidad) => normalizarNodo(habilidad))
       .sort(compararNodos);
-    const ids = new Set(nodos.map((nodo) => nodo.id));
-    const niveles = agruparPorNivel(nodos);
+    const ids = new Set(nodosBase.map((nodo) => nodo.id));
     const relaciones = obtenerRelaciones({
       idMaestria,
-      nodos,
+      nodos: nodosBase,
       definiciones,
       definicionesEjecucion,
       ids,
     });
+    const nodos = asignarPosicionesHorizontales(nodosBase, relaciones);
+    const niveles = agruparPorNivel(nodos);
 
     return Object.freeze({
       idMaestria,
@@ -70,13 +73,133 @@ function agruparPorNivel(nodos) {
   }
   return [...grupos.entries()]
     .sort(([a], [b]) => a - b)
-    .map(([nivel, nodosNivel]) => ({ nivel, nodos: ordenarPorRelaciones(nodosNivel) }));
+    .map(([nivel, nodosNivel]) => ({
+      nivel,
+      nodos: [...nodosNivel].sort(
+        (a, b) =>
+          a.posicionHorizontal - b.posicionHorizontal ||
+          a.nombre.localeCompare(b.nombre, "es"),
+      ),
+    }));
 }
 
-function ordenarPorRelaciones(nodos) {
-  // La ubicación horizontal es determinista y genérica. Las relaciones se
-  // dibujan encima del resultado; no existen coordenadas por habilidad.
-  return [...nodos].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+function asignarPosicionesHorizontales(nodos, relaciones) {
+  if (nodos.length === 0) return [];
+
+  const conectividad = crearMapaConectividad(nodos, relaciones);
+  const grupos = new Map();
+  for (const nodo of nodos) {
+    if (!grupos.has(nodo.requisitoNivelMaestria)) {
+      grupos.set(nodo.requisitoNivelMaestria, []);
+    }
+    grupos.get(nodo.requisitoNivelMaestria).push(nodo);
+  }
+
+  const maximoPorNivel = Math.max(...[...grupos.values()].map((grupo) => grupo.length));
+  const cantidadCarriles = Math.max(
+    CANTIDAD_CARRILES_MINIMA,
+    maximoPorNivel + 2,
+  );
+  const carrilPorId = new Map();
+
+  for (const nodosNivel of grupos.values()) {
+    const ocupados = new Set();
+    const porConectividad = [...nodosNivel].sort((a, b) => {
+      const conexionesA = conectividad.get(a.id);
+      const conexionesB = conectividad.get(b.id);
+      return (
+        conexionesB.total - conexionesA.total ||
+        compararNodos(a, b)
+      );
+    });
+
+    for (const nodo of porConectividad) {
+      const preferido = obtenerCarrilPreferido(
+        conectividad.get(nodo.id),
+        cantidadCarriles,
+      );
+      const carril = obtenerCarrilLibreMasCercano(
+        preferido,
+        ocupados,
+        cantidadCarriles,
+      );
+      ocupados.add(carril);
+      carrilPorId.set(nodo.id, carril);
+    }
+  }
+
+  return nodos.map((nodo) => {
+    const carril = carrilPorId.get(nodo.id);
+    return Object.freeze({
+      ...nodo,
+      // Se deja un margen equivalente a un carril a cada lado. Así un nodo
+      // nunca depende de coordenadas de contenido ni queda pegado al borde.
+      posicionHorizontal: (carril + 1) / (cantidadCarriles + 1),
+    });
+  });
+}
+
+function crearMapaConectividad(nodos, relaciones) {
+  const mapa = new Map(
+    nodos.map((nodo) => [
+      nodo.id,
+      { entradas: 0, salidas: 0, total: 0 },
+    ]),
+  );
+
+  for (const relacion of relaciones) {
+    const origen = mapa.get(relacion.desde);
+    const destino = mapa.get(relacion.hacia);
+    if (!origen || !destino) continue;
+    origen.salidas += 1;
+    origen.total += 1;
+    destino.entradas += 1;
+    destino.total += 1;
+  }
+  return mapa;
+}
+
+function obtenerCarrilPreferido(conexiones, cantidadCarriles) {
+  const ultimo = cantidadCarriles - 1;
+  if (!conexiones || conexiones.total === 0) {
+    return Math.round(ultimo / 2);
+  }
+
+  // Una fuente pura se desplaza hacia el primer tercio y un destino puro
+  // hacia el último. Los nodos mixtos se acercan al centro según su balance.
+  // La regla usa únicamente conexiones entrantes/salientes del grafo.
+  if (conexiones.salidas > 0 && conexiones.entradas === 0) {
+    return Math.round(ultimo * 0.25);
+  }
+  if (conexiones.entradas > 0 && conexiones.salidas === 0) {
+    return Math.round(ultimo * 0.75);
+  }
+
+  const balance =
+    (conexiones.entradas - conexiones.salidas) / conexiones.total;
+  const fraccion = 0.5 + balance * 0.18;
+  return limitarEntero(
+    Math.round(ultimo * fraccion),
+    0,
+    ultimo,
+  );
+}
+
+function obtenerCarrilLibreMasCercano(preferido, ocupados, cantidadCarriles) {
+  if (!ocupados.has(preferido)) return preferido;
+
+  for (let distancia = 1; distancia < cantidadCarriles; distancia += 1) {
+    const izquierda = preferido - distancia;
+    const derecha = preferido + distancia;
+    if (izquierda >= 0 && !ocupados.has(izquierda)) return izquierda;
+    if (derecha < cantidadCarriles && !ocupados.has(derecha)) return derecha;
+  }
+
+  throw new Error("No existe un carril horizontal libre para el árbol de habilidades.");
+}
+
+function limitarEntero(valor, minimo, maximo) {
+  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function obtenerRelaciones({
@@ -90,8 +213,9 @@ function obtenerRelaciones({
   const claves = new Set();
 
   // Las relaciones explícitas pertenecen a la configuración de la habilidad,
-  // no al tipo de maestría. Permiten representar sinergias reales de armas,
-  // armaduras o cualquier familia futura con el mismo árbol visual.
+  // no al tipo de maestría. "modificacion" representa una modificación
+  // específica de la habilidad destino; "sinergia", una interacción mediante
+  // una estadística, estado o contexto compartido.
   for (const nodo of nodos) {
     const definicion = definiciones[nodo.id];
     for (const relacion of definicion?.relacionesArbol ?? []) {

@@ -43,6 +43,7 @@ export class PanelHabilidadesMaestrias {
     this.idHabilidadSeleccionada = null;
     this.organizadorArbol = new OrganizadorArbolHabilidades();
     this.manejadores = [];
+    this.observadoresArbol = [];
     asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
     this.dialogo = this.crearDialogo();
     this.renderizar();
@@ -89,6 +90,7 @@ export class PanelHabilidadesMaestrias {
     this.asegurarSeleccionValida(resumen);
     this.renderizarCabecera(resumen);
     this.renderizarNavegacion();
+    this.liberarObservadoresArbol();
     this.contenido.replaceChildren();
     this.renderizarCategoria(resumen);
     if (detalleAbierto && resumen.habilidades[this.idHabilidadSeleccionada]) {
@@ -104,6 +106,7 @@ export class PanelHabilidadesMaestrias {
       elemento.removeEventListener(tipo, manejador, opciones);
     });
     this.manejadores = [];
+    this.liberarObservadoresArbol();
     this.dialogo?.remove();
   }
   crearDialogo() {
@@ -350,6 +353,7 @@ export class PanelHabilidadesMaestrias {
     requestAnimationFrame(() => {
       if (arbol.isConnected) this.dibujarRelacionesArbol(arbol, estructura.relaciones);
     });
+    this.observarGeometriaArbol(arbol, estructura.relaciones);
     return arbol;
   }
 
@@ -364,6 +368,10 @@ export class PanelHabilidadesMaestrias {
     const boton = crearElemento("button", "nodo-habilidad");
     boton.type = "button";
     boton.dataset.idHabilidad = habilidad.id;
+    boton.style.setProperty(
+      "--posicion-horizontal",
+      String(habilidad.posicionHorizontal ?? 0.5),
+    );
     boton.classList.toggle("nodo-habilidad--no-aprendida", !aprendida);
     boton.classList.toggle("nodo-habilidad--bloqueada", bloqueada);
     boton.classList.toggle("nodo-habilidad--maximo", maximo);
@@ -415,9 +423,9 @@ export class PanelHabilidadesMaestrias {
       const destino = arbol.querySelector(
         `[data-id-habilidad="${CSS.escape(relacion.hacia)}"]`,
       );
-      const puntoOrigen = centroRelativo(origen, caja);
-      const puntoDestino = centroRelativo(destino, caja);
-      if (!puntoOrigen || !puntoDestino) continue;
+      const puntos = obtenerPuntosConexionRelativos(origen, destino, caja);
+      if (!puntos) continue;
+      const { origen: puntoOrigen, destino: puntoDestino } = puntos;
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const mitadY = (puntoOrigen.y + puntoDestino.y) / 2;
       path.setAttribute(
@@ -432,6 +440,37 @@ export class PanelHabilidadesMaestrias {
       );
       svg.append(path);
     }
+  }
+
+  observarGeometriaArbol(arbol, relaciones) {
+    const lienzo = arbol.querySelector(".arbol-habilidades__lienzo");
+    if (!lienzo || typeof ResizeObserver !== "function") return;
+
+    let cuadroPendiente = null;
+    const observador = new ResizeObserver(() => {
+      if (cuadroPendiente !== null) cancelAnimationFrame(cuadroPendiente);
+      cuadroPendiente = requestAnimationFrame(() => {
+        cuadroPendiente = null;
+        if (arbol.isConnected) {
+          this.dibujarRelacionesArbol(arbol, relaciones);
+        }
+      });
+    });
+    observador.observe(lienzo);
+    this.observadoresArbol.push({
+      observador,
+      cancelar: () => {
+        if (cuadroPendiente !== null) cancelAnimationFrame(cuadroPendiente);
+      },
+    });
+  }
+
+  liberarObservadoresArbol() {
+    for (const registro of this.observadoresArbol) {
+      registro.cancelar?.();
+      registro.observador?.disconnect();
+    }
+    this.observadoresArbol = [];
   }
 
   abrirDetalleHabilidad(idHabilidad) {
@@ -864,12 +903,55 @@ function estructuraIdSeguro(valor) {
   return String(valor ?? "arbol").replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-function centroRelativo(elemento, cajaReferencia) {
-  if (!(elemento instanceof Element)) return null;
+function obtenerPuntosConexionRelativos(origen, destino, cajaReferencia) {
+  if (!(origen instanceof Element) || !(destino instanceof Element)) return null;
+  const cajaOrigen = cajaRelativa(origen, cajaReferencia);
+  const cajaDestino = cajaRelativa(destino, cajaReferencia);
+  const centroOrigen = {
+    x: cajaOrigen.x + cajaOrigen.width / 2,
+    y: cajaOrigen.y + cajaOrigen.height / 2,
+  };
+  const centroDestino = {
+    x: cajaDestino.x + cajaDestino.width / 2,
+    y: cajaDestino.y + cajaDestino.height / 2,
+  };
+  const dx = centroDestino.x - centroOrigen.x;
+  const dy = centroDestino.y - centroOrigen.y;
+
+  if (Math.abs(dx) >= Math.abs(dy) * 0.25 && Math.abs(dx) > 2) {
+    const direccion = Math.sign(dx);
+    return {
+      origen: {
+        x: centroOrigen.x + direccion * cajaOrigen.width / 2,
+        y: centroOrigen.y,
+      },
+      destino: {
+        x: centroDestino.x - direccion * cajaDestino.width / 2,
+        y: centroDestino.y,
+      },
+    };
+  }
+
+  const direccion = Math.sign(dy) || 1;
+  return {
+    origen: {
+      x: centroOrigen.x,
+      y: centroOrigen.y + direccion * cajaOrigen.height / 2,
+    },
+    destino: {
+      x: centroDestino.x,
+      y: centroDestino.y - direccion * cajaDestino.height / 2,
+    },
+  };
+}
+
+function cajaRelativa(elemento, cajaReferencia) {
   const caja = elemento.getBoundingClientRect();
   return {
-    x: caja.left - cajaReferencia.left + caja.width / 2,
-    y: caja.top - cajaReferencia.top + caja.height / 2,
+    x: caja.left - cajaReferencia.left,
+    y: caja.top - cajaReferencia.top,
+    width: caja.width,
+    height: caja.height,
   };
 }
 

@@ -300,9 +300,62 @@ La previsualización de una habilidad hostil conserva la misma `probabilidadImpa
 
 ## 12. Resistencias negativas
 
-La generalización de resistencias elementales y resistencias a efectos por debajo de cero queda **fuera de esta implementación** y será un bloque posterior.
+CD2 quedó implementada y cerrada funcionalmente antes de este ajuste transversal; el HEAD base `449eb095aeebbee647542e6269e91bf289368bc4` ya contiene esa generalización.
 
-La única defensa negativa incorporada aquí es la mitigación física efectiva derivada de Penetración de Armadura, limitada a -50%.
+Las resistencias elementales de daño y las resistencias específicas de efectos pueden cruzar cero según sus contratos y límites canónicos. Este comportamiento no debe confundirse con la potencia ofensiva de efectos: una resistencia/defensa de efecto y una bonificación como `Potencia de Quemadura` pertenecen a ejes distintos.
+
+La Penetración de Armadura continúa usando su contrato específico de mitigación física efectiva, limitado a -50%, y no se convierte en una resistencia elemental genérica.
+
+## 12.1. Escalado global de daño directo y potencia de efectos
+
+El cierre transversal **Daño y efectos** del 22/08/2026 amplía el contrato del combate sin crear un segundo motor. `src/juego/combate/ResolutorEscaladoDanio.js` traduce el contexto de cada componente a objetivos del `SistemaModificadoresCombatiente`.
+
+### Daño Físico
+
+`danoFisico` es global del portador, pero solo se aplica al componente físico procedente de armas. No depende de si el arma escala con Fuerza, Destreza o Sabiduría. Si se usan duales, ambas armas consultan la misma bonificación global aunque la fuente del afijo esté en una sola pieza equipada. Un ataque natural no recibe este modificador por el simple hecho de que el portador tenga un arma equipada.
+
+### Daño Mágico y daño por tipo
+
+`danoMagico` se suma al escalado mágico derivado de atributos y aumenta componentes mágicos directos. Un componente elemental local agregado a un arma se mantiene separado de su parte física y puede recibir Daño Mágico.
+
+`danoTipo` usa `tipoDanio` para Fuego, Frío, Rayo o Veneno. Un componente elemental directo puede acumular:
+
+```text
+Daño Mágico × Daño del tipo correspondiente
+```
+
+La parte física de la misma arma conserva exclusivamente sus reglas físicas.
+
+### Daño de Habilidad
+
+`danoHabilidad` es una bonificación global del portador al daño directo generado por habilidades. Se aplica exactamente una vez como capa exterior de la acción, después de resolver el arma/componentes y el factor propio de la habilidad. No modifica ataques básicos ni efectos temporales.
+
+Ejemplos conceptuales:
+
+```text
+habilidad física de arma
+→ componente físico × Daño Físico
+→ factor propio de habilidad
+→ Daño de Habilidad una vez
+
+habilidad mágica de Fuego
+→ componente Fuego × Daño Mágico × Daño de Fuego
+→ Daño de Habilidad una vez
+```
+
+### Potencia de efectos
+
+Los efectos forman un dominio separado del daño directo. `Potencia de Efectos` es la capa general y `potenciaEfecto` agrega una capa específica por `efectoId`.
+
+Contenido inicial:
+
+- Quemadura: escala daño con Potencia de Efectos y Potencia de Quemadura;
+- Envenenamiento: escala daño con Potencia de Efectos y Potencia de Envenenamiento;
+- Ralentización: escala intensidad con Potencia de Efectos y Potencia de Ralentización;
+- Electrización: escala intensidad con Potencia de Efectos y Potencia de Electrización;
+- Congelamiento y Aturdimiento: no escalan con potencia por ahora.
+
+Los efectos no heredan Daño Físico, Daño Mágico, Daño de Habilidad ni daño por tipo. Las resistencias elementales de daño y las resistencias/defensas específicas de efectos permanecen separadas.
 
 ## 13. Decisión de daño base de arcos
 
@@ -330,5 +383,6 @@ La decisión debe revisarse durante una etapa explícita de balance, comparando 
 - **AR1 — Habilidades activas de Arco:** incorpora ataques de arma mediante habilidad, estados tácticos como fuente SMC, preparación compartida y desplazamiento táctico.
 - **AR1.1 — Cierre técnico de Arco:** completa la independencia de munición, valida eventos tácticos, evita interrupciones por acciones fallidas, completa las formas visuales de desplazamiento y generaliza relaciones de árbol para cualquier maestría.
 - **AR1.2 — Corrección de alcance y grafo:** consume `Combatiente.alcanceAtaque` en habilidades de arma, distingue modificación específica de sinergia general y distribuye el árbol horizontalmente desde la conectividad real; su ajuste final preserva probabilidad final hasta Phaser, centraliza disponibilidad de barra/munición, expone desgloses de Alcance y convierte Disparo evasivo en herramienta de objetivo libre con simultaneidad visual de disparo y salto.
-- **CD2 — Resistencias negativas:** permanece como siguiente bloque de combate; generalización controlada de resistencias elementales y de efectos por debajo de cero, con límites, vulnerabilidad y regresión de Maldiciones/estados.
-- **Balance posterior:** revisar daño esperado de arcos únicamente con evidencia del nuevo sistema ya estabilizado; CD1 y AR1 conservan el daño base anterior.
+- **CD2 — Resistencias negativas:** cerrada en el estado base `449eb095...`; generaliza resistencias elementales y de efectos por debajo de cero con sus límites canónicos.
+- **Daño y efectos — escalado global:** cerrada; incorpora Daño Físico, Daño Mágico, Daño de Habilidad, daño por tipo y potencia específica de efectos sin mezclar efectos con daño directo.
+- **Balance posterior:** revisar daño esperado de arcos y los nuevos modificadores globales únicamente con evidencia del sistema estabilizado; los cierres arquitectónicos no sustituyen una etapa específica de balance.

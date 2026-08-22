@@ -2174,3 +2174,34 @@ La barra rápida puede atenuar una habilidad cuando el sistema canónico informa
 Cuando una acción falla específicamente por munición insuficiente, el mismo mensaje de rechazo puede aparecer temporalmente sobre el mapa cerca del jugador. Este texto es feedback de presentación: no consume turno, no modifica estado y no sustituye el log/mensaje existente. Debe ser breve, legible sobre el mundo y desaparecer sin dejar recursos visuales persistentes.
 
 La probabilidad final de impacto mostrada por selectores sigue la regla V-042. El estado visual debe preservar `probabilidadImpactoFinal` tanto para el selector primario como para objetivos afectados; Phaser solo redondea para dibujar el texto. Una casilla libre de Disparo evasivo no muestra porcentaje porque no existe objetivo contra el cual tirar.
+
+### V-045 — Agrupación y explicación de daño y potencia de efectos
+
+El Panel Personaje debe presentar los nuevos ejes sin sugerir que son alternativas excluyentes. La organización visual vigente es:
+
+```text
+DAÑO
+- Daño Físico
+- Daño Mágico
+- Daño de Habilidad
+
+AFINIDADES DE DAÑO
+- Fuego
+- Frío
+- Rayo
+- Veneno
+
+POTENCIA DE EFECTOS
+- General
+- Quemadura
+- Envenenamiento
+- Ralentización
+- Electrización
+```
+
+Las etiquetas abreviadas dentro de un grupo pueden omitir el prefijo común, pero el modal de detalle debe usar el nombre completo. Las descripciones funcionales deben explicar acumulaciones relevantes: Daño Mágico se acumula con el daño específico de Fuego/Frío/Rayo/Veneno cuando ambos corresponden al mismo componente; Potencia de Efectos se acumula con la potencia específica del efecto.
+
+`Daño de Habilidad` debe describirse como una bonificación aplicada una sola vez al daño directo de habilidades y no a efectos. `Daño Físico` debe explicar que afecta el componente físico de todas las armas equipadas, independientemente del atributo con el que escalen.
+
+El modal y las relaciones atributo → derivadas consumen nombres y desgloses canónicos. Inteligencia y Sabiduría aportan a la clave vigente `danoMagico`; no deben aparecer aliases técnicos como `DanioMagico`, ni perderse sus aportes en el detalle. La UI no calcula ninguna de estas estadísticas: únicamente representa la resolución y el desglose producidos por dominio.
+

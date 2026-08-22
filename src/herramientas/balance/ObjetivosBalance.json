@@ -1,6 +1,6 @@
 {
   "version": 7,
-  "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Potencia de Habilidad, arquetipos, efectos, resistencias, inmunidades, enemigos, afijos y regresión completa de Dark Moon entre los niveles 1 y 10.",
+  "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Daño de Habilidad, arquetipos, efectos, resistencias, inmunidades, enemigos, afijos y regresión completa de Dark Moon entre los niveles 1 y 10.",
   "nivelMaximoContenido": 10,
   "factorBaseExperienciaEsperado": 0.45,
   "rangoExpedicionesObjetivo": {

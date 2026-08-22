@@ -7,8 +7,8 @@ import {
 } from "../modificadores/ContratosModificadoresCombatiente.js";
 
 // Valida la configuración común de rarezas, prefijos y sufijos.
-// Potencia de Habilidad, filtros por familia y daño elemental local
-// forman parte del mismo contrato general de generación.
+// Daño global, afinidades, potencia de efectos, filtros por familia y daño
+// elemental local forman parte del mismo contrato general de generación.
 
 const TIPOS_AFIJO = new Set(["prefijo", "sufijo"]);
 const TIPOS_OBJETO_COMPATIBLES = new Set([
@@ -51,7 +51,18 @@ const PROPIEDADES_AFIJO_SOPORTADAS = new Set([
   "hallazgoMagico",
   "probabilidadBloqueo",
   "mitigacionBloqueo",
-  "potenciaHabilidad",
+  "danoFisico",
+  "danoMagico",
+  "danoHabilidad",
+  "danoFuego",
+  "danoFrio",
+  "danoRayo",
+  "danoVeneno",
+  "potenciaEfectos",
+  "potenciaQuemadura",
+  "potenciaEnvenenamiento",
+  "potenciaRalentizacion",
+  "potenciaElectrizacion",
   "dispersion",
   "penetracionArmadura",
   "reduccionCargaPorcentaje",
@@ -67,11 +78,6 @@ export function validarConfiguracionGeneracionObjetos({
   validarCatalogoRarezas(rarezas);
 
   const idsRarezas = new Set(Object.keys(rarezas));
-  const idsRarezasHabilitadas = new Set(
-    Object.entries(rarezas)
-      .filter(([, rareza]) => rareza.generacionHabilitada === true)
-      .map(([idRareza]) => idRareza),
-  );
   const idsAfijos = new Set();
 
   validarCatalogoAfijos({
@@ -79,7 +85,6 @@ export function validarConfiguracionGeneracionObjetos({
     tipoEsperado: "prefijo",
     descripcionCatalogo: "el catálogo de prefijos",
     idsRarezas,
-    idsRarezasHabilitadas,
     idsAfijos,
   });
   validarCatalogoAfijos({
@@ -87,7 +92,6 @@ export function validarConfiguracionGeneracionObjetos({
     tipoEsperado: "sufijo",
     descripcionCatalogo: "el catálogo de sufijos",
     idsRarezas,
-    idsRarezasHabilitadas,
     idsAfijos,
   });
 
@@ -277,7 +281,6 @@ function validarCatalogoAfijos({
   tipoEsperado,
   descripcionCatalogo,
   idsRarezas,
-  idsRarezasHabilitadas,
   idsAfijos,
 }) {
   validarObjetoRaiz(catalogo, descripcionCatalogo);
@@ -314,12 +317,9 @@ function validarCatalogoAfijos({
         );
       }
     }
-    if (!afijo.rarezasPermitidas.some((id) => idsRarezasHabilitadas.has(id))) {
-      throw new Error(
-        `El afijo "${idAfijo}" no puede aparecer en ninguna rareza habilitada.`,
-      );
-    }
-
+    // Se permiten afijos preparados para rarezas actualmente deshabilitadas.
+    // El catálogo de Rarezas sigue siendo la única fuente que decide cuándo
+    // esos afijos pueden materializarse.
     validarTexto(
       afijo.grupoExclusion,
       `grupo de exclusión del afijo "${idAfijo}"`,

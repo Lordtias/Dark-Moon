@@ -113,8 +113,9 @@ export function crearDescriptoresDanioElementalLocal(
         tipo: configuracion.tipo,
         minimoLocal: rango.minimo,
         maximoLocal: rango.maximo,
-        // El afijo o ataque natural ya representa un rango terminado.
-        // No se vuelve a escalar con atributos ni con Potencia de Habilidad.
+        // El rango local ya está resuelto dentro de la fuente. No vuelve a escalar
+        // con el atributo físico del arma; las capas globales de Daño Mágico
+        // y de su tipo elemental se aplican después, sobre el componente.
         multiplicadorAtributo: 1,
         aplicaDanioPlanoGlobal: false,
         aplicaMultiplicadorGlobal: false,

@@ -252,10 +252,15 @@ function calcularComponentesDanioBruto({
     const danioPlanoGlobal = aplicaDanioPlanoGlobal
       ? tiradaDanioGlobal
       : 0;
+    const multiplicadorDanioGlobal = descriptor.multiplicadorDanioGlobal ?? 1;
+    if (!Number.isFinite(multiplicadorDanioGlobal) || multiplicadorDanioGlobal < 0) {
+      throw new Error("El multiplicador global del componente de daño no es válido.");
+    }
     const danioBrutoBase =
       (tiradaLocal * multiplicadorAtributo + danioPlanoGlobal) *
       multiplicadorGolpe *
-      multiplicadorGlobal;
+      multiplicadorGlobal *
+      multiplicadorDanioGlobal;
 
     return {
       tipo,
@@ -266,6 +271,7 @@ function calcularComponentesDanioBruto({
       danioPlanoGlobal,
       multiplicadorGolpe,
       multiplicadorGlobal,
+      multiplicadorDanioGlobal,
       aplicaCritico: descriptor.aplicaCritico !== false,
       danioBrutoBase: Math.max(0, danioBrutoBase),
     };
@@ -715,6 +721,7 @@ export function resolverSecuenciaFuenteAtaque({
   configuracionDanio,
   cantidadGolpes = 1,
   factorDanio = 1,
+  factorDanioHabilidad = 1,
 } = {}) {
   if (!atacante?.estaVivo) {
     throw new Error("La secuencia de arma necesita un atacante vivo.");
@@ -734,11 +741,17 @@ export function resolverSecuenciaFuenteAtaque({
   if (!Number.isFinite(factorDanio) || factorDanio <= 0) {
     throw new Error("El factor de daño de la secuencia debe ser mayor que 0.");
   }
+  if (!Number.isFinite(factorDanioHabilidad) || factorDanioHabilidad <= 0) {
+    throw new Error("El Daño de Habilidad de la secuencia debe ser mayor que 0.");
+  }
 
   const idResolucion = crearIdResolucionAtaque();
+  // Daño de Habilidad pertenece a la acción, no al arma. Se aplica una sola
+  // vez como la capa exterior del daño directo de la habilidad de arma.
   const fuenteHabilidad = {
     ...fuente,
-    multiplicadorGolpe: fuente.multiplicadorGolpe * factorDanio,
+    multiplicadorGolpe:
+      fuente.multiplicadorGolpe * factorDanio * factorDanioHabilidad,
   };
   const golpes = [];
 
@@ -790,6 +803,7 @@ export function resolverSecuenciaFuenteAtaque({
     golpesRealizados: golpes.length,
     golpes,
     factorDanio,
+    factorDanioHabilidad,
     mensaje: `${atacante.nombre} ejecuta una habilidad de arma contra ${objetivo.nombre}.`,
   };
 }

@@ -1370,9 +1370,14 @@ function formatearDetalleModificadorPasiva(modificador) {
   if (objetivo === "danoHabilidad") {
     return {
       etiqueta: "Daño de habilidad",
-      valor: operacion.startsWith("porcentaje_")
-        ? `${formatearNumeroConSigno(numero)}%`
-        : formatearValorModificador({ operacion, valor: numero }),
+      valor: `${formatearNumeroConSigno(numero)}%`,
+    };
+  }
+  if (objetivo === "danoTipo") {
+    const tipo = condiciones.tipoDanio ?? "elemental";
+    return {
+      etiqueta: `Daño de ${formatearNombre(tipo)}`,
+      valor: `${formatearNumeroConSigno(numero)}%`,
     };
   }
 
@@ -1422,7 +1427,11 @@ function formatearDetalleModificadorPasiva(modificador) {
     "probabilidadBloqueo",
     "mitigacionBloqueo",
     "potenciaEfectos",
-    "potenciaHabilidad",
+    "potenciaEfecto",
+    "danoFisico",
+    "danoMagico",
+    "danoHabilidad",
+    "danoTipo",
     "resistenciaFuego",
     "resistenciaFrio",
     "resistenciaRayo",
@@ -1550,7 +1559,11 @@ function nombreObjetivoModificador(objetivo) {
     probabilidadBloqueo: ["interfaz.habilidades.objetivoProbabilidadBloqueo", "Probabilidad de bloqueo"],
     mitigacionBloqueo: ["interfaz.habilidades.objetivoMitigacionBloqueo", "Mitigación de bloqueo"],
     potenciaEfectos: ["interfaz.habilidades.objetivoPotenciaEfectos", "Potencia de efectos"],
-    potenciaHabilidad: ["interfaz.habilidades.objetivoPotenciaHabilidad", "Potencia de Habilidad"],
+    potenciaEfecto: [null, "Potencia de efecto"],
+    danoFisico: [null, "Daño físico"],
+    danoMagico: [null, "Daño mágico"],
+    danoHabilidad: ["interfaz.habilidades.objetivoDanioHabilidad", "Daño de habilidad"],
+    danoTipo: [null, "Daño por afinidad"],
     resistenciaFuego: ["interfaz.habilidades.objetivoResistenciaFuego", "Resistencia al Fuego"],
     resistenciaFrio: ["interfaz.habilidades.objetivoResistenciaFrio", "Resistencia al Frío"],
     resistenciaRayo: ["interfaz.habilidades.objetivoResistenciaRayo", "Resistencia al Rayo"],
@@ -1562,7 +1575,6 @@ function nombreObjetivoModificador(objetivo) {
     resistenciaMental: ["interfaz.habilidades.objetivoResistenciaMental", "Resistencia Mental"],
     dispersion: [null, "Dispersión"],
     penetracionArmadura: [null, "Penetración de Armadura"],
-    danoHabilidad: ["interfaz.habilidades.objetivoDanioHabilidad", "Daño de habilidad"],
     atributoHabilidad: ["interfaz.habilidades.objetivoAtributoHabilidad", "Atributo de habilidad"],
     alcanceAtaque: ["interfaz.habilidades.objetivoAlcanceAtaque", "Alcance de ataque"],
     percepcion: ["interfaz.habilidades.objetivoPercepcion", "Percepción"],

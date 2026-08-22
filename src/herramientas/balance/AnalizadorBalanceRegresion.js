@@ -502,19 +502,19 @@ function analizarCasosFallidos({
   sistema.fijarSelector(enemigo.x, enemigo.y);
   const sinCatalizador = sistema.prepararPlanEjecucion();
   const potenciaSinCatalizador =
-    sinCatalizador.contextoPotencia?.potenciaHabilidad ?? null;
+    sinCatalizador.contextoDanioHabilidad?.danoHabilidad ?? null;
   const permitidoSinCatalizador =
     sinCatalizador.exito === true && potenciaSinCatalizador === 0;
   filas.push({
     caso: "Habilidad sin catalizador",
-    esperado: "Plan permitido con Potencia 0 %",
+    esperado: "Plan permitido con Daño de Habilidad 0 %",
     obtenido: sinCatalizador.exito
-      ? `Plan permitido con Potencia ${potenciaSinCatalizador} %`
+      ? `Plan permitido con Daño de Habilidad ${potenciaSinCatalizador} %`
       : sinCatalizador.motivo,
     detalle: "El Guerrero mantiene su arma física equipada.",
     estado: permitidoSinCatalizador ? "correcto" : "incorrecto",
     criterio:
-      "El motor real debe preparar la habilidad sin catalizador y calcular Potencia de Habilidad 0 %.",
+      "El motor real debe preparar la habilidad sin catalizador y calcular Daño de Habilidad 0 %.",
   });
 
   sistema.destruir();

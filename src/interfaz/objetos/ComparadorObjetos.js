@@ -16,7 +16,7 @@ const REGLAS_ESTADISTICAS = Object.freeze({
   "velocidad de ataque": { tipo: "numero", unidad: " ataques/s" },
   critico: { tipo: "critico", unidad: " % de aporte crítico" },
   alcance: { tipo: "numero", unidad: "" },
-  "potencia de habilidad": { tipo: "numero", unidad: " p.p." },
+  "dano de habilidad": { tipo: "numero", unidad: " p.p." },
   armadura: { tipo: "numero", unidad: "" },
   bloqueo: { tipo: "numero", unidad: " p.p." },
   "mitigacion de bloqueo": { tipo: "numero", unidad: " p.p." },

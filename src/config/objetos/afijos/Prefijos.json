@@ -580,20 +580,20 @@
   "enfocado": {
     "nombre": "Enfocado",
     "tipoAfijo": "prefijo",
-    "descripcion": "Aumenta la Potencia de Habilidad del catalizador.",
+    "descripcion": "Aumenta el Daño de Habilidad del portador.",
     "pesoBase": 650,
     "rarezasPermitidas": ["magico", "raro"],
-    "grupoExclusion": "potencia_habilidad_porcentaje",
+    "grupoExclusion": "dano_habilidad_porcentaje",
     "aplicaA": {
       "tipos": ["arma"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": [],
-      "familiasIncluidas": ["baston", "varita"],
+      "familiasIncluidas": [],
       "familiasExcluidas": []
     },
     "efectos": [
       {
-        "propiedad": "potenciaHabilidad",
+        "propiedad": "danoHabilidad",
         "operacion": "sumar",
         "ambito": "portador"
       }
@@ -604,7 +604,7 @@
         "nivelObjetoMinimo": 1,
         "peso": 600,
         "valores": {
-          "potenciaHabilidad": {
+          "danoHabilidad": {
             "minimo": 4,
             "maximo": 6
           }
@@ -615,7 +615,7 @@
         "nivelObjetoMinimo": 3,
         "peso": 800,
         "valores": {
-          "potenciaHabilidad": {
+          "danoHabilidad": {
             "minimo": 7,
             "maximo": 10
           }
@@ -626,12 +626,216 @@
         "nivelObjetoMinimo": 6,
         "peso": 1000,
         "valores": {
-          "potenciaHabilidad": {
+          "danoHabilidad": {
             "minimo": 11,
             "maximo": 15
           }
         }
       }
+    ]
+  },
+  "marcial": {
+    "nombre": "Marcial",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente el componente físico de todas las armas equipadas.",
+    "pesoBase": 350,
+    "rarezasPermitidas": ["raro"],
+    "grupoExclusion": "dano_fisico_global",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": [],
+      "familiasExcluidas": ["varita"]
+    },
+    "efectos": [
+      {
+        "propiedad": "danoFisico",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFisico": { "minimo": 4, "maximo": 6 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFisico": { "minimo": 7, "maximo": 9 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFisico": { "minimo": 10, "maximo": 12 } } }
+    ]
+  },
+  "mistico": {
+    "nombre": "Místico",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente todo el daño mágico directo del portador.",
+    "pesoBase": 300,
+    "rarezasPermitidas": ["raro"],
+    "grupoExclusion": "dano_magico_global",
+    "aplicaA": {
+      "tipos": ["arma"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
+    "efectos": [
+      {
+        "propiedad": "danoMagico",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoMagico": { "minimo": 4, "maximo": 6 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoMagico": { "minimo": 7, "maximo": 9 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoMagico": { "minimo": 10, "maximo": 12 } } }
+    ]
+  },
+  "igneo": {
+    "nombre": "Ígneo",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente el daño directo de Fuego del portador.",
+    "pesoBase": 550,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "dano_fuego_global",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "danoFuego", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "fuego" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFuego": { "minimo": 5, "maximo": 8 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFuego": { "minimo": 9, "maximo": 12 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFuego": { "minimo": 13, "maximo": 16 } } }
+    ]
+  },
+  "gelido": {
+    "nombre": "Gélido",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente el daño directo de Frío del portador.",
+    "pesoBase": 550,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "dano_frio_global",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "danoFrio", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "frio" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFrio": { "minimo": 5, "maximo": 8 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFrio": { "minimo": 9, "maximo": 12 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFrio": { "minimo": 13, "maximo": 16 } } }
+    ]
+  },
+  "fulgurante": {
+    "nombre": "Fulgurante",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente el daño directo de Rayo del portador.",
+    "pesoBase": 550,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "dano_rayo_global",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "danoRayo", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "rayo" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoRayo": { "minimo": 5, "maximo": 8 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoRayo": { "minimo": 9, "maximo": 12 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoRayo": { "minimo": 13, "maximo": 16 } } }
+    ]
+  },
+  "toxico": {
+    "nombre": "Tóxico",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente el daño directo de Veneno del portador.",
+    "pesoBase": 550,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "dano_veneno_global",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "danoVeneno", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "veneno" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoVeneno": { "minimo": 5, "maximo": 8 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoVeneno": { "minimo": 9, "maximo": 12 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoVeneno": { "minimo": 13, "maximo": 16 } } }
+    ]
+  },
+  "incandescente": {
+    "nombre": "Incandescente",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta específicamente la Potencia de Quemadura del portador.",
+    "pesoBase": 450,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "potencia_quemadura",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "potenciaQuemadura", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "quemadura" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaQuemadura": { "minimo": 6, "maximo": 10 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaQuemadura": { "minimo": 11, "maximo": 15 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaQuemadura": { "minimo": 16, "maximo": 20 } } }
+    ]
+  },
+  "virulento": {
+    "nombre": "Virulento",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta específicamente la Potencia de Envenenamiento del portador.",
+    "pesoBase": 450,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "potencia_envenenamiento",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "potenciaEnvenenamiento", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "envenenamiento" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaEnvenenamiento": { "minimo": 6, "maximo": 10 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaEnvenenamiento": { "minimo": 11, "maximo": 15 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaEnvenenamiento": { "minimo": 16, "maximo": 20 } } }
+    ]
+  },
+  "entorpecedor": {
+    "nombre": "Entorpecedor",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta específicamente la Potencia de Ralentización del portador.",
+    "pesoBase": 450,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "potencia_ralentizacion",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "potenciaRalentizacion", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "ralentizacion" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaRalentizacion": { "minimo": 6, "maximo": 10 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaRalentizacion": { "minimo": 11, "maximo": 15 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaRalentizacion": { "minimo": 16, "maximo": 20 } } }
+    ]
+  },
+  "sobrecargado": {
+    "nombre": "Sobrecargado",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta específicamente la Potencia de Electrización del portador.",
+    "pesoBase": 450,
+    "rarezasPermitidas": ["magico", "raro"],
+    "grupoExclusion": "potencia_electrizacion",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "potenciaElectrizacion", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "electrizacion" } }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaElectrizacion": { "minimo": 6, "maximo": 10 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaElectrizacion": { "minimo": 11, "maximo": 15 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaElectrizacion": { "minimo": 16, "maximo": 20 } } }
+    ]
+  },
+  "catalitico": {
+    "nombre": "Catalítico",
+    "tipoAfijo": "prefijo",
+    "descripcion": "Aumenta globalmente la Potencia de Efectos del portador.",
+    "pesoBase": 300,
+    "rarezasPermitidas": ["raro"],
+    "grupoExclusion": "potencia_efectos_global",
+    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "efectos": [
+      { "propiedad": "potenciaEfectos", "operacion": "sumar", "ambito": "portador" }
+    ],
+    "grados": [
+      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaEfectos": { "minimo": 4, "maximo": 6 } } },
+      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaEfectos": { "minimo": 7, "maximo": 9 } } },
+      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaEfectos": { "minimo": 10, "maximo": 12 } } }
     ]
   }
 }

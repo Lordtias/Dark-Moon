@@ -127,7 +127,7 @@ export class SistemaZonasTemporales {
     zona.hostil = definicion.hostil;
     zona.configuracion = definicion.configuracion;
     zona.contenido = definicion.contenido;
-    zona.contextoPotencia = definicion.contextoPotencia;
+    zona.contextoDanioHabilidad = definicion.contextoDanioHabilidad;
     zona.creadaEn = ahora;
     zona.venceEn = ahora + definicion.configuracion.duracion;
     zona.proximaActivacion = calcularProximaActivacion(zona, ahora);
@@ -524,7 +524,7 @@ function normalizarDefinicionCreacion({
         modificadores.map((item) => Object.freeze(item)),
       ),
     }),
-    contextoPotencia: copiarSimple(definicion.contextoPotencia),
+    contextoDanioHabilidad: copiarSimple(definicion.contextoDanioHabilidad),
     creadaEn: ahora,
     venceEn: ahora + configuracion.duracion,
     proximaActivacion: configuracion.activadores.includes(

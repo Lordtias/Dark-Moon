@@ -278,6 +278,7 @@ export function ejecutarHabilidadArma({
     etiquetaAccion,
   });
   const configuracionDanio = estadisticas.danioFisico;
+  const factorDanioHabilidad = estadisticas.multiplicadorDanioHabilidad ?? 1;
   const fuentes = configuracionDanio?.componentes ?? [];
   if (fuentes.length !== 1) {
     throw new Error("La habilidad de arma necesita una única fuente controladora.");
@@ -300,11 +301,13 @@ export function ejecutarHabilidadArma({
         configuracionDanio,
         cantidadGolpes: gradoConfig.ataqueArma.cantidadProyectiles,
         factorDanio: gradoConfig.ataqueArma.factorDanioArma,
+        factorDanioHabilidad,
       })
     : crearResultadoDisparoSinObjetivo({
         fuente: fuentes[0],
         cantidadProyectiles: gradoConfig.ataqueArma.cantidadProyectiles,
         factorDanio: gradoConfig.ataqueArma.factorDanioArma,
+        factorDanioHabilidad,
       });
   resultadoAtaque.municionRestante = recursoMunicion.restante;
   resultadoAtaque.municionUtilizada = recursoMunicion.municionUtilizada;
@@ -431,6 +434,7 @@ function crearResultadoDisparoSinObjetivo({
   fuente,
   cantidadProyectiles,
   factorDanio,
+  factorDanioHabilidad = 1,
 }) {
   if (!Number.isInteger(cantidadProyectiles) || cantidadProyectiles <= 0) {
     throw new Error("El disparo libre necesita una cantidad de proyectiles válida.");
@@ -440,7 +444,7 @@ function crearResultadoDisparoSinObjetivo({
     idFuente: fuente?.objeto?.id ?? null,
     familiaArma: fuente?.objeto?.familiaObjeto ?? null,
     mano: fuente?.mano ?? null,
-    multiplicadorGolpe: factorDanio,
+    multiplicadorGolpe: factorDanio * factorDanioHabilidad,
     orden: indice,
     impacto: false,
     bloqueado: false,
@@ -459,6 +463,8 @@ function crearResultadoDisparoSinObjetivo({
     danioBruto: 0,
     golpesProgramados: cantidadProyectiles,
     golpesRealizados: cantidadProyectiles,
+    factorDanio,
+    factorDanioHabilidad,
     golpes,
   };
 }

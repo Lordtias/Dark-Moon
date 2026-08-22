@@ -15,7 +15,7 @@ import {
   verificarRequisitosAtaque,
 } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import {
-  crearContextoPotenciaHabilidad,
+  crearContextoDanioHabilidad,
   obtenerObjetosEquipadosParaHabilidades,
   esBaston,
   esVarita,
@@ -241,11 +241,11 @@ export function crearDepuradorMagiaHabilidades({ obtenerAplicacion } = {}) {
     obtenerResumen: () =>
       crearResumenEquipamientoMagico(contexto.obtenerJugador()),
     obtenerPotenciaHabilidad: () =>
-      crearContextoPotenciaHabilidad({
+      crearContextoDanioHabilidad({
         combatiente: contexto.obtenerJugador(),
       }),
     calcularPotenciaDeObjetos: (objetos) =>
-      crearContextoPotenciaHabilidad({ objetos }),
+      crearContextoDanioHabilidad({ objetos }),
     obtenerConfiguracionAtaque: () =>
       obtenerConfiguracionAtaque(contexto.obtenerJugador()),
     obtenerRequisitosAtaque: () =>
@@ -380,7 +380,7 @@ function crearAccesoBalance(contexto) {
     combate: ejecutar("combate"),
     danioArmas: ejecutar("danioArmas"),
     danioHabilidades: ejecutar("danioHabilidades"),
-    potenciaHabilidad: ejecutar("potenciaHabilidad"),
+    danoHabilidad: ejecutar("danoHabilidad"),
     arquetipos: ejecutar("arquetipos"),
     pruebasFocalizadas: ejecutar("pruebasFocalizadas"),
     efectos: ejecutar("efectos"),
@@ -500,7 +500,7 @@ function crearInstantaneaEjecucion(contexto) {
     estaEnCombate: Boolean(juego.estaEnCombate),
     maestrias,
     grados,
-    potenciaHabilidad: crearContextoPotenciaHabilidad({ combatiente: jugador }),
+    danoHabilidad: crearContextoDanioHabilidad({ combatiente: jugador }),
     seleccion: sistema.obtenerSeleccionDetallada(),
     ultimaEjecucion: sistema.obtenerUltimaEjecucion(),
     barra: sistema.obtenerEstadoBarra(),
@@ -934,7 +934,7 @@ function crearZonaLinealParaPrueba(
       danio: gradoNube.danio,
       efectos: gradoNube.efectos,
     },
-    contextoPotencia: crearContextoPotenciaHabilidad({
+    contextoDanioHabilidad: crearContextoDanioHabilidad({
       combatiente: jugador,
     }),
   });
@@ -993,27 +993,27 @@ function validarContratosCatalizadores({ configuracionObjetos, jugador }) {
     errorCatalogo,
   );
 
-  const ejemplo = crearContextoPotenciaHabilidad({
+  const ejemplo = crearContextoDanioHabilidad({
     objetos: [
-      { nombre: "Objeto A", propiedades: { potenciaHabilidad: 12 } },
-      { nombre: "Objeto B", propiedades: { potenciaHabilidad: 8 } },
+      { nombre: "Objeto A", propiedades: { danoHabilidad: 12 } },
+      { nombre: "Objeto B", propiedades: { danoHabilidad: 8 } },
     ],
   });
   comprobar(
     comprobaciones,
     "Dos objetos aportan 12 % + 8 % = 20 % sin penalización de mano",
-    ejemplo.potenciaHabilidad === 20 &&
-      ejemplo.multiplicadorHabilidad === 1.2 &&
+    ejemplo.danoHabilidad === 20 &&
+      ejemplo.multiplicadorDanioHabilidad === 1.2 &&
       ejemplo.cantidadObjetosAportando === 2,
     ejemplo,
   );
 
-  const actual = crearContextoPotenciaHabilidad({ combatiente: jugador });
+  const actual = crearContextoDanioHabilidad({ combatiente: jugador });
   comprobar(
     comprobaciones,
     "La potencia actual se calcula una sola vez desde todo el equipamiento",
-    Number.isFinite(actual.potenciaHabilidad) &&
-      actual.multiplicadorHabilidad === 1 + actual.potenciaHabilidad / 100,
+    Number.isFinite(actual.danoHabilidad) &&
+      actual.multiplicadorDanioHabilidad === 1 + actual.danoHabilidad / 100,
     actual,
   );
   return cerrarComprobaciones(comprobaciones);
@@ -1104,12 +1104,12 @@ function validarCicloActivo(contexto) {
 
 function crearResumenEquipamientoMagico(jugador) {
   const objetos = obtenerObjetosEquipados(jugador);
-  const contextoPotencia = crearContextoPotenciaHabilidad({ objetos });
+  const contextoDanioHabilidad = crearContextoDanioHabilidad({ objetos });
   const configuracionAtaque = obtenerConfiguracionAtaqueSeguro(jugador);
   return {
-    potenciaHabilidad: contextoPotencia.potenciaHabilidad,
-    multiplicadorHabilidad: contextoPotencia.multiplicadorHabilidad,
-    cantidadObjetosAportandoPotencia: contextoPotencia.cantidadObjetosAportando,
+    danoHabilidad: contextoDanioHabilidad.danoHabilidad,
+    multiplicadorDanioHabilidad: contextoDanioHabilidad.multiplicadorDanioHabilidad,
+    cantidadObjetosAportandoDanioHabilidad: contextoDanioHabilidad.cantidadObjetosAportando,
     cantidadObjetosEquipados: objetos.length,
     objetos: objetos.map((objeto) => ({
       id: objeto.id ?? null,
@@ -1117,7 +1117,7 @@ function crearResumenEquipamientoMagico(jugador) {
       familiaObjeto: objeto.familiaObjeto ?? null,
       esVarita: esVarita(objeto),
       esBaston: esBaston(objeto),
-      potenciaHabilidad: numero(objeto.propiedades?.potenciaHabilidad),
+      danoHabilidad: numero(objeto.propiedades?.danoHabilidad),
     })),
     ataqueBasico: configuracionAtaque
       ? {

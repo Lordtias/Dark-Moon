@@ -73,10 +73,18 @@ const PRESENTACION_VALORES_AFIJO = Object.freeze({
     etiqueta: "daño físico local",
     porcentaje: true,
   },
-  potenciaHabilidad: {
-    etiqueta: "Potencia de Habilidad",
-    porcentaje: true,
-  },
+  danoFisico: { etiqueta: "Daño Físico", porcentaje: true },
+  danoMagico: { etiqueta: "Daño Mágico", porcentaje: true },
+  danoHabilidad: { etiqueta: "Daño de Habilidad", porcentaje: true },
+  danoFuego: { etiqueta: "Daño de Fuego", porcentaje: true },
+  danoFrio: { etiqueta: "Daño de Frío", porcentaje: true },
+  danoRayo: { etiqueta: "Daño de Rayo", porcentaje: true },
+  danoVeneno: { etiqueta: "Daño de Veneno", porcentaje: true },
+  potenciaEfectos: { etiqueta: "Potencia de Efectos", porcentaje: true },
+  potenciaQuemadura: { etiqueta: "Potencia de Quemadura", porcentaje: true },
+  potenciaEnvenenamiento: { etiqueta: "Potencia de Envenenamiento", porcentaje: true },
+  potenciaRalentizacion: { etiqueta: "Potencia de Ralentización", porcentaje: true },
+  potenciaElectrizacion: { etiqueta: "Potencia de Electrización", porcentaje: true },
   armadura: { etiqueta: "Armadura" },
   vidaMaxima: { etiqueta: "Vida máxima" },
   manaMaximo: { etiqueta: "Maná máximo" },
@@ -487,12 +495,12 @@ function crearEstadisticasArma({ objeto, combatiente }) {
 
   if (
     propiedades.esCatalizador === true &&
-    Number.isFinite(propiedades.potenciaHabilidad)
+    Number.isFinite(propiedades.danoHabilidad)
   ) {
     estadisticas.push(
       crearEstadistica(
-        tDetalle("potenciaHabilidad", "Potencia de Habilidad"),
-        `${formatearNumeroConSignoFlexible(propiedades.potenciaHabilidad)} %`,
+        tDetalle("danoHabilidad", "Daño de Habilidad"),
+        `${formatearNumeroConSignoFlexible(propiedades.danoHabilidad)} %`,
       ),
     );
   }
@@ -688,7 +696,18 @@ function obtenerNumeroNoNegativo(valor) {
 function traducirEtiquetaValorAfijo(propiedad, respaldo) {
   const claves = {
     danioFisicoLocalPorcentaje: "danioFisicoLocal",
-    potenciaHabilidad: "potenciaHabilidad",
+    danoFisico: "danoFisico",
+    danoMagico: "danoMagico",
+    danoHabilidad: "danoHabilidad",
+    danoFuego: "danoFuego",
+    danoFrio: "danoFrio",
+    danoRayo: "danoRayo",
+    danoVeneno: "danoVeneno",
+    potenciaEfectos: "potenciaEfectos",
+    potenciaQuemadura: "potenciaQuemadura",
+    potenciaEnvenenamiento: "potenciaEnvenenamiento",
+    potenciaRalentizacion: "potenciaRalentizacion",
+    potenciaElectrizacion: "potenciaElectrizacion",
     armadura: "armadura",
     vidaMaxima: "vidaMaxima",
     manaMaximo: "manaMaximo",

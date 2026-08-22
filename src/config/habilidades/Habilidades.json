@@ -1018,7 +1018,11 @@
             "zonaTemporal": {
               "duracion": 300,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1053,7 +1057,11 @@
             "zonaTemporal": {
               "duracion": 400,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -1088,7 +1096,11 @@
             "zonaTemporal": {
               "duracion": 500,
               "intervalo": 100,
-              "activadores": ["al_crear", "al_entrar", "por_intervalo"],
+              "activadores": [
+                "al_crear",
+                "al_entrar",
+                "por_intervalo"
+              ],
               "afecta": "hostiles",
               "politicaSuperposicion": "renovar_duracion",
               "grupoSuperposicion": "nube_toxica",
@@ -2125,11 +2137,11 @@
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/canalizacion_estable.png",
-      "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza un bastón.",
+      "descripcion": "Aumenta el Daño de Habilidad mientras se utiliza un bastón.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 4,
             "condiciones": {
@@ -2139,7 +2151,7 @@
         ],
         "2": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 8,
             "condiciones": {
@@ -2149,7 +2161,7 @@
         ],
         "3": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 12,
             "condiciones": {
@@ -2269,11 +2281,11 @@
       "requisitoNivelMaestria": 0,
       "gradoMaximo": 3,
       "icono": "assets/imagenes/habilidades/canalizacion_fina.png",
-      "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza una varita.",
+      "descripcion": "Aumenta el Daño de Habilidad mientras se utiliza una varita.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 4,
             "condiciones": {
@@ -2283,7 +2295,7 @@
         ],
         "2": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 8,
             "condiciones": {
@@ -2293,7 +2305,7 @@
         ],
         "3": [
           {
-            "objetivo": "potenciaHabilidad",
+            "objetivo": "danoHabilidad",
             "operacion": "sumar",
             "valor": 12,
             "condiciones": {
@@ -3133,15 +3145,15 @@
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
       "icono": "assets/imagenes/habilidades/afinidad_ignea.png",
-      "descripcion": "Aumenta el daño de todas las habilidades de Fuego.",
+      "descripcion": "Aumenta el Daño de Fuego directo.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "danoHabilidad",
-            "operacion": "porcentaje_total",
+            "objetivo": "danoTipo",
+            "operacion": "sumar",
             "valor": 10,
             "condiciones": {
-              "maestriaHabilidad": "fuego"
+              "tipoDanio": "fuego"
             }
           }
         ]
@@ -3221,15 +3233,15 @@
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
       "icono": "assets/imagenes/habilidades/afinidad_glacial.png",
-      "descripcion": "Aumenta el daño de todas las habilidades de Frío.",
+      "descripcion": "Aumenta el Daño de Frío directo.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "danoHabilidad",
-            "operacion": "porcentaje_total",
+            "objetivo": "danoTipo",
+            "operacion": "sumar",
             "valor": 10,
             "condiciones": {
-              "maestriaHabilidad": "frio"
+              "tipoDanio": "frio"
             }
           }
         ]
@@ -3310,15 +3322,15 @@
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
       "icono": "assets/imagenes/habilidades/afinidad_tormentosa.png",
-      "descripcion": "Aumenta el daño de todas las habilidades de Rayo.",
+      "descripcion": "Aumenta el Daño de Rayo directo.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "danoHabilidad",
-            "operacion": "porcentaje_total",
+            "objetivo": "danoTipo",
+            "operacion": "sumar",
             "valor": 10,
             "condiciones": {
-              "maestriaHabilidad": "rayo"
+              "tipoDanio": "rayo"
             }
           }
         ]
@@ -3397,15 +3409,15 @@
       "requisitoNivelMaestria": 2,
       "gradoMaximo": 1,
       "icono": "assets/imagenes/habilidades/afinidad_toxica.png",
-      "descripcion": "Aumenta el daño de habilidades de Veneno, incluido daño periódico y de zona.",
+      "descripcion": "Aumenta el Daño de Veneno directo.",
       "modificadoresPorGrado": {
         "1": [
           {
-            "objetivo": "danoHabilidad",
-            "operacion": "porcentaje_total",
+            "objetivo": "danoTipo",
+            "operacion": "sumar",
             "valor": 10,
             "condiciones": {
-              "maestriaHabilidad": "veneno"
+              "tipoDanio": "veneno"
             }
           }
         ]
@@ -4040,7 +4052,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": -5
                   }
                 ]
@@ -4066,7 +4078,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": -8
                   }
                 ]
@@ -4092,7 +4104,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": -12
                   }
                 ]
@@ -4778,7 +4790,7 @@
                 "duracion": 500,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": -5
                   },
@@ -4804,7 +4816,7 @@
                 "duracion": 700,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": -10
                   },
@@ -4830,7 +4842,7 @@
                 "duracion": 1000,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": -15
                   },
@@ -5117,7 +5129,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 5
                   },
                   {
@@ -5155,7 +5167,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 10
                   },
                   {
@@ -5193,7 +5205,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 15
                   },
                   {
@@ -5251,7 +5263,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 6
                   },
                   {
@@ -5289,7 +5301,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 12
                   },
                   {
@@ -5327,7 +5339,7 @@
                   },
                   {
                     "objetivo": "danoHabilidad",
-                    "operacion": "porcentaje_total",
+                    "operacion": "sumar",
                     "valor": 18
                   },
                   {
@@ -5720,7 +5732,7 @@
                 "duracion": 1000,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": 5
                   },
@@ -5753,7 +5765,7 @@
                 "duracion": 1000,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": 10
                   },
@@ -5786,7 +5798,7 @@
                 "duracion": 1000,
                 "modificadores": [
                   {
-                    "objetivo": "potenciaHabilidad",
+                    "objetivo": "danoHabilidad",
                     "operacion": "sumar",
                     "valor": 15
                   },
@@ -6381,7 +6393,10 @@
           "requiereMunicion": true,
           "consumeMunicion": true,
           "usaAlcanceArma": true,
-          "etiquetasEjecucion": ["proyectil", "disparo_multiple"],
+          "etiquetasEjecucion": [
+            "proyectil",
+            "disparo_multiple"
+          ],
           "etiquetaContexto": "disparo_multiple"
         },
         "grados": {
@@ -6546,8 +6561,12 @@
                   "danio_recibido",
                   "habilidad_ejecutada"
                 ],
-                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
-                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+                "consumirAlEjecutarEtiquetas": [
+                  "disparo_concentrado"
+                ],
+                "interrumpirAlEjecutarEtiquetas": [
+                  "disparo_multiple"
+                ]
               }
             }
           },
@@ -6600,8 +6619,12 @@
                   "danio_recibido",
                   "habilidad_ejecutada"
                 ],
-                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
-                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+                "consumirAlEjecutarEtiquetas": [
+                  "disparo_concentrado"
+                ],
+                "interrumpirAlEjecutarEtiquetas": [
+                  "disparo_multiple"
+                ]
               }
             }
           },
@@ -6654,8 +6677,12 @@
                   "danio_recibido",
                   "habilidad_ejecutada"
                 ],
-                "consumirAlEjecutarEtiquetas": ["disparo_concentrado"],
-                "interrumpirAlEjecutarEtiquetas": ["disparo_multiple"]
+                "consumirAlEjecutarEtiquetas": [
+                  "disparo_concentrado"
+                ],
+                "interrumpirAlEjecutarEtiquetas": [
+                  "disparo_multiple"
+                ]
               }
             }
           }

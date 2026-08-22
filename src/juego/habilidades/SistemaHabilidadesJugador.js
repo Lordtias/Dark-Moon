@@ -35,7 +35,7 @@ import {
 } from "./GeometriaHabilidades.js";
 import {
   configurarTiradasDeterministasHabilidad,
-  obtenerContextoPotenciaHabilidad,
+  obtenerContextoDanioHabilidad,
   obtenerDesgloseImpactoHabilidad,
   obtenerEstadoTiradasDeterministasHabilidad,
   resolverDanioHabilidad,
@@ -988,7 +988,7 @@ export class SistemaHabilidadesJugador {
         danio: plan.gradoConfig.danio,
         efectos: plan.gradoConfig.efectos,
       },
-      contextoPotencia: plan.contextoPotencia,
+      contextoDanioHabilidad: plan.contextoDanioHabilidad,
     });
   }
 
@@ -1008,7 +1008,7 @@ export class SistemaHabilidadesJugador {
             lanzador: this.jugador,
             objetivo,
             componentesConfigurados: componentesDanio,
-            contextoPotencia: plan.contextoPotencia,
+            contextoDanioHabilidad: plan.contextoDanioHabilidad,
             idEjecucion,
           })
         : resolverImpactoHabilidad({
@@ -1026,7 +1026,6 @@ export class SistemaHabilidadesJugador {
             objetivo,
             efectosConfigurados: plan.gradoConfig.efectos,
             definicionesPreparadas: entrada.definicionesEfectos,
-            contextoPotencia: plan.contextoPotencia,
             idEjecucion,
           })
         : [];
@@ -1263,7 +1262,7 @@ export class SistemaHabilidadesJugador {
           grado,
           gradoConfig,
           objetivos: vistaPrevia.objetivosAfectados.map((entrada) => ({ ...entrada })),
-          contextoPotencia: null,
+          contextoDanioHabilidad: null,
           creaZonaTemporal: false,
           centro: copiarCasilla(vistaPrevia.centro),
           objetivoPrimario: objetivo,
@@ -1278,7 +1277,7 @@ export class SistemaHabilidadesJugador {
         juego: this.juego,
         efectosConfigurados: gradoConfig.efectos,
       });
-      const contextoPotencia = obtenerContextoPotenciaHabilidad(this.jugador);
+      const contextoDanioHabilidad = obtenerContextoDanioHabilidad(this.jugador);
       if (creaZonaTemporal) {
         validarContratoZonaTemporal({
           juego: this.juego,
@@ -1301,7 +1300,6 @@ export class SistemaHabilidadesJugador {
             lanzador: this.jugador,
             objetivo: entrada.objetivo,
             efectosConfigurados: gradoConfig.efectos,
-            contextoPotencia,
             idEjecucion: "prevalidacion",
           }),
         };
@@ -1313,7 +1311,7 @@ export class SistemaHabilidadesJugador {
         grado,
         gradoConfig,
         objetivos,
-        contextoPotencia,
+        contextoDanioHabilidad,
         creaZonaTemporal,
         centro: copiarCasilla(vistaPrevia.centro),
         objetivoPrimario: vistaPrevia.objetivoPrimario ?? null,

@@ -1,8 +1,13 @@
 import { limitar } from "../../utilidades/Numeros.js";
-import { resolverPaqueteDanio } from "../combate/ComponentesDanio.js";
+import {
+  resolverPaqueteDanio,
+  TIPOS_DANIO,
+  normalizarTipoDanio,
+} from "../combate/ComponentesDanio.js";
+import { resolverDanioTipoGlobal } from "../combate/ResolutorEscaladoDanio.js";
 import { obtenerDesgloseProbabilidadImpacto } from "../combate/SistemaCombate.js";
 import * as AtributosMagicos from "../magia/CalculadorAtributosMagicos.js";
-import { crearContextoPotenciaHabilidad } from "../magia/SistemaCatalizadores.js";
+import { crearContextoDanioHabilidad } from "../magia/SistemaCatalizadores.js";
 
 const TIRADAS_DETERMINISTAS = {
   impacto: [],
@@ -102,9 +107,9 @@ export function resolverDanioHabilidad({
   objetivo,
   componentesConfigurados = [],
   idEjecucion,
-  contextoPotencia = null,
+  contextoDanioHabilidad = null,
   aplicarEscaladoMagico = true,
-  aplicarPotenciaHabilidad = true,
+  aplicarDanioHabilidad = true,
   resolverImpacto = true,
   resolverCritico = true,
 } = {}) {
@@ -121,14 +126,14 @@ export function resolverDanioHabilidad({
   const tiradaImpacto = obtenerTirada("impacto");
   const impacto = !resolverImpacto || tiradaImpacto <= probabilidadImpacto;
 
-  const multiplicadorAtributos = aplicarEscaladoMagico
+  const multiplicadorDanioMagico = aplicarEscaladoMagico
     ? obtenerMultiplicadorDanioMagico(lanzador)
     : 1;
-  const contextoPotenciaCalculado = aplicarPotenciaHabilidad
-    ? (contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador))
-    : crearContextoPotenciaNeutro();
-  const multiplicadorBase =
-    multiplicadorAtributos * contextoPotenciaCalculado.multiplicadorHabilidad;
+  const contextoDanioHabilidadCalculado = aplicarDanioHabilidad
+    ? (contextoDanioHabilidad ?? obtenerContextoDanioHabilidad(lanzador))
+    : crearContextoDanioHabilidadNeutro();
+  const multiplicadorDanioHabilidad =
+    contextoDanioHabilidadCalculado.multiplicadorDanioHabilidad;
 
   if (!impacto) {
     return crearResultadoFallo({
@@ -136,8 +141,8 @@ export function resolverDanioHabilidad({
       probabilidadImpacto,
       desgloseImpacto,
       tiradaImpacto,
-      multiplicadorAtributos,
-      contextoPotencia: contextoPotenciaCalculado,
+      multiplicadorDanioMagico,
+      contextoDanioHabilidad: contextoDanioHabilidadCalculado,
       vidaObjetivoAntes,
       vidaObjetivoMaxima,
     });
@@ -152,14 +157,30 @@ export function resolverDanioHabilidad({
   );
   const tiradaCritico = obtenerTirada("critico");
   const critico = resolverCritico && tiradaCritico <= probabilidadCritico;
-  const multiplicadorFinal =
-    multiplicadorBase * (critico ? multiplicadorCritico : 1);
+  const multiplicadorCriticoAplicado = critico ? multiplicadorCritico : 1;
 
-  const componentes = componentesConfigurados.map((componente) => ({
-    tipo: componente.tipo,
-    valorBase: componente.valorBase,
-    danioBruto: escalarDanioMagico(componente.valorBase, multiplicadorFinal),
-  }));
+  const componentes = componentesConfigurados.map((componente) => {
+    const tipo = normalizarTipoDanio(componente.tipo);
+    const esMagico = tipo !== TIPOS_DANIO.FISICO;
+    const resolucionDanioTipo = esMagico
+      ? resolverDanioTipoGlobal(lanzador, tipo)
+      : null;
+    const multiplicadorTipo = resolucionDanioTipo?.multiplicador ?? 1;
+    const multiplicadorNaturaleza = esMagico ? multiplicadorDanioMagico : 1;
+    // Daño de Habilidad es la capa exterior de la acción y se aplica una sola vez.
+    const multiplicadorDirecto =
+      multiplicadorNaturaleza * multiplicadorTipo * multiplicadorDanioHabilidad;
+    const multiplicadorFinal = multiplicadorDirecto * multiplicadorCriticoAplicado;
+    return {
+      tipo,
+      valorBase: componente.valorBase,
+      multiplicadorDanioMagico: multiplicadorNaturaleza,
+      multiplicadorDanioTipo: multiplicadorTipo,
+      multiplicadorDanioHabilidad,
+      multiplicadorDirecto,
+      danioBruto: escalarDanioMagico(componente.valorBase, multiplicadorFinal),
+    };
+  });
   const resistencias = estadisticasObjetivo?.resistencias ?? {};
   const resolucion = resolverPaqueteDanio({
     componentes: componentes.map(({ tipo, danioBruto }) => ({
@@ -193,14 +214,11 @@ export function resolverDanioHabilidad({
     probabilidadCritico,
     tiradaCritico,
     multiplicadorCritico,
-    multiplicadorDanioMagico: multiplicadorFinal,
-    multiplicadorBaseDanioMagico: multiplicadorBase,
-    multiplicadorAtributosMagicos: multiplicadorAtributos,
-    multiplicadorPotenciaHabilidad:
-      contextoPotenciaCalculado.multiplicadorHabilidad,
-    potenciaHabilidad: contextoPotenciaCalculado.potenciaHabilidad,
-    cantidadObjetosAportandoPotencia:
-      contextoPotenciaCalculado.cantidadObjetosAportando ?? 0,
+    multiplicadorDanioMagico,
+    multiplicadorDanioHabilidad,
+    danoHabilidad: contextoDanioHabilidadCalculado.danoHabilidad,
+    cantidadObjetosAportandoDanioHabilidad:
+      contextoDanioHabilidadCalculado.cantidadObjetosAportando ?? 0,
     componentes,
     componentesDanio,
     desgloseDanio: resolucion.desgloseDanio,
@@ -221,11 +239,11 @@ export function resolverDanioHabilidad({
   };
 }
 
-export function obtenerContextoPotenciaHabilidad(lanzador) {
+export function obtenerContextoDanioHabilidad(lanzador) {
   if (!lanzador || typeof lanzador !== "object") {
-    return crearContextoPotenciaNeutro();
+    return crearContextoDanioHabilidadNeutro();
   }
-  return crearContextoPotenciaHabilidad({ combatiente: lanzador });
+  return crearContextoDanioHabilidad({ combatiente: lanzador });
 }
 
 export function obtenerMultiplicadorDanioMagico(lanzador) {
@@ -324,8 +342,8 @@ function crearResultadoFallo({
   probabilidadImpacto,
   desgloseImpacto,
   tiradaImpacto,
-  multiplicadorAtributos,
-  contextoPotencia,
+  multiplicadorDanioMagico,
+  contextoDanioHabilidad,
   vidaObjetivoAntes,
   vidaObjetivoMaxima,
 }) {
@@ -339,13 +357,12 @@ function crearResultadoFallo({
     probabilidadCritico: 0,
     tiradaCritico: null,
     multiplicadorCritico: 1,
-    multiplicadorDanioMagico:
-      multiplicadorAtributos * contextoPotencia.multiplicadorHabilidad,
-    multiplicadorAtributosMagicos: multiplicadorAtributos,
-    multiplicadorPotenciaHabilidad: contextoPotencia.multiplicadorHabilidad,
-    potenciaHabilidad: contextoPotencia.potenciaHabilidad,
-    cantidadObjetosAportandoPotencia:
-      contextoPotencia.cantidadObjetosAportando ?? 0,
+    multiplicadorDanioMagico,
+    multiplicadorDanioHabilidad:
+      contextoDanioHabilidad.multiplicadorDanioHabilidad,
+    danoHabilidad: contextoDanioHabilidad.danoHabilidad,
+    cantidadObjetosAportandoDanioHabilidad:
+      contextoDanioHabilidad.cantidadObjetosAportando ?? 0,
     componentes: [],
     componentesDanio: [],
     desgloseDanio: {},
@@ -362,10 +379,10 @@ function crearResultadoFallo({
   };
 }
 
-function crearContextoPotenciaNeutro() {
+function crearContextoDanioHabilidadNeutro() {
   return Object.freeze({
-    potenciaHabilidad: 0,
-    multiplicadorHabilidad: 1,
+    danoHabilidad: 0,
+    multiplicadorDanioHabilidad: 1,
     cantidadObjetosAportando: 0,
   });
 }

@@ -22,7 +22,7 @@ import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemp
 import { SistemaZonasTemporales } from "../../juego/zonas/SistemaZonasTemporales.js";
 import { SistemaEspacial } from "../../juego/espacio/SistemaEspacial.js";
 import {
-  calcularPotenciaHabilidadObjetos,
+  calcularDanioHabilidadObjetos,
   esBaston,
   esVarita,
 } from "../../juego/magia/SistemaCatalizadores.js";
@@ -42,7 +42,7 @@ const ESTADOS = Object.freeze({
 const RESISTENCIAS_ELEMENTALES_PRUEBA = Object.freeze([0, 25, 50, 75]);
 const NIVELES_REFERENCIA_PREDETERMINADOS = Object.freeze([1, 3, 6, 10]);
 
-// Analiza armas, habilidades, Potencia de Habilidad y arquetipos usando las
+// Analiza armas, habilidades, Daño de Habilidad y arquetipos usando las
 // configuraciones y motores canónicos del juego. El módulo no modifica ninguna
 // instancia persistente ni replica una fórmula de daño ajena a los motores.
 export function crearInformeBalanceCombate({
@@ -118,7 +118,7 @@ export function crearInformeBalanceCombate({
     tipoResultado: "balance_combate_motores_canonicos",
     determinista: true,
     descripcion:
-      "Compara daño, impacto, crítico, tiempo, Maná, alcance, área y Potencia de Habilidad sin alterar la partida.",
+      "Compara daño, impacto, crítico, tiempo, Maná, alcance, área y Daño de Habilidad sin alterar la partida.",
     origenes: {
       atributosYEquipo: "Player, Equipamiento y EstadisticasDerivadas",
       impacto: "SistemaCombate.calcularProbabilidadImpacto",
@@ -213,7 +213,7 @@ function crearEscenariosPotencia({
       nombre: objeto.nombre,
       familia: objeto.familiaObjeto,
       tier: objeto.tierBase,
-      potenciaBase: objeto.propiedades.potenciaHabilidad,
+      potenciaBase: objeto.propiedades.danoHabilidad,
     }));
   const potenciaAfijoMaxima = obtenerPotenciaAfijoMaxima(
     configuracionGeneracionObjetos,
@@ -236,7 +236,7 @@ function crearEscenariosPotencia({
         id: `sin_catalizador_t${tier}`,
         nombre: "Sin catalizador",
         tier,
-        potenciaHabilidad: 0,
+        danoHabilidad: 0,
         cantidadCatalizadores: 0,
         tipo: "real",
       },
@@ -244,7 +244,7 @@ function crearEscenariosPotencia({
         id: `baston_base_t${tier}`,
         nombre: baston.nombre,
         tier,
-        potenciaHabilidad: baston.potenciaBase,
+        danoHabilidad: baston.potenciaBase,
         cantidadCatalizadores: 1,
         tipo: "real",
       },
@@ -252,7 +252,7 @@ function crearEscenariosPotencia({
         id: `doble_varita_base_t${tier}`,
         nombre: `Dos varitas Tier ${tier}`,
         tier,
-        potenciaHabilidad: varita.potenciaBase * 2,
+        danoHabilidad: varita.potenciaBase * 2,
         cantidadCatalizadores: 2,
         tipo: "real",
       },
@@ -263,7 +263,7 @@ function crearEscenariosPotencia({
           id: `baston_enfocado_t${tier}`,
           nombre: `${baston.nombre} con afijo máximo`,
           tier,
-          potenciaHabilidad: baston.potenciaBase + potenciaAfijoMaxima,
+          danoHabilidad: baston.potenciaBase + potenciaAfijoMaxima,
           cantidadCatalizadores: 1,
           tipo: "teorico_objeto_posible",
         },
@@ -271,7 +271,7 @@ function crearEscenariosPotencia({
           id: `doble_varita_enfocada_t${tier}`,
           nombre: `Dos varitas Tier ${tier} con afijo máximo`,
           tier,
-          potenciaHabilidad:
+          danoHabilidad:
             (varita.potenciaBase + potenciaAfijoMaxima) * 2,
           cantidadCatalizadores: 2,
           tipo: "teorico_objeto_posible",
@@ -290,8 +290,8 @@ function crearEscenariosPotencia({
     potenciaAfijoMaxima,
     filas: filasEvaluadas,
     resumen: {
-      minimo: Math.min(...filasEvaluadas.map((fila) => fila.potenciaHabilidad)),
-      maximo: Math.max(...filasEvaluadas.map((fila) => fila.potenciaHabilidad)),
+      minimo: Math.min(...filasEvaluadas.map((fila) => fila.danoHabilidad)),
+      maximo: Math.max(...filasEvaluadas.map((fila) => fila.danoHabilidad)),
       escenariosAltos: filasEvaluadas.filter(
         (fila) => fila.estado !== ESTADOS.CORRECTO && fila.estado !== ESTADOS.INFORMATIVO,
       ).length,
@@ -304,11 +304,11 @@ function obtenerPotenciaAfijoMaxima(configuracionGeneracionObjetos) {
   let maxima = 0;
   for (const afijo of Object.values(prefijos)) {
     const afectaPotencia = afijo.efectos?.some(
-      (efecto) => efecto.propiedad === "potenciaHabilidad",
+      (efecto) => efecto.propiedad === "danoHabilidad",
     );
     if (!afectaPotencia || afijo.estado !== "activo") continue;
     for (const grado of afijo.grados ?? []) {
-      const rango = grado.valores?.potenciaHabilidad;
+      const rango = grado.valores?.danoHabilidad;
       if (Number.isFinite(rango?.maximo)) maxima = Math.max(maxima, rango.maximo);
     }
   }
@@ -333,10 +333,10 @@ function evaluarPotencia(
     for (const fila of filasTier) {
       const comun = {
         ...fila,
-        multiplicadorHabilidad: redondear(1 + fila.potenciaHabilidad / 100),
-        gananciaPorcentual: fila.potenciaHabilidad,
+        multiplicadorDanioHabilidad: redondear(1 + fila.danoHabilidad / 100),
+        gananciaPorcentual: fila.danoHabilidad,
       };
-      if (fila.potenciaHabilidad === 0) {
+      if (fila.danoHabilidad === 0) {
         resultado.push({
           ...comun,
           criterio:
@@ -347,8 +347,8 @@ function evaluarPotencia(
       }
       if (fila.tipo === "real") {
         const diferencia = Math.abs(
-          (bastonBase?.potenciaHabilidad ?? 0) -
-            (dobleBase?.potenciaHabilidad ?? 0),
+          (bastonBase?.danoHabilidad ?? 0) -
+            (dobleBase?.danoHabilidad ?? 0),
         );
         resultado.push({
           ...comun,
@@ -358,11 +358,11 @@ function evaluarPotencia(
         continue;
       }
       const diferenciaMaxima =
-        (dobleAfijo?.potenciaHabilidad ?? 0) -
-        (bastonAfijo?.potenciaHabilidad ?? 0);
+        (dobleAfijo?.danoHabilidad ?? 0) -
+        (bastonAfijo?.danoHabilidad ?? 0);
       const ventajaMultiplicador = bastonAfijo
-        ? ((1 + (dobleAfijo?.potenciaHabilidad ?? 0) / 100) /
-            (1 + bastonAfijo.potenciaHabilidad / 100) -
+        ? ((1 + (dobleAfijo?.danoHabilidad ?? 0) / 100) /
+            (1 + bastonAfijo.danoHabilidad / 100) -
             1) *
           100
         : 0;
@@ -533,7 +533,7 @@ function crearFilaArma({
     costoTemporal,
     costoMana,
     requiereMunicion,
-    potenciaHabilidad: calcularPotenciaHabilidadObjetos(
+    danoHabilidad: calcularDanioHabilidadObjetos(
       [arma, secundaria].filter(Boolean),
     ),
     probabilidadImpactoPromedio: redondear(
@@ -871,7 +871,7 @@ function crearFilaHabilidad({
     objetivoReferencia: `Enemigo mediano nivel ${referencia.nivel}`,
     escenarioPotencia: escenarioPotencia.id,
     nombrePotencia: escenarioPotencia.nombre,
-    potenciaHabilidad: escenarioPotencia.potenciaHabilidad,
+    danoHabilidad: escenarioPotencia.danoHabilidad,
     resistenciaElemental,
     resistenciaEfecto,
     costoMana: grado.costoMana,
@@ -1128,7 +1128,7 @@ function crearInformeArquetipos({
           ? redondear((danioGrupoEsperado / tiempo) * 100)
           : 0,
       dependenciaEquipo:
-        (arma?.potenciaHabilidad ?? 0) > 0 || arma?.familia === "varita"
+        (arma?.danoHabilidad ?? 0) > 0 || arma?.familia === "varita"
           ? "alta"
           : habilidad
             ? "media"
@@ -1337,7 +1337,7 @@ function elegirPotenciaArquetipo({ escenario, potencia }) {
       id: `sin_catalizador_t${tier}`,
       nombre: "Sin catalizador",
       tier,
-      potenciaHabilidad: 0,
+      danoHabilidad: 0,
     }
   );
 }
@@ -1430,7 +1430,7 @@ function crearInformePruebasFocalizadas({
     tipoResultado: "pruebas_focalizadas_motores_canonicos",
     determinista: true,
     descripcion:
-      "Revisa las advertencias del análisis general mediante secuencias reales de efectos, zonas, regeneración y Potencia de Habilidad.",
+      "Revisa las advertencias del análisis general mediante secuencias reales de efectos, zonas, regeneración y Daño de Habilidad.",
     jefeReferencia: jefe,
     incinerar,
     rafagaGlacial,
@@ -1935,13 +1935,13 @@ function analizarDobleVaritaFocalizada({ potencia, habilidades, reglas }) {
         1) *
       100;
     const ventajaTeoricaBase =
-      ((1 + dobleBase.potenciaHabilidad / 100) /
-        (1 + bastonBase.potenciaHabilidad / 100) -
+      ((1 + dobleBase.danoHabilidad / 100) /
+        (1 + bastonBase.danoHabilidad / 100) -
         1) *
       100;
     const ventajaTeoricaEnfocada =
-      ((1 + dobleEnfocado.potenciaHabilidad / 100) /
-        (1 + bastonEnfocado.potenciaHabilidad / 100) -
+      ((1 + dobleEnfocado.danoHabilidad / 100) /
+        (1 + bastonEnfocado.danoHabilidad / 100) -
         1) *
       100;
     const ventajaTeoricaAdicional =
@@ -1961,10 +1961,10 @@ function analizarDobleVaritaFocalizada({ potencia, habilidades, reglas }) {
     filas.push({
       id: `doble_varita_afijos_t${tier}`,
       tier,
-      potenciaBastonBase: bastonBase.potenciaHabilidad,
-      potenciaDobleVaritaBase: dobleBase.potenciaHabilidad,
-      potenciaBastonMaxima: bastonEnfocado.potenciaHabilidad,
-      potenciaDobleVaritaMaxima: dobleEnfocado.potenciaHabilidad,
+      potenciaBastonBase: bastonBase.danoHabilidad,
+      potenciaDobleVaritaBase: dobleBase.danoHabilidad,
+      potenciaBastonMaxima: bastonEnfocado.danoHabilidad,
+      potenciaDobleVaritaMaxima: dobleEnfocado.danoHabilidad,
       ventajaBaseDanioPorcentaje: redondear(
         comparacionBase.ventajaAgregada,
       ),
@@ -2522,7 +2522,7 @@ function simularZonaConPatron({
       danio: grado.danio,
       efectos: grado.efectos,
     },
-    contextoPotencia: null,
+    contextoDanioHabilidad: null,
   });
   registrarInstancias();
 
@@ -2775,7 +2775,7 @@ function crearConclusionesPruebasFocalizadas({
         "rafaga_glacial",
         "nube_toxica",
         "plaga_corrosiva",
-        "potencia_habilidad",
+        "dano_habilidad",
         "mana",
       ],
       pendientePruebaInterfaz: [
@@ -2922,7 +2922,7 @@ function crearConclusiones({
           "No ajustar por daño nominal: revisar el resultado completo con área, efectos y coste de Maná.",
       },
       {
-        id: "potencia_habilidad",
+        id: "dano_habilidad",
         queSeAnalizo:
           "Habilidades sin catalizador, con bastón, con doble varita y con el afijo de Potencia máximo disponible.",
         porQue:
@@ -3034,7 +3034,7 @@ function crearPerfilAtributosProfesion({
 }
 
 function equiparEscenarioPotencia({ jugador, configuracionObjetos, escenario }) {
-  if (escenario.potenciaHabilidad <= 0) return;
+  if (escenario.danoHabilidad <= 0) return;
   const tier = escenario.tier;
   const usaDoble = escenario.id.startsWith("doble_varita");
   const familia = usaDoble ? "varita" : "baston";
@@ -3046,15 +3046,15 @@ function equiparEscenarioPotencia({ jugador, configuracionObjetos, escenario }) 
   if (!idBase) throw new Error(`No existe ${familia} Tier ${tier}.`);
   const plantilla = configuracionObjetos[idBase];
   const potenciaPorObjeto = usaDoble
-    ? escenario.potenciaHabilidad / 2
-    : escenario.potenciaHabilidad;
+    ? escenario.danoHabilidad / 2
+    : escenario.danoHabilidad;
   const configuracionEscenario = {
     ...configuracionObjetos,
     [idBase]: {
       ...plantilla,
       propiedades: {
         ...plantilla.propiedades,
-        potenciaHabilidad: potenciaPorObjeto,
+        danoHabilidad: potenciaPorObjeto,
       },
     },
   };

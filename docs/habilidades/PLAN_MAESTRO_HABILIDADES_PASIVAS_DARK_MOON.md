@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El hito de habilidades/pasivas queda completado y auditado. No se crea HP7 ni se avanza automáticamente a una nueva etapa.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`. El hito de habilidades/pasivas continúa cerrado y auditado; este ajuste no crea HP7.
 
 ---
 
@@ -316,11 +316,11 @@ Un afijo `portador` continúa siendo parte visible del objeto que constituye su 
 Ejemplo de varita:
 
 ```text
-Potencia propia de la varita: 12
-Afijo Enfocado: +4 Potencia de habilidad
+Daño de Habilidad propio del catalizador: 12
+Afijo Enfocado: +4 Daño de Habilidad
 ```
 
-Internamente no se transforma la propiedad local de la varita en 16. Equipada, la potencia intrínseca 12 forma el valor base y el +4 del afijo participa como fuente `portador`; el valor final 16 lo obtiene el centralizador. El tooltip puede mostrar el afijo y su valor, pero la interfaz no recalcula la estadística final.
+Internamente no se transforma la propiedad local de la varita en 16. Equipada, el aporte intrínseco 12 forma el valor base y el +4 del afijo participa como fuente `portador`; el valor final 16 lo obtiene el centralizador. El tooltip puede mostrar el afijo y su valor, pero la interfaz no recalcula la estadística final.
 
 
 ---
@@ -410,11 +410,11 @@ La fuente única de verdad quedó implementada en:
 src/juego/modificadores/ContratosModificadoresCombatiente.js
 ```
 
-HP2 auditó estadísticas de jugador y enemigos, ataques y armas, armaduras, escudos, quiver, recursos, regeneraciones, resistencias, crítico, bloqueo, precisión/evasión, alcance, percepción, economía temporal, efectos, terreno/zonas, equipamiento, afijos, variantes enemigas y persistencia.
+HP2 auditó la base de estadísticas de jugador/enemigos, ataques, equipo, recursos, resistencias, combate, efectos, terreno, afijos y persistencia. Cierres posteriores incorporaron al mismo registro los ejes de daño y potencia de efectos indicados aquí; esta lista representa el contrato productivo vigente, no únicamente el corte histórico de HP2.
 
 El resultado no es una lista de "todos los números del juego". Cada variable auditada queda explícitamente en una de cuatro categorías para distinguir una ausencia deliberada de un olvido.
 
-#### Implementados y conectados en HP2
+#### Implementados y conectados en el estado vigente
 
 ```text
 vidaMaxima
@@ -429,7 +429,11 @@ multiplicadorCritico
 probabilidadBloqueo
 mitigacionBloqueo
 potenciaEfectos
-potenciaHabilidad
+potenciaEfecto
+danoFisico
+danoMagico
+danoHabilidad
+danoTipo
 resistenciaFuego
 resistenciaFrio
 resistenciaRayo
@@ -452,20 +456,36 @@ Cada uno dispone de un consumidor canónico real y su valor final pasa por `Sist
 
 `multiplicadorDanioFuente` cubre, entre otros casos, el factor de cada mano en un ataque dual. La penalización base de la mano secundaria permanece en el contrato de ataque, pero una futura pasiva puede modificar ese factor mediante contexto sin introducir un `if` específico dentro del combate.
 
-#### Incorporados en HP4
+#### Objetivos de habilidad y daño vigentes
 
-HP4 cierra la auditoría de los parámetros internos que ya poseen consumidor real. En vez de crear un objetivo global distinto para cada campo, el centralizador incorpora dos objetivos canónicos:
+HP4 incorporó `atributoHabilidad` para parámetros internos numéricos de una habilidad. El ajuste transversal **Daño y efectos** posterior generaliza los ejes de daño directo y reserva `danoHabilidad` para su significado actual de bonificación global al daño directo generado por habilidades.
 
 ```text
-danoHabilidad
 atributoHabilidad
+danoFisico
+danoMagico
+danoHabilidad
+danoTipo
+potenciaEfecto
 ```
-
-`danoHabilidad`
-: representa el daño base interno de una habilidad antes de escalado mágico, crítico y defensas. El contexto permite distinguir maestría, tipo de daño y fase (`impacto_directo`, `efecto_periodico` o `zona`).
 
 `atributoHabilidad`
 : representa un atributo interno numérico validado de la configuración efectiva de una habilidad. Todo descriptor dirigido a este objetivo debe declarar explícitamente la condición `atributoHabilidad`; una clave desconocida produce error.
+
+`danoFisico`
+: bonificación global del portador aplicada exclusivamente al componente físico procedente de armas. Es transversal a Fuerza, Destreza o Sabiduría y, en duales, cada arma consulta el mismo resultado global del portador.
+
+`danoMagico`
+: bonificación global al daño mágico directo. Se suma al aporte derivado de Inteligencia/Sabiduría y puede escalar componentes elementales de armas además de habilidades mágicas directas.
+
+`danoHabilidad`
+: bonificación global al daño directo producido por una habilidad. Se aplica una sola vez como capa exterior de la acción y no forma parte de la resolución local del arma ni potencia efectos temporales.
+
+`danoTipo`
+: objetivo genérico condicionado por `tipoDanio` para Fuego, Frío, Rayo y Veneno. No se crean cuatro motores elementales.
+
+`potenciaEfecto`
+: objetivo genérico condicionado por `efectoId` para potencia específica de un efecto. Se combina con `potenciaEfectos`, pero permanece separado de los ejes de daño directo.
 
 El registro productivo de atributos internos queda formado por:
 
@@ -517,10 +537,6 @@ inteligencia
 sabiduria
 carisma
 potenciaAura
-multiplicadorDanioMagico
-danoFisicoGlobal
-danoElementalGlobal
-danoHechizosGlobal
 probabilidades globales especiales de estados
 precisionHechizos
 potenciaHechizos
@@ -861,19 +877,35 @@ selección / Maná / tiempo / geometría / daño / efectos / zona
 
 Así no puede ocurrir que la vista previa utilice alcance modificado pero el impacto use alcance base, o que una zona use daño distinto al confirmado en la ejecución.
 
-### 8.2. Daño de habilidad
+### 8.2. Daño directo de habilidad
 
-`danoHabilidad` modifica el daño base interno antes de Inteligencia/Sabiduría según corresponda, Potencia de Habilidad, crítico y defensas del objetivo.
+`danoHabilidad` ya no representa el daño base interno de una habilidad. Su contrato vigente es una **bonificación global del portador al daño directo producido por habilidades**.
 
-El contexto permite distinguir:
+Regla canónica:
 
 ```text
-maestriaHabilidad
-tipoDanioHabilidad
-faseHabilidad = impacto_directo | efecto_periodico | zona
+componentes de daño de la fuente
+→ modificadores propios de cada componente
+→ factor propio de la habilidad, cuando corresponda
+→ Daño de Habilidad UNA sola vez
+→ crítico / defensas / resolución canónica
 ```
 
-Una afinidad elemental puede afectar todos los daños derivados de su habilidad; una futura especialización podría limitarse solo al daño periódico sin tocar el motor del efecto concreto.
+Una habilidad de arma no debe incorporar `danoHabilidad` dentro de la resolución del arma y volver a aplicarlo después. El arma se resuelve igual que en un ataque básico; `MotorAtaqueArmaHabilidad` agrega la capa de habilidad una única vez sobre los componentes directos resultantes.
+
+Para daño directo elemental, los ejes son acumulables cuando corresponden al mismo componente:
+
+```text
+Daño Mágico × Daño del tipo elemental × Daño de Habilidad
+```
+
+Para daño directo físico de una habilidad de arma:
+
+```text
+Daño Físico × Daño de Habilidad
+```
+
+Los efectos temporales no heredan `Daño de Habilidad`, `Daño Mágico`, `Daño Físico` ni `danoTipo`. Su potencia se resuelve por el contrato independiente descrito en la sección de efectos.
 
 ### 8.3. Atributos internos
 
@@ -1096,7 +1128,7 @@ Ejemplos:
 +Evasión
 +Vida máxima
 +Resistencia
-+Potencia de habilidad
++Daño de Habilidad
 +Daño de una familia de habilidades
 +Alcance con armas a distancia
 ```
@@ -1120,7 +1152,7 @@ Esta separación debe permitir que un objeto legendario futuro posea afijos glob
 Ejemplos conceptuales:
 
 ```text
-+20% daño de habilidades de fuego
++20% Daño de Fuego
 +1 alcance con armas a distancia
 +15% Evasión total
 +2 objetivos a habilidades en cadena
@@ -1156,7 +1188,7 @@ Continúan componiéndose dentro del objeto.
 
 ```text
 vigoroso            vidaMaxima
-enfocado            potenciaHabilidad
+enfocado            danoHabilidad
 de_evasion          evasion
 de_regeneracion     regeneracionVida
 de_ascuas           resistenciaFuego
@@ -1170,6 +1202,27 @@ de_ceniza           resistenciaQuemadura
 ```
 
 Estos efectos dejan de contaminar las propiedades locales del objeto y participan como fuentes del combatiente mientras la pieza esté equipada.
+
+#### Extensión cerrada — Daño y efectos
+
+El cierre transversal del 22/08/2026 amplía los prefijos de `portador` sin cambiar el contrato de ámbito:
+
+| Prefijo | Objetivo | Alcance |
+|---|---|---|
+| `enfocado` | `danoHabilidad` | daño directo de cualquier habilidad; armas |
+| `marcial` | `danoFisico` | componente físico de todas las armas equipadas; excluye varita en el pool actual |
+| `mistico` | `danoMagico` | daño mágico directo; armas; reservado a Raro |
+| `igneo` | `danoTipo` + `tipoDanio=fuego` | daño directo de Fuego |
+| `gelido` | `danoTipo` + `tipoDanio=frio` | daño directo de Frío |
+| `fulgurante` | `danoTipo` + `tipoDanio=rayo` | daño directo de Rayo |
+| `toxico` | `danoTipo` + `tipoDanio=veneno` | daño directo de Veneno |
+| `catalitico` | `potenciaEfectos` | potencia general de efectos; reservado a Raro |
+| `incandescente` | `potenciaEfecto` + `efectoId=quemadura` | Potencia de Quemadura |
+| `virulento` | `potenciaEfecto` + `efectoId=envenenamiento` | Potencia de Envenenamiento |
+| `entorpecedor` | `potenciaEfecto` + `efectoId=ralentizacion` | Potencia de Ralentización |
+| `sobrecargado` | `potenciaEfecto` + `efectoId=electrizacion` | Potencia de Electrización |
+
+`Daño Físico`, `Daño Mágico` y `Potencia de Efectos` son efectos amplios y el contenido actual los reserva a rareza `raro`; las afinidades de daño y potencias específicas se permiten en `magico` y `raro`. Los valores siguen perteneciendo a `Prefijos.json`; la arquitectura no codifica sus porcentajes.
 
 #### No activos — ámbito local ya identificado
 
@@ -1609,6 +1662,71 @@ la ejecución canónica utiliza ese valor
 
 ---
 
+
+### 17.6. CIERRE TRANSVERSAL — DAÑO Y EFECTOS (22/08/2026)
+
+Este cierre no reabre HP-AUD ni crea HP7. Consolida conceptos que habían quedado repartidos entre magia, habilidades, armas, afijos, efectos y Panel Personaje.
+
+#### 17.6.1. Ejes de daño directo
+
+- `Daño Físico`: global del portador; se aplica solo al componente físico de armas. No depende del atributo primario con el que escala el arma. En duales ambas armas consultan la misma bonificación global.
+- `Daño Mágico`: global del portador; aumenta daño mágico directo y se suma al escalado derivado de Inteligencia/Sabiduría. Un componente elemental agregado a un arma también puede beneficiarse.
+- `Daño de Habilidad`: global del portador; aumenta una sola vez el daño directo producido por cualquier habilidad. No afecta ataques básicos ni efectos.
+- `Daño de Fuego/Frío/Rayo/Veneno`: variantes del objetivo genérico `danoTipo` y se acumulan con Daño Mágico cuando corresponden al mismo componente directo.
+
+El resolutor semántico común es `src/juego/combate/ResolutorEscaladoDanio.js`. No crea un motor de combate paralelo; traduce el contexto del componente a consultas del `SistemaModificadoresCombatiente`.
+
+#### 17.6.2. Separación arma / habilidad
+
+El arma se resuelve primero con sus componentes y fuentes locales/globales. `Daño de Habilidad` no se incorpora a la propiedad local del arma. Si el ataque ocurre mediante una habilidad, esa capa se aplica exactamente una vez después del factor propio de la habilidad.
+
+Esto evita dobles escalados en habilidades de arma y mantiene idéntica la resolución base del arma para ataque básico y habilidad.
+
+#### 17.6.3. Efectos
+
+`Potencia de Efectos` permanece como multiplicador general de los aspectos que el efecto declara escalables. `potenciaEfecto` añade una segunda capa específica condicionada por `efectoId`.
+
+Contenido inicial específico:
+
+- Quemadura → Potencia de Quemadura, escala daño periódico;
+- Envenenamiento → Potencia de Envenenamiento, escala daño periódico;
+- Ralentización → Potencia de Ralentización, escala intensidad;
+- Electrización → Potencia de Electrización, escala intensidad;
+- Congelamiento y Aturdimiento → sin potencia específica/escalado por potencia por ahora.
+
+Los efectos no reciben Daño Mágico, Daño de Habilidad, Daño Físico ni daño por tipo. Las resistencias elementales de daño y las resistencias/defensas de efectos no se deducen entre sí.
+
+#### 17.6.4. Interfaz y desglose
+
+El Panel Personaje expone tres grupos conceptuales:
+
+```text
+DAÑO
+- Daño Físico
+- Daño Mágico
+- Daño de Habilidad
+
+AFINIDADES DE DAÑO
+- Fuego
+- Frío
+- Rayo
+- Veneno
+
+POTENCIA DE EFECTOS
+- General
+- Quemadura
+- Envenenamiento
+- Ralentización
+- Electrización
+```
+
+Las descripciones deben indicar explícitamente qué estadísticas se acumulan. El modal consume `resolucionesModificadores` y los aportes de atributos primarios ya producidos; no reconstruye fórmulas. La corrección final normaliza la clave `danoMagico` en los aportes de Inteligencia/Sabiduría para que el nombre y el desglose completos coincidan.
+
+#### 17.6.5. Persistencia
+
+Este cierre parte expresamente de cero necesidad de compatibilidad con partidas antiguas. No se crean migraciones, traductores, aliases ni parches de save. Como regla general se persisten fuentes canónicas y se reconstruyen los resultados derivados.
+
+
 ## 18. REGLAS PARA NUEVO CONTENIDO
 
 Una nueva pasiva, aura, maldición o afijo global no debe exigir cambios de código cuando:
@@ -1720,7 +1838,7 @@ Dominios auditados:
 - alcance;
 - Vida/Maná y regeneraciones;
 - resistencias de daño y de efectos;
-- potencia de efectos y Potencia de Habilidad;
+- potencia de efectos y Daño de Habilidad;
 - percepción;
 - factores temporales;
 - efectos temporales;
@@ -1928,7 +2046,7 @@ HP4 cierra el contrato numérico de habilidades y convierte auras/maldiciones en
 #### Contrato técnico
 
 - `ConfiguracionHabilidadEfectiva` resuelve una única configuración derivada por ejecución/vista previa;
-- `danoHabilidad` y `atributoHabilidad` son los únicos nuevos objetivos de habilidad;
+- HP4 introdujo `danoHabilidad` y `atributoHabilidad`; el cierre posterior Daño y efectos conserva `atributoHabilidad` para parámetros internos y redefine `danoHabilidad` como bonificación global al daño directo de habilidades;
 - los 18 atributos internos productivos y dos candidatos de proyectiles están documentados en las secciones 5 y 8;
 - `modificador_factor` desaparece y los efectos numéricos usan `modificador_combatiente`;
 - auras son emisiones móviles asociadas a un efecto temporal del emisor;
@@ -1985,13 +2103,16 @@ duracion
 valor_y_duracion
 ```
 
-Para preservar balance actual:
+Contrato vigente de escalado por potencia:
 
 - Envenenamiento → `valor`;
 - Quemadura → `valor`;
-- todos los demás efectos actuales, auras y maldiciones nuevas → `ninguna`.
+- Ralentización → `valor`;
+- Electrización → `valor`;
+- Congelamiento y Aturdimiento → `ninguna`;
+- el resto conserva su configuración declarada mientras no exista una decisión explícita que lo vuelva escalable.
 
-Por tanto Veneno y Quemadura **sí** conservan el escalado de daño por tick que ya tenían; no se aumenta su duración salvo modificador explícito de habilidad.
+La magnitud escalable utiliza `Potencia de Efectos × Potencia específica del efecto`. Los efectos no heredan `Daño Mágico`, `Daño de Habilidad`, `Daño Físico` ni daño elemental específico. Las resistencias de daño y las resistencias/defensas de efectos permanecen como contratos diferentes.
 
 #### 16 pasivas mágicas nuevas
 
@@ -1999,19 +2120,19 @@ Todas son de un grado y usan descriptores declarativos. Requisitos dentro de cad
 
 | Maestría | Pasiva | Efecto |
 |---|---|---|
-| Fuego | Afinidad ígnea | daño de habilidades de Fuego +10% |
+| Fuego | Afinidad ígnea | Daño de Fuego +10% |
 | Fuego | Ascua eficiente | Ascua: Maná -1 |
 | Fuego | Detonación expansiva | Explosión ígnea: Radio +1 |
 | Fuego | Combustión persistente | Incinerar: Quemadura +1 turno |
-| Frío | Afinidad glacial | daño de habilidades de Frío +10% |
+| Frío | Afinidad glacial | Daño de Frío +10% |
 | Frío | Esquirla persistente | Esquirla de hielo: Ralentización +1 turno |
 | Frío | Nova expansiva | Nova de escarcha: Radio +1 |
 | Frío | Congelación profunda | Ráfaga glacial: probabilidad de Congelamiento +15 puntos |
-| Rayo | Afinidad tormentosa | daño de habilidades de Rayo +10% |
+| Rayo | Afinidad tormentosa | Daño de Rayo +10% |
 | Rayo | Chispa fulminante | Chispa: velocidad de lanzamiento +10% |
 | Rayo | Conducción múltiple | Cadena de rayos: +1 objetivo máximo |
 | Rayo | Descarga extendida | Descarga fulminante: Longitud +1 |
-| Veneno | Afinidad tóxica | daño derivado de habilidades de Veneno +10% |
+| Veneno | Afinidad tóxica | Daño de Veneno +10% |
 | Veneno | Toxina persistente | Aguijón tóxico: Envenenamiento +1 turno |
 | Veneno | Nube persistente | Nube tóxica: zona +2 turnos |
 | Veneno | Plaga voraz | Plaga corrosiva: +1 acumulación máxima |
@@ -2113,12 +2234,11 @@ La cantidad de puntos de maestría **no aumenta en HP4**. Esto es deliberado: un
 - `maximoProyectilesSimultaneos`: reservado a corto plazo hasta que exista un consumidor real; `cantidadProyectiles`, `factorDanioArma` y `distanciaDesplazamiento` son productivos desde AR1;
 - habilidades transformativas: requieren contrato específico, no un `reemplazar` arbitrario;
 - `precisionHechizos`: pendiente porque hoy las habilidades usan la Precisión general;
-- `danoElementalGlobal`: pendiente por afectar transversalmente armas y habilidades;
 - `potenciaAura`: pendiente; las auras actuales usan grado;
 - atributos primarios como objetivos modificables: pendientes de aprobación cuando exista una necesidad real;
-- daño físico/mágico global, robo de Vida/Maná y hallazgo de objetos: pendientes de diseño/balance;
+- robo de Vida/Maná y hallazgo de objetos: pendientes de diseño/balance; Daño Físico, Daño Mágico y daño por tipo ya están implementados como objetivos globales canónicos;
 - balance posterior de las 48 pasivas físicas de HP3, 16 pasivas mágicas, 28 auras/maldiciones activas, XP, puntos, Maná, duración, radio y probabilidades;
-- HP5 implementa Personaje completo, Potencia de Habilidad, Habilidades, Resistencia Mental, ámbito de afijos e iconografía definitiva;
+- HP5 implementó Personaje completo y mostró la estadística que entonces se denominaba Potencia de Habilidad; el cierre posterior la normaliza como Daño de Habilidad sin ampliar su alcance a efectos;
 - HP5 completa también la iconografía de las 28 auras/maldiciones; el árbol y los estados compactos de HUD quedan en HP6.
 
 Resultado técnico esperado de HP4:
@@ -2132,7 +2252,7 @@ configuración efectiva única de habilidades + 44 contenidos aprendibles + runt
 **Base:** `70f78115dffe96a223128b5cffbbab0ef58024ce`
 **Estado:** Cerrada. Implementación, validación técnica y pruebas manuales superadas y aprobadas por el usuario. El commit final queda a cargo del usuario.
 
-HP5 reorganiza la presentación sin modificar balance, persistencia ni reglas canónicas: Personaje usa el ancho completo; `Magia` pasa visualmente a `Habilidades`; se muestran Potencia de Habilidad y Resistencia Mental; Pasivas y Efectos activos se leen desde sus fuentes canónicas; Inventario y Equipamiento comparten la pantalla `Objetos`; los afijos muestran `Objeto/Portador`; el desglose de estadísticas usa un modal propio y resoluciones ya producidas por el centralizador; y se completan 92 iconos para dejar 104/104 habilidades con recurso real.
+HP5 reorganiza la presentación sin modificar balance, persistencia ni reglas canónicas: Personaje usa el ancho completo; `Magia` pasa visualmente a `Habilidades`; se muestran Daño de Habilidad y Resistencia Mental; Pasivas y Efectos activos se leen desde sus fuentes canónicas; Inventario y Equipamiento comparten la pantalla `Objetos`; los afijos muestran `Objeto/Portador`; el desglose de estadísticas usa un modal propio y resoluciones ya producidas por el centralizador; y se completan 92 iconos para dejar 104/104 habilidades con recurso real.
 
 Las ocho Maldiciones funcionales `Exposición`, `Debilidad`, `Lentitud`, `Ceguera`, `Torpeza`, `Silencio`, `Marchitamiento` y `Supresión` tienen identidad iconográfica propia y no heredan obligatoriamente la afinidad donde se aprenden. Las cuatro Vulnerabilidades elementales sí conservan identidad elemental.
 
@@ -2145,7 +2265,7 @@ No se incorpora drag & drop a ranura concreta porque el contrato jugable actual 
 
 `OrganizadorArbolHabilidades` es genérico para **todas** las maestrías/habilidades. El eje vertical deriva exclusivamente de `requisitoNivelMaestria`; desde AR1.2 la conectividad real del grafo decide además la distribución horizontal mediante entradas/salidas de cada nodo y evita que una maestría con un único nodo por nivel colapse en una sola columna. No contiene ramas `magia/físico`, coordenadas manuales por ID ni posiciones específicas de contenido: si una maestría no dispone de relaciones, sus iconos continúan ordenándose de forma determinista por nivel.
 
-Las relaciones del árbol no crean requisitos nuevos. El organizador combina relaciones **inferibles** desde modificadores canónicos y relaciones **declarativas** `relacionesArbol` presentes en la configuración de cualquier habilidad. `modificacion` (línea continua) significa que el efecto está dirigido específicamente a la habilidad destino —por ejemplo mediante `condiciones.idHabilidad`/`atributoHabilidad`—; `sinergia` (línea punteada) representa un beneficio por estadística, estado o contexto compartido. Las pasivas cuyo modificador objetivo es `danoHabilidad` y cuyo ámbito usa `maestriaHabilidad` se conectan únicamente a habilidades activas de esa maestría que realmente producen daño directo o periódico. AR1.2 corrige Arcos para expresar como sinergias sus atributos generales de arma, incorpora `Aura de Precisión` y deja 17 relaciones reales, todas punteadas con el contenido actual. Las conexiones nunca significan dependencia de aprendizaje.
+Las relaciones del árbol no crean requisitos nuevos. El organizador combina relaciones **inferibles** desde modificadores canónicos y relaciones **declarativas** `relacionesArbol` presentes en la configuración de cualquier habilidad. `modificacion` (línea continua) significa que el efecto está dirigido específicamente a la habilidad destino —por ejemplo mediante `condiciones.idHabilidad`/`atributoHabilidad`—; `sinergia` (línea punteada) representa un beneficio por estadística, estado o contexto compartido. Las Afinidades elementales ya no se expresan como `danoHabilidad + maestriaHabilidad`: utilizan `danoTipo + tipoDanio`, por lo que sus sinergias se infieren desde el tipo de daño real que produce la habilidad. Las relaciones declarativas continúan disponibles cuando la interacción no puede inferirse de forma inequívoca. AR1.2 corrige Arcos para expresar como sinergias sus atributos generales de arma, incorpora `Aura de Precisión` y deja 17 relaciones reales, todas punteadas con el contenido actual. Las conexiones nunca significan dependencia de aprendizaje.
 
 Cada nodo muestra solo el icono y `grado/gradoMaximo`; una habilidad no aprendida se atenúa y una bloqueada por nivel se atenúa aún más. El clic abre un detalle contextual que clasifica el contenido por datos en `Pasiva`, `Aura`, `Maldición` u `Ofensiva`. Cada formato muestra únicamente campos pertinentes —una Aura no presenta `Daño base: —`— y las activas utilizan `ConfiguracionHabilidadEfectiva` para exponer los mismos valores efectivos usados por ejecución/barra. Desde el detalle se aprende/mejora y, cuando corresponde, se asigna o retira de la barra sin crear una segunda progresión.
 
@@ -2497,11 +2617,11 @@ Quedan aprobadas como dirección del hito:
 15. Ceguera limita Percepción a 1 y nunca modifica alcance; los grados solo aumentan probabilidad/duración;
 16. Silencio bloquea habilidades activas y permite movimiento, espera y ataques con arma;
 17. `modificador_factor` se elimina y los efectos numéricos temporales utilizan `modificador_combatiente`;
-18. Potencia de Efectos se declara por efecto mediante `ninguna`, `valor`, `duracion` o `valor_y_duracion`;
-19. Envenenamiento y Quemadura conservan escalado de valor; el resto actual usa `ninguna` salvo decisión futura;
+18. Potencia de Efectos se declara por efecto mediante `ninguna`, `valor`, `duracion` o `valor_y_duracion`, y puede combinarse con `potenciaEfecto` condicionada por `efectoId`;
+19. Envenenamiento, Quemadura, Ralentización y Electrización escalan `valor`; Congelamiento y Aturdimiento permanecen sin escalado de potencia;
 20. las auras/maldiciones iniciales no escalan automáticamente con Potencia de Efectos;
 21. el snapshot de habilidad/efecto/zona se fija al confirmar/aplicar; las defensas del objetivo siguen siendo dinámicas;
-22. HP4 usa solo dos nuevos objetivos: `danoHabilidad` y `atributoHabilidad`;
+22. HP4 introdujo `danoHabilidad` y `atributoHabilidad`; el contrato vigente redefine `danoHabilidad` como daño global de habilidades y agrega `danoFisico`, `danoMagico`, `danoTipo` y `potenciaEfecto`;
 23. `atributoHabilidad` exige una clave validada del registro canónico;
 24. los 18 atributos productivos quedan documentados con significado, unidad y consumidor;
 25. `cantidadProyectiles` y `maximoProyectilesSimultaneos` quedan reservados a corto plazo sin activarse prematuramente;
@@ -2526,9 +2646,9 @@ Quedan aprobadas como dirección del hito:
 44. la UI de Habilidades muestra los valores configurados de auras/maldiciones sin recalcular estadísticas;
 45. las herramientas de depuración/regresión no pueden asumir que el catálogo total sigue teniendo solo doce habilidades activas;
 46. tooltips/paneles consumen datos canónicos y nunca reproducen la fórmula del centralizador;
-47. HP5 debe mostrar Potencia de Habilidad, revisar el nombre Magia/Habilidades, mostrar el ámbito de los afijos y diseñar iconografía definitiva de pasivas;
+47. HP5 incorporó la estadística entonces llamada Potencia de Habilidad; el contrato vigente la presenta como Daño de Habilidad y conserva el ámbito de afijos/desgloses canónicos;
 48. HP5 completa la iconografía definitiva de auras/maldiciones: las Vulnerabilidades elementales conservan identidad de afinidad y las ocho Maldiciones funcionales poseen identidad visual propia;
-49. `precisionHechizos`, `danoElementalGlobal`, `potenciaAura`, atributos primarios, robos y hallazgo permanecen pendientes de decisión explícita;
+49. `precisionHechizos`, `potenciaAura`, atributos primarios, robos y hallazgo permanecen pendientes; el daño elemental global ya se resolvió mediante `danoTipo` condicionado por `tipoDanio`;
 50. cualquier futura transformación estructural de habilidades requiere nueva aprobación y un contrato específico;
 51. HP6 utiliza un único `OrganizadorArbolHabilidades` para todas las maestrías, sin condiciones magia/físico ni disposición manual por ID;
 52. una maestría con pocas habilidades puede quedar sin conexiones; no se generan ejes, ramas ni dependencias ficticias para completar visualmente el árbol;
@@ -2540,7 +2660,7 @@ Quedan aprobadas como dirección del hito:
 58. Auras y Maldiciones activas se presentan en HUD con icono y turnos de referencia restantes, derivados del efecto temporal real y sin temporizador visual paralelo;
 59. el Player no conserva la representación persistente de efectos etiquetados `aura`/`maldicion`, pero mantiene feedback transitorio; otros combatientes conservan su lectura persistente;
 60. HP6 no modifica balance, XP, puntos, persistencia ni reglas canónicas de combate o progresión.
-61. una relación de Afinidad basada en `danoHabilidad` solo se dibuja hacia habilidades activas de la misma maestría que produzcan daño real directo o periódico; no se conecta a Auras, Maldiciones ni activas sin daño;
+61. las Afinidades se basan en `danoTipo` y `tipoDanio`; no dependen de `maestriaHabilidad`, y solo deben relacionarse con contenido que produzca realmente el tipo de daño correspondiente;
 62. la detección de daño para el árbol consulta la configuración canónica de ejecución, mientras la definición del modificador de la pasiva continúa proviniendo de progreso/configuración de habilidades;
 63. las pruebas manuales finales de HP6 fueron declaradas satisfactorias por el usuario el 18/08/2026 y el hito de habilidades/pasivas queda cerrado documentalmente.
 64. el Panel Personaje no repite un título interno dentro del panel superpuesto; la cabecera externa es la única cabecera visible;
@@ -2566,7 +2686,7 @@ No bloquean HP4 ni cambian la arquitectura:
 - revisión futura de la cantidad de puntos de maestría frente a la mayor cantidad de opciones aprendibles;
 - posible incorporación a corto plazo de `cantidadProyectiles` y `maximoProyectilesSimultaneos` cuando existan habilidades de arco que los consuman;
 - definición futura de habilidades transformativas;
-- decisión sobre `precisionHechizos`, `danoElementalGlobal`, `potenciaAura`, atributos primarios modificables, daño global, robo de Vida/Maná y hallazgo de objetos;
+- decisión sobre `precisionHechizos`, `potenciaAura`, atributos primarios modificables, robo de Vida/Maná y hallazgo de objetos; los ejes globales de daño ya tienen contrato productivo;
 
 Estos valores y decisiones deben permanecer configurables siempre que la arquitectura real lo permita. Ninguna etapa de balance debe introducir ramas especiales por nombre de contenido.
 
@@ -2656,7 +2776,7 @@ La validación manual final fue superada y aprobada por el usuario el 18/08/2026
 
 - Panel Personaje de ancho completo, sin Equipamiento embebido;
 - pantalla `Objetos` con Inventario y Equipamiento presentados conjuntamente sin fusionar sus responsabilidades;
-- sección `Habilidades`, Potencia de Habilidad y Resistencia Mental visibles;
+- sección `Habilidades`, Daño de Habilidad (denominado Potencia de Habilidad en el cierre original de HP5) y Resistencia Mental visibles;
 - Pasivas aprendidas y Efectos activos alimentados por sus fuentes canónicas;
 - modal propio de detalle de estadísticas, con descripción funcional y desglose sin fórmulas duplicadas en UI;
 - lectura cruzada atributo primario → estadísticas afectadas y estadística derivada → aportes primarios mediante `obtenerAportesAtributosPrimarios`;

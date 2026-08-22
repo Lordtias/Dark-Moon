@@ -3,8 +3,8 @@ import {
   crearInstantaneaEfectoMagico,
 } from "../magia/CalculadorAtributosMagicos.js";
 import { normalizarDefinicionEfectoTemporal } from "../efectos/ContratosEfectosTemporales.js";
+import { resolverPotenciaEfectoEspecifica } from "../efectos/ResolutorPotenciaEfectos.js";
 import {
-  obtenerContextoPotenciaHabilidad,
   obtenerMultiplicadorEfectos,
   obtenerTiradaAplicacionEfectoHabilidad,
 } from "./MotorDanioHabilidad.js";
@@ -31,7 +31,6 @@ export function prepararEfectosHabilidad({
   lanzador,
   objetivo,
   efectosConfigurados = [],
-  contextoPotencia = null,
   idEjecucion = "prevalidacion",
 } = {}) {
   if (!Array.isArray(efectosConfigurados)) {
@@ -42,13 +41,15 @@ export function prepararEfectosHabilidad({
     throw new Error("Los efectos de habilidad necesitan lanzador y objetivo.");
   }
 
-  const multiplicadorAtributos = obtenerMultiplicadorEfectos(lanzador);
-  const potencia =
-    contextoPotencia ?? obtenerContextoPotenciaHabilidad(lanzador);
-  const multiplicadorMagico =
-    multiplicadorAtributos * potencia.multiplicadorHabilidad;
+  const multiplicadorPotenciaEfectos = obtenerMultiplicadorEfectos(lanzador);
 
   return efectosConfigurados.map((efecto) => {
+    const potenciaEspecifica = resolverPotenciaEfectoEspecifica(
+      lanzador,
+      efecto.efectoId,
+    );
+    const multiplicadorPotenciaFinal =
+      multiplicadorPotenciaEfectos * potenciaEspecifica.multiplicador;
     const definicionBase = crearDefinicionCanonica({
       efecto,
       objetivo,
@@ -59,7 +60,7 @@ export function prepararEfectosHabilidad({
     );
     const definicion = crearInstantaneaEfectoMagico({
       definicion: definicionBase,
-      multiplicadorEfectos: multiplicadorMagico,
+      multiplicadorEfectos: multiplicadorPotenciaFinal,
       magnitudEscalable,
     });
     // La tirada se agrega únicamente al confirmar. La prevalidación no debe
@@ -70,9 +71,9 @@ export function prepararEfectosHabilidad({
       idEfecto: efecto.efectoId,
       nombreEfecto: efecto.nombreEfecto,
       tipo: efecto.tipo,
-      multiplicadorAtributosMagicos: multiplicadorAtributos,
-      multiplicadorPotenciaHabilidad: potencia.multiplicadorHabilidad,
-      potenciaHabilidad: potencia.potenciaHabilidad,
+      multiplicadorPotenciaEfectos,
+      multiplicadorPotenciaEfectoEspecifica: potenciaEspecifica.multiplicador,
+      potenciaEfectoEspecifica: potenciaEspecifica.resultado,
       definicion,
     };
   });
@@ -84,7 +85,6 @@ export function aplicarEfectosHabilidad({
   objetivo,
   efectosConfigurados = [],
   definicionesPreparadas = null,
-  contextoPotencia = null,
   idEjecucion,
 } = {}) {
   validarDisponibilidadEfectosHabilidad({ juego, efectosConfigurados });
@@ -99,7 +99,6 @@ export function aplicarEfectosHabilidad({
         lanzador,
         objetivo,
         efectosConfigurados,
-        contextoPotencia,
         idEjecucion,
       });
 
@@ -123,11 +122,10 @@ export function aplicarEfectosHabilidad({
       idEfecto: preparada.idEfecto,
       nombreEfecto: preparada.nombreEfecto,
       tipo: preparada.tipo,
-      multiplicadorAtributosMagicos:
-        preparada.multiplicadorAtributosMagicos,
-      multiplicadorPotenciaHabilidad:
-        preparada.multiplicadorPotenciaHabilidad,
-      potenciaHabilidad: preparada.potenciaHabilidad,
+      multiplicadorPotenciaEfectos: preparada.multiplicadorPotenciaEfectos,
+      multiplicadorPotenciaEfectoEspecifica:
+        preparada.multiplicadorPotenciaEfectoEspecifica,
+      potenciaEfectoEspecifica: preparada.potenciaEfectoEspecifica,
       definicion: resumirDefinicion(definicion),
       resultado: resumirResultado(resultado),
       eventos: Array.isArray(resultado?.eventos) ? [...resultado.eventos] : [],

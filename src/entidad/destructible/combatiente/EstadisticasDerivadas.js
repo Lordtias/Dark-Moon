@@ -22,7 +22,17 @@ import {
   PROPIEDAD_RESISTENCIA_EFECTO,
   calcularAporteResistenciasEfectosPorConstitucion,
 } from "../../../juego/efectos/ResistenciasEfectos.js";
-import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
+import {
+  crearContextoDanioHabilidad,
+  esVarita,
+} from "../../../juego/magia/SistemaCatalizadores.js";
+import {
+  resolverDanioFisicoGlobal,
+  resolverDanioMagicoGlobal,
+  resolverDanioTipoGlobal,
+  resolverMultiplicadorComponenteDanio,
+} from "../../../juego/combate/ResolutorEscaladoDanio.js";
+import { resolverPotenciaEfectoEspecifica } from "../../../juego/efectos/ResolutorPotenciaEfectos.js";
 import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "./ContratosAtributosCombatiente.js";
 
@@ -273,19 +283,21 @@ function crearDescriptorDanioFisico({
   minimoLocal,
   maximoLocal,
   multiplicadorAtributo,
+  aplicaDanioFisicoGlobal,
 }) {
   return {
     tipo: TIPOS_DANIO.FISICO,
     minimoLocal,
     maximoLocal,
     multiplicadorAtributo,
+    aplicaDanioFisicoGlobal: aplicaDanioFisicoGlobal === true,
     aplicaDanioPlanoGlobal: true,
     aplicaMultiplicadorGlobal: true,
     aplicaCritico: true,
   };
 }
 
-function crearDescriptorDescargaVarita({ propiedades, atributos }) {
+function crearDescriptorDescargaVarita({ propiedades }) {
   const tipo = normalizarTipoDanio(propiedades.elementoAtaqueBasico);
   if (tipo === TIPOS_DANIO.FISICO) {
     throw new Error("El ataque básico de una varita debe ser elemental.");
@@ -306,9 +318,9 @@ function crearDescriptorDescargaVarita({ propiedades, atributos }) {
     tipo,
     minimoLocal,
     maximoLocal,
-    // El ataque básico mágico utiliza la estadística mágica vigente.
-    // Potencia de Habilidad queda reservada exclusivamente para habilidades.
-    multiplicadorAtributo: calcularMultiplicadorDanioMagico(atributos),
+    // El escalado mágico global se aplica como capa de componente junto con
+    // la afinidad. Daño de Habilidad queda reservado para acciones de habilidad.
+    multiplicadorAtributo: 1,
     aplicaDanioPlanoGlobal: false,
     aplicaMultiplicadorGlobal: false,
     aplicaCritico: true,
@@ -346,10 +358,7 @@ function calcularComponenteDanio(
   const valorAtributo = atributos[atributoOfensivo] ?? 10;
 
   if (fuenteEsVarita) {
-    descriptorPrincipal = crearDescriptorDescargaVarita({
-      propiedades,
-      atributos,
-    });
+    descriptorPrincipal = crearDescriptorDescargaVarita({ propiedades });
     minimoLocal = descriptorPrincipal.minimoLocal;
     maximoLocal = descriptorPrincipal.maximoLocal;
     multiplicadorAtributo = descriptorPrincipal.multiplicadorAtributo;
@@ -376,6 +385,7 @@ function calcularComponenteDanio(
       minimoLocal,
       maximoLocal,
       multiplicadorAtributo,
+      aplicaDanioFisicoGlobal: fuente.objeto?.esArma === true,
     });
   }
 
@@ -443,6 +453,26 @@ function calcularComponenteDanio(
   );
   const multiplicadorGolpe = resolucionMultiplicadorDanioFuente.resultado;
 
+  const bonificacionDanioMagicoBase =
+    (calcularMultiplicadorDanioMagico(atributos) - 1) * 100;
+  const componentesDanio = [
+    descriptorPrincipal,
+    ...obtenerDescriptoresElementalesFuente(fuente),
+  ].map((descriptor) => {
+    const escalado = resolverMultiplicadorComponenteDanio({
+      combatiente,
+      tipo: descriptor.tipo,
+      bonificacionDanioMagicoBase,
+      aplicaDanioFisicoGlobal: descriptor.aplicaDanioFisicoGlobal !== false,
+      contexto: contextoFuente,
+    });
+    return {
+      ...descriptor,
+      multiplicadorDanioGlobal: escalado.multiplicador,
+      resolucionEscaladoDanio: escalado,
+    };
+  });
+
   return {
     nombre: fuente.nombre,
     objeto: fuente.objeto,
@@ -461,10 +491,7 @@ function calcularComponenteDanio(
     probabilidadCritico,
     multiplicadorCritico,
     esAtaqueMagicoBasico: fuenteEsVarita,
-    componentesDanio: [
-      descriptorPrincipal,
-      ...obtenerDescriptoresElementalesFuente(fuente),
-    ],
+    componentesDanio,
   };
 }
 
@@ -486,13 +513,15 @@ function calcularRangoDescriptor({
     0,
     (descriptor.minimoLocal * descriptor.multiplicadorAtributo + planoMinimo) *
       multiplicadorGolpe *
-      multiplicadorFinal,
+      multiplicadorFinal *
+      (descriptor.multiplicadorDanioGlobal ?? 1),
   );
   const maximo = Math.max(
     minimo,
     (descriptor.maximoLocal * descriptor.multiplicadorAtributo + planoMaximo) *
       multiplicadorGolpe *
-      multiplicadorFinal,
+      multiplicadorFinal *
+      (descriptor.multiplicadorDanioGlobal ?? 1),
   );
 
   return {
@@ -641,7 +670,35 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     ),
   );
 
-  const multiplicadorDanioMagico = calcularMultiplicadorDanioMagico(atributos);
+  const bonificacionDanioMagicoBase =
+    (calcularMultiplicadorDanioMagico(atributos) - 1) * 100;
+  const resolucionDanioFisico = resolverDanioFisicoGlobal(
+    combatiente,
+    contextoDinamico,
+  );
+  const resolucionDanioMagico = resolverDanioMagicoGlobal(
+    combatiente,
+    bonificacionDanioMagicoBase,
+    contextoDinamico,
+  );
+  resolucionesModificadores.danoFisico = resolucionDanioFisico;
+  resolucionesModificadores.danoMagico = resolucionDanioMagico;
+  const resolucionesDanioTipo = Object.fromEntries(
+    RESISTENCIAS.map((tipo) => {
+      const resolucion = resolverDanioTipoGlobal(combatiente, tipo, contextoDinamico);
+      resolucionesModificadores[`danoTipo:${tipo}`] = resolucion;
+      return [tipo, resolucion];
+    }),
+  );
+  const contextoDanioHabilidad = crearContextoDanioHabilidad({
+    combatiente,
+    contexto: contextoDinamico,
+  });
+  if (contextoDanioHabilidad.resolucionModificador) {
+    resolucionesModificadores.danoHabilidad =
+      contextoDanioHabilidad.resolucionModificador;
+  }
+  const multiplicadorDanioMagico = resolucionDanioMagico.multiplicador;
   const multiplicadorEfectosAtributos = calcularMultiplicadorEfectos(atributos);
   const potenciaEfectosAdicional =
     base.potenciaEfectos + sumarPropiedad(objetos, "potenciaEfectos");
@@ -654,6 +711,23 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     combatiente, OBJETIVOS_MODIFICADOR.POTENCIA_EFECTOS, potenciaEfectosBase, {}, resolucionesModificadores, "potenciaEfectos",
   );
   const multiplicadorEfectos = Math.max(0.01, 1 + potenciaEfectos / 100);
+  const idsPotenciaEfecto = [
+    "quemadura",
+    "envenenamiento",
+    "ralentizacion",
+    "electrizacion",
+  ];
+  const resolucionesPotenciaEfecto = Object.fromEntries(
+    idsPotenciaEfecto.map((efectoId) => {
+      const resolucion = resolverPotenciaEfectoEspecifica(
+        combatiente,
+        efectoId,
+        contextoDinamico,
+      );
+      resolucionesModificadores[`potenciaEfecto:${efectoId}`] = resolucion;
+      return [efectoId, resolucion];
+    }),
+  );
 
   const resistencias = {};
   for (const resistencia of RESISTENCIAS) {
@@ -837,10 +911,30 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     regeneracionVida,
     regeneracionMana,
     multiplicadorDanioMagico,
-    bonificacionDanioMagicoPorcentaje: (multiplicadorDanioMagico - 1) * 100,
+    bonificacionDanioMagicoPorcentaje: resolucionDanioMagico.resultado,
+    danoFisico: resolucionDanioFisico.resultado,
+    danoMagico: resolucionDanioMagico.resultado,
+    danoHabilidad: contextoDanioHabilidad.danoHabilidad,
+    multiplicadorDanioHabilidad: contextoDanioHabilidad.multiplicadorDanioHabilidad,
+    danosPorTipo: Object.freeze(
+      Object.fromEntries(
+        Object.entries(resolucionesDanioTipo).map(([tipo, resolucion]) => [
+          tipo,
+          resolucion.resultado,
+        ]),
+      ),
+    ),
     multiplicadorEfectos,
     bonificacionEfectosPorcentaje: potenciaEfectos,
     potenciaEfectos,
+    potenciasEfectosEspecificas: Object.freeze(
+      Object.fromEntries(
+        Object.entries(resolucionesPotenciaEfecto).map(([efectoId, resolucion]) => [
+          efectoId,
+          resolucion.resultado,
+        ]),
+      ),
+    ),
     precision,
     dispersion,
     penetracionArmadura,
@@ -1002,7 +1096,7 @@ function crearAportesAtributos({
   );
   agregar(
     "inteligencia",
-    "danioMagico",
+    "danoMagico",
     magia.multiplicadores.danioMagico.inteligencia *
       (atributos.inteligencia - referencia) *
       100,
@@ -1030,7 +1124,7 @@ function crearAportesAtributos({
   );
   agregar(
     "sabiduria",
-    "danioMagico",
+    "danoMagico",
     magia.multiplicadores.danioMagico.sabiduria *
       (atributos.sabiduria - referencia) *
       100,
@@ -1079,10 +1173,10 @@ function crearAportesAtributos({
 
   if (ataqueEsVarita) {
     const aporteInteligencia = porAtributo.inteligencia.find(
-      (aporte) => aporte.estadistica === "danioMagico",
+      (aporte) => aporte.estadistica === "danoMagico",
     );
     const aporteSabiduria = porAtributo.sabiduria.find(
-      (aporte) => aporte.estadistica === "danioMagico",
+      (aporte) => aporte.estadistica === "danoMagico",
     );
     porEstadistica.danioFisico = Object.freeze(
       [aporteInteligencia, aporteSabiduria].filter(Boolean),

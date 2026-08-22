@@ -151,7 +151,20 @@
       "resistenciasDanio": "Resistencias de daño",
       "resistenciasEfectos": "Resistencias de efectos",
       "habilidades": "Habilidades",
-      "potenciaHabilidad": "Potencia de Habilidad",
+      "dano": "Daño",
+      "danoFisico": "Daño Físico",
+      "danoMagico": "Daño Mágico",
+      "danoHabilidad": "Daño de Habilidad",
+      "afinidadesDanio": "Afinidades de daño",
+      "danoFuego": "Fuego",
+      "danoFrio": "Frío",
+      "danoRayo": "Rayo",
+      "danoVeneno": "Veneno",
+      "potenciasEfectos": "Potencia de efectos",
+      "potenciaQuemadura": "Quemadura",
+      "potenciaEnvenenamiento": "Envenenamiento",
+      "potenciaRalentizacion": "Ralentización",
+      "potenciaElectrizacion": "Electrización",
       "resistenciaMental": "Resistencia Mental",
       "pasivasAprendidas": "Pasivas aprendidas",
       "efectosActivos": "Efectos activos",
@@ -185,8 +198,18 @@
         "evasion": "Evasión",
         "regeneracionVida": "Regeneración de vida",
         "regeneracionMana": "Regeneración de maná",
-        "danioMagico": "Daño mágico",
+        "danoFisico": "Daño Físico",
+        "danoMagico": "Daño Mágico",
+        "danoHabilidad": "Daño de Habilidad",
+        "danoTipo_fuego": "Daño de Fuego",
+        "danoTipo_frio": "Daño de Frío",
+        "danoTipo_rayo": "Daño de Rayo",
+        "danoTipo_veneno": "Daño de Veneno",
         "potenciaEfectos": "Potencia de Efectos",
+        "potenciaEfecto_quemadura": "Potencia de Quemadura",
+        "potenciaEfecto_envenenamiento": "Potencia de Envenenamiento",
+        "potenciaEfecto_ralentizacion": "Potencia de Ralentización",
+        "potenciaEfecto_electrizacion": "Potencia de Electrización",
         "resistenciaVeneno": "Resistencia adicional a Veneno",
         "resistencia_fuego": "Resistencia a Fuego",
         "resistencia_frio": "Resistencia a Frío",
@@ -219,9 +242,18 @@
         "regen_mana": "Maná recuperado en cada pulso de tiempo de referencia.",
         "percepcion": "Cantidad de casillas que el combatiente puede percibir para visión y detección.",
         "alcance": "Alcance máximo del ataque básico actual.",
-        "danio_magico": "Bonificación o penalización porcentual aplicada al daño mágico. Escala principalmente con Inteligencia y secundariamente con Sabiduría.",
-        "potencia_habilidad": "Bonificación porcentual que modifica el daño de habilidades mediante el sistema canónico de modificadores.",
-        "potencia_efectos": "Potencia que escala las magnitudes de efectos configurados para utilizarla, como el daño periódico de Quemadura y Envenenamiento.",
+        "dano_fisico": "Aumenta el componente físico de todas las armas equipadas, independientemente del atributo con el que escalen. Al ser global, beneficia también a ambas armas al usar duales.",
+        "dano_magico": "Aumenta todo daño mágico directo de Fuego, Frío, Rayo y Veneno. Se acumula con la bonificación específica del tipo de daño correspondiente.",
+        "dano_habilidad": "Aumenta una sola vez el daño directo generado por cualquier habilidad. No modifica ataques básicos ni efectos.",
+        "dano_fuego": "Aumenta únicamente el daño directo de Fuego. Se acumula con Daño Mágico cuando corresponde.",
+        "dano_frio": "Aumenta únicamente el daño directo de Frío. Se acumula con Daño Mágico cuando corresponde.",
+        "dano_rayo": "Aumenta únicamente el daño directo de Rayo. Se acumula con Daño Mágico cuando corresponde.",
+        "dano_veneno": "Aumenta únicamente el daño directo de Veneno. Se acumula con Daño Mágico cuando corresponde.",
+        "potencia_efectos": "Aumenta los aspectos escalables de todos los efectos. Se acumula con la potencia específica del efecto cuando corresponda.",
+        "potencia_quemadura": "Aumenta la Potencia de Quemadura. Se acumula con Potencia de Efectos y no recibe Daño Mágico ni Daño de Habilidad.",
+        "potencia_envenenamiento": "Aumenta la Potencia de Envenenamiento. Se acumula con Potencia de Efectos y no recibe Daño Mágico ni Daño de Habilidad.",
+        "potencia_ralentizacion": "Aumenta la intensidad escalable de Ralentización. Se acumula con Potencia de Efectos.",
+        "potencia_electrizacion": "Aumenta la intensidad escalable de Electrización. Se acumula con Potencia de Efectos.",
         "res_fuego": "Reduce el daño de Fuego recibido. Un valor negativo representa Vulnerabilidad y aumenta ese daño.",
         "res_frio": "Reduce el daño de Frío recibido. Un valor negativo representa Vulnerabilidad y aumenta ese daño.",
         "res_rayo": "Reduce el daño de Rayo recibido. Un valor negativo representa Vulnerabilidad y aumenta ese daño.",
@@ -434,7 +466,7 @@
       "objetivoProbabilidadBloqueo": "Probabilidad de bloqueo",
       "objetivoMitigacionBloqueo": "Mitigación de bloqueo",
       "objetivoPotenciaEfectos": "Potencia de efectos",
-      "objetivoPotenciaHabilidad": "Potencia de Habilidad",
+      "objetivoPotenciaHabilidad": "Daño de Habilidad",
       "objetivoResistenciaFuego": "Resistencia al Fuego",
       "objetivoResistenciaFrio": "Resistencia al Frío",
       "objetivoResistenciaRayo": "Resistencia al Rayo",
@@ -666,7 +698,18 @@
       "tipoAtaque": "Tipo de ataque",
       "patron": "Patrón",
       "manosEtiqueta": "Manos",
-      "potenciaHabilidad": "Potencia de Habilidad",
+      "danoFisico": "Daño Físico",
+      "danoMagico": "Daño Mágico",
+      "danoHabilidad": "Daño de Habilidad",
+      "danoFuego": "Daño de Fuego",
+      "danoFrio": "Daño de Frío",
+      "danoRayo": "Daño de Rayo",
+      "danoVeneno": "Daño de Veneno",
+      "potenciaEfectos": "Potencia de Efectos",
+      "potenciaQuemadura": "Potencia de Quemadura",
+      "potenciaEnvenenamiento": "Potencia de Envenenamiento",
+      "potenciaRalentizacion": "Potencia de Ralentización",
+      "potenciaElectrizacion": "Potencia de Electrización",
       "manaAtaque": "Maná por ataque",
       "municion": "Munición",
       "armadura": "Armadura",
@@ -1447,7 +1490,7 @@
       },
       "igneo": {
         "nombre": "Ígneo",
-        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+        "descripcion": "Aumenta globalmente el daño directo de Fuego del portador."
       },
       "invernal": {
         "nombre": "Invernal",
@@ -1459,7 +1502,7 @@
       },
       "toxico": {
         "nombre": "Tóxico",
-        "descripcion": "Aumentaría porcentualmente un tipo de daño elemental."
+        "descripcion": "Aumenta globalmente el daño directo de Veneno del portador."
       },
       "abrasador": {
         "nombre": "Abrasador",
@@ -1477,9 +1520,45 @@
         "nombre": "Ponzoñoso",
         "descripcion": "Otorgaría una probabilidad de envenenar."
       },
+      "marcial": {
+        "nombre": "Marcial",
+        "descripcion": "Aumenta globalmente el componente físico de todas las armas equipadas."
+      },
+      "mistico": {
+        "nombre": "Místico",
+        "descripcion": "Aumenta globalmente todo el daño mágico directo del portador."
+      },
+      "gelido": {
+        "nombre": "Gélido",
+        "descripcion": "Aumenta globalmente el daño directo de Frío del portador."
+      },
+      "fulgurante": {
+        "nombre": "Fulgurante",
+        "descripcion": "Aumenta globalmente el daño directo de Rayo del portador."
+      },
+      "incandescente": {
+        "nombre": "Incandescente",
+        "descripcion": "Aumenta específicamente la Potencia de Quemadura del portador."
+      },
+      "virulento": {
+        "nombre": "Virulento",
+        "descripcion": "Aumenta específicamente la Potencia de Envenenamiento del portador."
+      },
+      "entorpecedor": {
+        "nombre": "Entorpecedor",
+        "descripcion": "Aumenta específicamente la Potencia de Ralentización del portador."
+      },
+      "sobrecargado": {
+        "nombre": "Sobrecargado",
+        "descripcion": "Aumenta específicamente la Potencia de Electrización del portador."
+      },
+      "catalitico": {
+        "nombre": "Catalítico",
+        "descripcion": "Aumenta globalmente la Potencia de Efectos del portador."
+      },
       "enfocado": {
         "nombre": "Enfocado",
-        "descripcion": "Aumenta la Potencia de Habilidad del catalizador."
+        "descripcion": "Aumenta el Daño de Habilidad del portador."
       },
       "de_precision": {
         "nombre": "De precisión",
@@ -1982,7 +2061,7 @@
       },
       "canalizacion_estable": {
         "nombre": "Canalización estable",
-        "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza un bastón."
+        "descripcion": "Aumenta el Daño de Habilidad mientras se utiliza un bastón."
       },
       "golpe_disciplinado": {
         "nombre": "Golpe disciplinado",
@@ -1998,7 +2077,7 @@
       },
       "canalizacion_fina": {
         "nombre": "Canalización fina",
-        "descripcion": "Aumenta la Potencia de Habilidad mientras se utiliza una varita."
+        "descripcion": "Aumenta el Daño de Habilidad mientras se utiliza una varita."
       },
       "precision_arcana": {
         "nombre": "Precisión arcana",
@@ -2736,9 +2815,9 @@
       "bloqueoFallo": "Bloqueo: tirada {tirada} > {probabilidad}% → no bloqueado; mitigación aplicada 0%.",
       "componenteAtaqueFisico": "{tipo}: bruto = (({tiradaLocal} [rango {minimo}–{maximo}] × atributo {multiplicadorAtributo} + plano {plano}) × golpe {multiplicadorGolpe} × global {multiplicadorGlobal}) × crítico {multiplicadorCritico} = {bruto}; bloqueo {mitigacionBloqueo}% → {despuesBloqueo}; reducción de Armadura = {armadura}/({armadura} + {factorArmadura} × {despuesBloqueo}) = {reduccionArmadura}%; floor({despuesBloqueo} × (1 - {reduccionArmadura}/100)) = {final}.",
       "componenteAtaqueElemental": "{tipo}: bruto = (({tiradaLocal} [rango {minimo}–{maximo}] × atributo {multiplicadorAtributo} + plano {plano}) × golpe {multiplicadorGolpe} × global {multiplicadorGlobal}) × crítico {multiplicadorCritico} = {bruto}; resistencia {resistencia}%; floor({bruto} × (1 - {resistencia}/100)) = {final}.",
-      "escaladoHabilidad": "Escalado de habilidad: atributos ×{atributos} × potencia (bono {potencia}% → ×{multiplicadorPotencia}) × crítico ×{critico} = multiplicador final ×{multiplicadorFinal}.",
-      "componenteHabilidadFisico": "{tipo}: round({base} base × atributos {atributos} × potencia {multiplicadorPotencia} × crítico {multiplicadorCritico}) = {bruto} bruto; reducción de Armadura = {armadura}/({armadura} + {factorArmadura} × {bruto}) = {reduccionArmadura}%; floor({bruto} × (1 - {reduccionArmadura}/100)) = {final}.",
-      "componenteHabilidadElemental": "{tipo}: round({base} base × atributos {atributos} × potencia {multiplicadorPotencia} × crítico {multiplicadorCritico}) = {bruto} bruto; resistencia {resistencia}%; floor({bruto} × (1 - {resistencia}/100)) = {final}.",
+      "escaladoHabilidad": "Escalado de habilidad: Daño Mágico ×{magico} × Daño de Habilidad ({habilidad}% → ×{multiplicadorHabilidad}) × crítico ×{critico}. Cada componente elemental suma además su afinidad específica.",
+      "componenteHabilidadFisico": "{tipo}: round({base} base × Daño de Habilidad {multiplicadorHabilidad} × crítico {multiplicadorCritico}) = {bruto} bruto; reducción de Armadura = {armadura}/({armadura} + {factorArmadura} × {bruto}) = {reduccionArmadura}%; floor({bruto} × (1 - {reduccionArmadura}/100)) = {final}.",
+      "componenteHabilidadElemental": "{tipo}: round({base} base × Daño Mágico {magico} × afinidad {tipoDanio} × Daño de Habilidad {multiplicadorHabilidad} × crítico {multiplicadorCritico}) = {bruto} bruto; resistencia {resistencia}%; floor({bruto} × (1 - {resistencia}/100)) = {final}.",
       "danioPeriodico": "{efecto} sobre {objetivo} ({tipo}): bruto del tick = {baseTick} × acumulación {escala} = {bruto}; resistencia {resistencia}%; floor({bruto} × (1 - {resistencia}/100)) = {componenteFinal}. Daño calculado total: {calculado}.",
       "danioPeriodicoFisico": "{efecto} sobre {objetivo} ({tipo}): bruto del tick = {baseTick} × acumulación {escala} = {bruto}; reducción de Armadura = {armadura}/({armadura} + {factorArmadura} × {bruto}) = {reduccionArmadura}%; floor({bruto} × (1 - {reduccionArmadura}/100)) = {componenteFinal}. Daño calculado total: {calculado}."
     }

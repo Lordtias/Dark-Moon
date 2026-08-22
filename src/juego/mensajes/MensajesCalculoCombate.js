@@ -133,11 +133,10 @@ export function crearMensajesDetalleDanioHabilidad({
     crearMensajeTraducible("mensajes.calculos.escaladoHabilidad", {
       tipo,
       parametros: {
-        atributos: numero(danio.multiplicadorAtributosMagicos ?? 1),
-        potencia: numero(danio.potenciaHabilidad ?? 0),
-        multiplicadorPotencia: numero(danio.multiplicadorPotenciaHabilidad ?? 1),
+        magico: numero(danio.multiplicadorDanioMagico ?? 1),
+        habilidad: numero(danio.danoHabilidad ?? 0),
+        multiplicadorHabilidad: numero(danio.multiplicadorDanioHabilidad ?? 1),
         critico: numero(danio.critico ? danio.multiplicadorCritico ?? 1 : 1),
-        multiplicadorFinal: numero(danio.multiplicadorDanioMagico ?? 1),
       },
     }),
   );
@@ -321,8 +320,9 @@ function crearMensajeDetalleComponenteHabilidad(componente, danio, { tipo }) {
   const parametros = {
     tipo: tipoDanio,
     base: numero(componente.valorBase ?? 0),
-    atributos: numero(danio.multiplicadorAtributosMagicos ?? 1),
-    multiplicadorPotencia: numero(danio.multiplicadorPotenciaHabilidad ?? 1),
+    magico: numero(componente.multiplicadorDanioMagico ?? 1),
+    tipoDanio: numero(componente.multiplicadorDanioTipo ?? 1),
+    multiplicadorHabilidad: numero(componente.multiplicadorDanioHabilidad ?? 1),
     multiplicadorCritico: numero(
       danio.critico === true ? danio.multiplicadorCritico ?? 1 : 1,
     ),

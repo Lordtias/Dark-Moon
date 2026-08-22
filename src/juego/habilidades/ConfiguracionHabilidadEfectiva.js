@@ -79,17 +79,10 @@ export function crearConfiguracionHabilidadEfectiva({
     resolverFormaImpacto({ lanzador, contextoBase, forma: efectiva.formaImpacto });
   }
 
-  const faseDanio = gradoConfig.zonaTemporal ? "zona" : "impacto_directo";
-  efectiva.danio = (efectiva.danio ?? []).map((componente) => ({
-    ...componente,
-    valorBase: resolverDanio({
-      lanzador,
-      contextoBase,
-      valorBase: componente.valorBase,
-      tipoDanio: componente.tipo,
-      faseHabilidad: faseDanio,
-    }),
-  }));
+  // El daño base permanece propio de la habilidad. Los modificadores globales
+  // de daño se aplican una sola vez en el motor de resolución, nunca durante
+  // la construcción de esta instantánea.
+  efectiva.danio = (efectiva.danio ?? []).map((componente) => ({ ...componente }));
 
   efectiva.efectos = (efectiva.efectos ?? []).map((efecto) =>
     resolverEfecto({ lanzador, contextoBase, efecto }),
@@ -176,13 +169,9 @@ function resolverEfecto({ lanzador, contextoBase, efecto }) {
   });
 
   if (efecto.tipo === "danio_periodico" && Number.isFinite(efecto.valorBase)) {
-    copia.valorBase = resolverDanio({
-      lanzador,
-      contextoBase: contextoEfecto,
-      valorBase: efecto.valorBase,
-      tipoDanio: efecto.tipoDanio,
-      faseHabilidad: "efecto_periodico",
-    });
+    // El daño periódico pertenece al efecto. No hereda Daño Mágico, Daño de
+    // Habilidad ni bonificaciones de daño por afinidad de la acción origen.
+    copia.valorBase = efecto.valorBase;
   }
 
   if (Array.isArray(efecto.modificadores)) {
@@ -211,14 +200,6 @@ function resolverEfecto({ lanzador, contextoBase, efecto }) {
     };
   }
   return copia;
-}
-
-function resolverDanio({ lanzador, contextoBase, valorBase, tipoDanio, faseHabilidad }) {
-  return numeroNoNegativo(lanzador.obtenerValorModificado(
-    OBJETIVOS_MODIFICADOR.DANO_HABILIDAD,
-    valorBase,
-    { ...contextoBase, tipoDanioHabilidad: tipoDanio, faseHabilidad },
-  ));
 }
 
 function resolverAtributo({ lanzador, contextoBase, atributo, valorBase, normalizar }) {

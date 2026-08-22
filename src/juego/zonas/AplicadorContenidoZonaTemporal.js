@@ -70,7 +70,7 @@ export function aplicarContenidoZonaTemporal({
           lanzador: zona.fuente,
           objetivo,
           componentesConfigurados: contenido.danio,
-          contextoPotencia: zona.contextoPotencia,
+          contextoDanioHabilidad: zona.contextoDanioHabilidad,
           idEjecucion,
           resolverImpacto: zona.configuracion.resolverImpacto,
           resolverCritico: zona.configuracion.resolverCritico,
@@ -89,7 +89,6 @@ export function aplicarContenidoZonaTemporal({
           lanzador: zona.fuente,
           objetivo,
           efectosConfigurados: contenido.efectos,
-          contextoPotencia: zona.contextoPotencia,
           idEjecucion,
         })
       : [];
@@ -101,7 +100,6 @@ export function aplicarContenidoZonaTemporal({
           objetivo,
           efectosConfigurados: contenido.efectos,
           definicionesPreparadas: definicionesEfectos,
-          contextoPotencia: zona.contextoPotencia,
           idEjecucion,
         })
       : [];

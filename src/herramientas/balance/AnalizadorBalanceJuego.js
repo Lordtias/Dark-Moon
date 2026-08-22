@@ -14,7 +14,7 @@ import {
   calcularRegeneracionMana,
 } from "../../juego/magia/CalculadorAtributosMagicos.js";
 import {
-  calcularPotenciaHabilidadObjetos,
+  calcularDanioHabilidadObjetos,
   esBaston,
   esVarita,
   validarCatalogoCatalizadores,
@@ -121,7 +121,7 @@ export function crearAnalizadorBalanceJuego({
       obtener("combate", crearInformeBalanceCombate),
     danioArmas: () => analizador.combate().armas,
     danioHabilidades: () => analizador.combate().habilidades,
-    potenciaHabilidad: () => analizador.combate().potencia,
+    danoHabilidad: () => analizador.combate().potencia,
     arquetipos: () => analizador.combate().arquetipos,
     pruebasFocalizadas: () => analizador.combate().pruebasFocalizadas,
     efectos: () =>
@@ -1714,7 +1714,7 @@ function crearInformeArmas({ configuracionObjetos }) {
         probabilidadCritico: propiedades.probabilidadCritico,
         multiplicadorCritico: propiedades.multiplicadorCritico,
         costoMana: propiedades.costoManaAtaqueBasico ?? 0,
-        potenciaHabilidad: propiedades.potenciaHabilidad ?? 0,
+        danoHabilidad: propiedades.danoHabilidad ?? 0,
         requiereMunicion: propiedades.requiereQuiver === true,
         recargaSeparada: false,
         esVarita: esVarita(objeto),
@@ -1736,7 +1736,7 @@ function crearInformeArmas({ configuracionObjetos }) {
         armaSecundaria: varita,
       }),
       costoMana: 2 * varita.propiedades.costoManaAtaqueBasico,
-      potenciaHabilidad: calcularPotenciaHabilidadObjetos([varita, varita]),
+      danoHabilidad: calcularDanioHabilidadObjetos([varita, varita]),
       multiplicadorManoPrincipal:
         CONFIGURACION_COMBATE.dosArmas.multiplicadorManoPrincipal,
       multiplicadorManoSecundaria:

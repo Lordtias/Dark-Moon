@@ -250,20 +250,25 @@ function obtenerRelaciones({
         continue;
       }
 
-      // Las pasivas cuyo modificador es daño de habilidad y abarca toda la
-      // maestría se conectan únicamente con activas que realmente producen
-      // daño. No basta con que una activa sea hostil: Auras, Maldiciones y
-      // controles sin daño (por ejemplo Ceguera) nunca son destinos.
-      if (
+      // Las pasivas de daño global se conectan solamente con activas que
+      // producen daño directo. Los efectos periódicos pertenecen a Potencia
+      // de Efectos y no convierten por sí solos una habilidad en destino.
+      const modificaDanioHabilidad =
         modificador.objetivo === "danoHabilidad" &&
-        condiciones.maestriaHabilidad === idMaestria
-      ) {
+        condiciones.maestriaHabilidad === idMaestria;
+      const tipoDanio =
+        modificador.objetivo === "danoTipo"
+          ? condiciones.tipoDanio
+          : null;
+
+      if (modificaDanioHabilidad || typeof tipoDanio === "string") {
         for (const objetivo of nodos) {
           if (objetivo.id === nodo.id) continue;
           const definicionObjetivo = definicionesEjecucion[objetivo.id];
-          if (!esHabilidadActivaConDanio(definicionObjetivo)) {
-            continue;
-          }
+          const coincide = tipoDanio
+            ? esHabilidadActivaConTipoDanio(definicionObjetivo, tipoDanio)
+            : esHabilidadActivaConDanioDirecto(definicionObjetivo);
+          if (!coincide) continue;
 
           agregarRelacion(relaciones, claves, {
             desde: nodo.id,
@@ -278,26 +283,22 @@ function obtenerRelaciones({
   return relaciones;
 }
 
-function esHabilidadActivaConDanio(definicion) {
+function esHabilidadActivaConDanioDirecto(definicion) {
   if (definicion?.tipo !== "activa" || !definicion.ejecucion) return false;
+  if (definicion.ejecucion.ataqueArma) return true;
+  return Object.values(definicion.ejecucion.grados ?? {}).some((grado) =>
+    (grado?.danio ?? []).some((componente) => Number(componente?.valorBase) > 0),
+  );
+}
 
-  const grados = Object.values(definicion.ejecucion.grados ?? {});
-  return grados.some((grado) => {
-    const tieneDanioDirecto = (grado?.danio ?? []).some(
-      (componente) => Number(componente?.valorBase) > 0,
-    );
-    if (tieneDanioDirecto) return true;
-
-    // La configuración de ejecución ya contiene las referencias de efectos
-    // resueltas por el validador canónico. Así una habilidad como Nube tóxica
-    // cuenta como dañina por su Envenenamiento periódico sin inferirlo desde
-    // hostilidad, etiquetas visuales ni nombres de contenido.
-    return (grado?.efectos ?? []).some(
-      (efecto) =>
-        efecto?.tipo === "danio_periodico" &&
-        Number(efecto?.valorBase) > 0,
-    );
-  });
+function esHabilidadActivaConTipoDanio(definicion, tipoDanio) {
+  if (definicion?.tipo !== "activa" || !definicion.ejecucion) return false;
+  return Object.values(definicion.ejecucion.grados ?? {}).some((grado) =>
+    (grado?.danio ?? []).some(
+      (componente) =>
+        componente?.tipo === tipoDanio && Number(componente?.valorBase) > 0,
+    ),
+  );
 }
 
 function agregarRelacion(relaciones, claves, relacion) {

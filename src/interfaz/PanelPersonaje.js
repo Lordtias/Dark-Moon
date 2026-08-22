@@ -1,7 +1,6 @@
 import { calcularDpsCombatiente } from "../juego/combate/CalculadorDPS.js";
 import { obtenerAportesAtributosPrimarios } from "../entidad/destructible/combatiente/EstadisticasDerivadas.js";
 import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "../entidad/destructible/combatiente/ContratosAtributosCombatiente.js";
-import { crearContextoPotenciaHabilidad } from "../juego/magia/SistemaCatalizadores.js";
 import { TIEMPO_REFERENCIA } from "../juego/tiempo/SistemaTiempo.js";
 import {
   OPERACIONES_MODIFICADOR,
@@ -60,18 +59,18 @@ const DETALLES = Object.freeze({
   },
   percepcion: { etiqueta: "Percepción", icono: "◉" },
   alcance: { etiqueta: "Alcance", icono: "↔" },
-  "danio-magico": { etiqueta: "Daño mágico", icono: "✦", porcentaje: true },
-  "potencia-habilidad": {
-    etiqueta: "Potencia de Habilidad",
-    icono: "✧",
-    porcentaje: true,
-  },
-  "potencia-efectos": {
-    etiqueta: "Potencia de Efectos",
-    icono: "✺",
-    resolucion: "potenciaEfectos",
-    porcentaje: true,
-  },
+  "dano-fisico": { etiqueta: "Daño Físico", icono: "⚔", resolucion: "danoFisico", porcentaje: true },
+  "dano-magico": { etiqueta: "Daño Mágico", icono: "✦", resolucion: "danoMagico", porcentaje: true },
+  "dano-habilidad": { etiqueta: "Daño de Habilidad", icono: "✧", resolucion: "danoHabilidad", porcentaje: true },
+  "dano-fuego": { etiqueta: "Daño de Fuego", icono: "♨", resolucion: "danoTipo:fuego", porcentaje: true },
+  "dano-frio": { etiqueta: "Daño de Frío", icono: "❄", resolucion: "danoTipo:frio", porcentaje: true },
+  "dano-rayo": { etiqueta: "Daño de Rayo", icono: "ϟ", resolucion: "danoTipo:rayo", porcentaje: true },
+  "dano-veneno": { etiqueta: "Daño de Veneno", icono: "◒", resolucion: "danoTipo:veneno", porcentaje: true },
+  "potencia-efectos": { etiqueta: "Potencia de Efectos", icono: "✺", resolucion: "potenciaEfectos", porcentaje: true },
+  "potencia-quemadura": { etiqueta: "Potencia de Quemadura", icono: "♨", resolucion: "potenciaEfecto:quemadura", porcentaje: true },
+  "potencia-envenenamiento": { etiqueta: "Potencia de Envenenamiento", icono: "◒", resolucion: "potenciaEfecto:envenenamiento", porcentaje: true },
+  "potencia-ralentizacion": { etiqueta: "Potencia de Ralentización", icono: "❄", resolucion: "potenciaEfecto:ralentizacion", porcentaje: true },
+  "potencia-electrizacion": { etiqueta: "Potencia de Electrización", icono: "ϟ", resolucion: "potenciaEfecto:electrizacion", porcentaje: true },
   "res-fuego": {
     etiqueta: "Fuego",
     icono: "♨",
@@ -168,8 +167,18 @@ const CLAVE_APORTE_ESTADISTICA = Object.freeze({
   evasion: ["evasion", "Evasión"],
   regeneracionVida: ["regen-vida", "Regeneración de vida"],
   regeneracionMana: ["regen-mana", "Regeneración de maná"],
-  danioMagico: ["danio-magico", "Daño mágico"],
+  danoFisico: ["dano-fisico", "Daño Físico"],
+  danoMagico: ["dano-magico", "Daño Mágico"],
+  danoHabilidad: ["dano-habilidad", "Daño de Habilidad"],
+  "danoTipo:fuego": ["dano-fuego", "Daño de Fuego"],
+  "danoTipo:frio": ["dano-frio", "Daño de Frío"],
+  "danoTipo:rayo": ["dano-rayo", "Daño de Rayo"],
+  "danoTipo:veneno": ["dano-veneno", "Daño de Veneno"],
   potenciaEfectos: ["potencia-efectos", "Potencia de Efectos"],
+  "potenciaEfecto:quemadura": ["potencia-quemadura", "Potencia de Quemadura"],
+  "potenciaEfecto:envenenamiento": ["potencia-envenenamiento", "Potencia de Envenenamiento"],
+  "potenciaEfecto:ralentizacion": ["potencia-ralentizacion", "Potencia de Ralentización"],
+  "potenciaEfecto:electrizacion": ["potencia-electrizacion", "Potencia de Electrización"],
   resistenciaVeneno: ["res-veneno", "Resistencia a Veneno"],
   "resistencia:fuego": ["res-fuego", "Resistencia a Fuego"],
   "resistencia:frio": ["res-frio", "Resistencia a Frío"],
@@ -200,8 +209,18 @@ const CLAVE_ESTADISTICA_APORTES = Object.freeze({
   evasion: "evasion",
   "regen-vida": "regeneracionVida",
   "regen-mana": "regeneracionMana",
-  "danio-magico": "danioMagico",
+  "dano-fisico": "danoFisico",
+  "dano-magico": "danoMagico",
+  "dano-habilidad": "danoHabilidad",
+  "dano-fuego": "danoTipo:fuego",
+  "dano-frio": "danoTipo:frio",
+  "dano-rayo": "danoTipo:rayo",
+  "dano-veneno": "danoTipo:veneno",
   "potencia-efectos": "potenciaEfectos",
+  "potencia-quemadura": "potenciaEfecto:quemadura",
+  "potencia-envenenamiento": "potenciaEfecto:envenenamiento",
+  "potencia-ralentizacion": "potenciaEfecto:ralentizacion",
+  "potencia-electrizacion": "potenciaEfecto:electrizacion",
   "res-fuego": "resistencia:fuego",
   "res-frio": "resistencia:frio",
   "res-rayo": "resistencia:rayo",
@@ -257,7 +276,9 @@ export class PanelPersonaje {
       ?.setAttribute("data-seccion-personaje", "combate");
     this.crearCombateAvanzado();
     this.crearSuerte();
-    this.crearHabilidades();
+    this.crearDanio();
+    this.crearAfinidadesDanio();
+    this.crearPotenciasEfectos();
     this.crearPasivas();
     this.crearEfectos();
     this.configurarDesgloses();
@@ -321,41 +342,55 @@ export class PanelPersonaje {
       ),
     );
   }
-  crearHabilidades() {
+  crearSeccionEstadisticas({ id, titulo, datos }) {
     const s = document.createElement("section");
-    s.className = "seccion-panel seccion-habilidades-personaje";
-    s.dataset.seccionPersonaje = "habilidades";
+    s.className = `seccion-panel seccion-${id}-personaje`;
+    s.dataset.seccionPersonaje = id;
     const h = document.createElement("h3");
-    h.textContent = traducir("interfaz.personaje.habilidades", {
-      respaldo: "Habilidades",
-    });
+    h.textContent = titulo;
     const r = document.createElement("div");
     r.className = "resumen-personaje";
-    r.append(
-      this.crearDato(
-        traducir("interfaz.personaje.danioMagico", { respaldo: "Daño mágico" }),
-        "danio-magico",
-        "+0%",
-      ),
-      this.crearDato(
-        traducir("interfaz.personaje.potenciaHabilidad", {
-          respaldo: "Potencia de Habilidad",
-        }),
-        "potencia-habilidad",
-        "+0%",
-      ),
-      this.crearDato(
-        traducir("interfaz.personaje.potenciaEfectos", {
-          respaldo: "Potencia de Efectos",
-        }),
-        "potencia-efectos",
-        "+0%",
-      ),
-    );
+    for (const dato of datos) r.append(this.crearDato(dato.etiqueta, dato.campo, "+0%"));
     s.append(h, r);
     this.contenedor
       .querySelector('[data-seccion-personaje="resistencias"]')
       ?.before(s);
+  }
+  crearDanio() {
+    this.crearSeccionEstadisticas({
+      id: "dano",
+      titulo: traducir("interfaz.personaje.dano", { respaldo: "Daño" }),
+      datos: [
+        { etiqueta: traducir("interfaz.personaje.danoFisico", { respaldo: "Daño Físico" }), campo: "dano-fisico" },
+        { etiqueta: traducir("interfaz.personaje.danoMagico", { respaldo: "Daño Mágico" }), campo: "dano-magico" },
+        { etiqueta: traducir("interfaz.personaje.danoHabilidad", { respaldo: "Daño de Habilidad" }), campo: "dano-habilidad" },
+      ],
+    });
+  }
+  crearAfinidadesDanio() {
+    this.crearSeccionEstadisticas({
+      id: "afinidades-dano",
+      titulo: traducir("interfaz.personaje.afinidadesDanio", { respaldo: "Afinidades de daño" }),
+      datos: [
+        { etiqueta: traducir("interfaz.personaje.danoFuego", { respaldo: "Fuego" }), campo: "dano-fuego" },
+        { etiqueta: traducir("interfaz.personaje.danoFrio", { respaldo: "Frío" }), campo: "dano-frio" },
+        { etiqueta: traducir("interfaz.personaje.danoRayo", { respaldo: "Rayo" }), campo: "dano-rayo" },
+        { etiqueta: traducir("interfaz.personaje.danoVeneno", { respaldo: "Veneno" }), campo: "dano-veneno" },
+      ],
+    });
+  }
+  crearPotenciasEfectos() {
+    this.crearSeccionEstadisticas({
+      id: "potencias-efectos",
+      titulo: traducir("interfaz.personaje.potenciasEfectos", { respaldo: "Potencia de efectos" }),
+      datos: [
+        { etiqueta: traducir("interfaz.personaje.potenciaEfectos", { respaldo: "General" }), campo: "potencia-efectos" },
+        { etiqueta: traducir("interfaz.personaje.potenciaQuemadura", { respaldo: "Quemadura" }), campo: "potencia-quemadura" },
+        { etiqueta: traducir("interfaz.personaje.potenciaEnvenenamiento", { respaldo: "Envenenamiento" }), campo: "potencia-envenenamiento" },
+        { etiqueta: traducir("interfaz.personaje.potenciaRalentizacion", { respaldo: "Ralentización" }), campo: "potencia-ralentizacion" },
+        { etiqueta: traducir("interfaz.personaje.potenciaElectrizacion", { respaldo: "Electrización" }), campo: "potencia-electrizacion" },
+      ],
+    });
   }
   crearPasivas() {
     const s = document.createElement("section");
@@ -446,9 +481,6 @@ export class PanelPersonaje {
     );
     this.resolucionAlcanceActual = player.resolverAlcanceAtaque?.() ?? null;
     this.dpsActual = calcularDpsCombatiente(player);
-    this.potenciaActual = crearContextoPotenciaHabilidad({
-      combatiente: player,
-    });
     this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
     this.obtener('[data-personaje="clase"]').textContent = traducirContenido(
       "profesiones",
@@ -517,11 +549,18 @@ export class PanelPersonaje {
         Math.max(0, this.resolucionPercepcionActual.resultado),
       ),
       alcance: this.resolucionAlcanceActual?.resultado ?? player.alcanceAtaque,
-      "danio-magico": signoPorcentaje(e.bonificacionDanioMagicoPorcentaje),
-      "potencia-habilidad": signoPorcentaje(
-        this.potenciaActual?.potenciaHabilidad ?? 0,
-      ),
+      "dano-fisico": signoPorcentaje(e.danoFisico),
+      "dano-magico": signoPorcentaje(e.danoMagico),
+      "dano-habilidad": signoPorcentaje(e.danoHabilidad),
+      "dano-fuego": signoPorcentaje(e.danosPorTipo?.fuego ?? 0),
+      "dano-frio": signoPorcentaje(e.danosPorTipo?.frio ?? 0),
+      "dano-rayo": signoPorcentaje(e.danosPorTipo?.rayo ?? 0),
+      "dano-veneno": signoPorcentaje(e.danosPorTipo?.veneno ?? 0),
       "potencia-efectos": signoPorcentaje(e.potenciaEfectos),
+      "potencia-quemadura": signoPorcentaje(e.potenciasEfectosEspecificas?.quemadura ?? 0),
+      "potencia-envenenamiento": signoPorcentaje(e.potenciasEfectosEspecificas?.envenenamiento ?? 0),
+      "potencia-ralentizacion": signoPorcentaje(e.potenciasEfectosEspecificas?.ralentizacion ?? 0),
+      "potencia-electrizacion": signoPorcentaje(e.potenciasEfectosEspecificas?.electrizacion ?? 0),
       "res-fuego": `${formato(e.resistencias.fuego)}%`,
       "res-frio": `${formato(e.resistencias.frio)}%`,
       "res-rayo": `${formato(e.resistencias.rayo)}%`,
@@ -796,9 +835,7 @@ export class PanelPersonaje {
         }),
       };
     let r = null;
-    if (k === "potencia-habilidad")
-      r = this.potenciaActual?.resolucionModificador;
-    else if (k === "percepcion") r = this.resolucionPercepcionActual;
+    if (k === "percepcion") r = this.resolucionPercepcionActual;
     else if (k === "alcance") r = this.resolucionAlcanceActual;
     else
       r = this.estadisticasActuales?.resolucionesModificadores?.[m.resolucion];
@@ -1042,8 +1079,13 @@ function etiquetaPorcentajeNegativo(clave) {
       respaldo: "Vulnerabilidad",
     });
   const estados = {
-    "danio-magico": ["penalizacionDanio", "Penalización de daño"],
-    "potencia-habilidad": ["penalizacionPotencia", "Penalización de potencia"],
+    "dano-fisico": ["penalizacionDanio", "Penalización de daño"],
+    "dano-magico": ["penalizacionDanio", "Penalización de daño"],
+    "dano-habilidad": ["penalizacionDanio", "Penalización de daño"],
+    "dano-fuego": ["penalizacionDanio", "Penalización de daño"],
+    "dano-frio": ["penalizacionDanio", "Penalización de daño"],
+    "dano-rayo": ["penalizacionDanio", "Penalización de daño"],
+    "dano-veneno": ["penalizacionDanio", "Penalización de daño"],
     "potencia-efectos": ["penalizacionEfectos", "Penalización de efectos"],
     "ajuste-comercial": ["desventajaComercial", "Desventaja comercial"],
     dispersion: ["penalizacionPrecision", "Penalización de precisión"],
@@ -1102,12 +1144,30 @@ function descripcionDetalle(clave) {
     percepcion:
       "Cantidad de casillas que el combatiente puede percibir para visión y detección.",
     alcance: "Alcance máximo del ataque básico actual.",
-    "danio-magico":
-      "Bonificación o penalización porcentual aplicada al daño mágico. Escala principalmente con Inteligencia y secundariamente con Sabiduría.",
-    "potencia-habilidad":
-      "Bonificación porcentual que modifica el daño de habilidades mediante el sistema canónico de modificadores.",
+    "dano-fisico":
+      "Aumenta el componente físico de todas las armas equipadas, independientemente del atributo con el que escalen. Al ser global, beneficia también a ambas armas al usar duales.",
+    "dano-magico":
+      "Aumenta todo daño mágico directo de Fuego, Frío, Rayo y Veneno. Se acumula con la bonificación específica del tipo de daño correspondiente.",
+    "dano-habilidad":
+      "Aumenta una sola vez el daño directo generado por cualquier habilidad. No modifica ataques básicos ni efectos.",
+    "dano-fuego":
+      "Aumenta únicamente el daño directo de Fuego. Se acumula con Daño Mágico cuando corresponde.",
+    "dano-frio":
+      "Aumenta únicamente el daño directo de Frío. Se acumula con Daño Mágico cuando corresponde.",
+    "dano-rayo":
+      "Aumenta únicamente el daño directo de Rayo. Se acumula con Daño Mágico cuando corresponde.",
+    "dano-veneno":
+      "Aumenta únicamente el daño directo de Veneno. Se acumula con Daño Mágico cuando corresponde.",
     "potencia-efectos":
-      "Potencia que escala las magnitudes de efectos configurados para utilizarla, como el daño periódico de Quemadura y Envenenamiento.",
+      "Aumenta los aspectos escalables de todos los efectos. Se acumula con la potencia específica del efecto cuando corresponda.",
+    "potencia-quemadura":
+      "Aumenta la potencia de Quemadura. Se acumula con Potencia de Efectos y no recibe Daño Mágico ni Daño de Habilidad.",
+    "potencia-envenenamiento":
+      "Aumenta la potencia de Envenenamiento. Se acumula con Potencia de Efectos y no recibe Daño Mágico ni Daño de Habilidad.",
+    "potencia-ralentizacion":
+      "Aumenta la intensidad escalable de Ralentización. Se acumula con Potencia de Efectos.",
+    "potencia-electrizacion":
+      "Aumenta la intensidad escalable de Electrización. Se acumula con Potencia de Efectos.",
     "res-fuego":
       "Reduce el daño de Fuego recibido. Un valor negativo representa Vulnerabilidad y aumenta ese daño.",
     "res-frio":

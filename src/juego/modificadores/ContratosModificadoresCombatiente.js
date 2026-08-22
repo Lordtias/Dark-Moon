@@ -12,8 +12,15 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   MULTIPLICADOR_CRITICO: "multiplicadorCritico",
   PROBABILIDAD_BLOQUEO: "probabilidadBloqueo",
   MITIGACION_BLOQUEO: "mitigacionBloqueo",
+  // Bonificaciones porcentuales globales de daño directo.
+  DANO_FISICO: "danoFisico",
+  DANO_MAGICO: "danoMagico",
+  DANO_HABILIDAD: "danoHabilidad",
+  // Bonificación porcentual contextual para un tipo elemental concreto.
+  DANO_TIPO: "danoTipo",
+  // Potencia general de efectos y potencia contextual de un efecto concreto.
   POTENCIA_EFECTOS: "potenciaEfectos",
-  POTENCIA_HABILIDAD: "potenciaHabilidad",
+  POTENCIA_EFECTO: "potenciaEfecto",
   RESISTENCIA_FUEGO: "resistenciaFuego",
   RESISTENCIA_FRIO: "resistenciaFrio",
   RESISTENCIA_RAYO: "resistenciaRayo",
@@ -39,8 +46,6 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   AJUSTE_COMERCIAL: "ajusteComercial",
   // Bonificación porcentual aplicada al peso de rarezas superiores a Común.
   HALLAZGO_MAGICO: "hallazgoMagico",
-  // Daño base interno de una habilidad antes de atributos mágicos, crítico y defensas.
-  DANO_HABILIDAD: "danoHabilidad",
   // Contenedor canónico para modificar un atributo interno validado de una habilidad.
   ATRIBUTO_HABILIDAD: "atributoHabilidad",
 });
@@ -116,10 +121,14 @@ export const CLAVES_CONTEXTO_MODIFICADOR = Object.freeze({
   // Clave canónica del atributo interno de habilidad que se está resolviendo.
   ATRIBUTO_HABILIDAD: "atributoHabilidad",
   // Tipo elemental/físico del componente de daño que se está resolviendo.
+  TIPO_DANIO: "tipoDanio",
+  // Clave histórica usada por atributos internos de habilidad.
   TIPO_DANIO_HABILIDAD: "tipoDanioHabilidad",
   // Fase del daño/efecto: impacto_directo, efecto_periodico o zona.
   FASE_HABILIDAD: "faseHabilidad",
-  // Efecto temporal concreto asociado a la resolución, cuando corresponde.
+  // Efecto temporal concreto cuya potencia específica se está resolviendo.
+  EFECTO_ID: "efectoId",
+  // Efecto temporal concreto asociado a la resolución interna de una habilidad.
   EFECTO_ID_HABILIDAD: "efectoIdHabilidad",
   // Tipo canónico del efecto temporal asociado a la habilidad.
   TIPO_EFECTO_HABILIDAD: "tipoEfectoHabilidad",

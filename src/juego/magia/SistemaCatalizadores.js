@@ -1,4 +1,4 @@
-import { OBJETIVOS_MODIFICADOR } from "../modificadores/ContratosModificadoresCombatiente.js";
+import { resolverDanioHabilidadGlobal } from "../combate/ResolutorEscaladoDanio.js";
 
 const FAMILIAS_CATALIZADOR = new Set(["baston", "varita"]);
 const ELEMENTOS_VARITA = new Set(["fuego", "frio", "rayo", "veneno"]);
@@ -12,19 +12,19 @@ export function esCatalizador(objeto) {
   );
 }
 
-export function obtenerPotenciaHabilidadObjeto(objeto) {
-  const potencia = objeto?.propiedades?.potenciaHabilidad ?? 0;
-  if (!Number.isFinite(potencia) || potencia < 0) {
+export function obtenerDanioHabilidadObjeto(objeto) {
+  const dano = objeto?.propiedades?.danoHabilidad ?? 0;
+  if (!Number.isFinite(dano) || dano < 0) {
     throw new Error(
-      `La Potencia de Habilidad de "${objeto?.nombre ?? objeto?.id ?? "objeto"}" no es válida.`,
+      `El Daño de Habilidad de "${objeto?.nombre ?? objeto?.id ?? "objeto"}" no es válido.`,
     );
   }
-  return potencia;
+  return dano;
 }
 
-export function obtenerPotenciaHabilidadCatalizador(objeto) {
+export function obtenerDanioHabilidadCatalizador(objeto) {
   if (!esCatalizador(objeto)) return 0;
-  return obtenerPotenciaHabilidadObjeto(objeto);
+  return obtenerDanioHabilidadObjeto(objeto);
 }
 
 export function esVarita(objeto) {
@@ -59,16 +59,16 @@ export function obtenerConfiguracionBasicaVarita(objeto) {
     costoMana,
     danioMinimo,
     danioMaximo,
-    potenciaHabilidad: obtenerPotenciaHabilidadCatalizador(objeto),
+    danoHabilidad: obtenerDanioHabilidadCatalizador(objeto),
   });
 }
 
-export function calcularPotenciaHabilidadObjetos(objetos = []) {
+export function calcularDanioHabilidadObjetos(objetos = []) {
   if (!Array.isArray(objetos)) {
     throw new Error("Los objetos equipados deben estar dentro de una lista.");
   }
   return objetos.reduce(
-    (total, objeto) => total + obtenerPotenciaHabilidadObjeto(objeto),
+    (total, objeto) => total + obtenerDanioHabilidadObjeto(objeto),
     0,
   );
 }
@@ -84,29 +84,29 @@ export function obtenerObjetosEquipadosParaHabilidades(combatiente) {
   return equipamiento.obtenerObjetosEquipados();
 }
 
-export function crearContextoPotenciaHabilidad({
+export function crearContextoDanioHabilidad({
   combatiente = null,
   objetos = null,
+  contexto = {},
 } = {}) {
   const objetosEquipados = Array.isArray(objetos)
     ? objetos
     : obtenerObjetosEquipadosParaHabilidades(combatiente);
-  const potenciaBase = calcularPotenciaHabilidadObjetos(objetosEquipados);
-  const resolucionModificador = combatiente?.sistemaModificadoresCombatiente
-    ? combatiente.resolverModificador(
-        OBJETIVOS_MODIFICADOR.POTENCIA_HABILIDAD,
-        potenciaBase,
-      )
-    : null;
-  const potenciaHabilidad = resolucionModificador?.resultado ?? potenciaBase;
+  const danoBase = calcularDanioHabilidadObjetos(objetosEquipados);
+  const resolucionModificador = resolverDanioHabilidadGlobal(
+    combatiente,
+    danoBase,
+    contexto,
+  );
+  const danoHabilidad = resolucionModificador.resultado;
 
   return Object.freeze({
-    potenciaHabilidad,
-    multiplicadorHabilidad: 1 + potenciaHabilidad / 100,
+    danoHabilidad,
+    multiplicadorDanioHabilidad: resolucionModificador.multiplicador,
     cantidadObjetosAportando: objetosEquipados.filter(
-      (objeto) => obtenerPotenciaHabilidadObjeto(objeto) > 0,
+      (objeto) => obtenerDanioHabilidadObjeto(objeto) > 0,
     ).length,
-    // Misma resolución canónica ya usada para obtener potenciaHabilidad.
+    // Misma resolución canónica ya usada para obtener danoHabilidad.
     resolucionModificador,
   });
 }
@@ -132,7 +132,7 @@ export function validarCatalogoCatalizadores(configuracionObjetos) {
     if (!FAMILIAS_CATALIZADOR.has(familia)) continue;
 
     validarPlantillaComun({ id, plantilla });
-    validarPotenciaHabilidad({ id, plantilla });
+    validarDanioHabilidad({ id, plantilla });
 
     if (familia === "baston") {
       validarBaston({ id, plantilla });
@@ -198,13 +198,13 @@ function validarPlantillaComun({ id, plantilla }) {
   validarObjetoPlano(plantilla.propiedades, `Las propiedades de "${id}"`);
 }
 
-function validarPotenciaHabilidad({ id, plantilla }) {
+function validarDanioHabilidad({ id, plantilla }) {
   if (plantilla.propiedades.esCatalizador !== true) {
     throw new Error(`El arma mágica "${id}" debe declararse catalizador.`);
   }
-  const potencia = plantilla.propiedades.potenciaHabilidad;
-  if (!Number.isFinite(potencia) || potencia < 0) {
-    throw new Error(`La Potencia de Habilidad de "${id}" no es válida.`);
+  const dano = plantilla.propiedades.danoHabilidad;
+  if (!Number.isFinite(dano) || dano < 0) {
+    throw new Error(`El Daño de Habilidad de "${id}" no es válido.`);
   }
 }
 

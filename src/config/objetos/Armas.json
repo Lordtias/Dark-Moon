@@ -396,7 +396,7 @@
       "bloqueaSecundaria": true,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 15
+      "danoHabilidad": 15
     }
   },
   "baston_reforzado": {
@@ -428,7 +428,7 @@
       "bloqueaSecundaria": true,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 25
+      "danoHabilidad": 25
     }
   },
   "varita_fuego_aprendiz": {
@@ -462,7 +462,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 8,
+      "danoHabilidad": 8,
       "elementoAtaqueBasico": "fuego",
       "costoManaAtaqueBasico": 1
     }
@@ -498,7 +498,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 8,
+      "danoHabilidad": 8,
       "elementoAtaqueBasico": "frio",
       "costoManaAtaqueBasico": 1
     }
@@ -534,7 +534,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 8,
+      "danoHabilidad": 8,
       "elementoAtaqueBasico": "rayo",
       "costoManaAtaqueBasico": 1
     }
@@ -570,7 +570,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 8,
+      "danoHabilidad": 8,
       "elementoAtaqueBasico": "veneno",
       "costoManaAtaqueBasico": 1
     }
@@ -606,7 +606,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 12,
+      "danoHabilidad": 12,
       "elementoAtaqueBasico": "fuego",
       "costoManaAtaqueBasico": 1
     }
@@ -642,7 +642,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 12,
+      "danoHabilidad": 12,
       "elementoAtaqueBasico": "frio",
       "costoManaAtaqueBasico": 1
     }
@@ -678,7 +678,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 12,
+      "danoHabilidad": 12,
       "elementoAtaqueBasico": "rayo",
       "costoManaAtaqueBasico": 1
     }
@@ -714,7 +714,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 12,
+      "danoHabilidad": 12,
       "elementoAtaqueBasico": "veneno",
       "costoManaAtaqueBasico": 1
     }
@@ -949,7 +949,7 @@
       "bloqueaSecundaria": true,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 35
+      "danoHabilidad": 35
     }
   },
   "varita_fuego_magistral": {
@@ -986,7 +986,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 18,
+      "danoHabilidad": 18,
       "elementoAtaqueBasico": "fuego",
       "costoManaAtaqueBasico": 1
     }
@@ -1025,7 +1025,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 18,
+      "danoHabilidad": 18,
       "elementoAtaqueBasico": "frio",
       "costoManaAtaqueBasico": 1
     }
@@ -1064,7 +1064,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 18,
+      "danoHabilidad": 18,
       "elementoAtaqueBasico": "rayo",
       "costoManaAtaqueBasico": 1
     }
@@ -1103,7 +1103,7 @@
       "bloqueaSecundaria": false,
       "requiereQuiver": false,
       "esCatalizador": true,
-      "potenciaHabilidad": 18,
+      "danoHabilidad": 18,
       "elementoAtaqueBasico": "veneno",
       "costoManaAtaqueBasico": 1
     }

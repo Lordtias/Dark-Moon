@@ -13,6 +13,7 @@ import {
   obtenerConfiguracionEjecucionHabilidades,
 } from "../../juego/maestrias/ContextoProgresoHabilidades.js";
 import { validarCatalogoCatalizadores } from "../../juego/magia/SistemaCatalizadores.js";
+import { calcularMultiplicadorResistencia } from "../../juego/combate/ContratosResistencias.js";
 
 const RUTA_OBJETIVOS = "./src/herramientas/balance/ObjetivosBalance.json";
 const ESTADOS = Object.freeze({
@@ -784,7 +785,9 @@ function evaluarResistenciaFila(fila, filas) {
   );
   if (!base || base.danioTotalEsperado <= 0) return ESTADOS.INFORMATIVO;
   const proporcion = fila.danioTotalEsperado / base.danioTotalEsperado;
-  const esperada = 1 - fila.resistenciaElemental / 100;
+  const esperada = calcularMultiplicadorResistencia(
+    fila.resistenciaElemental,
+  );
   return Math.abs(proporcion - esperada) <= 0.12
     ? ESTADOS.CORRECTO
     : ESTADOS.ADVERTENCIA;

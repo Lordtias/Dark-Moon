@@ -1,11 +1,12 @@
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
+import { normalizarResistenciaEfectiva } from "../../juego/combate/ContratosResistencias.js";
 import { calcularRecursosMaximos } from "../../entidad/destructible/combatiente/EstadisticasDerivadas.js";
 import { calcularCostoBaseAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { analizarBalanceProgresion } from "./AnalizadorBalanceProgresion.js";
 import { crearInformeBalanceCombate } from "./AnalizadorBalanceCombate.js";
 import { crearInformeBalanceEfectos } from "./AnalizadorBalanceEfectos.js";
 import { crearInformeBalanceRegresion } from "./AnalizadorBalanceRegresion.js";
-import { calcularBonoResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
+import { calcularAporteResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
 import { crearAtributosIniciales } from "../../juego/generacion/GeneradorAtributos.js";
 import {
   calcularMultiplicadorDanioMagico,
@@ -1766,22 +1767,21 @@ function crearInformeConstitucion({
   const valoresPrueba =
     objetivosBalance.escenariosTeoricos.constitucionResistenciasEfectos
       .valoresConstitucionPrueba;
-  const configuracion =
-    CONFIGURACION_COMBATE.resistenciasEfectos.constitucion;
+  const configuracion = CONFIGURACION_COMBATE.atributos;
   const filas = valoresPrueba.map((constitucion) => {
     const bono =
-      calcularBonoResistenciasEfectosPorConstitucion(constitucion);
+      calcularAporteResistenciasEfectosPorConstitucion(constitucion);
     return {
       constitucion,
       bonoResistencia: bono,
-      probabilidadFinalBase100: redondear(100 * (1 - bono / 100)),
-      probabilidadFinalBase40: redondear(40 * (1 - bono / 100)),
-      probabilidadFinalBase30: redondear(30 * (1 - bono / 100)),
-      probabilidadFinalBase20: redondear(20 * (1 - bono / 100)),
+      probabilidadFinalBase100: redondear(100 * (1 - normalizarResistenciaEfectiva(bono, "La resistencia teórica") / 100)),
+      probabilidadFinalBase40: redondear(40 * (1 - normalizarResistenciaEfectiva(bono, "La resistencia teórica") / 100)),
+      probabilidadFinalBase30: redondear(30 * (1 - normalizarResistenciaEfectiva(bono, "La resistencia teórica") / 100)),
+      probabilidadFinalBase20: redondear(20 * (1 - normalizarResistenciaEfectiva(bono, "La resistencia teórica") / 100)),
       estado: "correcto",
       criterio:
-        `Fórmula activa: máximo ${configuracion.bonificacionMaxima} % y ` +
-        "sin convertir resistencia en inmunidad.",
+        `Fórmula activa: ${configuracion.resistenciaPorPuntoRespectoReferencia} % por punto respecto de ${configuracion.referenciaResistencias}; ` +
+        `resultado efectivo ${CONFIGURACION_COMBATE.resistencias.minimaEfectiva}..${CONFIGURACION_COMBATE.resistencias.maxima} %.`,
     };
   });
 
@@ -1801,7 +1801,7 @@ function crearInformeConstitucion({
         nivel,
         constitucion: atributos.constitucion,
         bonoResistencia:
-          calcularBonoResistenciasEfectosPorConstitucion(
+          calcularAporteResistenciasEfectosPorConstitucion(
             atributos.constitucion,
           ),
       });
@@ -1811,15 +1811,15 @@ function crearInformeConstitucion({
   const apilamiento = [];
   for (const constitucion of [8, 15, 28]) {
     const bono =
-      calcularBonoResistenciasEfectosPorConstitucion(constitucion);
+      calcularAporteResistenciasEfectosPorConstitucion(constitucion);
     for (const resistenciaEquipo of [0, 25, 50, 75]) {
       apilamiento.push({
         constitucion,
         bonoConstitucion: bono,
         resistenciaEquipo,
-        resistenciaFinal: Math.min(
-          CONFIGURACION_COMBATE.resistencias.maxima,
+        resistenciaFinal: normalizarResistenciaEfectiva(
           bono + resistenciaEquipo,
+          "La resistencia final del escenario de apilamiento",
         ),
       });
     }
@@ -1830,9 +1830,9 @@ function crearInformeConstitucion({
     determinista: true,
     implementado: true,
     formula:
-      `min(${configuracion.bonificacionMaxima}, ` +
-      `floor(max(0, Constitución - ${configuracion.referencia}) / ` +
-      `${configuracion.puntosPorPorcentaje})) y límite final ` +
+      `${configuracion.resistenciaPorPuntoRespectoReferencia} × ` +
+      `(Constitución - ${configuracion.referenciaResistencias}) y rango efectivo final ` +
+      `${CONFIGURACION_COMBATE.resistencias.minimaEfectiva}..` +
       `${CONFIGURACION_COMBATE.resistencias.maxima} %`,
     resistenciasAfectadas: [...RESISTENCIAS_EFECTOS_VISIBLES],
     configuracion: { ...configuracion },

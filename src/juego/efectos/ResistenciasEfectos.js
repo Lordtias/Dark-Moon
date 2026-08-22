@@ -14,24 +14,18 @@ export const PROPIEDAD_RESISTENCIA_EFECTO = Object.freeze({
   quemadura: "resistenciaQuemadura",
 });
 
-export function calcularBonoResistenciasEfectosPorConstitucion(
+export function calcularAporteResistenciasEfectosPorConstitucion(
   constitucion,
 ) {
   if (!Number.isFinite(constitucion)) {
     throw new Error("La Constitución debe ser un número finito.");
   }
 
-  const configuracion =
-    CONFIGURACION_COMBATE.resistenciasEfectos.constitucion;
-  const puntosSobreReferencia = Math.max(
-    0,
-    constitucion - configuracion.referencia,
+  const configuracion = CONFIGURACION_COMBATE.atributos;
+  return (
+    configuracion.resistenciaPorPuntoRespectoReferencia *
+    (constitucion - configuracion.referenciaResistencias)
   );
-  const bono = Math.floor(
-    puntosSobreReferencia / configuracion.puntosPorPorcentaje,
-  );
-
-  return Math.min(configuracion.bonificacionMaxima, bono);
 }
 
 export function normalizarResistenciaEfecto(valor, descripcion) {
@@ -39,7 +33,7 @@ export function normalizarResistenciaEfecto(valor, descripcion) {
     throw new Error(`${descripcion} debe ser un número finito.`);
   }
   return Math.max(
-    CONFIGURACION_COMBATE.resistencias.minima,
+    CONFIGURACION_COMBATE.resistencias.minimaFuente,
     Math.min(CONFIGURACION_COMBATE.resistencias.maxima, valor),
   );
 }

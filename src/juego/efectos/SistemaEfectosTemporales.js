@@ -6,6 +6,10 @@ import {
   resolverPaqueteDanio,
 } from "../combate/ComponentesDanio.js";
 import {
+  calcularProbabilidadConResistencia,
+  normalizarResistenciaEfectiva,
+} from "../combate/ContratosResistencias.js";
+import {
   AgendaEventosTemporales,
 } from "../tiempo/AgendaEventosTemporales.js";
 import {
@@ -121,7 +125,10 @@ function obtenerResistenciaEfecto(objetivo, resistenciaId) {
   const valor = resistenciaId === "mental"
     ? estadisticas.resistenciaMental ?? 0
     : estadisticas.resistenciasEfectos?.[resistenciaId] ?? 0;
-  return limitar(Number.isFinite(valor) ? valor : 0, 0, 75);
+  return normalizarResistenciaEfectiva(
+    Number.isFinite(valor) ? valor : 0,
+    `La resistencia efectiva a ${resistenciaId}`,
+  );
 }
 
 function obtenerInmunidadesEfectos(objetivo) {
@@ -144,10 +151,9 @@ function calcularProbabilidadFinal(definicion, resistencia) {
     definicion.modoResistencia ===
     MODOS_RESISTENCIA_EFECTO.REDUCIR_PROBABILIDAD_APLICACION
   ) {
-    return limitar(
-      definicion.probabilidadBase * (1 - resistencia / 100),
-      0,
-      100,
+    return calcularProbabilidadConResistencia(
+      definicion.probabilidadBase,
+      resistencia,
     );
   }
   return limitar(definicion.probabilidadBase, 0, 100);

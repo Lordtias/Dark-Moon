@@ -5,9 +5,12 @@ import { obtenerConfiguracionAtaque } from "./ConfiguracionAtaque.js";
 import {
   TIPOS_DANIO,
   crearDescriptoresDanioElementalLocal,
-  normalizarResistencia,
   normalizarTipoDanio,
 } from "../../../juego/combate/ComponentesDanio.js";
+import {
+  normalizarResistenciaEfectiva,
+  obtenerLimitesResistenciaEfectiva,
+} from "../../../juego/combate/ContratosResistencias.js";
 import {
   calcularManaMaximo,
   calcularMultiplicadorDanioMagico,
@@ -17,14 +20,14 @@ import {
 import {
   IDS_RESISTENCIA_EFECTO,
   PROPIEDAD_RESISTENCIA_EFECTO,
-  calcularBonoResistenciasEfectosPorConstitucion,
-  normalizarResistenciaEfecto,
+  calcularAporteResistenciasEfectosPorConstitucion,
 } from "../../../juego/efectos/ResistenciasEfectos.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "./ContratosAtributosCombatiente.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
+const RESISTENCIAS_POR_SABIDURIA = new Set(["fuego", "frio", "rayo"]);
 const OBJETIVO_RESISTENCIA_ELEMENTAL = Object.freeze({
   fuego: OBJETIVOS_MODIFICADOR.RESISTENCIA_FUEGO,
   frio: OBJETIVOS_MODIFICADOR.RESISTENCIA_FRIO,
@@ -51,6 +54,29 @@ function resolverValorConDesglose(combatiente, objetivo, valorBase, contexto, de
   const resolucion = combatiente.resolverModificador(objetivo, valorBase, contexto ?? {});
   desgloses[clave] = resolucion;
   return resolucion.resultado;
+}
+
+function normalizarResolucionResistenciaEfectiva(
+  valor,
+  descripcion,
+  desgloses,
+  clave,
+) {
+  const resultado = normalizarResistenciaEfectiva(valor, descripcion);
+  const resolucion = desgloses[clave];
+  const limites = obtenerLimitesResistenciaEfectiva();
+  const resultadoAntesLimite = resolucion?.resultado ?? valor;
+  desgloses[clave] = Object.freeze({
+    ...(resolucion ?? {}),
+    resultadoAntesLimite,
+    resultado,
+    limiteDominio: Object.freeze({
+      minima: limites.minima,
+      maxima: limites.maxima,
+      aplicado: resultado !== resultadoAntesLimite,
+    }),
+  });
+  return resultado;
 }
 
 function calcularBasesSuerte(combatiente) {
@@ -633,30 +659,29 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
   for (const resistencia of RESISTENCIAS) {
     const nombrePropiedad =
       `resistencia${resistencia[0].toUpperCase()}` + resistencia.slice(1);
-    let valorBase =
+    const atributoControlador = RESISTENCIAS_POR_SABIDURIA.has(resistencia)
+      ? atributos.sabiduria
+      : atributos.constitucion;
+    const valorBase =
       base.resistencias[resistencia] +
-      coeficientes.resistenciaElementalPorSabiduria *
-        (atributos.sabiduria - 10) +
+      coeficientes.resistenciaPorPuntoRespectoReferencia *
+        (atributoControlador - coeficientes.referenciaResistencias) +
       sumarPropiedad(objetos, nombrePropiedad);
-
-    if (resistencia === "veneno") {
-      valorBase +=
-        coeficientes.resistenciaVenenoPorConstitucion *
-        (atributos.constitucion - 10);
-    }
 
     const valorResuelto = resolverValorConDesglose(
       combatiente, OBJETIVO_RESISTENCIA_ELEMENTAL[resistencia], valorBase, {}, resolucionesModificadores, `resistencia:${resistencia}`,
     );
-    resistencias[resistencia] = normalizarResistencia(
+    resistencias[resistencia] = normalizarResolucionResistenciaEfectiva(
       valorResuelto,
-      `La resistencia derivada a ${resistencia}`,
+      `La resistencia efectiva a ${resistencia}`,
+      resolucionesModificadores,
+      `resistencia:${resistencia}`,
     );
   }
 
-  const bonificacionResistenciasEfectosPorConstitucion =
+  const aporteResistenciasEfectosPorConstitucion =
     combatiente.aplicaBonoConstitucionResistenciasEfectos === true
-      ? calcularBonoResistenciasEfectosPorConstitucion(
+      ? calcularAporteResistenciasEfectosPorConstitucion(
           atributos.constitucion,
         )
       : 0;
@@ -665,14 +690,16 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     const propiedad = PROPIEDAD_RESISTENCIA_EFECTO[idResistencia];
     const valorBase =
       (base.resistenciasEfectos?.[idResistencia] ?? 0) +
-      bonificacionResistenciasEfectosPorConstitucion +
+      aporteResistenciasEfectosPorConstitucion +
       sumarPropiedad(objetos, propiedad);
     const valorResuelto = resolverValorConDesglose(
       combatiente, OBJETIVO_RESISTENCIA_EFECTO[idResistencia], valorBase, {}, resolucionesModificadores, `resistenciaEfecto:${idResistencia}`,
     );
-    resistenciasEfectos[idResistencia] = normalizarResistenciaEfecto(
+    resistenciasEfectos[idResistencia] = normalizarResolucionResistenciaEfectiva(
       valorResuelto,
-      `La resistencia derivada a ${idResistencia}`,
+      `La resistencia efectiva a ${idResistencia}`,
+      resolucionesModificadores,
+      `resistenciaEfecto:${idResistencia}`,
     );
   }
 
@@ -826,21 +853,27 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     mitigacionBloqueo,
     ajusteComercial,
     hallazgoMagico,
-    resistenciaMental: limitar(
+    resistenciaMental: normalizarResolucionResistenciaEfectiva(
       resolverValorConDesglose(
-        combatiente, OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL, base.resistenciaMental + coeficientes.resistenciaMentalPorSabiduria * atributos.sabiduria, {}, resolucionesModificadores, "resistenciaMental",
+        combatiente, OBJETIVOS_MODIFICADOR.RESISTENCIA_MENTAL,
+        base.resistenciaMental +
+          coeficientes.resistenciaPorPuntoRespectoReferencia *
+            (atributos.sabiduria - coeficientes.referenciaResistencias),
+        {}, resolucionesModificadores, "resistenciaMental",
       ),
-      0,
-      75,
+      "La Resistencia Mental efectiva",
+      resolucionesModificadores,
+      "resistenciaMental",
     ),
     potenciaAura:
       base.potenciaAura +
-      coeficientes.potenciaAuraPorConstitucion * atributos.constitucion,
+      coeficientes.potenciaAuraPorPuntoRespectoDiez *
+        (atributos.constitucion - 10),
     // Lectura aditiva: conserva las resoluciones ya ejecutadas en este cálculo.
     resolucionesModificadores: Object.freeze({ ...resolucionesModificadores }),
     resistencias,
     resistenciasEfectos,
-    bonificacionResistenciasEfectosPorConstitucion,
+    aporteResistenciasEfectosPorConstitucion,
     inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
     danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque, contextoDinamico),
   };
@@ -853,16 +886,16 @@ export function obtenerAportesAtributosPrimarios(combatiente) {
   if (!combatiente?.atributos) {
     throw new Error("Se necesita un combatiente válido para consultar aportes de atributos.");
   }
-  const bonificacionResistenciasEfectosPorConstitucion =
+  const aporteResistenciasEfectosPorConstitucion =
     combatiente.aplicaBonoConstitucionResistenciasEfectos === true
-      ? calcularBonoResistenciasEfectosPorConstitucion(
+      ? calcularAporteResistenciasEfectosPorConstitucion(
           combatiente.atributos.constitucion,
         )
       : 0;
   return crearAportesAtributos({
     atributos: combatiente.atributos,
     configuracionAtaque: obtenerConfiguracionAtaque(combatiente),
-    bonificacionResistenciasEfectosPorConstitucion,
+    aporteResistenciasEfectosPorConstitucion,
     reglasSuerte: combatiente.reglasSuerte ?? null,
   });
 }
@@ -870,7 +903,7 @@ export function obtenerAportesAtributosPrimarios(combatiente) {
 function crearAportesAtributos({
   atributos,
   configuracionAtaque,
-  bonificacionResistenciasEfectosPorConstitucion,
+  aporteResistenciasEfectosPorConstitucion,
   reglasSuerte,
 }) {
   const combate = CONFIGURACION_COMBATE.atributos;
@@ -899,20 +932,20 @@ function crearAportesAtributos({
 
   const atributoAtaque = configuracionAtaque?.propiedadesControladoras?.atributoAtaque;
   const ataqueEsVarita = esVarita(configuracionAtaque?.armaControladora);
-  for (const atributoFisico of ["fuerza", "destreza", "inteligencia"]) {
+  for (const atributoArmaDirecta of ["fuerza", "destreza", "sabiduria"]) {
     const aporte = Object.freeze({
-      atributo: atributoFisico,
+      atributo: atributoArmaDirecta,
       estadistica: "danioFisico",
       valor:
         combate.danioPorPuntoRespectoDiez *
-        ((atributos[atributoFisico] ?? 10) - 10) *
+        ((atributos[atributoArmaDirecta] ?? 10) - 10) *
         100,
       unidad: "porcentaje",
       sobreBase: true,
-      nota: `armas_${atributoFisico}`,
+      nota: `armas_${atributoArmaDirecta}`,
     });
-    porAtributo[atributoFisico].push(aporte);
-    if (!ataqueEsVarita && atributoAtaque === atributoFisico) {
+    porAtributo[atributoArmaDirecta].push(aporte);
+    if (!ataqueEsVarita && atributoAtaque === atributoArmaDirecta) {
       (porEstadistica.danioFisico ??= []).push(aporte);
     }
   }
@@ -941,21 +974,23 @@ function crearAportesAtributos({
   agregar(
     "constitucion",
     "resistencia:veneno",
-    combate.resistenciaVenenoPorConstitucion * (atributos.constitucion - 10),
+    combate.resistenciaPorPuntoRespectoReferencia *
+      (atributos.constitucion - combate.referenciaResistencias),
     "porcentaje",
   );
   for (const id of IDS_RESISTENCIA_EFECTO) {
     agregar(
       "constitucion",
       `resistenciaEfecto:${id}`,
-      bonificacionResistenciasEfectosPorConstitucion,
+      aporteResistenciasEfectosPorConstitucion,
       "porcentaje",
     );
   }
   agregar(
     "constitucion",
     "potenciaAura",
-    combate.potenciaAuraPorConstitucion * atributos.constitucion,
+    combate.potenciaAuraPorPuntoRespectoDiez *
+      (atributos.constitucion - 10),
     "porcentaje",
   );
 
@@ -1009,19 +1044,20 @@ function crearAportesAtributos({
       100,
     "porcentaje",
   );
-  for (const id of RESISTENCIAS) {
+  for (const id of RESISTENCIAS_POR_SABIDURIA) {
     agregar(
       "sabiduria",
       `resistencia:${id}`,
-      combate.resistenciaElementalPorSabiduria *
-        (atributos.sabiduria - 10),
+      combate.resistenciaPorPuntoRespectoReferencia *
+        (atributos.sabiduria - combate.referenciaResistencias),
       "porcentaje",
     );
   }
   agregar(
     "sabiduria",
     "resistenciaMental",
-    combate.resistenciaMentalPorSabiduria * atributos.sabiduria,
+    combate.resistenciaPorPuntoRespectoReferencia *
+      (atributos.sabiduria - combate.referenciaResistencias),
     "porcentaje",
   );
 

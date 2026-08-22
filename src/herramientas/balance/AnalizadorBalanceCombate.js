@@ -8,6 +8,7 @@ import { crearObjeto } from "../../objetos/FabricaObjetos.js";
 import {
   resolverPaqueteDanio,
 } from "../../juego/combate/ComponentesDanio.js";
+import { calcularProbabilidadConResistencia } from "../../juego/combate/ContratosResistencias.js";
 import { calcularProbabilidadImpacto } from "../../juego/combate/SistemaCombate.js";
 import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import {
@@ -975,8 +976,11 @@ function calcularResumenEfectos({ efectos, objetivo, resistenciaEfecto }) {
     const definicion = preparado.definicion;
     const probabilidadFinal =
       definicion.modoResistencia === "probabilidad"
-        ? definicion.probabilidadBase * (1 - resistenciaEfecto / 100)
-        : definicion.probabilidadBase;
+        ? calcularProbabilidadConResistencia(
+            definicion.probabilidadBase,
+            resistenciaEfecto,
+          )
+        : limitar(definicion.probabilidadBase, 0, 100);
     probabilidades.push(probabilidadFinal);
     let danioTotal = 0;
     if ((definicion.maximo ?? 1) > 1 || (definicion.intensidadInicial ?? 1) > 1) {

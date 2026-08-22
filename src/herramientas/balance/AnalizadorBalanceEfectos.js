@@ -1,9 +1,13 @@
 import { limitar } from "../../utilidades/Numeros.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
+import {
+  calcularProbabilidadConResistencia,
+  normalizarResistenciaEfectiva,
+} from "../../juego/combate/ContratosResistencias.js";
 import { crearEnemigo } from "../../juego/fabricas/FabricaEnemigos.js";
 import { SistemaEfectosTemporales } from "../../juego/efectos/SistemaEfectosTemporales.js";
 import { crearAtributosIniciales } from "../../juego/generacion/GeneradorAtributos.js";
-import { calcularBonoResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
+import { calcularAporteResistenciasEfectosPorConstitucion } from "../../juego/efectos/ResistenciasEfectos.js";
 
 const IDS_EFECTOS_VISIBLES = Object.freeze([
   "congelamiento",
@@ -444,7 +448,7 @@ function analizarConstitucion({ configuracionPersonaje, objetivos }) {
             ? Math.floor(puntosGanados / 2)
             : 0;
         const constitucion = constitucionInicial + invertidos;
-        const bono = calcularBonoResistenciasEfectosPorConstitucion(
+        const bono = calcularAporteResistenciasEfectosPorConstitucion(
           constitucion,
         );
         filas.push({
@@ -455,21 +459,21 @@ function analizarConstitucion({ configuracionPersonaje, objetivos }) {
           puntosNivelEnConstitucion: invertidos,
           constitucion,
           bonoResistencia: bono,
-          probabilidadBase40: redondear(40 * (1 - bono / 100)),
-          probabilidadBase100: redondear(100 * (1 - bono / 100)),
+          probabilidadBase40: redondear(calcularProbabilidadConResistencia(40, bono)),
+          probabilidadBase100: redondear(calcularProbabilidadConResistencia(100, bono)),
           reemplazaAfijos: bono >= objetivos.afijoMedioReferencia,
           estado: bono < objetivos.afijoMedioReferencia
             ? "correcto"
             : "advertencia",
           criterio:
-            `Fórmula activa: máximo ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.bonificacionMaxima} % y debe quedar por debajo de un afijo medio (${objetivos.afijoMedioReferencia} %).`,
+            `Fórmula activa: ${CONFIGURACION_COMBATE.atributos.resistenciaPorPuntoRespectoReferencia} % por punto respecto de ${CONFIGURACION_COMBATE.atributos.referenciaResistencias}; rango efectivo ${CONFIGURACION_COMBATE.resistencias.minimaEfectiva}..${CONFIGURACION_COMBATE.resistencias.maxima} %.`,
         });
       }
     }
   }
   return {
     formula:
-      `1 % cada ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.puntosPorPorcentaje} puntos por encima de ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.referencia}; máximo ${CONFIGURACION_COMBATE.resistenciasEfectos.constitucion.bonificacionMaxima} %.`,
+      `${CONFIGURACION_COMBATE.atributos.resistenciaPorPuntoRespectoReferencia} % × (Constitución - ${CONFIGURACION_COMBATE.atributos.referenciaResistencias}); resultado efectivo ${CONFIGURACION_COMBATE.resistencias.minimaEfectiva}..${CONFIGURACION_COMBATE.resistencias.maxima} %.`,
     filas,
     resumen: {
       cantidad: filas.length,
@@ -746,15 +750,12 @@ function analizarAfijos({ configuracionGeneracionObjetos, objetivos }) {
   const maximoAfijo = Math.max(...filas.map((fila) => fila.maximo));
   const acumulacion = [];
   for (const cantidadAccesorios of [1, 2, 3]) {
-    for (const constitucion of [
-      0,
-      CONFIGURACION_COMBATE.resistenciasEfectos.constitucion
-        .bonificacionMaxima,
-    ]) {
-      const resistenciaBruta = cantidadAccesorios * maximoAfijo + constitucion;
-      const resistenciaFinal = Math.min(
-        CONFIGURACION_COMBATE.resistencias.maxima,
+    for (const constitucion of [8, 10, 14]) {
+      const aporteConstitucion = calcularAporteResistenciasEfectosPorConstitucion(constitucion);
+      const resistenciaBruta = cantidadAccesorios * maximoAfijo + aporteConstitucion;
+      const resistenciaFinal = normalizarResistenciaEfectiva(
         resistenciaBruta,
+        "La resistencia final del escenario de afijos",
       );
       const estado = resistenciaFinal >= objetivos.inmunidadPracticaDesde
         ? "advertencia"
@@ -762,10 +763,13 @@ function analizarAfijos({ configuracionGeneracionObjetos, objetivos }) {
       acumulacion.push({
         cantidadAccesorios,
         valorPorAccesorio: maximoAfijo,
-        bonoConstitucion: constitucion,
+        bonoConstitucion: aporteConstitucion,
         resistenciaBruta,
         resistenciaFinal,
-        probabilidadFinalBase100: 100 - resistenciaFinal,
+        probabilidadFinalBase100: calcularProbabilidadConResistencia(
+          100,
+          resistenciaFinal,
+        ),
         alcanzaLimite:
           resistenciaFinal >= CONFIGURACION_COMBATE.resistencias.maxima,
         inmunidadPractica: resistenciaFinal >= objetivos.inmunidadPracticaDesde,

@@ -373,7 +373,7 @@
     "tierBase": 1,
     "nivelMinimoGeneracion": 1,
     "familiaObjeto": "baston",
-    "descripcion": "Un bastón de dos manos que canaliza la Inteligencia del portador y potencia sus habilidades mágicas.",
+    "descripcion": "Un bastón de dos manos que canaliza la Sabiduría del portador y potencia sus habilidades mágicas.",
     "recursoVisual": "assets/imagenes/objetos/baston_aprendiz.png",
     "valorBase": 65,
     "pesoUnitario": 1.8,
@@ -384,7 +384,7 @@
     "propiedades": {
       "danioFisicoMinimo": 4,
       "danioFisicoMaximo": 7,
-      "atributoAtaque": "inteligencia",
+      "atributoAtaque": "sabiduria",
       "precision": 10,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
@@ -416,7 +416,7 @@
     "propiedades": {
       "danioFisicoMinimo": 6,
       "danioFisicoMaximo": 9,
-      "atributoAtaque": "inteligencia",
+      "atributoAtaque": "sabiduria",
       "precision": 11,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",
@@ -937,7 +937,7 @@
     "propiedades": {
       "danioFisicoMinimo": 8,
       "danioFisicoMaximo": 12,
-      "atributoAtaque": "inteligencia",
+      "atributoAtaque": "sabiduria",
       "precision": 12,
       "alcance": 1,
       "tipoAtaque": "cuerpoACuerpo",

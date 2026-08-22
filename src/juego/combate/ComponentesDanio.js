@@ -1,6 +1,10 @@
 import { limitar } from "../../utilidades/Numeros.js";
 import { normalizarPropiedadesResistenciasEfectos } from "../efectos/ResistenciasEfectos.js";
 import { CONFIGURACION_COMBATE } from "../../config/ConfiguracionCombate.js";
+import {
+  calcularMultiplicadorResistencia,
+  normalizarResistenciaEfectiva,
+} from "./ContratosResistencias.js";
 
 // Tipos de daño admitidos por la tubería común.
 //
@@ -160,8 +164,8 @@ export function obtenerEtiquetaTipoDanio(tipo) {
   return ETIQUETA_TIPO_DANIO[normalizarTipoDanio(tipo)];
 }
 
-// Las resistencias se normalizan al contrato inicial 0–75.
-// El límite se aplica tanto al valor base como al resultado acumulado.
+// Las fuentes base de resistencia conservan el contrato 0–75.
+// El resultado efectivo se normaliza por ContratosResistencias.
 export function normalizarResistencia(
   valor = 0,
   descripcion = "La resistencia",
@@ -169,7 +173,7 @@ export function normalizarResistencia(
   validarNumeroFinito(valor, descripcion);
   return limitar(
     valor,
-    CONFIGURACION_COMBATE.resistencias.minima,
+    CONFIGURACION_COMBATE.resistencias.minimaFuente,
     CONFIGURACION_COMBATE.resistencias.maxima,
   );
 }
@@ -221,8 +225,11 @@ export function obtenerResistenciaPorTipo(resistencias, tipo) {
     return 0;
   }
 
-  const normalizadas = normalizarResistencias(resistencias ?? {});
-  return normalizadas[tipoNormalizado];
+  const valor = resistencias?.[tipoNormalizado] ?? 0;
+  return normalizarResistenciaEfectiva(
+    valor,
+    `La resistencia efectiva a ${obtenerEtiquetaTipoDanio(tipoNormalizado)}`,
+  );
 }
 
 // Conserva la fórmula física vigente.
@@ -310,8 +317,11 @@ export function resolverComponenteDanio({
       resistencias,
       tipoNormalizado,
     );
-    reduccionResistencia = resistenciaAplicada / 100;
-    danioAntesRedondeo = bruto * (1 - reduccionResistencia);
+    const multiplicadorResistencia = calcularMultiplicadorResistencia(
+      resistenciaAplicada,
+    );
+    reduccionResistencia = 1 - multiplicadorResistencia;
+    danioAntesRedondeo = bruto * multiplicadorResistencia;
   }
 
   const danioMitigadoArmadura = esFisico

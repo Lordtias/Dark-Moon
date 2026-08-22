@@ -577,6 +577,8 @@ function crearTextoDesglose(resultadoGolpe) {
       }
     } else if ((componente?.resistencia ?? 0) > 0) {
       defensa = `, resistencia ${formatearNumero(componente.resistencia)}%`;
+    } else if ((componente?.resistencia ?? 0) < 0) {
+      defensa = `, vulnerabilidad +${formatearNumero(Math.abs(componente.resistencia))}%`;
     }
 
     return (

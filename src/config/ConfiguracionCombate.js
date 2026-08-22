@@ -5,8 +5,8 @@
 export const CONFIGURACION_COMBATE = {
   atributos: {
     // Cada punto por encima o debajo de 10 modifica
-    // el daño físico en un 3%.
-    danioPorPuntoRespectoDiez: 0.03,
+    // el daño físico en un 2,5%. Diez es el punto neutro.
+    danioPorPuntoRespectoDiez: 0.025,
     // Destreza continúa aumentando tanto precisión
     // como evasión, pero con una progresión más moderada.
     precisionPorDestreza: 2,
@@ -15,20 +15,12 @@ export const CONFIGURACION_COMBATE = {
     // de Vida, sin generar reservas excesivas en nivel 1.
     vidaPorConstitucion: 2,
     regeneracionVidaPorConstitucion: 0.1,
-    resistenciaElementalPorSabiduria: 0.5,
-    resistenciaVenenoPorConstitucion: 0.2,
-    resistenciaMentalPorSabiduria: 2,
-    potenciaAuraPorConstitucion: 2,
-  },
-  resistenciasEfectos: {
-    // El jugador obtiene una defensa pequeña y común contra los cuatro
-    // estados visibles. Los enemigos conservan exclusivamente los valores
-    // configurados en sus catálogos.
-    constitucion: {
-      referencia: 8,
-      puntosPorPorcentaje: 2,
-      bonificacionMaxima: 10,
-    },
+    // Todas las resistencias derivadas de atributos comparten una única
+    // referencia: 10 es neutro y cada punto de diferencia aporta 2,5 %.
+    referenciaResistencias: 10,
+    resistenciaPorPuntoRespectoReferencia: 2.5,
+    // Potencia de Aura comparte la misma filosofía porcentual: 10 es neutro.
+    potenciaAuraPorPuntoRespectoDiez: 2.5,
   },
   impacto: {
     // El factor aumentado reduce la frecuencia de fallos
@@ -81,8 +73,10 @@ export const CONFIGURACION_COMBATE = {
     recargoTemporalSecundaria: 0.3,
   },
   resistencias: {
-    // La primera versión no permite resistencias negativas.
-    minima: 0,
+    // Las fuentes base continúan sin aceptar valores negativos. Los
+    // modificadores sí pueden llevar el resultado efectivo a vulnerabilidad.
+    minimaFuente: 0,
+    minimaEfectiva: -50,
     maxima: 75,
   },
   limites: {

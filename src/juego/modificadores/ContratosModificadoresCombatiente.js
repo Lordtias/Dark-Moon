@@ -33,7 +33,7 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   DISPERSION: "dispersion",
   PENETRACION_ARMADURA: "penetracionArmadura",
   MULTIPLICADOR_DANIO_FUENTE: "multiplicadorDanioFuente",
-  // Resistencia porcentual (0-75) usada para reducir la probabilidad de Maldiciones.
+  // Resistencia porcentual efectiva usada para reducir o aumentar la probabilidad de Maldiciones.
   RESISTENCIA_MENTAL: "resistenciaMental",
   // Variación decimal ya resuelta que consume el sistema de comercio.
   AJUSTE_COMERCIAL: "ajusteComercial",

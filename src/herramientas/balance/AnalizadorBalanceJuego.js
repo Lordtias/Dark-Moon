@@ -49,6 +49,7 @@ export function crearAnalizadorBalanceJuego({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos = null,
+  configuracionBotin,
   configuracionMapas,
   configuracionEntidadesMazmorra,
   configuracionProgresoHabilidades,
@@ -60,6 +61,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionBotin,
     configuracionMapas,
     configuracionEntidadesMazmorra,
     configuracionProgresoHabilidades,
@@ -73,6 +75,7 @@ export function crearAnalizadorBalanceJuego({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionBotin,
     configuracionMapas,
     configuracionEntidadesMazmorra,
     configuracionProgresoHabilidades,
@@ -1177,9 +1180,11 @@ function obtenerCostosManaPorCategoria(configuracionEjecucionHabilidades) {
   for (const habilidad of Object.values(
     configuracionEjecucionHabilidades.habilidades,
   )) {
+    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) continue;
     const categoria = obtenerCategoriaHabilidad(
       habilidad.requisitoNivelMaestria,
     );
+    if (!Object.hasOwn(agrupados, categoria)) continue;
     for (const grado of Object.values(habilidad.ejecucion.grados)) {
       agrupados[categoria].push(grado.costoMana);
     }
@@ -1602,6 +1607,7 @@ function crearInformeHabilidades({ configuracionEjecucionHabilidades }) {
   for (const habilidad of Object.values(
     configuracionEjecucionHabilidades.habilidades,
   )) {
+    if (habilidad.tipo !== "activa" || !habilidad.ejecucion) continue;
     const categoria = obtenerCategoriaHabilidad(
       habilidad.requisitoNivelMaestria,
     );
@@ -1879,7 +1885,12 @@ function crearInformeEscenariosTeoricos({
   const habilidadesBasicas = [];
   for (const habilidad of Object.values(
     configuracionEjecucionHabilidades.habilidades,
-  ).filter((habilidad) => habilidad.requisitoNivelMaestria === 0)) {
+  ).filter(
+    (habilidad) =>
+      habilidad.tipo === "activa" &&
+      Boolean(habilidad.ejecucion) &&
+      habilidad.requisitoNivelMaestria === 0,
+  )) {
     for (const [gradoTexto, grado] of Object.entries(
       habilidad.ejecucion.grados,
     )) {

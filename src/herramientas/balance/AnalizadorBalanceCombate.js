@@ -5,6 +5,8 @@ import {
   calcularCostoManaAtaqueBasico,
 } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 import { crearObjeto } from "../../objetos/FabricaObjetos.js";
+import { crearObjetoGenerado } from "../../juego/objetos/GeneradorObjetoAleatorio.js";
+import { crearGeneradorAleatorio } from "../../juego/generacion/GeneradorAleatorio.js";
 import {
   resolverPaqueteDanio,
 } from "../../juego/combate/ComponentesDanio.js";
@@ -41,6 +43,20 @@ const ESTADOS = Object.freeze({
 
 const RESISTENCIAS_ELEMENTALES_PRUEBA = Object.freeze([0, 25, 50, 75]);
 const NIVELES_REFERENCIA_PREDETERMINADOS = Object.freeze([1, 3, 6, 10]);
+const PREFIJOS_ESCALADOS_GLOBALES = Object.freeze([
+  "enfocado",
+  "marcial",
+  "mistico",
+  "igneo",
+  "gelido",
+  "fulgurante",
+  "toxico",
+  "incandescente",
+  "virulento",
+  "entorpecedor",
+  "sobrecargado",
+  "catalitico",
+]);
 
 // Analiza armas, habilidades, Daño de Habilidad y arquetipos usando las
 // configuraciones y motores canónicos del juego. El módulo no modifica ninguna
@@ -73,6 +89,13 @@ export function crearInformeBalanceCombate({
     configuracionObjetos,
     configuracionGeneracionObjetos,
     configuracion,
+  });
+  const escaladosGlobales = crearInformeEscaladosGlobales({
+    configuracionPersonaje,
+    configuracionObjetos,
+    configuracionGeneracionObjetos,
+    configuracionEjecucionHabilidades,
+    objetivosBalance,
   });
   const armas = crearInformeArmasCombate({
     configuracionPersonaje,
@@ -110,6 +133,7 @@ export function crearInformeBalanceCombate({
     armas,
     habilidades,
     potencia,
+    escaladosGlobales,
     arquetipos,
     pruebasFocalizadas,
   });
@@ -132,6 +156,7 @@ export function crearInformeBalanceCombate({
     armas,
     habilidades,
     potencia,
+    escaladosGlobales,
     arquetipos,
     pruebasFocalizadas,
     conclusiones,
@@ -301,12 +326,20 @@ function crearEscenariosPotencia({
 
 function obtenerPotenciaAfijoMaxima(configuracionGeneracionObjetos) {
   const prefijos = configuracionGeneracionObjetos?.prefijos ?? {};
+  const rarezasActivas = new Set(
+    Object.entries(configuracionGeneracionObjetos?.rarezas ?? {})
+      .filter(([, rareza]) => rareza?.generacionHabilitada === true)
+      .map(([idRareza]) => idRareza),
+  );
   let maxima = 0;
   for (const afijo of Object.values(prefijos)) {
     const afectaPotencia = afijo.efectos?.some(
       (efecto) => efecto.propiedad === "danoHabilidad",
     );
-    if (!afectaPotencia || afijo.estado !== "activo") continue;
+    const esObtenible = afijo.rarezasPermitidas?.some((idRareza) =>
+      rarezasActivas.has(idRareza),
+    );
+    if (!afectaPotencia || !esObtenible) continue;
     for (const grado of afijo.grados ?? []) {
       const rango = grado.valores?.danoHabilidad;
       if (Number.isFinite(rango?.maximo)) maxima = Math.max(maxima, rango.maximo);
@@ -619,13 +652,18 @@ function promedioDanioFuente({
       : [0];
     let acumulado = 0;
     let casos = 0;
+    const multiplicadorDanioGlobal = Number.isFinite(
+      descriptor.multiplicadorDanioGlobal,
+    )
+      ? descriptor.multiplicadorDanioGlobal
+      : estadisticasDanio.multiplicadorGlobal;
     for (const local of locales) {
       for (const global of globales) {
         const brutoBase =
           (local * descriptor.multiplicadorAtributo + global) *
           (descriptor.multiplicadorGolpe ?? fuente.multiplicadorGolpe ?? 1) *
           (descriptor.aplicaMultiplicadorGlobal
-            ? estadisticasDanio.multiplicadorGlobal
+            ? multiplicadorDanioGlobal
             : 1);
         const bruto =
           critico && descriptor.aplicaCritico !== false
@@ -2866,11 +2904,1275 @@ function contarActivacionesZona(configuracion) {
   return cantidad;
 }
 
+// Mide los ejes globales mediante instancias reales: Player, equipamiento,
+// MotorDanioHabilidad, MotorEfectosHabilidad y SistemaEfectosTemporales.
+// No introduce una fórmula paralela ni habilita rarezas que el juego mantiene
+// desactivadas; las combinaciones raras se identifican como techo controlado.
+function crearInformeEscaladosGlobales({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionGeneracionObjetos,
+  configuracionEjecucionHabilidades,
+  objetivosBalance,
+}) {
+  if (!configuracionGeneracionObjetos) {
+    return {
+      tipoResultado: "escalados_globales_no_disponible",
+      determinista: true,
+      descripcion:
+        "No se recibió el catálogo de rarezas y afijos; se conserva el informe principal sin inventar valores.",
+      configuracion: null,
+      filas: [],
+      afijos: [],
+      rarezas: [],
+      resumenEjes: resumirEstados([]),
+      resumen: resumirEstados([]),
+    };
+  }
+
+  const configuracion = normalizarConfiguracionEscaladosGlobales(
+    objetivosBalance.analisisEscaladosGlobales,
+  );
+  const referencias = {
+    fuego: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.fuego,
+    }),
+    veneno: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.veneno,
+    }),
+    frio: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.frio,
+    }),
+    rayo: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.rayo,
+    }),
+    congelamiento: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.congelamiento,
+    }),
+    aturdimiento: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.aturdimiento,
+    }),
+    supresion: obtenerReferenciaHabilidadEscalado({
+      configuracionEjecucionHabilidades,
+      referencia: configuracion.habilidades.supresion,
+    }),
+  };
+
+  const crearMago = (equipo) =>
+    crearJugadorConEquipoEscalado({
+      configuracionPersonaje,
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      configuracion,
+      idProfesion: "mago",
+      equipo,
+    });
+  const medirMagia = (equipo, referencia) =>
+    medirHabilidadEscalada({
+      jugador: crearMago(equipo),
+      configuracionEjecucionHabilidades,
+      referencia,
+    });
+
+  const equipoBaseMagico = crearEquipoBaseMagico(configuracion);
+  const fuegoBase = medirMagia(equipoBaseMagico, referencias.fuego);
+  const fuegoEnfocado = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "enfocado",
+      ranuras: ["arma"],
+      rareza: "magico",
+    }),
+    referencias.fuego,
+  );
+  const fuegoMistico = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "mistico",
+      ranuras: ["arma"],
+      rareza: "raro",
+    }),
+    referencias.fuego,
+  );
+  const fuegoAfinidad = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "igneo",
+      ranuras: ["arma", "collar", "anillo_derecho", "anillo_izquierdo"],
+      rareza: "magico",
+    }),
+    referencias.fuego,
+  );
+  const fuegoCatalitico = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "catalitico",
+      ranuras: ["arma"],
+      rareza: "raro",
+    }),
+    referencias.fuego,
+  );
+  const fuegoIncandescente = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "incandescente",
+      ranuras: ["arma", "collar", "anillo_derecho", "anillo_izquierdo"],
+      rareza: "magico",
+    }),
+    referencias.fuego,
+  );
+
+  const magoAfinidadPasiva = crearMago(equipoBaseMagico);
+  aprenderPasivaEscalada({
+    jugador: magoAfinidadPasiva,
+    configuracionEjecucionHabilidades,
+    idHabilidad: "afinidad_ignea",
+    grado: 1,
+  });
+  const fuegoAfinidadPasiva = medirHabilidadEscalada({
+    jugador: magoAfinidadPasiva,
+    configuracionEjecucionHabilidades,
+    referencia: referencias.fuego,
+  });
+
+  const venenoBase = medirMagia(equipoBaseMagico, referencias.veneno);
+  const venenoVirulento = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "virulento",
+      ranuras: ["arma", "collar", "anillo_derecho", "anillo_izquierdo"],
+      rareza: "magico",
+    }),
+    referencias.veneno,
+  );
+  const frioBase = medirMagia(equipoBaseMagico, referencias.frio);
+  const frioEntorpecedor = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "entorpecedor",
+      ranuras: ["arma", "collar", "anillo_derecho", "anillo_izquierdo"],
+      rareza: "magico",
+    }),
+    referencias.frio,
+  );
+  const rayoBase = medirMagia(equipoBaseMagico, referencias.rayo);
+  const rayoSobrecargado = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "sobrecargado",
+      ranuras: ["arma", "collar", "anillo_derecho", "anillo_izquierdo"],
+      rareza: "magico",
+    }),
+    referencias.rayo,
+  );
+  const congelamientoBase = medirMagia(
+    equipoBaseMagico,
+    referencias.congelamiento,
+  );
+  const congelamientoCatalitico = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "catalitico",
+      ranuras: ["arma"],
+      rareza: "raro",
+    }),
+    referencias.congelamiento,
+  );
+  const aturdimientoBase = medirMagia(
+    equipoBaseMagico,
+    referencias.aturdimiento,
+  );
+  const aturdimientoCatalitico = medirMagia(
+    crearEquipoConPrefijo({
+      configuracion,
+      idPrefijo: "catalitico",
+      ranuras: ["arma"],
+      rareza: "raro",
+    }),
+    referencias.aturdimiento,
+  );
+
+  const fisicoBase = medirArmaFisicaEscalada({
+    jugador: crearJugadorConEquipoEscalado({
+      configuracionPersonaje,
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      configuracion,
+      idProfesion: "guerrero",
+      equipo: crearEquipoFisico(configuracion),
+    }),
+  });
+  const fisicoMarcial = medirArmaFisicaEscalada({
+    jugador: crearJugadorConEquipoEscalado({
+      configuracionPersonaje,
+      configuracionObjetos,
+      configuracionGeneracionObjetos,
+      configuracion,
+      idProfesion: "guerrero",
+      equipo: crearEquipoFisico(configuracion, ["marcial"], "raro"),
+    }),
+  });
+
+  const magoSuprimido = crearMago(equipoBaseMagico);
+  const fuegoAntesSupresion = medirHabilidadEscalada({
+    jugador: magoSuprimido,
+    configuracionEjecucionHabilidades,
+    referencia: referencias.fuego,
+  });
+  const sistemaSupresion = aplicarEfectoTemporalEscalado({
+    lanzador: magoSuprimido,
+    objetivo: magoSuprimido,
+    referencia: referencias.supresion,
+  });
+  const fuegoConSupresion = medirHabilidadEscalada({
+    jugador: magoSuprimido,
+    configuracionEjecucionHabilidades,
+    referencia: referencias.fuego,
+  });
+  sistemaSupresion.destruir();
+
+  const techoRaro = medirMagia(
+    crearEquipoTechoRaro(configuracion),
+    referencias.fuego,
+  );
+
+  const filas = [
+    crearFilaEscalado({
+      id: "dano_fisico_marcial",
+      eje: "Daño Físico",
+      fuente: "Marcial G3 máximo",
+      alcance: "Raro controlado — no generable",
+      medida: "Daño físico esperado de Espada de acero templado",
+      valorBase: fisicoBase.danioAplicado,
+      valorResultado: fisicoMarcial.danioAplicado,
+      directoBase: fisicoBase.danioAplicado,
+      directoResultado: fisicoMarcial.danioAplicado,
+      efectoBase: null,
+      efectoResultado: null,
+      evaluacion: evaluarCambioEsperado({
+        cambioDirecto: calcularVariacionPorcentual(
+          fisicoBase.danioAplicado,
+          fisicoMarcial.danioAplicado,
+        ),
+        descripcion:
+          "Debe modificar únicamente el componente físico de un arma real.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "dano_magico_mistico",
+      eje: "Daño Mágico",
+      fuente: "Místico G3 máximo",
+      alcance: "Raro controlado — no generable",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoBase.directoBruto,
+      valorResultado: fuegoMistico.directoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: fuegoMistico.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: fuegoMistico.efectoBruto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          fuegoBase.directoBruto,
+          fuegoMistico.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          fuegoBase.efectoBruto,
+          fuegoMistico.efectoBruto,
+        ),
+        debeCambiarDirecto: true,
+        debeCambiarEfecto: false,
+        descripcion:
+          "Daño Mágico escala el daño directo elemental y no la Quemadura.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "dano_habilidad_enfocado",
+      eje: "Daño de Habilidad",
+      fuente: "Enfocado G3 máximo",
+      alcance: "Mágico activo — arma",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoBase.directoBruto,
+      valorResultado: fuegoEnfocado.directoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: fuegoEnfocado.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: fuegoEnfocado.efectoBruto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          fuegoBase.directoBruto,
+          fuegoEnfocado.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          fuegoBase.efectoBruto,
+          fuegoEnfocado.efectoBruto,
+        ),
+        debeCambiarDirecto: true,
+        debeCambiarEfecto: false,
+        descripcion:
+          "Daño de Habilidad debe ser la capa exterior del daño directo y no tocar efectos.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "afinidad_ignea_pasiva",
+      eje: "Afinidad de Fuego",
+      fuente: "Afinidad ígnea aprendida",
+      alcance: "Pasiva activa",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoBase.directoBruto,
+      valorResultado: fuegoAfinidadPasiva.directoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: fuegoAfinidadPasiva.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: fuegoAfinidadPasiva.efectoBruto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          fuegoBase.directoBruto,
+          fuegoAfinidadPasiva.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          fuegoBase.efectoBruto,
+          fuegoAfinidadPasiva.efectoBruto,
+        ),
+        debeCambiarDirecto: true,
+        debeCambiarEfecto: false,
+        descripcion:
+          "La afinidad pasiva suma al daño directo de su elemento y no potencia la Quemadura.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "afinidad_ignea_techo_magico",
+      eje: "Afinidad de Fuego",
+      fuente: "Ígneo G3 máximo en arma, collar y dos anillos",
+      alcance: "Mágico activo — cuatro fuentes",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoBase.directoBruto,
+      valorResultado: fuegoAfinidad.directoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: fuegoAfinidad.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: fuegoAfinidad.efectoBruto,
+      evaluacion: combinarEvaluaciones([
+        evaluarTechoActivo({
+          variacion: calcularVariacionPorcentual(
+            fuegoBase.directoBruto,
+            fuegoAfinidad.directoBruto,
+          ),
+          rango: configuracion.limites.afinidadDirecta,
+          descripcion:
+            "El techo especializado obtenible debe quedar dentro de la banda aprobada de afinidad directa.",
+        }),
+        evaluarSeparacionEjes({
+          cambioDirecto: calcularVariacionPorcentual(
+            fuegoBase.directoBruto,
+            fuegoAfinidad.directoBruto,
+          ),
+          cambioEfecto: calcularVariacionPorcentual(
+            fuegoBase.efectoBruto,
+            fuegoAfinidad.efectoBruto,
+          ),
+          debeCambiarDirecto: true,
+          debeCambiarEfecto: false,
+          descripcion:
+            "La afinidad acumulada no debe filtrar hacia la potencia de efectos.",
+        }),
+      ]),
+    }),
+    crearFilaEscalado({
+      id: "potencia_efectos_catalitico",
+      eje: "Potencia de Efectos",
+      fuente: "Catalítico G3 máximo",
+      alcance: "Raro controlado — no generable",
+      medida: fuegoCatalitico.medidaEfecto,
+      valorBase: fuegoBase.efectoBruto,
+      valorResultado: fuegoCatalitico.efectoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: fuegoCatalitico.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: fuegoCatalitico.efectoBruto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          fuegoBase.directoBruto,
+          fuegoCatalitico.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          fuegoBase.efectoBruto,
+          fuegoCatalitico.efectoBruto,
+        ),
+        debeCambiarDirecto: false,
+        debeCambiarEfecto: true,
+        descripcion:
+          "Potencia de Efectos general sólo debe modificar la magnitud de la Quemadura.",
+      }),
+    }),
+    ...crearFilasPotenciaEspecifica({
+      configuracion,
+      filas: [
+        {
+          id: "potencia_quemadura_techo_magico",
+          eje: "Potencia de Quemadura",
+          fuente: "Incandescente G3 máximo en cuatro fuentes",
+          base: fuegoBase,
+          resultado: fuegoIncandescente,
+        },
+        {
+          id: "potencia_envenenamiento_techo_magico",
+          eje: "Potencia de Envenenamiento",
+          fuente: "Virulento G3 máximo en cuatro fuentes",
+          base: venenoBase,
+          resultado: venenoVirulento,
+        },
+        {
+          id: "potencia_ralentizacion_techo_magico",
+          eje: "Potencia de Ralentización",
+          fuente: "Entorpecedor G3 máximo en cuatro fuentes",
+          base: frioBase,
+          resultado: frioEntorpecedor,
+        },
+        {
+          id: "potencia_electrizacion_techo_magico",
+          eje: "Potencia de Electrización",
+          fuente: "Sobrecargado G3 máximo en cuatro fuentes",
+          base: rayoBase,
+          resultado: rayoSobrecargado,
+        },
+      ],
+    }),
+    crearFilaEscalado({
+      id: "potencia_congelamiento_binario",
+      eje: "Potencia de Efectos",
+      fuente: "Catalítico G3 máximo",
+      alcance: "Raro controlado — no generable",
+      medida: "Duración de Congelamiento de Ráfaga glacial G3",
+      valorBase: congelamientoBase.duracionEfecto,
+      valorResultado: congelamientoCatalitico.duracionEfecto,
+      directoBase: congelamientoBase.directoBruto,
+      directoResultado: congelamientoCatalitico.directoBruto,
+      efectoBase: congelamientoBase.duracionEfecto,
+      efectoResultado: congelamientoCatalitico.duracionEfecto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          congelamientoBase.directoBruto,
+          congelamientoCatalitico.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          congelamientoBase.duracionEfecto,
+          congelamientoCatalitico.duracionEfecto,
+        ),
+        debeCambiarDirecto: false,
+        debeCambiarEfecto: false,
+        descripcion:
+          "Congelamiento es binario: Potencia de Efectos no debe cambiar su duración ni el daño directo.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "potencia_aturdimiento_binario",
+      eje: "Potencia de Efectos",
+      fuente: "Catalítico G3 máximo",
+      alcance: "Raro controlado — no generable",
+      medida: "Duración de Aturdimiento de Descarga fulminante G3",
+      valorBase: aturdimientoBase.duracionEfecto,
+      valorResultado: aturdimientoCatalitico.duracionEfecto,
+      directoBase: aturdimientoBase.directoBruto,
+      directoResultado: aturdimientoCatalitico.directoBruto,
+      efectoBase: aturdimientoBase.duracionEfecto,
+      efectoResultado: aturdimientoCatalitico.duracionEfecto,
+      evaluacion: evaluarSeparacionEjes({
+        cambioDirecto: calcularVariacionPorcentual(
+          aturdimientoBase.directoBruto,
+          aturdimientoCatalitico.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          aturdimientoBase.duracionEfecto,
+          aturdimientoCatalitico.duracionEfecto,
+        ),
+        debeCambiarDirecto: false,
+        debeCambiarEfecto: false,
+        descripcion:
+          "Aturdimiento es binario: Potencia de Efectos no debe cambiar su duración ni el daño directo.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "maldicion_supresion_temporal",
+      eje: "Modificadores temporales",
+      fuente: "Supresión G3 aplicada por SistemaEfectosTemporales",
+      alcance: "Maldición activa",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoAntesSupresion.directoBruto,
+      valorResultado: fuegoConSupresion.directoBruto,
+      directoBase: fuegoAntesSupresion.directoBruto,
+      directoResultado: fuegoConSupresion.directoBruto,
+      efectoBase: fuegoAntesSupresion.efectoBruto,
+      efectoResultado: fuegoConSupresion.efectoBruto,
+      evaluacion: evaluarCambioEsperado({
+        cambioDirecto: calcularVariacionPorcentual(
+          fuegoAntesSupresion.directoBruto,
+          fuegoConSupresion.directoBruto,
+        ),
+        cambioEfecto: calcularVariacionPorcentual(
+          fuegoAntesSupresion.efectoBruto,
+          fuegoConSupresion.efectoBruto,
+        ),
+        debeSerNegativo: true,
+        descripcion:
+          "La maldición temporal debe reducir Daño de Habilidad y Potencia de Efectos mientras está vigente.",
+      }),
+    }),
+    crearFilaEscalado({
+      id: "techo_raro_controlado",
+      eje: "Techo combinado",
+      fuente: "Místico + Enfocado + afinidad + Catalítico + potencia específica",
+      alcance: "Raro controlado — no generable",
+      medida: "Daño directo bruto de Incinerar G3",
+      valorBase: fuegoBase.directoBruto,
+      valorResultado: techoRaro.directoBruto,
+      directoBase: fuegoBase.directoBruto,
+      directoResultado: techoRaro.directoBruto,
+      efectoBase: fuegoBase.efectoBruto,
+      efectoResultado: techoRaro.efectoBruto,
+      evaluacion: {
+        estado: ESTADOS.INFORMATIVO,
+        criterio:
+          "Techo futuro deliberadamente medido sin activar Raro; sirve como límite de diseño y no como resultado del botín actual.",
+      },
+    }),
+  ];
+  const disponibilidad = crearInformeDisponibilidadAfijosEscalados({
+    configuracionObjetos,
+    configuracionGeneracionObjetos,
+    configuracion,
+  });
+
+  return {
+    tipoResultado: "escalados_globales_motores_y_generador_canonicos",
+    determinista: true,
+    descripcion:
+      "Cada comparación crea un jugador, equipa objetos reales y resuelve daño o efectos con los motores canónicos. Las muestras de frecuencia usan el generador real con semilla fija.",
+    configuracion: {
+      nivelReferencia: configuracion.nivelReferencia,
+      nivelObjeto: configuracion.nivelObjeto,
+      muestrasGeneracion: configuracion.muestrasGeneracion,
+      limites: copiarDatosBalance(configuracion.limites),
+    },
+    filas,
+    afijos: disponibilidad.afijos,
+    rarezas: disponibilidad.rarezas,
+    resumenEjes: resumirEstados(filas),
+    resumen: resumirEstados([
+      ...filas,
+      ...disponibilidad.afijos,
+      ...disponibilidad.rarezas,
+    ]),
+  };
+}
+
+function normalizarConfiguracionEscaladosGlobales(configuracion = {}) {
+  const referencias = configuracion.referencias ?? {};
+  return {
+    nivelReferencia: numeroEnteroPositivo(
+      configuracion.nivelReferencia,
+      10,
+    ),
+    nivelObjeto: numeroEnteroPositivo(configuracion.nivelObjeto, 10),
+    muestrasGeneracion: numeroEnteroPositivo(
+      configuracion.muestrasGeneracion,
+      2000,
+    ),
+    semillaGeneracion:
+      typeof configuracion.semillaGeneracion === "string" &&
+      configuracion.semillaGeneracion.trim() !== ""
+        ? configuracion.semillaGeneracion.trim()
+        : "balance-escalados-globales-v1",
+    limites: {
+      afinidadDirecta: normalizarRangoEscalado(
+        configuracion.limites?.afinidadDirecta,
+        { minimo: 40, maximo: 50 },
+      ),
+      potenciaEfecto: normalizarRangoEscalado(
+        configuracion.limites?.potenciaEfecto,
+        { minimo: 45, maximo: 55 },
+      ),
+    },
+    objetos: {
+      armaFisica: referencias.armaFisica ?? "espada_acero_templado",
+      armaMagica: referencias.armaMagica ?? "baston_maestro",
+      collar: referencias.collar ?? "collar_rubi_magistral",
+      anillo: referencias.anillo ?? "anillo_rubi_magistral",
+    },
+    habilidades: {
+      fuego: referencias.fuego ?? {
+        idHabilidad: "incinerar",
+        grado: 3,
+        idEfecto: "quemadura",
+      },
+      veneno: referencias.veneno ?? {
+        idHabilidad: "aguijon_toxico",
+        grado: 4,
+        idEfecto: "envenenamiento",
+      },
+      frio: referencias.frio ?? {
+        idHabilidad: "esquirla_hielo",
+        grado: 4,
+        idEfecto: "ralentizacion",
+      },
+      rayo: referencias.rayo ?? {
+        idHabilidad: "chispa",
+        grado: 4,
+        idEfecto: "electrizacion",
+      },
+      congelamiento: referencias.congelamiento ?? {
+        idHabilidad: "rafaga_glacial",
+        grado: 3,
+        idEfecto: "congelamiento",
+      },
+      aturdimiento: referencias.aturdimiento ?? {
+        idHabilidad: "descarga_fulminante",
+        grado: 3,
+        idEfecto: "aturdimiento",
+      },
+      supresion: referencias.supresion ?? {
+        idHabilidad: "supresion",
+        grado: 3,
+        idEfecto: "supresion",
+      },
+    },
+  };
+}
+
+function numeroEnteroPositivo(valor, respaldo) {
+  return Number.isInteger(valor) && valor > 0 ? valor : respaldo;
+}
+
+function normalizarRangoEscalado(rango, respaldo) {
+  const minimo = Number.isFinite(rango?.minimo) ? rango.minimo : respaldo.minimo;
+  const maximo = Number.isFinite(rango?.maximo) ? rango.maximo : respaldo.maximo;
+  if (maximo < minimo) return { ...respaldo };
+  return { minimo, maximo };
+}
+
+function obtenerReferenciaHabilidadEscalado({
+  configuracionEjecucionHabilidades,
+  referencia,
+}) {
+  const idHabilidad = String(referencia?.idHabilidad ?? "").trim().toLowerCase();
+  const grado = referencia?.grado;
+  const habilidad = configuracionEjecucionHabilidades.habilidades[idHabilidad];
+  const configuracionGrado = habilidad?.ejecucion?.grados?.[grado];
+  if (!habilidad || !configuracionGrado) {
+    throw new Error(
+      `La referencia de escalado ${idHabilidad}:g${grado} no es una habilidad activa válida.`,
+    );
+  }
+  return {
+    idHabilidad,
+    habilidad,
+    grado: Number(grado),
+    configuracionGrado,
+    idEfecto: referencia.idEfecto ?? null,
+  };
+}
+
+function crearEquipoBaseMagico(configuracion) {
+  return [{ ranura: "arma", idObjeto: configuracion.objetos.armaMagica }];
+}
+
+function crearEquipoFisico(configuracion, prefijos = [], rareza = "comun") {
+  return [
+    {
+      ranura: "arma",
+      idObjeto: configuracion.objetos.armaFisica,
+      prefijos,
+      rareza,
+    },
+  ];
+}
+
+function crearEquipoConPrefijo({ configuracion, idPrefijo, ranuras, rareza }) {
+  const idsPorRanura = {
+    arma: configuracion.objetos.armaMagica,
+    collar: configuracion.objetos.collar,
+    anillo_derecho: configuracion.objetos.anillo,
+    anillo_izquierdo: configuracion.objetos.anillo,
+  };
+  return ranuras.map((ranura) => ({
+    ranura,
+    idObjeto: idsPorRanura[ranura],
+    prefijos: [idPrefijo],
+    rareza,
+  }));
+}
+
+function crearEquipoTechoRaro(configuracion) {
+  return [
+    {
+      ranura: "arma",
+      idObjeto: configuracion.objetos.armaMagica,
+      rareza: "raro",
+      prefijos: ["mistico", "enfocado", "igneo"],
+    },
+    ...["collar", "anillo_derecho", "anillo_izquierdo"].map((ranura) => ({
+      ranura,
+      idObjeto:
+        ranura === "collar"
+          ? configuracion.objetos.collar
+          : configuracion.objetos.anillo,
+      rareza: "raro",
+      prefijos: ["igneo", "catalitico", "incandescente"],
+    })),
+  ];
+}
+
+function crearJugadorConEquipoEscalado({
+  configuracionPersonaje,
+  configuracionObjetos,
+  configuracionGeneracionObjetos,
+  configuracion,
+  idProfesion,
+  equipo,
+}) {
+  const jugador = crearJugadorPrueba({
+    configuracionPersonaje,
+    idProfesion,
+    nivel: configuracion.nivelReferencia,
+  });
+  for (const entrada of equipo) {
+    const prefijos = (entrada.prefijos ?? []).map((idAfijo) =>
+      crearInstanciaAfijoMaxima({
+        configuracionGeneracionObjetos,
+        idAfijo,
+        nivelObjeto: configuracion.nivelObjeto,
+      }),
+    );
+    const objeto = crearObjeto({
+      configuracionObjetos,
+      idObjeto: entrada.idObjeto,
+      rareza: prefijos.length > 0 ? entrada.rareza ?? "magico" : "comun",
+      nivelObjeto: configuracion.nivelObjeto,
+      prefijos,
+    });
+    jugador.equipamiento.equiparEnRanura(entrada.ranura, objeto);
+  }
+  return jugador;
+}
+
+function crearInstanciaAfijoMaxima({
+  configuracionGeneracionObjetos,
+  idAfijo,
+  nivelObjeto,
+}) {
+  const idNormalizado = String(idAfijo).trim().toLowerCase();
+  const afijo = configuracionGeneracionObjetos.prefijos[idNormalizado];
+  if (!afijo) throw new Error(`No existe el prefijo de escalado "${idNormalizado}".`);
+  const grado = [...(afijo.grados ?? [])]
+    .filter((actual) => actual.nivelObjetoMinimo <= nivelObjeto)
+    .sort((a, b) => a.grado - b.grado)
+    .at(-1);
+  if (!grado) {
+    throw new Error(
+      `El prefijo "${idNormalizado}" no tiene un grado disponible para nivel ${nivelObjeto}.`,
+    );
+  }
+  return {
+    id: idNormalizado,
+    nombre: afijo.nombre,
+    tipoAfijo: afijo.tipoAfijo,
+    descripcion: afijo.descripcion,
+    grupoExclusion: afijo.grupoExclusion,
+    grado: grado.grado,
+    nivelObjetoMinimo: grado.nivelObjetoMinimo,
+    efectos: copiarDatosBalance(afijo.efectos),
+    valores: Object.fromEntries(
+      Object.entries(grado.valores).map(([propiedad, rango]) => [
+        propiedad,
+        rango.maximo,
+      ]),
+    ),
+  };
+}
+
+function aprenderPasivaEscalada({
+  jugador,
+  configuracionEjecucionHabilidades,
+  idHabilidad,
+  grado,
+}) {
+  const habilidad = configuracionEjecucionHabilidades.habilidades[idHabilidad];
+  if (!habilidad || habilidad.tipo !== "pasiva") {
+    throw new Error(`La pasiva de escalado "${idHabilidad}" no existe.`);
+  }
+  const estado = jugador.exportarProgresoHabilidades();
+  const maestria = estado.maestrias[habilidad.maestria];
+  if (!maestria) {
+    throw new Error(
+      `El perfil de balance no dispone de la maestría "${habilidad.maestria}".`,
+    );
+  }
+  maestria.nivel = Math.max(maestria.nivel, habilidad.requisitoNivelMaestria);
+  maestria.experiencia = 0;
+  maestria.experienciaTotal = 0;
+  estado.gradosHabilidades[idHabilidad] = grado;
+  jugador.restaurarProgresoHabilidades(estado);
+}
+
+function medirArmaFisicaEscalada({ jugador }) {
+  const estadisticas = jugador.estadisticasDerivadas;
+  const objetivo = crearObjetivoPrueba({ nivel: jugador.nivel });
+  const danioAplicado = estadisticas.danioFisico.componentes.reduce(
+    (total, fuente) =>
+      total +
+      promedioDanioFuente({
+        fuente,
+        estadisticasDanio: estadisticas.danioFisico,
+        objetivo,
+        critico: false,
+      }),
+    0,
+  );
+  return { danioAplicado: redondear(danioAplicado) };
+}
+
+function medirHabilidadEscalada({
+  jugador,
+  configuracionEjecucionHabilidades,
+  referencia,
+}) {
+  const objetivoDirecto = crearObjetivoPrueba({ nivel: jugador.nivel });
+  let directo;
+  let preparados;
+  try {
+    configurarTiradasDeterministasHabilidad({
+      impacto: [1],
+      critico: [100],
+      efecto: [1],
+    });
+    directo = resolverDanioHabilidad({
+      lanzador: jugador,
+      objetivo: objetivoDirecto,
+      componentesConfigurados: referencia.configuracionGrado.danio,
+      idEjecucion: `balance-escalados:${referencia.idHabilidad}:g${referencia.grado}`,
+      resolverImpacto: true,
+      resolverCritico: true,
+    });
+    preparados = prepararEfectosHabilidad({
+      lanzador: jugador,
+      objetivo: crearObjetivoPrueba({ nivel: jugador.nivel }),
+      efectosConfigurados: referencia.configuracionGrado.efectos,
+      idEjecucion: `balance-escalados:${referencia.idHabilidad}:g${referencia.grado}:efecto`,
+    });
+  } finally {
+    restaurarTiradasAleatoriasHabilidad();
+  }
+  const preparado = preparados.find(
+    (actual) => actual.idEfecto === referencia.idEfecto,
+  );
+  const efecto = preparado
+    ? medirEfectoPreparadoEscalado(preparado)
+    : { medida: "Sin efecto", bruto: null, aplicado: null };
+  return {
+    directoBruto: redondear(
+      directo.componentes.reduce(
+        (total, componente) => total + componente.danioBruto,
+        0,
+      ),
+    ),
+    directoAplicado: redondear(directo.danioFinal),
+    efectoBruto: efecto.bruto === null ? null : redondear(efecto.bruto),
+    efectoAplicado:
+      efecto.aplicado === null ? null : redondear(efecto.aplicado),
+    medidaEfecto: efecto.medida,
+    operacionEfecto: efecto.operacion,
+    duracionEfecto: preparado?.definicion?.duracion ?? null,
+  };
+}
+
+function medirEfectoPreparadoEscalado(preparado) {
+  const definicion = preparado.definicion;
+  const objetivo = definicion.objetivo;
+  const sistema = new SistemaEfectosTemporales({
+    obtenerTiempoActual: () => 0,
+  });
+  try {
+    const aplicacion = sistema.aplicar(definicion, {
+      obtenerTiradaAplicacion: () => 1,
+    });
+    if (!aplicacion.aplicado) {
+      throw new Error(
+        `No se pudo aplicar ${preparado.nombreEfecto} durante la medición de escalados.`,
+      );
+    }
+    if (Array.isArray(definicion.componentesDanio)) {
+      const bruto = definicion.componentesDanio.reduce(
+        (total, componente) => total + componente.danioBruto,
+        0,
+      );
+      const instante = definicion.intervalo ?? 1;
+      const tick = sistema.procesarEventosEn(instante).eventos.find(
+        (evento) => evento.tipo === "danio_periodico_aplicado",
+      );
+      return {
+        medida: `Daño periódico por tick de ${preparado.nombreEfecto}`,
+        bruto,
+        aplicado: tick?.danio ?? tick?.danioCalculado ?? null,
+        operacion: null,
+      };
+    }
+    const activo = sistema.obtenerEfectosObjetivo(objetivo)[0];
+    if (Array.isArray(activo?.modificadores) && activo.modificadores.length > 0) {
+      return {
+        medida: `Magnitud de ${preparado.nombreEfecto}`,
+        bruto: activo.modificadores[0].valor,
+        aplicado: activo.modificadores[0].valor,
+        operacion: activo.modificadores[0].operacion,
+      };
+    }
+    return {
+      medida: `Valor de ${preparado.nombreEfecto}`,
+      bruto: activo?.valor ?? definicion.valor ?? null,
+      aplicado: activo?.valor ?? definicion.valor ?? null,
+      operacion: null,
+    };
+  } finally {
+    sistema.destruir();
+  }
+}
+
+function aplicarEfectoTemporalEscalado({ lanzador, objetivo, referencia }) {
+  const preparado = prepararEfectosHabilidad({
+    lanzador,
+    objetivo,
+    efectosConfigurados: referencia.configuracionGrado.efectos,
+    idEjecucion: `balance-escalados:${referencia.idHabilidad}:g${referencia.grado}:temporal`,
+  }).find((actual) => actual.idEfecto === referencia.idEfecto);
+  if (!preparado) {
+    throw new Error(
+      `La habilidad ${referencia.idHabilidad} no prepara ${referencia.idEfecto}.`,
+    );
+  }
+  const sistema = new SistemaEfectosTemporales({ obtenerTiempoActual: () => 0 });
+  const resultado = sistema.aplicar(preparado.definicion, {
+    obtenerTiradaAplicacion: () => 1,
+  });
+  if (!resultado.aplicado) {
+    sistema.destruir();
+    throw new Error(`No se pudo aplicar ${referencia.idEfecto} en la medición temporal.`);
+  }
+  return sistema;
+}
+
+function crearFilasPotenciaEspecifica({ configuracion, filas }) {
+  return filas.map(({ id, eje, fuente, base, resultado }) => {
+    const variacionEvaluadaPorcentual = calcularVariacionPotenciaEfecto({
+      base: base.efectoBruto,
+      resultado: resultado.efectoBruto,
+      operacion: resultado.operacionEfecto ?? base.operacionEfecto,
+    });
+    const usaReferenciaNeutra =
+      (resultado.operacionEfecto ?? base.operacionEfecto) === "multiplicar";
+    return crearFilaEscalado({
+      id,
+      eje,
+      fuente,
+      alcance: "Mágico activo — cuatro fuentes",
+      medida: resultado.medidaEfecto,
+      valorBase: base.efectoBruto,
+      valorResultado: resultado.efectoBruto,
+      directoBase: base.directoBruto,
+      directoResultado: resultado.directoBruto,
+      efectoBase: base.efectoBruto,
+      efectoResultado: resultado.efectoBruto,
+      variacionEvaluadaPorcentual,
+      descripcionVariacionEvaluada: usaReferenciaNeutra
+        ? "Fuerza del control respecto del neutro ×1"
+        : "Magnitud del efecto",
+      evaluacion: combinarEvaluaciones([
+        evaluarTechoActivo({
+          variacion: variacionEvaluadaPorcentual,
+          rango: configuracion.limites.potenciaEfecto,
+          descripcion:
+            usaReferenciaNeutra
+              ? "El techo especializado obtenible debe quedar dentro de la banda aprobada de potencia específica; los modificadores multiplicativos se comparan por su distancia desde ×1."
+              : "El techo especializado obtenible debe quedar dentro de la banda aprobada de potencia específica.",
+        }),
+        evaluarSeparacionEjes({
+          cambioDirecto: calcularVariacionPorcentual(
+            base.directoBruto,
+            resultado.directoBruto,
+          ),
+          cambioEfecto: calcularVariacionPorcentual(
+            base.efectoBruto,
+            resultado.efectoBruto,
+          ),
+          debeCambiarDirecto: false,
+          debeCambiarEfecto: true,
+          descripcion:
+            "La potencia específica debe afectar sólo su efecto y no el daño directo de la habilidad.",
+        }),
+      ]),
+    });
+  });
+}
+
+function crearFilaEscalado({
+  id,
+  eje,
+  fuente,
+  alcance,
+  medida,
+  valorBase,
+  valorResultado,
+  directoBase,
+  directoResultado,
+  efectoBase,
+  efectoResultado,
+  variacionEvaluadaPorcentual = null,
+  descripcionVariacionEvaluada = null,
+  evaluacion,
+}) {
+  const variacionPorcentual = calcularVariacionPorcentual(
+    valorBase,
+    valorResultado,
+  );
+  return {
+    id,
+    eje,
+    fuente,
+    alcance,
+    medida,
+    valorBase: valorBase === null ? null : redondear(valorBase),
+    valorResultado: valorResultado === null ? null : redondear(valorResultado),
+    variacionPorcentual,
+    variacionEvaluadaPorcentual:
+      variacionEvaluadaPorcentual ?? variacionPorcentual,
+    descripcionVariacionEvaluada,
+    directoBase: directoBase === null ? null : redondear(directoBase),
+    directoResultado:
+      directoResultado === null ? null : redondear(directoResultado),
+    efectoBase: efectoBase === null ? null : redondear(efectoBase),
+    efectoResultado:
+      efectoResultado === null ? null : redondear(efectoResultado),
+    criterio: evaluacion.criterio,
+    estado: evaluacion.estado,
+  };
+}
+
+function calcularVariacionPotenciaEfecto({ base, resultado, operacion }) {
+  if (operacion === "multiplicar" && base > 1 && resultado > 1) {
+    return calcularVariacionPorcentual(base - 1, resultado - 1);
+  }
+  return calcularVariacionPorcentual(base, resultado);
+}
+
+function calcularVariacionPorcentual(base, resultado) {
+  if (!Number.isFinite(base) || !Number.isFinite(resultado) || base === 0) {
+    return null;
+  }
+  return redondear(((resultado - base) / Math.abs(base)) * 100);
+}
+
+function evaluarCambioEsperado({
+  cambioDirecto,
+  cambioEfecto = null,
+  debeSerNegativo = false,
+  descripcion,
+}) {
+  const directoCorrecto = Number.isFinite(cambioDirecto) &&
+    (debeSerNegativo ? cambioDirecto < 0 : cambioDirecto > 0);
+  const efectoCorrecto = cambioEfecto === null ||
+    (debeSerNegativo ? cambioEfecto < 0 : true);
+  return {
+    estado: directoCorrecto && efectoCorrecto ? ESTADOS.CORRECTO : ESTADOS.INCORRECTO,
+    criterio: descripcion,
+  };
+}
+
+function evaluarSeparacionEjes({
+  cambioDirecto,
+  cambioEfecto,
+  debeCambiarDirecto,
+  debeCambiarEfecto,
+  descripcion,
+}) {
+  const directoCorrecto = debeCambiarDirecto
+    ? Number.isFinite(cambioDirecto) && Math.abs(cambioDirecto) > 0.01
+    : cambioDirecto === null || Math.abs(cambioDirecto) <= 0.01;
+  const efectoCorrecto = debeCambiarEfecto
+    ? Number.isFinite(cambioEfecto) && Math.abs(cambioEfecto) > 0.01
+    : cambioEfecto === null || Math.abs(cambioEfecto) <= 0.01;
+  return {
+    estado: directoCorrecto && efectoCorrecto ? ESTADOS.CORRECTO : ESTADOS.INCORRECTO,
+    criterio: descripcion,
+  };
+}
+
+function evaluarTechoActivo({ variacion, rango, descripcion }) {
+  const dentro = Number.isFinite(variacion) &&
+    variacion >= rango.minimo &&
+    variacion <= rango.maximo;
+  const cerca = Number.isFinite(variacion) &&
+    variacion >= rango.minimo - 5 &&
+    variacion <= rango.maximo + 5;
+  return {
+    estado: dentro
+      ? ESTADOS.CORRECTO
+      : cerca
+        ? ESTADOS.ADVERTENCIA
+        : ESTADOS.INCORRECTO,
+    criterio: `${descripcion} Objetivo: +${rango.minimo} % a +${rango.maximo} %; resultado: ${variacion ?? "—"} %.`,
+  };
+}
+
+function combinarEvaluaciones(evaluaciones) {
+  const estados = evaluaciones.map((evaluacion) => evaluacion.estado);
+  return {
+    estado: estados.includes(ESTADOS.INCORRECTO)
+      ? ESTADOS.INCORRECTO
+      : estados.includes(ESTADOS.ADVERTENCIA)
+        ? ESTADOS.ADVERTENCIA
+        : ESTADOS.CORRECTO,
+    criterio: evaluaciones.map((evaluacion) => evaluacion.criterio).join(" "),
+  };
+}
+
+function crearInformeDisponibilidadAfijosEscalados({
+  configuracionObjetos,
+  configuracionGeneracionObjetos,
+  configuracion,
+}) {
+  const perfiles = [
+    { id: configuracion.objetos.armaMagica, etiqueta: "Bastón maestro" },
+    { id: configuracion.objetos.collar, etiqueta: "Collar magistral" },
+  ];
+  const conteos = Object.fromEntries(
+    perfiles.map((perfil) => [
+      perfil.id,
+      {
+        rarezas: {},
+        prefijos: Object.fromEntries(
+          PREFIJOS_ESCALADOS_GLOBALES.map((id) => [id, 0]),
+        ),
+      },
+    ]),
+  );
+  for (const perfil of perfiles) {
+    const aleatorio = crearGeneradorAleatorio(
+      `${configuracion.semillaGeneracion}:${perfil.id}`,
+    );
+    for (
+      let indice = 0;
+      indice < configuracion.muestrasGeneracion;
+      indice += 1
+    ) {
+      const objeto = crearObjetoGenerado({
+        configuracionObjetos,
+        configuracionGeneracionObjetos,
+        idObjeto: perfil.id,
+        nivelObjeto: configuracion.nivelObjeto,
+        nivelProgreso: configuracion.nivelReferencia,
+        aleatorio,
+      });
+      conteos[perfil.id].rarezas[objeto.rareza] =
+        (conteos[perfil.id].rarezas[objeto.rareza] ?? 0) + 1;
+      for (const afijo of objeto.prefijos ?? []) {
+        if (Object.hasOwn(conteos[perfil.id].prefijos, afijo.id)) {
+          conteos[perfil.id].prefijos[afijo.id] += 1;
+        }
+      }
+    }
+  }
+
+  const rarezasActivas = new Set(
+    Object.entries(configuracionGeneracionObjetos.rarezas)
+      .filter(([, rareza]) => rareza.generacionHabilitada === true)
+      .map(([idRareza]) => idRareza),
+  );
+  const afijos = PREFIJOS_ESCALADOS_GLOBALES.map((idAfijo) => {
+    const afijo = configuracionGeneracionObjetos.prefijos[idAfijo];
+    const rarasPermitidas = [...(afijo?.rarezasPermitidas ?? [])];
+    const esObtenible = rarasPermitidas.some((idRareza) =>
+      rarezasActivas.has(idRareza),
+    );
+    const tasas = perfiles.map((perfil) =>
+      redondear(
+        (conteos[perfil.id].prefijos[idAfijo] /
+          configuracion.muestrasGeneracion) *
+          100,
+      ),
+    );
+    return {
+      idAfijo,
+      afijo: afijo?.nombre ?? idAfijo,
+      pesoBase: afijo?.pesoBase ?? 0,
+      rarezasPermitidas: rarasPermitidas,
+      generableAhora: esObtenible,
+      tasaArma: tasas[0],
+      tasaAccesorio: tasas[1],
+      muestraPorPerfil: configuracion.muestrasGeneracion,
+      estado: esObtenible
+        ? tasas.some((tasa) => tasa > 0)
+          ? ESTADOS.CORRECTO
+          : ESTADOS.INCORRECTO
+        : ESTADOS.INFORMATIVO,
+      criterio: esObtenible
+        ? "La frecuencia se obtiene del generador real con rarezas activas, pesos y compatibilidades actuales."
+        : "El afijo queda preparado para Raro, pero Raro permanece deshabilitado y su tasa actual debe ser 0 %.",
+    };
+  });
+  const rarezas = perfiles.flatMap((perfil) =>
+    Object.entries(configuracionGeneracionObjetos.rarezas).map(
+      ([idRareza, rareza]) => {
+        const tasa = redondear(
+          ((conteos[perfil.id].rarezas[idRareza] ?? 0) /
+            configuracion.muestrasGeneracion) *
+            100,
+        );
+        const habilitada = rareza.generacionHabilitada === true;
+        return {
+          id: `${perfil.id}:${idRareza}`,
+          perfil: perfil.etiqueta,
+          rareza: rareza.nombre ?? idRareza,
+          pesoBase: rareza.pesoBase ?? 0,
+          generacionHabilitada: habilitada,
+          tasa,
+          muestra: configuracion.muestrasGeneracion,
+          estado: habilitada
+            ? tasa > 0
+              ? ESTADOS.CORRECTO
+              : ESTADOS.INCORRECTO
+            : tasa === 0
+              ? ESTADOS.INFORMATIVO
+              : ESTADOS.INCORRECTO,
+          criterio: habilitada
+            ? "La rareza habilitada debe aparecer en la muestra del generador real."
+            : "La rareza permanece deshabilitada y su tasa actual debe ser 0 %.",
+        };
+      },
+    ),
+  );
+  return { afijos, rarezas };
+}
+
+function copiarDatosBalance(valor) {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) return valor.map(copiarDatosBalance);
+  return Object.fromEntries(
+    Object.entries(valor).map(([clave, contenido]) => [
+      clave,
+      copiarDatosBalance(contenido),
+    ]),
+  );
+}
+
 
 function crearConclusiones({
   armas,
   habilidades,
   potencia,
+  escaladosGlobales,
   arquetipos,
   pruebasFocalizadas,
 }) {
@@ -2890,6 +4192,18 @@ function crearConclusiones({
     (fila) => fila.estado === ESTADOS.INCORRECTO || fila.estado === ESTADOS.ADVERTENCIA,
   );
   const arquetiposProblematicos = arquetipos.filas.filter(
+    (fila) => fila.estado === ESTADOS.INCORRECTO,
+  );
+  const escaladosProblematicos = escaladosGlobales.filas.filter(
+    (fila) => fila.estado === ESTADOS.INCORRECTO,
+  );
+  const escaladosAdvertencia = escaladosGlobales.filas.filter(
+    (fila) => fila.estado === ESTADOS.ADVERTENCIA,
+  );
+  const disponibilidadGlobalProblematicos = [
+    ...escaladosGlobales.afijos,
+    ...escaladosGlobales.rarezas,
+  ].filter(
     (fila) => fila.estado === ESTADOS.INCORRECTO,
   );
 
@@ -2935,6 +4249,20 @@ function crearConclusiones({
           "Mantener las reglas canónicas y decidir únicamente si los valores máximos de afijo necesitan un tope o ajuste.",
       },
       {
+        id: "escalados_globales",
+        queSeAnalizo:
+          "Daño Físico, Daño Mágico, Daño de Habilidad, afinidades, Potencia de Efectos, potencias específicas, Supresión y la disponibilidad de sus afijos.",
+        porQue:
+          "Para confirmar en combate real que cada escala afecta sólo su capa canónica y que los techos activos no exceden la banda aprobada.",
+        conclusion:
+          escaladosProblematicos.length === 0 &&
+          disponibilidadGlobalProblematicos.length === 0
+            ? `Los ${escaladosGlobales.filas.length} recorridos canónicos conservan separación de ejes. ${escaladosAdvertencia.length} quedan como advertencia y Raro/Único siguen fuera del botín activo.`
+            : `${escaladosProblematicos.length + disponibilidadGlobalProblematicos.length} mediciones de escalado o disponibilidad requieren una decisión antes de cambiar contratos o valores.`,
+        recomendacion:
+          "Mantener pesos y rarezas mientras las tasas activas se sostengan; revisar únicamente las filas no correctas antes de ampliar el botín o tocar un contrato canónico.",
+      },
+      {
         id: "arquetipos",
         queSeAnalizo:
           "Rotaciones representativas de Guerrero, Rogue, Mago e híbridos contra uno y tres objetivos.",
@@ -2961,6 +4289,11 @@ function crearConclusiones({
         ...habilidadesAdvertencia,
       ].map((fila) => `${fila.idHabilidad}:g${fila.grado}`),
       revisarPotencia: potenciaExcesiva.map((fila) => fila.id),
+      revisarEscaladosGlobales: [
+        ...escaladosProblematicos,
+        ...escaladosAdvertencia,
+        ...disponibilidadGlobalProblematicos,
+      ].map((fila) => fila.id ?? fila.idAfijo),
       revisarArquetipos: arquetiposProblematicos.map((fila) => fila.id),
     },
   };
@@ -2983,6 +4316,7 @@ function crearJugadorPrueba({ configuracionPersonaje, idProfesion, nivel }) {
     ataqueNatural: profesion.ataqueNatural ?? null,
     capacidadInventario: 0,
     equipamientoInicial: [],
+    reglasSuerte: configuracionPersonaje.reglasSuerte,
   });
 }
 

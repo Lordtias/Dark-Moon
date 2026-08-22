@@ -48,6 +48,7 @@ export function crearInformeBalanceRegresion({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracionBotin,
   configuracionMapas,
   configuracionEntidadesMazmorra,
   configuracionEjecucionHabilidades,
@@ -63,6 +64,7 @@ export function crearInformeBalanceRegresion({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionBotin,
     configuracionMapas,
     configuracionEntidadesMazmorra,
     configuracionEjecucionHabilidades,
@@ -80,6 +82,7 @@ export function crearInformeBalanceRegresion({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionBotin,
     configuracionMapas,
     configuracionEntidadesMazmorra,
     progresion,
@@ -90,6 +93,7 @@ export function crearInformeBalanceRegresion({
     configuracionEnemigos,
     configuracionObjetos,
     configuracionGeneracionObjetos,
+    configuracionBotin,
   });
   const fallos = analizarCasosFallidos({
     configuracionPersonaje,
@@ -173,6 +177,7 @@ function analizarRutaGenerada({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracionBotin,
   configuracionMapas,
   configuracionEntidadesMazmorra,
   progresion,
@@ -191,6 +196,7 @@ function analizarRutaGenerada({
         player: jugador,
         configuracionEnemigos,
         configuracionObjetos,
+        configuracionBotin,
         configuracionGeneracionObjetos,
         configuracionMapas,
         configuracionEntidadesMazmorra,
@@ -289,6 +295,7 @@ function analizarRecompensasUnicas({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracionBotin,
 }) {
   return {
     filas: [
@@ -299,6 +306,7 @@ function analizarRecompensasUnicas({
         configuracionEnemigos,
         configuracionObjetos,
         configuracionGeneracionObjetos,
+        configuracionBotin,
       }),
       probarRecompensaUnica({
         causa: "Muerte por daño periódico",
@@ -307,6 +315,7 @@ function analizarRecompensasUnicas({
         configuracionEnemigos,
         configuracionObjetos,
         configuracionGeneracionObjetos,
+        configuracionBotin,
       }),
     ],
   };
@@ -319,8 +328,10 @@ function probarRecompensaUnica({
   configuracionEnemigos,
   configuracionObjetos,
   configuracionGeneracionObjetos,
+  configuracionBotin,
 }) {
   configurarContextoGeneracionBotin({
+    configuracionBotin,
     configuracionGeneracionObjetos,
     semillaMapa: `regresion-recompensa:${tipoDanio}`,
     nivelMapa: 1,

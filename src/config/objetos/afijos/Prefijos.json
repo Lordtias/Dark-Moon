@@ -65,7 +65,8 @@
     "aplicaA": {
       "tipos": ["arma"],
       "ranurasIncluidas": [],
-      "ranurasExcluidas": []
+      "ranurasExcluidas": [],
+      "familiasExcluidas": ["varita"]
     },
     "efectos": [
       {
@@ -170,17 +171,10 @@
     "tipoAfijo": "prefijo",
     "descripcion": "Aumenta la Vida máxima.",
     "pesoBase": 850,
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "vida_maxima_plana",
     "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver",
-        "accesorio"
-      ],
+      "tipos": ["armadura", "quiver", "accesorio"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -232,17 +226,10 @@
     "tipoAfijo": "prefijo",
     "descripcion": "Aumenta el Maná máximo.",
     "pesoBase": 850,
-    "rarezasPermitidas": [
-      "magico",
-      "raro"
-    ],
+    "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "mana_maximo_plano",
     "aplicaA": {
-      "tipos": [
-        "armadura",
-        "quiver",
-        "accesorio"
-      ],
+      "tipos": ["armadura", "quiver", "accesorio"],
       "ranurasIncluidas": [],
       "ranurasExcluidas": []
     },
@@ -655,9 +642,24 @@
       }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFisico": { "minimo": 4, "maximo": 6 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFisico": { "minimo": 7, "maximo": 9 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFisico": { "minimo": 10, "maximo": 12 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoFisico": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoFisico": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoFisico": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "mistico": {
@@ -680,9 +682,24 @@
       }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoMagico": { "minimo": 4, "maximo": 6 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoMagico": { "minimo": 7, "maximo": 9 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoMagico": { "minimo": 10, "maximo": 12 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoMagico": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoMagico": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoMagico": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "igneo": {
@@ -692,14 +709,39 @@
     "pesoBase": 550,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "dano_fuego_global",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "danoFuego", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "fuego" } }
+      {
+        "propiedad": "danoFuego",
+        "objetivo": "danoTipo",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "tipoDanio": "fuego" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFuego": { "minimo": 5, "maximo": 8 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFuego": { "minimo": 9, "maximo": 12 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFuego": { "minimo": 13, "maximo": 16 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoFuego": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoFuego": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoFuego": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "gelido": {
@@ -709,14 +751,39 @@
     "pesoBase": 550,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "dano_frio_global",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "danoFrio", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "frio" } }
+      {
+        "propiedad": "danoFrio",
+        "objetivo": "danoTipo",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "tipoDanio": "frio" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoFrio": { "minimo": 5, "maximo": 8 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoFrio": { "minimo": 9, "maximo": 12 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoFrio": { "minimo": 13, "maximo": 16 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoFrio": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoFrio": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoFrio": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "fulgurante": {
@@ -726,14 +793,39 @@
     "pesoBase": 550,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "dano_rayo_global",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "danoRayo", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "rayo" } }
+      {
+        "propiedad": "danoRayo",
+        "objetivo": "danoTipo",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "tipoDanio": "rayo" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoRayo": { "minimo": 5, "maximo": 8 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoRayo": { "minimo": 9, "maximo": 12 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoRayo": { "minimo": 13, "maximo": 16 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoRayo": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoRayo": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoRayo": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "toxico": {
@@ -743,14 +835,39 @@
     "pesoBase": 550,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "dano_veneno_global",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "danoVeneno", "objetivo": "danoTipo", "operacion": "sumar", "ambito": "portador", "condiciones": { "tipoDanio": "veneno" } }
+      {
+        "propiedad": "danoVeneno",
+        "objetivo": "danoTipo",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "tipoDanio": "veneno" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "danoVeneno": { "minimo": 5, "maximo": 8 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "danoVeneno": { "minimo": 9, "maximo": 12 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "danoVeneno": { "minimo": 13, "maximo": 16 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "danoVeneno": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "danoVeneno": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "danoVeneno": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   },
   "incandescente": {
@@ -760,14 +877,39 @@
     "pesoBase": 450,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_quemadura",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "potenciaQuemadura", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "quemadura" } }
+      {
+        "propiedad": "potenciaQuemadura",
+        "objetivo": "potenciaEfecto",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "efectoId": "quemadura" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaQuemadura": { "minimo": 6, "maximo": 10 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaQuemadura": { "minimo": 11, "maximo": 15 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaQuemadura": { "minimo": 16, "maximo": 20 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "potenciaQuemadura": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "potenciaQuemadura": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "potenciaQuemadura": { "minimo": 10, "maximo": 13 } }
+      }
     ]
   },
   "virulento": {
@@ -777,14 +919,39 @@
     "pesoBase": 450,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_envenenamiento",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "potenciaEnvenenamiento", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "envenenamiento" } }
+      {
+        "propiedad": "potenciaEnvenenamiento",
+        "objetivo": "potenciaEfecto",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "efectoId": "envenenamiento" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaEnvenenamiento": { "minimo": 6, "maximo": 10 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaEnvenenamiento": { "minimo": 11, "maximo": 15 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaEnvenenamiento": { "minimo": 16, "maximo": 20 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "potenciaEnvenenamiento": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "potenciaEnvenenamiento": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "potenciaEnvenenamiento": { "minimo": 10, "maximo": 13 } }
+      }
     ]
   },
   "entorpecedor": {
@@ -794,14 +961,39 @@
     "pesoBase": 450,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_ralentizacion",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "potenciaRalentizacion", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "ralentizacion" } }
+      {
+        "propiedad": "potenciaRalentizacion",
+        "objetivo": "potenciaEfecto",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "efectoId": "ralentizacion" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaRalentizacion": { "minimo": 6, "maximo": 10 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaRalentizacion": { "minimo": 11, "maximo": 15 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaRalentizacion": { "minimo": 16, "maximo": 20 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "potenciaRalentizacion": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "potenciaRalentizacion": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "potenciaRalentizacion": { "minimo": 10, "maximo": 13 } }
+      }
     ]
   },
   "sobrecargado": {
@@ -811,14 +1003,39 @@
     "pesoBase": 450,
     "rarezasPermitidas": ["magico", "raro"],
     "grupoExclusion": "potencia_electrizacion",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "potenciaElectrizacion", "objetivo": "potenciaEfecto", "operacion": "sumar", "ambito": "portador", "condiciones": { "efectoId": "electrizacion" } }
+      {
+        "propiedad": "potenciaElectrizacion",
+        "objetivo": "potenciaEfecto",
+        "operacion": "sumar",
+        "ambito": "portador",
+        "condiciones": { "efectoId": "electrizacion" }
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaElectrizacion": { "minimo": 6, "maximo": 10 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaElectrizacion": { "minimo": 11, "maximo": 15 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaElectrizacion": { "minimo": 16, "maximo": 20 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "potenciaElectrizacion": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "potenciaElectrizacion": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "potenciaElectrizacion": { "minimo": 10, "maximo": 13 } }
+      }
     ]
   },
   "catalitico": {
@@ -828,14 +1045,37 @@
     "pesoBase": 300,
     "rarezasPermitidas": ["raro"],
     "grupoExclusion": "potencia_efectos_global",
-    "aplicaA": { "tipos": ["arma", "accesorio"], "ranurasIncluidas": [], "ranurasExcluidas": [] },
+    "aplicaA": {
+      "tipos": ["arma", "accesorio"],
+      "ranurasIncluidas": [],
+      "ranurasExcluidas": []
+    },
     "efectos": [
-      { "propiedad": "potenciaEfectos", "operacion": "sumar", "ambito": "portador" }
+      {
+        "propiedad": "potenciaEfectos",
+        "operacion": "sumar",
+        "ambito": "portador"
+      }
     ],
     "grados": [
-      { "grado": 1, "nivelObjetoMinimo": 1, "peso": 600, "valores": { "potenciaEfectos": { "minimo": 4, "maximo": 6 } } },
-      { "grado": 2, "nivelObjetoMinimo": 3, "peso": 800, "valores": { "potenciaEfectos": { "minimo": 7, "maximo": 9 } } },
-      { "grado": 3, "nivelObjetoMinimo": 6, "peso": 1000, "valores": { "potenciaEfectos": { "minimo": 10, "maximo": 12 } } }
+      {
+        "grado": 1,
+        "nivelObjetoMinimo": 1,
+        "peso": 600,
+        "valores": { "potenciaEfectos": { "minimo": 4, "maximo": 6 } }
+      },
+      {
+        "grado": 2,
+        "nivelObjetoMinimo": 3,
+        "peso": 800,
+        "valores": { "potenciaEfectos": { "minimo": 7, "maximo": 9 } }
+      },
+      {
+        "grado": 3,
+        "nivelObjetoMinimo": 6,
+        "peso": 1000,
+        "valores": { "potenciaEfectos": { "minimo": 10, "maximo": 12 } }
+      }
     ]
   }
 }

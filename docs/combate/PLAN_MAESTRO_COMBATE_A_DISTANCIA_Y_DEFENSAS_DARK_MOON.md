@@ -357,6 +357,21 @@ Contenido inicial:
 
 Los efectos no heredan Daño Físico, Daño Mágico, Daño de Habilidad ni daño por tipo. Las resistencias elementales de daño y las resistencias/defensas específicas de efectos permanecen separadas.
 
+### Calibración cerrada — Balance de escalados globales (22/08/2026)
+
+La etapa de balance posterior se completó con combate real a nivel 10, equipo real y el generador de objetos canónico. No cambia la arquitectura ni habilita `raro` o `unico`; calibra exclusivamente los valores de afijos activos y deja los techos futuros como información de diseño.
+
+| Grupo de afijos | G1 | G2 | G3 | Techo activo medido |
+| --- | ---: | ---: | ---: | ---: |
+| Ígneo, Gélido, Fulgurante y Tóxico | +4–6% | +7–9% | +10–12% | +50% de daño directo especializado con cuatro fuentes |
+| Incandescente, Virulento, Entorpecedor y Sobrecargado | +4–6% | +7–9% | +10–13% | +50–52,63% de potencia específica efectiva con cuatro fuentes |
+
+Los pesos se conservan: 550 para afinidades y 450 para potencia específica. Las rarezas también se conservan: estos ocho afijos permanecen disponibles en `magico` y `raro`, mientras `Marcial`, `Místico` y `Catalítico` siguen reservados a `raro`. La muestra determinista de 2.000 objetos por perfil mantuvo aproximadamente 72% Común / 28% Mágico y 0% Raro / Único, tal como exige la configuración vigente.
+
+El informe de `balance.html` registra el recorrido real de Daño Físico, Daño Mágico, Daño de Habilidad, afinidad, potencia general/específica, Congelamiento, Aturdimiento y Supresión. Ralentización y Electrización se comparan por la distancia desde el neutro `×1`, que es la magnitud que escala el contrato multiplicativo; Congelamiento y Aturdimiento permanecen sin escalado por potencia.
+
+Como corrección de compatibilidad de generación incluida por el usuario durante la validación, `Brutal` excluye la familia `varita`: evita asignar daño físico local porcentual a un arma sin componente físico. No crea una excepción de combate ni altera el resolutor.
+
 ## 13. Decisión de daño base de arcos
 
 La incorporación de Penetración agrega una nueva fuente de daño efectivo, especialmente contra objetivos con Armadura baja o media, además de neutralizar parte de la mitigación contra Armadura alta.
@@ -385,4 +400,5 @@ La decisión debe revisarse durante una etapa explícita de balance, comparando 
 - **AR1.2 — Corrección de alcance y grafo:** consume `Combatiente.alcanceAtaque` en habilidades de arma, distingue modificación específica de sinergia general y distribuye el árbol horizontalmente desde la conectividad real; su ajuste final preserva probabilidad final hasta Phaser, centraliza disponibilidad de barra/munición, expone desgloses de Alcance y convierte Disparo evasivo en herramienta de objetivo libre con simultaneidad visual de disparo y salto.
 - **CD2 — Resistencias negativas:** cerrada en el estado base `449eb095...`; generaliza resistencias elementales y de efectos por debajo de cero con sus límites canónicos.
 - **Daño y efectos — escalado global:** cerrada; incorpora Daño Físico, Daño Mágico, Daño de Habilidad, daño por tipo y potencia específica de efectos sin mezclar efectos con daño directo.
-- **Balance posterior:** revisar daño esperado de arcos y los nuevos modificadores globales únicamente con evidencia del sistema estabilizado; los cierres arquitectónicos no sustituyen una etapa específica de balance.
+- **Balance de escalados globales de daño y efectos:** cerrada; mide los ejes globales con motores reales, ajusta los techos obtenibles de afinidad/potencia específica y conserva Raro/Único deshabilitados.
+- **Balance integral posterior:** recomendado; revisar daño esperado de armas, habilidades, recursos y arquetipos con el balanceador ya ampliado. Es una etapa nueva y no queda iniciada por este cierre.

@@ -1,6 +1,7 @@
 import { cargarJson as cargarJsonComun } from "../../utilidades/CargadorJson.js";
 import {
   cargarConfiguracionEnemigos,
+  cargarConfiguracionBotin,
   cargarConfiguracionGeneracionObjetos,
   cargarConfiguracionMapas,
   cargarConfiguracionEntidadesMazmorra,
@@ -43,6 +44,9 @@ const elementos = Object.fromEntries(
     "balanceHabilidadesDanioCuerpo",
     "balanceResistenciasCuerpo",
     "balancePotenciaCuerpo",
+    "balanceEscaladosGlobalesCuerpo",
+    "balanceEscaladosAfijosCuerpo",
+    "balanceEscaladosRarezasCuerpo",
     "balanceArquetiposCuerpo",
     "balanceFocoIncinerarCuerpo",
     "balanceFocoRafagaCuerpo",
@@ -80,6 +84,7 @@ async function cargarBalance() {
       configuracionEnemigos,
       configuracionObjetosSinValidar,
       configuracionGeneracionObjetos,
+      configuracionBotin,
       configuracionMapas,
       configuracionEntidadesMazmorra,
       configuracionProgresoHabilidades,
@@ -89,6 +94,7 @@ async function cargarBalance() {
       cargarConfiguracionEnemigos(),
       cargarConfiguracionObjetos(),
       cargarConfiguracionGeneracionObjetos(),
+      cargarConfiguracionBotin(),
       cargarConfiguracionMapas(),
       cargarConfiguracionEntidadesMazmorra(),
       cargarYConfigurarProgresoHabilidades(),
@@ -102,6 +108,7 @@ async function cargarBalance() {
       configuracionEnemigos,
       configuracionObjetos,
       configuracionGeneracionObjetos,
+      configuracionBotin,
       configuracionMapas,
       configuracionEntidadesMazmorra,
       configuracionProgresoHabilidades,
@@ -130,6 +137,7 @@ function dibujarInforme(informe) {
     resumenCombate.armas.resumen.incorrectos,
     resumenCombate.habilidades.resumen.incorrectos,
     resumenCombate.potencia.resumen.escenariosAltos,
+    resumenCombate.escaladosGlobales.resumen.incorrectos,
     resumenCombate.arquetipos.resumen.incorrectos,
     resumenCombate.pruebasFocalizadas.resumen.incorrectos,
     informe.efectos.resumen.incorrectos,
@@ -138,6 +146,7 @@ function dibujarInforme(informe) {
   const hayAdvertencias = [
     resumenCombate.armas.resumen.advertencias,
     resumenCombate.habilidades.resumen.advertencias,
+    resumenCombate.escaladosGlobales.resumen.advertencias,
     resumenCombate.arquetipos.resumen.advertencias,
     resumenCombate.pruebasFocalizadas.resumen.advertencias,
     informe.efectos.resumen.advertencias,
@@ -170,6 +179,10 @@ function dibujarResumen(informe) {
     ["Grados", informe.resumen.gradosAnalizados],
     ["Armas evaluadas", informe.resumen.armasCombateAnalizadas],
     ["Simulaciones", informe.resumen.simulacionesCombate],
+    [
+      "Ejes globales",
+      informe.combate.escaladosGlobales.resumenEjes.cantidad,
+    ],
     ["Arquetipos", informe.combate.arquetipos.resumen.cantidad],
     ["Pruebas focalizadas", informe.combate.pruebasFocalizadas.resumen.casos],
     ["Pruebas de efectos", informe.resumen.casosEfectos],
@@ -212,6 +225,7 @@ function tituloConclusion(id) {
     armas_danio: "Daño de armas",
     habilidades_danio: "Daño de habilidades",
     dano_habilidad: "Daño de Habilidad",
+    escalados_globales: "Escalados globales",
     arquetipos: "Comparación de arquetipos",
     foco_incinerar: "Incinerar grado 3",
     foco_rafaga: "Ráfaga glacial",
@@ -460,6 +474,43 @@ function dibujarTablasCombate(combate) {
     `${fila.danoHabilidad} %`,
     `×${formatearNumero(fila.multiplicadorDanioHabilidad)}`,
     fila.cantidadCatalizadores,
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEscaladosGlobalesCuerpo", combate.escaladosGlobales.filas, (fila) => [
+    fila.eje,
+    fila.fuente,
+    fila.alcance,
+    fila.medida,
+    formatearComparacion(fila.valorBase, fila.valorResultado),
+    formatearVariacionPorcentual(fila.variacionPorcentual),
+    formatearVariacionEvaluada(fila),
+    formatearComparacion(fila.directoBase, fila.directoResultado),
+    formatearComparacion(fila.efectoBase, fila.efectoResultado),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEscaladosAfijosCuerpo", combate.escaladosGlobales.afijos, (fila) => [
+    fila.afijo,
+    fila.pesoBase,
+    fila.rarezasPermitidas.join(", "),
+    fila.generableAhora ? "Sí" : "No",
+    `${formatearNumero(fila.tasaArma)} %`,
+    `${formatearNumero(fila.tasaAccesorio)} %`,
+    formatearNumero(fila.muestraPorPerfil),
+    fila.criterio,
+    crearEtiquetaEstado(fila.estado),
+  ]);
+
+  llenar("balanceEscaladosRarezasCuerpo", combate.escaladosGlobales.rarezas, (fila) => [
+    fila.perfil,
+    fila.rareza,
+    fila.pesoBase,
+    fila.generacionHabilitada ? "Sí" : "No",
+    `${formatearNumero(fila.tasa)} %`,
+    formatearNumero(fila.muestra),
     fila.criterio,
     crearEtiquetaEstado(fila.estado),
   ]);
@@ -914,6 +965,30 @@ function formatearHito(hito) {
 function formatearNumero(valor) {
   if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return "—";
   return new Intl.NumberFormat("es-UY", { maximumFractionDigits: 2 }).format(Number(valor));
+}
+
+function formatearComparacion(base, resultado) {
+  if (base === null || base === undefined || resultado === null || resultado === undefined) {
+    return "—";
+  }
+  return `${formatearNumero(base)} → ${formatearNumero(resultado)}`;
+}
+
+function formatearVariacionPorcentual(valor) {
+  if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) {
+    return "—";
+  }
+  const numero = Number(valor);
+  return `${numero > 0 ? "+" : ""}${formatearNumero(numero)} %`;
+}
+
+function formatearVariacionEvaluada(fila) {
+  const variacion = formatearVariacionPorcentual(
+    fila.variacionEvaluadaPorcentual,
+  );
+  return fila.descripcionVariacionEvaluada
+    ? `${variacion} · ${fila.descripcionVariacionEvaluada}`
+    : variacion;
 }
 
 function capitalizar(texto) {

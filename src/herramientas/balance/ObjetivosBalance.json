@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "descripcion": "Objetivos y escenarios reproducibles para medir progresión, recursos, daño, tiempo, Daño de Habilidad, arquetipos, efectos, resistencias, inmunidades, enemigos, afijos y regresión completa de Dark Moon entre los niveles 1 y 10.",
   "nivelMaximoContenido": 10,
   "factorBaseExperienciaEsperado": 0.45,
@@ -245,6 +245,63 @@
       "reservaManaAdvertenciaMinimaPorcentaje": 20,
       "porcentajeVidaJefeAdvertenciaRotacion": 70,
       "porcentajeVidaJefeIncorrectoRotacion": 100
+    }
+  },
+  "analisisEscaladosGlobales": {
+    "nivelReferencia": 10,
+    "nivelObjeto": 10,
+    "muestrasGeneracion": 2000,
+    "semillaGeneracion": "balance-escalados-globales-v1",
+    "limites": {
+      "afinidadDirecta": {
+        "minimo": 40,
+        "maximo": 50
+      },
+      "potenciaEfecto": {
+        "minimo": 45,
+        "maximo": 55
+      }
+    },
+    "referencias": {
+      "armaFisica": "espada_acero_templado",
+      "armaMagica": "baston_maestro",
+      "collar": "collar_rubi_magistral",
+      "anillo": "anillo_rubi_magistral",
+      "fuego": {
+        "idHabilidad": "incinerar",
+        "grado": 3,
+        "idEfecto": "quemadura"
+      },
+      "veneno": {
+        "idHabilidad": "aguijon_toxico",
+        "grado": 4,
+        "idEfecto": "envenenamiento"
+      },
+      "frio": {
+        "idHabilidad": "esquirla_hielo",
+        "grado": 4,
+        "idEfecto": "ralentizacion"
+      },
+      "rayo": {
+        "idHabilidad": "chispa",
+        "grado": 4,
+        "idEfecto": "electrizacion"
+      },
+      "congelamiento": {
+        "idHabilidad": "rafaga_glacial",
+        "grado": 3,
+        "idEfecto": "congelamiento"
+      },
+      "aturdimiento": {
+        "idHabilidad": "descarga_fulminante",
+        "grado": 3,
+        "idEfecto": "aturdimiento"
+      },
+      "supresion": {
+        "idHabilidad": "supresion",
+        "grado": 3,
+        "idEfecto": "supresion"
+      }
     }
   },
   "analisisEfectos": {

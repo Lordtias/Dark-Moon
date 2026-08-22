@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`. El hito de habilidades/pasivas continúa cerrado y auditado; este ajuste no crea HP7.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El hito de habilidades/pasivas continúa cerrado y auditado; este ajuste no crea HP7.
 
 ---
 
@@ -1725,6 +1725,19 @@ Las descripciones deben indicar explícitamente qué estadísticas se acumulan. 
 #### 17.6.5. Persistencia
 
 Este cierre parte expresamente de cero necesidad de compatibilidad con partidas antiguas. No se crean migraciones, traductores, aliases ni parches de save. Como regla general se persisten fuentes canónicas y se reconstruyen los resultados derivados.
+
+#### 17.6.6. Calibración validada de afijos globales
+
+La etapa posterior de balance no cambia los objetivos ni las ecuaciones de 17.6. Ajusta datos de `Prefijos.json` usando el informe reproducible de `balance.html` y queda validada manualmente por el usuario.
+
+- `Ígneo`, `Gélido`, `Fulgurante` y `Tóxico`: +4–6 / +7–9 / +10–12. Con arma, collar y dos anillos al máximo el aumento especializado medido es +50% de daño directo.
+- `Incandescente`, `Virulento`, `Entorpecedor` y `Sobrecargado`: +4–6 / +7–9 / +10–13. El aumento de Quemadura/Envenenamiento fue +51,99%; Ralentización y Electrización llegaron a +52,63% y +50% de intensidad efectiva respectivamente.
+- Ralentización y Electrización se evalúan sobre su distancia al neutro `×1`, porque el contrato `multiplicar` escala esa distancia. No se cambia la semántica común de `escalarMagnitudModificador`.
+- Congelamiento y Aturdimiento se comprobaron sin cambio de duración bajo Potencia de Efectos; siguen fuera del escalado de potencia.
+- `raro` y `unico` siguen deshabilitados. Los pesos se conservan y la muestra de 2.000 objetos por bastón/collar mantiene la distribución Común/Mágico activa, con Raro/Único en 0%.
+- `Brutal` excluye `varita` como corrección de compatibilidad de pool: su daño físico local porcentual no tiene componente válido en esa familia.
+
+La arquitectura que debe conservarse sigue siendo una sola: `SistemaModificadoresCombatiente`, `ResolutorEscaladoDanio`, `MotorDanioHabilidad` y `MotorEfectosHabilidad` producen los valores que muestra el balanceador; el balanceador no se convierte en un motor paralelo ni cambia la partida.
 
 
 ## 18. REGLAS PARA NUEVO CONTENIDO

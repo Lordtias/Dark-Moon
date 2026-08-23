@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El 23/08/2026 se cerró el ajuste posterior **Panel Personaje — daño y desglose canónico**, que mejora la lectura sin alterar esas ecuaciones. El hito de habilidades/pasivas continúa cerrado y auditado; ninguno de estos ajustes crea HP7.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El 23/08/2026 se cerraron los ajustes posteriores **Panel Personaje — daño y desglose canónico** y **Rediseño de pantalla de Habilidades — ruta contextual**, que mejoran la lectura sin alterar esas ecuaciones ni las reglas de progresión. El hito de habilidades/pasivas continúa cerrado y auditado; ninguno de estos ajustes crea HP7.
 
 ---
 
@@ -1726,7 +1726,7 @@ El detalle de una fuente muestra primero el rango final y después su rango base
 
 `Daño medio` lista solamente los promedios finales por fuente y no repite Fuerza u otro atributo ya incluido dentro de cada valor de arma. Las descripciones deben indicar explícitamente qué estadísticas se acumulan. El modal consume `resolucionesModificadores`, las fuentes de daño y los aportes de atributos primarios ya producidos; no reconstruye fórmulas. La corrección final normaliza la clave `danoMagico` en los aportes de Inteligencia/Sabiduría para que el nombre y el desglose completos coincidan.
 
-La próxima revisión de la pantalla de Habilidades se realizará en una etapa separada. La decisión aprobada es conservar solo relaciones visuales directas de modificación específica y retirar las sinergias visuales de atributos generales; antes de implementarla se deberá proponer su composición y flujo de lectura.
+La revisión separada de la pantalla de Habilidades quedó cerrada el 23/08/2026. La presentación vigente usa una ruta de tarjetas por nivel de maestría y ficha contextual; conserva únicamente relaciones visuales directas de modificación específica y retira las sinergias visuales de atributos generales. No altera los modificadores, las ecuaciones ni los requisitos de aprendizaje.
 
 #### 17.6.5. Persistencia
 
@@ -2282,6 +2282,8 @@ No se incorpora drag & drop a ranura concreta porque el contrato jugable actual 
 **Base:** `bc33b5d90f8ea8d451a80b594bde9889cf9bfbdc`
 **Estado:** Cerrada. Implementación, validación técnica y pruebas manuales superadas y aprobadas por el usuario el 18/08/2026. El commit final queda a cargo del usuario.
 
+> **Nota de vigencia:** el grafo SVG descrito en HP6 y AR1.2 es el antecedente histórico de esta etapa. La presentación actual fue sustituida por la ruta contextual documentada en **Ajuste posterior — Rediseño de pantalla de Habilidades**. Solo cambia la interfaz y el contrato visual de relaciones; no se reabren HP6, AR1.1 ni AR1.2.
+
 `OrganizadorArbolHabilidades` es genérico para **todas** las maestrías/habilidades. El eje vertical deriva exclusivamente de `requisitoNivelMaestria`; desde AR1.2 la conectividad real del grafo decide además la distribución horizontal mediante entradas/salidas de cada nodo y evita que una maestría con un único nodo por nivel colapse en una sola columna. No contiene ramas `magia/físico`, coordenadas manuales por ID ni posiciones específicas de contenido: si una maestría no dispone de relaciones, sus iconos continúan ordenándose de forma determinista por nivel.
 
 Las relaciones del árbol no crean requisitos nuevos. El organizador combina relaciones **inferibles** desde modificadores canónicos y relaciones **declarativas** `relacionesArbol` presentes en la configuración de cualquier habilidad. `modificacion` (línea continua) significa que el efecto está dirigido específicamente a la habilidad destino —por ejemplo mediante `condiciones.idHabilidad`/`atributoHabilidad`—; `sinergia` (línea punteada) representa un beneficio por estadística, estado o contexto compartido. Las Afinidades elementales ya no se expresan como `danoHabilidad + maestriaHabilidad`: utilizan `danoTipo + tipoDanio`, por lo que sus sinergias se infieren desde el tipo de daño real que produce la habilidad. Las relaciones declarativas continúan disponibles cuando la interacción no puede inferirse de forma inequívoca. AR1.2 corrige Arcos para expresar como sinergias sus atributos generales de arma, incorpora `Aura de Precisión` y deja 17 relaciones reales, todas punteadas con el contenido actual. Las conexiones nunca significan dependencia de aprendizaje.
@@ -2315,6 +2317,19 @@ El ajuste final de AR1.2 extiende la disponibilidad de la barra como una **consu
 `Disparo evasivo` pasa a `tipoObjetivo=libre`: una casilla vacía transitable dentro del alcance es un destino válido además de un enemigo. Si no existe enemigo no se inventa impacto, daño ni experiencia; se conserva consumo de munición y se calcula el desplazamiento táctico de hasta dos casillas en dirección opuesta a la casilla elegida. La regla espacial sigue siendo `paso_a_paso`; la simultaneidad disparo/salto pertenece únicamente a la planificación visual.
 
 La previsualización de habilidades preserva `probabilidadImpactoFinal` hasta el estado visual que consume Phaser. Ese porcentaje ya incluye Precisión, Evasión, distancia y Dispersión cuando corresponda; la interfaz no recalcula ninguna de esas variables. La falta de munición puede producir además `feedbackMapa` a través del resultado canónico de la acción, reutilizando el mismo mensaje de rechazo en vez de crear una segunda validación visual.
+
+### Ajuste posterior — Rediseño de pantalla de Habilidades (ruta contextual)
+
+**Base:** `d1c3d76c970b6a77c42dd24cf79f0bf6b898ec73`
+**Estado:** Cerrada. El usuario aprobó el diseño y las pruebas manuales el 23/08/2026.
+
+La pantalla sustituye el grafo SVG por una ruta vertical de tarjetas agrupadas por `requisitoNivelMaestria`. La navegación conserva categorías y selector de maestría; cada tarjeta presenta icono, nombre, tipo, grado y estado. En escritorio, la habilidad seleccionada se explica en una ficha contextual fija a la derecha. Seleccionar una tarjeta o un chip actualiza solo esa ficha y el resaltado de selección: la ruta no se reconstruye y mantiene su posición de scroll.
+
+`OrganizadorArbolHabilidades` conserva su nombre público, pero ya no calcula carriles, posiciones horizontales ni geometría. Agrupa por nivel y devuelve exclusivamente relaciones directas de `modificacion`, inferidas desde `condiciones.idHabilidad` o declaradas por el mismo contrato. Las `sinergia` visuales y sus 17 declaraciones históricas se retiran de `Habilidades.json`; los modificadores canónicos que producían esos beneficios no cambian. La interfaz expresa las relaciones restantes mediante chips `Modifica directamente` y `Mejorada por`, sin SVG, flechas, `ResizeObserver` ni requisitos de aprendizaje implícitos.
+
+La ficha sigue clasificando por datos en Pasiva, Aura, Maldición u Ofensiva y reutiliza `ConfiguracionHabilidadEfectiva`, `ProgresoHabilidadesJugador` y `SistemaHabilidadesJugador` para los mismos valores y acciones existentes. En móvil no se duplica una ficha fija: el detalle usa la capa de acción ya existente. El panel limita su ancho de escritorio al contenido útil para evitar un marco lateral vacío.
+
+Este ajuste no modifica combate, modificadores, progreso, puntos, persistencia, ejecución de habilidades ni dependencias. La relación visual continúa siendo una lectura de datos canónicos, no una segunda regla de gameplay.
 
 ---
 

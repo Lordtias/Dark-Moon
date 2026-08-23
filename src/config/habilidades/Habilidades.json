@@ -1969,21 +1969,7 @@
             }
           }
         ]
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_multiple",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "tension_controlada": {
       "nombre": "Tensión controlada",
@@ -2024,21 +2010,7 @@
             }
           }
         ]
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_multiple",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "tiro_letal": {
       "nombre": "Tiro letal",
@@ -2079,21 +2051,7 @@
             }
           }
         ]
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_multiple",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "ojo_halcon": {
       "nombre": "Ojo de halcón",
@@ -2114,21 +2072,7 @@
             }
           }
         ]
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_multiple",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "canalizacion_estable": {
       "nombre": "Canalización estable",
@@ -5570,21 +5514,7 @@
         "requisitosLanzador": {
           "familiaArma": "arco"
         }
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_multiple",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "aura_recuperacion": {
       "nombre": "Aura de Recuperación",
@@ -6687,17 +6617,7 @@
             }
           }
         }
-      },
-      "relacionesArbol": [
-        {
-          "hacia": "disparo_potente",
-          "tipo": "sinergia"
-        },
-        {
-          "hacia": "disparo_evasivo",
-          "tipo": "sinergia"
-        }
-      ]
+      }
     },
     "disparo_evasivo": {
       "nombre": "Disparo evasivo",

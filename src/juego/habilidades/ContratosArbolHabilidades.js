@@ -1,6 +1,5 @@
 export const TIPOS_RELACION_ARBOL_HABILIDADES = Object.freeze({
   MODIFICACION: "modificacion",
-  SINERGIA: "sinergia",
 });
 
 const TIPOS_RELACION_VALIDOS = new Set(

@@ -1125,9 +1125,9 @@ src/juego/habilidades/ObservadorProgresoHabilidades.js
 - `MotorAtaqueArmaHabilidad`: ejecución de habilidades físicas que reutilizan la fuente/combate del arma equipada.
 - `IntegracionHabilidadesDom`: conecta un `Juego` activo con barra, panel y comandos; cuando cambia el progreso solicita el guardado a la autoridad de partida mediante callback.
 - `BarraHabilidades`: presentación de las diez ranuras y emisión de selecciones por callback.
-- `OrganizadorArbolHabilidades`: organiza niveles y relaciones visuales respaldadas por configuración, sin crear dependencias de aprendizaje; combina relaciones inferibles con `relacionesArbol` declarativas para cualquier maestría.
+- `OrganizadorArbolHabilidades`: agrupa habilidades por nivel de maestría y obtiene únicamente relaciones visuales directas de modificación respaldadas por datos canónicos, sin crear dependencias de aprendizaje ni calcular geometría de grafo.
 - `ClasificadorPresentacionHabilidades`: deriva la presentación Pasiva/Aura/Maldición/Ofensiva a partir de los datos.
-- `PanelHabilidadesMaestrias`: árbol genérico, detalle contextual, aprendizaje/mejora y gestión de la barra reutilizando los sistemas existentes.
+- `PanelHabilidadesMaestrias`: ruta contextual de tarjetas, ficha de detalle, aprendizaje/mejora y gestión de la barra reutilizando los sistemas existentes.
 
 La ejecución de una habilidad no debe depender de que el personaje equipe una varita o bastón. El equipamiento puede aportar potencia y configurar ataques básicos mágicos, pero no habilita o deshabilita el uso de las habilidades aprendidas.
 
@@ -1408,7 +1408,7 @@ Los IDs son contratos entre JSON, código, persistencia e interfaz. Antes de ren
 
 El panel superpuesto **Personaje** ocupa el ancho completo y muestra estadísticas, Habilidades, pasivas aprendidas y efectos activos consumiendo valores/desgloses canónicos. **Objetos** integra visualmente Inventario y Equipamiento sin fusionar sus responsabilidades técnicas. Los valores detallables abren `ModalDetalleEstadistica`; la interfaz no reconstruye fórmulas.
 
-La ventana **Habilidades** utiliza un árbol genérico para las dieciséis maestrías. Cada nodo muestra icono y grado; el detalle se clasifica por datos como Pasiva, Aura, Maldición u Ofensiva. Aprender/mejorar reutiliza `ProgresoHabilidadesJugador` y asignar/quitar reutiliza `SistemaHabilidadesJugador`. El mismo organizador consume relaciones inferibles de modificadores y relaciones `relacionesArbol` declaradas por cualquier maestría. `modificacion` usa conexión normal y `sinergia` conexión punteada; ninguna línea crea por sí sola un requisito de aprendizaje. Arcos utiliza este contrato igual que las maestrías mágicas, sin lógica de UI específica de arma.
+La ventana **Habilidades** utiliza una ruta vertical de tarjetas agrupadas por nivel de maestría para las dieciséis maestrías. Cada tarjeta muestra icono, nombre, tipo, grado y estado; en escritorio, la ficha contextual de la derecha se actualiza sin perder la posición de la ruta. El detalle se clasifica por datos como Pasiva, Aura, Maldición u Ofensiva. Aprender/mejorar reutiliza `ProgresoHabilidadesJugador` y asignar/quitar reutiliza `SistemaHabilidadesJugador`. El organizador muestra solo relaciones directas de modificación específica, inferidas desde datos canónicos o declaradas como `modificacion`, mediante chips `Modifica directamente` y `Mejorada por`. No hay grafo SVG ni sinergias visuales de atributos generales, y ninguna relación crea un requisito de aprendizaje.
 
 El HUD muestra Auras activas a la izquierda y Maldiciones a la derecha sobre experiencia/barra. Los contadores derivan del tiempo real del efecto; no existe temporizador visual paralelo. El Player no mantiene una representación persistente de aura/maldición sobre el sprite, aunque conserva feedback transitorio; otros combatientes sí pueden conservar su lectura persistente.
 

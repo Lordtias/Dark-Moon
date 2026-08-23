@@ -4,9 +4,6 @@ import { OrganizadorArbolHabilidades } from "./OrganizadorArbolHabilidades.js";
 import { clasificarPresentacionHabilidad } from "./ClasificadorPresentacionHabilidades.js";
 import { crearConfiguracionHabilidadEfectiva } from "../../juego/habilidades/ConfiguracionHabilidadEfectiva.js";
 import {
-  TIPOS_RELACION_ARBOL_HABILIDADES,
-} from "../../juego/habilidades/ContratosArbolHabilidades.js";
-import {
   FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO,
 } from "../../juego/movimiento/ResolutorDesplazamientoTactico.js";
 import {
@@ -43,7 +40,6 @@ export class PanelHabilidadesMaestrias {
     this.idHabilidadSeleccionada = null;
     this.organizadorArbol = new OrganizadorArbolHabilidades();
     this.manejadores = [];
-    this.observadoresArbol = [];
     asegurarHojaEstilos({ id: "estilosHabilidadesMaestrias", ruta: "./assets/estilos/paneles/habilidades-maestrias.css" });
     this.dialogo = this.crearDialogo();
     this.renderizar();
@@ -82,7 +78,7 @@ export class PanelHabilidadesMaestrias {
     return false;
   }
   renderizar() {
-    const detalleAbierto =
+    const detalleEnCapaAbierto =
       !this.capaAccion.hidden &&
       Boolean(this.capaAccion.querySelector(".confirmacion-habilidad--detalle")) &&
       Boolean(this.idHabilidadSeleccionada);
@@ -90,11 +86,16 @@ export class PanelHabilidadesMaestrias {
     this.asegurarSeleccionValida(resumen);
     this.renderizarCabecera(resumen);
     this.renderizarNavegacion();
-    this.liberarObservadoresArbol();
     this.contenido.replaceChildren();
     this.renderizarCategoria(resumen);
-    if (detalleAbierto && resumen.habilidades[this.idHabilidadSeleccionada]) {
-      queueMicrotask(() => this.abrirDetalleHabilidad(this.idHabilidadSeleccionada));
+    if (
+      detalleEnCapaAbierto &&
+      resumen.habilidades[this.idHabilidadSeleccionada] &&
+      this.usaFichaEnCapa()
+    ) {
+      queueMicrotask(() =>
+        this.abrirDetalleHabilidad(this.idHabilidadSeleccionada),
+      );
     }
   }
   mostrarMensaje(texto, tipo = "informacion") {
@@ -106,7 +107,6 @@ export class PanelHabilidadesMaestrias {
       elemento.removeEventListener(tipo, manejador, opciones);
     });
     this.manejadores = [];
-    this.liberarObservadoresArbol();
     this.dialogo?.remove();
   }
   crearDialogo() {
@@ -291,34 +291,52 @@ export class PanelHabilidadesMaestrias {
     });
     const habilidades = Object.values(resumen.habilidades)
       .filter((habilidad) => habilidad.maestria === idMaestria);
+    this.asegurarHabilidadSeleccionada(habilidades);
     const estructura = this.organizadorArbol.organizar({
       idMaestria,
       habilidades,
       definiciones: this.configuracionProgreso.habilidades,
-      definicionesEjecucion: this.configuracionEjecucion.habilidades,
     });
-    const arbol = this.crearArbolHabilidades({
-      estructura,
-      estado,
-      resumen,
-    });
+    const cuerpoDetalle = crearElemento("div", "maestria-detalle__cuerpo");
+    cuerpoDetalle.append(
+      this.crearRutaHabilidades({
+        estructura,
+        estado,
+        resumen,
+      }),
+      this.crearFichaContextual({
+        estado,
+        resumen,
+      }),
+    );
 
-    seccion.append(cabecera, progreso, arbol);
+    seccion.append(cabecera, progreso, cuerpoDetalle);
     this.contenido.append(selector, seccion);
     requestAnimationFrame(() => mantenerOpcionActivaVisible(selector));
   }
 
-  crearArbolHabilidades({ estructura, estado, resumen }) {
-    const arbol = crearElemento("div", "arbol-habilidades");
-    arbol.dataset.maestria = estructura.idMaestria;
-    const lienzo = crearElemento("div", "arbol-habilidades__lienzo");
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add("arbol-habilidades__conexiones");
-    svg.setAttribute("aria-hidden", "true");
-    lienzo.append(svg);
+  asegurarHabilidadSeleccionada(habilidades) {
+    if (
+      !habilidades.some(
+        (habilidad) => habilidad.id === this.idHabilidadSeleccionada,
+      )
+    ) {
+      this.idHabilidadSeleccionada = habilidades[0]?.id ?? null;
+    }
+  }
+
+  crearRutaHabilidades({ estructura, estado, resumen }) {
+    const ruta = crearElemento("section", "ruta-habilidades");
+    ruta.setAttribute(
+      "aria-label",
+      traducir("interfaz.habilidades.rutaAria", {
+        respaldo: "Ruta de habilidades por nivel de maestría",
+      }),
+    );
+    const relaciones = crearIndiceRelacionesDirectas(estructura.relaciones);
 
     if (estructura.niveles.length === 0) {
-      lienzo.append(
+      ruta.append(
         crearElemento(
           "p",
           "seccion-en-construccion__detalle",
@@ -327,37 +345,43 @@ export class PanelHabilidadesMaestrias {
           }),
         ),
       );
-      arbol.append(lienzo);
-      return arbol;
+      return ruta;
     }
 
     for (const nivel of estructura.niveles) {
-      const fila = crearElemento("div", "arbol-habilidades__nivel");
-      fila.dataset.nivelMaestria = String(nivel.nivel);
-      const etiqueta = crearElemento(
-        "span",
-        "arbol-habilidades__nivel-etiqueta",
-        traducir("interfaz.habilidades.nivelArbol", {
-          parametros: { nivel: nivel.nivel },
-          respaldo: `Nivel ${nivel.nivel}`,
-        }),
+      const bloqueNivel = crearElemento("section", "ruta-habilidades__nivel");
+      const cabeceraNivel = crearElemento("header", "ruta-habilidades__cabecera-nivel");
+      cabeceraNivel.append(
+        crearElemento(
+          "h4",
+          "ruta-habilidades__titulo-nivel",
+          traducir("interfaz.habilidades.nivelArbol", {
+            parametros: { nivel: nivel.nivel },
+            respaldo: `Nivel ${nivel.nivel}`,
+          }),
+        ),
       );
-      const nodos = crearElemento("div", "arbol-habilidades__nodos");
+      const tarjetas = crearElemento("div", "ruta-habilidades__tarjetas");
       for (const nodo of nivel.nodos) {
-        nodos.append(this.crearNodoArbol({ habilidad: nodo, estado, resumen }));
+        const habilidad = resumen.habilidades[nodo.id];
+        if (!habilidad) continue;
+        tarjetas.append(
+          this.crearTarjetaRutaHabilidad({
+            habilidad,
+            estado,
+            resumen,
+            relaciones,
+          }),
+        );
       }
-      fila.append(etiqueta, nodos);
-      lienzo.append(fila);
+      bloqueNivel.append(cabeceraNivel, tarjetas);
+      ruta.append(bloqueNivel);
     }
-    arbol.append(lienzo);
-    requestAnimationFrame(() => {
-      if (arbol.isConnected) this.dibujarRelacionesArbol(arbol, estructura.relaciones);
-    });
-    this.observarGeometriaArbol(arbol, estructura.relaciones);
-    return arbol;
+
+    return ruta;
   }
 
-  crearNodoArbol({ habilidad, estado }) {
+  crearTarjetaRutaHabilidad({ habilidad, estado, resumen, relaciones }) {
     const ejecucion = this.configuracionEjecucion.habilidades[habilidad.id];
     const bloqueada = estado.nivel < habilidad.requisitoNivelMaestria;
     const aprendida = habilidad.grado > 0;
@@ -365,126 +389,177 @@ export class PanelHabilidadesMaestrias {
     const asignada = this.sistema
       .obtenerEstadoBarra()
       .some((ranura) => ranura.idHabilidad === habilidad.id);
-    const boton = crearElemento("button", "nodo-habilidad");
+    const seleccionada = habilidad.id === this.idHabilidadSeleccionada;
+    const tarjeta = crearElemento("article", "tarjeta-ruta-habilidad");
+    tarjeta.dataset.idHabilidad = habilidad.id;
+    tarjeta.classList.toggle("tarjeta-ruta-habilidad--bloqueada", bloqueada);
+    tarjeta.classList.toggle("tarjeta-ruta-habilidad--no-aprendida", !aprendida);
+    tarjeta.classList.toggle("tarjeta-ruta-habilidad--maximo", maximo);
+    tarjeta.classList.toggle("tarjeta-ruta-habilidad--asignada", asignada);
+    tarjeta.classList.toggle("tarjeta-ruta-habilidad--seleccionada", seleccionada);
+
+    const boton = crearElemento("button", "tarjeta-ruta-habilidad__principal");
     boton.type = "button";
-    boton.dataset.idHabilidad = habilidad.id;
-    boton.style.setProperty(
-      "--posicion-horizontal",
-      String(habilidad.posicionHorizontal ?? 0.5),
-    );
-    boton.classList.toggle("nodo-habilidad--no-aprendida", !aprendida);
-    boton.classList.toggle("nodo-habilidad--bloqueada", bloqueada);
-    boton.classList.toggle("nodo-habilidad--maximo", maximo);
-    boton.classList.toggle("nodo-habilidad--asignada", asignada);
+    boton.setAttribute("aria-pressed", String(seleccionada));
     boton.setAttribute(
       "aria-label",
       `${nombreHabilidad(habilidad)}. ${habilidad.grado}/${habilidad.gradoMaximo}`,
     );
-    boton.append(crearIconoNodo(ejecucion, habilidad));
-    boton.append(
+    boton.addEventListener("click", () => this.abrirDetalleHabilidad(habilidad.id));
+
+    const identidad = crearElemento("span", "tarjeta-ruta-habilidad__identidad");
+    const icono = crearIconoNodo(ejecucion, habilidad);
+    icono.classList.add("tarjeta-ruta-habilidad__icono");
+    const texto = crearElemento("span", "tarjeta-ruta-habilidad__texto");
+    const tipo = clasificarPresentacionHabilidad({
+      habilidad,
+      ejecucion,
+      catalogoEfectos: this.configuracionEjecucion.efectos,
+    });
+    texto.append(
+      crearElemento("strong", "tarjeta-ruta-habilidad__nombre", nombreHabilidad(habilidad)),
       crearElemento(
         "span",
-        "nodo-habilidad__grado",
-        `${habilidad.grado}/${habilidad.gradoMaximo}`,
+        "tarjeta-ruta-habilidad__tipo",
+        etiquetaTipoHabilidad(tipo, habilidad.maestria),
       ),
     );
-    boton.addEventListener("click", () => this.abrirDetalleHabilidad(habilidad.id));
-    return boton;
+    identidad.append(icono, texto);
+    boton.append(
+      identidad,
+      crearElemento(
+        "span",
+        "tarjeta-ruta-habilidad__grado",
+        `${habilidad.grado}/${habilidad.gradoMaximo}`,
+      ),
+      crearElemento(
+        "span",
+        "tarjeta-ruta-habilidad__estado",
+        etiquetaEstadoRuta({ bloqueada, aprendida, maximo }),
+      ),
+    );
+    tarjeta.append(boton);
+
+    const salidas = relaciones.porOrigen.get(habilidad.id) ?? [];
+    if (salidas.length > 0) {
+      tarjeta.append(
+        this.crearBloqueRelacionesDirectas({
+          etiqueta: traducir("interfaz.habilidades.modificaDirectamente", {
+            respaldo: "Modifica directamente",
+          }),
+          relaciones: salidas,
+          resumen,
+          usarDestino: true,
+        }),
+      );
+    }
+
+    const entradas = relaciones.porDestino.get(habilidad.id) ?? [];
+    if (entradas.length > 0) {
+      tarjeta.append(
+        this.crearBloqueRelacionesDirectas({
+          etiqueta: traducir("interfaz.habilidades.mejoradaPor", {
+            respaldo: "Mejorada por",
+          }),
+          relaciones: entradas,
+          resumen,
+          usarDestino: false,
+        }),
+      );
+    }
+
+    return tarjeta;
   }
 
-  dibujarRelacionesArbol(arbol, relaciones) {
-    const svg = arbol.querySelector(".arbol-habilidades__conexiones");
-    const lienzo = arbol.querySelector(".arbol-habilidades__lienzo");
-    if (!svg || !lienzo) return;
-    svg.replaceChildren();
-    const caja = lienzo.getBoundingClientRect();
-    svg.setAttribute("viewBox", `0 0 ${Math.max(1, caja.width)} ${Math.max(1, caja.height)}`);
-    svg.setAttribute("width", String(Math.max(1, caja.width)));
-    svg.setAttribute("height", String(Math.max(1, caja.height)));
-
-    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    marker.id = `flechaArbol-${estructuraIdSeguro(arbol.dataset.maestria)}`;
-    marker.setAttribute("viewBox", "0 0 10 10");
-    marker.setAttribute("refX", "8");
-    marker.setAttribute("refY", "5");
-    marker.setAttribute("markerWidth", "6");
-    marker.setAttribute("markerHeight", "6");
-    marker.setAttribute("orient", "auto-start-reverse");
-    const punta = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    punta.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-    marker.append(punta);
-    defs.append(marker);
-    svg.append(defs);
+  crearBloqueRelacionesDirectas({ etiqueta, relaciones, resumen, usarDestino }) {
+    const bloque = crearElemento("div", "tarjeta-ruta-habilidad__relaciones");
+    bloque.append(crearElemento("span", "tarjeta-ruta-habilidad__etiqueta-relacion", etiqueta));
+    const lista = crearElemento("div", "tarjeta-ruta-habilidad__chips");
 
     for (const relacion of relaciones) {
-      const origen = arbol.querySelector(`[data-id-habilidad="${CSS.escape(relacion.desde)}"]`);
-      if (!origen) continue;
-      const destino = arbol.querySelector(
-        `[data-id-habilidad="${CSS.escape(relacion.hacia)}"]`,
+      const idRelacionado = usarDestino ? relacion.hacia : relacion.desde;
+      const habilidadRelacionada = resumen.habilidades[idRelacionado];
+      if (!habilidadRelacionada) continue;
+      const ejecucionRelacionada = this.configuracionEjecucion.habilidades[idRelacionado];
+      const chip = crearElemento("button", "chip-relacion-directa");
+      chip.type = "button";
+      chip.setAttribute(
+        "aria-label",
+        `${etiqueta}: ${nombreHabilidad(habilidadRelacionada)}`,
       );
-      const puntos = obtenerPuntosConexionRelativos(origen, destino, caja);
-      if (!puntos) continue;
-      const { origen: puntoOrigen, destino: puntoDestino } = puntos;
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const mitadY = (puntoOrigen.y + puntoDestino.y) / 2;
-      path.setAttribute(
-        "d",
-        `M ${puntoOrigen.x} ${puntoOrigen.y} C ${puntoOrigen.x} ${mitadY}, ${puntoDestino.x} ${mitadY}, ${puntoDestino.x} ${puntoDestino.y}`,
+      chip.append(
+        crearIconoRelacion(ejecucionRelacionada, habilidadRelacionada),
+        crearElemento("span", "", nombreHabilidad(habilidadRelacionada)),
       );
-      path.setAttribute("marker-end", `url(#${marker.id})`);
-      path.classList.add("arbol-habilidades__conexion");
-      path.classList.toggle(
-        "arbol-habilidades__conexion--sinergia",
-        relacion.tipo === TIPOS_RELACION_ARBOL_HABILIDADES.SINERGIA,
-      );
-      svg.append(path);
+      chip.addEventListener("click", () => this.abrirDetalleHabilidad(idRelacionado));
+      lista.append(chip);
     }
+
+    bloque.append(lista);
+    return bloque;
   }
 
-  observarGeometriaArbol(arbol, relaciones) {
-    const lienzo = arbol.querySelector(".arbol-habilidades__lienzo");
-    if (!lienzo || typeof ResizeObserver !== "function") return;
-
-    let cuadroPendiente = null;
-    const observador = new ResizeObserver(() => {
-      if (cuadroPendiente !== null) cancelAnimationFrame(cuadroPendiente);
-      cuadroPendiente = requestAnimationFrame(() => {
-        cuadroPendiente = null;
-        if (arbol.isConnected) {
-          this.dibujarRelacionesArbol(arbol, relaciones);
-        }
-      });
-    });
-    observador.observe(lienzo);
-    this.observadoresArbol.push({
-      observador,
-      cancelar: () => {
-        if (cuadroPendiente !== null) cancelAnimationFrame(cuadroPendiente);
-      },
-    });
-  }
-
-  liberarObservadoresArbol() {
-    for (const registro of this.observadoresArbol) {
-      registro.cancelar?.();
-      registro.observador?.disconnect();
+  crearFichaContextual({ estado, resumen }) {
+    const ficha = crearElemento("aside", "maestria-detalle__ficha");
+    ficha.setAttribute("aria-live", "polite");
+    const contexto = this.obtenerContextoDetalleHabilidad(
+      this.idHabilidadSeleccionada,
+      resumen,
+    );
+    if (!contexto) {
+      ficha.append(
+        crearElemento(
+          "p",
+          "maestria-detalle__ficha-vacia",
+          traducir("interfaz.habilidades.seleccionaHabilidad", {
+            respaldo: "Seleccioná una habilidad para ver sus detalles.",
+          }),
+        ),
+      );
+      return ficha;
     }
-    this.observadoresArbol = [];
+
+    ficha.append(
+      crearElemento("h4", "maestria-detalle__ficha-titulo", nombreHabilidad(contexto.habilidad)),
+      this.crearContenidoDetalleHabilidad({
+        ...contexto,
+        estado,
+        resumen,
+      }),
+    );
+    return ficha;
   }
 
-  abrirDetalleHabilidad(idHabilidad) {
-    const resumen = obtenerResumenProgreso(this.jugador);
+  obtenerContextoDetalleHabilidad(idHabilidad, resumen = obtenerResumenProgreso(this.jugador)) {
     const habilidad = resumen.habilidades[idHabilidad];
     const definicion = this.configuracionProgreso.habilidades[idHabilidad];
     const ejecucion = this.configuracionEjecucion.habilidades[idHabilidad];
-    if (!habilidad || !definicion || !ejecucion) return false;
-    this.idHabilidadSeleccionada = idHabilidad;
+    if (!habilidad || !definicion || !ejecucion) return null;
+
     const estado = resumen.maestrias[habilidad.maestria];
     const indiceAsignado = this.sistema
       .obtenerEstadoBarra()
-      .findIndex((ranura) => ranura.idHabilidad === idHabilidad);
-    const asignada = indiceAsignado >= 0;
+      .findIndex((ranura) => ranura.idHabilidad === habilidad.id);
+    return {
+      habilidad,
+      definicion,
+      ejecucion,
+      estado,
+      resumen,
+      asignada: indiceAsignado >= 0,
+      indiceAsignado,
+    };
+  }
+
+  crearContenidoDetalleHabilidad({
+    habilidad,
+    definicion,
+    ejecucion,
+    estado,
+    resumen,
+    asignada,
+    indiceAsignado,
+  }) {
     const contenido = crearElemento("div", "detalle-habilidad-modal");
     contenido.append(this.crearCabeceraDetalleHabilidad({ habilidad, ejecucion }));
     contenido.append(
@@ -504,12 +579,54 @@ export class PanelHabilidadesMaestrias {
         indiceAsignado,
       }),
     );
+    return contenido;
+  }
+
+  usaFichaEnCapa() {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+    return window.matchMedia(
+      "(max-width: 700px), (max-height: 500px) and (orientation: landscape)",
+    ).matches;
+  }
+
+  abrirDetalleHabilidad(idHabilidad) {
+    const resumen = obtenerResumenProgreso(this.jugador);
+    const contexto = this.obtenerContextoDetalleHabilidad(idHabilidad, resumen);
+    if (!contexto) return false;
+    this.idHabilidadSeleccionada = idHabilidad;
+
+    if (!this.usaFichaEnCapa()) {
+      this.cerrarCapaAccion();
+      if (!this.actualizarDetalleContextual(resumen)) {
+        this.renderizar();
+      }
+      return true;
+    }
+
     this.abrirCapaAccion({
-      titulo: nombreHabilidad(habilidad),
-      cuerpo: contenido,
+      titulo: nombreHabilidad(contexto.habilidad),
+      cuerpo: this.crearContenidoDetalleHabilidad(contexto),
       mostrarConfirmar: false,
       claseTarjeta: "confirmacion-habilidad--detalle",
     });
+    return true;
+  }
+
+  actualizarDetalleContextual(resumen) {
+    const fichaActual = this.contenido.querySelector(".maestria-detalle__ficha");
+    const estado = resumen.maestrias[this.maestriaActiva];
+    if (!fichaActual || !estado) return false;
+
+    fichaActual.replaceWith(this.crearFichaContextual({ estado, resumen }));
+    for (const tarjeta of this.contenido.querySelectorAll(".tarjeta-ruta-habilidad")) {
+      const seleccionada = tarjeta.dataset.idHabilidad === this.idHabilidadSeleccionada;
+      tarjeta.classList.toggle("tarjeta-ruta-habilidad--seleccionada", seleccionada);
+      tarjeta
+        .querySelector(".tarjeta-ruta-habilidad__principal")
+        ?.setAttribute("aria-pressed", String(seleccionada));
+    }
     return true;
   }
 
@@ -899,60 +1016,29 @@ export class PanelHabilidadesMaestrias {
   }
 }
 
-function estructuraIdSeguro(valor) {
-  return String(valor ?? "arbol").replace(/[^a-zA-Z0-9_-]/g, "_");
-}
-
-function obtenerPuntosConexionRelativos(origen, destino, cajaReferencia) {
-  if (!(origen instanceof Element) || !(destino instanceof Element)) return null;
-  const cajaOrigen = cajaRelativa(origen, cajaReferencia);
-  const cajaDestino = cajaRelativa(destino, cajaReferencia);
-  const centroOrigen = {
-    x: cajaOrigen.x + cajaOrigen.width / 2,
-    y: cajaOrigen.y + cajaOrigen.height / 2,
-  };
-  const centroDestino = {
-    x: cajaDestino.x + cajaDestino.width / 2,
-    y: cajaDestino.y + cajaDestino.height / 2,
-  };
-  const dx = centroDestino.x - centroOrigen.x;
-  const dy = centroDestino.y - centroOrigen.y;
-
-  if (Math.abs(dx) >= Math.abs(dy) * 0.25 && Math.abs(dx) > 2) {
-    const direccion = Math.sign(dx);
-    return {
-      origen: {
-        x: centroOrigen.x + direccion * cajaOrigen.width / 2,
-        y: centroOrigen.y,
-      },
-      destino: {
-        x: centroDestino.x - direccion * cajaDestino.width / 2,
-        y: centroDestino.y,
-      },
-    };
+function crearIndiceRelacionesDirectas(relaciones = []) {
+  const porOrigen = new Map();
+  const porDestino = new Map();
+  for (const relacion of relaciones) {
+    if (!porOrigen.has(relacion.desde)) porOrigen.set(relacion.desde, []);
+    if (!porDestino.has(relacion.hacia)) porDestino.set(relacion.hacia, []);
+    porOrigen.get(relacion.desde).push(relacion);
+    porDestino.get(relacion.hacia).push(relacion);
   }
-
-  const direccion = Math.sign(dy) || 1;
-  return {
-    origen: {
-      x: centroOrigen.x,
-      y: centroOrigen.y + direccion * cajaOrigen.height / 2,
-    },
-    destino: {
-      x: centroDestino.x,
-      y: centroDestino.y - direccion * cajaDestino.height / 2,
-    },
-  };
+  return { porOrigen, porDestino };
 }
 
-function cajaRelativa(elemento, cajaReferencia) {
-  const caja = elemento.getBoundingClientRect();
-  return {
-    x: caja.left - cajaReferencia.left,
-    y: caja.top - cajaReferencia.top,
-    width: caja.width,
-    height: caja.height,
-  };
+function etiquetaEstadoRuta({ bloqueada, aprendida, maximo }) {
+  if (bloqueada) {
+    return traducir("interfaz.habilidades.bloqueada", { respaldo: "Bloqueada" });
+  }
+  if (maximo) {
+    return traducir("interfaz.habilidades.gradoMaximo", { respaldo: "Grado máximo" });
+  }
+  if (aprendida) {
+    return traducir("interfaz.habilidades.aprendida", { respaldo: "Aprendida" });
+  }
+  return traducir("interfaz.habilidades.disponible", { respaldo: "Disponible" });
 }
 
 function crearIconoNodo(ejecucion, habilidad) {
@@ -961,6 +1047,31 @@ function crearIconoNodo(ejecucion, habilidad) {
   const fallback = () => marco.replaceChildren(
     crearElemento("span", "nodo-habilidad__inicial", nombreHabilidad(habilidad).slice(0, 1).toUpperCase()),
   );
+  if (!ruta) {
+    fallback();
+    return marco;
+  }
+  const imagen = document.createElement("img");
+  imagen.src = ruta;
+  imagen.alt = "";
+  imagen.draggable = false;
+  imagen.addEventListener("error", fallback, { once: true });
+  marco.append(imagen);
+  return marco;
+}
+
+function crearIconoRelacion(ejecucion, habilidad) {
+  const marco = crearElemento("span", "chip-relacion-directa__icono");
+  const ruta = ejecucion?.icono ?? habilidad?.icono ?? null;
+  const fallback = () => {
+    marco.replaceChildren(
+      crearElemento(
+        "span",
+        "chip-relacion-directa__inicial",
+        nombreHabilidad(habilidad).slice(0, 1).toUpperCase(),
+      ),
+    );
+  };
   if (!ruta) {
     fallback();
     return marco;

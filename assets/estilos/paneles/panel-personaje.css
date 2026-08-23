@@ -232,6 +232,32 @@
   text-transform: uppercase;
 }
 
+/* Daño usa los mismos subgrupos compactos que Resistencias. */
+.seccion-dano-personaje .grupo-estadisticas-personaje + .grupo-estadisticas-personaje {
+  margin-top: 10px;
+}
+
+.seccion-dano-personaje .grupo-estadisticas-personaje h4 {
+  margin: 0 0 5px;
+  color: #8f99bf;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panel-personaje button.dato-personaje--sin-danio:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.panel-personaje button.dato-personaje--sin-danio:disabled:hover,
+.panel-personaje button.dato-personaje--sin-danio:disabled:focus-visible {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.014);
+  outline: none;
+}
+
 .seccion-resistencias-personaje .dato-resistencia-danio {
   --color-resistencia-danio: #aeb8ff;
   border-color: var(--color-resistencia-danio);

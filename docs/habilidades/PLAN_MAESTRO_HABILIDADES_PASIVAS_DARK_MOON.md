@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El hito de habilidades/pasivas continúa cerrado y auditado; este ajuste no crea HP7.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El 23/08/2026 se cerró el ajuste posterior **Panel Personaje — daño y desglose canónico**, que mejora la lectura sin alterar esas ecuaciones. El hito de habilidades/pasivas continúa cerrado y auditado; ninguno de estos ajustes crea HP7.
 
 ---
 
@@ -1698,13 +1698,13 @@ Los efectos no reciben Daño Mágico, Daño de Habilidad, Daño Físico ni daño
 
 #### 17.6.4. Interfaz y desglose
 
-El Panel Personaje expone tres grupos conceptuales:
+El Panel Personaje expone los grupos conceptuales `Daño`, `Afinidades de daño` y `Potencia de efectos`. Dentro de `Daño`, la presentación se organiza por lectura:
 
 ```text
 DAÑO
-- Daño Físico
-- Daño Mágico
-- Daño de Habilidad
+- Daño final: Daño medio, DPS
+- Daño de armas: Arma, Secundaria
+- Daños globales: Daño Físico, Daño Mágico, Daño de Habilidad
 
 AFINIDADES DE DAÑO
 - Fuego
@@ -1720,7 +1720,13 @@ POTENCIA DE EFECTOS
 - Electrización
 ```
 
-Las descripciones deben indicar explícitamente qué estadísticas se acumulan. El modal consume `resolucionesModificadores` y los aportes de atributos primarios ya producidos; no reconstruye fórmulas. La corrección final normaliza la clave `danoMagico` en los aportes de Inteligencia/Sabiduría para que el nombre y el desglose completos coincidan.
+`Arma` y `Secundaria` muestran el promedio final de cada fuente que participa en el ataque básico actual. Una secundaria sin fuente de daño queda apagada con `--.-`; una secundaria queda oculta cuando el arma principal ocupa dos manos. La interfaz no promedia, suma ni decide componentes: consume `promedio`, `minimo` y `maximo` de cada fuente ya resuelta.
+
+El detalle de una fuente muestra primero el rango final y después su rango base/local, aporte de atributo ofensivo, factor efectivo de mano secundaria cuando corresponda, modificadores canónicos y componentes finales. En ataque dual, la penalización visual no conoce un porcentaje fijo: usa `resolucionMultiplicadorDanioFuente.resultado`. Por ejemplo, un resultado `0.5` se presenta como `Penalización de mano secundaria -50%`; si el balance modifica el factor, la presentación cambia con ese resultado. Un factor neutro `1` no agrega fila y uno superior a `1` se presenta como bonificación.
+
+`Daño medio` lista solamente los promedios finales por fuente y no repite Fuerza u otro atributo ya incluido dentro de cada valor de arma. Las descripciones deben indicar explícitamente qué estadísticas se acumulan. El modal consume `resolucionesModificadores`, las fuentes de daño y los aportes de atributos primarios ya producidos; no reconstruye fórmulas. La corrección final normaliza la clave `danoMagico` en los aportes de Inteligencia/Sabiduría para que el nombre y el desglose completos coincidan.
+
+La próxima revisión de la pantalla de Habilidades se realizará en una etapa separada. La decisión aprobada es conservar solo relaciones visuales directas de modificación específica y retirar las sinergias visuales de atributos generales; antes de implementarla se deberá proponer su composición y flujo de lectura.
 
 #### 17.6.5. Persistencia
 

@@ -1,9 +1,9 @@
 # DISEÑO MAESTRO VISUAL DE DARK MOON
 
 Proyecto: Dark Moon
-Versión del documento: 1.3
+Versión del documento: 1.4
 Fecha inicial: 30 de julio de 2026
-Última actualización: 20 de agosto de 2026
+Última actualización: 23 de agosto de 2026
 Estado: guía visual principal, editable; decisiones P0/P2 y normalización UI-I1 incorporadas
 
 > **Estado gráfico vigente:** Phaser 4.2.1 es el único renderizador propio mantenido por Dark Moon. La implementación Canvas 2D legacy fue retirada después de certificar la cobertura funcional y visual de Phaser. Las referencias a Canvas 2D dentro de la crónica de P5, P6 y P7 se conservan como contexto histórico de esas validaciones y no describen el runtime actual.
@@ -1095,6 +1095,18 @@ Los paneles deben compartir:
 - tipografía;
 - estados;
 - iconos.
+
+### 18.2.1 Panel Personaje — jerarquía de daño
+
+Las estadísticas densas se agrupan para que el resultado de combate se lea antes que sus causas. La sección `Daño` presenta, en este orden visual:
+
+1. `Daño final`: Daño medio y DPS;
+2. `Daño de armas`: promedio final de Arma y Secundaria;
+3. `Daños globales`: Daño Físico, Daño Mágico y Daño de Habilidad.
+
+Una ranura sin fuente de daño se muestra apagada con `--.-`; la secundaria se oculta cuando el arma principal utiliza dos manos. Estos estados deben diferenciarse por contenido y atenuación, no solo por color.
+
+En el modal de una fuente de arma, el rango final se coloca primero. El detalle sigue con rango base/local, aporte de atributo, factores canónicos de la fuente, modificadores y componentes finales. La penalización de mano secundaria debe comunicar su porcentaje efectivo y provenir de la resolución canónica actual, no de un texto fijo. Los valores explicativos no deben repetir un atributo que ya está incorporado en el promedio final de `Daño medio`.
 
 ## 18.3 Materiales
 
@@ -2204,4 +2216,3 @@ Las etiquetas abreviadas dentro de un grupo pueden omitir el prefijo común, per
 `Daño de Habilidad` debe describirse como una bonificación aplicada una sola vez al daño directo de habilidades y no a efectos. `Daño Físico` debe explicar que afecta el componente físico de todas las armas equipadas, independientemente del atributo con el que escalen.
 
 El modal y las relaciones atributo → derivadas consumen nombres y desgloses canónicos. Inteligencia y Sabiduría aportan a la clave vigente `danoMagico`; no deben aparecer aliases técnicos como `DanioMagico`, ni perderse sus aportes en el detalle. La UI no calcula ninguna de estas estadísticas: únicamente representa la resolución y el desglose producidos por dominio.
-

@@ -687,7 +687,6 @@ export function consumirPreparacionAtaque(combatiente) {
 
 export function obtenerCostoEjecucionAtaque(combatiente) {
   const configuracion = obtenerConfiguracionAtaque(combatiente);
-  if (!ataqueUsaAccionCompuesta(configuracion)) return configuracion.costoAtaqueBase;
   return calcularCostoBaseFaseAtaque({
     combatiente,
     configuracionAtaque: configuracion,

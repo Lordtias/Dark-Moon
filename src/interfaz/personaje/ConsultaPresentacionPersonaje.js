@@ -327,43 +327,41 @@ function crearFilasResolucion({
   incluirBase = true,
   etiquetaBase = "Valor base",
 }) {
-  const filasAscendentes = [];
-  for (const paso of resolucion?.desglose?.trazaAplicacion ?? []) {
-    filasAscendentes.push(
-      ...crearFilasPasoTraza({
-        paso,
-        unidad,
-        escala,
-        configuracionHabilidades,
-      }),
-    );
-  }
+  // Se invierten las fases completas, no las filas planas. En una fase que
+  // agrupa varios porcentajes sobre el total, sus fuentes siguen el orden que
+  // entregó el resolutor; sólo cambia la dirección base → final del cálculo.
+  const gruposAscendentes = crearGruposFilasTraza({
+    trazaAplicacion: resolucion?.desglose?.trazaAplicacion,
+    unidad,
+    escala,
+    configuracionHabilidades,
+  });
   if (resolucion?.limiteAplicado) {
     const limites = resolucion.limiteAplicado;
     const limite = resolucion.resultado <= limites.minimo
       ? limites.minimo
       : limites.maximo;
-    filasAscendentes.push(crearFila({
+    gruposAscendentes.push([crearFila({
       tipo: "limite",
       operacion: OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO,
       etiqueta: "Límite canónico",
       valor: limite * escala,
       unidad,
-    }));
+    })]);
   }
   if (resolucion?.limiteDominio?.aplicado === true) {
     const limite = resolucion.resultado <= resolucion.limiteDominio.minima
       ? resolucion.limiteDominio.minima
       : resolucion.limiteDominio.maxima;
-    filasAscendentes.push(crearFila({
+    gruposAscendentes.push([crearFila({
       tipo: "limite",
       operacion: OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO,
       etiqueta: "Límite del dominio",
       valor: limite * escala,
       unidad,
-    }));
+    })]);
   }
-  const filasDescendentes = [...filasAscendentes].reverse();
+  const filasDescendentes = [...gruposAscendentes].reverse().flat();
   if (!incluirBase) return Object.freeze(filasDescendentes);
   return Object.freeze(filasDescendentes.concat(crearFila({
     tipo: "base",
@@ -372,6 +370,22 @@ function crearFilasResolucion({
     valor: (resolucion?.valorBase ?? 0) * escala,
     unidad,
   })));
+}
+
+function crearGruposFilasTraza({
+  trazaAplicacion,
+  unidad,
+  escala,
+  configuracionHabilidades,
+}) {
+  return [...(trazaAplicacion ?? [])]
+    .map((paso) => crearFilasPasoTraza({
+      paso,
+      unidad,
+      escala,
+      configuracionHabilidades,
+    }))
+    .filter((filas) => filas.length > 0);
 }
 
 function crearFilasPasoTraza({ paso, unidad, escala, configuracionHabilidades }) {
@@ -588,15 +602,29 @@ function crearDetalleDanioMano({ danio, mano, configuracionHabilidades = null })
       secciones: [],
     });
   }
-  const secciones = [crearSeccion(
+  const componentes = fuente.componentesDanio ?? [];
+  const secciones = [];
+
+  // El rango final se muestra una vez en la cabecera. Las capas globales de
+  // cada componente se aplican después del golpe, por eso se presentan antes
+  // que él: el detalle conserva la dirección final → base del cálculo real.
+  for (const [indice, descriptor] of componentes.entries()) {
+    secciones.push(...crearSeccionesEscaladoComponente({
+      descriptor,
+      indice,
+      configuracionHabilidades,
+    }));
+  }
+
+  secciones.push(crearSeccion(
     "golpe",
     "Multiplicador de golpe",
     crearFilasMultiplicadorFuente({
       fuente,
       configuracionHabilidades,
     }),
-  )];
-  secciones.push(...(fuente.componentesDanio ?? []).map((descriptor, indice) => {
+  ));
+  secciones.push(...componentes.map((descriptor, indice) => {
     const rango = fuente.rangosComponentes?.[indice];
     return crearSeccion(
       `componente-${indice}`,
@@ -605,6 +633,7 @@ function crearDetalleDanioMano({ danio, mano, configuracionHabilidades = null })
         fuente,
         descriptor,
         rango,
+        mostrarResultadoFinal: componentes.length > 1,
       }),
     );
   }));
@@ -637,40 +666,73 @@ function crearFilasMultiplicadorFuente({ fuente, configuracionHabilidades }) {
   return Object.freeze(filas);
 }
 
-function crearFilasComponenteDanio({ fuente, descriptor, rango }) {
-  const filas = [crearFila({
-    tipo: "informacion",
-    operacion: "resultado",
-    etiqueta: "Resultado final",
-    valor: crearRango(rango?.minimo, rango?.maximo),
-    unidad: "rango_danio",
-  })];
+function crearSeccionesEscaladoComponente({
+  descriptor,
+  indice,
+  configuracionHabilidades,
+}) {
   const escalado = descriptor.resolucionEscaladoDanio;
-  if (escalado?.danioFisico?.resultado) {
+  const capas = [
+    ["fisico", "Daño físico global", escalado?.danioFisico],
+    ["afinidad", `${etiquetaTipoDanio(descriptor.tipo)} global`, escalado?.danioTipo],
+    ["magico", "Daño mágico global", escalado?.danioMagico],
+  ];
+  return Object.freeze(capas
+    .filter(([, , resolucion]) => tieneResolucionPresentable(resolucion))
+    .map(([id, etiqueta, resolucion]) => crearSeccion(
+      `escalado-${indice}-${id}`,
+      etiqueta,
+      crearFilasResolucionGlobalDanio({
+        etiqueta,
+        resolucion,
+        configuracionHabilidades,
+      }),
+    )));
+}
+
+function tieneResolucionPresentable(resolucion) {
+  if (!Number.isFinite(resolucion?.resultado)) return false;
+  if (Math.abs(resolucion.resultado) > Number.EPSILON) return true;
+  if (Math.abs(resolucion.valorBase ?? 0) > Number.EPSILON) return true;
+  return (resolucion.desglose?.trazaAplicacion?.length ?? 0) > 0;
+}
+
+function crearFilasResolucionGlobalDanio({
+  etiqueta,
+  resolucion,
+  configuracionHabilidades,
+}) {
+  const filas = [crearFila({
+    tipo: tipoFilaValor(resolucion.resultado),
+    operacion: "resultado_escalado_danio",
+    etiqueta: `${etiqueta} final`,
+    valor: resolucion.resultado,
+    unidad: "porcentaje",
+  })];
+  filas.push(...crearFilasResolucion({
+    resolucion,
+    unidad: "porcentaje",
+    escala: 1,
+    configuracionHabilidades,
+    etiquetaBase: `${etiqueta} base`,
+  }));
+  return Object.freeze(filas);
+}
+
+function crearFilasComponenteDanio({
+  fuente,
+  descriptor,
+  rango,
+  mostrarResultadoFinal,
+}) {
+  const filas = [];
+  if (mostrarResultadoFinal) {
     filas.push(crearFila({
-      tipo: tipoFilaValor(escalado.danioFisico.resultado),
-      operacion: "referencia_global",
-      etiqueta: "Daño físico global resuelto",
-      valor: escalado.danioFisico.resultado,
-      unidad: "porcentaje",
-    }));
-  }
-  if (escalado?.danioMagico?.resultado) {
-    filas.push(crearFila({
-      tipo: tipoFilaValor(escalado.danioMagico.resultado),
-      operacion: "referencia_global",
-      etiqueta: "Daño mágico global resuelto",
-      valor: escalado.danioMagico.resultado,
-      unidad: "porcentaje",
-    }));
-  }
-  if (escalado?.danioTipo?.resultado) {
-    filas.push(crearFila({
-      tipo: tipoFilaValor(escalado.danioTipo.resultado),
-      operacion: "referencia_global",
-      etiqueta: `${etiquetaTipoDanio(descriptor.tipo)} resuelto`,
-      valor: escalado.danioTipo.resultado,
-      unidad: "porcentaje",
+      tipo: "informacion",
+      operacion: "resultado",
+      etiqueta: "Resultado final del componente",
+      valor: crearRango(rango?.minimo, rango?.maximo),
+      unidad: "rango_danio",
     }));
   }
   if (
@@ -736,8 +798,12 @@ function crearFilasRitmoEfectivo({ jugador, dpt, configuracionHabilidades }) {
     jugador,
     configuracionHabilidades,
   });
+  const filasFases = crearFilasFasesDpt({
+    dpt,
+    configuracionHabilidades,
+  });
   const requiereDetalleRitmo =
-    dpt.fases.length > 1 ||
+    filasFases.length > 0 ||
     filasFactores.length > 0 ||
     dpt.costoAtaqueEfectivo !== dpt.costoAtaqueBase;
   if (!requiereDetalleRitmo) return [];
@@ -750,18 +816,41 @@ function crearFilasRitmoEfectivo({ jugador, dpt, configuracionHabilidades }) {
     unidad: "temporal",
   })];
   filas.push(...filasFactores);
-  for (const fase of [...dpt.fases].reverse()) {
-    if (dpt.fases.length > 1) {
-      filas.push(crearFila({
-        tipo: "informacion",
-        operacion: "costo_fase",
-        etiqueta: `Costo de ${etiquetaFase(fase.fase)}`,
-        valor: fase.costoBase,
-        unidad: "temporal",
-      }));
-    }
-  }
+  filas.push(...filasFases);
   return filas;
+}
+
+function crearFilasFasesDpt({ dpt, configuracionHabilidades }) {
+  const esAtaqueCompuesto = dpt.fases.length > 1;
+  const filas = [];
+  for (const fase of [...dpt.fases].reverse()) {
+    const resolucion = fase.resolucionCostoFase;
+    const tieneTraza =
+      (resolucion?.desglose?.trazaAplicacion?.length ?? 0) > 0 ||
+      resolucion?.limiteDominio?.aplicado === true;
+    if (!esAtaqueCompuesto && !tieneTraza) continue;
+
+    const etiqueta = etiquetaFase(fase.fase);
+    filas.push(crearFila({
+      tipo: "informacion",
+      operacion: "costo_fase",
+      etiqueta: `Costo de ${etiqueta}`,
+      valor: fase.costoBase,
+      unidad: "temporal",
+    }));
+    if (!tieneTraza) continue;
+    filas.push(...crearFilasResolucion({
+      resolucion,
+      unidad: "temporal",
+      escala: 1,
+      configuracionHabilidades,
+      // En un ataque simple, esta base coincide exactamente con el coste
+      // base que ya aparece en su sección propia; no se duplica.
+      incluirBase: esAtaqueCompuesto,
+      etiquetaBase: `Costo base de ${etiqueta}`,
+    }));
+  }
+  return Object.freeze(filas);
 }
 
 function crearFilasFactoresTemporales({ jugador, configuracionHabilidades }) {
@@ -770,22 +859,22 @@ function crearFilasFactoresTemporales({ jugador, configuracionHabilidades }) {
     ["Factor temporal general", OBJETIVOS_MODIFICADOR.FACTOR_TIEMPO, bases.factorTiempo],
     ["Factor de ataque", OBJETIVOS_MODIFICADOR.FACTOR_ATAQUE, bases.factorAtaque],
   ];
-  const filas = [];
+  const gruposAscendentes = [];
   for (const [etiqueta, objetivo, base] of factores) {
     if (!Number.isFinite(base)) continue;
     const resolucion = jugador.resolverModificador(objetivo, base);
-    for (const paso of resolucion.desglose?.trazaAplicacion ?? []) {
-      for (const fila of crearFilasPasoTraza({
-        paso,
-        unidad: "porcentaje",
-        escala: 1,
-        configuracionHabilidades,
-      })) {
-        filas.push(Object.freeze({ ...fila, etiqueta: `${etiqueta} · ${fila.etiqueta}` }));
-      }
+    for (const filas of crearGruposFilasTraza({
+      trazaAplicacion: resolucion.desglose?.trazaAplicacion,
+      unidad: "porcentaje",
+      escala: 1,
+      configuracionHabilidades,
+    })) {
+      gruposAscendentes.push(filas.map((fila) =>
+        Object.freeze({ ...fila, etiqueta: `${etiqueta} · ${fila.etiqueta}` }),
+      ));
     }
   }
-  return filas;
+  return Object.freeze([...gruposAscendentes].reverse().flat());
 }
 
 function crearSeccionesCostoBaseAtaque(desglose) {

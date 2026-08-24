@@ -5,8 +5,8 @@ import {
 } from "../tiempo/SistemaTiempo.js";
 import {
   ataqueUsaAccionCompuesta,
-  calcularCostoBaseFaseAtaque,
   FASES_ACCION_COMPUESTA,
+  resolverCostoBaseFaseAtaque,
 } from "../acciones/CostosAccionCompuesta.js";
 import { obtenerDesgloseCostoBaseAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
@@ -57,9 +57,15 @@ export function calcularDptCombatiente(combatiente) {
       ]
     : [FASES_ACCION_COMPUESTA.EJECUCION]
   ).map((fase) => {
-    const costoBase = ataqueUsaAccionCompuesta(configuracionAtaque)
-      ? calcularCostoBaseFaseAtaque({ combatiente, configuracionAtaque, fase })
-      : costoAtaqueBase;
+    // Incluso un ataque simple se resuelve como una única ejecución. Esto no
+    // altera un ataque sin modificadores, pero permite que un descriptor de
+    // costoFaseAccion sobre ejecución funcione igual para cualquier arma.
+    const resolucionCostoFase = resolverCostoBaseFaseAtaque({
+      combatiente,
+      configuracionAtaque,
+      fase,
+    });
+    const costoBase = resolucionCostoFase.resultado;
     const costoEfectivo = costoBase <= 0
       ? 0
       : calcularCostoAccionCombatiente({
@@ -67,7 +73,12 @@ export function calcularDptCombatiente(combatiente) {
           tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
           costoBase,
         });
-    return Object.freeze({ fase, costoBase, costoEfectivo });
+    return Object.freeze({
+      fase,
+      costoBase,
+      costoEfectivo,
+      resolucionCostoFase,
+    });
   });
   const costoAtaqueEfectivo = fases.reduce(
     (total, fase) => total + fase.costoEfectivo,

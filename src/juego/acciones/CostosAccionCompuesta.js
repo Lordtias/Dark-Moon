@@ -47,6 +47,18 @@ export function obtenerCostosBaseFasesAtaque(configuracionAtaque) {
 }
 
 export function calcularCostoBaseFaseAtaque({ combatiente, configuracionAtaque, fase } = {}) {
+  return resolverCostoBaseFaseAtaque({
+    combatiente,
+    configuracionAtaque,
+    fase,
+  }).resultado;
+}
+
+// Conserva la resolución completa de una fase para consultas de presentación.
+// Un ataque simple también tiene una fase de ejecución: la división en dos
+// fases es propia de algunas armas, no una condición para que una pasiva o un
+// afijo pueda modificar declarativamente la ejecución.
+export function resolverCostoBaseFaseAtaque({ combatiente, configuracionAtaque, fase } = {}) {
   if (!combatiente || typeof combatiente !== "object") {
     throw new Error("Se necesita un combatiente para resolver el coste de fase.");
   }
@@ -63,15 +75,12 @@ export function calcularCostoBaseFaseAtaque({ combatiente, configuracionAtaque, 
     tipoAtaque: configuracionAtaque?.propiedadesControladoras?.tipoAtaque ?? null,
     esAtaqueDual: configuracionAtaque?.esAtaqueDual === true,
   };
-  const resuelto = combatiente.obtenerValorModificado(
-    OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+  return normalizarResolucionCostoFase(resolverCostoFase({
+    combatiente,
     valorBase,
     contexto,
-  );
-  if (!Number.isFinite(resuelto)) {
-    throw new Error("El coste de fase resuelto no es válido.");
-  }
-  return Math.max(0, Math.round(resuelto));
+    descripcion: "El coste de fase resuelto",
+  }));
 }
 
 export function calcularCostoBaseFaseHabilidadArma({
@@ -108,14 +117,77 @@ export function calcularCostoBaseFaseHabilidadArma({
     esAtaqueDual: configuracionAtaque?.esAtaqueDual === true,
     idHabilidad: idHabilidad.trim().toLowerCase(),
   };
-  const resuelto = combatiente.obtenerValorModificado(
-    OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+  return normalizarResolucionCostoFase(resolverCostoFase({
+    combatiente,
     valorBase,
     contexto,
-  );
-  if (!Number.isFinite(resuelto)) {
-    throw new Error("El coste de fase de habilidad resuelto no es válido.");
+    descripcion: "El coste de fase de habilidad resuelto",
+  })).resultado;
+}
+
+function resolverCostoFase({ combatiente, valorBase, contexto, descripcion }) {
+  const resolucion = typeof combatiente.resolverModificador === "function"
+    ? combatiente.resolverModificador(
+        OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+        valorBase,
+        contexto,
+      )
+    : null;
+  const resultado = resolucion?.resultado ??
+    combatiente.obtenerValorModificado?.(
+      OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+      valorBase,
+      contexto,
+    );
+  if (!Number.isFinite(resultado)) {
+    throw new Error(`${descripcion} no es válido.`);
   }
-  return Math.max(0, Math.round(resuelto));
+  if (resolucion) return resolucion;
+  return Object.freeze({
+    objetivo: OBJETIVOS_MODIFICADOR.COSTO_FASE_ACCION,
+    valorBase,
+    resultado,
+    contexto: Object.freeze({ ...contexto }),
+    desglose: Object.freeze({
+      trazaAplicacion: Object.freeze([]),
+      aplicados: Object.freeze([]),
+      omitidos: Object.freeze([]),
+    }),
+  });
+}
+
+function normalizarResolucionCostoFase(resolucion) {
+  const resultadoAntesRedondeo = resolucion.resultado;
+  const resultadoRedondeado = Math.round(resultadoAntesRedondeo);
+  const resultado = Math.max(0, resultadoRedondeado);
+  const trazaAplicacion = [
+    ...(resolucion.desglose?.trazaAplicacion ?? []),
+  ];
+  if (resultadoRedondeado !== resultadoAntesRedondeo) {
+    trazaAplicacion.push(Object.freeze({
+      operacion: "redondear",
+      modificador: null,
+      modificadores: Object.freeze([]),
+      valorAntes: resultadoAntesRedondeo,
+      valorDespues: resultadoRedondeado,
+      redondeado: true,
+    }));
+  }
+
+  const limiteAplicado = resultado !== resultadoRedondeado;
+  return Object.freeze({
+    ...resolucion,
+    resultado,
+    resultadoAntesRedondeo,
+    limiteDominio: Object.freeze({
+      minima: 0,
+      maxima: Infinity,
+      aplicado: limiteAplicado,
+    }),
+    desglose: Object.freeze({
+      ...(resolucion.desglose ?? {}),
+      trazaAplicacion: Object.freeze(trazaAplicacion),
+    }),
+  });
 }
 

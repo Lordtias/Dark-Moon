@@ -1,6 +1,7 @@
 import { obtenerInstante, redondearMilisegundos } from "../utilidades/TiempoEjecucion.js";
 import { normalizarMensajesJuego } from "../juego/mensajes/MensajesJuego.js";
 import { resolverPresentacionMensajeJuego } from "./idiomas/PresentadorMensajesJuego.js";
+import { crearConsultaPresentacionPersonaje } from "./personaje/ConsultaPresentacionPersonaje.js";
 
 import {
   crearEscenaJuego,
@@ -33,6 +34,7 @@ export class Renderizador {
     hudPartida,
     configuracionPersonaje = null,
     configuracionEnemigos = null,
+    configuracionHabilidades = null,
   } = {}) {
     if (
       !renderizadorMapa ||
@@ -75,6 +77,7 @@ export class Renderizador {
     this.combatLogText = combatLogText;
     this.configuracionPersonaje = configuracionPersonaje;
     this.configuracionEnemigos = configuracionEnemigos;
+    this.configuracionHabilidades = configuracionHabilidades;
 
     // Se utiliza para interpretar correctamente
     // mensajes antiguos de combate.
@@ -220,7 +223,14 @@ export class Renderizador {
 
     // Los paneles HTML continúan siendo
     // independientes del backend del mapa.
-    this.panelPersonaje.actualizar(juego.player, { juego });
+    this.panelPersonaje.actualizar(juego.player, {
+      juego,
+      consulta: crearConsultaPresentacionPersonaje({
+        jugador: juego.player,
+        juego,
+        configuracionHabilidades: this.configuracionHabilidades,
+      }),
+    });
     this.hudPartida.actualizar(juego.player, { juego });
 
     // PanelInventario recibe también al jugador
@@ -238,7 +248,14 @@ export class Renderizador {
       throw new Error("Renderizador necesita un jugador para actualizar su estado visual.");
     }
 
-    this.panelPersonaje.actualizar(jugador, { juego: this.juegoActual });
+    this.panelPersonaje.actualizar(jugador, {
+      juego: this.juegoActual,
+      consulta: crearConsultaPresentacionPersonaje({
+        jugador,
+        juego: this.juegoActual,
+        configuracionHabilidades: this.configuracionHabilidades,
+      }),
+    });
     this.hudPartida.actualizar(jugador, { juego: this.juegoActual });
     return true;
   }

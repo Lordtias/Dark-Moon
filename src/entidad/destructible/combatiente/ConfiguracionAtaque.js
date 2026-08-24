@@ -1,4 +1,5 @@
 import { CONFIGURACION_COMBATE } from "../../../config/ConfiguracionCombate.js";
+import { TIEMPO_REFERENCIA } from "../../../juego/tiempo/SistemaTiempo.js";
 import { esVarita } from "../../../juego/magia/SistemaCatalizadores.js";
 import {
   ataqueUsaAccionCompuesta,
@@ -15,6 +16,7 @@ import {
   crearParametroContenidoMensaje,
   TIPOS_MENSAJE_JUEGO,
 } from "../../../juego/mensajes/MensajesJuego.js";
+import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 
 const ICONO_TACTICO_FLECHA_CARGADA = "assets/imagenes/habilidades/basicas/flecha_cargada_tactica.png";
 export const ID_ACCION_ATAQUE_BASICO = "ataque_basico";
@@ -100,7 +102,7 @@ export function obtenerConfiguracionAtaque(
       tipoMunicion: propiedades.tipoMunicion ?? null,
     };
 
-    return completarConfiguracionAtaque(configuracion);
+    return completarConfiguracionAtaque(configuracion, combatiente);
   }
 
   // Un arma ubicada solamente en secundaria puede utilizarse cuando no existe
@@ -126,32 +128,62 @@ export function obtenerConfiguracionAtaque(
       tipoMunicion: armaSecundaria.propiedades.tipoMunicion ?? null,
     };
 
-    return completarConfiguracionAtaque(configuracion);
+    return completarConfiguracionAtaque(configuracion, combatiente);
   }
 
   return crearConfiguracionAtaqueNatural(combatiente);
 }
 
-function completarConfiguracionAtaque(configuracion) {
+function completarConfiguracionAtaque(configuracion, combatiente = null) {
+  const desgloseCostoAtaqueBase = obtenerDesgloseCostoBaseAtaque(
+    configuracion,
+    combatiente,
+  );
   return {
     ...configuracion,
-    costoAtaqueBase: calcularCostoBaseAtaque(configuracion),
+    costoAtaqueBase: desgloseCostoAtaqueBase.costoBase,
+    // La misma resolución que determina el coste del motor queda disponible
+    // para las consultas de presentación. La interfaz no vuelve a resolver ni
+    // interpreta qué arma debe recibir el recargo.
+    desgloseCostoAtaqueBase,
     costoManaAtaqueBasico: calcularCostoManaAtaqueBasico(configuracion),
   };
 }
 
 // Conserva la única fórmula temporal general ya existente para cualquier
 // combinación dual válida, incluidas dos varitas.
-export function calcularCostoBaseAtaque(configuracion) {
+export function calcularCostoBaseAtaque(configuracion, combatiente = null) {
+  return obtenerDesgloseCostoBaseAtaque(configuracion, combatiente).costoBase;
+}
+
+// Expone la composición temporal que ya usa el ataque. Sirve para que las
+// consultas de presentación describan una combinación dual sin reimplementar
+// la fórmula ni decidir qué arma prevalece.
+export function obtenerDesgloseCostoBaseAtaque(configuracion, combatiente = null) {
   if (!configuracion || typeof configuracion !== "object") {
     throw new Error("Se necesita una configuración de ataque válida.");
   }
 
+  if (configuracion.desgloseCostoAtaqueBase) {
+    return configuracion.desgloseCostoAtaqueBase;
+  }
+
   if (!configuracion.esAtaqueDual) {
-    return validarCostoAtaque(
+    const costoBase = validarCostoAtaque(
       configuracion.propiedadesControladoras?.costoAtaque,
       configuracion.armaControladora?.nombre ?? "Ataque natural",
     );
+    return Object.freeze({
+      tipo: "simple",
+      costoBase,
+      fuentes: Object.freeze([
+        crearFuenteTemporal({
+          mano: configuracion.fuentesDanio?.[0]?.mano ?? "principal",
+          nombre: configuracion.armaControladora?.nombre ?? "Ataque natural",
+          costoBase,
+        }),
+      ]),
+    });
   }
 
   const costoPrincipal = validarCostoAtaque(
@@ -162,15 +194,110 @@ export function calcularCostoBaseAtaque(configuracion) {
     configuracion.armaSecundaria?.propiedades?.costoAtaque,
     configuracion.armaSecundaria?.nombre ?? "Arma secundaria",
   );
-  const costoMayor = Math.max(costoPrincipal, costoSecundaria);
-  const costoMenor = Math.min(costoPrincipal, costoSecundaria);
-  const recargo = CONFIGURACION_COMBATE.dosArmas.recargoTemporalSecundaria;
+  const fuentes = [
+    crearFuenteTemporal({
+      mano: "principal",
+      nombre: configuracion.armaPrincipal?.nombre ?? "Arma principal",
+      costoBase: costoPrincipal,
+    }),
+    crearFuenteTemporal({
+      mano: "secundaria",
+      nombre: configuracion.armaSecundaria?.nombre ?? "Arma secundaria",
+      costoBase: costoSecundaria,
+    }),
+  ];
+  const fuenteCostoMayor = fuentes.find((fuente) => fuente.costoBase === Math.max(
+    costoPrincipal,
+    costoSecundaria,
+  )) ?? fuentes[0];
+  // En un empate, la secundaria queda explícitamente como fuente del
+  // recargo. El resultado es determinista y no cambia la fórmula canónica.
+  const fuenteCostoMenor = [...fuentes].reverse().find(
+    (fuente) => fuente.costoBase === Math.min(costoPrincipal, costoSecundaria),
+  ) ?? fuentes[1];
+  const costoMayor = fuenteCostoMayor.costoBase;
+  const costoMenor = fuenteCostoMenor.costoBase;
+  const recargoPorcentajeBase =
+    CONFIGURACION_COMBATE.dosArmas.recargoTemporalSecundaria * 100;
 
-  if (!Number.isFinite(recargo) || recargo < 0) {
+  if (!Number.isFinite(recargoPorcentajeBase) || recargoPorcentajeBase < 0) {
     throw new Error("El recargo temporal de dos armas no es válido.");
   }
 
-  return Math.max(1, Math.round(costoMayor + costoMenor * recargo));
+  const resolucionRecargoTemporalDual = resolverRecargoTemporalDual({
+    combatiente,
+    configuracion,
+    valorBase: recargoPorcentajeBase,
+  });
+  const recargoPorcentajeFinal = Math.max(
+    0,
+    resolucionRecargoTemporalDual.resultado,
+  );
+  const recargoTemporal = costoMenor * (recargoPorcentajeFinal / 100);
+  const costoBase = Math.max(1, Math.round(costoMayor + recargoTemporal));
+  return Object.freeze({
+    tipo: "dual",
+    costoBase,
+    costoMayor,
+    costoMenor,
+    recargoTemporalSecundaria: recargoPorcentajeFinal / 100,
+    recargoPorcentajeBase,
+    recargoPorcentajeFinal,
+    resolucionRecargoTemporalDual,
+    recargoTemporal,
+    fuenteCostoMayor,
+    fuenteCostoMenor,
+    fuentes: Object.freeze(fuentes),
+  });
+}
+
+function resolverRecargoTemporalDual({ combatiente, configuracion, valorBase }) {
+  if (typeof combatiente?.resolverModificador !== "function") {
+    return crearResolucionDirectaRecargo(valorBase);
+  }
+  const resolucion = combatiente.resolverModificador(
+    OBJETIVOS_MODIFICADOR.RECARGO_TEMPORAL_DUAL,
+    valorBase,
+    // Evita recalcular la configuración mientras se construye y conserva el
+    // contexto canónico completo del combatiente para afijos y pasivas.
+    { configuracionAtaque: configuracion },
+  );
+  return Object.freeze({
+    ...resolucion,
+    resultado: Math.max(0, resolucion.resultado),
+    limiteDominio: Object.freeze({
+      minima: 0,
+      maxima: Infinity,
+      aplicado: resolucion.resultado < 0,
+    }),
+  });
+}
+
+function crearResolucionDirectaRecargo(valorBase) {
+  return Object.freeze({
+    objetivo: OBJETIVOS_MODIFICADOR.RECARGO_TEMPORAL_DUAL,
+    valorBase,
+    resultado: valorBase,
+    desglose: Object.freeze({
+      trazaAplicacion: Object.freeze([]),
+      aplicados: Object.freeze([]),
+      omitidos: Object.freeze([]),
+    }),
+    limiteDominio: Object.freeze({
+      minima: 0,
+      maxima: Infinity,
+      aplicado: false,
+    }),
+  });
+}
+
+function crearFuenteTemporal({ mano, nombre, costoBase }) {
+  return Object.freeze({
+    mano,
+    nombre,
+    costoBase,
+    velocidadAtaque: TIEMPO_REFERENCIA / costoBase,
+  });
 }
 
 function validarCostoAtaque(costoAtaque, nombreFuente) {
@@ -239,7 +366,7 @@ function crearConfiguracionAtaqueNatural(combatiente) {
     tipoMunicion: null,
   };
 
-  return completarConfiguracionAtaque(configuracion);
+  return completarConfiguracionAtaque(configuracion, combatiente);
 }
 
 export function calcularCostoManaAtaqueBasico(configuracion) {

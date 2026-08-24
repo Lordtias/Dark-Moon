@@ -44,6 +44,9 @@ export const OBJETIVOS_MODIFICADOR = Object.freeze({
   RESISTENCIA_MENTAL: "resistenciaMental",
   // Variación decimal ya resuelta que consume el sistema de comercio.
   AJUSTE_COMERCIAL: "ajusteComercial",
+  // Penalización porcentual temporal propia de un ataque con dos armas.
+  // Se expresa siempre en puntos porcentuales, no como multiplicador decimal.
+  RECARGO_TEMPORAL_DUAL: "recargoTemporalDual",
   // Bonificación porcentual aplicada al peso de rarezas superiores a Común.
   HALLAZGO_MAGICO: "hallazgoMagico",
   // Contenedor canónico para modificar un atributo interno validado de una habilidad.
@@ -252,6 +255,17 @@ export function normalizarDescriptorModificador(descriptor, {
   validarObjetoPlano(descriptor, "El descriptor de modificador");
   const objetivo = validarObjetivoModificador(descriptor.objetivo);
   const operacion = validarOperacionModificador(descriptor.operacion);
+  if (
+    [
+      OBJETIVOS_MODIFICADOR.AJUSTE_COMERCIAL,
+      OBJETIVOS_MODIFICADOR.RECARGO_TEMPORAL_DUAL,
+    ].includes(objetivo) &&
+    operacion !== OPERACIONES_MODIFICADOR.SUMAR
+  ) {
+    throw new Error(
+      `El objetivo "${objetivo}" solo admite la operación "${OPERACIONES_MODIFICADOR.SUMAR}".`,
+    );
+  }
   if (!Number.isFinite(descriptor.valor)) {
     throw new Error(`El modificador de "${objetivo}" necesita un valor numérico.`);
   }

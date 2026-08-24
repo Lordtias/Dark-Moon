@@ -33,7 +33,10 @@ import {
   resolverMultiplicadorComponenteDanio,
 } from "../../../juego/combate/ResolutorEscaladoDanio.js";
 import { resolverPotenciaEfectoEspecifica } from "../../../juego/efectos/ResolutorPotenciaEfectos.js";
-import { OBJETIVOS_MODIFICADOR } from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
+import {
+  AMBITOS_AFIJO,
+  OBJETIVOS_MODIFICADOR,
+} from "../../../juego/modificadores/ContratosModificadoresCombatiente.js";
 import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "./ContratosAtributosCombatiente.js";
 
 const RESISTENCIAS = ["fuego", "frio", "rayo", "veneno"];
@@ -56,12 +59,49 @@ function resolverValor(combatiente, objetivo, valorBase, contexto = {}) {
   return combatiente.obtenerValorModificado(objetivo, valorBase, contexto);
 }
 
-function resolverValorConDesglose(combatiente, objetivo, valorBase, contexto, desgloses, clave = objetivo) {
+function crearResolucionDirecta({ objetivo, valorBase, contexto = {} }) {
+  return Object.freeze({
+    objetivo,
+    valorBase,
+    contexto: Object.freeze({ ...contexto }),
+    resultado: valorBase,
+    desglose: Object.freeze({
+      trazaAplicacion: Object.freeze([]),
+      aplicados: Object.freeze([]),
+      omitidos: Object.freeze([]),
+    }),
+  });
+}
+
+function resolverModificadorConDesglose(
+  combatiente,
+  objetivo,
+  valorBase,
+  contexto = {},
+) {
   if (!combatiente?.sistemaModificadoresCombatiente) {
-    desgloses[clave] = Object.freeze({ objetivo, valorBase, resultado: valorBase, desglose: Object.freeze({ aplicados: Object.freeze([]), omitidos: Object.freeze([]) }) });
-    return valorBase;
+    return crearResolucionDirecta({ objetivo, valorBase, contexto });
   }
-  const resolucion = combatiente.resolverModificador(objetivo, valorBase, contexto ?? {});
+  return combatiente.resolverModificador(objetivo, valorBase, contexto);
+}
+
+function limitarResolucion(resolucion, minimo, maximo) {
+  const resultado = limitar(resolucion.resultado, minimo, maximo);
+  if (resultado === resolucion.resultado) return resolucion;
+  return Object.freeze({
+    ...resolucion,
+    resultado,
+    limiteAplicado: Object.freeze({ minimo, maximo }),
+  });
+}
+
+function resolverValorConDesglose(combatiente, objetivo, valorBase, contexto, desgloses, clave = objetivo) {
+  const resolucion = resolverModificadorConDesglose(
+    combatiente,
+    objetivo,
+    valorBase,
+    contexto ?? {},
+  );
   desgloses[clave] = resolucion;
   return resolucion.resultado;
 }
@@ -155,6 +195,98 @@ function sumarPropiedad(objetos, propiedad) {
     const valor = objeto?.propiedades?.[propiedad] ?? 0;
     return total + (Number.isFinite(valor) ? valor : 0);
   }, 0);
+}
+
+function obtenerAportesPropiedad(objetos, propiedad) {
+  return Object.freeze(
+    objetos
+      .map((objeto) => ({
+        nombre: objeto?.nombre ?? "Equipo",
+        valor: objeto?.propiedades?.[propiedad] ?? 0,
+      }))
+      .filter((aporte) =>
+        Number.isFinite(aporte.valor) && Math.abs(aporte.valor) > Number.EPSILON,
+      )
+      .map((aporte) => Object.freeze(aporte)),
+  );
+}
+
+function obtenerAportesAfijosLocales(objeto, propiedad) {
+  const afijos = [
+    ...(Array.isArray(objeto?.prefijos) ? objeto.prefijos : []),
+    ...(Array.isArray(objeto?.sufijos) ? objeto.sufijos : []),
+  ];
+  const aportes = [];
+  for (const afijo of afijos) {
+    const aplica = (afijo?.efectos ?? []).some(
+      (efecto) =>
+        efecto?.ambito === AMBITOS_AFIJO.LOCAL_OBJETO &&
+        efecto?.propiedad === propiedad,
+    );
+    const valor = afijo?.valores?.[propiedad];
+    if (!aplica || !Number.isFinite(valor) || Math.abs(valor) <= Number.EPSILON) {
+      continue;
+    }
+    aportes.push(Object.freeze({
+      nombre: afijo.nombre ?? afijo.id ?? "Afijo local",
+      valor,
+    }));
+  }
+  return Object.freeze(aportes);
+}
+
+function crearDesgloseCriticoFuente({ fuente, base, objetos }) {
+  const valorBase = fuente.objeto?.propiedadesBase?.probabilidadCritico ??
+    fuente.propiedades?.probabilidadCritico ??
+    base.probabilidadCritico;
+  const afijosLocales = obtenerAportesAfijosLocales(
+    fuente.objeto,
+    "probabilidadCritico",
+  );
+  const aportesGlobales = obtenerAportesPropiedad(
+    objetos,
+    "probabilidadCriticoGlobal",
+  );
+  const sumaAfijosLocales = afijosLocales.reduce(
+    (total, aporte) => total + aporte.valor,
+    0,
+  );
+  const sumaGlobal = aportesGlobales.reduce(
+    (total, aporte) => total + aporte.valor,
+    0,
+  );
+  const valorLocalResuelto =
+    fuente.propiedades?.probabilidadCritico ?? base.probabilidadCritico;
+  const ajusteLocalNoDesglosado =
+    valorLocalResuelto - valorBase - sumaAfijosLocales;
+  return Object.freeze({
+    valorBase,
+    afijosLocales,
+    aportesGlobales,
+    ajusteLocalNoDesglosado,
+    valorAntesModificadores: valorLocalResuelto + sumaGlobal,
+  });
+}
+
+function crearResumenCriticoAtaque(componentes) {
+  const fuentes = (componentes ?? []).map((componente) => Object.freeze({
+    mano: componente.mano,
+    nombre: componente.nombre,
+    probabilidadCritico: componente.probabilidadCritico,
+    resolucionProbabilidadCritico: componente.resolucionProbabilidadCritico,
+    desgloseCritico: componente.desgloseCritico,
+  }));
+  const totalSinLimite = fuentes.reduce(
+    (total, fuente) => total + fuente.probabilidadCritico,
+    0,
+  );
+  return Object.freeze({
+    // Es un resumen de presentación: se suma literalmente lo que aporta cada
+    // mano. El límite continúa aplicándose a cada fuente antes de llegar aquí.
+    total: totalSinLimite,
+    totalSinLimite,
+    fuentes: Object.freeze(fuentes),
+  });
 }
 
 function multiplicarBonosMas(objetos, propiedad) {
@@ -424,19 +556,22 @@ function calcularComponenteDanio(
     CONFIGURACION_COMBATE.penetracionArmadura.minima,
     CONFIGURACION_COMBATE.penetracionArmadura.maxima,
   );
-  const probabilidadCriticoBase =
-    (propiedades.probabilidadCritico ?? base.probabilidadCritico) +
-    sumarPropiedad(objetos, "probabilidadCriticoGlobal");
-  const probabilidadCritico = limitar(
-    resolverValor(
+  const desgloseCritico = crearDesgloseCriticoFuente({
+    fuente,
+    base,
+    objetos,
+  });
+  const resolucionProbabilidadCritico = limitarResolucion(
+    resolverModificadorConDesglose(
       combatiente,
       OBJETIVOS_MODIFICADOR.PROBABILIDAD_CRITICO,
-      probabilidadCriticoBase,
+      desgloseCritico.valorAntesModificadores,
       contextoFuente,
     ),
     0,
     CONFIGURACION_COMBATE.limites.criticoMaximo,
   );
+  const probabilidadCritico = resolucionProbabilidadCritico.resultado;
   const multiplicadorCriticoBase =
     (propiedades.multiplicadorCritico ?? base.multiplicadorCritico) +
     sumarPropiedad(objetos, "multiplicadorCriticoAdicional");
@@ -489,6 +624,8 @@ function calcularComponenteDanio(
     dispersion,
     penetracionArmadura,
     probabilidadCritico,
+    resolucionProbabilidadCritico,
+    desgloseCritico,
     multiplicadorCritico,
     esAtaqueMagicoBasico: fuenteEsVarita,
     componentesDanio,
@@ -906,6 +1043,17 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     clave: "hallazgoMagico",
   });
 
+  const danioFisico = calcularDanioFisico(
+    combatiente,
+    objetos,
+    configuracionAtaque,
+    contextoDinamico,
+  );
+  // El combate conserva una tirada independiente por fuente. Este resumen no
+  // altera esa regla: entrega al panel la suma explícitamente solicitada de
+  // las probabilidades finales de Arma y Secundaria.
+  const criticoAtaque = crearResumenCriticoAtaque(danioFisico.componentes);
+
   return {
     ...recursos,
     regeneracionVida,
@@ -942,6 +1090,7 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     armadura,
     desgloseArmadura,
     probabilidadCritico,
+    criticoAtaque,
     multiplicadorCritico,
     probabilidadBloqueo,
     mitigacionBloqueo,
@@ -969,7 +1118,7 @@ export function calcularEstadisticasDerivadas(combatiente, contextoDinamico = {}
     resistenciasEfectos,
     aporteResistenciasEfectosPorConstitucion,
     inmunidadesEfectos: [...(base.inmunidadesEfectos ?? [])],
-    danioFisico: calcularDanioFisico(combatiente, objetos, configuracionAtaque, contextoDinamico),
+    danioFisico,
   };
 }
 

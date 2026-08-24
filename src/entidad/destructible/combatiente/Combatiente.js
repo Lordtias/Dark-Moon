@@ -441,7 +441,15 @@ export class Combatiente extends Destructible {
   }
 
   obtenerContextoModificadores(contexto = {}) {
-    const configuracionAtaque = obtenerConfiguracionAtaque(this);
+    // Algunas resoluciones participan al construir la propia configuración de
+    // ataque (por ejemplo, el recargo dual). Aceptar su configuración ya
+    // creada evita una recursión y conserva el resto del contexto canónico.
+    const {
+      configuracionAtaque: configuracionAtaqueEnCurso = null,
+      ...contextoAdicional
+    } = contexto ?? {};
+    const configuracionAtaque =
+      configuracionAtaqueEnCurso ?? obtenerConfiguracionAtaque(this);
     const secundaria = this.equipamiento?.tieneRanura("secundaria")
       ? this.equipamiento.obtenerObjetoEnRanura("secundaria")
       : null;
@@ -456,7 +464,7 @@ export class Combatiente extends Destructible {
       esAtaqueDual: configuracionAtaque.esAtaqueDual === true,
       categoriaArmadura: contextoArmadura.categoriaArmadura,
       conjuntoArmaduraCompleto: contextoArmadura.conjuntoArmaduraCompleto,
-      ...contexto,
+      ...contextoAdicional,
       tipoCombatiente: this.tipoContextoModificadores,
     };
   }

@@ -1108,6 +1108,10 @@ Una ranura sin fuente de daño se muestra apagada con `--.-`; la secundaria se o
 
 En el modal de una fuente de arma, el rango final se coloca primero. El detalle sigue con rango base/local, aporte de atributo, factores canónicos de la fuente, modificadores y componentes finales. La penalización de mano secundaria debe comunicar su porcentaje efectivo y provenir de la resolución canónica actual, no de un texto fijo. Los valores explicativos no deben repetir un atributo que ya está incorporado en el promedio final de `Daño medio`.
 
+Cada desglose conserva una lectura de resultado a base: el valor final se muestra antes de sus causas, las filas de modificación se reciben en orden descendente y la fila `Valor base` queda al final. La consulta de presentación, no el panel, entrega ese orden y declara si cada cifra es puntos, porcentaje, rango de daño, coste temporal, velocidad o texto. Por tanto, la interfaz no deduce que un `1,20` sea un multiplicador ni convierte una fórmula por su cuenta.
+
+`Arma` y `Secundaria` muestran su rango final mínimo–máximo, sin media. El modal `Daño medio` lista esos rangos finales y no repite sus modificadores. El total de Crítico puede sumar las probabilidades finales de ambas manos para lectura; su modal mantiene secciones separadas por Arma y Secundaria para no mezclar sus afijos, pasivas o bases.
+
 ## 18.3 Materiales
 
 Se pueden sugerir materiales como:
@@ -2216,3 +2220,11 @@ Las etiquetas abreviadas dentro de un grupo pueden omitir el prefijo común, per
 `Daño de Habilidad` debe describirse como una bonificación aplicada una sola vez al daño directo de habilidades y no a efectos. `Daño Físico` debe explicar que afecta el componente físico de todas las armas equipadas, independientemente del atributo con el que escalen.
 
 El modal y las relaciones atributo → derivadas consumen nombres y desgloses canónicos. Inteligencia y Sabiduría aportan a la clave vigente `danoMagico`; no deben aparecer aliases técnicos como `DanioMagico`, ni perderse sus aportes en el detalle. La UI no calcula ninguna de estas estadísticas: únicamente representa la resolución y el desglose producidos por dominio.
+
+### V-046 — Desglose tipado, DPT y coste dual
+
+El contrato `ConsultaPresentacionPersonaje` ordena y tipifica el detalle antes de que llegue al modal. Cada fila especifica semántica y unidad; el panel solo elige la representación visual coherente: porcentajes, puntos, rango, DPT, texto o `ataques/s (coste)`. Los porcentajes se muestran como tales, nunca como multiplicadores decimales.
+
+El detalle de DPT muestra la ecuación canónica `daño medio × tiempo de referencia ÷ coste temporal efectivo`. No muestra una duración en segundos. Bajo ella, cada arma conserva el formato usado en Objetos y añade su coste equivalente, por ejemplo `Arma · Espada larga — 1,11 ataques/s (90)`.
+
+Cuando hay dos armas, el modal debe explicar sin ambigüedad que el coste dual es el coste mayor más el porcentaje de recargo final aplicado al coste menor. El porcentaje puede variar por fuentes canónicas y debe verse junto con su base y sus modificadores; el panel no inventa ni aplica ese recargo. El Crítico total conserva el mismo principio: suma visual explícita y detalle separado por mano.

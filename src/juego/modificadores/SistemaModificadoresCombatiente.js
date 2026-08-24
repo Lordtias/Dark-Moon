@@ -112,6 +112,18 @@ export class SistemaModificadoresCombatiente {
     const resultado = limiteMaximo === null
       ? despuesMultiplicacion
       : Math.min(despuesMultiplicacion, limiteMaximo);
+    const trazaAplicacion = crearTrazaAplicacion({
+      valorBase,
+      planos,
+      porcentajesBase,
+      porcentajesTotal,
+      porcentajesMultiplicativos,
+      porcentajesInversos,
+      multiplicadoresRedondeados,
+      multiplicadores,
+      limitesMaximos,
+      resultado,
+    });
 
     if (!Number.isFinite(resultado)) {
       throw new Error(`La resolución de "${objetivo}" produjo un valor inválido.`);
@@ -137,6 +149,10 @@ export class SistemaModificadoresCombatiente {
         despuesPorcentajeInverso,
         despuesMultiplicacionRedondeada,
         despuesMultiplicacion,
+        // La traza conserva las fases y el orden real del resolutor. Los
+        // consumidores de presentación no deben reconstruirlo ni ordenarlo
+        // por su cuenta a partir de la lista plana de modificadores.
+        trazaAplicacion,
         aplicados: Object.freeze(aplicados.map(congelarDescriptorCopia)),
         omitidos: Object.freeze(omitidos.map((item) => Object.freeze({ ...item }))),
       }),
@@ -227,6 +243,151 @@ export function obtenerModificadoresEquipo(combatiente) {
     }
   }
   return resultado;
+}
+
+// Describe la aplicación real de modificadores sin alterar la ecuación. La
+// resolución numérica de arriba sigue siendo la única fuente del resultado;
+// esta traza solo hace explícitas sus fases para consultas de presentación,
+// depuración y balance.
+function crearTrazaAplicacion({
+  valorBase,
+  planos,
+  porcentajesBase,
+  porcentajesTotal,
+  porcentajesMultiplicativos,
+  porcentajesInversos,
+  multiplicadoresRedondeados,
+  multiplicadores,
+  limitesMaximos,
+  resultado,
+}) {
+  let valorActual = valorBase;
+  const pasos = [];
+
+  const agregarPaso = ({ operacion, modificador = null, modificadores = [], valorAntes, valorDespues, redondeado = false }) => {
+    pasos.push(Object.freeze({
+      operacion,
+      modificador: modificador ? congelarDescriptorCopia(modificador) : null,
+      modificadores: Object.freeze(modificadores.map(congelarDescriptorCopia)),
+      valorAntes,
+      valorDespues,
+      redondeado,
+    }));
+  };
+
+  for (const modificador of planos) {
+    const valorAntes = valorActual;
+    valorActual += modificador.valor;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.SUMAR,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  for (const modificador of porcentajesBase) {
+    const valorAntes = valorActual;
+    valorActual += valorBase * (modificador.valor / 100);
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.PORCENTAJE_BASE,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  // PORCENTAJE_TOTAL suma primero sus porcentajes y aplica una sola vez el
+  // resultado. No se puede representar como multiplicaciones consecutivas
+  // porque eso cambiaría la regla canónica.
+  if (porcentajesTotal.length > 0) {
+    const valorAntes = valorActual;
+    const porcentaje = sumarValores(porcentajesTotal) / 100;
+    valorActual *= 1 + porcentaje;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.PORCENTAJE_TOTAL,
+      modificadores: porcentajesTotal,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  for (const modificador of porcentajesMultiplicativos) {
+    const valorAntes = valorActual;
+    valorActual *= 1 + modificador.valor / 100;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.PORCENTAJE_MULTIPLICATIVO,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  for (const modificador of porcentajesInversos) {
+    const valorAntes = valorActual;
+    valorActual /= 1 + modificador.valor / 100;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.PORCENTAJE_INVERSO,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  for (const modificador of multiplicadoresRedondeados) {
+    const valorAntes = valorActual;
+    valorActual *= modificador.valor;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+  if (multiplicadoresRedondeados.length > 0) {
+    const valorAntes = valorActual;
+    valorActual = Math.round(valorActual);
+    agregarPaso({
+      operacion: "redondear",
+      valorAntes,
+      valorDespues: valorActual,
+      redondeado: true,
+    });
+  }
+
+  for (const modificador of multiplicadores) {
+    const valorAntes = valorActual;
+    valorActual *= modificador.valor;
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.MULTIPLICAR,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  for (const modificador of limitesMaximos) {
+    const valorAntes = valorActual;
+    valorActual = Math.min(valorActual, modificador.valor);
+    agregarPaso({
+      operacion: OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO,
+      modificador,
+      valorAntes,
+      valorDespues: valorActual,
+    });
+  }
+
+  // La única diferencia posible son residuos de coma flotante. La traza
+  // siempre termina exactamente en el resultado que devuelve el resolutor.
+  if (pasos.length > 0 && valorActual !== resultado) {
+    const ultimo = pasos[pasos.length - 1];
+    pasos[pasos.length - 1] = Object.freeze({
+      ...ultimo,
+      valorDespues: resultado,
+    });
+  }
+
+  return Object.freeze(pasos);
 }
 
 function sumarValores(modificadores) {

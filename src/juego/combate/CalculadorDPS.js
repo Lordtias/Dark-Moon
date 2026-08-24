@@ -8,8 +8,9 @@ import {
   calcularCostoBaseFaseAtaque,
   FASES_ACCION_COMPUESTA,
 } from "../acciones/CostosAccionCompuesta.js";
+import { obtenerDesgloseCostoBaseAtaque } from "../../entidad/destructible/combatiente/ConfiguracionAtaque.js";
 
-// Calcula el DPS bruto del ataque actual.
+// Calcula el daño bruto medio por turno temporal (DPT) del ataque actual.
 //
 // Se considera:
 //
@@ -17,7 +18,7 @@ import {
 // - El coste temporal base del arma.
 // - El factor temporal general.
 // - El factor temporal de ataque.
-// - El coste combinado de dos armas.
+// - El coste combinado de dos armas y sus fases cuando corresponda.
 //
 // No se considera:
 //
@@ -28,9 +29,9 @@ import {
 //
 // Esos valores dependen del enemigo atacado
 // o de resultados aleatorios.
-export function calcularDpsCombatiente(combatiente) {
+export function calcularDptCombatiente(combatiente) {
   if (!combatiente || typeof combatiente !== "object") {
-    throw new Error("Se necesita un combatiente válido para calcular DPS.");
+    throw new Error("Se necesita un combatiente válido para calcular DPT.");
   }
 
   const estadisticas = combatiente.estadisticasDerivadas;
@@ -42,45 +43,60 @@ export function calcularDpsCombatiente(combatiente) {
   }
 
   const configuracionAtaque = combatiente.configuracionAtaqueActual;
-  const costoAtaqueBase = combatiente.costoAtaqueActual;
+  const desgloseCostoBase =
+    configuracionAtaque.desgloseCostoAtaqueBase ??
+    obtenerDesgloseCostoBaseAtaque(configuracionAtaque, combatiente);
+  const costoAtaqueBase = configuracionAtaque.costoAtaqueBase ?? desgloseCostoBase.costoBase;
 
   // Una acción compuesta se mide exactamente como se ejecuta: cada fase pasa
   // por sus modificadores contextuales y luego por los factores temporales.
-  const costosBaseFases = ataqueUsaAccionCompuesta(configuracionAtaque)
+  const fases = (ataqueUsaAccionCompuesta(configuracionAtaque)
     ? [
-        calcularCostoBaseFaseAtaque({
-          combatiente,
-          configuracionAtaque,
-          fase: FASES_ACCION_COMPUESTA.PREPARACION,
-        }),
-        calcularCostoBaseFaseAtaque({
-          combatiente,
-          configuracionAtaque,
-          fase: FASES_ACCION_COMPUESTA.EJECUCION,
-        }),
+        FASES_ACCION_COMPUESTA.PREPARACION,
+        FASES_ACCION_COMPUESTA.EJECUCION,
       ]
-    : [costoAtaqueBase];
-  const costoAtaqueEfectivo = costosBaseFases.reduce((total, costoBase) => {
-    if (costoBase <= 0) return total;
-    return total + calcularCostoAccionCombatiente({
-      combatiente,
-      tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
-      costoBase,
-    });
-  }, 0);
+    : [FASES_ACCION_COMPUESTA.EJECUCION]
+  ).map((fase) => {
+    const costoBase = ataqueUsaAccionCompuesta(configuracionAtaque)
+      ? calcularCostoBaseFaseAtaque({ combatiente, configuracionAtaque, fase })
+      : costoAtaqueBase;
+    const costoEfectivo = costoBase <= 0
+      ? 0
+      : calcularCostoAccionCombatiente({
+          combatiente,
+          tipoAccion: TIPOS_ACCION_TEMPORAL.ATAQUE,
+          costoBase,
+        });
+    return Object.freeze({ fase, costoBase, costoEfectivo });
+  });
+  const costoAtaqueEfectivo = fases.reduce(
+    (total, fase) => total + fase.costoEfectivo,
+    0,
+  );
+  const dpt = costoAtaqueEfectivo > 0
+    ? (danioMedio * TIEMPO_REFERENCIA) / costoAtaqueEfectivo
+    : 0;
 
-  // Cien unidades temporales representan
-  // un segundo completo.
-  const duracionAtaqueSegundos = costoAtaqueEfectivo / TIEMPO_REFERENCIA;
-
-  const dps =
-    duracionAtaqueSegundos > 0 ? danioMedio / duracionAtaqueSegundos : 0;
-
-  return {
-    dps,
+  return Object.freeze({
+    dpt,
     danioMedio,
     costoAtaqueBase,
     costoAtaqueEfectivo,
-    duracionAtaqueSegundos,
-  };
+    velocidadAtaqueEfectiva: costoAtaqueEfectivo > 0
+      ? TIEMPO_REFERENCIA / costoAtaqueEfectivo
+      : 0,
+    desgloseCostoBase,
+    fases: Object.freeze(fases),
+  });
+}
+
+// Compatibilidad para consumidores externos que todavía importen el nombre
+// histórico. La interfaz deja de presentar segundos y consume DPT.
+export function calcularDpsCombatiente(combatiente) {
+  const dpt = calcularDptCombatiente(combatiente);
+  return Object.freeze({
+    ...dpt,
+    dps: dpt.dpt,
+    duracionAtaqueSegundos: dpt.costoAtaqueEfectivo / TIEMPO_REFERENCIA,
+  });
 }

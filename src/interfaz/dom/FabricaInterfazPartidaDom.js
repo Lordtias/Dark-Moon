@@ -156,6 +156,7 @@ export function crearInterfazPartidaDom({
     combatLogText,
     configuracionPersonaje,
     configuracionEnemigos,
+    configuracionHabilidades: obtenerConfiguracionProgresoHabilidades(),
   });
 
   return {

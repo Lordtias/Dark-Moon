@@ -2,7 +2,7 @@ import { asegurarHojaEstilos, crearElemento } from "../dom/UtilidadesDom.js";
 import { traducir, traducirContenido } from "../idiomas/ContextoIdioma.js";
 import { OrganizadorArbolHabilidades } from "./OrganizadorArbolHabilidades.js";
 import { clasificarPresentacionHabilidad } from "./ClasificadorPresentacionHabilidades.js";
-import { crearConfiguracionHabilidadEfectiva } from "../../juego/habilidades/ConfiguracionHabilidadEfectiva.js";
+import { crearConsultaDetalleHabilidad } from "./ConsultaPresentacionHabilidades.js";
 import {
   FORMAS_VISUALES_DESPLAZAMIENTO_TACTICO,
 } from "../../juego/movimiento/ResolutorDesplazamientoTactico.js";
@@ -668,12 +668,12 @@ export class PanelHabilidadesMaestrias {
     }
 
     const gradoVisible = habilidad.grado > 0 ? habilidad.grado : 1;
-    const gradoBase = ejecucion.ejecucion.grados[gradoVisible];
-    const gradoConfig = crearConfiguracionHabilidadEfectiva({
-      lanzador: this.jugador,
-      habilidad: ejecucion,
-      gradoConfig: gradoBase,
-    });
+    const gradoConfig = crearConsultaDetalleHabilidad({
+      jugador: this.jugador,
+      habilidad,
+      ejecucion,
+      grado: gradoVisible,
+    }).configuracion;
     if (tipo === "aura") {
       contenedor.append(crearSeccionAura({ gradoConfig, ejecucion, catalogoEfectos: this.configuracionEjecucion.efectos }));
     } else if (tipo === "maldicion") {

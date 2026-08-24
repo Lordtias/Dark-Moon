@@ -4,7 +4,7 @@
 **Hito:** Habilidades pasivas
 **Idioma obligatorio:** Español para código nuevo, nombres técnicos nuevos, comentarios, documentación y configuraciones nuevas.
 **Fuente de verdad de implementación:** el repositorio real entregado al iniciar cada etapa.
-**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El 23/08/2026 se cerraron los ajustes posteriores **Panel Personaje — daño y desglose canónico** y **Rediseño de pantalla de Habilidades — ruta contextual**, que mejoran la lectura sin alterar esas ecuaciones ni las reglas de progresión. El hito de habilidades/pasivas continúa cerrado y auditado; ninguno de estos ajustes crea HP7.
+**Estado:** Plan maestro rector. HP0 quedó documentada; HP1, HP2, HP3, HP4, HP5 y HP6 están cerradas; HP-AUD también queda cerrada tras la validación manual satisfactoria informada por el usuario el 18/08/2026 y la verificación del commit funcional `bf4939e08a2bc9b5f0c660a8368483d7fdd9460e`. El 22/08/2026 se cerró además el ajuste transversal **Daño y efectos**, que generaliza `Daño Físico`, `Daño Mágico`, `Daño de Habilidad`, daño por tipo y potencia específica de efectos sobre el mismo `SistemaModificadoresCombatiente`; su calibración de escalados globales quedó validada manualmente el mismo día. El 23/08/2026 se cerraron los ajustes posteriores **Panel Personaje — daño y desglose canónico** y **Rediseño de pantalla de Habilidades — ruta contextual**. El 24/08/2026 se cerró **AUD2 — presentación canónica de Personaje y Habilidades**, que entrega a la interfaz valores, tipo, unidad y orden de cada desglose, e incorpora la lectura aprobada de DPT, ataque dual y crítico por mano. Estos ajustes mejoran la lectura sin alterar las ecuaciones de daño, progreso o persistencia; ninguno crea HP7.
 
 ---
 
@@ -1744,6 +1744,52 @@ La etapa posterior de balance no cambia los objetivos ni las ecuaciones de 17.6.
 - `Brutal` excluye `varita` como corrección de compatibilidad de pool: su daño físico local porcentual no tiene componente válido en esa familia.
 
 La arquitectura que debe conservarse sigue siendo una sola: `SistemaModificadoresCombatiente`, `ResolutorEscaladoDanio`, `MotorDanioHabilidad` y `MotorEfectosHabilidad` producen los valores que muestra el balanceador; el balanceador no se convierte en un motor paralelo ni cambia la partida.
+
+### 17.7. CIERRE TRANSVERSAL — AUD2: PRESENTACIÓN CANÓNICA (24/08/2026)
+
+Este ajuste no reabre HP-AUD ni crea HP7. Formaliza el límite entre las resoluciones canónicas y los paneles que las explican.
+
+#### 17.7.1. Contrato único del Panel Personaje
+
+`src/interfaz/personaje/ConsultaPresentacionPersonaje.js` es el contrato de lectura del Panel Personaje. Entrega identidad, progreso, recursos, atributos, pasivas, efectos, valores visibles y sus detalles ya ordenados.
+
+Cada fila de detalle declara explícitamente:
+
+- `tipo`: base, atributo, bonificación, penalización, multiplicador, límite o información;
+- `operacion`: semántica del paso que produjo la fila;
+- `unidad`: puntos, porcentaje, rango de daño, DPT, velocidad de ataque con coste o texto;
+- valor y, cuando corresponde, los valores anterior y posterior;
+- posición dentro de una sección que ya llega ordenada.
+
+El orden es descendente desde el resultado hacia su construcción: el valor final se muestra arriba, los modificadores aparecen debajo en orden inverso a su aplicación y la base queda siempre al final. `PanelPersonaje` no cambia el orden, no interpreta una cifra como porcentaje o suma y no reconstruye fórmulas. Solo da formato al contrato recibido.
+
+Este contrato cubre los datos visibles del panel: atributos, combate, daño, afinidades, potencia de efectos, resistencias, suerte, daño por arma, DPT, pasivas y efectos. `ConsultaPresentacionHabilidades.js` cumple la misma función de frontera para el detalle de una habilidad: entrega la `ConfiguracionHabilidadEfectiva` ya resuelta al panel, que no vuelve a aplicar modificadores ni decide el orden de sus valores.
+
+#### 17.7.2. Daño, porcentajes y crítico
+
+`Arma` y `Secundaria` muestran el rango final mínimo–máximo de cada fuente; no muestran una media. El modal `Daño medio` presenta solamente los rangos finales de las fuentes activas y no repite su construcción.
+
+Los modificadores multiplicativos se presentan como porcentajes sin decimales multiplicativos: por ejemplo, `×1,20` se lee como `+20%`. `Ajuste comercial`, aunque el motor lo conserve decimalmente para comercio, se entrega al panel en puntos porcentuales. Sus modificadores se acumulan únicamente con la operación canónica `sumar`.
+
+En dos armas, `criticoAtaque` resume la suma directa de las probabilidades finales de Arma y Secundaria para el panel. El combate conserva una tirada y un límite por cada fuente. El detalle separa cada mano y muestra su crítico final, modificadores del portador, aportes globales, ajuste local, afijos locales y base.
+
+#### 17.7.3. DPT y ataque dual
+
+DPT significa daño bruto medio por turno temporal; no expresa segundos ni predice impacto, crítico, Armadura o Bloqueo del objetivo. La consulta expone la ecuación completa:
+
+```text
+daño medio × tiempo de referencia ÷ coste temporal efectivo = DPT
+```
+
+La velocidad individual conserva el formato de Objetos y agrega la traducción a coste entre paréntesis: `1,11 ataques/s (90)`.
+
+Para ataque dual, el coste base canónico es:
+
+```text
+coste mayor + (recargo dual final% del coste menor)
+```
+
+El recargo comienza en el porcentaje configurado y se resuelve mediante el objetivo `recargoTemporalDual`. Este objetivo solo admite `sumar` puntos porcentuales; una pasiva o afijo negativo reduce el recargo y uno positivo lo aumenta. El resultado no baja de 0%. La consulta conserva la fuente lenta, la rápida, cada coste, el porcentaje final y la ecuación, por lo que la interfaz no decide qué arma recibe el recargo.
 
 
 ## 18. REGLAS PARA NUEVO CONTENIDO

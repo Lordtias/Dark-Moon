@@ -1,19 +1,14 @@
-import { calcularDpsCombatiente } from "../juego/combate/CalculadorDPS.js";
-import { obtenerAportesAtributosPrimarios } from "../entidad/destructible/combatiente/EstadisticasDerivadas.js";
 import { ATRIBUTOS_COMBATIENTE_CANONICOS } from "../entidad/destructible/combatiente/ContratosAtributosCombatiente.js";
-import { TIEMPO_REFERENCIA } from "../juego/tiempo/SistemaTiempo.js";
-import {
-  OPERACIONES_MODIFICADOR,
-  OBJETIVOS_MODIFICADOR,
-} from "../juego/modificadores/ContratosModificadoresCombatiente.js";
-import { traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
+import { OPERACIONES_MODIFICADOR } from "../juego/modificadores/ContratosModificadoresCombatiente.js";
+import { idiomaActivo, traducir, traducirContenido } from "./idiomas/ContextoIdioma.js";
 import { ModalDetalleEstadistica } from "./personaje/ModalDetalleEstadistica.js";
 import { obtenerEstadoPasivasJugador } from "./personaje/ConsultaPasivasJugador.js";
+import { crearConsultaPresentacionPersonaje } from "./personaje/ConsultaPresentacionPersonaje.js";
 
 const ATRIBUTOS = ATRIBUTOS_COMBATIENTE_CANONICOS;
 const DETALLES = Object.freeze({
   "danio-medio": { etiqueta: "Daño medio", icono: "⚔" },
-  dps: { etiqueta: "DPS", icono: "✦" },
+  dpt: { etiqueta: "DPT", icono: "✦" },
   "danio-arma": {
     etiqueta: "Arma",
     icono: "⚔",
@@ -169,81 +164,6 @@ const CAMPOS_RESISTENCIA = new Set([
   ...CAMPOS_RESISTENCIA_EFECTO,
 ]);
 
-const CLAVE_APORTE_ESTADISTICA = Object.freeze({
-  danioFisico: ["danio-medio", "Daño del ataque actual"],
-  vidaMaxima: ["vida-maxima", "Vida máxima"],
-  manaMaximo: ["mana-maximo", "Maná máximo"],
-  precision: ["precision", "Precisión"],
-  evasion: ["evasion", "Evasión"],
-  regeneracionVida: ["regen-vida", "Regeneración de vida"],
-  regeneracionMana: ["regen-mana", "Regeneración de maná"],
-  danoFisico: ["dano-fisico", "Daño Físico"],
-  danoMagico: ["dano-magico", "Daño Mágico"],
-  danoHabilidad: ["dano-habilidad", "Daño de Habilidad"],
-  "danoTipo:fuego": ["dano-fuego", "Daño de Fuego"],
-  "danoTipo:frio": ["dano-frio", "Daño de Frío"],
-  "danoTipo:rayo": ["dano-rayo", "Daño de Rayo"],
-  "danoTipo:veneno": ["dano-veneno", "Daño de Veneno"],
-  potenciaEfectos: ["potencia-efectos", "Potencia de Efectos"],
-  "potenciaEfecto:quemadura": ["potencia-quemadura", "Potencia de Quemadura"],
-  "potenciaEfecto:envenenamiento": ["potencia-envenenamiento", "Potencia de Envenenamiento"],
-  "potenciaEfecto:ralentizacion": ["potencia-ralentizacion", "Potencia de Ralentización"],
-  "potenciaEfecto:electrizacion": ["potencia-electrizacion", "Potencia de Electrización"],
-  resistenciaVeneno: ["res-veneno", "Resistencia a Veneno"],
-  "resistencia:fuego": ["res-fuego", "Resistencia a Fuego"],
-  "resistencia:frio": ["res-frio", "Resistencia a Frío"],
-  "resistencia:rayo": ["res-rayo", "Resistencia a Rayo"],
-  "resistencia:veneno": ["res-veneno", "Resistencia a Veneno"],
-  "resistenciaEfecto:congelamiento": [
-    "res-congelamiento",
-    "Resistencia a Congelamiento",
-  ],
-  "resistenciaEfecto:aturdimiento": [
-    "res-aturdimiento",
-    "Resistencia a Aturdimiento",
-  ],
-  "resistenciaEfecto:envenenamiento": [
-    "res-envenenamiento",
-    "Resistencia a Envenenamiento",
-  ],
-  "resistenciaEfecto:quemadura": ["res-quemadura", "Resistencia a Quemadura"],
-  resistenciaMental: ["res-mental", "Resistencia Mental"],
-  potenciaAura: ["potencia-aura", "Potencia de Aura"],
-  ajusteComercial: ["ajuste-comercial", "Ajuste comercial"],
-  hallazgoMagico: ["hallazgo-magico", "Hallazgo mágico"],
-});
-
-const CLAVE_ESTADISTICA_APORTES = Object.freeze({
-  "danio-medio": "danioFisico",
-  precision: "precision",
-  evasion: "evasion",
-  "regen-vida": "regeneracionVida",
-  "regen-mana": "regeneracionMana",
-  "dano-fisico": "danoFisico",
-  "dano-magico": "danoMagico",
-  "dano-habilidad": "danoHabilidad",
-  "dano-fuego": "danoTipo:fuego",
-  "dano-frio": "danoTipo:frio",
-  "dano-rayo": "danoTipo:rayo",
-  "dano-veneno": "danoTipo:veneno",
-  "potencia-efectos": "potenciaEfectos",
-  "potencia-quemadura": "potenciaEfecto:quemadura",
-  "potencia-envenenamiento": "potenciaEfecto:envenenamiento",
-  "potencia-ralentizacion": "potenciaEfecto:ralentizacion",
-  "potencia-electrizacion": "potenciaEfecto:electrizacion",
-  "res-fuego": "resistencia:fuego",
-  "res-frio": "resistencia:frio",
-  "res-rayo": "resistencia:rayo",
-  "res-veneno": "resistencia:veneno",
-  "res-congelamiento": "resistenciaEfecto:congelamiento",
-  "res-aturdimiento": "resistenciaEfecto:aturdimiento",
-  "res-envenenamiento": "resistenciaEfecto:envenenamiento",
-  "res-quemadura": "resistenciaEfecto:quemadura",
-  "res-mental": "resistenciaMental",
-  "ajuste-comercial": "ajusteComercial",
-  "hallazgo-magico": "hallazgoMagico",
-});
-
 export class PanelPersonaje {
   constructor({
     contenedor,
@@ -393,7 +313,7 @@ export class PanelPersonaje {
             campo: "danio-medio",
             valor: "0",
           },
-          { etiqueta: "DPS", campo: "dps", valor: "0" },
+          { etiqueta: "DPT", campo: "dpt", valor: "0" },
         ],
       }),
       this.crearGrupoEstadisticas({
@@ -549,87 +469,83 @@ export class PanelPersonaje {
       this.abrirDetalle(d.dataset.desglose);
     }
   }
-  actualizar(player, { juego = this.juegoActual } = {}) {
+  actualizar(player, { juego = this.juegoActual, consulta = null } = {}) {
     this.playerActual = player;
     this.juegoActual = juego ?? null;
-    const e = player.estadisticasDerivadas;
-    this.estadisticasActuales = e;
-    this.aportesAtributosActuales = obtenerAportesAtributosPrimarios(player);
-    this.resolucionPercepcionActual = player.resolverModificador(
-      OBJETIVOS_MODIFICADOR.PERCEPCION,
-      player.percepcionBase,
-    );
-    this.resolucionAlcanceActual = player.resolverAlcanceAtaque?.() ?? null;
-    this.dpsActual = calcularDpsCombatiente(player);
-    this.obtener('[data-personaje="nombre"]').textContent = player.nombre;
+    this.consultaActual = consulta ?? crearConsultaPresentacionPersonaje({
+      jugador: player,
+      juego: this.juegoActual,
+      configuracionHabilidades: this.configuracionHabilidades,
+    });
+    const presentacion = this.consultaActual;
+    const e = presentacion.valores;
+    this.obtener('[data-personaje="nombre"]').textContent = presentacion.identidad.nombre;
     this.obtener('[data-personaje="clase"]').textContent = traducirContenido(
       "profesiones",
       player.idProfesion,
       "nombre",
-      player.clasePersonaje,
+      presentacion.identidad.clasePersonaje,
     );
     this.obtener('[data-personaje="nivel"]').textContent = traducir(
       "interfaz.personaje.nivel",
       {
-        parametros: { nivel: player.nivel },
-        respaldo: `Nivel ${player.nivel}`,
+        parametros: { nivel: presentacion.identidad.nivel },
+        respaldo: `Nivel ${presentacion.identidad.nivel}`,
       },
     );
-    this.actualizarExperiencia(player);
+    this.actualizarExperiencia(presentacion.progreso);
     this.obtener('[data-personaje="puntos-atributo"]').textContent =
-      player.puntosAtributoDisponibles;
-    this.obtener('[data-personaje="danio-medio"]').textContent = formato(
-      e.danioFisico.promedio,
-    );
-    this.obtener('[data-personaje="dps"]').textContent = formato(
-      this.dpsActual.dps,
-    );
-    this.actualizarDanioPorRanura(player, e);
-    this.actualizarBarra("vida", player.vidaActual, player.vidaMaxima);
-    this.actualizarBarra("mana", player.manaActual, player.manaMaximo);
+      presentacion.progreso.puntosAtributoDisponibles;
+    this.obtener('[data-personaje="danio-medio"]').textContent =
+      formatearValorContrato(
+        e["danio-medio"],
+        presentacion.detalles["danio-medio"],
+        { sufijo: false },
+      );
+    this.obtener('[data-personaje="dpt"]').textContent =
+      formatearValorContrato(e.dpt, presentacion.detalles.dpt, { sufijo: false });
+    this.actualizarDanioPorRanura(presentacion);
+    this.actualizarBarra("vida", presentacion.recursos.vidaActual, presentacion.recursos.vidaMaxima);
+    this.actualizarBarra("mana", presentacion.recursos.manaActual, presentacion.recursos.manaMaximo);
     for (const a of ATRIBUTOS)
       this.obtener(
         `.fila-atributo[data-atributo="${a}"] [data-campo="valor"]`,
-      ).textContent = player.atributos[a];
-    this.actualizarEstadisticas(player, e);
+      ).textContent = presentacion.atributos[a];
+    this.actualizarEstadisticas(presentacion);
     for (const b of this.contenedor.querySelectorAll(
       '[data-accion="sumar-atributo"]',
     ))
-      b.disabled = player.puntosAtributoDisponibles <= 0;
-    this.actualizarPasivas(player);
-    this.actualizarEfectos(player);
+      b.disabled = presentacion.progreso.puntosAtributoDisponibles <= 0;
+    this.actualizarPasivas(presentacion);
+    this.actualizarEfectos(presentacion);
   }
-  actualizarDanioPorRanura(player, estadisticas) {
-    const fuentes = estadisticas?.danioFisico?.componentes ?? [];
-    this.fuentesDanioPorManoActual = new Map(
-      fuentes
-        .filter((fuente) => fuente?.mano === "principal" || fuente?.mano === "secundaria")
-        .map((fuente) => [fuente.mano, fuente]),
-    );
-    this.actualizarDatoDanioPorMano(
-      "danio-arma",
-      this.fuentesDanioPorManoActual.get("principal") ?? null,
-    );
+  actualizarDanioPorRanura(presentacion) {
+    this.actualizarDatoDanioPorMano("danio-arma", presentacion.valores["danio-arma"]);
 
-    const armaPrincipal = player.equipamiento?.tieneRanura("arma")
-      ? player.equipamiento.obtenerObjetoEnRanura("arma")
-      : null;
     const secundaria = this.obtener('[data-personaje="danio-secundaria"]')
       .closest(".dato-personaje");
-    const usaDosManos = armaPrincipal?.propiedades?.manos === 2;
+    const usaDosManos = presentacion.usaDosManos;
     secundaria.hidden = usaDosManos;
     this.actualizarDatoDanioPorMano(
       "danio-secundaria",
       usaDosManos
         ? null
-        : this.fuentesDanioPorManoActual.get("secundaria") ?? null,
+        : presentacion.valores["danio-secundaria"],
     );
   }
-  actualizarDatoDanioPorMano(campo, fuente) {
+  actualizarDatoDanioPorMano(campo, rango) {
     const valor = this.obtener(`[data-personaje="${campo}"]`);
     const fila = valor.closest(".dato-personaje");
-    const tieneDanio = Boolean(fuente && Number.isFinite(fuente.promedio));
-    valor.textContent = tieneDanio ? formato(fuente.promedio) : "--.-";
+    const tieneDanio = Boolean(
+      rango && Number.isFinite(rango.minimo) && Number.isFinite(rango.maximo),
+    );
+    valor.textContent = tieneDanio
+      ? formatearValorContrato(
+          rango,
+          this.consultaActual?.detalles?.[campo],
+          { sufijo: false },
+        )
+      : "--";
     fila.disabled = !tieneDanio;
     fila.classList.toggle("dato-personaje--sin-danio", !tieneDanio);
     fila.setAttribute("aria-disabled", String(!tieneDanio));
@@ -650,67 +566,26 @@ export class PanelPersonaje {
         ),
       );
   }
-  actualizarEstadisticas(player, e) {
+  actualizarEstadisticas(presentacion) {
     this.asegurarMental();
-    const valores = {
-      precision: e.precision,
-      dispersion: `${formato(e.dispersion)}%`,
-      "penetracion-armadura": `${formato(e.penetracionArmadura)}%`,
-      evasion: e.evasion,
-      armadura: e.armadura,
-      critico: `${formato(e.probabilidadCritico)}%`,
-      bloqueo: `${formato(e.probabilidadBloqueo)}%`,
-      "mitigacion-bloqueo": `${formato(e.mitigacionBloqueo)}%`,
-      "regen-vida": formato(e.regeneracionVida),
-      "regen-mana": formato(e.regeneracionMana),
-      percepcion: formato(
-        Math.max(0, this.resolucionPercepcionActual.resultado),
-      ),
-      alcance: this.resolucionAlcanceActual?.resultado ?? player.alcanceAtaque,
-      "dano-fisico": signoPorcentaje(e.danoFisico),
-      "dano-magico": signoPorcentaje(e.danoMagico),
-      "dano-habilidad": signoPorcentaje(e.danoHabilidad),
-      "dano-fuego": signoPorcentaje(e.danosPorTipo?.fuego ?? 0),
-      "dano-frio": signoPorcentaje(e.danosPorTipo?.frio ?? 0),
-      "dano-rayo": signoPorcentaje(e.danosPorTipo?.rayo ?? 0),
-      "dano-veneno": signoPorcentaje(e.danosPorTipo?.veneno ?? 0),
-      "potencia-efectos": signoPorcentaje(e.potenciaEfectos),
-      "potencia-quemadura": signoPorcentaje(e.potenciasEfectosEspecificas?.quemadura ?? 0),
-      "potencia-envenenamiento": signoPorcentaje(e.potenciasEfectosEspecificas?.envenenamiento ?? 0),
-      "potencia-ralentizacion": signoPorcentaje(e.potenciasEfectosEspecificas?.ralentizacion ?? 0),
-      "potencia-electrizacion": signoPorcentaje(e.potenciasEfectosEspecificas?.electrizacion ?? 0),
-      "res-fuego": `${formato(e.resistencias.fuego)}%`,
-      "res-frio": `${formato(e.resistencias.frio)}%`,
-      "res-rayo": `${formato(e.resistencias.rayo)}%`,
-      "res-veneno": `${formato(e.resistencias.veneno)}%`,
-      "res-congelamiento": `${formato(e.resistenciasEfectos.congelamiento)}%`,
-      "res-aturdimiento": `${formato(e.resistenciasEfectos.aturdimiento)}%`,
-      "res-envenenamiento": `${formato(e.resistenciasEfectos.envenenamiento)}%`,
-      "res-quemadura": `${formato(e.resistenciasEfectos.quemadura)}%`,
-      "res-mental": `${formato(e.resistenciaMental)}%`,
-      "ajuste-comercial": signoPorcentaje(e.ajusteComercial * 100),
-      "hallazgo-magico": signoPorcentaje(e.hallazgoMagico),
-    };
-    for (const [campo, valor] of Object.entries(valores))
-      this.obtener(`[data-personaje="${campo}"]`).textContent = valor;
-    for (const [campo, detalle] of Object.entries(DETALLES)) {
-      if (detalle.porcentaje !== true) continue;
-      const valorVisible =
-        this.obtener(`[data-personaje="${campo}"]`)?.textContent ?? "";
-      const fila = this.obtener(`[data-personaje="${campo}"]`)?.closest(
-        ".dato-personaje",
-      );
+    const e = presentacion.valores;
+    for (const campo of Object.keys(DETALLES)) {
+      if (["danio-medio", "danio-arma", "danio-secundaria", "dpt"].includes(campo)) continue;
+      const elemento = this.contenedor.querySelector(`[data-personaje="${campo}"]`);
+      if (!elemento) continue;
+      const detalle = presentacion.detalles[campo];
+      elemento.textContent = formatearValorContrato(e[campo], detalle, {
+        sufijo: false,
+      });
+      const fila = elemento.closest(".dato-personaje");
       fila?.classList.toggle(
         "dato-personaje--porcentaje-negativo",
-        Number.parseFloat(valorVisible) < 0,
+        detalle?.unidad === "porcentaje" && Number(e[campo]) < 0,
       );
     }
   }
-  actualizarPasivas(player) {
-    const lista = obtenerEstadoPasivasJugador({
-      jugador: player,
-      configuracion: this.configuracionHabilidades,
-    });
+  actualizarPasivas(presentacion) {
+    const lista = presentacion.pasivas;
     this.listaPasivas.replaceChildren();
     if (!lista.length) {
       this.listaPasivas.append(
@@ -764,9 +639,9 @@ export class PanelPersonaje {
       this.listaPasivas.append(a);
     }
   }
-  actualizarEfectos(player) {
+  actualizarEfectos(presentacion) {
     this.listaEfectos.replaceChildren();
-    const lista = this.juegoActual?.obtenerEfectosTemporales?.(player) ?? [];
+    const lista = presentacion.efectos;
     if (!lista.length) {
       this.listaEfectos.append(
         vacio(
@@ -777,9 +652,7 @@ export class PanelPersonaje {
       );
       return;
     }
-    for (const e of lista.sort(
-      (a, b) => (a.venceEn ?? Infinity) - (b.venceEn ?? Infinity),
-    )) {
+    for (const e of lista) {
       const hab = this.indiceEfectos.get(e.efectoId);
       const a = document.createElement("article");
       a.className = `efecto-personaje efecto-personaje--${e.beneficioso ? "beneficioso" : "perjudicial"}`;
@@ -800,16 +673,7 @@ export class PanelPersonaje {
       c.append(n, tipo, d);
       const tm = document.createElement("span");
       tm.className = "efecto-personaje__tiempo";
-      const turns =
-        Number.isFinite(e.venceEn) &&
-        Number.isFinite(this.juegoActual?.tiempoActual)
-          ? Math.max(
-              0,
-              Math.ceil(
-                (e.venceEn - this.juegoActual.tiempoActual) / TIEMPO_REFERENCIA,
-              ),
-            )
-          : null;
+      const turns = e.turnosRestantes;
       tm.textContent =
         turns === null
           ? "—"
@@ -822,385 +686,32 @@ export class PanelPersonaje {
     }
   }
   abrirDetalle(clave) {
-    const d = clave.startsWith("atributo:")
-      ? this.detalleAtributo(clave.slice(9))
-      : this.detalleEstadistica(clave);
+    const d = this.crearDetalleDesdeConsulta(clave);
     if (d) this.modalDetalle.abrir(d);
   }
-  detalleAtributo(a) {
-    const val = this.playerActual?.atributos?.[a];
-    if (!Number.isFinite(val)) return null;
-    const et = traducir(`interfaz.personaje.${a}`, { respaldo: ident(a) });
-    const aportes = this.aportesAtributosActuales?.porAtributo?.[a] ?? [];
-    const filas = [
-      {
-        tipo: "base",
-        etiqueta: traducir("interfaz.personaje.valorActual", {
-          respaldo: "Valor actual",
-        }),
-        valor: formato(val),
-      },
-    ];
-    for (const aporte of aportes) {
-      const [, respaldoBase] = CLAVE_APORTE_ESTADISTICA[aporte.estadistica] ?? [
-        aporte.estadistica,
-        ident(aporte.estadistica),
-      ];
-      const respaldo =
-        aporte.nota === "armas_fuerza"
-          ? "Daño físico con armas de Fuerza"
-          : aporte.nota === "armas_destreza"
-            ? "Daño físico con armas de Destreza"
-            : aporte.nota === "armas_sabiduria"
-              ? "Daño físico con armas de Sabiduría"
-              : respaldoBase;
-      const claveAporte = aporte.nota?.startsWith("armas_")
-        ? aporte.nota
-        : normalizarClaveTraduccion(aporte.estadistica);
-      filas.push({
-        tipo: aporte.valor < 0 ? "penalizacion" : "atributo",
-        etiqueta: traducir(
-          `interfaz.personaje.aporteEstadistica.${claveAporte}`,
-          { respaldo },
-        ),
-        valor: formatearAporteAtributo(aporte),
-        icono: "◆",
-      });
-    }
+  crearDetalleDesdeConsulta(clave) {
+    const detalle = this.consultaActual?.detalles?.[clave];
+    if (!detalle) return null;
+    const metadatos = clave.startsWith("atributo:")
+      ? { etiqueta: nombreAtributo(clave.slice(9)), icono: "◆" }
+      : DETALLES[clave] ?? { etiqueta: ident(clave), icono: "◇" };
+    const valorFinal = formatearValorContrato(detalle.valorFinal, detalle);
+    const porcentajeNegativo = DETALLES[clave]?.porcentaje === true && Number(detalle.valorFinal) < 0;
     return {
-      titulo: et,
-      icono: "◆",
-      valorFinal: formato(val),
-      descripcion: descripcionDetalle(`atributo:${a}`),
-      filas,
-      nota: traducir("interfaz.personaje.atributoAportesNota", {
-        respaldo:
-          "Los aportes listados son los que este atributo genera en el cálculo canónico actual. Cuando dice aporte al valor base, modificadores posteriores todavía pueden alterar el resultado final.",
+      titulo: metadatos.etiqueta,
+      icono: metadatos.icono,
+      valorFinal,
+      descripcion: porcentajeNegativo && CAMPOS_RESISTENCIA.has(clave)
+        ? descripcionVulnerabilidad(clave)
+        : descripcionDetalle(clave),
+      secciones: detalle.secciones.map((seccion) => ({
+        etiqueta: seccion.etiqueta,
+        filas: seccion.filas.map((fila) => formatearFilaContrato(fila)),
+      })),
+      nota: traducir("interfaz.personaje.desgloseCanonicoNota", {
+        respaldo: "El detalle y su orden provienen de la consulta canónica; la interfaz solo los representa.",
       }),
     };
-  }
-  detalleEstadistica(k) {
-    const m = DETALLES[k];
-    if (!m) return null;
-    const visible =
-      this.contenedor.querySelector(`[data-personaje="${k}"]`)?.textContent ??
-      "—";
-    const porcentajeNegativo =
-      m.porcentaje === true && Number.parseFloat(visible) < 0;
-    const vulnerabilidad = CAMPOS_RESISTENCIA.has(k) && porcentajeNegativo;
-    if (m.manoDanio) return this.detalleDanioPorMano(m, visible);
-    if (k === "danio-medio") {
-      const filas = [];
-      for (const fuente of this.estadisticasActuales?.danioFisico
-        ?.componentes ?? [])
-        filas.push({
-          tipo: "base",
-          etiqueta: this.nombreFuenteDanio(fuente),
-          valor: formato(fuente.promedio),
-        });
-      for (const componente of this.estadisticasActuales?.danioFisico
-        ?.componentes ?? []) {
-        const resolucion = componente?.resolucionMultiplicadorDanioFuente;
-        for (const mod of resolucion?.desglose?.aplicados ?? []) {
-          filas.push({
-            tipo: tipoOperacion(mod.operacion, mod.valor),
-            etiqueta: `${this.nombreFuente(mod)} · ${componente.nombre ?? "Fuente"}`,
-            valor: formatearMod(mod),
-          });
-        }
-      }
-      return {
-        titulo: m.etiqueta,
-        icono: m.icono,
-        valorFinal: visible,
-        descripcion: descripcionDetalle(k),
-        filas,
-        nota: traducir("interfaz.personaje.desgloseDanioFuenteNota", {
-          respaldo:
-            "Los modificadores de fuente mostrados provienen de la misma resolución canónica utilizada para calcular el daño actual.",
-        }),
-      };
-    }
-    if (k === "dps")
-      return {
-        titulo: m.etiqueta,
-        icono: m.icono,
-        valorFinal: visible,
-        descripcion: descripcionDetalle(k),
-        filas: [
-          {
-            tipo: "base",
-            etiqueta: "Daño medio",
-            valor: formato(this.dpsActual?.danioMedio ?? 0),
-          },
-          {
-            tipo: "informacion",
-            etiqueta: traducir("interfaz.personaje.costoEfectivo", {
-              respaldo: "Costo efectivo",
-            }),
-            valor: this.dpsActual?.costoAtaqueEfectivo ?? "—",
-          },
-          {
-            tipo: "informacion",
-            etiqueta: traducir("interfaz.personaje.duracionAtaque", {
-              respaldo: "Duración del ataque",
-            }),
-            valor: `${formato(this.dpsActual?.duracionAtaqueSegundos ?? 0)} s`,
-          },
-        ],
-        nota: traducir("interfaz.personaje.dpsAyuda", {
-          respaldo:
-            "Daño bruto medio por segundo. No incluye precisión, crítico, armadura ni bloqueo.",
-        }),
-      };
-    let r = null;
-    if (k === "percepcion") r = this.resolucionPercepcionActual;
-    else if (k === "alcance") r = this.resolucionAlcanceActual;
-    else
-      r = this.estadisticasActuales?.resolucionesModificadores?.[m.resolucion];
-    const filas = [];
-    if (porcentajeNegativo)
-      filas.push({
-        tipo: "penalizacion",
-        etiqueta: traducir("interfaz.personaje.estadoPorcentaje", {
-          respaldo: "Estado",
-        }),
-        valor: etiquetaPorcentajeNegativo(k),
-        icono: "!",
-      });
-    if (r) {
-      filas.push({
-        tipo: "base",
-        etiqueta: traducir("interfaz.personaje.valorBase", {
-          respaldo: "Valor base",
-        }),
-        valor: valorResolucion(r.valorBase, m.porcentaje, m.escala ?? 1),
-      });
-      for (const aporte of this.aportesAtributosEstadistica(k))
-        filas.push({
-          tipo: "atributo",
-          etiqueta: `${nombreAtributo(aporte.atributo)} · ${traducir("interfaz.personaje.incluidoEnBase", { respaldo: "incluido en base" })}`,
-          valor: formatearAporteAtributo(aporte),
-          icono: "◆",
-        });
-      for (const mod of r.desglose?.aplicados ?? [])
-        filas.push({
-          tipo: tipoOperacion(mod.operacion, mod.valor),
-          etiqueta: this.nombreFuente(mod),
-          valor: formatearMod(mod, m.escala ?? 1, m.porcentaje === true),
-        });
-      if (r.limiteDominio?.aplicado) {
-        const esMinimo =
-          (r.resultadoAntesLimite ?? r.resultado) < r.limiteDominio.minima;
-        filas.push({
-          tipo: "limite",
-          etiqueta: traducir(
-            esMinimo
-              ? "interfaz.personaje.limiteVulnerabilidad"
-              : "interfaz.personaje.limiteDominio",
-            {
-              respaldo: esMinimo
-                ? "Límite de vulnerabilidad"
-                : "Límite del dominio",
-            },
-          ),
-          valor: `${esMinimo ? r.limiteDominio.minima : r.limiteDominio.maxima}%`,
-        });
-      } else if (m.limiteDominio && r.resultado > m.limiteDominio)
-        filas.push({
-          tipo: "limite",
-          etiqueta: traducir("interfaz.personaje.limiteDominio", {
-            respaldo: "Límite del dominio",
-          }),
-          valor: `${m.limiteDominio}%`,
-        });
-    } else {
-      for (const aporte of this.aportesAtributosEstadistica(k))
-        filas.push({
-          tipo: "atributo",
-          etiqueta: nombreAtributo(aporte.atributo),
-          valor: formatearAporteAtributo(aporte),
-          icono: "◆",
-        });
-    }
-    return {
-      titulo: m.etiqueta,
-      icono: m.icono,
-      valorFinal: visible,
-      descripcion: vulnerabilidad
-        ? descripcionVulnerabilidad(k)
-        : descripcionDetalle(k),
-      filas,
-      nota: r
-        ? traducir("interfaz.personaje.desgloseCanonicoNota", {
-            respaldo:
-              "El detalle usa la misma resolución canónica que produjo la estadística; la interfaz no recalcula el resultado.",
-          })
-        : traducir("interfaz.personaje.sinDesgloseCanonico", {
-            respaldo:
-              "Este valor no expone todavía un desglose canónico adicional.",
-          }),
-    };
-  }
-  detalleDanioPorMano(detalle, visible) {
-    const fuente = this.fuentesDanioPorManoActual?.get(detalle.manoDanio);
-    if (!fuente || !Number.isFinite(fuente.promedio)) return null;
-
-    const filas = [];
-    filas.push({
-      tipo: "base",
-      etiqueta: traducir("interfaz.personaje.rangoFinal", {
-        respaldo: "Rango final",
-      }),
-      valor: formatearRango(fuente.minimo, fuente.maximo),
-    });
-    if (Number.isFinite(fuente.minimoLocal) && Number.isFinite(fuente.maximoLocal))
-      filas.push({
-        tipo: "base",
-        etiqueta: traducir("interfaz.personaje.rangoBaseLocal", {
-          respaldo: "Rango base/local",
-        }),
-        valor: formatearRango(fuente.minimoLocal, fuente.maximoLocal),
-      });
-    const bonoAtributo = Number(fuente.bonoAtributo);
-    if (
-      fuente.esAtaqueMagicoBasico !== true &&
-      fuente.atributoOfensivo &&
-      Number.isFinite(bonoAtributo) &&
-      Math.abs(bonoAtributo) > Number.EPSILON
-    )
-      filas.push({
-        tipo: bonoAtributo < 0 ? "penalizacion" : "atributo",
-        etiqueta: traducir(
-          `interfaz.personaje.aporteEstadistica.armas_${fuente.atributoOfensivo}`,
-          {
-            respaldo: `Daño físico con armas de ${nombreAtributo(fuente.atributoOfensivo)}`,
-          },
-        ),
-        valor: signoPorcentaje(bonoAtributo * 100),
-        icono: "◆",
-      });
-
-    const multiplicadorManoSecundaria = Number(
-      fuente.resolucionMultiplicadorDanioFuente?.resultado,
-    );
-    if (
-      detalle.manoDanio === "secundaria" &&
-      Number.isFinite(multiplicadorManoSecundaria) &&
-      Math.abs(multiplicadorManoSecundaria - 1) > Number.EPSILON
-    ) {
-      const variacionManoSecundaria =
-        (multiplicadorManoSecundaria - 1) * 100;
-      const esPenalizacion = variacionManoSecundaria < 0;
-      filas.push({
-        tipo: esPenalizacion ? "penalizacion" : "bonificacion",
-        etiqueta: traducir(
-          esPenalizacion
-            ? "interfaz.personaje.penalizacionManoSecundaria"
-            : "interfaz.personaje.bonificacionManoSecundaria",
-          {
-            respaldo: esPenalizacion
-              ? "Penalización de mano secundaria"
-              : "Bonificación de mano secundaria",
-          },
-        ),
-        valor: signoPorcentaje(variacionManoSecundaria),
-      });
-    }
-
-    this.agregarModificadoresDanioFuente(
-      filas,
-      fuente.resolucionMultiplicadorDanioFuente,
-      this.nombreFuenteDanio(fuente),
-    );
-    for (const componente of fuente.componentesDanio ?? []) {
-      const escalado = componente.resolucionEscaladoDanio;
-      const etiquetaComponente = nombreTipoDanio(componente.tipo);
-      for (const resolucion of [
-        escalado?.danioFisico,
-        escalado?.danioMagico,
-        escalado?.danioTipo,
-      ])
-        this.agregarModificadoresDanioFuente(
-          filas,
-          resolucion,
-          etiquetaComponente,
-        );
-    }
-    const rangosFinales = (fuente.rangosComponentes ?? []).filter((rango) =>
-      Number.isFinite(rango?.promedio),
-    );
-    if (rangosFinales.length > 1)
-      for (const rango of rangosFinales)
-        filas.push({
-          tipo: "informacion",
-          etiqueta: traducir("interfaz.personaje.componenteFinalDanio", {
-            parametros: { tipo: nombreTipoDanio(rango.tipo) },
-            respaldo: `Componente final: ${nombreTipoDanio(rango.tipo)}`,
-          }),
-          valor: formatearRango(rango.minimo, rango.maximo),
-        });
-    return {
-      titulo: detalle.etiqueta,
-      icono: detalle.icono,
-      valorFinal: visible,
-      descripcion: descripcionDetalle(
-        detalle.manoDanio === "principal"
-          ? "danio-arma"
-          : "danio-secundaria",
-      ),
-      filas,
-      nota: traducir("interfaz.personaje.desgloseDanioFuenteNota", {
-        respaldo:
-          "Los rangos y modificadores mostrados son la salida canónica del ataque actual; la interfaz no los recalcula.",
-      }),
-    };
-  }
-  agregarModificadoresDanioFuente(filas, resolucion, etiqueta) {
-    for (const mod of resolucion?.desglose?.aplicados ?? [])
-      filas.push({
-        tipo: tipoOperacion(mod.operacion, mod.valor),
-        etiqueta: `${this.nombreFuente(mod)} · ${etiqueta}`,
-        valor: formatearMod(
-          mod,
-          1,
-          esObjetivoDanioPorcentual(resolucion?.objetivo),
-        ),
-      });
-  }
-  aportesAtributosEstadistica(k) {
-    const clave = CLAVE_ESTADISTICA_APORTES[k];
-    if (!clave) return [];
-    return this.aportesAtributosActuales?.porEstadistica?.[clave] ?? [];
-  }
-  nombreFuente(mod) {
-    const f = mod?.fuente ?? {};
-    if (f.tipo === "pasiva" && f.idHabilidad) {
-      const h = this.configuracionHabilidades?.habilidades?.[f.idHabilidad];
-      return traducirContenido(
-        "habilidades",
-        f.idHabilidad,
-        "nombre",
-        h?.nombre ?? f.idHabilidad,
-      );
-    }
-    return (
-      f.afijoNombre ??
-      f.objetoNombre ??
-      f.nombre ??
-      (mod?.origen ? ident(mod.origen) : "Modificador")
-    );
-  }
-  nombreFuenteDanio(fuente) {
-    const mano =
-      fuente?.mano === "principal"
-        ? traducir("interfaz.personaje.arma", { respaldo: "Arma" })
-        : fuente?.mano === "secundaria"
-          ? traducir("interfaz.personaje.secundaria", { respaldo: "Secundaria" })
-          : traducir("interfaz.personaje.ataqueNatural", {
-              respaldo: "Ataque natural",
-            });
-    return fuente?.nombre ? `${mano} · ${fuente.nombre}` : mano;
   }
   actualizarExperiencia(p) {
     this.obtener('[data-personaje="experiencia-texto"]').textContent =
@@ -1219,6 +730,60 @@ export class PanelPersonaje {
     this.contenedor.removeEventListener("keydown", this.manejarTecla);
     this.modalDetalle?.destruir();
   }
+}
+function formatearFilaContrato(fila = {}) {
+  const tipo = fila.tipo ?? "informacion";
+  return {
+    tipo,
+    icono: {
+      base: "◇",
+      atributo: "◆",
+      bonificacion: "+",
+      penalizacion: "−",
+      multiplicador: "%",
+      limite: "⌁",
+      informacion: "•",
+    }[tipo] ?? "•",
+    etiqueta: fila.etiqueta ?? "—",
+    valor: formatearValorContrato(fila.valor, fila, {
+      mostrarSigno: ["atributo", "bonificacion", "penalizacion", "multiplicador"].includes(tipo),
+    }),
+  };
+}
+
+function formatearValorContrato(
+  valor,
+  descriptor = {},
+  { mostrarSigno = false, sufijo = true } = {},
+) {
+  const unidad = descriptor?.unidad ?? "puntos";
+  if (unidad === "rango_danio") {
+    return valor && typeof valor === "object"
+      ? formatearRango(valor.minimo, valor.maximo)
+      : "—";
+  }
+  if (unidad === "texto") {
+    return typeof valor === "string" ? valor : "—";
+  }
+  if (unidad === "velocidad_ataque_con_costo") {
+    const velocidad = Number(valor?.velocidadAtaque);
+    const costo = Number(valor?.costoBase);
+    if (!Number.isFinite(velocidad) || !Number.isFinite(costo)) return "—";
+    return `${formato(velocidad, 2)} ataques/s (${formato(costo)})`;
+  }
+  const numero = Number(valor);
+  if (!Number.isFinite(numero)) return "—";
+  const signo = mostrarSigno && numero >= 0 ? "+" : "";
+  if (unidad === "porcentaje" || unidad === "porcentaje_factor") {
+    return `${signo}${formato(numero)}%`;
+  }
+  if (unidad === "ataques_por_segundo") {
+    return `${formato(numero, 2)} ataques/s`;
+  }
+  if (unidad === "dpt") {
+    return `${signo}${formato(numero)}${sufijo ? " DPT" : ""}`;
+  }
+  return `${signo}${formato(numero)}`;
 }
 function crearIndiceEfectos(c) {
   const m = new Map();
@@ -1292,19 +857,6 @@ function descripcionEfecto(e) {
     });
   return e.nombreEfecto ?? "Efecto temporal";
 }
-function tipoOperacion(op, v) {
-  if (op === OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO) return "limite";
-  if (
-    [
-      OPERACIONES_MODIFICADOR.MULTIPLICAR,
-      OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR,
-      OPERACIONES_MODIFICADOR.PORCENTAJE_MULTIPLICATIVO,
-      OPERACIONES_MODIFICADOR.PORCENTAJE_INVERSO,
-    ].includes(op)
-  )
-    return "multiplicador";
-  return v < 0 ? "penalizacion" : "bonificacion";
-}
 function formatearMod(m, escala = 1, forzarPorcentaje = false) {
   const original = Number(m?.valor) || 0,
     v = original * escala,
@@ -1324,60 +876,16 @@ function formatearMod(m, escala = 1, forzarPorcentaje = false) {
       OPERACIONES_MODIFICADOR.MULTIPLICAR_REDONDEAR,
     ].includes(m?.operacion)
   )
-    return `×${original}`;
+    return `${original >= 1 ? "+" : ""}${formato((original - 1) * 100)}%`;
   if (m?.operacion === OPERACIONES_MODIFICADOR.LIMITAR_MAXIMO)
     return forzarPorcentaje ? `máx. ${formato(v)}%` : `máx. ${formato(v)}`;
   return forzarPorcentaje ? `${s}${formato(v)}%` : `${s}${formato(v)}`;
-}
-function esObjetivoDanioPorcentual(objetivo) {
-  return [
-    OBJETIVOS_MODIFICADOR.DANO_FISICO,
-    OBJETIVOS_MODIFICADOR.DANO_MAGICO,
-    OBJETIVOS_MODIFICADOR.DANO_HABILIDAD,
-    OBJETIVOS_MODIFICADOR.DANO_TIPO,
-  ].includes(objetivo);
 }
 function formatearRango(minimo, maximo) {
   if (!Number.isFinite(minimo) || !Number.isFinite(maximo)) return "—";
   return minimo === maximo
     ? formato(minimo)
     : `${formato(minimo)}–${formato(maximo)}`;
-}
-function nombreTipoDanio(tipo) {
-  const claves = {
-    fisico: ["danoFisico", "Daño Físico"],
-    fuego: ["danoFuego", "Fuego"],
-    frio: ["danoFrio", "Frío"],
-    rayo: ["danoRayo", "Rayo"],
-    veneno: ["danoVeneno", "Veneno"],
-  };
-  const [clave, respaldo] = claves[tipo] ?? [null, ident(tipo ?? "daño")];
-  return clave
-    ? traducir(`interfaz.personaje.${clave}`, { respaldo })
-    : respaldo;
-}
-function etiquetaPorcentajeNegativo(clave) {
-  if (CAMPOS_RESISTENCIA.has(clave))
-    return traducir("interfaz.personaje.vulnerabilidad", {
-      respaldo: "Vulnerabilidad",
-    });
-  const estados = {
-    "dano-fisico": ["penalizacionDanio", "Penalización de daño"],
-    "dano-magico": ["penalizacionDanio", "Penalización de daño"],
-    "dano-habilidad": ["penalizacionDanio", "Penalización de daño"],
-    "dano-fuego": ["penalizacionDanio", "Penalización de daño"],
-    "dano-frio": ["penalizacionDanio", "Penalización de daño"],
-    "dano-rayo": ["penalizacionDanio", "Penalización de daño"],
-    "dano-veneno": ["penalizacionDanio", "Penalización de daño"],
-    "potencia-efectos": ["penalizacionEfectos", "Penalización de efectos"],
-    "ajuste-comercial": ["desventajaComercial", "Desventaja comercial"],
-    dispersion: ["penalizacionPrecision", "Penalización de precisión"],
-  };
-  const [claveTraduccion, respaldo] = estados[clave] ?? [
-    "penalizacionPorcentual",
-    "Penalización",
-  ];
-  return traducir(`interfaz.personaje.${claveTraduccion}`, { respaldo });
 }
 function descripcionVulnerabilidad(clave) {
   if (CAMPOS_RESISTENCIA_DANIO.has(clave))
@@ -1407,10 +915,10 @@ function descripcionDetalle(clave) {
     "danio-medio":
       "Promedio del daño bruto del ataque actual antes de precisión, crítico, Armadura y Bloqueo del objetivo.",
     "danio-arma":
-      "Promedio final de la fuente equipada en Arma. Incluye sus componentes y modificadores canónicos del ataque básico actual.",
+      "Rango final de la fuente equipada en Arma. Incluye sus componentes y modificadores canónicos del ataque básico actual.",
     "danio-secundaria":
-      "Promedio final de la fuente equipada en Secundaria cuando participa en el ataque básico actual.",
-    dps: "Daño bruto medio por segundo según el daño medio y el tiempo efectivo del ataque actual.",
+      "Rango final de la fuente equipada en Secundaria cuando participa en el ataque básico actual.",
+    dpt: "Daño bruto medio por turno según el daño medio y el coste temporal efectivo del ataque actual.",
     precision:
       "Valor usado para determinar la probabilidad de impactar frente a la Evasión del objetivo.",
     dispersion:
@@ -1487,34 +995,19 @@ function descripcionDetalle(clave) {
     },
   );
 }
-function formatearAporteAtributo(aporte) {
-  const v = Number(aporte?.valor) || 0;
-  const s = v > 0 ? "+" : "";
-  return aporte?.unidad === "porcentaje"
-    ? `${s}${formato(v)}%`
-    : `${s}${formato(v)}`;
-}
 function nombreAtributo(id) {
   return traducir(`interfaz.personaje.${id}`, { respaldo: ident(id) });
 }
 function normalizarClaveTraduccion(v) {
   return String(v ?? "").replace(/[:.-]/g, "_");
 }
-function formato(v) {
+function formato(v, decimalesMaximos = 1) {
   const n = Number(v);
   if (!Number.isFinite(n)) return "—";
-  const redondeado = Number(n.toFixed(1));
-  return Number.isInteger(redondeado)
-    ? String(redondeado)
-    : redondeado.toFixed(1);
-}
-function signoPorcentaje(v) {
-  const n = Number(v) || 0;
-  return `${n >= 0 ? "+" : ""}${formato(n)}%`;
-}
-function valorResolucion(v, p, escala = 1) {
-  const s = formato(Number(v) * escala);
-  return p && s !== "—" ? `${s}%` : s;
+  return new Intl.NumberFormat(idiomaActivo() === "en" ? "en-US" : "es-UY", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimalesMaximos,
+  }).format(n);
 }
 function ident(v) {
   return typeof v !== "string" || !v.trim()

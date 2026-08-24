@@ -313,6 +313,20 @@
   background:rgba(89,117,164,.045);
 }
 
+.modal-estadistica__secciones{
+  display:grid;
+  gap:2px;
+}
+
+.modal-estadistica__seccion + .modal-estadistica__seccion{
+  margin-top:5px;
+}
+
+.modal-estadistica__seccion .modal-estadistica__vacio{
+  margin:0;
+  padding:9px 10px;
+}
+
 /* Todo porcentaje negativo representa una desventaja contextual. El mismo
    destaque sirve para Vulnerabilidad, penalización de daño, efectos, etc. */
 .panel-personaje .dato-personaje--porcentaje-negativo {
@@ -324,4 +338,11 @@
 .panel-personaje .dato-personaje--porcentaje-negativo strong {
   font-weight: 900;
   text-shadow: 0 0 8px rgba(224, 121, 114, 0.5);
+}
+
+/* Las ecuaciones entregadas por la consulta pueden ocupar más de una línea. */
+.modal-estadistica__fila-valor {
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

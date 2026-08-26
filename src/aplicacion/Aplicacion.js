@@ -33,6 +33,7 @@ import { configurarPerfilesHabilidadesVisuales } from "../interfaz/graficos/Cont
 import { configurarPerfilesEstadosTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesEstadosTemporalesVisuales.js";
 import { configurarPerfilesZonasTemporalesVisuales } from "../interfaz/graficos/ContextoPerfilesZonasTemporalesVisuales.js";
 import { ControladorPartida } from "./ControladorPartida.js";
+import { CoordinadorInicioPartida } from "./CoordinadorInicioPartida.js";
 import { VERSION_APLICACION } from "../config/VersionAplicacion.js";
 import {
   actualizarPreferenciaInterfaz,
@@ -59,6 +60,7 @@ export class Aplicacion {
     this.controladorConfiguracion = null;
     this.controladorIdioma = null;
     this.controladorPartida = null;
+    this.coordinadorInicioPartida = null;
     this.menuCreacionPersonaje = null;
     this.configuracionPersonaje = null;
     this.configuracionEnemigos = null;
@@ -133,6 +135,19 @@ export class Aplicacion {
         }),
       crearPresentacionMapaActivo: (configuracion) =>
         this.presentacion.crearPresentacionMapaActivo(configuracion),
+    });
+    this.coordinadorInicioPartida = new CoordinadorInicioPartida({
+      obtenerControladorPartida: () => this.controladorPartida,
+      obtenerConfiguracionInicioPartida: () =>
+        this.obtenerConfiguracionInicioPartida(),
+      crearJugadorDesdeGuardado: () => this.crearJugadorDesdeGuardadoActual(),
+      eliminarGuardadoJugador,
+      eliminarConfiguracionBarraHabilidades,
+      alGuardadoInexistente: () => this.manejarGuardadoInexistente(),
+      alErrorContinuar: (error) => this.manejarErrorContinuar(error),
+      alNuevoJuegoConfirmado: () => this.marcarGuardadoEliminado(),
+      alAdvertenciaLimpieza: ({ recurso, error }) =>
+        this.advertirErrorLimpiezaNuevoJuego({ recurso, error }),
     });
   }
 
@@ -426,38 +441,45 @@ export class Aplicacion {
   }
 
   continuarPartida() {
-    if (!this.guardadoValido || this.controladorPartida.partidaIniciada) {
-      return false;
-    }
+    return this.coordinadorInicioPartida.continuar({
+      guardadoValido: this.guardadoValido,
+    });
+  }
 
-    try {
-      const jugadorRestaurado = this.crearJugadorDesdeGuardadoActual();
-      if (!jugadorRestaurado) {
-        this.guardadoPresente = false;
-        this.guardadoValido = false;
-        this.controladorPantallas.configurarContinuar({
-          habilitado: false,
-          mensaje: traducir("interfaz.mensajes.guardadoInexistente", { respaldo: "No existe una partida guardada para continuar." }),
-        });
-        return false;
-      }
+  manejarGuardadoInexistente() {
+    this.guardadoPresente = false;
+    this.guardadoValido = false;
+    this.controladorPantallas.configurarContinuar({
+      habilitado: false,
+      mensaje: traducir("interfaz.mensajes.guardadoInexistente", {
+        respaldo: "No existe una partida guardada para continuar.",
+      }),
+    });
+  }
 
-      return this.controladorPartida.iniciar({
-        jugadorRestaurado,
-        ...this.obtenerConfiguracionInicioPartida(),
-      });
-    } catch (error) {
-      this.guardadoValido = false;
-      console.error("No se pudo continuar la partida guardada:", error);
-      this.controladorPantallas.configurarContinuar({
-        habilitado: false,
-        mensaje: traducir("interfaz.mensajes.guardadoCargaError", {
-          respaldo: "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
-        }),
-        error: true,
-      });
-      return false;
-    }
+  manejarErrorContinuar(error) {
+    this.guardadoValido = false;
+    console.error("No se pudo continuar la partida guardada:", error);
+    this.controladorPantallas.configurarContinuar({
+      habilitado: false,
+      mensaje: traducir("interfaz.mensajes.guardadoCargaError", {
+        respaldo: "No se pudo cargar la partida guardada. Podés comenzar una partida nueva.",
+      }),
+      error: true,
+    });
+  }
+
+  marcarGuardadoEliminado() {
+    this.guardadoPresente = false;
+    this.guardadoValido = false;
+  }
+
+  advertirErrorLimpiezaNuevoJuego({ recurso, error }) {
+    const mensaje =
+      recurso === "barra"
+        ? "No se pudo limpiar la barra anterior:"
+        : "No se pudo limpiar el guardado anterior:";
+    console.warn(mensaje, error);
   }
 
   obtenerConfiguracionInicioPartida() {
@@ -483,28 +505,9 @@ export class Aplicacion {
         configuracionGeneracionObjetos:
           this.configuracionGeneracionObjetos,
         alConfirmar: (datosPersonaje) => {
-          // Entrar a creación ya requirió confirmación si existía progreso.
-          // El guardado solo se elimina al comenzar efectivamente la nueva
-          // aventura, por lo que cancelar/reload antes de este punto lo conserva.
-          try {
-            eliminarGuardadoJugador();
-          } catch (error) {
-            console.warn("No se pudo limpiar el guardado anterior:", error);
-          }
-
-          try {
-            eliminarConfiguracionBarraHabilidades();
-          } catch (error) {
-            console.warn("No se pudo limpiar la barra anterior:", error);
-          }
-
-          this.guardadoPresente = false;
-          this.guardadoValido = false;
-
-          return this.controladorPartida.iniciar({
+          return this.coordinadorInicioPartida.iniciarNuevoJuego(
             datosPersonaje,
-            ...this.obtenerConfiguracionInicioPartida(),
-          });
+          );
         },
       });
   }

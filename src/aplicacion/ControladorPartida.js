@@ -7,11 +7,7 @@ import {
   normalizarSolicitudTransicionMapa,
   TIPOS_TRANSICION_MAPA,
 } from "../juego/interacciones/TransicionesMapa.js";
-import { aplicarResultadoAccion } from "./ProcesadorResultadoAccion.js";
-import {
-  EjecutorAccionesJugador,
-  TIPOS_COMANDO_JUGADOR,
-} from "./EjecutorAccionesJugador.js";
+import { EjecutorAccionesJugador } from "./EjecutorAccionesJugador.js";
 import { leerParametrosPruebaMapa } from "../herramientas/depuracion/ParametrosPruebaMapa.js";
 import { agregarRecursosPruebaMapa } from "../herramientas/depuracion/RecursosPruebaMapa.js";
 import {
@@ -20,7 +16,9 @@ import {
   TIPOS_MENSAJE_JUEGO,
 } from "../juego/mensajes/MensajesJuego.js";
 import { CoordinadorEntradaJugable } from "./CoordinadorEntradaJugable.js";
-import { notificarCambioEstadoJugador } from "../juego/estado/ObservadorCambiosEstadoJugador.js";
+import { CoordinadorComandosPartida } from "./CoordinadorComandosPartida.js";
+import { CoordinadorTransicionesMapa } from "./CoordinadorTransicionesMapa.js";
+import { validarConfiguracionMapa } from "./ValidacionConfiguracionMapa.js";
 
 // Coordina la sesión completa y conecta
 // el mapa activo con la interfaz.
@@ -96,6 +94,7 @@ export class ControladorPartida {
     this.renderizador = null;
     this.ejecutorAccionesJugador = null;
     this.presentacionMapaActivo = null;
+    this.coordinadorComandosPartida = null;
 
     // Configuraciones persistentes requeridas
     // por la presentación de cada mapa.
@@ -104,12 +103,6 @@ export class ControladorPartida {
     this.configuracionComercio = null;
     this.configuracionHabilidadesNPC = null;
     this.partidaIniciada = false;
-
-    // La preparación de mapas es asíncrona y versionada para impedir que una
-    // carga anterior active su mapa después de una solicitud más reciente.
-    this.versionPreparacionMapa = 0;
-    this.preparacionMapaActiva = null;
-    this.promesaPreparacionMapa = null;
 
     // La compuerta de entrada jugable vive en un coordinador dedicado.
     // ControladorPartida aporta solamente el contexto del mapa y la espera
@@ -120,6 +113,26 @@ export class ControladorPartida {
         this.renderizador?.obtenerDiagnosticoUltimaPresentacion?.() ?? null,
       esperarPresentacionPendiente: () =>
         this.renderizador?.esperarPresentacionPendiente?.() ?? null,
+    });
+    this.coordinadorComandosPartida = new CoordinadorComandosPartida({
+      coordinadorEntradaJugable: this.coordinadorEntradaJugable,
+      obtenerContextoMapaActivo: () => ({
+        partidaIniciada: this.partidaIniciada,
+        juego: this.juego,
+        renderizador: this.renderizador,
+        ejecutorAccionesJugador: this.ejecutorAccionesJugador,
+        presentacionMapaActivo: this.presentacionMapaActivo,
+      }),
+      alJugadorDerrotado: (detalle) => this.procesarJugadorDerrotado(detalle),
+    });
+    this.coordinadorTransicionesMapa = new CoordinadorTransicionesMapa({
+      presentadorCargaMapa: this.presentadorCargaMapa,
+      controladorPantallas: this.controladorPantallas,
+      invalidarEntrada: () =>
+        this.coordinadorEntradaJugable.invalidarSincronizacion(),
+      obtenerPresentacionMapaActivo: () => this.presentacionMapaActivo,
+      activarMapaPreparado: (configuracionMapa, opciones) =>
+        this.activarMapaPreparado(configuracionMapa, opciones),
     });
   }
 
@@ -400,171 +413,14 @@ export class ControladorPartida {
     return false;
   }
 
-  // Punto común para ejecutar acciones desde cualquier adaptador de entrada.
-  // El teclado DOM, la barra, el puntero, una futura escena de Phaser, la
-  // consola y las pruebas deterministas utilizan el mismo camino.
+  // Fachadas públicas: todos los adaptadores de entrada conservan sus APIs
+  // y convergen en el coordinador dedicado de comandos y resultados.
   ejecutarComandoJugador(comando) {
-    const origenEntrada = comando?.origenEntrada ?? "comando";
-    const tipoEntrada = comando?.tipo ?? "comando";
-
-    const ejecucion = this.ejecutarConControlEntrada({
-      tipoEntrada,
-      origenEntrada,
-      ejecutarLogica: () => this.ejecutarComandoJugadorSinControlEntrada(comando),
-      obtenerResultadoTemporal: (contexto) => contexto?.resultado ?? null,
-      procesarResultado: (contexto) =>
-        this.procesarContextoComandoJugador(contexto),
-    });
-
-    return ejecucion.aceptada ? ejecucion.resultado : null;
+    return this.coordinadorComandosPartida.ejecutarComandoJugador(comando);
   }
 
-  // Ejecuta una mutación jugable originada fuera del traductor de comandos,
-  // por ejemplo equipamiento, botín, curación, comercio o una transición
-  // solicitada desde un modal. Todas esas rutas comparten la misma compuerta.
-  ejecutarAccionJugable({
-    tipoEntrada = "accion",
-    origenEntrada = "dom",
-    ejecutar,
-    procesarResultado = true,
-    presentarInteraccion = false,
-  } = {}) {
-    if (typeof ejecutar !== "function") {
-      throw new Error(
-        "La entrada jugable necesita una acción válida para ejecutar.",
-      );
-    }
-
-    return this.ejecutarConControlEntrada({
-      tipoEntrada,
-      origenEntrada,
-      ejecutarLogica: ejecutar,
-      obtenerResultadoTemporal: (resultado) => resultado,
-      procesarResultado: (resultado) => {
-        if (!procesarResultado) {
-          return resultado;
-        }
-
-        const resultadoProcesado = this.procesarResultadoAccion(resultado);
-        if (presentarInteraccion) {
-          this.presentarInteraccionResultado(resultadoProcesado);
-        }
-        return resultadoProcesado;
-      },
-    });
-  }
-
-  ejecutarComandoJugadorSinControlEntrada(comando) {
-    if (
-      !this.partidaIniciada ||
-      !this.juego ||
-      !this.renderizador ||
-      !this.ejecutorAccionesJugador
-    ) {
-      throw new Error(
-        "No se puede ejecutar un comando sin un mapa activo.",
-      );
-    }
-
-    const contextoHabilidad = crearContextoHabilidadParaComando({
-      comando,
-      integracionHabilidades:
-        this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null,
-    });
-    const integracionHabilidades =
-      this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null;
-    const contextoProcesamiento = contextoHabilidad.esComandoHabilidad
-      ? integracionHabilidades.iniciarProcesamientoComando({
-          suprimirRedibujado: contextoHabilidad.esConfirmacion,
-        })
-      : null;
-
-    let resultado;
-    try {
-      resultado = this.ejecutorAccionesJugador.ejecutar(comando);
-    } catch (error) {
-      integracionHabilidades?.cancelarProcesamientoComando(
-        contextoProcesamiento,
-      );
-      throw error;
-    }
-
-    return {
-      comando,
-      resultado,
-      contextoHabilidad,
-      contextoProcesamiento,
-      integracionHabilidades,
-    };
-  }
-
-  procesarContextoComandoJugador(contexto) {
-    const {
-      comando,
-      resultado,
-      contextoHabilidad,
-      contextoProcesamiento,
-      integracionHabilidades,
-    } = contexto;
-
-    const estadoProcesamiento = contextoProcesamiento
-      ? integracionHabilidades.finalizarProcesamientoComando(
-          contextoProcesamiento,
-        )
-      : { cambioEmitido: false };
-
-    const resultadoHabilidad = this.procesarResultadoComandoHabilidad({
-      comando,
-      resultado,
-      contextoHabilidad,
-      estadoProcesamiento,
-    });
-
-    if (resultadoHabilidad.procesado) {
-      return resultadoHabilidad.resultado;
-    }
-
-    const resultadoParaProcesar = this.incorporarOrientacionInteraccion({
-      comando,
-      resultado,
-    });
-    const resultadoProcesado = this.procesarResultadoAccion(
-      resultadoParaProcesar,
-    );
-    this.presentarDetalleEntidadResultado(resultadoProcesado);
-    this.presentarInteraccionResultado(resultadoProcesado);
-    return resultadoProcesado;
-  }
-
-  ejecutarConControlEntrada({
-    tipoEntrada,
-    origenEntrada,
-    ejecutarLogica,
-    obtenerResultadoTemporal,
-    procesarResultado,
-  }) {
-    this.validarMapaActivoParaEntrada();
-
-    return this.coordinadorEntradaJugable.ejecutar({
-      tipoEntrada,
-      origenEntrada,
-      ejecutarLogica,
-      obtenerResultadoTemporal,
-      procesarResultado,
-    });
-  }
-
-  validarMapaActivoParaEntrada() {
-    if (
-      !this.partidaIniciada ||
-      !this.juego ||
-      !this.renderizador ||
-      !this.ejecutorAccionesJugador
-    ) {
-      throw new Error(
-        "No se puede ejecutar una entrada jugable sin un mapa activo.",
-      );
-    }
+  ejecutarAccionJugable(configuracion) {
+    return this.coordinadorComandosPartida.ejecutarAccionJugable(configuracion);
   }
 
   obtenerContextoMedicionFluidez() {
@@ -595,68 +451,8 @@ export class ControladorPartida {
     return this.coordinadorEntradaJugable.reiniciarMedicion();
   }
 
-  incorporarOrientacionInteraccion({ comando, resultado } = {}) {
-    if (
-      comando?.tipo !== TIPOS_COMANDO_JUGADOR.INTERACTUAR_O_CONFIRMAR ||
-      !resultado?.entidad ||
-      !this.juego?.player
-    ) {
-      return resultado;
-    }
-
-    const actor = this.juego.player;
-    const objetivo = resultado.entidad;
-    if (
-      !Number.isFinite(actor.x) ||
-      !Number.isFinite(actor.y) ||
-      !Number.isFinite(objetivo.x) ||
-      !Number.isFinite(objetivo.y) ||
-      (actor.x === objetivo.x && actor.y === objetivo.y)
-    ) {
-      return resultado;
-    }
-
-    return {
-      ...resultado,
-      redibujar: true,
-      orientacionesSolicitadas: [
-        ...(Array.isArray(resultado.orientacionesSolicitadas)
-          ? resultado.orientacionesSolicitadas
-          : []),
-        Object.freeze({
-          entidad: actor,
-          origen: Object.freeze({ x: actor.x, y: actor.y }),
-          objetivo: Object.freeze({ x: objetivo.x, y: objetivo.y }),
-        }),
-      ],
-    };
-  }
-
   procesarResultadoAccion(resultado) {
-    const procesado = aplicarResultadoAccion({
-      resultado,
-      juego: this.juego,
-      renderizador: this.renderizador,
-      alJugadorDerrotado: (detalle) => this.procesarJugadorDerrotado(detalle),
-    });
-
-    if (procesado) {
-      const estadoJugadorYaActualizado =
-        procesado.turnoConsumido === true || procesado.redibujar === true;
-
-      // Toda acción jugable converge aquí. La capa visual recibe únicamente
-      // una invalidación genérica y vuelve a consultar el estado canónico.
-      notificarCambioEstadoJugador(this.juego?.player, {
-        origen: "resultado_accion",
-        tipo: "procesarResultadoAccion",
-        estadoJugador: !estadoJugadorYaActualizado,
-        habilidades: true,
-        guardarJugador: false,
-        motivo: "resultado_accion",
-      });
-    }
-
-    return procesado;
+    return this.coordinadorComandosPartida.procesarResultadoAccion(resultado);
   }
 
   procesarJugadorDerrotado(detalle) {
@@ -666,176 +462,18 @@ export class ControladorPartida {
     return this.alJugadorDerrotado(detalle);
   }
 
-  presentarDetalleEntidadResultado(resultado) {
-    if (!resultado?.detalleEntidad) {
-      return false;
-    }
-
-    if (!this.presentacionMapaActivo) {
-      throw new Error(
-        "No se puede presentar el detalle de una entidad sin un mapa activo.",
-      );
-    }
-
-    this.presentacionMapaActivo.presentarDetalleEntidad(resultado.detalleEntidad);
-    return true;
-  }
-
-  presentarInteraccionResultado(resultado) {
-    if (!resultado?.interaccion) {
-      return false;
-    }
-
-    if (!this.presentacionMapaActivo) {
-      throw new Error(
-        "No se puede presentar una interacción sin un mapa activo.",
-      );
-    }
-
-    const interaccionPreparada = this.juego.prepararInteraccionContenedor(
-      resultado.interaccion,
-    );
-    this.presentacionMapaActivo.presentarInteraccion(interaccionPreparada);
-    return true;
-  }
-
-  procesarResultadoComandoHabilidad({
-    comando,
-    resultado,
-    contextoHabilidad,
-    estadoProcesamiento,
-  }) {
-    if (!contextoHabilidad.esComandoHabilidad) {
-      return { procesado: false, resultado };
-    }
-
-    const integracion =
-      this.presentacionMapaActivo?.obtenerIntegracionHabilidades() ?? null;
-
-    if (contextoHabilidad.esConfirmacion) {
-      integracion.registrarResultado(resultado);
-
-      const resultadoParaProcesar =
-        estadoProcesamiento.cambioEmitido &&
-        resultado &&
-        resultado.redibujar !== true
-          ? { ...resultado, redibujar: true }
-          : resultado;
-
-      return {
-        procesado: true,
-        resultado: this.procesarResultadoAccion(resultadoParaProcesar),
-      };
-    }
-
-    if (
-      contextoHabilidad.esBloqueoRespaldo ||
-      (contextoHabilidad.esSeleccionRanura &&
-        resultado?.exito === false &&
-        comando.silenciarRechazo !== true)
-    ) {
-      integracion.procesarResultado(resultado);
-    }
-
-    return { procesado: true, resultado };
-  }
-
   iniciarPreparacionMapa({
     crearConfiguracionMapa,
     alMapaActivado = null,
   } = {}) {
-    if (typeof crearConfiguracionMapa !== "function") {
-      throw new Error("La preparación de mapa necesita una fábrica válida.");
-    }
-    if (alMapaActivado !== null && typeof alMapaActivado !== "function") {
-      throw new Error("El cierre de preparación de mapa debe ser una función.");
-    }
-
-    const token = Object.freeze({ id: ++this.versionPreparacionMapa });
-    this.preparacionMapaActiva = token;
-
-    // Se corta la entrada antes de ceder el hilo al navegador. Así no existe
-    // una ventana donde el jugador o un clic tardío puedan actuar bajo Loading.
-    this.coordinadorEntradaJugable.invalidarSincronizacion();
-    this.presentacionMapaActivo?.suspender?.();
-
-    const promesa = this.ejecutarPreparacionMapa({
-      token,
+    return this.coordinadorTransicionesMapa.iniciar({
       crearConfiguracionMapa,
       alMapaActivado,
-    }).catch((error) => this.manejarErrorPreparacionMapa({ token, error }));
-
-    this.promesaPreparacionMapa = promesa;
-    return true;
-  }
-
-  async ejecutarPreparacionMapa({
-    token,
-    crearConfiguracionMapa,
-    alMapaActivado,
-  }) {
-    await this.presentadorCargaMapa.mostrar({ idCarga: token });
-    if (!this.esPreparacionMapaActiva(token)) return false;
-
-    const configuracionMapa = crearConfiguracionMapa();
-    validarConfiguracionMapa(configuracionMapa);
-    this.presentadorCargaMapa.actualizar({ idCarga: token, progreso: 0.12 });
-
-    await this.activarMapaPreparado(configuracionMapa, {
-      token,
-      alProgreso: ({ progreso = 0 } = {}) => {
-        if (!this.esPreparacionMapaActiva(token)) return;
-        this.presentadorCargaMapa.actualizar({
-          idCarga: token,
-          progreso: 0.12 + Math.min(1, Math.max(0, progreso)) * 0.78,
-        });
-      },
     });
-
-    if (!this.esPreparacionMapaActiva(token)) return false;
-    alMapaActivado?.(configuracionMapa);
-    this.presentadorCargaMapa.actualizar({ idCarga: token, progreso: 1 });
-
-    // El mapa ya fue compuesto. Mantenemos la cobertura durante al menos un
-    // pintado real y durante el mínimo visual acordado de un segundo.
-    await this.presentadorCargaMapa.esperarPintadoMapa({ idCarga: token });
-    if (!this.esPreparacionMapaActiva(token)) return false;
-    await this.presentadorCargaMapa.ocultar({ idCarga: token });
-    if (!this.esPreparacionMapaActiva(token)) return false;
-
-    this.presentacionMapaActivo?.activar();
-    this.preparacionMapaActiva = null;
-    return true;
-  }
-
-  async manejarErrorPreparacionMapa({ token, error }) {
-    console.error("No se pudo preparar el mapa:", error);
-    if (!this.esPreparacionMapaActiva(token)) return false;
-
-    try {
-      await this.presentadorCargaMapa.ocultar({ idCarga: token });
-    } catch (errorOcultando) {
-      console.error("No se pudo cerrar la pantalla de carga:", errorOcultando);
-    }
-
-    // Si el mapa anterior todavía conserva su presentación puede recuperar la
-    // entrada. En un fallo durante el primer mapa se vuelve al menú principal.
-    if (this.presentacionMapaActivo) {
-      this.presentacionMapaActivo.activar();
-    } else {
-      this.controladorPantallas.mostrarMenuPrincipal?.();
-    }
-
-    this.preparacionMapaActiva = null;
-    return false;
-  }
-
-  esPreparacionMapaActiva(token) {
-    return this.preparacionMapaActiva === token;
   }
 
   esperarPreparacionMapa() {
-    return this.promesaPreparacionMapa ?? Promise.resolve(true);
+    return this.coordinadorTransicionesMapa.esperar();
   }
 
   async activarMapaPreparado(configuracionMapa, {
@@ -882,7 +520,7 @@ export class ControladorPartida {
     // La precarga recibe un manifiesto visual neutral. Los enemigos ocultos
     // aportan sus rutas, nunca sus posiciones ni su estado de visibilidad.
     await renderizador.prepararMapa(juego, { alProgreso });
-    if (!this.esPreparacionMapaActiva(token)) {
+    if (!this.coordinadorTransicionesMapa.esActiva(token)) {
       juego.destruir({ preservarEfectosJugador: true });
       return false;
     }
@@ -1028,55 +666,6 @@ function validarJugadorRestaurado(jugador) {
   return jugador;
 }
 
-function crearContextoHabilidadParaComando({
-  comando,
-  integracionHabilidades,
-}) {
-  const sistemaHabilidades =
-    integracionHabilidades?.obtenerSistemaParaEntrada() ?? null;
-  const modoHabilidadAntes = sistemaHabilidades?.modoHabilidad === true;
-  const tipo = comando?.tipo;
-  const accionBasicaRanura =
-    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA
-      ? sistemaHabilidades?.obtenerAccionBasicaPorRanura?.(comando.indiceRanura) ?? null
-      : null;
-  const esSeleccionRanura =
-    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_HABILIDAD_RANURA &&
-    accionBasicaRanura === null;
-  const esSeleccionCasilla =
-    modoHabilidadAntes &&
-    tipo === TIPOS_COMANDO_JUGADOR.SELECCIONAR_CASILLA;
-  const esConfirmacion =
-    modoHabilidadAntes &&
-    (tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_O_CONFIRMAR_SELECCION ||
-      accionBasicaRanura === "atacar");
-  const esBloqueoRespaldo =
-    modoHabilidadAntes &&
-    tipo === TIPOS_COMANDO_JUGADOR.ACTIVAR_ATAQUE_RESPALDO;
-  const esMovimiento =
-    modoHabilidadAntes && tipo === TIPOS_COMANDO_JUGADOR.MOVER;
-  const esCancelacion =
-    modoHabilidadAntes &&
-    tipo === TIPOS_COMANDO_JUGADOR.CANCELAR_SELECCION;
-
-  return {
-    esSeleccionRanura,
-    esSeleccionCasilla,
-    esConfirmacion,
-    esBloqueoRespaldo,
-    esMovimiento,
-    esCancelacion,
-    esComandoHabilidad:
-      Boolean(sistemaHabilidades) &&
-      (esSeleccionRanura ||
-        esSeleccionCasilla ||
-        esConfirmacion ||
-        esBloqueoRespaldo ||
-        esMovimiento ||
-        esCancelacion),
-  };
-}
-
 function formatearConteo(conteo) {
   const elementos = Object.entries(conteo ?? {});
 
@@ -1091,20 +680,4 @@ function formatearConteo(conteo) {
 
 function formatearId(id) {
   return id.replaceAll("_", " ");
-}
-
-function validarConfiguracionMapa(configuracionMapa) {
-  if (
-    !configuracionMapa ||
-    !Array.isArray(configuracionMapa.map) ||
-    configuracionMapa.map.length === 0 ||
-    !configuracionMapa.player ||
-    !Array.isArray(configuracionMapa.objetivos) ||
-    !Array.isArray(configuracionMapa.interactuables) ||
-    !configuracionMapa.mapaSeleccionado
-  ) {
-    throw new Error(
-      "ControladorPartida recibió una configuración de mapa inválida.",
-    );
-  }
 }
